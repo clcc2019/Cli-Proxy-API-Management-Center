@@ -1,5 +1,10 @@
 import type { AmpcodeConfig, AmpcodeModelMapping, AmpcodeUpstreamApiKeyMapping, ApiKeyEntry } from '@/types';
-import { buildCandidateUsageSourceIds, type KeyStatBucket, type KeyStats } from '@/utils/usage';
+import {
+  buildCandidateUsageSourceIds,
+  type KeyStatBucket,
+  type KeyStats,
+  type UsageDetail,
+} from '@/utils/usage';
 import type { AmpcodeFormState, AmpcodeUpstreamApiKeyEntry, ModelEntry } from './types';
 
 export const DISABLE_ALL_MODELS_RULE = '*';
@@ -133,6 +138,22 @@ export const getOpenAIProviderStats = (
   });
 
   return { success, failure };
+};
+
+export const collectUsageDetailsForSources = (
+  usageDetailsBySource: Map<string, UsageDetail[]>,
+  sourceIds: Iterable<string>
+): UsageDetail[] => {
+  const collected: UsageDetail[] = [];
+
+  for (const sourceId of sourceIds) {
+    const bucket = usageDetailsBySource.get(sourceId);
+    if (bucket?.length) {
+      collected.push(...bucket);
+    }
+  }
+
+  return collected;
 };
 
 export const buildApiKeyEntry = (input?: Partial<ApiKeyEntry>): ApiKeyEntry => ({

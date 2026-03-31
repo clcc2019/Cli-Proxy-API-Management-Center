@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import {
@@ -39,7 +39,7 @@ interface CredentialBucket {
   failure: number;
 }
 
-export function CredentialStatsCard({
+export const CredentialStatsCard = memo(function CredentialStatsCard({
   usage,
   loading,
   geminiKeys,
@@ -326,4 +326,4 @@ export function CredentialStatsCard({
       )}
     </Card>
   );
-}
+});

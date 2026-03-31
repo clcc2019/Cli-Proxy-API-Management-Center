@@ -21,12 +21,16 @@ interface ProviderNavItem {
 }
 
 const PROVIDERS: ProviderNavItem[] = [
-  { id: 'gemini', label: 'Gemini', getIcon: () => iconGemini },
   { id: 'codex', label: 'Codex', getIcon: () => iconCodex },
+  { id: 'gemini', label: 'Gemini', getIcon: () => iconGemini },
   { id: 'claude', label: 'Claude', getIcon: () => iconClaude },
   { id: 'vertex', label: 'Vertex', getIcon: () => iconVertex },
   { id: 'ampcode', label: 'Ampcode', getIcon: () => iconAmp },
-  { id: 'openai', label: 'OpenAI', getIcon: (theme) => (theme === 'dark' ? iconOpenaiDark : iconOpenaiLight) },
+  {
+    id: 'openai',
+    label: 'OpenAI',
+    getIcon: (theme) => (theme === 'dark' ? iconOpenaiDark : iconOpenaiLight),
+  },
 ];
 
 const HEADER_OFFSET = 24;

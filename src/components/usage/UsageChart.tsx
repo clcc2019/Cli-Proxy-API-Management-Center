@@ -1,3 +1,4 @@
+import { memo, startTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChartOptions } from 'chart.js';
 import { Line } from 'react-chartjs-2';
@@ -18,7 +19,7 @@ export interface UsageChartProps {
   emptyText: string;
 }
 
-export function UsageChart({
+export const UsageChart = memo(function UsageChart({
   title,
   period,
   onPeriodChange,
@@ -38,14 +39,14 @@ export function UsageChart({
           <Button
             variant={period === 'hour' ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => onPeriodChange('hour')}
+            onClick={() => startTransition(() => onPeriodChange('hour'))}
           >
             {t('usage_stats.by_hour')}
           </Button>
           <Button
             variant={period === 'day' ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => onPeriodChange('day')}
+            onClick={() => startTransition(() => onPeriodChange('day'))}
           >
             {t('usage_stats.by_day')}
           </Button>
@@ -88,4 +89,4 @@ export function UsageChart({
       )}
     </Card>
   );
-}
+});

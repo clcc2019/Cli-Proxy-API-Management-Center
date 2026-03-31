@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { memo, startTransition, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ScriptableContext } from 'chart.js';
 import { Line } from 'react-chartjs-2';
@@ -35,7 +35,7 @@ function buildGradient(ctx: ScriptableContext<'line'>) {
   return gradient;
 }
 
-export function LatencyTrendChart({
+export const LatencyTrendChart = memo(function LatencyTrendChart({
   usage,
   loading,
   isDark,
@@ -98,14 +98,14 @@ export function LatencyTrendChart({
           <Button
             variant={period === 'hour' ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => setPeriod('hour')}
+            onClick={() => startTransition(() => setPeriod('hour'))}
           >
             {t('usage_stats.by_hour')}
           </Button>
           <Button
             variant={period === 'day' ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => setPeriod('day')}
+            onClick={() => startTransition(() => setPeriod('day'))}
           >
             {t('usage_stats.by_day')}
           </Button>
@@ -136,4 +136,4 @@ export function LatencyTrendChart({
       )}
     </Card>
   );
-}
+});

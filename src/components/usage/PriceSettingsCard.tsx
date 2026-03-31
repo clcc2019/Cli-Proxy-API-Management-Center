@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -14,7 +14,7 @@ export interface PriceSettingsCardProps {
   onPricesChange: (prices: Record<string, ModelPrice>) => void;
 }
 
-export function PriceSettingsCard({
+export const PriceSettingsCard = memo(function PriceSettingsCard({
   modelNames,
   modelPrices,
   onPricesChange
@@ -233,4 +233,4 @@ export function PriceSettingsCard({
       </Modal>
     </Card>
   );
-}
+});

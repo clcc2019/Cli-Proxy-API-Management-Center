@@ -15,12 +15,12 @@ import {
 import styles from '@/pages/AiProvidersPage.module.scss';
 import { ProviderList } from '../ProviderList';
 import { ProviderStatusBar } from '../ProviderStatusBar';
-import { getStatsBySource, hasDisableAllModelsRule } from '../utils';
+import { collectUsageDetailsForSources, getStatsBySource, hasDisableAllModelsRule } from '../utils';
 
 interface GeminiSectionProps {
   configs: GeminiKeyConfig[];
   keyStats: KeyStats;
-  usageDetails: UsageDetail[];
+  usageDetailsBySource: Map<string, UsageDetail[]>;
   loading: boolean;
   disableControls: boolean;
   isSwitching: boolean;
@@ -33,7 +33,7 @@ interface GeminiSectionProps {
 export function GeminiSection({
   configs,
   keyStats,
-  usageDetails,
+  usageDetailsBySource,
   loading,
   disableControls,
   isSwitching,
@@ -56,13 +56,12 @@ export function GeminiSection({
         prefix: config.prefix,
       });
       if (!candidates.length) return;
-      const candidateSet = new Set(candidates);
-      const filteredDetails = usageDetails.filter((detail) => candidateSet.has(detail.source));
+      const filteredDetails = collectUsageDetailsForSources(usageDetailsBySource, candidates);
       cache.set(config.apiKey, calculateStatusBarData(filteredDetails));
     });
 
     return cache;
-  }, [configs, usageDetails]);
+  }, [configs, usageDetailsBySource]);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { memo, startTransition, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Line } from 'react-chartjs-2';
 import { Card } from '@/components/ui/Card';
@@ -29,7 +29,7 @@ export interface TokenBreakdownChartProps {
   hourWindowHours?: number;
 }
 
-export function TokenBreakdownChart({
+export const TokenBreakdownChart = memo(function TokenBreakdownChart({
   usage,
   loading,
   isDark,
@@ -92,14 +92,14 @@ export function TokenBreakdownChart({
           <Button
             variant={period === 'hour' ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => setPeriod('hour')}
+            onClick={() => startTransition(() => setPeriod('hour'))}
           >
             {t('usage_stats.by_hour')}
           </Button>
           <Button
             variant={period === 'day' ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => setPeriod('day')}
+            onClick={() => startTransition(() => setPeriod('day'))}
           >
             {t('usage_stats.by_day')}
           </Button>
@@ -142,4 +142,4 @@ export function TokenBreakdownChart({
       )}
     </Card>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { formatCompactNumber, formatUsd, type ApiStats } from '@/utils/usage';
@@ -13,7 +13,7 @@ export interface ApiDetailsCardProps {
 type ApiSortKey = 'endpoint' | 'requests' | 'tokens' | 'cost';
 type SortDir = 'asc' | 'desc';
 
-export function ApiDetailsCard({ apiStats, loading, hasPrices }: ApiDetailsCardProps) {
+export const ApiDetailsCard = memo(function ApiDetailsCard({ apiStats, loading, hasPrices }: ApiDetailsCardProps) {
   const { t } = useTranslation();
   const [expandedApis, setExpandedApis] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<ApiSortKey>('requests');
@@ -155,4 +155,4 @@ export function ApiDetailsCard({ apiStats, loading, hasPrices }: ApiDetailsCardP
       )}
     </Card>
   );
-}
+});

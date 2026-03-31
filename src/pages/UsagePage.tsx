@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, startTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Chart as ChartJS,
@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Select } from '@/components/ui/Select';
+import { IconChevronDown } from '@/components/ui/icons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useThemeStore, useConfigStore } from '@/stores';
@@ -37,6 +38,7 @@ import {
   getModelNamesFromUsage,
   getApiStats,
   getModelStats,
+  formatCompactNumber,
   filterUsageByTimeRange,
   type UsageTimeRange
 } from '@/utils/usage';
@@ -120,7 +122,7 @@ const loadTimeRange = (): UsageTimeRange => {
 };
 
 export function UsagePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const isDark = resolvedTheme === 'dark';
@@ -148,6 +150,8 @@ export function UsagePage() {
   // Chart lines state
   const [chartLines, setChartLines] = useState<string[]>(loadChartLines);
   const [timeRange, setTimeRange] = useState<UsageTimeRange>(loadTimeRange);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [advancedMounted, setAdvancedMounted] = useState(false);
 
   const timeRangeOptions = useMemo(
     () =>
@@ -156,6 +160,11 @@ export function UsagePage() {
         label: t(opt.labelKey)
       })),
     [t]
+  );
+
+  const selectedTimeRangeLabel = useMemo(
+    () => timeRangeOptions.find((opt) => opt.value === timeRange)?.label ?? t('usage_stats.range_filter'),
+    [t, timeRange, timeRangeOptions]
   );
 
   const filteredUsage = useMemo(
@@ -167,6 +176,21 @@ export function UsagePage() {
 
   const handleChartLinesChange = useCallback((lines: string[]) => {
     setChartLines(normalizeChartLines(lines));
+  }, []);
+
+  const handleTimeRangeChange = useCallback((value: UsageTimeRange) => {
+    startTransition(() => {
+      setTimeRange(value);
+    });
+  }, []);
+
+  const handleAdvancedToggle = useCallback(() => {
+    startTransition(() => {
+      setAdvancedMounted(true);
+      setAdvancedOpen((open) => {
+        return !open;
+      });
+    });
   }, []);
 
   useEffect(() => {
@@ -202,6 +226,17 @@ export function UsagePage() {
     costSparkline
   } = useSparklines({ usage: filteredUsage, loading, nowMs });
 
+  const sparklines = useMemo(
+    () => ({
+      requests: requestsSparkline,
+      tokens: tokensSparkline,
+      rpm: rpmSparkline,
+      tpm: tpmSparkline,
+      cost: costSparkline
+    }),
+    [costSparkline, requestsSparkline, rpmSparkline, tpmSparkline, tokensSparkline]
+  );
+
   // Chart data hook
   const {
     requestsPeriod,
@@ -225,6 +260,16 @@ export function UsagePage() {
     [filteredUsage, modelPrices]
   );
   const hasPrices = Object.keys(modelPrices).length > 0;
+  const heroSuccessRate = useMemo(() => {
+    const totalRequests = filteredUsage?.total_requests ?? 0;
+    if (!totalRequests) return null;
+    const successRequests = filteredUsage?.success_count ?? 0;
+    return (successRequests / totalRequests) * 100;
+  }, [filteredUsage]);
+  const heroLastUpdated = lastRefreshedAt
+    ? lastRefreshedAt.toLocaleTimeString(i18n.language)
+    : '--';
+  const shouldRenderAdvanced = advancedOpen || advancedMounted;
 
   return (
     <div className={styles.container}>
@@ -245,7 +290,7 @@ export function UsagePage() {
             <Select
               value={timeRange}
               options={timeRangeOptions}
-              onChange={(value) => setTimeRange(value as UsageTimeRange)}
+              onChange={(value) => handleTimeRangeChange(value as UsageTimeRange)}
               className={styles.timeRangeSelectControl}
               ariaLabel={t('usage_stats.range_filter')}
               fullWidth={false}
@@ -286,11 +331,48 @@ export function UsagePage() {
           />
           {lastRefreshedAt && (
             <span className={styles.lastRefreshed}>
-              {t('usage_stats.last_updated')}: {lastRefreshedAt.toLocaleTimeString()}
+              {t('usage_stats.last_updated')}: {heroLastUpdated}
             </span>
           )}
         </div>
       </div>
+
+      <section className={styles.heroPanel} aria-label={t('usage_stats.title')}>
+        <div className={styles.heroContent}>
+          <p className={styles.heroDescription}>{t('usage_stats.dashboard_subtitle')}</p>
+          <div className={styles.heroPills}>
+            <span className={styles.heroPill}>
+              {t('usage_stats.range_filter')}: {selectedTimeRangeLabel}
+            </span>
+            <span className={styles.heroPill}>
+              {t('usage_stats.active_models')}: {formatCompactNumber(modelNames.length)}
+            </span>
+            <span className={styles.heroPill}>
+              {t('usage_stats.last_updated')}: {heroLastUpdated}
+            </span>
+          </div>
+        </div>
+        <div className={styles.heroStats}>
+          <div className={styles.heroStat}>
+            <span className={styles.heroStatLabel}>{t('usage_stats.total_requests')}</span>
+            <span className={styles.heroStatValue}>
+              {loading ? '--' : formatCompactNumber(filteredUsage?.total_requests ?? 0)}
+            </span>
+          </div>
+          <div className={styles.heroStat}>
+            <span className={styles.heroStatLabel}>{t('usage_stats.total_tokens')}</span>
+            <span className={styles.heroStatValue}>
+              {loading ? '--' : formatCompactNumber(filteredUsage?.total_tokens ?? 0)}
+            </span>
+          </div>
+          <div className={styles.heroStat}>
+            <span className={styles.heroStatLabel}>{t('usage_stats.success_rate')}</span>
+            <span className={styles.heroStatValue}>
+              {loading ? '--' : heroSuccessRate !== null ? `${heroSuccessRate.toFixed(1)}%` : '--'}
+            </span>
+          </div>
+        </div>
+      </section>
 
       {error && <div className={styles.errorBox}>{error}</div>}
 
@@ -300,13 +382,7 @@ export function UsagePage() {
         loading={loading}
         modelPrices={modelPrices}
         nowMs={nowMs}
-        sparklines={{
-          requests: requestsSparkline,
-          tokens: tokensSparkline,
-          rpm: rpmSparkline,
-          tpm: tpmSparkline,
-          cost: costSparkline
-        }}
+        sparklines={sparklines}
       />
 
       {/* Chart Line Selection */}
@@ -316,9 +392,6 @@ export function UsagePage() {
         maxLines={MAX_CHART_LINES}
         onChange={handleChartLinesChange}
       />
-
-      {/* Service Health */}
-      <ServiceHealthCard usage={usage} loading={loading} />
 
       {/* Charts Grid */}
       <div className={styles.chartsGrid}>
@@ -344,57 +417,85 @@ export function UsagePage() {
         />
       </div>
 
-      {/* Token Breakdown Chart */}
-      <TokenBreakdownChart
-        usage={filteredUsage}
-        loading={loading}
-        isDark={isDark}
-        isMobile={isMobile}
-        hourWindowHours={hourWindowHours}
-      />
+      <ServiceHealthCard usage={usage} loading={loading} />
 
-      {/* Latency Trend Chart */}
-      <LatencyTrendChart
-        usage={filteredUsage}
-        loading={loading}
-        isDark={isDark}
-        isMobile={isMobile}
-        hourWindowHours={hourWindowHours}
-      />
+      <section className={styles.advancedSection}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionHeaderText}>
+            <h2 className={styles.sectionTitle}>{t('common.advanced')}</h2>
+            <p className={styles.sectionDescription}>{t('usage_stats.advanced_hint')}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAdvancedToggle}
+            aria-expanded={advancedOpen}
+            aria-controls="usage-advanced-body"
+            className={styles.sectionToggle}
+          >
+            {advancedOpen ? t('common.collapse') : t('common.expand')}
+            <IconChevronDown
+              size={14}
+              className={`${styles.sectionToggleIcon} ${advancedOpen ? styles.sectionToggleIconOpen : ''}`}
+            />
+          </Button>
+        </div>
 
-      {/* Cost Trend Chart */}
-      <CostTrendChart
-        usage={filteredUsage}
-        loading={loading}
-        isDark={isDark}
-        isMobile={isMobile}
-        modelPrices={modelPrices}
-        hourWindowHours={hourWindowHours}
-      />
+        {shouldRenderAdvanced && (
+          <div
+            id="usage-advanced-body"
+            className={styles.advancedBody}
+            hidden={!advancedOpen}
+            aria-hidden={!advancedOpen}
+          >
+            <TokenBreakdownChart
+              usage={filteredUsage}
+              loading={loading}
+              isDark={isDark}
+              isMobile={isMobile}
+              hourWindowHours={hourWindowHours}
+            />
 
-      {/* Details Grid */}
-      <div className={styles.detailsGrid}>
-        <ApiDetailsCard apiStats={apiStats} loading={loading} hasPrices={hasPrices} />
-        <ModelStatsCard modelStats={modelStats} loading={loading} hasPrices={hasPrices} />
-      </div>
+            <LatencyTrendChart
+              usage={filteredUsage}
+              loading={loading}
+              isDark={isDark}
+              isMobile={isMobile}
+              hourWindowHours={hourWindowHours}
+            />
 
-      {/* Credential Stats */}
-      <CredentialStatsCard
-        usage={filteredUsage}
-        loading={loading}
-        geminiKeys={config?.geminiApiKeys || []}
-        claudeConfigs={config?.claudeApiKeys || []}
-        codexConfigs={config?.codexApiKeys || []}
-        vertexConfigs={config?.vertexApiKeys || []}
-        openaiProviders={config?.openaiCompatibility || []}
-      />
+            <CostTrendChart
+              usage={filteredUsage}
+              loading={loading}
+              isDark={isDark}
+              isMobile={isMobile}
+              modelPrices={modelPrices}
+              hourWindowHours={hourWindowHours}
+            />
 
-      {/* Price Settings */}
-      <PriceSettingsCard
-        modelNames={modelNames}
-        modelPrices={modelPrices}
-        onPricesChange={setModelPrices}
-      />
+            <div className={styles.detailsGrid}>
+              <ApiDetailsCard apiStats={apiStats} loading={loading} hasPrices={hasPrices} />
+              <ModelStatsCard modelStats={modelStats} loading={loading} hasPrices={hasPrices} />
+            </div>
+
+            <CredentialStatsCard
+              usage={filteredUsage}
+              loading={loading}
+              geminiKeys={config?.geminiApiKeys || []}
+              claudeConfigs={config?.claudeApiKeys || []}
+              codexConfigs={config?.codexApiKeys || []}
+              vertexConfigs={config?.vertexApiKeys || []}
+              openaiProviders={config?.openaiCompatibility || []}
+            />
+
+            <PriceSettingsCard
+              modelNames={modelNames}
+              modelPrices={modelPrices}
+              onPricesChange={setModelPrices}
+            />
+          </div>
+        )}
+      </section>
     </div>
   );
 }

@@ -43,6 +43,7 @@
     "copy": "Copy",
     "expand": "Expand",
     "collapse": "Collapse",
+    "advanced": "Advanced",
     "status": "Status",
     "action": "Action",
     "custom_headers_label": "Custom Headers",
@@ -939,6 +940,9 @@
   },
   "usage_stats": {
     "title": "Usage Statistics",
+    "dashboard_subtitle": "Track requests, tokens, cost, latency, and provider health at a glance.",
+    "advanced_hint": "Open the advanced section for token mix, latency, cost, credential stats, and pricing.",
+    "active_models": "Active Models",
     "total_requests": "Total Requests",
     "success_requests": "Success Requests",
     "failed_requests": "Failed Requests",

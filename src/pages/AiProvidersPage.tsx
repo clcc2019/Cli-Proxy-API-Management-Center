@@ -59,7 +59,7 @@ export function AiProvidersPage() {
   const disableControls = connectionStatus !== 'connected';
   const isSwitching = Boolean(configSwitchingKey);
 
-  const { keyStats, usageDetails, loadKeyStats, refreshKeyStats } = useProviderStats();
+  const { keyStats, usageDetailsBySource, loadKeyStats, refreshKeyStats } = useProviderStats();
 
   const getErrorMessage = (err: unknown) => {
     if (err instanceof Error) return err.message;
@@ -205,11 +205,7 @@ export function AiProvidersPage() {
     }
 
     const source =
-      provider === 'codex'
-        ? codexConfigs
-        : provider === 'claude'
-          ? claudeConfigs
-          : vertexConfigs;
+      provider === 'codex' ? codexConfigs : provider === 'claude' ? claudeConfigs : vertexConfigs;
     const current = source[index];
     if (!current) return;
 
@@ -275,7 +271,9 @@ export function AiProvidersPage() {
     const entry = source[index];
     if (!entry) return;
     showConfirmation({
-      title: t(`ai_providers.${type}_delete_title`, { defaultValue: `Delete ${type === 'codex' ? 'Codex' : 'Claude'} Config` }),
+      title: t(`ai_providers.${type}_delete_title`, {
+        defaultValue: `Delete ${type === 'codex' ? 'Codex' : 'Claude'} Config`,
+      }),
       message: t(`ai_providers.${type}_delete_confirm`),
       variant: 'danger',
       confirmText: t('common.confirm'),
@@ -358,26 +356,11 @@ export function AiProvidersPage() {
       <div className={styles.content}>
         {error && <div className="error-box">{error}</div>}
 
-        <div id="provider-gemini">
-          <GeminiSection
-            configs={geminiKeys}
-            keyStats={keyStats}
-            usageDetails={usageDetails}
-            loading={loading}
-            disableControls={disableControls}
-            isSwitching={isSwitching}
-            onAdd={() => openEditor('/ai-providers/gemini/new')}
-            onEdit={(index) => openEditor(`/ai-providers/gemini/${index}`)}
-            onDelete={deleteGemini}
-            onToggle={(index, enabled) => void setConfigEnabled('gemini', index, enabled)}
-          />
-        </div>
-
         <div id="provider-codex">
           <CodexSection
             configs={codexConfigs}
             keyStats={keyStats}
-            usageDetails={usageDetails}
+            usageDetailsBySource={usageDetailsBySource}
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
@@ -388,11 +371,26 @@ export function AiProvidersPage() {
           />
         </div>
 
+        <div id="provider-gemini">
+          <GeminiSection
+            configs={geminiKeys}
+            keyStats={keyStats}
+            usageDetailsBySource={usageDetailsBySource}
+            loading={loading}
+            disableControls={disableControls}
+            isSwitching={isSwitching}
+            onAdd={() => openEditor('/ai-providers/gemini/new')}
+            onEdit={(index) => openEditor(`/ai-providers/gemini/${index}`)}
+            onDelete={deleteGemini}
+            onToggle={(index, enabled) => void setConfigEnabled('gemini', index, enabled)}
+          />
+        </div>
+
         <div id="provider-claude">
           <ClaudeSection
             configs={claudeConfigs}
             keyStats={keyStats}
-            usageDetails={usageDetails}
+            usageDetailsBySource={usageDetailsBySource}
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
@@ -407,7 +405,7 @@ export function AiProvidersPage() {
           <VertexSection
             configs={vertexConfigs}
             keyStats={keyStats}
-            usageDetails={usageDetails}
+            usageDetailsBySource={usageDetailsBySource}
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
@@ -432,7 +430,7 @@ export function AiProvidersPage() {
           <OpenAISection
             configs={openaiProviders}
             keyStats={keyStats}
-            usageDetails={usageDetails}
+            usageDetailsBySource={usageDetailsBySource}
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}

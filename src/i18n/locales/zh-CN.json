@@ -43,6 +43,7 @@
     "copy": "复制",
     "expand": "展开",
     "collapse": "收起",
+    "advanced": "高级",
     "status": "状态",
     "action": "操作",
     "custom_headers_label": "自定义请求头",
@@ -939,6 +940,9 @@
   },
   "usage_stats": {
     "title": "使用统计",
+    "dashboard_subtitle": "一眼查看请求、Token、成本、延迟和服务健康状态。",
+    "advanced_hint": "展开高级区可查看 Token 组成、延迟、成本、凭证统计和价格设置。",
+    "active_models": "活跃模型",
     "total_requests": "总请求数",
     "success_requests": "成功请求",
     "failed_requests": "失败请求",

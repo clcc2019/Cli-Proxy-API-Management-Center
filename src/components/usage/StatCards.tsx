@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties, type ReactNode } from 'react';
+import { memo, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Line } from 'react-chartjs-2';
 import { IconDiamond, IconDollarSign, IconSatellite, IconTimer, IconTrendingUp } from '@/components/ui/icons';
@@ -42,7 +42,7 @@ export interface StatCardsProps {
   };
 }
 
-export function StatCards({ usage, loading, modelPrices, nowMs, sparklines }: StatCardsProps) {
+export const StatCards = memo(function StatCards({ usage, loading, modelPrices, nowMs, sparklines }: StatCardsProps) {
   const { t } = useTranslation();
 
   const hasPrices = Object.keys(modelPrices).length > 0;
@@ -234,4 +234,4 @@ export function StatCards({ usage, loading, modelPrices, nowMs, sparklines }: St
       ))}
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
 import defaultStyles from '@/pages/AiProvidersPage.module.scss';
@@ -44,7 +44,10 @@ interface ProviderStatusBarProps {
   styles?: StylesModule;
 }
 
-export function ProviderStatusBar({ statusData, styles: stylesProp }: ProviderStatusBarProps) {
+export const ProviderStatusBar = memo(function ProviderStatusBar({
+  statusData,
+  styles: stylesProp
+}: ProviderStatusBarProps) {
   const { t } = useTranslation();
   const s = (stylesProp || defaultStyles) as StylesModule;
   const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
@@ -147,4 +150,4 @@ export function ProviderStatusBar({ statusData, styles: stylesProp }: ProviderSt
       </span>
     </div>
   );
-}
+});

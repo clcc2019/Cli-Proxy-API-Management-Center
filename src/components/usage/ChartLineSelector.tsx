@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, startTransition, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,7 @@ export interface ChartLineSelectorProps {
   onChange: (lines: string[]) => void;
 }
 
-export function ChartLineSelector({
+export const ChartLineSelector = memo(function ChartLineSelector({
   chartLines,
   modelNames,
   maxLines = 9,
@@ -24,9 +24,9 @@ export function ChartLineSelector({
     if (chartLines.length >= maxLines) return;
     const unusedModel = modelNames.find((m) => !chartLines.includes(m));
     if (unusedModel) {
-      onChange([...chartLines, unusedModel]);
+      startTransition(() => onChange([...chartLines, unusedModel]));
     } else {
-      onChange([...chartLines, 'all']);
+      startTransition(() => onChange([...chartLines, 'all']));
     }
   };
 
@@ -34,13 +34,13 @@ export function ChartLineSelector({
     if (chartLines.length <= 1) return;
     const newLines = [...chartLines];
     newLines.splice(index, 1);
-    onChange(newLines);
+    startTransition(() => onChange(newLines));
   };
 
   const handleChange = (index: number, value: string) => {
     const newLines = [...chartLines];
     newLines[index] = value;
-    onChange(newLines);
+    startTransition(() => onChange(newLines));
   };
 
   const options = useMemo(
@@ -92,4 +92,4 @@ export function ChartLineSelector({
       <p className={styles.chartLineHint}>{t('usage_stats.chart_line_hint')}</p>
     </Card>
   );
-}
+});

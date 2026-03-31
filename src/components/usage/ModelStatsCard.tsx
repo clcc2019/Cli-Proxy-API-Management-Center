@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { formatCompactNumber, formatUsd } from '@/utils/usage';
@@ -26,7 +26,7 @@ interface ModelStatWithRate extends ModelStat {
   successRate: number;
 }
 
-export function ModelStatsCard({ modelStats, loading, hasPrices }: ModelStatsCardProps) {
+export const ModelStatsCard = memo(function ModelStatsCard({ modelStats, loading, hasPrices }: ModelStatsCardProps) {
   const { t } = useTranslation();
   const [sortKey, setSortKey] = useState<SortKey>('requests');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -156,4 +156,4 @@ export function ModelStatsCard({ modelStats, loading, hasPrices }: ModelStatsCar
       )}
     </Card>
   );
-}
+});

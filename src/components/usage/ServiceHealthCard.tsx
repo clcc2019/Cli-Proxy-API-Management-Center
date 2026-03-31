@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { memo, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -59,7 +59,7 @@ export interface ServiceHealthCardProps {
   loading: boolean;
 }
 
-export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
+export const ServiceHealthCard = memo(function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
   const { t } = useTranslation();
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltipState | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -267,4 +267,4 @@ export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
       </div>
     </div>
   );
-}
+});

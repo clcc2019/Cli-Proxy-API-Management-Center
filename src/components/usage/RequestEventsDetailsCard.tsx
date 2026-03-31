@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -65,7 +65,7 @@ const encodeCsv = (value: string | number): string => {
   return `"${safeText.replace(/"/g, '""')}"`;
 };
 
-export function RequestEventsDetailsCard({
+export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
   usage,
   loading,
   geminiKeys,
@@ -485,4 +485,4 @@ export function RequestEventsDetailsCard({
       )}
     </Card>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
@@ -33,6 +33,7 @@ import {
   STATUS_GROUPS,
   resolveStatusGroup,
   type LogState,
+  type ParsedLogLine,
 } from './hooks/logTypes';
 import { parseLogLine } from './hooks/logParsing';
 import { useLogFilters } from './hooks/useLogFilters';
@@ -101,6 +102,7 @@ export function LogsPage() {
   });
 
   const logScrollerRef = useRef<ReturnType<typeof useLogScroller> | null>(null);
+  const parsedLogCacheRef = useRef(new Map<string, ParsedLogLine>());
   const longPressRef = useRef<{
     timer: number | null;
     startX: number;
@@ -114,6 +116,20 @@ export function LogsPage() {
   const latestTimestampRef = useRef<number>(0);
 
   const disableControls = connectionStatus !== 'connected';
+  const parseLogLineCached = useCallback((raw: string): ParsedLogLine => {
+    const cache = parsedLogCacheRef.current;
+    const cached = cache.get(raw);
+    if (cached) {
+      return cached;
+    }
+
+    const parsed = parseLogLine(raw);
+    if (cache.size > MAX_BUFFER_LINES * 4) {
+      cache.clear();
+    }
+    cache.set(raw, parsed);
+    return parsed;
+  }, []);
 
   const loadLogs = async (incremental = false) => {
     if (connectionStatus !== 'connected') {
@@ -309,8 +325,8 @@ export function LogsPage() {
       working = working.filter((line) => line.toLowerCase().includes(queryLowered));
     }
 
-    return working.map((line) => parseLogLine(line));
-  }, [baseLines, hideManagementLogs, trimmedSearchQuery]);
+    return working.map((line) => parseLogLineCached(line));
+  }, [baseLines, hideManagementLogs, parseLogLineCached, trimmedSearchQuery]);
 
   const filters = useLogFilters({ parsedLines: parsedSearchLines });
   const structuredFiltersPanelId = 'logs-structured-filters';
