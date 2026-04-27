@@ -78,6 +78,7 @@ export function LoginPage() {
   const restoreSession = useAuthStore((state) => state.restoreSession);
   const storedBase = useAuthStore((state) => state.apiBase);
   const storedKey = useAuthStore((state) => state.managementKey);
+  const storedRememberPassword = useAuthStore((state) => state.rememberPassword);
 
   const [apiBase, setApiBase] = useState('');
   const [managementKey, setManagementKey] = useState('');
@@ -122,7 +123,7 @@ export function LoginPage() {
         } else {
           setApiBase(storedBase || detectedBase);
           setManagementKey(storedKey || '');
-          setRememberPassword(true);
+          setRememberPassword(storedRememberPassword);
         }
       } finally {
         if (!autoLoginSuccess) {

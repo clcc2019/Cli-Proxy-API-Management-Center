@@ -269,7 +269,8 @@ export const useAuthStore = create<AuthStoreState>()(
       })),
       partialize: (state) => ({
         apiBase: state.apiBase,
-        ...(state.rememberPassword && isLoginSessionValid(state.loginExpiresAt)
+        ...(state.rememberPassword &&
+        (state.loginExpiresAt === null || isLoginSessionValid(state.loginExpiresAt))
           ? { managementKey: state.managementKey }
           : {}),
         rememberPassword: state.rememberPassword,
