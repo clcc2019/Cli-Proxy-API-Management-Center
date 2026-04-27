@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AuthState, LoginCredentials, ConnectionStatus } from '@/types';
-import { STORAGE_KEY_AUTH } from '@/utils/constants';
+import { AUTH_SESSION_DURATION_MS, STORAGE_KEY_AUTH } from '@/utils/constants';
 import { obfuscatedStorage } from '@/services/storage/secureStorage';
 import { apiClient } from '@/services/api/client';
 import { useConfigStore } from './useConfigStore';
@@ -28,6 +28,12 @@ interface AuthStoreState extends AuthState {
 }
 
 let restoreSessionPromise: Promise<boolean> | null = null;
+const LEGACY_LOGGED_IN_KEY = 'isLoggedIn';
+
+const createLoginExpiresAt = () => Date.now() + AUTH_SESSION_DURATION_MS;
+
+const isLoginSessionValid = (expiresAt: number | null | undefined): expiresAt is number =>
+  typeof expiresAt === 'number' && Number.isFinite(expiresAt) && expiresAt > Date.now();
 
 export const useAuthStore = create<AuthStoreState>()(
   persist(
@@ -36,7 +42,8 @@ export const useAuthStore = create<AuthStoreState>()(
       isAuthenticated: false,
       apiBase: '',
       managementKey: '',
-      rememberPassword: false,
+      rememberPassword: true,
+      loginExpiresAt: null,
       serverVersion: null,
       serverBuildDate: null,
       connectionStatus: 'disconnected',
@@ -49,30 +56,53 @@ export const useAuthStore = create<AuthStoreState>()(
         restoreSessionPromise = (async () => {
           obfuscatedStorage.migratePlaintextKeys(['apiBase', 'apiUrl', 'managementKey']);
 
-          const wasLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+          const wasLoggedIn = localStorage.getItem(LEGACY_LOGGED_IN_KEY) === 'true';
           const legacyBase =
             obfuscatedStorage.getItem<string>('apiBase') ||
             obfuscatedStorage.getItem<string>('apiUrl', { encrypt: true });
           const legacyKey = obfuscatedStorage.getItem<string>('managementKey');
 
-          const { apiBase, managementKey, rememberPassword } = get();
-          const resolvedBase = normalizeApiBase(apiBase || legacyBase || detectApiBaseFromLocation());
+          const { apiBase, managementKey, rememberPassword, loginExpiresAt } = get();
+          const hasValidSession = isLoginSessionValid(loginExpiresAt);
+          const shouldMigrateLegacySession = wasLoggedIn && !loginExpiresAt;
+          const resolvedBase = normalizeApiBase(
+            apiBase || legacyBase || detectApiBaseFromLocation()
+          );
           const resolvedKey = managementKey || legacyKey || '';
-          const resolvedRememberPassword = rememberPassword || Boolean(managementKey) || Boolean(legacyKey);
+          const resolvedRememberPassword =
+            rememberPassword ||
+            Boolean(managementKey) ||
+            Boolean(legacyKey) ||
+            shouldMigrateLegacySession;
+
+          if (loginExpiresAt && !hasValidSession) {
+            localStorage.removeItem(LEGACY_LOGGED_IN_KEY);
+            set({
+              isAuthenticated: false,
+              apiBase: resolvedBase,
+              managementKey: '',
+              loginExpiresAt: null,
+              connectionStatus: 'disconnected',
+              connectionError: null,
+            });
+            apiClient.setConfig({ apiBase: resolvedBase, managementKey: '' });
+            return false;
+          }
 
           set({
             apiBase: resolvedBase,
             managementKey: resolvedKey,
-            rememberPassword: resolvedRememberPassword
+            rememberPassword: resolvedRememberPassword,
+            loginExpiresAt: shouldMigrateLegacySession ? createLoginExpiresAt() : loginExpiresAt,
           });
           apiClient.setConfig({ apiBase: resolvedBase, managementKey: resolvedKey });
 
-          if (wasLoggedIn && resolvedBase && resolvedKey) {
+          if ((hasValidSession || shouldMigrateLegacySession) && resolvedBase && resolvedKey) {
             try {
               await get().login({
                 apiBase: resolvedBase,
                 managementKey: resolvedKey,
-                rememberPassword: resolvedRememberPassword
+                rememberPassword: resolvedRememberPassword,
               });
               return true;
             } catch (error) {
@@ -100,11 +130,13 @@ export const useAuthStore = create<AuthStoreState>()(
           // 配置 API 客户端
           apiClient.setConfig({
             apiBase,
-            managementKey
+            managementKey,
           });
 
           // 测试连接 - 获取配置
           await useConfigStore.getState().fetchConfig(undefined, true);
+
+          const loginExpiresAt = rememberPassword ? createLoginExpiresAt() : null;
 
           // 登录成功
           set({
@@ -112,13 +144,14 @@ export const useAuthStore = create<AuthStoreState>()(
             apiBase,
             managementKey,
             rememberPassword,
+            loginExpiresAt,
             connectionStatus: 'connected',
-            connectionError: null
+            connectionError: null,
           });
           if (rememberPassword) {
-            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem(LEGACY_LOGGED_IN_KEY, 'true');
           } else {
-            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem(LEGACY_LOGGED_IN_KEY);
           }
         } catch (error: unknown) {
           const message =
@@ -129,7 +162,7 @@ export const useAuthStore = create<AuthStoreState>()(
                 : 'Connection failed';
           set({
             connectionStatus: 'error',
-            connectionError: message || 'Connection failed'
+            connectionError: message || 'Connection failed',
           });
           throw error;
         }
@@ -145,19 +178,32 @@ export const useAuthStore = create<AuthStoreState>()(
           isAuthenticated: false,
           apiBase: '',
           managementKey: '',
+          loginExpiresAt: null,
           serverVersion: null,
           serverBuildDate: null,
           connectionStatus: 'disconnected',
-          connectionError: null
+          connectionError: null,
         });
-        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem(LEGACY_LOGGED_IN_KEY);
       },
 
       // 检查认证状态
       checkAuth: async () => {
-        const { managementKey, apiBase } = get();
+        const { managementKey, apiBase, rememberPassword, loginExpiresAt } = get();
 
         if (!managementKey || !apiBase) {
+          return false;
+        }
+
+        if (rememberPassword && !isLoginSessionValid(loginExpiresAt)) {
+          localStorage.removeItem(LEGACY_LOGGED_IN_KEY);
+          set({
+            isAuthenticated: false,
+            managementKey: '',
+            loginExpiresAt: null,
+            connectionStatus: 'disconnected',
+          });
+          apiClient.setConfig({ apiBase, managementKey: '' });
           return false;
         }
 
@@ -170,14 +216,14 @@ export const useAuthStore = create<AuthStoreState>()(
 
           set({
             isAuthenticated: true,
-            connectionStatus: 'connected'
+            connectionStatus: 'connected',
           });
 
           return true;
         } catch {
           set({
             isAuthenticated: false,
-            connectionStatus: 'error'
+            connectionStatus: 'error',
           });
           return false;
         }
@@ -192,9 +238,9 @@ export const useAuthStore = create<AuthStoreState>()(
       updateConnectionStatus: (status, error = null) => {
         set({
           connectionStatus: status,
-          connectionError: error
+          connectionError: error,
         });
-      }
+      },
     }),
     {
       name: STORAGE_KEY_AUTH,
@@ -208,15 +254,18 @@ export const useAuthStore = create<AuthStoreState>()(
         },
         removeItem: (name) => {
           obfuscatedStorage.removeItem(name);
-        }
+        },
       })),
       partialize: (state) => ({
         apiBase: state.apiBase,
-        ...(state.rememberPassword ? { managementKey: state.managementKey } : {}),
+        ...(state.rememberPassword && isLoginSessionValid(state.loginExpiresAt)
+          ? { managementKey: state.managementKey }
+          : {}),
         rememberPassword: state.rememberPassword,
+        loginExpiresAt: state.rememberPassword ? state.loginExpiresAt : null,
         serverVersion: state.serverVersion,
-        serverBuildDate: state.serverBuildDate
-      })
+        serverBuildDate: state.serverBuildDate,
+      }),
     }
   )
 );
@@ -227,11 +276,8 @@ if (typeof window !== 'undefined') {
     useAuthStore.getState().logout();
   });
 
-  window.addEventListener(
-    'server-version-update',
-    ((e: CustomEvent) => {
-      const detail = e.detail || {};
-      useAuthStore.getState().updateServerVersion(detail.version || null, detail.buildDate || null);
-    }) as EventListener
-  );
+  window.addEventListener('server-version-update', ((e: CustomEvent) => {
+    const detail = e.detail || {};
+    useAuthStore.getState().updateServerVersion(detail.version || null, detail.buildDate || null);
+  }) as EventListener);
 }

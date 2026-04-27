@@ -16,6 +16,7 @@ export interface AuthState {
   apiBase: string;
   managementKey: string;
   rememberPassword: boolean;
+  loginExpiresAt: number | null;
   serverVersion: string | null;
   serverBuildDate: string | null;
 }
