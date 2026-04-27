@@ -30,6 +30,7 @@ type RequestEventRow = {
   timestampMs: number;
   timestampLabel: string;
   model: string;
+  modelReasoningEffort: string | null;
   sourceKey: string;
   sourceRaw: string;
   source: string;
@@ -170,6 +171,7 @@ export function RequestEventsDetailsCard({
           timestampMs: Number.isNaN(timestampMs) ? 0 : timestampMs,
           timestampLabel: date ? date.toLocaleString(i18n.language) : timestamp || '-',
           model,
+          modelReasoningEffort: detail.modelReasoningEffort ?? null,
           sourceKey,
           sourceRaw: sourceRaw || '-',
           source,
@@ -314,6 +316,7 @@ export function RequestEventsDetailsCard({
     const csvHeader = [
       'timestamp',
       'model',
+      'model_reasoning_effort',
       'source',
       'source_raw',
       'auth_index',
@@ -330,6 +333,7 @@ export function RequestEventsDetailsCard({
       [
         row.timestamp,
         row.model,
+        row.modelReasoningEffort ?? '',
         row.source,
         row.sourceRaw,
         row.authIndex,
@@ -359,6 +363,9 @@ export function RequestEventsDetailsCard({
     const payload = filteredRows.map((row) => ({
       timestamp: row.timestamp,
       model: row.model,
+      ...(row.modelReasoningEffort
+        ? { model_reasoning_effort: row.modelReasoningEffort }
+        : {}),
       source: row.source,
       source_raw: row.sourceRaw,
       auth_index: row.authIndex,
@@ -488,6 +495,7 @@ export function RequestEventsDetailsCard({
                 <tr>
                   <th>{t('usage_stats.request_events_timestamp')}</th>
                   <th>{t('usage_stats.model_name')}</th>
+                  <th>{t('usage_stats.request_events_model_reasoning_effort')}</th>
                   <th>{t('usage_stats.request_events_source')}</th>
                   <th>{t('usage_stats.request_events_auth_index')}</th>
                   <th>{t('usage_stats.request_events_result')}</th>
@@ -506,6 +514,9 @@ export function RequestEventsDetailsCard({
                       {row.timestampLabel}
                     </td>
                     <td className={styles.modelCell}>{row.model}</td>
+                    <td title={row.modelReasoningEffort ?? '-'}>
+                      {row.modelReasoningEffort ?? '-'}
+                    </td>
                     <td className={styles.requestEventsSourceCell} title={row.source}>
                       <span>{row.source}</span>
                       {row.sourceType && (

@@ -58,6 +58,7 @@ import {
   writePersistedAuthFilesCompactMode,
   type AuthFilesSortMode,
 } from '@/features/authFiles/uiState';
+import type { AuthFileItem } from '@/types';
 import { useAuthStore, useNotificationStore, useThemeStore } from '@/stores';
 import styles from './AuthFilesPage.module.scss';
 
@@ -75,6 +76,23 @@ const buildWildcardSearch = (value: string): RegExp | null => {
   if (!value.includes('*')) return null;
   const pattern = value.split('*').map(escapeWildcardSearchSegment).join('.*');
   return new RegExp(pattern, 'i');
+};
+
+const compareAuthFilePriority = (a: AuthFileItem, b: AuthFileItem) => {
+  const disabledA = a.disabled === true;
+  const disabledB = b.disabled === true;
+  if (disabledA !== disabledB) return disabledA ? 1 : -1;
+
+  const pa = parsePriorityValue(a.priority ?? a['priority']) ?? 0;
+  const pb = parsePriorityValue(b.priority ?? b['priority']) ?? 0;
+  if (pa !== pb) return pb - pa;
+
+  const providerA = normalizeProviderKey(String(a.provider ?? a.type ?? 'unknown'));
+  const providerB = normalizeProviderKey(String(b.provider ?? b.type ?? 'unknown'));
+  const providerCompare = providerA.localeCompare(providerB);
+  if (providerCompare !== 0) return providerCompare;
+
+  return a.name.localeCompare(b.name);
 };
 
 export function AuthFilesPage() {
@@ -421,11 +439,7 @@ export function AuthFilesPage() {
     } else if (sortMode === 'az') {
       copy.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortMode === 'priority') {
-      copy.sort((a, b) => {
-        const pa = parsePriorityValue(a.priority ?? a['priority']) ?? 0;
-        const pb = parsePriorityValue(b.priority ?? b['priority']) ?? 0;
-        return pb - pa; // 高优先级排前面
-      });
+      copy.sort(compareAuthFilePriority);
     }
     return copy;
   }, [filtered, sortMode]);

@@ -1052,6 +1052,7 @@
     "request_events_filter_auth_index": "驗證索引",
     "request_events_timestamp": "時間",
     "request_events_source": "來源",
+    "request_events_model_reasoning_effort": "模型推理強度",
     "request_events_auth_index": "驗證索引",
     "request_events_result": "結果",
     "time": "延遲",

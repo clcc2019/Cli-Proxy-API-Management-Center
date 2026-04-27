@@ -58,6 +58,7 @@ export interface UsageDetail {
   source: string;
   auth_index: string | number | null;
   latency_ms?: number;
+  modelReasoningEffort?: string;
   tokens: {
     input_tokens: number;
     output_tokens: number;
@@ -500,6 +501,83 @@ export function formatUsd(value: number): string {
 
 const usageDetailsCache = new WeakMap<object, UsageDetail[]>();
 const usageDetailsWithEndpointCache = new WeakMap<object, UsageDetailWithEndpoint[]>();
+const MODEL_REASONING_EFFORT_CANDIDATE_PATHS = [
+  ['model_reasoning_effort'],
+  ['modelReasoningEffort'],
+  ['reasoning_effort'],
+  ['reasoningEffort'],
+  ['reasoning', 'effort'],
+  ['reasoning'],
+  ['thinking_effort'],
+  ['thinkingEffort'],
+  ['thinking', 'effort'],
+  ['thinking_budget'],
+  ['thinkingBudget'],
+  ['thinking', 'budget'],
+  ['thinking'],
+  ['generationConfig', 'thinkingConfig', 'thinkingBudget'],
+  ['request', 'reasoning_effort'],
+  ['request', 'reasoningEffort'],
+  ['request', 'reasoning', 'effort'],
+  ['request', 'thinking_budget'],
+  ['request', 'thinkingBudget'],
+  ['request', 'generationConfig', 'thinkingConfig', 'thinkingBudget'],
+  ['request_body', 'reasoning_effort'],
+  ['request_body', 'reasoningEffort'],
+  ['request_body', 'reasoning', 'effort'],
+  ['request_body', 'thinking_budget'],
+  ['request_body', 'thinkingBudget'],
+  ['request_body', 'generationConfig', 'thinkingConfig', 'thinkingBudget'],
+  ['requestBody', 'reasoning_effort'],
+  ['requestBody', 'reasoningEffort'],
+  ['requestBody', 'reasoning', 'effort'],
+  ['requestBody', 'thinking_budget'],
+  ['requestBody', 'thinkingBudget'],
+  ['requestBody', 'generationConfig', 'thinkingConfig', 'thinkingBudget'],
+  ['extra_body', 'reasoning_effort'],
+  ['extra_body', 'reasoningEffort'],
+  ['extra_body', 'reasoning', 'effort'],
+  ['extra_body', 'thinking_budget'],
+  ['extra_body', 'thinkingBudget'],
+  ['extra_body', 'generationConfig', 'thinkingConfig', 'thinkingBudget'],
+  ['extraBody', 'reasoning_effort'],
+  ['extraBody', 'reasoningEffort'],
+  ['extraBody', 'reasoning', 'effort'],
+  ['extraBody', 'thinking_budget'],
+  ['extraBody', 'thinkingBudget'],
+  ['extraBody', 'generationConfig', 'thinkingConfig', 'thinkingBudget'],
+] as const;
+
+const getNestedValue = (record: Record<string, unknown>, path: readonly string[]): unknown => {
+  let current: unknown = record;
+  for (const segment of path) {
+    if (!isRecord(current)) return undefined;
+    current = current[segment];
+  }
+  return current;
+};
+
+const normalizeModelReasoningEffortValue = (value: unknown): string | null => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : null;
+  }
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return null;
+};
+
+const extractModelReasoningEffort = (detail: Record<string, unknown>): string | null => {
+  for (const path of MODEL_REASONING_EFFORT_CANDIDATE_PATHS) {
+    const normalized = normalizeModelReasoningEffortValue(getNestedValue(detail, path));
+    if (normalized) return normalized;
+  }
+  return null;
+};
 
 /**
  * 从使用数据中收集所有请求明细
@@ -558,6 +636,7 @@ export function collectUsageDetails(usageData: unknown): UsageDetail[] {
               detailRaw?.AuthIndex ??
               null) as UsageDetail['auth_index'],
           latency_ms: latencyMs ?? undefined,
+          modelReasoningEffort: extractModelReasoningEffort(detailRaw) ?? undefined,
           tokens: tokensRaw as unknown as UsageDetail['tokens'],
           failed: detailRaw.failed === true,
           __modelName: modelName,
@@ -635,6 +714,7 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
               detailRaw?.AuthIndex ??
               null) as UsageDetail['auth_index'],
           latency_ms: latencyMs ?? undefined,
+          modelReasoningEffort: extractModelReasoningEffort(detailRaw) ?? undefined,
           tokens: tokensRaw as unknown as UsageDetail['tokens'],
           failed: detailRaw.failed === true,
           __modelName: modelName,
