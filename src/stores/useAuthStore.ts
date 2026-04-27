@@ -12,6 +12,7 @@ import { apiClient } from '@/services/api/client';
 import { useConfigStore } from './useConfigStore';
 import { useUsageStatsStore } from './useUsageStatsStore';
 import { useModelsStore } from './useModelsStore';
+import { useQuotaStore } from './useQuotaStore';
 import { detectApiBaseFromLocation, normalizeApiBase } from '@/utils/connection';
 
 interface AuthStoreState extends AuthState {
@@ -77,6 +78,7 @@ export const useAuthStore = create<AuthStoreState>()(
 
           if (loginExpiresAt && !hasValidSession) {
             localStorage.removeItem(LEGACY_LOGGED_IN_KEY);
+            useQuotaStore.getState().clearQuotaCache();
             set({
               isAuthenticated: false,
               apiBase: resolvedBase,
@@ -122,6 +124,9 @@ export const useAuthStore = create<AuthStoreState>()(
         const apiBase = normalizeApiBase(credentials.apiBase);
         const managementKey = credentials.managementKey.trim();
         const rememberPassword = credentials.rememberPassword ?? get().rememberPassword ?? false;
+        const previous = get();
+        const connectionChanged =
+          previous.apiBase !== apiBase || previous.managementKey !== managementKey;
 
         try {
           set({ connectionStatus: 'connecting' });
@@ -135,6 +140,10 @@ export const useAuthStore = create<AuthStoreState>()(
 
           // 测试连接 - 获取配置
           await useConfigStore.getState().fetchConfig(undefined, true);
+
+          if (connectionChanged) {
+            useQuotaStore.getState().clearQuotaCache();
+          }
 
           const loginExpiresAt = rememberPassword ? createLoginExpiresAt() : null;
 
@@ -174,6 +183,7 @@ export const useAuthStore = create<AuthStoreState>()(
         useConfigStore.getState().clearCache();
         useUsageStatsStore.getState().clearUsageStats();
         useModelsStore.getState().clearCache();
+        useQuotaStore.getState().clearQuotaCache();
         set({
           isAuthenticated: false,
           apiBase: '',
@@ -197,6 +207,7 @@ export const useAuthStore = create<AuthStoreState>()(
 
         if (rememberPassword && !isLoginSessionValid(loginExpiresAt)) {
           localStorage.removeItem(LEGACY_LOGGED_IN_KEY);
+          useQuotaStore.getState().clearQuotaCache();
           set({
             isAuthenticated: false,
             managementKey: '',

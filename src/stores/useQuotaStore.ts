@@ -1,9 +1,18 @@
 /**
- * Quota cache that survives route switches.
+ * Quota cache that survives route switches and page reloads.
  */
 
 import { create } from 'zustand';
-import type { AntigravityQuotaState, ClaudeQuotaState, CodexQuotaState, GeminiCliQuotaState, KimiQuotaState } from '@/types';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type {
+  AntigravityQuotaState,
+  ClaudeQuotaState,
+  CodexQuotaState,
+  GeminiCliQuotaState,
+  KimiQuotaState,
+} from '@/types';
+import { obfuscatedStorage } from '@/services/storage/secureStorage';
+import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
 
@@ -21,45 +30,78 @@ interface QuotaStoreState {
   clearQuotaCache: () => void;
 }
 
-const resolveUpdater = <T,>(updater: QuotaUpdater<T>, prev: T): T => {
+const resolveUpdater = <T>(updater: QuotaUpdater<T>, prev: T): T => {
   if (typeof updater === 'function') {
     return (updater as (value: T) => T)(prev);
   }
   return updater;
 };
 
-export const useQuotaStore = create<QuotaStoreState>((set) => ({
-  antigravityQuota: {},
-  claudeQuota: {},
-  codexQuota: {},
-  geminiCliQuota: {},
-  kimiQuota: {},
-  setAntigravityQuota: (updater) =>
-    set((state) => ({
-      antigravityQuota: resolveUpdater(updater, state.antigravityQuota)
-    })),
-  setClaudeQuota: (updater) =>
-    set((state) => ({
-      claudeQuota: resolveUpdater(updater, state.claudeQuota)
-    })),
-  setCodexQuota: (updater) =>
-    set((state) => ({
-      codexQuota: resolveUpdater(updater, state.codexQuota)
-    })),
-  setGeminiCliQuota: (updater) =>
-    set((state) => ({
-      geminiCliQuota: resolveUpdater(updater, state.geminiCliQuota)
-    })),
-  setKimiQuota: (updater) =>
-    set((state) => ({
-      kimiQuota: resolveUpdater(updater, state.kimiQuota)
-    })),
-  clearQuotaCache: () =>
-    set({
+const pickSuccessfulQuota = <T extends { status?: string }>(
+  quota: Record<string, T>
+): Record<string, T> =>
+  Object.fromEntries(
+    Object.entries(quota).filter(([, item]) => item?.status === 'success')
+  ) as Record<string, T>;
+
+export const useQuotaStore = create<QuotaStoreState>()(
+  persist(
+    (set) => ({
       antigravityQuota: {},
       claudeQuota: {},
       codexQuota: {},
       geminiCliQuota: {},
-      kimiQuota: {}
-    })
-}));
+      kimiQuota: {},
+      setAntigravityQuota: (updater) =>
+        set((state) => ({
+          antigravityQuota: resolveUpdater(updater, state.antigravityQuota),
+        })),
+      setClaudeQuota: (updater) =>
+        set((state) => ({
+          claudeQuota: resolveUpdater(updater, state.claudeQuota),
+        })),
+      setCodexQuota: (updater) =>
+        set((state) => ({
+          codexQuota: resolveUpdater(updater, state.codexQuota),
+        })),
+      setGeminiCliQuota: (updater) =>
+        set((state) => ({
+          geminiCliQuota: resolveUpdater(updater, state.geminiCliQuota),
+        })),
+      setKimiQuota: (updater) =>
+        set((state) => ({
+          kimiQuota: resolveUpdater(updater, state.kimiQuota),
+        })),
+      clearQuotaCache: () =>
+        set({
+          antigravityQuota: {},
+          claudeQuota: {},
+          codexQuota: {},
+          geminiCliQuota: {},
+          kimiQuota: {},
+        }),
+    }),
+    {
+      name: STORAGE_KEY_QUOTA_CACHE,
+      storage: createJSONStorage(() => ({
+        getItem: (name) => {
+          const data = obfuscatedStorage.getItem<QuotaStoreState>(name);
+          return data ? JSON.stringify(data) : null;
+        },
+        setItem: (name, value) => {
+          obfuscatedStorage.setItem(name, JSON.parse(value));
+        },
+        removeItem: (name) => {
+          obfuscatedStorage.removeItem(name);
+        },
+      })),
+      partialize: (state) => ({
+        antigravityQuota: pickSuccessfulQuota(state.antigravityQuota),
+        claudeQuota: pickSuccessfulQuota(state.claudeQuota),
+        codexQuota: pickSuccessfulQuota(state.codexQuota),
+        geminiCliQuota: pickSuccessfulQuota(state.geminiCliQuota),
+        kimiQuota: pickSuccessfulQuota(state.kimiQuota),
+      }),
+    }
+  )
+);
