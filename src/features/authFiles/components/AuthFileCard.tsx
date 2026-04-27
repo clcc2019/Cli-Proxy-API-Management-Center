@@ -7,6 +7,7 @@ import {
   IconDownload,
   IconInfo,
   IconModelCluster,
+  IconRefreshCw,
   IconSettings,
   IconTrash2,
 } from '@/components/ui/icons';
@@ -30,6 +31,7 @@ import {
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
 import { AuthFileQuotaSection } from '@/features/authFiles/components/AuthFileQuotaSection';
+import { useAuthFileQuotaRefresh } from '@/features/authFiles/hooks/useAuthFileQuotaRefresh';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 const HEALTHY_STATUS_MESSAGES = new Set(['ok', 'healthy', 'ready', 'success', 'available']);
@@ -58,6 +60,46 @@ const resolveQuotaType = (file: AuthFileItem): QuotaProviderType | null => {
   if (!QUOTA_PROVIDER_TYPES.has(provider as QuotaProviderType)) return null;
   return provider as QuotaProviderType;
 };
+
+type AuthFileQuotaRefreshActionProps = {
+  file: AuthFileItem;
+  quotaType: QuotaProviderType;
+  disableControls: boolean;
+};
+
+function AuthFileQuotaRefreshAction({
+  file,
+  quotaType,
+  disableControls,
+}: AuthFileQuotaRefreshActionProps) {
+  const { t } = useTranslation();
+  const { config, isQuotaLoading, canRefreshQuota, refreshQuotaForFile } = useAuthFileQuotaRefresh(
+    file,
+    quotaType,
+    disableControls
+  );
+  const refreshLabel = t('auth_files.quota_refresh_single', {
+    defaultValue: t(`${config.i18nPrefix}.refresh_button`),
+  });
+  const refreshTitle = t('auth_files.quota_refresh_hint', {
+    defaultValue: refreshLabel,
+  });
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={() => void refreshQuotaForFile()}
+      className={styles.iconButton}
+      title={refreshTitle}
+      aria-label={refreshTitle}
+      disabled={!canRefreshQuota || isQuotaLoading}
+      loading={isQuotaLoading}
+    >
+      {!isQuotaLoading && <IconRefreshCw className={styles.actionIcon} size={16} />}
+    </Button>
+  );
+}
 
 export function AuthFileCard(props: AuthFileCardProps) {
   const { t } = useTranslation();
@@ -292,6 +334,13 @@ export function AuthFileCard(props: AuthFileCardProps) {
                   >
                     <IconSettings className={styles.actionIcon} size={16} />
                   </Button>
+                  {quotaType && (
+                    <AuthFileQuotaRefreshAction
+                      file={file}
+                      quotaType={quotaType}
+                      disableControls={disableControls}
+                    />
+                  )}
                   <Button
                     variant="danger"
                     size="sm"

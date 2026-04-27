@@ -620,6 +620,7 @@
     "prefix_proxy_invalid_json": "Этот файл авторизации не является JSON-объектом, поэтому поля нельзя редактировать.",
     "prefix_proxy_saved_success": "Файл авторизации \"{{name}}\" успешно обновлён",
     "card_tools_title": "Инструменты",
+    "quota_not_loaded": "Обновить и загрузить квоту",
     "quota_refresh_single": "Обновить квоту",
     "quota_refresh_hint": "Обновить квоту только для этих учётных данных",
     "quota_refresh_success": "Квота для \"{{name}}\" обновлена",

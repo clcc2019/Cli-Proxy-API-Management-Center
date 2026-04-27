@@ -1,0 +1,102 @@
+import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import {
+  ANTIGRAVITY_CONFIG,
+  CLAUDE_CONFIG,
+  CODEX_CONFIG,
+  GEMINI_CLI_CONFIG,
+  KIMI_CONFIG,
+} from '@/components/quota';
+import { useNotificationStore, useQuotaStore } from '@/stores';
+import type { AuthFileItem } from '@/types';
+import { getStatusFromError } from '@/utils/quota';
+import { isRuntimeOnlyAuthFile, type QuotaProviderType } from '@/features/authFiles/constants';
+
+export type AuthFileQuotaState =
+  | { status?: string; error?: string; errorStatus?: number }
+  | undefined;
+
+export const getAuthFileQuotaConfig = (type: QuotaProviderType) => {
+  if (type === 'antigravity') return ANTIGRAVITY_CONFIG;
+  if (type === 'claude') return CLAUDE_CONFIG;
+  if (type === 'codex') return CODEX_CONFIG;
+  if (type === 'kimi') return KIMI_CONFIG;
+  return GEMINI_CLI_CONFIG;
+};
+
+export function useAuthFileQuotaRefresh(
+  file: AuthFileItem,
+  quotaType: QuotaProviderType,
+  disableControls: boolean
+) {
+  const { t } = useTranslation();
+  const showNotification = useNotificationStore((state) => state.showNotification);
+
+  const quota = useQuotaStore((state) => {
+    if (quotaType === 'antigravity') return state.antigravityQuota[file.name] as AuthFileQuotaState;
+    if (quotaType === 'claude') return state.claudeQuota[file.name] as AuthFileQuotaState;
+    if (quotaType === 'codex') return state.codexQuota[file.name] as AuthFileQuotaState;
+    if (quotaType === 'kimi') return state.kimiQuota[file.name] as AuthFileQuotaState;
+    return state.geminiCliQuota[file.name] as AuthFileQuotaState;
+  });
+
+  const updateQuotaState = useQuotaStore((state) => {
+    if (quotaType === 'antigravity')
+      return state.setAntigravityQuota as unknown as (updater: unknown) => void;
+    if (quotaType === 'claude')
+      return state.setClaudeQuota as unknown as (updater: unknown) => void;
+    if (quotaType === 'codex') return state.setCodexQuota as unknown as (updater: unknown) => void;
+    if (quotaType === 'kimi') return state.setKimiQuota as unknown as (updater: unknown) => void;
+    return state.setGeminiCliQuota as unknown as (updater: unknown) => void;
+  });
+
+  const config = getAuthFileQuotaConfig(quotaType) as unknown as {
+    i18nPrefix: string;
+    fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<unknown>;
+    buildLoadingState: () => unknown;
+    buildSuccessState: (data: unknown) => unknown;
+    buildErrorState: (message: string, status?: number) => unknown;
+    renderQuotaItems: (quota: unknown, t: TFunction, helpers: unknown) => unknown;
+  };
+
+  const quotaStatus = quota?.status ?? 'idle';
+  const isQuotaLoading = quotaStatus === 'loading';
+  const canRefreshQuota = !disableControls && !file.disabled && !isRuntimeOnlyAuthFile(file);
+
+  const refreshQuotaForFile = useCallback(async () => {
+    if (!canRefreshQuota) return;
+    if (isQuotaLoading) return;
+
+    updateQuotaState((prev: Record<string, unknown>) => ({
+      ...prev,
+      [file.name]: config.buildLoadingState(),
+    }));
+
+    try {
+      const data = await config.fetchQuota(file, t);
+      updateQuotaState((prev: Record<string, unknown>) => ({
+        ...prev,
+        [file.name]: config.buildSuccessState(data),
+      }));
+      showNotification(t('auth_files.quota_refresh_success', { name: file.name }), 'success');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('common.unknown_error');
+      const status = getStatusFromError(err);
+      updateQuotaState((prev: Record<string, unknown>) => ({
+        ...prev,
+        [file.name]: config.buildErrorState(message, status),
+      }));
+      showNotification(t('auth_files.quota_refresh_failed', { name: file.name, message }), 'error');
+    }
+  }, [canRefreshQuota, config, file, isQuotaLoading, showNotification, t, updateQuotaState]);
+
+  return {
+    config,
+    quota,
+    quotaStatus,
+    isQuotaLoading,
+    canRefreshQuota,
+    refreshQuotaForFile,
+  };
+}
