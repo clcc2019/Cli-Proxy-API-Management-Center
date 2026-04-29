@@ -1835,7 +1835,9 @@
   background: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
 }
 
+.prefixProxyTokenPanel + .prefixProxyFields,
 .prefixProxyTokenPanel + .prefixProxyJsonWrapper,
+.prefixProxyFields + .prefixProxyJsonWrapper,
 .prefixProxyJsonWrapper + .prefixProxyJsonWrapper,
 .prefixProxyJsonWrapper + .prefixProxyFields {
   padding-top: $spacing-md;
