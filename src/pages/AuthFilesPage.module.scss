@@ -101,7 +101,6 @@
   }
 }
 
-
 .filterAllIconWrap {
   position: relative;
   border-color: color-mix(in srgb, var(--primary-color) 20%, var(--border-color));
@@ -119,7 +118,6 @@
   display: block;
   color: color-mix(in srgb, var(--primary-color) 70%, var(--text-primary));
 }
-
 
 .filterContent {
   display: flex;
@@ -982,6 +980,10 @@
     gap: 3px;
   }
 
+  .cardActionCluster {
+    gap: 3px;
+  }
+
   .cardStatusActions {
     gap: 3px;
   }
@@ -1226,9 +1228,10 @@
 
 .cardBadgeRow {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
+  row-gap: 4px;
   min-width: 0;
   max-width: 100%;
   overflow: visible;
@@ -2159,12 +2162,19 @@
 .cardActionsMain {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   min-width: 0;
   flex: 1;
-  flex-wrap: nowrap;
-  justify-content: space-between;
+  justify-content: flex-start;
   width: 100%;
+}
+
+.cardActionCluster {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .modelsActionButton:global(.btn.btn-sm) {
@@ -2205,11 +2215,6 @@
   align-items: center;
   flex: 0 1 auto;
   min-width: 0;
-}
-
-.debugToggle {
-  padding-left: 0;
-  border-left: 0;
 }
 
 .cardToggleSwitch > span:first-of-type {
@@ -2323,9 +2328,7 @@
 }
 
 .refreshActionButton:global(.btn.btn-sm) {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 249, 253, 0.96)),
-    #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 249, 253, 0.96)), #fff;
   border-color: #d6dfeb;
   color: #1f2937;
   box-shadow:
@@ -2378,7 +2381,11 @@
   .cardActionsMain {
     gap: 4px;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+
+  .cardActionCluster {
+    gap: 4px;
   }
 
   .cardUtilityActions {
@@ -2397,11 +2404,6 @@
     padding-left: 0;
     flex: 0 0 auto;
   }
-
-  .debugToggle {
-    border-left: 0;
-    padding-left: 0;
-  }
 }
 
 @media (max-width: 640px) {
@@ -2411,6 +2413,10 @@
   }
 
   .cardActionsMain {
+    gap: 3px;
+  }
+
+  .cardActionCluster {
     gap: 3px;
   }
 
@@ -2468,6 +2474,10 @@
     gap: 3px;
   }
 
+  .cardActionCluster {
+    gap: 3px;
+  }
+
   .cardStatusActions {
     gap: 3px;
     justify-content: flex-end;
@@ -2520,6 +2530,7 @@
 
 @media (max-width: 360px) {
   .cardActionsMain,
+  .cardActionCluster,
   .cardUtilityActions,
   .cardStatusActions {
     gap: 2px;

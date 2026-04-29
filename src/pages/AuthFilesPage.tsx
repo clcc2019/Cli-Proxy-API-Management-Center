@@ -180,7 +180,6 @@ export function AuthFilesPage() {
     deleting,
     deletingAll,
     statusUpdating,
-    handshakeDebugUpdating,
     batchStatusUpdating,
     fileInputRef,
     loadFiles,
@@ -190,7 +189,6 @@ export function AuthFilesPage() {
     handleDeleteAll,
     handleDownload,
     handleStatusToggle,
-    handleWebsocketHandshakeDebugToggle,
     applyLocalFilePatch,
     toggleSelect,
     selectAllVisible,
@@ -679,10 +677,7 @@ export function AuthFilesPage() {
           'success'
         );
       } else {
-        showNotification(
-          t('auth_files.batch_quota_refresh_partial', resultCounts),
-          'warning'
-        );
+        showNotification(t('auth_files.batch_quota_refresh_partial', resultCounts), 'warning');
       }
     } finally {
       setBatchQuotaRefreshing(false);
@@ -1081,7 +1076,6 @@ export function AuthFilesPage() {
                     disableControls={disableControls}
                     deleting={deleting}
                     statusUpdating={statusUpdating}
-                    handshakeDebugUpdating={handshakeDebugUpdating}
                     quotaFilterType={quotaFilterType}
                     planBadge={planBadgeMap.get(file.name) ?? null}
                     keyStats={keyStats}
@@ -1092,7 +1086,6 @@ export function AuthFilesPage() {
                     onOpenPrefixProxyEditor={openPrefixProxyEditor}
                     onDelete={handleDelete}
                     onToggleStatus={handleStatusToggle}
-                    onToggleWebsocketHandshakeDebug={handleWebsocketHandshakeDebugToggle}
                     onToggleSelect={toggleSelect}
                   />
                 ))}

@@ -3,23 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
-import {
-  IconExternalLink,
-  IconLink,
-  IconShield,
-  IconStar,
-} from '@/components/ui/icons';
+import { IconExternalLink, IconLink, IconShield, IconStar } from '@/components/ui/icons';
 import iconGemini from '@/assets/icons/gemini.svg';
 import type { GeminiKeyConfig } from '@/types';
-import {
-  buildCandidateUsageSourceIds,
-  calculateStatusBarData,
-  type KeyStats,
-} from '@/utils/usage';
-import {
-  collectUsageDetailsForCandidates,
-  type UsageDetailsBySource,
-} from '@/utils/usageIndex';
+import { buildCandidateUsageSourceIds, calculateStatusBarData, type KeyStats } from '@/utils/usage';
+import { collectUsageDetailsForCandidates, type UsageDetailsBySource } from '@/utils/usageIndex';
 import styles from '@/pages/AiProvidersPage.module.scss';
 import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 import { ProviderList } from '../ProviderList';
@@ -41,7 +29,6 @@ interface GeminiSectionProps {
 
 export function GeminiSection({
   configs,
-  keyStats,
   usageDetailsBySource,
   loading,
   disableControls,
@@ -125,14 +112,14 @@ export function GeminiSection({
                   {item.priority !== undefined &&
                     item.priority !== null &&
                     Number.isFinite(item.priority) && (
-                    <ProviderDetailRow
-                      icon={<IconStar size={20} />}
-                      label={t('common.priority')}
-                      tone="priority"
-                    >
-                      {item.priority}
-                    </ProviderDetailRow>
-                  )}
+                      <ProviderDetailRow
+                        icon={<IconStar size={20} />}
+                        label={t('common.priority')}
+                        tone="priority"
+                      >
+                        {item.priority}
+                      </ProviderDetailRow>
+                    )}
                   {item.baseUrl && (
                     <ProviderDetailRow
                       icon={<IconLink size={20} />}
@@ -177,13 +164,13 @@ export function GeminiSection({
                   />
                   {item.models?.length
                     ? item.models.map((model) => (
-                      <span key={model.name} className={styles.modelTag}>
-                        <span className={styles.modelName}>{model.name}</span>
-                        {model.alias && model.alias !== model.name && (
-                          <span className={styles.modelAlias}>{model.alias}</span>
-                        )}
-                      </span>
-                    ))
+                        <span key={model.name} className={styles.modelTag}>
+                          <span className={styles.modelName}>{model.name}</span>
+                          {model.alias && model.alias !== model.name && (
+                            <span className={styles.modelAlias}>{model.alias}</span>
+                          )}
+                        </span>
+                      ))
                     : null}
                 </div>
                 {excludedModels.length ? (
@@ -193,7 +180,10 @@ export function GeminiSection({
                     </div>
                     <div className={styles.modelTagList}>
                       {excludedModels.map((model) => (
-                        <span key={model} className={`${styles.modelTag} ${styles.excludedModelTag}`}>
+                        <span
+                          key={model}
+                          className={`${styles.modelTag} ${styles.excludedModelTag}`}
+                        >
                           <span className={styles.modelName}>{model}</span>
                         </span>
                       ))}

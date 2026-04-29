@@ -11,7 +11,6 @@ import {
   getTypeLabel,
   hasAuthFileStatusMessage,
   isRuntimeOnlyAuthFile,
-  readAuthFileWebsocketHandshakeDebug,
 } from '@/features/authFiles/constants';
 
 type DeleteAllOptions = {
@@ -32,7 +31,6 @@ export type UseAuthFilesDataResult = {
   deleting: string | null;
   deletingAll: boolean;
   statusUpdating: Record<string, boolean>;
-  handshakeDebugUpdating: Record<string, boolean>;
   batchStatusUpdating: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
   loadFiles: () => Promise<void>;
@@ -42,7 +40,6 @@ export type UseAuthFilesDataResult = {
   handleDeleteAll: (options: DeleteAllOptions) => void;
   handleDownload: (name: string) => Promise<void>;
   handleStatusToggle: (item: AuthFileItem, enabled: boolean) => Promise<void>;
-  handleWebsocketHandshakeDebugToggle: (item: AuthFileItem, enabled: boolean) => Promise<void>;
   applyLocalFilePatch: (name: string, patch: Partial<AuthFileItem>) => void;
   toggleSelect: (name: string) => void;
   selectAllVisible: (visibleFiles: AuthFileItem[]) => void;
@@ -69,7 +66,6 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({});
-  const [handshakeDebugUpdating, setHandshakeDebugUpdating] = useState<Record<string, boolean>>({});
   const [batchStatusUpdating, setBatchStatusUpdating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
 
@@ -124,13 +120,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   }, []);
 
   const applyDeletedFiles = useCallback((names: string[]) => {
-    const deletedNames = Array.from(
-      new Set(
-        names
-          .map((name) => name.trim())
-          .filter(Boolean)
-      )
-    );
+    const deletedNames = Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
     if (deletedNames.length === 0) return;
 
     const deletedSet = new Set(deletedNames);
@@ -254,9 +244,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
 
         if (result.failed.length > 0) {
-          const details = result.failed
-            .map((item) => `${item.name}: ${item.error}`)
-            .join('; ');
+          const details = result.failed.map((item) => `${item.name}: ${item.error}`).join('; ');
           showNotification(`${t('notification.upload_failed')}: ${details}`, 'error');
         }
       } catch (err: unknown) {
@@ -442,57 +430,6 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     [showNotification, t]
   );
 
-  const handleWebsocketHandshakeDebugToggle = useCallback(
-    async (item: AuthFileItem, enabled: boolean) => {
-      const name = item.name;
-      const previousEnabled = readAuthFileWebsocketHandshakeDebug(item);
-
-      setHandshakeDebugUpdating((prev) => ({ ...prev, [name]: true }));
-      setFiles((prev) =>
-        prev.map((f) => (f.name === name ? { ...f, websocket_handshake_debug: enabled } : f))
-      );
-
-      try {
-        const res = await authFilesApi.patchFields({
-          name,
-          websocket_handshake_debug: enabled,
-        });
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.name === name
-              ? {
-                  ...f,
-                  ...(res.file ?? { websocket_handshake_debug: enabled }),
-                }
-              : f
-          )
-        );
-        showNotification(
-          enabled
-            ? t('auth_files.websocket_handshake_debug_enabled_success', { name })
-            : t('auth_files.websocket_handshake_debug_disabled_success', { name }),
-          'success'
-        );
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : '';
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.name === name ? { ...f, websocket_handshake_debug: previousEnabled } : f
-          )
-        );
-        showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
-      } finally {
-        setHandshakeDebugUpdating((prev) => {
-          if (!prev[name]) return prev;
-          const next = { ...prev };
-          delete next[name];
-          return next;
-        });
-      }
-    },
-    [showNotification, t]
-  );
-
   const batchSetStatus = useCallback(
     async (names: string[], enabled: boolean) => {
       if (batchStatusPendingRef.current) return;
@@ -561,7 +498,10 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         );
 
         if (failCount === 0) {
-          showNotification(t('auth_files.batch_status_success', { count: successCount }), 'success');
+          showNotification(
+            t('auth_files.batch_status_success', { count: successCount }),
+            'success'
+          );
         } else {
           showNotification(
             t('auth_files.batch_status_partial', { success: successCount, failed: failCount }),
@@ -633,7 +573,10 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           applyDeletedFiles(result.files);
 
           if (result.failed.length === 0) {
-            showNotification(`${t('auth_files.delete_all_success')} (${result.deleted})`, 'success');
+            showNotification(
+              `${t('auth_files.delete_all_success')} (${result.deleted})`,
+              'success'
+            );
           } else {
             showNotification(
               t('auth_files.delete_filtered_partial', {
@@ -665,7 +608,6 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     deleting,
     deletingAll,
     statusUpdating,
-    handshakeDebugUpdating,
     batchStatusUpdating,
     fileInputRef,
     loadFiles,
@@ -675,7 +617,6 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     handleDeleteAll,
     handleDownload,
     handleStatusToggle,
-    handleWebsocketHandshakeDebugToggle,
     applyLocalFilePatch,
     toggleSelect,
     selectAllVisible,

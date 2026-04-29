@@ -35,7 +35,6 @@ import {
   getTypeLabel,
   isRuntimeOnlyAuthFile,
   parsePriorityValue,
-  readAuthFileWebsocketHandshakeDebug,
   readAuthFileWebsockets,
   resolveAuthFileStats,
   resolveAuthFileUsageStats,
@@ -62,7 +61,6 @@ export type AuthFileCardProps = {
   disableControls: boolean;
   deleting: string | null;
   statusUpdating: Record<string, boolean>;
-  handshakeDebugUpdating: Record<string, boolean>;
   quotaFilterType: QuotaProviderType | null;
   planBadge: AuthFilePlanBadgeInfo | null;
   keyStats: KeyStats;
@@ -73,7 +71,6 @@ export type AuthFileCardProps = {
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
   onToggleStatus: (file: AuthFileItem, enabled: boolean) => void;
-  onToggleWebsocketHandshakeDebug: (file: AuthFileItem, enabled: boolean) => void;
   onToggleSelect: (name: string) => void;
 };
 
@@ -93,7 +90,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
     disableControls,
     deleting,
     statusUpdating,
-    handshakeDebugUpdating,
     quotaFilterType,
     planBadge,
     keyStats,
@@ -104,7 +100,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
     onOpenPrefixProxyEditor,
     onDelete,
     onToggleStatus,
-    onToggleWebsocketHandshakeDebug,
     onToggleSelect,
   } = props;
 
@@ -117,8 +112,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
   const typeLabel = getTypeLabel(t, file.type || 'unknown');
   const providerIcon = getAuthFileIcon(file.type || 'unknown', resolvedTheme);
   const websocketsEnabled = readAuthFileWebsockets(file);
-  const websocketHandshakeDebugEnabled = readAuthFileWebsocketHandshakeDebug(file);
-  const showWebsocketHandshakeDebug = websocketsEnabled === true;
   const websocketsBadgeLabel =
     websocketsEnabled === null
       ? null
@@ -236,14 +229,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
                     {websocketsBadgeLabel}
                   </span>
                 )}
-                {showWebsocketHandshakeDebug && websocketHandshakeDebugEnabled && (
-                  <span
-                    className={`${styles.featureBadge} ${styles.featureBadgeWarning}`}
-                    title={t('auth_files.websocket_handshake_debug_hint')}
-                  >
-                    {t('auth_files.websocket_handshake_debug_badge')}
-                  </span>
-                )}
               </div>
               <span className={styles.fileName} title={file.name}>
                 {file.name}
@@ -335,56 +320,58 @@ export function AuthFileCard(props: AuthFileCardProps) {
 
           <div className={styles.cardActions}>
             <div className={styles.cardActionsMain}>
-              {showModelsButton && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onShowModels(file)}
-                  className={`${styles.iconButton} ${styles.modelsActionButton}`}
-                  title={t('auth_files.models_button', { defaultValue: '模型' })}
-                  disabled={disableControls}
-                >
-                  <IconModelCluster className={styles.actionIcon} size={18} />
-                </Button>
-              )}
-              {!isRuntimeOnly && (
-                <div className={styles.cardUtilityActions}>
+              <div className={styles.cardActionCluster}>
+                {showModelsButton && (
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => onDownload(file.name)}
-                    className={styles.iconButton}
-                    title={t('auth_files.download_button')}
+                    onClick={() => onShowModels(file)}
+                    className={`${styles.iconButton} ${styles.modelsActionButton}`}
+                    title={t('auth_files.models_button', { defaultValue: '模型' })}
                     disabled={disableControls}
                   >
-                    <IconDownload className={styles.actionIcon} size={18} />
+                    <IconModelCluster className={styles.actionIcon} size={18} />
                   </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onOpenPrefixProxyEditor(file)}
-                    className={styles.iconButton}
-                    title={t('auth_files.prefix_proxy_button')}
-                    disabled={disableControls}
-                  >
-                    <IconSettings className={styles.actionIcon} size={18} />
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => onDelete(file.name)}
-                    className={styles.iconButton}
-                    title={t('auth_files.delete_button')}
-                    disabled={disableControls || deleting === file.name}
-                  >
-                    {deleting === file.name ? (
-                      <LoadingSpinner size={17} />
-                    ) : (
-                      <IconTrash2 className={styles.actionIcon} size={18} />
-                    )}
-                  </Button>
-                </div>
-              )}
+                )}
+                {!isRuntimeOnly && (
+                  <div className={styles.cardUtilityActions}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onDownload(file.name)}
+                      className={styles.iconButton}
+                      title={t('auth_files.download_button')}
+                      disabled={disableControls}
+                    >
+                      <IconDownload className={styles.actionIcon} size={18} />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onOpenPrefixProxyEditor(file)}
+                      className={styles.iconButton}
+                      title={t('auth_files.prefix_proxy_button')}
+                      disabled={disableControls}
+                    >
+                      <IconSettings className={styles.actionIcon} size={18} />
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => onDelete(file.name)}
+                      className={styles.iconButton}
+                      title={t('auth_files.delete_button')}
+                      disabled={disableControls || deleting === file.name}
+                    >
+                      {deleting === file.name ? (
+                        <LoadingSpinner size={17} />
+                      ) : (
+                        <IconTrash2 className={styles.actionIcon} size={18} />
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
               {!isRuntimeOnly && (
                 <div className={styles.cardStatusActions}>
                   {showQuotaLayout && quotaType && (
@@ -396,26 +383,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
                       iconClassName={styles.actionIcon}
                       iconSize={18}
                     />
-                  )}
-                  {showWebsocketHandshakeDebug && (
-                    <div
-                      className={`${styles.statusToggle} ${styles.debugToggle}`}
-                      title={t('auth_files.websocket_handshake_debug_hint')}
-                    >
-                      <ToggleSwitch
-                        ariaLabel={t('auth_files.websocket_handshake_debug_label')}
-                        checked={websocketHandshakeDebugEnabled}
-                        className={styles.cardToggleSwitch}
-                        disabled={
-                          disableControls ||
-                          statusUpdating[file.name] === true ||
-                          handshakeDebugUpdating[file.name] === true
-                        }
-                        label={t('auth_files.websocket_handshake_debug_label')}
-                        labelInside
-                        onChange={(value) => onToggleWebsocketHandshakeDebug(file, value)}
-                      />
-                    </div>
                   )}
                   <div className={styles.statusToggle}>
                     <ToggleSwitch
