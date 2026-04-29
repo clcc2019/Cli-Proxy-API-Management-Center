@@ -42,9 +42,14 @@ type StylesModule = Record<string, string>;
 interface ProviderStatusBarProps {
   statusData: StatusBarData;
   styles?: StylesModule;
+  showRateLabel?: boolean;
 }
 
-export function ProviderStatusBar({ statusData, styles: stylesProp }: ProviderStatusBarProps) {
+export function ProviderStatusBar({
+  statusData,
+  styles: stylesProp,
+  showRateLabel = false,
+}: ProviderStatusBarProps) {
   const { t } = useTranslation();
   const s = (stylesProp || defaultStyles) as StylesModule;
   const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
@@ -76,6 +81,8 @@ export function ProviderStatusBar({ statusData, styles: stylesProp }: ProviderSt
       setActiveTooltip(idx);
     }
   }, []);
+
+  const rateText = hasData ? formatSuccessRate(statusData.successRate) : '--';
 
   const handlePointerLeave = useCallback((e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
@@ -143,7 +150,14 @@ export function ProviderStatusBar({ statusData, styles: stylesProp }: ProviderSt
         })}
       </div>
       <span className={`${s.statusRate} ${rateClass}`}>
-        {hasData ? formatSuccessRate(statusData.successRate) : '--'}
+        {showRateLabel ? (
+          <>
+            <strong>{rateText}</strong>
+            <small>{t('status_bar.success_rate_label')}</small>
+          </>
+        ) : (
+          rateText
+        )}
       </span>
     </div>
   );

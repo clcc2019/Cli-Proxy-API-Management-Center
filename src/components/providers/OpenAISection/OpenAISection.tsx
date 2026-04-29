@@ -2,7 +2,7 @@ import { Fragment, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { IconCheck, IconX } from '@/components/ui/icons';
+import { IconCheck, IconLink, IconShield, IconStar, IconX } from '@/components/ui/icons';
 import iconOpenaiLight from '@/assets/icons/openai-light.svg';
 import iconOpenaiDark from '@/assets/icons/openai-dark.svg';
 import type { OpenAIProviderConfig } from '@/types';
@@ -14,9 +14,10 @@ import {
 } from '@/utils/usage';
 import { collectUsageDetailsForCandidates, type UsageDetailsBySource } from '@/utils/usageIndex';
 import styles from '@/pages/AiProvidersPage.module.scss';
+import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 import { ProviderList } from '../ProviderList';
 import { ProviderStatusBar } from '../ProviderStatusBar';
-import { getOpenAIProviderStats, getStatsBySource } from '../utils';
+import { getStatsBySource } from '../utils';
 
 interface OpenAISectionProps {
   configs: OpenAIProviderConfig[];
@@ -89,6 +90,12 @@ export function OpenAISection({
           loading={loading}
           listClassName={styles.providerConfigList}
           rowClassName={styles.providerConfigItem}
+          leadingIcon={
+            <img
+              src={resolvedTheme === 'dark' ? iconOpenaiDark : iconOpenaiLight}
+              alt=""
+            />
+          }
           keyField={(_, index) => `openai-provider-${index}`}
           emptyTitle={t('ai_providers.openai_empty_title')}
           emptyDescription={t('ai_providers.openai_empty_desc')}
@@ -96,7 +103,6 @@ export function OpenAISection({
           onDelete={onDelete}
           actionsDisabled={actionsDisabled}
           renderContent={(item) => {
-            const stats = getOpenAIProviderStats(item.apiKeyEntries, keyStats, item.prefix);
             const headerEntries = Object.entries(item.headers || {});
             const apiKeyEntries = item.apiKeyEntries || [];
             const statusData = statusBarCache.get(item.name) || calculateStatusBarData([]);
@@ -104,21 +110,34 @@ export function OpenAISection({
             return (
               <Fragment>
                 <div className="item-title">{item.name}</div>
-                {item.priority !== undefined && (
-                  <div className={styles.fieldRow}>
-                    <span className={styles.fieldLabel}>{t('common.priority')}:</span>
-                    <span className={styles.fieldValue}>{item.priority}</span>
-                  </div>
-                )}
-                {item.prefix && (
-                  <div className={styles.fieldRow}>
-                    <span className={styles.fieldLabel}>{t('common.prefix')}:</span>
-                    <span className={styles.fieldValue}>{item.prefix}</span>
-                  </div>
-                )}
-                <div className={styles.fieldRow}>
-                  <span className={styles.fieldLabel}>{t('common.base_url')}:</span>
-                  <span className={styles.fieldValue}>{item.baseUrl}</span>
+                <div className={styles.fieldGrid}>
+                  {item.priority !== undefined &&
+                    item.priority !== null &&
+                    Number.isFinite(item.priority) && (
+                    <ProviderDetailRow
+                      icon={<IconStar size={20} />}
+                      label={t('common.priority')}
+                      tone="priority"
+                    >
+                      {item.priority}
+                    </ProviderDetailRow>
+                  )}
+                  {item.prefix && (
+                    <ProviderDetailRow
+                      icon={<IconShield size={20} />}
+                      label={t('common.prefix')}
+                      tone="prefix"
+                    >
+                      {item.prefix}
+                    </ProviderDetailRow>
+                  )}
+                  <ProviderDetailRow
+                    icon={<IconLink size={20} />}
+                    label={t('common.base_url')}
+                    tone="url"
+                  >
+                    {item.baseUrl}
+                  </ProviderDetailRow>
                 </div>
                 {headerEntries.length > 0 && (
                   <div className={styles.headerBadgeList}>
@@ -162,31 +181,23 @@ export function OpenAISection({
                     </div>
                   </div>
                 )}
-                <div className={styles.fieldRow} style={{ marginTop: '8px' }}>
-                  <span className={styles.fieldLabel}>{t('ai_providers.openai_models_count')}:</span>
-                  <span className={styles.fieldValue}>{item.models?.length || 0}</span>
-                </div>
-                {item.models?.length ? (
-                  <div className={styles.modelTagList}>
-                    {item.models.map((model) => (
+                <div className={styles.modelTagList}>
+                  <ProviderModelHeader
+                    label={t('ai_providers.openai_models_count')}
+                    count={item.models?.length || 0}
+                  />
+                  {item.models?.length
+                    ? item.models.map((model) => (
                       <span key={model.name} className={styles.modelTag}>
                         <span className={styles.modelName}>{model.name}</span>
                         {model.alias && model.alias !== model.name && (
                           <span className={styles.modelAlias}>{model.alias}</span>
                         )}
                       </span>
-                    ))}
-                  </div>
-                ) : null}
-                <div className={styles.cardStats}>
-                  <span className={`${styles.statPill} ${styles.statSuccess}`}>
-                    {t('stats.success')}: {stats.success}
-                  </span>
-                  <span className={`${styles.statPill} ${styles.statFailure}`}>
-                    {t('stats.failure')}: {stats.failure}
-                  </span>
+                    ))
+                    : null}
                 </div>
-                <ProviderStatusBar statusData={statusData} />
+                <ProviderStatusBar statusData={statusData} showRateLabel />
               </Fragment>
             );
           }}

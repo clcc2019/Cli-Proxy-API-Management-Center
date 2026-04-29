@@ -256,6 +256,7 @@
     "priority_label": "Приоритет (необязательно):",
     "priority_hint": "Чем больше значение, тем выше приоритет. Оставьте пустым для значения по умолчанию (0).",
     "config_toggle_label": "Включено",
+    "config_enabled_badge": "Работает",
     "config_disabled_badge": "Отключено",
     "codex_title": "Конфигурация Codex API",
     "codex_add_button": "Добавить конфигурацию",
@@ -1107,7 +1108,8 @@
   "status_bar": {
     "success_short": "✓",
     "failure_short": "✗",
-    "no_requests": "Нет запросов"
+    "no_requests": "Нет запросов",
+    "success_rate_label": "Успешность"
   },
   "service_health": {
     "title": "Состояние сервиса",

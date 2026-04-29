@@ -256,6 +256,7 @@
     "priority_label": "Priority (Optional):",
     "priority_hint": "Higher values are preferred. Leave empty for default (0).",
     "config_toggle_label": "Enabled",
+    "config_enabled_badge": "Running",
     "config_disabled_badge": "Disabled",
     "codex_title": "Codex API Configuration",
     "codex_add_button": "Add Configuration",
@@ -1116,7 +1117,8 @@
   "status_bar": {
     "success_short": "✓",
     "failure_short": "✗",
-    "no_requests": "No requests"
+    "no_requests": "No requests",
+    "success_rate_label": "Success rate"
   },
   "service_health": {
     "title": "Service Health",
