@@ -584,21 +584,21 @@
 
 .quotaBar {
   position: relative;
-  height: 10px;
-  padding: 1px;
+  height: 12px;
+  padding: 2px;
   box-sizing: border-box;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-tertiary) 92%, white 8%),
-      color-mix(in srgb, var(--bg-tertiary) 72%, black 4%)
-    );
-  border: 1px solid color-mix(in srgb, var(--border-color) 34%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-tertiary) 70%, white 18%),
+    color-mix(in srgb, var(--bg-tertiary) 86%, black 8%)
+  );
+  border: 1px solid color-mix(in srgb, var(--border-color) 52%, transparent);
   border-radius: 999px;
   overflow: hidden;
   box-shadow:
-    inset 0 1px 1px rgba(15, 23, 42, 0.05),
-    0 1px 0 rgba(255, 255, 255, 0.12);
+    inset 0 1px 2px rgba(15, 23, 42, 0.12),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .quotaBarFill {
@@ -606,39 +606,47 @@
   height: 100%;
   border-radius: 999px;
   overflow: hidden;
-  background: linear-gradient(90deg, #16a34a, #22c55e 54%, #14b8a6);
+  background: linear-gradient(90deg, #00c853, #00e676 52%, #69f0ae);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
-    0 0 10px color-mix(in srgb, var(--success-color, #22c55e) 30%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 0 10px rgba(0, 230, 118, 0.34);
   transition:
     width 0.28s ease,
-    background-color 0.2s ease;
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), transparent 62%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 58%);
     pointer-events: none;
   }
 }
 
 .quotaBarFillHigh {
-  background: linear-gradient(90deg, #16a34a, #22c55e 54%, #14b8a6);
+  background: linear-gradient(90deg, #00b248, #00e676 50%, #76ff03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 0 12px rgba(0, 230, 118, 0.38);
 }
 
 .quotaBarFillMedium {
-  background: linear-gradient(90deg, #d97706, #f59e0b 52%, #facc15);
+  background: linear-gradient(90deg, #ff8f00, #ffca28 50%, #ffea00);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.36),
-    0 0 10px rgba(245, 158, 11, 0.24);
+    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 0 12px rgba(255, 202, 40, 0.36);
 }
 
 .quotaBarFillLow {
-  background: linear-gradient(90deg, #dc2626, #ef4444 54%, #f97316);
+  background: linear-gradient(90deg, #d50000, #ff1744 50%, #ff5252);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    0 0 10px rgba(239, 68, 68, 0.24);
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+    0 0 12px rgba(255, 23, 68, 0.38);
 }
 
 .quotaMeta {
@@ -880,11 +888,11 @@
   }
 
   .cardActionsMain {
-    gap: 4px;
+    gap: 3px;
   }
 
   .cardStatusActions {
-    gap: 6px;
+    gap: 3px;
   }
 
   .cardUtilityActions {
@@ -894,19 +902,47 @@
   }
 
   .iconButton:global(.btn.btn-sm) {
-    width: 28px;
-    height: 28px;
-    min-height: 28px;
-    min-width: 28px;
+    width: 26px;
+    height: 26px;
+    min-height: 26px;
+    min-width: 26px;
     border-radius: 6px;
   }
 
-  .statusToggle {
-    gap: 6px;
+  .actionIcon {
+    width: 14px;
+    height: 14px;
   }
 
-  .statusToggleLabel {
-    font-size: 10px;
+  .cardToggleSwitch {
+    height: 26px;
+  }
+
+  .cardToggleSwitch > span:first-of-type {
+    width: 50px;
+    min-width: 50px;
+    height: 26px;
+    min-height: 26px;
+    padding: 0 7px 0 26px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type {
+    padding: 0 26px 0 7px;
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:first-child {
+    font-size: 9px;
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:last-child {
+    top: 4px;
+    left: 4px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
+    right: 4px;
   }
 }
 
@@ -1852,19 +1888,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   margin-top: auto;
   padding-top: 8px;
   border-top: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+  min-width: 0;
 }
 
 .cardActionsMain {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
   flex: 1;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: space-between;
 }
 
 .modelsActionButton:global(.btn.btn-sm) {
@@ -1884,45 +1922,82 @@
   padding: 2px;
   border-radius: 8px;
   background: color-mix(in srgb, var(--bg-tertiary) 50%, transparent);
+  flex: 0 0 auto;
 }
 
 .cardStatusActions {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex: 1 1 100%;
+  gap: 4px;
+  flex: 0 1 auto;
   justify-content: flex-end;
   min-width: 0;
-  margin-left: 0;
-  padding-top: 2px;
-  flex-wrap: wrap;
+  margin-left: auto;
+  padding-top: 0;
+  flex-wrap: nowrap;
 }
 
 .statusToggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 0;
 }
 
 .debugToggle {
-  padding-left: 8px;
-  border-left: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  padding-left: 0;
+  border-left: 0;
 }
 
-.statusToggleLabel {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  white-space: nowrap;
+.cardToggleSwitch > span:first-of-type {
+  width: 54px;
+  min-width: 54px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 8px 0 28px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 30%, transparent);
+  background: color-mix(in srgb, var(--text-tertiary) 45%, var(--border-color));
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.08);
+}
+
+.cardToggleSwitch > input:checked + span:first-of-type {
+  padding: 0 28px 0 8px;
+  background: color-mix(in srgb, var(--primary-color) 92%, var(--text-primary));
+  border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
+}
+
+.cardToggleSwitch > span:first-of-type > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  font-size: 10px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.cardToggleSwitch > span:first-of-type > span:last-child {
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+}
+
+.cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
+  right: 4px;
+}
+
+.cardToggleSwitch:hover > span:first-of-type {
+  filter: brightness(1.04);
 }
 
 .iconButton:global(.btn.btn-sm) {
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  min-width: 32px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  min-width: 28px;
   padding: 0;
   box-sizing: border-box;
   border-radius: 8px;
@@ -1941,17 +2016,25 @@
     width: 100%;
     height: 100%;
     line-height: 0;
+    padding: 0;
   }
 }
 
 .actionIcon {
   display: block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
 }
 
 @include mobile {
+  .cardActionsMain {
+    gap: 3px;
+  }
+
   .cardStatusActions {
-    gap: 6px;
-    justify-content: flex-start;
+    gap: 3px;
+    justify-content: flex-end;
     padding-top: 0;
   }
 

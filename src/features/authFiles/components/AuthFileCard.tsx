@@ -384,29 +384,29 @@ export function AuthFileCard(props: AuthFileCardProps) {
                       className={`${styles.statusToggle} ${styles.debugToggle}`}
                       title={t('auth_files.websocket_handshake_debug_hint')}
                     >
-                      <span className={styles.statusToggleLabel}>
-                        {t('auth_files.websocket_handshake_debug_label')}
-                      </span>
                       <ToggleSwitch
                         ariaLabel={t('auth_files.websocket_handshake_debug_label')}
                         checked={websocketHandshakeDebugEnabled}
+                        className={styles.cardToggleSwitch}
                         disabled={
                           disableControls ||
                           statusUpdating[file.name] === true ||
                           handshakeDebugUpdating[file.name] === true
                         }
+                        label={t('auth_files.websocket_handshake_debug_label')}
+                        labelInside
                         onChange={(value) => onToggleWebsocketHandshakeDebug(file, value)}
                       />
                     </div>
                   )}
                   <div className={styles.statusToggle}>
-                    <span className={styles.statusToggleLabel}>
-                      {t('auth_files.status_toggle_label')}
-                    </span>
                     <ToggleSwitch
                       ariaLabel={t('auth_files.status_toggle_label')}
                       checked={!file.disabled}
+                      className={styles.cardToggleSwitch}
                       disabled={disableControls || statusUpdating[file.name] === true}
+                      label={t('auth_files.status_toggle_label')}
+                      labelInside
                       onChange={(value) => onToggleStatus(file, value)}
                     />
                   </div>

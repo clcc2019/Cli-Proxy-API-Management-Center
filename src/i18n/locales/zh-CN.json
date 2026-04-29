@@ -576,7 +576,7 @@
     "models_excluded_hint": "此 OAuth 模型已被禁用",
     "websockets_enabled_badge": "WS 已启用",
     "websockets_disabled_badge": "WS 已禁用",
-    "websocket_handshake_debug_label": "WS 调试",
+    "websocket_handshake_debug_label": "调试",
     "websocket_handshake_debug_hint": "开启后该认证文件只完成一次上游 WebSocket 握手并立即断开，用于验证代理自动切换。",
     "websocket_handshake_debug_badge": "WS 调试",
     "websocket_handshake_debug_enabled_success": "已开启 \"{{name}}\" 的 WS 调试",

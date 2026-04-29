@@ -56,3 +56,44 @@
   color: var(--text-primary);
   font-weight: 600;
 }
+
+.labelInside {
+  gap: 0;
+
+  .track {
+    width: auto;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    padding: 0 8px 0 25px;
+  }
+
+  .thumb {
+    transition:
+      left $transition-fast,
+      right $transition-fast,
+      transform $transition-fast;
+  }
+
+  input:checked + .track {
+    justify-content: flex-start;
+    padding: 0 25px 0 8px;
+  }
+
+  input:checked + .track .thumb {
+    left: auto;
+    right: 3px;
+    transform: none;
+  }
+}
+
+.trackLabel {
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.18);
+}
