@@ -20,10 +20,11 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { IconFilterAll } from '@/components/ui/icons';
+import { IconFilterAll, IconRefreshCw } from '@/components/ui/icons';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { copyToClipboard } from '@/utils/clipboard';
+import { resolveAuthProvider } from '@/utils/quota';
 import {
   MAX_CARD_PAGE_SIZE,
   MIN_CARD_PAGE_SIZE,
@@ -40,6 +41,10 @@ import {
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
+import {
+  refreshAuthFileQuota,
+  type AuthFileQuotaRefreshResult,
+} from '@/features/authFiles/components/AuthFileQuotaSection';
 import { AuthFileModelsModal } from '@/features/authFiles/components/AuthFileModelsModal';
 import { AuthFilesPrefixProxyEditorModal } from '@/features/authFiles/components/AuthFilesPrefixProxyEditorModal';
 import { OAuthExcludedCard } from '@/features/authFiles/components/OAuthExcludedCard';
@@ -82,25 +87,36 @@ const buildWildcardSearch = (value: string): RegExp | null => {
   return new RegExp(pattern, 'i');
 };
 
-const compareAuthFilesByStatus = (left: AuthFileItem, right: AuthFileItem): number => {
-  const leftDisabled = left.disabled === true;
-  const rightDisabled = right.disabled === true;
-
-  if (leftDisabled === rightDisabled) return 0;
-  return leftDisabled ? 1 : -1;
-};
-
 const compareAuthFilesByName = (left: AuthFileItem, right: AuthFileItem): number =>
   left.name.localeCompare(right.name);
 
-const compareAuthFiles = (left: AuthFileItem, right: AuthFileItem, sortMode: AuthFilesSortMode) => {
-  const statusCompare = compareAuthFilesByStatus(left, right);
-  if (statusCompare !== 0) return statusCompare;
+type AuthFileSortSnapshot = {
+  disabled: boolean;
+  provider: string;
+  priority: number;
+};
+
+const getAuthFileSortSnapshot = (file: AuthFileItem): AuthFileSortSnapshot => ({
+  disabled: file.disabled === true,
+  provider: normalizeProviderKey(String(file.provider ?? file.type ?? 'unknown')),
+  priority: parsePriorityValue(file.priority ?? file['priority']) ?? 0,
+});
+
+const compareAuthFiles = (
+  left: AuthFileItem,
+  right: AuthFileItem,
+  sortMode: AuthFilesSortMode,
+  sortSnapshot?: Record<string, AuthFileSortSnapshot>
+) => {
+  const leftSnapshot = sortSnapshot?.[left.name] ?? getAuthFileSortSnapshot(left);
+  const rightSnapshot = sortSnapshot?.[right.name] ?? getAuthFileSortSnapshot(right);
+
+  if (leftSnapshot.disabled !== rightSnapshot.disabled) {
+    return leftSnapshot.disabled ? 1 : -1;
+  }
 
   if (sortMode === 'default') {
-    const providerLeft = normalizeProviderKey(String(left.provider ?? left.type ?? 'unknown'));
-    const providerRight = normalizeProviderKey(String(right.provider ?? right.type ?? 'unknown'));
-    const providerCompare = providerLeft.localeCompare(providerRight);
+    const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
     if (providerCompare !== 0) return providerCompare;
     return compareAuthFilesByName(left, right);
   }
@@ -109,9 +125,7 @@ const compareAuthFiles = (left: AuthFileItem, right: AuthFileItem, sortMode: Aut
     return compareAuthFilesByName(left, right);
   }
 
-  const leftPriority = parsePriorityValue(left.priority ?? left['priority']) ?? 0;
-  const rightPriority = parsePriorityValue(right.priority ?? right['priority']) ?? 0;
-  const priorityCompare = rightPriority - leftPriority;
+  const priorityCompare = rightSnapshot.priority - leftSnapshot.priority;
   if (priorityCompare !== 0) return priorityCompare;
   return compareAuthFilesByName(left, right);
 };
@@ -140,11 +154,19 @@ export function AuthFilesPage() {
   const [viewMode, setViewMode] = useState<'diagram' | 'list'>('list');
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
+  const [batchQuotaRefreshing, setBatchQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
+  const [displayFilterRefreshVersion, setDisplayFilterRefreshVersion] = useState(0);
+  const [displayFilterSnapshot, setDisplayFilterSnapshot] = useState<{
+    key: string;
+    names: string[];
+    sortSnapshot: Record<string, AuthFileSortSnapshot>;
+  } | null>(null);
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
   const batchActionAnimationRef = useRef<AnimationPlaybackControlsWithThen | null>(null);
   const previousSelectionCountRef = useRef(0);
   const selectionCountRef = useRef(0);
+  const previousLoadingRef = useRef(false);
 
   const { keyStats, keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats } =
     useAuthFilesStats();
@@ -330,6 +352,13 @@ export function AuthFilesPage() {
     setPageSizeInput(String(pageSize));
   }, [pageSize]);
 
+  useEffect(() => {
+    if (previousLoadingRef.current && !loading) {
+      setDisplayFilterRefreshVersion((version) => version + 1);
+    }
+    previousLoadingRef.current = loading;
+  }, [loading]);
+
   const setCurrentModePageSize = useCallback(
     (next: number) => {
       setPageSizeByMode((current) =>
@@ -440,10 +469,63 @@ export function AuthFilesPage() {
     },
     [matchesSupplementalDisplayFilters, problemOnly]
   );
-  const filesMatchingDisplayFilters = useMemo(
+  const currentFilesMatchingDisplayFilters = useMemo(
     () => files.filter(matchesDisplayFilters),
     [files, matchesDisplayFilters]
   );
+  const currentDisplayFilterNames = useMemo(
+    () => currentFilesMatchingDisplayFilters.map((file) => file.name),
+    [currentFilesMatchingDisplayFilters]
+  );
+  const currentDisplayFilterSortSnapshot = useMemo(
+    () =>
+      Object.fromEntries(
+        currentFilesMatchingDisplayFilters.map((file) => [file.name, getAuthFileSortSnapshot(file)])
+      ),
+    [currentFilesMatchingDisplayFilters]
+  );
+  const currentDisplayFilterNamesRef = useRef<string[]>([]);
+  const currentDisplayFilterSortSnapshotRef = useRef<Record<string, AuthFileSortSnapshot>>({});
+  currentDisplayFilterNamesRef.current = currentDisplayFilterNames;
+  currentDisplayFilterSortSnapshotRef.current = currentDisplayFilterSortSnapshot;
+  const fileByName = useMemo(() => new Map(files.map((file) => [file.name, file])), [files]);
+  const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
+  const displayFilterSnapshotKey = displayOptionsActive
+    ? [
+        problemOnly ? 'problem' : 'normal',
+        disabledOnly ? 'disabled' : 'any-status',
+        premiumOnly ? 'premium' : 'any-plan',
+        displayFilterRefreshVersion,
+      ].join('|')
+    : null;
+
+  useEffect(() => {
+    if (!displayFilterSnapshotKey) {
+      setDisplayFilterSnapshot(null);
+      return;
+    }
+
+    setDisplayFilterSnapshot({
+      key: displayFilterSnapshotKey,
+      names: currentDisplayFilterNamesRef.current,
+      sortSnapshot: currentDisplayFilterSortSnapshotRef.current,
+    });
+  }, [displayFilterSnapshotKey]);
+
+  const filesMatchingDisplayFilters = useMemo(() => {
+    if (!displayFilterSnapshotKey || displayFilterSnapshot?.key !== displayFilterSnapshotKey) {
+      return currentFilesMatchingDisplayFilters;
+    }
+
+    return displayFilterSnapshot.names
+      .map((name) => fileByName.get(name))
+      .filter((file): file is AuthFileItem => Boolean(file));
+  }, [
+    currentFilesMatchingDisplayFilters,
+    displayFilterSnapshot,
+    displayFilterSnapshotKey,
+    fileByName,
+  ]);
 
   const sortOptions = useMemo(
     () => [
@@ -490,9 +572,13 @@ export function AuthFilesPage() {
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
-    copy.sort((a, b) => compareAuthFiles(a, b, sortMode));
+    const activeSortSnapshot =
+      displayFilterSnapshotKey && displayFilterSnapshot?.key === displayFilterSnapshotKey
+        ? displayFilterSnapshot.sortSnapshot
+        : undefined;
+    copy.sort((a, b) => compareAuthFiles(a, b, sortMode, activeSortSnapshot));
     return copy;
-  }, [filtered, sortMode]);
+  }, [displayFilterSnapshot, displayFilterSnapshotKey, filtered, sortMode]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -511,11 +597,104 @@ export function AuthFilesPage() {
     () => selectedNames.some((name) => statusUpdating[name] === true),
     [selectedNames, statusUpdating]
   );
+  const selectedQuotaRefreshItems = useMemo(() => {
+    const selected = new Set(selectedNames);
+
+    return files.reduce<Array<{ file: AuthFileItem; quotaType: QuotaProviderType }>>(
+      (items, file) => {
+        if (!selected.has(file.name)) return items;
+        if (isRuntimeOnlyAuthFile(file) || file.disabled) return items;
+
+        const quotaType = normalizeProviderKey(resolveAuthProvider(file)) as QuotaProviderType;
+        if (!QUOTA_PROVIDER_TYPES.has(quotaType)) return items;
+
+        items.push({ file, quotaType });
+        return items;
+      },
+      []
+    );
+  }, [files, selectedNames]);
   const batchStatusButtonsDisabled =
     disableControls ||
     selectedNames.length === 0 ||
     batchStatusUpdating ||
     selectedHasStatusUpdating;
+  const batchQuotaRefreshDisabled =
+    disableControls || batchQuotaRefreshing || selectedNames.length === 0;
+
+  const handleBatchRefreshQuota = useCallback(async () => {
+    if (disableControls || batchQuotaRefreshing || selectedNames.length === 0) return;
+
+    if (selectedQuotaRefreshItems.length === 0) {
+      showNotification(t('auth_files.batch_quota_refresh_none'), 'info');
+      return;
+    }
+
+    setBatchQuotaRefreshing(true);
+
+    try {
+      const skippedBeforeRefresh = Math.max(
+        0,
+        selectedNames.length - selectedQuotaRefreshItems.length
+      );
+      const results: AuthFileQuotaRefreshResult[] = await Promise.all(
+        selectedQuotaRefreshItems.map(
+          async ({ file, quotaType }): Promise<AuthFileQuotaRefreshResult> => {
+            try {
+              return await refreshAuthFileQuota({
+                file,
+                quotaType,
+                disableControls,
+                t,
+              });
+            } catch (err: unknown) {
+              return {
+                status: 'error',
+                fileName: file.name,
+                message: err instanceof Error ? err.message : t('common.unknown_error'),
+              };
+            }
+          }
+        )
+      );
+      const resultCounts = results.reduce(
+        (counts, result) => {
+          if (result.status === 'success') {
+            counts.success += 1;
+          } else if (result.status === 'error') {
+            counts.failed += 1;
+          } else {
+            counts.skipped += 1;
+          }
+          return counts;
+        },
+        { success: 0, failed: 0, skipped: skippedBeforeRefresh }
+      );
+
+      if (resultCounts.success === 0 && resultCounts.failed === 0) {
+        showNotification(t('auth_files.batch_quota_refresh_none'), 'info');
+      } else if (resultCounts.failed === 0 && resultCounts.skipped === 0) {
+        showNotification(
+          t('auth_files.batch_quota_refresh_success', { count: resultCounts.success }),
+          'success'
+        );
+      } else {
+        showNotification(
+          t('auth_files.batch_quota_refresh_partial', resultCounts),
+          'warning'
+        );
+      }
+    } finally {
+      setBatchQuotaRefreshing(false);
+    }
+  }, [
+    batchQuotaRefreshing,
+    disableControls,
+    selectedNames.length,
+    selectedQuotaRefreshItems,
+    showNotification,
+    t,
+  ]);
 
   const copyTextWithNotification = useCallback(
     async (text: string) => {
@@ -1044,6 +1223,26 @@ export function AuthFilesPage() {
                     disabled={disableControls || selectedNames.length === 0}
                   >
                     {t('auth_files.batch_download')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void handleBatchRefreshQuota()}
+                    disabled={batchQuotaRefreshDisabled}
+                    aria-busy={batchQuotaRefreshing}
+                  >
+                    <span className={styles.batchQuotaRefreshContent}>
+                      <IconRefreshCw
+                        className={[
+                          styles.batchQuotaRefreshIcon,
+                          batchQuotaRefreshing ? styles.quotaRefreshIconSvgSpinning : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                        size={14}
+                      />
+                      <span>{t('auth_files.batch_refresh_quota')}</span>
+                    </span>
                   </Button>
                   <Button
                     size="sm"

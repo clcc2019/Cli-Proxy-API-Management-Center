@@ -4,10 +4,15 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
+  IconCheck,
+  IconDatabase,
   IconDownload,
+  IconDollarSign,
+  IconInfo,
   IconModelCluster,
   IconSettings,
   IconTrash2,
+  IconX,
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
@@ -279,10 +284,16 @@ export function AuthFileCard(props: AuthFileCardProps) {
           <div className={`${styles.cardInsights} ${compact ? styles.cardInsightsCompact : ''}`}>
             <div className={`${styles.cardStats} ${compact ? styles.cardStatsCompact : ''}`}>
               <div className={`${styles.statPill} ${styles.statSuccess}`}>
+                <span className={styles.statIcon}>
+                  <IconCheck size={10} />
+                </span>
                 <span className={styles.statLabel}>{t('stats.success')}</span>
                 <span className={styles.statValue}>{fileStats.success}</span>
               </div>
               <div className={`${styles.statPill} ${styles.statFailure}`}>
+                <span className={styles.statIcon}>
+                  <IconX size={10} />
+                </span>
                 <span className={styles.statLabel}>{t('stats.failure')}</span>
                 <span className={styles.statValue}>{fileStats.failure}</span>
               </div>
@@ -290,10 +301,16 @@ export function AuthFileCard(props: AuthFileCardProps) {
                 className={`${styles.statPill} ${styles.statToken}`}
                 title={fileUsageStats.totalTokens.toLocaleString()}
               >
+                <span className={styles.statIcon}>
+                  <IconDatabase size={11} />
+                </span>
                 <span className={styles.statLabel}>{t('auth_files.tokens_stat_label')}</span>
                 <span className={styles.statValue}>{tokenDisplay}</span>
               </div>
               <div className={`${styles.statPill} ${styles.statCost}`} title={costTitle}>
+                <span className={styles.statIcon}>
+                  <IconDollarSign size={10} />
+                </span>
                 <span className={styles.statLabel}>{t('auth_files.cost_stat_label')}</span>
                 <span className={styles.statValue}>{costDisplay}</span>
               </div>
@@ -302,6 +319,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
             <div className={`${styles.statusPanel} ${compact ? styles.statusPanelCompact : ''}`}>
               <div className={styles.statusPanelLabel}>
                 <span>{t('auth_files.health_status_label')}</span>
+                <IconInfo className={styles.statusPanelIcon} size={12} />
               </div>
               <ProviderStatusBar statusData={statusData} styles={styles} />
             </div>
@@ -326,7 +344,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
                   title={t('auth_files.models_button', { defaultValue: '模型' })}
                   disabled={disableControls}
                 >
-                  <IconModelCluster className={styles.actionIcon} size={16} />
+                  <IconModelCluster className={styles.actionIcon} size={18} />
                 </Button>
               )}
               {!isRuntimeOnly && (
@@ -339,7 +357,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
                     title={t('auth_files.download_button')}
                     disabled={disableControls}
                   >
-                    <IconDownload className={styles.actionIcon} size={16} />
+                    <IconDownload className={styles.actionIcon} size={18} />
                   </Button>
                   <Button
                     variant="secondary"
@@ -349,7 +367,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
                     title={t('auth_files.prefix_proxy_button')}
                     disabled={disableControls}
                   >
-                    <IconSettings className={styles.actionIcon} size={16} />
+                    <IconSettings className={styles.actionIcon} size={18} />
                   </Button>
                   <Button
                     variant="danger"
@@ -360,9 +378,9 @@ export function AuthFileCard(props: AuthFileCardProps) {
                     disabled={disableControls || deleting === file.name}
                   >
                     {deleting === file.name ? (
-                      <LoadingSpinner size={14} />
+                      <LoadingSpinner size={17} />
                     ) : (
-                      <IconTrash2 className={styles.actionIcon} size={16} />
+                      <IconTrash2 className={styles.actionIcon} size={18} />
                     )}
                   </Button>
                 </div>
@@ -374,9 +392,9 @@ export function AuthFileCard(props: AuthFileCardProps) {
                       file={file}
                       quotaType={quotaType}
                       disableControls={disableControls}
-                      className={styles.iconButton}
+                      className={`${styles.iconButton} ${styles.refreshActionButton}`}
                       iconClassName={styles.actionIcon}
-                      iconSize={16}
+                      iconSize={18}
                     />
                   )}
                   {showWebsocketHandshakeDebug && (
