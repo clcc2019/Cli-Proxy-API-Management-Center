@@ -53,6 +53,15 @@ export function IconKey({ size = 20, ...props }: IconProps) {
   );
 }
 
+export function IconLink({ size = 20, ...props }: IconProps) {
+  return (
+    <svg {...baseSvgProps} width={size} height={size} {...props}>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
 export function IconBot({ size = 20, ...props }: IconProps) {
   return (
     <svg {...baseSvgProps} width={size} height={size} {...props}>
@@ -76,6 +85,14 @@ export function IconModelCluster({ size = 20, ...props }: IconProps) {
       <path d="M12 11v2" />
       <path d="M7.5 11v2" />
       <path d="M16.5 11v2" />
+    </svg>
+  );
+}
+
+export function IconStar({ size = 20, ...props }: IconProps) {
+  return (
+    <svg {...baseSvgProps} width={size} height={size} {...props}>
+      <path d="M11.53 2.3a.53.53 0 0 1 .94 0l2.2 4.47a1 1 0 0 0 .75.55l4.94.72a.53.53 0 0 1 .29.9l-3.57 3.49a1 1 0 0 0-.29.88l.84 4.92a.53.53 0 0 1-.77.56l-4.42-2.32a1 1 0 0 0-.93 0L7.1 18.79a.53.53 0 0 1-.77-.56l.84-4.92a1 1 0 0 0-.29-.88L3.3 8.94a.53.53 0 0 1 .29-.9l4.94-.72a1 1 0 0 0 .75-.55z" />
     </svg>
   );
 }
@@ -309,6 +326,16 @@ export function IconDollarSign({ size = 20, ...props }: IconProps) {
     <svg {...baseSvgProps} width={size} height={size} {...props}>
       <line x1="12" x2="12" y1="2" y2="22" />
       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+  );
+}
+
+export function IconDatabase({ size = 20, ...props }: IconProps) {
+  return (
+    <svg {...baseSvgProps} width={size} height={size} {...props}>
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
+      <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" />
     </svg>
   );
 }

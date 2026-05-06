@@ -4,10 +4,15 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
+  IconCheck,
+  IconDatabase,
   IconDownload,
+  IconDollarSign,
+  IconInfo,
   IconModelCluster,
   IconSettings,
   IconTrash2,
+  IconX,
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
@@ -30,7 +35,6 @@ import {
   getTypeLabel,
   isRuntimeOnlyAuthFile,
   parsePriorityValue,
-  readAuthFileWebsocketHandshakeDebug,
   readAuthFileWebsockets,
   resolveAuthFileStats,
   resolveAuthFileUsageStats,
@@ -57,7 +61,6 @@ export type AuthFileCardProps = {
   disableControls: boolean;
   deleting: string | null;
   statusUpdating: Record<string, boolean>;
-  handshakeDebugUpdating: Record<string, boolean>;
   quotaFilterType: QuotaProviderType | null;
   planBadge: AuthFilePlanBadgeInfo | null;
   keyStats: KeyStats;
@@ -68,7 +71,6 @@ export type AuthFileCardProps = {
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
   onToggleStatus: (file: AuthFileItem, enabled: boolean) => void;
-  onToggleWebsocketHandshakeDebug: (file: AuthFileItem, enabled: boolean) => void;
   onToggleSelect: (name: string) => void;
 };
 
@@ -88,7 +90,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
     disableControls,
     deleting,
     statusUpdating,
-    handshakeDebugUpdating,
     quotaFilterType,
     planBadge,
     keyStats,
@@ -99,7 +100,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
     onOpenPrefixProxyEditor,
     onDelete,
     onToggleStatus,
-    onToggleWebsocketHandshakeDebug,
     onToggleSelect,
   } = props;
 
@@ -112,8 +112,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
   const typeLabel = getTypeLabel(t, file.type || 'unknown');
   const providerIcon = getAuthFileIcon(file.type || 'unknown', resolvedTheme);
   const websocketsEnabled = readAuthFileWebsockets(file);
-  const websocketHandshakeDebugEnabled = readAuthFileWebsocketHandshakeDebug(file);
-  const showWebsocketHandshakeDebug = websocketsEnabled === true;
   const websocketsBadgeLabel =
     websocketsEnabled === null
       ? null
@@ -231,14 +229,6 @@ export function AuthFileCard(props: AuthFileCardProps) {
                     {websocketsBadgeLabel}
                   </span>
                 )}
-                {showWebsocketHandshakeDebug && websocketHandshakeDebugEnabled && (
-                  <span
-                    className={`${styles.featureBadge} ${styles.featureBadgeWarning}`}
-                    title={t('auth_files.websocket_handshake_debug_hint')}
-                  >
-                    {t('auth_files.websocket_handshake_debug_badge')}
-                  </span>
-                )}
               </div>
               <span className={styles.fileName} title={file.name}>
                 {file.name}
@@ -279,10 +269,16 @@ export function AuthFileCard(props: AuthFileCardProps) {
           <div className={`${styles.cardInsights} ${compact ? styles.cardInsightsCompact : ''}`}>
             <div className={`${styles.cardStats} ${compact ? styles.cardStatsCompact : ''}`}>
               <div className={`${styles.statPill} ${styles.statSuccess}`}>
+                <span className={styles.statIcon}>
+                  <IconCheck size={10} />
+                </span>
                 <span className={styles.statLabel}>{t('stats.success')}</span>
                 <span className={styles.statValue}>{fileStats.success}</span>
               </div>
               <div className={`${styles.statPill} ${styles.statFailure}`}>
+                <span className={styles.statIcon}>
+                  <IconX size={10} />
+                </span>
                 <span className={styles.statLabel}>{t('stats.failure')}</span>
                 <span className={styles.statValue}>{fileStats.failure}</span>
               </div>
@@ -290,10 +286,16 @@ export function AuthFileCard(props: AuthFileCardProps) {
                 className={`${styles.statPill} ${styles.statToken}`}
                 title={fileUsageStats.totalTokens.toLocaleString()}
               >
+                <span className={styles.statIcon}>
+                  <IconDatabase size={11} />
+                </span>
                 <span className={styles.statLabel}>{t('auth_files.tokens_stat_label')}</span>
                 <span className={styles.statValue}>{tokenDisplay}</span>
               </div>
               <div className={`${styles.statPill} ${styles.statCost}`} title={costTitle}>
+                <span className={styles.statIcon}>
+                  <IconDollarSign size={10} />
+                </span>
                 <span className={styles.statLabel}>{t('auth_files.cost_stat_label')}</span>
                 <span className={styles.statValue}>{costDisplay}</span>
               </div>
@@ -302,6 +304,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
             <div className={`${styles.statusPanel} ${compact ? styles.statusPanelCompact : ''}`}>
               <div className={styles.statusPanelLabel}>
                 <span>{t('auth_files.health_status_label')}</span>
+                <IconInfo className={styles.statusPanelIcon} size={12} />
               </div>
               <ProviderStatusBar statusData={statusData} styles={styles} />
             </div>
@@ -317,56 +320,58 @@ export function AuthFileCard(props: AuthFileCardProps) {
 
           <div className={styles.cardActions}>
             <div className={styles.cardActionsMain}>
-              {showModelsButton && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onShowModels(file)}
-                  className={`${styles.iconButton} ${styles.modelsActionButton}`}
-                  title={t('auth_files.models_button', { defaultValue: '模型' })}
-                  disabled={disableControls}
-                >
-                  <IconModelCluster className={styles.actionIcon} size={16} />
-                </Button>
-              )}
-              {!isRuntimeOnly && (
-                <div className={styles.cardUtilityActions}>
+              <div className={styles.cardActionCluster}>
+                {showModelsButton && (
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => onDownload(file.name)}
-                    className={styles.iconButton}
-                    title={t('auth_files.download_button')}
+                    onClick={() => onShowModels(file)}
+                    className={`${styles.iconButton} ${styles.modelsActionButton}`}
+                    title={t('auth_files.models_button', { defaultValue: '模型' })}
                     disabled={disableControls}
                   >
-                    <IconDownload className={styles.actionIcon} size={16} />
+                    <IconModelCluster className={styles.actionIcon} size={18} />
                   </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onOpenPrefixProxyEditor(file)}
-                    className={styles.iconButton}
-                    title={t('auth_files.prefix_proxy_button')}
-                    disabled={disableControls}
-                  >
-                    <IconSettings className={styles.actionIcon} size={16} />
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => onDelete(file.name)}
-                    className={styles.iconButton}
-                    title={t('auth_files.delete_button')}
-                    disabled={disableControls || deleting === file.name}
-                  >
-                    {deleting === file.name ? (
-                      <LoadingSpinner size={14} />
-                    ) : (
-                      <IconTrash2 className={styles.actionIcon} size={16} />
-                    )}
-                  </Button>
-                </div>
-              )}
+                )}
+                {!isRuntimeOnly && (
+                  <div className={styles.cardUtilityActions}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onDownload(file.name)}
+                      className={styles.iconButton}
+                      title={t('auth_files.download_button')}
+                      disabled={disableControls}
+                    >
+                      <IconDownload className={styles.actionIcon} size={18} />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onOpenPrefixProxyEditor(file)}
+                      className={styles.iconButton}
+                      title={t('auth_files.prefix_proxy_button')}
+                      disabled={disableControls}
+                    >
+                      <IconSettings className={styles.actionIcon} size={18} />
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => onDelete(file.name)}
+                      className={styles.iconButton}
+                      title={t('auth_files.delete_button')}
+                      disabled={disableControls || deleting === file.name}
+                    >
+                      {deleting === file.name ? (
+                        <LoadingSpinner size={17} />
+                      ) : (
+                        <IconTrash2 className={styles.actionIcon} size={18} />
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
               {!isRuntimeOnly && (
                 <div className={styles.cardStatusActions}>
                   {showQuotaLayout && quotaType && (
@@ -374,39 +379,19 @@ export function AuthFileCard(props: AuthFileCardProps) {
                       file={file}
                       quotaType={quotaType}
                       disableControls={disableControls}
-                      className={styles.iconButton}
+                      className={`${styles.iconButton} ${styles.refreshActionButton}`}
                       iconClassName={styles.actionIcon}
-                      iconSize={16}
+                      iconSize={18}
                     />
                   )}
-                  {showWebsocketHandshakeDebug && (
-                    <div
-                      className={`${styles.statusToggle} ${styles.debugToggle}`}
-                      title={t('auth_files.websocket_handshake_debug_hint')}
-                    >
-                      <span className={styles.statusToggleLabel}>
-                        {t('auth_files.websocket_handshake_debug_label')}
-                      </span>
-                      <ToggleSwitch
-                        ariaLabel={t('auth_files.websocket_handshake_debug_label')}
-                        checked={websocketHandshakeDebugEnabled}
-                        disabled={
-                          disableControls ||
-                          statusUpdating[file.name] === true ||
-                          handshakeDebugUpdating[file.name] === true
-                        }
-                        onChange={(value) => onToggleWebsocketHandshakeDebug(file, value)}
-                      />
-                    </div>
-                  )}
                   <div className={styles.statusToggle}>
-                    <span className={styles.statusToggleLabel}>
-                      {t('auth_files.status_toggle_label')}
-                    </span>
                     <ToggleSwitch
                       ariaLabel={t('auth_files.status_toggle_label')}
                       checked={!file.disabled}
+                      className={styles.cardToggleSwitch}
                       disabled={disableControls || statusUpdating[file.name] === true}
+                      label={t('auth_files.status_toggle_label')}
+                      labelInside
                       onChange={(value) => onToggleStatus(file, value)}
                     />
                   </div>

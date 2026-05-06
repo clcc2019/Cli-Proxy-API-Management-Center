@@ -24,6 +24,39 @@ import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@
 import { indexUsageDetailsBySource } from '@/utils/usageIndex';
 import styles from './AiProvidersPage.module.scss';
 
+const getPriorityValue = (priority: number | null | undefined) =>
+  Number.isFinite(priority) ? Number(priority) : 0;
+
+const sortByPriorityDesc = <T extends { priority?: number | null }>(items: T[]) =>
+  items
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => {
+      const priorityDiff =
+        getPriorityValue(right.item.priority) - getPriorityValue(left.item.priority);
+      if (priorityDiff !== 0) return priorityDiff;
+      return left.index - right.index;
+    })
+    .map(({ item }) => item);
+
+const sortToggleableProviderConfigs = <T extends { priority?: number | null; excludedModels?: string[] }>(
+  items: T[]
+) =>
+  items
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => {
+      const leftEnabled = !hasDisableAllModelsRule(left.item.excludedModels);
+      const rightEnabled = !hasDisableAllModelsRule(right.item.excludedModels);
+      if (leftEnabled !== rightEnabled) {
+        return leftEnabled ? -1 : 1;
+      }
+
+      const priorityDiff =
+        getPriorityValue(right.item.priority) - getPriorityValue(left.item.priority);
+      if (priorityDiff !== 0) return priorityDiff;
+      return left.index - right.index;
+    })
+    .map(({ item }) => item);
+
 export function AiProvidersPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -42,19 +75,19 @@ export function AiProvidersPage() {
   const [error, setError] = useState('');
 
   const [geminiKeys, setGeminiKeys] = useState<GeminiKeyConfig[]>(
-    () => config?.geminiApiKeys || []
+    () => sortToggleableProviderConfigs(config?.geminiApiKeys || [])
   );
   const [codexConfigs, setCodexConfigs] = useState<ProviderKeyConfig[]>(
-    () => config?.codexApiKeys || []
+    () => sortToggleableProviderConfigs(config?.codexApiKeys || [])
   );
   const [claudeConfigs, setClaudeConfigs] = useState<ProviderKeyConfig[]>(
-    () => config?.claudeApiKeys || []
+    () => sortToggleableProviderConfigs(config?.claudeApiKeys || [])
   );
   const [vertexConfigs, setVertexConfigs] = useState<ProviderKeyConfig[]>(
-    () => config?.vertexApiKeys || []
+    () => sortToggleableProviderConfigs(config?.vertexApiKeys || [])
   );
   const [openaiProviders, setOpenaiProviders] = useState<OpenAIProviderConfig[]>(
-    () => config?.openaiCompatibility || []
+    () => sortByPriorityDesc(config?.openaiCompatibility || [])
   );
 
   const [configSwitchingKey, setConfigSwitchingKey] = useState<string | null>(null);
@@ -109,15 +142,16 @@ export function AiProvidersPage() {
       }
 
       const data = configResult.value;
-      setGeminiKeys(data?.geminiApiKeys || []);
-      setCodexConfigs(data?.codexApiKeys || []);
-      setClaudeConfigs(data?.claudeApiKeys || []);
-      setVertexConfigs(data?.vertexApiKeys || []);
-      setOpenaiProviders(data?.openaiCompatibility || []);
+      setGeminiKeys(sortToggleableProviderConfigs(data?.geminiApiKeys || []));
+      setCodexConfigs(sortToggleableProviderConfigs(data?.codexApiKeys || []));
+      setClaudeConfigs(sortToggleableProviderConfigs(data?.claudeApiKeys || []));
+      setVertexConfigs(sortToggleableProviderConfigs(data?.vertexApiKeys || []));
+      setOpenaiProviders(sortByPriorityDesc(data?.openaiCompatibility || []));
 
       if (vertexResult.status === 'fulfilled') {
-        setVertexConfigs(vertexResult.value || []);
-        updateConfigValue('vertex-api-key', vertexResult.value || []);
+        const sortedVertexConfigs = sortToggleableProviderConfigs(vertexResult.value || []);
+        setVertexConfigs(sortedVertexConfigs);
+        updateConfigValue('vertex-api-key', sortedVertexConfigs);
         clearCache('vertex-api-key');
       }
 
@@ -145,11 +179,11 @@ export function AiProvidersPage() {
   }, [isCurrentLayer, loadKeyStats]);
 
   useEffect(() => {
-    if (config?.geminiApiKeys) setGeminiKeys(config.geminiApiKeys);
-    if (config?.codexApiKeys) setCodexConfigs(config.codexApiKeys);
-    if (config?.claudeApiKeys) setClaudeConfigs(config.claudeApiKeys);
-    if (config?.vertexApiKeys) setVertexConfigs(config.vertexApiKeys);
-    if (config?.openaiCompatibility) setOpenaiProviders(config.openaiCompatibility);
+    if (config?.geminiApiKeys) setGeminiKeys(sortToggleableProviderConfigs(config.geminiApiKeys));
+    if (config?.codexApiKeys) setCodexConfigs(sortToggleableProviderConfigs(config.codexApiKeys));
+    if (config?.claudeApiKeys) setClaudeConfigs(sortToggleableProviderConfigs(config.claudeApiKeys));
+    if (config?.vertexApiKeys) setVertexConfigs(sortToggleableProviderConfigs(config.vertexApiKeys));
+    if (config?.openaiCompatibility) setOpenaiProviders(sortByPriorityDesc(config.openaiCompatibility));
   }, [
     config?.geminiApiKeys,
     config?.codexApiKeys,
@@ -172,7 +206,7 @@ export function AiProvidersPage() {
     if (!entry) return;
     try {
       await providersApi.deleteGeminiKey(entry.apiKey, entry.baseUrl);
-      const next = geminiKeys.filter((_, idx) => idx !== index);
+      const next = sortToggleableProviderConfigs(geminiKeys.filter((_, idx) => idx !== index));
       setGeminiKeys(next);
       updateConfigValue('gemini-api-key', next);
       clearCache('gemini-api-key');
@@ -200,7 +234,9 @@ export function AiProvidersPage() {
         ? withoutDisableAllModelsRule(current.excludedModels)
         : withDisableAllModelsRule(current.excludedModels);
       const nextItem: GeminiKeyConfig = { ...current, excludedModels: nextExcluded };
-      const nextList = previousList.map((item, idx) => (idx === index ? nextItem : item));
+      const nextList = sortToggleableProviderConfigs(
+        previousList.map((item, idx) => (idx === index ? nextItem : item))
+      );
 
       setGeminiKeys(nextList);
       updateConfigValue('gemini-api-key', nextList);
@@ -241,7 +277,9 @@ export function AiProvidersPage() {
       ? withoutDisableAllModelsRule(current.excludedModels)
       : withDisableAllModelsRule(current.excludedModels);
     const nextItem: ProviderKeyConfig = { ...current, excludedModels: nextExcluded };
-    const nextList = previousList.map((item, idx) => (idx === index ? nextItem : item));
+    const nextList = sortToggleableProviderConfigs(
+      previousList.map((item, idx) => (idx === index ? nextItem : item))
+    );
 
     if (provider === 'codex') {
       setCodexConfigs(nextList);
@@ -297,14 +335,14 @@ export function AiProvidersPage() {
     try {
       if (type === 'codex') {
         await providersApi.deleteCodexConfig(entry.apiKey, entry.baseUrl);
-        const next = codexConfigs.filter((_, idx) => idx !== index);
+        const next = sortToggleableProviderConfigs(codexConfigs.filter((_, idx) => idx !== index));
         setCodexConfigs(next);
         updateConfigValue('codex-api-key', next);
         clearCache('codex-api-key');
         showNotification(t('notification.codex_config_deleted'), 'success');
       } else {
         await providersApi.deleteClaudeConfig(entry.apiKey, entry.baseUrl);
-        const next = claudeConfigs.filter((_, idx) => idx !== index);
+        const next = sortToggleableProviderConfigs(claudeConfigs.filter((_, idx) => idx !== index));
         setClaudeConfigs(next);
         updateConfigValue('claude-api-key', next);
         clearCache('claude-api-key');
@@ -321,7 +359,7 @@ export function AiProvidersPage() {
     if (!entry) return;
     try {
       await providersApi.deleteVertexConfig(entry.apiKey, entry.baseUrl);
-      const next = vertexConfigs.filter((_, idx) => idx !== index);
+      const next = sortToggleableProviderConfigs(vertexConfigs.filter((_, idx) => idx !== index));
       setVertexConfigs(next);
       updateConfigValue('vertex-api-key', next);
       clearCache('vertex-api-key');
@@ -337,7 +375,7 @@ export function AiProvidersPage() {
     if (!entry) return;
     try {
       await providersApi.deleteOpenAIProvider(entry.name);
-      const next = openaiProviders.filter((_, idx) => idx !== index);
+      const next = sortByPriorityDesc(openaiProviders.filter((_, idx) => idx !== index));
       setOpenaiProviders(next);
       updateConfigValue('openai-compatibility', next);
       clearCache('openai-compatibility');
@@ -386,21 +424,6 @@ export function AiProvidersPage() {
       <div className={styles.content}>
         {error && <div className={styles.errorBanner}>{error}</div>}
 
-        <div id="provider-gemini" className={styles.providerSectionAnchor}>
-          <GeminiSection
-            configs={geminiKeys}
-            keyStats={keyStats}
-            usageDetailsBySource={usageDetailsBySource}
-            loading={loading}
-            disableControls={disableControls}
-            isSwitching={isSwitching}
-            onAdd={() => openEditor('/ai-providers/gemini/new')}
-            onEdit={(index) => openEditor(`/ai-providers/gemini/${index}`)}
-            onDelete={deleteGemini}
-            onToggle={(index, enabled) => void setConfigEnabled('gemini', index, enabled)}
-          />
-        </div>
-
         <div id="provider-codex" className={styles.providerSectionAnchor}>
           <CodexSection
             configs={codexConfigs}
@@ -413,6 +436,21 @@ export function AiProvidersPage() {
             onEdit={(index) => openEditor(`/ai-providers/codex/${index}`)}
             onDelete={(index) => void deleteProviderEntry('codex', index)}
             onToggle={(index, enabled) => void setConfigEnabled('codex', index, enabled)}
+          />
+        </div>
+
+        <div id="provider-gemini" className={styles.providerSectionAnchor}>
+          <GeminiSection
+            configs={geminiKeys}
+            keyStats={keyStats}
+            usageDetailsBySource={usageDetailsBySource}
+            loading={loading}
+            disableControls={disableControls}
+            isSwitching={isSwitching}
+            onAdd={() => openEditor('/ai-providers/gemini/new')}
+            onEdit={(index) => openEditor(`/ai-providers/gemini/${index}`)}
+            onDelete={deleteGemini}
+            onToggle={(index, enabled) => void setConfigEnabled('gemini', index, enabled)}
           />
         </div>
 

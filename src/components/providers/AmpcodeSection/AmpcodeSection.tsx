@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { IconLink, IconModelCluster, IconShield } from '@/components/ui/icons';
 import iconAmp from '@/assets/icons/amp.svg';
 import type { AmpcodeConfig } from '@/types';
-import { maskApiKey } from '@/utils/format';
 import styles from '@/pages/AiProvidersPage.module.scss';
 import { useTranslation } from 'react-i18next';
+import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 
 interface AmpcodeSectionProps {
   config: AmpcodeConfig | null | undefined;
@@ -47,36 +48,42 @@ export function AmpcodeSection({
           <div className="hint">{t('common.loading')}</div>
         ) : (
           <>
-            <div className={styles.fieldRow}>
-              <span className={styles.fieldLabel}>{t('ai_providers.ampcode_upstream_url_label')}:</span>
-              <span className={styles.fieldValue}>{config?.upstreamUrl || t('common.not_set')}</span>
-            </div>
-            <div className={styles.fieldRow}>
-              <span className={styles.fieldLabel}>
-                {t('ai_providers.ampcode_upstream_api_key_label')}:
-              </span>
-              <span className={styles.fieldValue}>
-                {config?.upstreamApiKey ? maskApiKey(config.upstreamApiKey) : t('common.not_set')}
-              </span>
-            </div>
-            <div className={styles.fieldRow}>
-              <span className={styles.fieldLabel}>
-                {t('ai_providers.ampcode_force_model_mappings_label')}:
-              </span>
-              <span className={styles.fieldValue}>
+            <div className={styles.fieldGrid}>
+              <ProviderDetailRow
+                icon={<IconLink size={20} />}
+                label={t('ai_providers.ampcode_upstream_url_label')}
+                tone="url"
+              >
+                {config?.upstreamUrl || t('common.not_set')}
+              </ProviderDetailRow>
+              <ProviderDetailRow
+                icon={<IconShield size={20} />}
+                label={t('ai_providers.ampcode_force_model_mappings_label')}
+                tone="option"
+              >
                 {(config?.forceModelMappings ?? false) ? t('common.yes') : t('common.no')}
-              </span>
-            </div>
-            <div className={styles.fieldRow} style={{ marginTop: 8 }}>
-              <span className={styles.fieldLabel}>{t('ai_providers.ampcode_model_mappings_count')}:</span>
-              <span className={styles.fieldValue}>{config?.modelMappings?.length || 0}</span>
-            </div>
-            <div className={styles.fieldRow}>
-              <span className={styles.fieldLabel}>{t('ai_providers.ampcode_upstream_api_keys_count')}:</span>
-              <span className={styles.fieldValue}>{config?.upstreamApiKeys?.length || 0}</span>
+              </ProviderDetailRow>
+              <ProviderDetailRow
+                icon={<IconModelCluster size={20} />}
+                label={t('ai_providers.ampcode_model_mappings_count')}
+                tone="model"
+              >
+                {config?.modelMappings?.length || 0}
+              </ProviderDetailRow>
+              <ProviderDetailRow
+                icon={<IconModelCluster size={20} />}
+                label={t('ai_providers.ampcode_upstream_api_keys_count')}
+                tone="model"
+              >
+                {config?.upstreamApiKeys?.length || 0}
+              </ProviderDetailRow>
             </div>
             {config?.modelMappings?.length ? (
               <div className={styles.modelTagList}>
+                <ProviderModelHeader
+                  label={t('ai_providers.ampcode_model_mappings_count')}
+                  count={config.modelMappings.length}
+                />
                 {config.modelMappings.slice(0, 5).map((mapping) => (
                   <span key={`${mapping.from}→${mapping.to}`} className={styles.modelTag}>
                     <span className={styles.modelName}>{mapping.from}</span>

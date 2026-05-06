@@ -256,6 +256,7 @@
     "priority_label": "Priority (Optional):",
     "priority_hint": "Higher values are preferred. Leave empty for default (0).",
     "config_toggle_label": "Enabled",
+    "config_enabled_badge": "Running",
     "config_disabled_badge": "Disabled",
     "codex_title": "Codex API Configuration",
     "codex_add_button": "Add Configuration",
@@ -597,6 +598,10 @@
     "batch_download": "Download selected",
     "batch_download_success": "Started downloading {{count}} files",
     "batch_download_partial": "Download finished: {{success}} succeeded, {{failed}} failed",
+    "batch_refresh_quota": "Refresh quota",
+    "batch_quota_refresh_success": "Refreshed quota for {{count}} auth files",
+    "batch_quota_refresh_partial": "Quota refresh finished: {{success}} succeeded, {{failed}} failed, {{skipped}} skipped",
+    "batch_quota_refresh_none": "No selected auth files can refresh quota",
     "batch_enable": "Enable",
     "batch_disable": "Disable",
     "prefix_proxy_button": "Auth File Details / Edit",
@@ -1112,7 +1117,8 @@
   "status_bar": {
     "success_short": "✓",
     "failure_short": "✗",
-    "no_requests": "No requests"
+    "no_requests": "No requests",
+    "success_rate_label": "Success rate"
   },
   "service_health": {
     "title": "Service Health",

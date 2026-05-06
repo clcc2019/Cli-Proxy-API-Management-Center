@@ -256,6 +256,7 @@
     "priority_label": "Приоритет (необязательно):",
     "priority_hint": "Чем больше значение, тем выше приоритет. Оставьте пустым для значения по умолчанию (0).",
     "config_toggle_label": "Включено",
+    "config_enabled_badge": "Работает",
     "config_disabled_badge": "Отключено",
     "codex_title": "Конфигурация Codex API",
     "codex_add_button": "Добавить конфигурацию",
@@ -591,6 +592,10 @@
     "batch_download": "Скачать выбранные",
     "batch_download_success": "Запущена загрузка {{count}} файлов",
     "batch_download_partial": "Загрузка завершена: успешно {{success}}, ошибок {{failed}}",
+    "batch_refresh_quota": "Обновить квоту",
+    "batch_quota_refresh_success": "Квота обновлена для {{count}} файлов авторизации",
+    "batch_quota_refresh_partial": "Обновление квоты завершено: успешно {{success}}, ошибок {{failed}}, пропущено {{skipped}}",
+    "batch_quota_refresh_none": "Среди выбранных файлов нет доступных для обновления квоты",
     "batch_enable": "Включить",
     "batch_disable": "Отключить",
     "prefix_proxy_button": "Просмотр / редактирование файла авторизации",
@@ -1103,7 +1108,8 @@
   "status_bar": {
     "success_short": "✓",
     "failure_short": "✗",
-    "no_requests": "Нет запросов"
+    "no_requests": "Нет запросов",
+    "success_rate_label": "Успешность"
   },
   "service_health": {
     "title": "Состояние сервиса",

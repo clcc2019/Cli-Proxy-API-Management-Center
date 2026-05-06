@@ -115,28 +115,6 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   </div>
                 </div>
               )}
-              <div className={styles.prefixProxyJsonWrapper}>
-                <label className={styles.prefixProxyLabel}>
-                  {t('auth_files.prefix_proxy_info_label')}
-                </label>
-                <textarea
-                  className={styles.prefixProxyTextarea}
-                  rows={8}
-                  readOnly
-                  value={editor.fileInfoText}
-                />
-              </div>
-              <div className={styles.prefixProxyJsonWrapper}>
-                <label className={styles.prefixProxyLabel}>
-                  {t('auth_files.prefix_proxy_source_label')}
-                </label>
-                <textarea
-                  className={styles.prefixProxyTextarea}
-                  rows={10}
-                  readOnly
-                  value={previewText}
-                />
-              </div>
               <div className={styles.prefixProxyFields}>
                 <Input
                   label={t('auth_files.prefix_label')}
@@ -223,6 +201,28 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     <div className="hint">{t('ai_providers.codex_websockets_hint')}</div>
                   </div>
                 )}
+              </div>
+              <div className={styles.prefixProxyJsonWrapper}>
+                <label className={styles.prefixProxyLabel}>
+                  {t('auth_files.prefix_proxy_info_label')}
+                </label>
+                <textarea
+                  className={styles.prefixProxyTextarea}
+                  rows={8}
+                  readOnly
+                  value={editor.fileInfoText}
+                />
+              </div>
+              <div className={styles.prefixProxyJsonWrapper}>
+                <label className={styles.prefixProxyLabel}>
+                  {t('auth_files.prefix_proxy_source_label')}
+                </label>
+                <textarea
+                  className={styles.prefixProxyTextarea}
+                  rows={10}
+                  readOnly
+                  value={previewText}
+                />
               </div>
             </>
           )}

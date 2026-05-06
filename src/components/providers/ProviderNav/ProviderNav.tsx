@@ -22,8 +22,8 @@ interface ProviderNavItem {
 }
 
 const PROVIDERS: ProviderNavItem[] = [
-  { id: 'gemini', label: 'Gemini', getIcon: () => iconGemini },
   { id: 'codex', label: 'Codex', getIcon: () => iconCodex },
+  { id: 'gemini', label: 'Gemini', getIcon: () => iconGemini },
   { id: 'claude', label: 'Claude', getIcon: () => iconClaude },
   { id: 'vertex', label: 'Vertex', getIcon: () => iconVertex },
   { id: 'ampcode', label: 'Ampcode', getIcon: () => iconAmp },
@@ -44,8 +44,8 @@ export function ProviderNav() {
   const navListRef = useRef<HTMLDivElement | null>(null);
   const navContainerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<Record<ProviderId, HTMLButtonElement | null>>({
-    gemini: null,
     codex: null,
+    gemini: null,
     claude: null,
     vertex: null,
     ampcode: null,

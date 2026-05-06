@@ -256,6 +256,7 @@
     "priority_label": "优先级 (可选):",
     "priority_hint": "数值越大优先级越高；留空表示默认（0）。",
     "config_toggle_label": "启用",
+    "config_enabled_badge": "运行中",
     "config_disabled_badge": "已停用",
     "codex_title": "Codex API 配置",
     "codex_add_button": "添加配置",
@@ -576,7 +577,7 @@
     "models_excluded_hint": "此 OAuth 模型已被禁用",
     "websockets_enabled_badge": "WS 已启用",
     "websockets_disabled_badge": "WS 已禁用",
-    "websocket_handshake_debug_label": "WS 调试",
+    "websocket_handshake_debug_label": "调试",
     "websocket_handshake_debug_hint": "开启后该认证文件只完成一次上游 WebSocket 握手并立即断开，用于验证代理自动切换。",
     "websocket_handshake_debug_badge": "WS 调试",
     "websocket_handshake_debug_enabled_success": "已开启 \"{{name}}\" 的 WS 调试",
@@ -597,6 +598,10 @@
     "batch_download": "下载选中",
     "batch_download_success": "已开始下载 {{count}} 个文件",
     "batch_download_partial": "下载完成：成功 {{success}} 个，失败 {{failed}} 个",
+    "batch_refresh_quota": "刷新额度",
+    "batch_quota_refresh_success": "已刷新 {{count}} 个认证文件额度",
+    "batch_quota_refresh_partial": "额度刷新完成：成功 {{success}} 个，失败 {{failed}} 个，跳过 {{skipped}} 个",
+    "batch_quota_refresh_none": "当前选择中没有可刷新额度的认证文件",
     "batch_enable": "启用",
     "batch_disable": "禁用",
     "prefix_proxy_button": "认证文件详情 / 编辑",
@@ -1112,7 +1117,8 @@
   "status_bar": {
     "success_short": "✓",
     "failure_short": "✗",
-    "no_requests": "无请求"
+    "no_requests": "无请求",
+    "success_rate_label": "成功率"
   },
   "service_health": {
     "title": "服务健康监测",

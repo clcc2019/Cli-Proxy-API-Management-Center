@@ -19,6 +19,10 @@ export function QuotaProgressBar({ percent, highThreshold, mediumThreshold }: Qu
           : styles.quotaBarFillLow;
   const widthPercent = Math.round(normalized ?? 0);
   const ariaValue = normalized === null ? undefined : Math.round(normalized);
+  const fillStyle = {
+    width: `${widthPercent}%`,
+    minWidth: widthPercent > 0 ? 4 : 0
+  };
 
   return (
     <div
@@ -28,7 +32,7 @@ export function QuotaProgressBar({ percent, highThreshold, mediumThreshold }: Qu
       aria-valuemax={100}
       aria-valuenow={ariaValue}
     >
-      <div className={`${styles.quotaBarFill} ${fillClass}`} style={{ width: `${widthPercent}%` }} />
+      <div className={`${styles.quotaBarFill} ${fillClass}`} style={fillStyle} />
     </div>
   );
 }

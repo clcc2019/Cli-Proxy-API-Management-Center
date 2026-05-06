@@ -413,9 +413,12 @@ export function AiProvidersAmpcodeEditPage() {
           </Button>
         </div>
 
-        <div className="form-group">
-          <div className={layoutStyles.ampcodeUpstreamMappingsHeader}>
+        <div className={layoutStyles.ampcodeSectionCard}>
+          <div className={layoutStyles.ampcodeSectionIntro}>
             <label>{t('ai_providers.ampcode_upstream_api_keys_label')}</label>
+            <div className="hint">{t('ai_providers.ampcode_upstream_api_keys_hint')}</div>
+          </div>
+          <div className={layoutStyles.ampcodeUpstreamMappingsHeader}>
             <Button
               variant="secondary"
               size="sm"
@@ -442,11 +445,12 @@ export function AiProvidersAmpcodeEditPage() {
               <div key={index} className={layoutStyles.ampcodeUpstreamMappingCard}>
                 <div className={layoutStyles.ampcodeUpstreamMappingCardTop}>
                   <span className={layoutStyles.ampcodeUpstreamMappingTitle}>
-                    {t('ai_providers.ampcode_upstream_api_keys_item_title', { index: index + 1 })}
+                    #{index + 1}
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
+                    className={layoutStyles.ampcodeMappingRemoveButton}
                     onClick={() => {
                       setUpstreamApiKeysDirty(true);
                       setForm((prev) => {
@@ -465,7 +469,7 @@ export function AiProvidersAmpcodeEditPage() {
                   </Button>
                 </div>
                 <input
-                  className="input"
+                  className={`input ${layoutStyles.ampcodeCompactInput}`}
                   placeholder={t('ai_providers.ampcode_upstream_api_keys_upstream_placeholder')}
                   aria-label={t('ai_providers.ampcode_upstream_api_keys_upstream_placeholder')}
                   value={entry.upstreamApiKey}
@@ -482,7 +486,7 @@ export function AiProvidersAmpcodeEditPage() {
                   disabled={loading || saving || disableControls}
                 />
                 <textarea
-                  className="input"
+                  className={`input ${layoutStyles.ampcodeCompactTextarea}`}
                   placeholder={t('ai_providers.ampcode_upstream_api_keys_clients_placeholder')}
                   aria-label={t('ai_providers.ampcode_upstream_api_keys_clients_placeholder')}
                   value={entry.clientApiKeysText}
@@ -502,7 +506,6 @@ export function AiProvidersAmpcodeEditPage() {
               </div>
             ))}
           </div>
-          <div className="hint">{t('ai_providers.ampcode_upstream_api_keys_hint')}</div>
         </div>
 
         <div className="form-group">
@@ -515,8 +518,11 @@ export function AiProvidersAmpcodeEditPage() {
           <div className="hint">{t('ai_providers.ampcode_force_model_mappings_hint')}</div>
         </div>
 
-        <div className="form-group">
-          <label>{t('ai_providers.ampcode_model_mappings_label')}</label>
+        <div className={layoutStyles.ampcodeSectionCard}>
+          <div className={layoutStyles.ampcodeSectionIntro}>
+            <label>{t('ai_providers.ampcode_model_mappings_label')}</label>
+            <div className="hint">{t('ai_providers.ampcode_model_mappings_hint')}</div>
+          </div>
           <ModelInputList
             entries={form.mappingEntries}
             onChange={(entries) => {
@@ -526,11 +532,14 @@ export function AiProvidersAmpcodeEditPage() {
             addLabel={t('ai_providers.ampcode_model_mappings_add_btn')}
             namePlaceholder={t('ai_providers.ampcode_model_mappings_from_placeholder')}
             aliasPlaceholder={t('ai_providers.ampcode_model_mappings_to_placeholder')}
+            className={layoutStyles.ampcodeModelMappingsList}
+            rowClassName={layoutStyles.ampcodeModelMappingRow}
+            inputClassName={layoutStyles.ampcodeCompactInput}
+            removeButtonClassName={layoutStyles.ampcodeMappingRemoveButton}
             removeButtonTitle={t('common.delete')}
             removeButtonAriaLabel={t('common.delete')}
             disabled={loading || saving || disableControls}
           />
-          <div className="hint">{t('ai_providers.ampcode_model_mappings_hint')}</div>
         </div>
       </Card>
     </SecondaryScreenShell>

@@ -225,14 +225,6 @@ export const readAuthFileWebsockets = (file: AuthFileItem): boolean | null => {
   return parseDisableCoolingValue(rawValue) ?? false;
 };
 
-export const readAuthFileWebsocketHandshakeDebug = (file: AuthFileItem): boolean => {
-  const providerKey = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
-  if (providerKey !== 'codex') return false;
-
-  const rawValue = file.websocket_handshake_debug ?? file['websocket_handshake_debug'];
-  return parseDisableCoolingValue(rawValue) ?? false;
-};
-
 export const applyCodexAuthFileWebsockets = (
   value: Record<string, unknown>,
   websockets: boolean
@@ -252,7 +244,8 @@ export function isRuntimeOnlyAuthFile(file: AuthFileItem): boolean {
 
 type AuthFileMatchedBucket = { success: number; failure: number };
 
-const hasAuthFileMatchData = (bucket: AuthFileMatchedBucket) => bucket.success > 0 || bucket.failure > 0;
+const hasAuthFileMatchData = (bucket: AuthFileMatchedBucket) =>
+  bucket.success > 0 || bucket.failure > 0;
 
 const resolveAuthFileBucket = <T extends AuthFileMatchedBucket>(
   file: AuthFileItem,
@@ -299,7 +292,10 @@ export function resolveAuthFileStats(file: AuthFileItem, stats: KeyStats): KeySt
   return resolveAuthFileBucket(file, stats, { success: 0, failure: 0 });
 }
 
-export function resolveAuthFileUsageStats(file: AuthFileItem, stats: KeyUsageStats): KeyUsageBucket {
+export function resolveAuthFileUsageStats(
+  file: AuthFileItem,
+  stats: KeyUsageStats
+): KeyUsageBucket {
   return resolveAuthFileBucket(
     file,
     stats,

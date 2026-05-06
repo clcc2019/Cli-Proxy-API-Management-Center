@@ -3,9 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import {
+  IconExternalLink,
+  IconLink,
+  IconSatellite,
+  IconShield,
+  IconStar,
+} from '@/components/ui/icons';
 import iconCodex from '@/assets/icons/codex.svg';
 import type { ProviderKeyConfig } from '@/types';
-import { maskApiKey } from '@/utils/format';
 import {
   buildCandidateUsageSourceIds,
   calculateStatusBarData,
@@ -16,9 +22,10 @@ import {
   type UsageDetailsBySource,
 } from '@/utils/usageIndex';
 import styles from '@/pages/AiProvidersPage.module.scss';
+import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 import { ProviderList } from '../ProviderList';
 import { ProviderStatusBar } from '../ProviderStatusBar';
-import { getStatsBySource, hasDisableAllModelsRule } from '../utils';
+import { hasDisableAllModelsRule } from '../utils';
 
 interface CodexSectionProps {
   configs: ProviderKeyConfig[];
@@ -46,6 +53,7 @@ export function CodexSection({
   onToggle,
 }: CodexSectionProps) {
   const { t } = useTranslation();
+  void keyStats;
   const actionsDisabled = disableControls || loading || isSwitching;
   const toggleDisabled = disableControls || loading || isSwitching;
 
@@ -88,6 +96,7 @@ export function CodexSection({
           loading={loading}
           listClassName={styles.providerConfigList}
           rowClassName={styles.providerConfigItem}
+          leadingIcon={<img src={iconCodex} alt="" />}
           keyField={(item) => item.apiKey}
           emptyTitle={t('ai_providers.codex_empty_title')}
           emptyDescription={t('ai_providers.codex_empty_desc')}
@@ -99,54 +108,68 @@ export function CodexSection({
             <ToggleSwitch
               label={t('ai_providers.config_toggle_label')}
               checked={!hasDisableAllModelsRule(item.excludedModels)}
+              className={styles.providerCardToggle}
               disabled={toggleDisabled}
               onChange={(value) => void onToggle(index, value)}
             />
           )}
           renderContent={(item) => {
-            const stats = getStatsBySource(item.apiKey, keyStats, item.prefix);
             const headerEntries = Object.entries(item.headers || {});
-            const configDisabled = hasDisableAllModelsRule(item.excludedModels);
             const excludedModels = item.excludedModels ?? [];
             const statusData = statusBarCache.get(item.apiKey) || calculateStatusBarData([]);
 
             return (
               <Fragment>
                 <div className="item-title">{t('ai_providers.codex_item_title')}</div>
-                <div className={styles.fieldRow}>
-                  <span className={styles.fieldLabel}>{t('common.api_key')}:</span>
-                  <span className={styles.fieldValue}>{maskApiKey(item.apiKey)}</span>
+                <div className={styles.fieldGrid}>
+                  {item.priority !== undefined &&
+                    item.priority !== null &&
+                    Number.isFinite(item.priority) && (
+                    <ProviderDetailRow
+                      icon={<IconStar size={20} />}
+                      label={t('common.priority')}
+                      tone="priority"
+                    >
+                      {item.priority}
+                    </ProviderDetailRow>
+                  )}
+                  {item.prefix && (
+                    <ProviderDetailRow
+                      icon={<IconShield size={20} />}
+                      label={t('common.prefix')}
+                      tone="prefix"
+                    >
+                      {item.prefix}
+                    </ProviderDetailRow>
+                  )}
+                  {item.baseUrl && (
+                    <ProviderDetailRow
+                      icon={<IconLink size={20} />}
+                      label={t('common.base_url')}
+                      tone="url"
+                    >
+                      {item.baseUrl}
+                    </ProviderDetailRow>
+                  )}
+                  {item.proxyUrl && (
+                    <ProviderDetailRow
+                      icon={<IconExternalLink size={20} />}
+                      label={t('common.proxy_url')}
+                      tone="proxy"
+                    >
+                      {item.proxyUrl}
+                    </ProviderDetailRow>
+                  )}
+                  {item.websockets !== undefined && (
+                    <ProviderDetailRow
+                      icon={<IconSatellite size={20} />}
+                      label={t('ai_providers.codex_websockets_label')}
+                      tone="option"
+                    >
+                      {item.websockets ? t('common.yes') : t('common.no')}
+                    </ProviderDetailRow>
+                  )}
                 </div>
-                {item.priority !== undefined && (
-                  <div className={styles.fieldRow}>
-                    <span className={styles.fieldLabel}>{t('common.priority')}:</span>
-                    <span className={styles.fieldValue}>{item.priority}</span>
-                  </div>
-                )}
-                {item.prefix && (
-                  <div className={styles.fieldRow}>
-                    <span className={styles.fieldLabel}>{t('common.prefix')}:</span>
-                    <span className={styles.fieldValue}>{item.prefix}</span>
-                  </div>
-                )}
-                {item.baseUrl && (
-                  <div className={styles.fieldRow}>
-                    <span className={styles.fieldLabel}>{t('common.base_url')}:</span>
-                    <span className={styles.fieldValue}>{item.baseUrl}</span>
-                  </div>
-                )}
-                {item.proxyUrl && (
-                  <div className={styles.fieldRow}>
-                    <span className={styles.fieldLabel}>{t('common.proxy_url')}:</span>
-                    <span className={styles.fieldValue}>{item.proxyUrl}</span>
-                  </div>
-                )}
-                {item.websockets !== undefined && (
-                  <div className={styles.fieldRow}>
-                    <span className={styles.fieldLabel}>{t('ai_providers.codex_websockets_label')}:</span>
-                    <span className={styles.fieldValue}>{item.websockets ? t('common.yes') : t('common.no')}</span>
-                  </div>
-                )}
                 {headerEntries.length > 0 && (
                   <div className={styles.headerBadgeList}>
                     {headerEntries.map(([key, value]) => (
@@ -156,26 +179,22 @@ export function CodexSection({
                     ))}
                   </div>
                 )}
-                {configDisabled && (
-                  <div className="status-badge warning" style={{ marginTop: 8, marginBottom: 0 }}>
-                    {t('ai_providers.config_disabled_badge')}
-                  </div>
-                )}
-                {item.models?.length ? (
-                  <div className={styles.modelTagList}>
-                    <span className={styles.modelCountLabel}>
-                      {t('ai_providers.codex_models_count')}: {item.models.length}
-                    </span>
-                    {item.models.map((model) => (
+                <div className={styles.modelTagList}>
+                  <ProviderModelHeader
+                    label={t('ai_providers.codex_models_count')}
+                    count={item.models?.length || 0}
+                  />
+                  {item.models?.length
+                    ? item.models.map((model) => (
                       <span key={model.name} className={styles.modelTag}>
                         <span className={styles.modelName}>{model.name}</span>
                         {model.alias && model.alias !== model.name && (
                           <span className={styles.modelAlias}>{model.alias}</span>
                         )}
                       </span>
-                    ))}
-                  </div>
-                ) : null}
+                    ))
+                    : null}
+                </div>
                 {excludedModels.length ? (
                   <div className={styles.excludedModelsSection}>
                     <div className={styles.excludedModelsLabel}>
@@ -190,15 +209,7 @@ export function CodexSection({
                     </div>
                   </div>
                 ) : null}
-                <div className={styles.cardStats}>
-                  <span className={`${styles.statPill} ${styles.statSuccess}`}>
-                    {t('stats.success')}: {stats.success}
-                  </span>
-                  <span className={`${styles.statPill} ${styles.statFailure}`}>
-                    {t('stats.failure')}: {stats.failure}
-                  </span>
-                </div>
-                <ProviderStatusBar statusData={statusData} />
+                <ProviderStatusBar statusData={statusData} showRateLabel />
               </Fragment>
             );
           }}

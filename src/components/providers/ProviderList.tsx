@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { IconSettings, IconTrash2 } from '@/components/ui/icons';
 
 interface ProviderListProps<T> {
   items: T[];
@@ -16,6 +17,7 @@ interface ProviderListProps<T> {
   actionsDisabled?: boolean;
   getRowDisabled?: (item: T, index: number) => boolean;
   renderExtraActions?: (item: T, index: number) => ReactNode;
+  leadingIcon?: ReactNode;
   listClassName?: string;
   rowClassName?: string;
 }
@@ -33,6 +35,7 @@ export function ProviderList<T>({
   actionsDisabled = false,
   getRowDisabled,
   renderExtraActions,
+  leadingIcon,
   listClassName,
   rowClassName,
 }: ProviderListProps<T>) {
@@ -52,13 +55,35 @@ export function ProviderList<T>({
     <div className={listClasses}>
       {items.map((item, index) => {
         const rowDisabled = getRowDisabled ? getRowDisabled(item, index) : false;
-        const rowClasses = ['item-row', rowClassName].filter(Boolean).join(' ');
+        const rowClasses = [
+          'item-row',
+          rowClassName,
+          rowDisabled ? 'provider-card-disabled' : 'provider-card-enabled',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        const statusLabel = rowDisabled
+          ? t('ai_providers.config_disabled_badge')
+          : t('ai_providers.config_enabled_badge', {
+              defaultValue: t('ai_providers.config_toggle_label'),
+            });
+
         return (
           <div
             key={keyField(item, index)}
             className={rowClasses}
-            style={rowDisabled ? { opacity: 0.6 } : undefined}
           >
+            {leadingIcon && <span className="provider-card-avatar">{leadingIcon}</span>}
+            <span
+              className={`provider-card-state ${rowDisabled ? 'is-disabled' : 'is-enabled'}`}
+            >
+              {statusLabel}
+            </span>
+            <span className="provider-card-menu" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
             <div className="item-meta">{renderContent(item, index)}</div>
             <div className="item-actions">
               <Button
@@ -66,16 +91,20 @@ export function ProviderList<T>({
                 size="sm"
                 onClick={() => onEdit(index)}
                 disabled={actionsDisabled}
+                className="provider-card-action provider-card-action-edit"
               >
-                {t('common.edit')}
+                <IconSettings size={16} />
+                <span>{t('common.edit')}</span>
               </Button>
               <Button
                 variant="danger"
                 size="sm"
                 onClick={() => onDelete(index)}
                 disabled={actionsDisabled}
+                className="provider-card-action provider-card-action-delete"
               >
-                {deleteLabel || t('common.delete')}
+                <IconTrash2 size={16} />
+                <span>{deleteLabel || t('common.delete')}</span>
               </Button>
               {renderExtraActions ? renderExtraActions(item, index) : null}
             </div>
