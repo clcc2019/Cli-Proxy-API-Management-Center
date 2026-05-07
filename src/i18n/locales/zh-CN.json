@@ -1307,6 +1307,12 @@
           "logging_to_file_desc": "将日志保存到文件",
           "usage_statistics": "使用统计",
           "usage_statistics_desc": "收集使用统计信息",
+          "usage_statistics_persist": "使用统计落盘",
+          "usage_statistics_persist_desc": "启动时加载快照，并按间隔后台写入磁盘",
+          "usage_statistics_file": "使用统计文件",
+          "usage_statistics_file_hint": "相对路径会基于服务端配置文件所在目录解析。",
+          "usage_statistics_persist_interval": "落盘间隔（秒）",
+          "usage_statistics_persist_interval_hint": "高并发实例建议保持 60 秒或更高，避免频繁完整快照。",
           "logs_max_size": "日志文件大小限制 (MB)"
         },
         "network": {

@@ -1,8 +1,4 @@
-import {
-  useCallback,
-  useId,
-  type ReactNode,
-} from 'react';
+import { useCallback, useId, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -164,6 +160,10 @@ export function VisualConfigEditor({
 
   const portError = getValidationMessage(t, validationErrors?.port);
   const logsMaxSizeError = getValidationMessage(t, validationErrors?.logsMaxTotalSizeMb);
+  const usageStatisticsPersistIntervalError = getValidationMessage(
+    t,
+    validationErrors?.usageStatisticsPersistInterval
+  );
   const requestRetryError = getValidationMessage(t, validationErrors?.requestRetry);
   const maxRetryCredentialsError = getValidationMessage(t, validationErrors?.maxRetryCredentials);
   const maxRetryIntervalError = getValidationMessage(t, validationErrors?.maxRetryInterval);
@@ -378,6 +378,15 @@ export function VisualConfigEditor({
                   disabled={disabled}
                   onChange={(usageStatisticsEnabled) => onChange({ usageStatisticsEnabled })}
                 />
+                <ToggleRow
+                  title={t('config_management.visual.sections.system.usage_statistics_persist')}
+                  description={t(
+                    'config_management.visual.sections.system.usage_statistics_persist_desc'
+                  )}
+                  checked={values.usageStatisticsPersist}
+                  disabled={disabled}
+                  onChange={(usageStatisticsPersist) => onChange({ usageStatisticsPersist })}
+                />
               </SectionGrid>
 
               <SectionGrid>
@@ -389,6 +398,28 @@ export function VisualConfigEditor({
                   onChange={(e) => onChange({ logsMaxTotalSizeMb: e.target.value })}
                   disabled={disabled}
                   error={logsMaxSizeError}
+                />
+                <Input
+                  label={t('config_management.visual.sections.system.usage_statistics_file')}
+                  placeholder="usage-statistics.json"
+                  value={values.usageStatisticsFile}
+                  onChange={(e) => onChange({ usageStatisticsFile: e.target.value })}
+                  disabled={disabled || !values.usageStatisticsPersist}
+                  hint={t('config_management.visual.sections.system.usage_statistics_file_hint')}
+                />
+                <Input
+                  label={t(
+                    'config_management.visual.sections.system.usage_statistics_persist_interval'
+                  )}
+                  type="number"
+                  placeholder="60"
+                  value={values.usageStatisticsPersistInterval}
+                  onChange={(e) => onChange({ usageStatisticsPersistInterval: e.target.value })}
+                  disabled={disabled || !values.usageStatisticsPersist}
+                  error={usageStatisticsPersistIntervalError}
+                  hint={t(
+                    'config_management.visual.sections.system.usage_statistics_persist_interval_hint'
+                  )}
                 />
               </SectionGrid>
             </SectionStack>

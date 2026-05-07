@@ -39,6 +39,9 @@ const SECTION_KEYS: RawConfigSection[] = [
   'request-retry',
   'quota-exceeded',
   'usage-statistics-enabled',
+  'usage-statistics-persist',
+  'usage-statistics-file',
+  'usage-statistics-persist-interval',
   'request-log',
   'logging-to-file',
   'logs-max-total-size-mb',
@@ -52,7 +55,7 @@ const SECTION_KEYS: RawConfigSection[] = [
   'claude-api-key',
   'vertex-api-key',
   'openai-compatibility',
-  'oauth-excluded-models'
+  'oauth-excluded-models',
 ];
 
 const extractSectionValue = (config: Config | null, section?: RawConfigSection) => {
@@ -68,6 +71,12 @@ const extractSectionValue = (config: Config | null, section?: RawConfigSection) 
       return config.quotaExceeded;
     case 'usage-statistics-enabled':
       return config.usageStatisticsEnabled;
+    case 'usage-statistics-persist':
+      return config.usageStatisticsPersist;
+    case 'usage-statistics-file':
+      return config.usageStatisticsFile;
+    case 'usage-statistics-persist-interval':
+      return config.usageStatisticsPersistInterval;
     case 'request-log':
       return config.requestLog;
     case 'logging-to-file':
@@ -162,17 +171,21 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       set({
         config: data,
         cache: newCache,
-        loading: false
+        loading: false,
       });
 
       return section ? extractSectionValue(data, section) : data;
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : typeof error === 'string' ? error : 'Failed to fetch config';
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : 'Failed to fetch config';
       if (requestId === configRequestToken) {
         set({
           error: message || 'Failed to fetch config',
-          loading: false
+          loading: false,
         });
       }
       throw error;
@@ -204,6 +217,16 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
           break;
         case 'usage-statistics-enabled':
           nextConfig.usageStatisticsEnabled = value as Config['usageStatisticsEnabled'];
+          break;
+        case 'usage-statistics-persist':
+          nextConfig.usageStatisticsPersist = value as Config['usageStatisticsPersist'];
+          break;
+        case 'usage-statistics-file':
+          nextConfig.usageStatisticsFile = value as Config['usageStatisticsFile'];
+          break;
+        case 'usage-statistics-persist-interval':
+          nextConfig.usageStatisticsPersistInterval =
+            value as Config['usageStatisticsPersistInterval'];
           break;
         case 'request-log':
           nextConfig.requestLog = value as Config['requestLog'];
@@ -293,5 +316,5 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     if (!cached) return false;
 
     return Date.now() - cached.timestamp < CACHE_EXPIRY_MS;
-  }
+  },
 }));

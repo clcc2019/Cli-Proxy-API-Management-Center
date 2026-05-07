@@ -7,6 +7,7 @@ export type PayloadParamValidationErrorCode =
 export type VisualConfigFieldPath =
   | 'port'
   | 'logsMaxTotalSizeMb'
+  | 'usageStatisticsPersistInterval'
   | 'requestRetry'
   | 'maxRetryCredentials'
   | 'maxRetryInterval'
@@ -75,6 +76,9 @@ export type VisualConfigValues = {
   loggingToFile: boolean;
   logsMaxTotalSizeMb: string;
   usageStatisticsEnabled: boolean;
+  usageStatisticsPersist: boolean;
+  usageStatisticsFile: string;
+  usageStatisticsPersistInterval: string;
   proxyUrl: string;
   forceModelPrefix: boolean;
   requestRetry: string;
@@ -114,6 +118,9 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   loggingToFile: false,
   logsMaxTotalSizeMb: '',
   usageStatisticsEnabled: false,
+  usageStatisticsPersist: false,
+  usageStatisticsFile: '',
+  usageStatisticsPersistInterval: '',
   proxyUrl: '',
   forceModelPrefix: false,
   requestRetry: '',

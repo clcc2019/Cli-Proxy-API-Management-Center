@@ -230,6 +230,9 @@ export function getVisualConfigValidationErrors(
   return {
     port: getPortError(values.port),
     logsMaxTotalSizeMb: getNonNegativeIntegerError(values.logsMaxTotalSizeMb),
+    usageStatisticsPersistInterval: getNonNegativeIntegerError(
+      values.usageStatisticsPersistInterval
+    ),
     requestRetry: getNonNegativeIntegerError(values.requestRetry),
     maxRetryCredentials: getNonNegativeIntegerError(values.maxRetryCredentials),
     maxRetryInterval: getNonNegativeIntegerError(values.maxRetryInterval),
@@ -620,10 +623,7 @@ function mergeVisualConfigValues(
   return nextValues;
 }
 
-function areApiKeyEntriesEqual(
-  left: VisualApiKeyEntry[],
-  right: VisualApiKeyEntry[]
-): boolean {
+function areApiKeyEntriesEqual(left: VisualApiKeyEntry[], right: VisualApiKeyEntry[]): boolean {
   if (left.length !== right.length) return false;
   for (let index = 0; index < left.length; index += 1) {
     const leftEntry = left[index];
@@ -706,6 +706,24 @@ function getNextDirtyFields(
     updateDirty(
       'usageStatisticsEnabled',
       nextValues.usageStatisticsEnabled === baselineValues.usageStatisticsEnabled
+    );
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'usageStatisticsPersist')) {
+    updateDirty(
+      'usageStatisticsPersist',
+      nextValues.usageStatisticsPersist === baselineValues.usageStatisticsPersist
+    );
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'usageStatisticsFile')) {
+    updateDirty(
+      'usageStatisticsFile',
+      nextValues.usageStatisticsFile === baselineValues.usageStatisticsFile
+    );
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'usageStatisticsPersistInterval')) {
+    updateDirty(
+      'usageStatisticsPersistInterval',
+      nextValues.usageStatisticsPersistInterval === baselineValues.usageStatisticsPersistInterval
     );
   }
   if (Object.prototype.hasOwnProperty.call(patch, 'proxyUrl')) {
@@ -917,6 +935,12 @@ export function useVisualConfig() {
         loggingToFile: Boolean(parsed['logging-to-file']),
         logsMaxTotalSizeMb: String(parsed['logs-max-total-size-mb'] ?? ''),
         usageStatisticsEnabled: Boolean(parsed['usage-statistics-enabled']),
+        usageStatisticsPersist: Boolean(parsed['usage-statistics-persist']),
+        usageStatisticsFile:
+          typeof parsed['usage-statistics-file'] === 'string'
+            ? parsed['usage-statistics-file']
+            : '',
+        usageStatisticsPersistInterval: String(parsed['usage-statistics-persist-interval'] ?? ''),
 
         proxyUrl: typeof parsed['proxy-url'] === 'string' ? parsed['proxy-url'] : '',
         forceModelPrefix: Boolean(parsed['force-model-prefix']),
@@ -1015,6 +1039,13 @@ export function useVisualConfig() {
         setBooleanInDoc(doc, ['logging-to-file'], values.loggingToFile);
         setIntFromStringInDoc(doc, ['logs-max-total-size-mb'], values.logsMaxTotalSizeMb);
         setBooleanInDoc(doc, ['usage-statistics-enabled'], values.usageStatisticsEnabled);
+        setBooleanInDoc(doc, ['usage-statistics-persist'], values.usageStatisticsPersist);
+        setStringInDoc(doc, ['usage-statistics-file'], values.usageStatisticsFile);
+        setIntFromStringInDoc(
+          doc,
+          ['usage-statistics-persist-interval'],
+          values.usageStatisticsPersistInterval
+        );
 
         setStringInDoc(doc, ['proxy-url'], values.proxyUrl);
         setBooleanInDoc(doc, ['force-model-prefix'], values.forceModelPrefix);

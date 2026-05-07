@@ -1307,6 +1307,12 @@
           "logging_to_file_desc": "Save logs to files",
           "usage_statistics": "Usage Statistics",
           "usage_statistics_desc": "Collect usage statistics",
+          "usage_statistics_persist": "Persist Usage Statistics",
+          "usage_statistics_persist_desc": "Load snapshots on startup and flush them periodically to disk",
+          "usage_statistics_file": "Usage Statistics File",
+          "usage_statistics_file_hint": "Relative paths are resolved from the server config file directory.",
+          "usage_statistics_persist_interval": "Persist Interval (seconds)",
+          "usage_statistics_persist_interval_hint": "Use 60 seconds or higher for busy instances to avoid frequent full snapshots.",
           "logs_max_size": "Log File Size Limit (MB)"
         },
         "network": {

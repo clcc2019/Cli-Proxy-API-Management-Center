@@ -44,9 +44,7 @@ const normalizeThinkingSupport = (value: unknown): ThinkingSupport | undefined =
       value['dynamic_allowed']
   );
   const levels = Array.isArray(value.levels)
-    ? value.levels
-        .map((item) => String(item ?? '').trim())
-        .filter(Boolean)
+    ? value.levels.map((item) => String(item ?? '').trim()).filter(Boolean)
     : [];
 
   if (Number.isFinite(min)) result.min = min;
@@ -464,6 +462,32 @@ export const normalizeConfigResponse = (raw: unknown): Config => {
   config.usageStatisticsEnabled = normalizeBoolean(
     raw['usage-statistics-enabled'] ?? raw.usageStatisticsEnabled
   );
+  config.usageStatisticsPersist = normalizeBoolean(
+    raw['usage-statistics-persist'] ?? raw.usageStatisticsPersist
+  );
+  const usageStatisticsFile = raw['usage-statistics-file'] ?? raw.usageStatisticsFile;
+  config.usageStatisticsFile =
+    typeof usageStatisticsFile === 'string'
+      ? usageStatisticsFile
+      : usageStatisticsFile === undefined || usageStatisticsFile === null
+        ? undefined
+        : String(usageStatisticsFile);
+  const usageStatisticsPersistInterval =
+    raw['usage-statistics-persist-interval'] ?? raw.usageStatisticsPersistInterval;
+  if (
+    typeof usageStatisticsPersistInterval === 'number' &&
+    Number.isFinite(usageStatisticsPersistInterval)
+  ) {
+    config.usageStatisticsPersistInterval = usageStatisticsPersistInterval;
+  } else if (
+    typeof usageStatisticsPersistInterval === 'string' &&
+    usageStatisticsPersistInterval.trim() !== ''
+  ) {
+    const parsed = Number(usageStatisticsPersistInterval);
+    if (Number.isFinite(parsed)) {
+      config.usageStatisticsPersistInterval = parsed;
+    }
+  }
   config.requestLog = normalizeBoolean(raw['request-log'] ?? raw.requestLog);
   config.loggingToFile = normalizeBoolean(raw['logging-to-file'] ?? raw.loggingToFile);
   const logsMaxTotalSizeMb = raw['logs-max-total-size-mb'] ?? raw.logsMaxTotalSizeMb;

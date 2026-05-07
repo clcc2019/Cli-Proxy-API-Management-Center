@@ -1298,6 +1298,12 @@
           "logging_to_file_desc": "Сохранять журналы в файлы",
           "usage_statistics": "Статистика использования",
           "usage_statistics_desc": "Собирать статистику использования",
+          "usage_statistics_persist": "Сохранять статистику использования",
+          "usage_statistics_persist_desc": "Загружать снимок при запуске и периодически записывать его на диск",
+          "usage_statistics_file": "Файл статистики использования",
+          "usage_statistics_file_hint": "Относительные пути считаются от каталога серверного config.yaml.",
+          "usage_statistics_persist_interval": "Интервал сохранения (сек)",
+          "usage_statistics_persist_interval_hint": "Для нагруженных инстансов используйте 60 секунд или больше, чтобы не делать частые полные снимки.",
           "logs_max_size": "Максимальный размер файла журнала (МБ)",
           "usage_retention_days": "Хранить статистику (дней)",
           "usage_retention_hint": "0 означает без ограничений (без очистки)"
