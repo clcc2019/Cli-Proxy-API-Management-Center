@@ -1308,6 +1308,24 @@
           "usage_retention_days": "Хранить статистику (дней)",
           "usage_retention_hint": "0 означает без ограничений (без очистки)"
         },
+        "redis": {
+          "title": "Сохранение в Redis",
+          "description": "Сохранять runtime-статистику, счётчики запросов auth и состояние cooldown квот в Redis",
+          "enabled": "Включить runtime-хранилище Redis",
+          "enabled_desc": "Восстанавливать статистику использования и runtime-состояние auth после перезапуска сервера",
+          "url": "Redis URL",
+          "url_hint": "Необязательно. Если задано, переопределяет адрес, имя пользователя, пароль и DB.",
+          "addr": "Адрес Redis",
+          "addr_hint": "Хост и порт, используемые когда Redis URL пуст.",
+          "username": "Имя пользователя",
+          "password": "Пароль",
+          "password_placeholder": "Пароль Redis",
+          "db": "База данных",
+          "key_prefix": "Префикс ключей",
+          "key_prefix_hint": "Префикс для всех ключей сохраняемого runtime-состояния.",
+          "queue_retention": "Хранение очереди usage (сек)",
+          "queue_retention_hint": "Время хранения in-memory Redis-compatible очереди usage. По умолчанию 60, максимум 3600."
+        },
         "network": {
           "title": "Сетевые настройки",
           "description": "Параметры прокси, повторов и маршрутизации",

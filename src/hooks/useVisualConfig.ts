@@ -233,6 +233,10 @@ export function getVisualConfigValidationErrors(
     usageStatisticsPersistInterval: getNonNegativeIntegerError(
       values.usageStatisticsPersistInterval
     ),
+    redisDb: getNonNegativeIntegerError(values.redisDb),
+    redisUsageQueueRetentionSeconds: getNonNegativeIntegerError(
+      values.redisUsageQueueRetentionSeconds
+    ),
     requestRetry: getNonNegativeIntegerError(values.requestRetry),
     maxRetryCredentials: getNonNegativeIntegerError(values.maxRetryCredentials),
     maxRetryInterval: getNonNegativeIntegerError(values.maxRetryInterval),
@@ -726,6 +730,34 @@ function getNextDirtyFields(
       nextValues.usageStatisticsPersistInterval === baselineValues.usageStatisticsPersistInterval
     );
   }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisEnabled')) {
+    updateDirty('redisEnabled', nextValues.redisEnabled === baselineValues.redisEnabled);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisUrl')) {
+    updateDirty('redisUrl', nextValues.redisUrl === baselineValues.redisUrl);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisAddr')) {
+    updateDirty('redisAddr', nextValues.redisAddr === baselineValues.redisAddr);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisUsername')) {
+    updateDirty('redisUsername', nextValues.redisUsername === baselineValues.redisUsername);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisPassword')) {
+    updateDirty('redisPassword', nextValues.redisPassword === baselineValues.redisPassword);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisDb')) {
+    updateDirty('redisDb', nextValues.redisDb === baselineValues.redisDb);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisKeyPrefix')) {
+    updateDirty('redisKeyPrefix', nextValues.redisKeyPrefix === baselineValues.redisKeyPrefix);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'redisUsageQueueRetentionSeconds')) {
+    updateDirty(
+      'redisUsageQueueRetentionSeconds',
+      nextValues.redisUsageQueueRetentionSeconds ===
+        baselineValues.redisUsageQueueRetentionSeconds
+    );
+  }
   if (Object.prototype.hasOwnProperty.call(patch, 'proxyUrl')) {
     updateDirty('proxyUrl', nextValues.proxyUrl === baselineValues.proxyUrl);
   }
@@ -905,6 +937,7 @@ export function useVisualConfig() {
       const routing = asRecord(parsed.routing);
       const payload = asRecord(parsed.payload);
       const streaming = asRecord(parsed.streaming);
+      const redis = asRecord(parsed.redis);
 
       const newValues: VisualConfigValues = {
         host: typeof parsed.host === 'string' ? parsed.host : '',
@@ -941,6 +974,17 @@ export function useVisualConfig() {
             ? parsed['usage-statistics-file']
             : '',
         usageStatisticsPersistInterval: String(parsed['usage-statistics-persist-interval'] ?? ''),
+
+        redisEnabled: Boolean(redis?.enabled),
+        redisUrl: typeof redis?.url === 'string' ? redis.url : '',
+        redisAddr: typeof redis?.addr === 'string' ? redis.addr : '',
+        redisUsername: typeof redis?.username === 'string' ? redis.username : '',
+        redisPassword: typeof redis?.password === 'string' ? redis.password : '',
+        redisDb: String(redis?.db ?? ''),
+        redisKeyPrefix: typeof redis?.['key-prefix'] === 'string' ? redis['key-prefix'] : '',
+        redisUsageQueueRetentionSeconds: String(
+          parsed['redis-usage-queue-retention-seconds'] ?? ''
+        ),
 
         proxyUrl: typeof parsed['proxy-url'] === 'string' ? parsed['proxy-url'] : '',
         forceModelPrefix: Boolean(parsed['force-model-prefix']),
@@ -1046,6 +1090,32 @@ export function useVisualConfig() {
           ['usage-statistics-persist-interval'],
           values.usageStatisticsPersistInterval
         );
+        setIntFromStringInDoc(
+          doc,
+          ['redis-usage-queue-retention-seconds'],
+          values.redisUsageQueueRetentionSeconds
+        );
+
+        if (
+          docHas(doc, ['redis']) ||
+          values.redisEnabled ||
+          values.redisUrl.trim() ||
+          values.redisAddr.trim() ||
+          values.redisUsername.trim() ||
+          values.redisPassword.trim() ||
+          values.redisDb.trim() ||
+          values.redisKeyPrefix.trim()
+        ) {
+          ensureMapInDoc(doc, ['redis']);
+          setBooleanInDoc(doc, ['redis', 'enabled'], values.redisEnabled);
+          setStringInDoc(doc, ['redis', 'url'], values.redisUrl);
+          setStringInDoc(doc, ['redis', 'addr'], values.redisAddr);
+          setStringInDoc(doc, ['redis', 'username'], values.redisUsername);
+          setStringInDoc(doc, ['redis', 'password'], values.redisPassword);
+          setIntFromStringInDoc(doc, ['redis', 'db'], values.redisDb);
+          setStringInDoc(doc, ['redis', 'key-prefix'], values.redisKeyPrefix);
+          deleteIfMapEmpty(doc, ['redis']);
+        }
 
         setStringInDoc(doc, ['proxy-url'], values.proxyUrl);
         setBooleanInDoc(doc, ['force-model-prefix'], values.forceModelPrefix);

@@ -8,6 +8,8 @@ export type VisualConfigFieldPath =
   | 'port'
   | 'logsMaxTotalSizeMb'
   | 'usageStatisticsPersistInterval'
+  | 'redisDb'
+  | 'redisUsageQueueRetentionSeconds'
   | 'requestRetry'
   | 'maxRetryCredentials'
   | 'maxRetryInterval'
@@ -79,6 +81,14 @@ export type VisualConfigValues = {
   usageStatisticsPersist: boolean;
   usageStatisticsFile: string;
   usageStatisticsPersistInterval: string;
+  redisEnabled: boolean;
+  redisUrl: string;
+  redisAddr: string;
+  redisUsername: string;
+  redisPassword: string;
+  redisDb: string;
+  redisKeyPrefix: string;
+  redisUsageQueueRetentionSeconds: string;
   proxyUrl: string;
   forceModelPrefix: boolean;
   requestRetry: string;
@@ -121,6 +131,14 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   usageStatisticsPersist: false,
   usageStatisticsFile: '',
   usageStatisticsPersistInterval: '',
+  redisEnabled: false,
+  redisUrl: '',
+  redisAddr: '',
+  redisUsername: '',
+  redisPassword: '',
+  redisDb: '',
+  redisKeyPrefix: '',
+  redisUsageQueueRetentionSeconds: '',
   proxyUrl: '',
   forceModelPrefix: false,
   requestRetry: '',

@@ -10,6 +10,7 @@ import {
   IconShield,
   IconSatellite,
   IconDiamond,
+  IconDatabase,
   IconTrendingUp,
   IconTimer,
 } from '@/components/ui/icons';
@@ -163,6 +164,11 @@ export function VisualConfigEditor({
   const usageStatisticsPersistIntervalError = getValidationMessage(
     t,
     validationErrors?.usageStatisticsPersistInterval
+  );
+  const redisDbError = getValidationMessage(t, validationErrors?.redisDb);
+  const redisUsageQueueRetentionError = getValidationMessage(
+    t,
+    validationErrors?.redisUsageQueueRetentionSeconds
   );
   const requestRetryError = getValidationMessage(t, validationErrors?.requestRetry);
   const maxRetryCredentialsError = getValidationMessage(t, validationErrors?.maxRetryCredentials);
@@ -426,8 +432,89 @@ export function VisualConfigEditor({
           </ConfigSection>
 
           <ConfigSection
-            id="network"
+            id="redis"
             indexLabel="06"
+            icon={<IconDatabase size={16} />}
+            title={t('config_management.visual.sections.redis.title')}
+            description={t('config_management.visual.sections.redis.description')}
+          >
+            <SectionStack>
+              <ToggleRow
+                title={t('config_management.visual.sections.redis.enabled')}
+                description={t('config_management.visual.sections.redis.enabled_desc')}
+                checked={values.redisEnabled}
+                disabled={disabled}
+                onChange={(redisEnabled) => onChange({ redisEnabled })}
+              />
+
+              <SectionGrid>
+                <Input
+                  label={t('config_management.visual.sections.redis.url')}
+                  placeholder="redis://:password@127.0.0.1:6379/0"
+                  value={values.redisUrl}
+                  onChange={(e) => onChange({ redisUrl: e.target.value })}
+                  disabled={disabled || !values.redisEnabled}
+                  hint={t('config_management.visual.sections.redis.url_hint')}
+                />
+                <Input
+                  label={t('config_management.visual.sections.redis.addr')}
+                  placeholder="127.0.0.1:6379"
+                  value={values.redisAddr}
+                  onChange={(e) => onChange({ redisAddr: e.target.value })}
+                  disabled={disabled || !values.redisEnabled || Boolean(values.redisUrl.trim())}
+                  hint={t('config_management.visual.sections.redis.addr_hint')}
+                />
+                <Input
+                  label={t('config_management.visual.sections.redis.username')}
+                  placeholder="default"
+                  value={values.redisUsername}
+                  onChange={(e) => onChange({ redisUsername: e.target.value })}
+                  disabled={disabled || !values.redisEnabled || Boolean(values.redisUrl.trim())}
+                />
+                <Input
+                  label={t('config_management.visual.sections.redis.password')}
+                  type="password"
+                  placeholder={t('config_management.visual.sections.redis.password_placeholder')}
+                  value={values.redisPassword}
+                  onChange={(e) => onChange({ redisPassword: e.target.value })}
+                  disabled={disabled || !values.redisEnabled || Boolean(values.redisUrl.trim())}
+                />
+                <Input
+                  label={t('config_management.visual.sections.redis.db')}
+                  type="number"
+                  placeholder="0"
+                  value={values.redisDb}
+                  onChange={(e) => onChange({ redisDb: e.target.value })}
+                  disabled={disabled || !values.redisEnabled || Boolean(values.redisUrl.trim())}
+                  error={redisDbError}
+                />
+                <Input
+                  label={t('config_management.visual.sections.redis.key_prefix')}
+                  placeholder="cliproxyapi"
+                  value={values.redisKeyPrefix}
+                  onChange={(e) => onChange({ redisKeyPrefix: e.target.value })}
+                  disabled={disabled || !values.redisEnabled}
+                  hint={t('config_management.visual.sections.redis.key_prefix_hint')}
+                />
+                <Input
+                  label={t('config_management.visual.sections.redis.queue_retention')}
+                  type="number"
+                  placeholder="60"
+                  value={values.redisUsageQueueRetentionSeconds}
+                  onChange={(e) =>
+                    onChange({ redisUsageQueueRetentionSeconds: e.target.value })
+                  }
+                  disabled={disabled}
+                  error={redisUsageQueueRetentionError}
+                  hint={t('config_management.visual.sections.redis.queue_retention_hint')}
+                />
+              </SectionGrid>
+            </SectionStack>
+          </ConfigSection>
+
+          <ConfigSection
+            id="network"
+            indexLabel="07"
             icon={<IconTrendingUp size={16} />}
             title={t('config_management.visual.sections.network.title')}
             description={t('config_management.visual.sections.network.description')}
@@ -523,7 +610,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="quota"
-            indexLabel="07"
+            indexLabel="08"
             icon={<IconTimer size={16} />}
             title={t('config_management.visual.sections.quota.title')}
             description={t('config_management.visual.sections.quota.description')}
@@ -548,7 +635,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="streaming"
-            indexLabel="08"
+            indexLabel="09"
             icon={<IconSatellite size={16} />}
             title={t('config_management.visual.sections.streaming.title')}
             description={t('config_management.visual.sections.streaming.description')}
@@ -646,7 +733,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="payload"
-            indexLabel="09"
+            indexLabel="10"
             icon={<IconCode size={16} />}
             title={t('config_management.visual.sections.payload.title')}
             description={t('config_management.visual.sections.payload.description')}

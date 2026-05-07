@@ -1315,6 +1315,24 @@
           "usage_statistics_persist_interval_hint": "Use 60 seconds or higher for busy instances to avoid frequent full snapshots.",
           "logs_max_size": "Log File Size Limit (MB)"
         },
+        "redis": {
+          "title": "Redis Persistence",
+          "description": "Persist runtime usage, auth request counters, and quota cooldown state to Redis",
+          "enabled": "Enable Redis Runtime Store",
+          "enabled_desc": "Restore usage statistics and auth runtime state after server restarts",
+          "url": "Redis URL",
+          "url_hint": "Optional. When set, it overrides address, username, password, and DB.",
+          "addr": "Redis Address",
+          "addr_hint": "Host and port used when Redis URL is empty.",
+          "username": "Username",
+          "password": "Password",
+          "password_placeholder": "Redis password",
+          "db": "Database",
+          "key_prefix": "Key Prefix",
+          "key_prefix_hint": "Prefix for all persisted runtime-state keys.",
+          "queue_retention": "Usage Queue Retention (seconds)",
+          "queue_retention_hint": "Retention for the in-memory Redis-compatible usage queue. Default 60, max 3600."
+        },
         "network": {
           "title": "Network Configuration",
           "description": "Proxy, retry, and routing settings",

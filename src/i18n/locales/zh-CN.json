@@ -1315,6 +1315,24 @@
           "usage_statistics_persist_interval_hint": "高并发实例建议保持 60 秒或更高，避免频繁完整快照。",
           "logs_max_size": "日志文件大小限制 (MB)"
         },
+        "redis": {
+          "title": "Redis 持久化",
+          "description": "将运行时使用统计、认证请求计数和配额冷却状态持久化到 Redis",
+          "enabled": "启用 Redis 运行时存储",
+          "enabled_desc": "服务重启后恢复使用统计与认证运行时状态",
+          "url": "Redis URL",
+          "url_hint": "可选。填写后会覆盖地址、用户名、密码和 DB 配置。",
+          "addr": "Redis 地址",
+          "addr_hint": "Redis URL 为空时使用的主机与端口。",
+          "username": "用户名",
+          "password": "密码",
+          "password_placeholder": "Redis 密码",
+          "db": "数据库",
+          "key_prefix": "Key 前缀",
+          "key_prefix_hint": "所有运行时状态持久化键使用此前缀。",
+          "queue_retention": "使用队列保留时间（秒）",
+          "queue_retention_hint": "Redis 兼容使用队列的内存保留时间。默认 60，最大 3600。"
+        },
         "network": {
           "title": "网络配置",
           "description": "代理、重试和路由设置",
