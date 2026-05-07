@@ -1,6 +1,7 @@
 import { Suspense, lazy, useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { IconChartLine } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useConfigStore, useThemeStore } from '@/stores';
@@ -127,9 +128,8 @@ export function UsagePage() {
   const trendRequestsTitle = t('usage_stats.requests_trend');
   const trendTokensTitle = t('usage_stats.tokens_trend');
   const deferredChartCaption = t('usage_stats.render_on_demand');
-
   return (
-    <div className={styles.container}>
+    <main className={styles.container}>
       {loading && !usage && (
         <div className={styles.loadingOverlay} aria-busy="true">
           <div className={styles.loadingOverlayContent}>
@@ -139,32 +139,40 @@ export function UsagePage() {
         </div>
       )}
 
-      <UsagePageHero
-        timeRange={timeRange}
-        timeRangeOptions={timeRangeOptions}
-        selectedRangeLabel={selectedRangeLabel}
-        visibleModelCount={visibleModelNames.length}
-        selectedSeriesCount={chartLines.length}
-        lastRefreshedAt={lastRefreshedAt}
-        loading={loading}
-        exporting={exporting}
-        exportingDetailed={exportingDetailed}
-        importing={importing}
-        onTimeRangeChange={handleTimeRangeChange}
-        onExport={handleExport}
-        onExportDetailed={handleExportDetailed}
-        onImport={handleImport}
-        onRefresh={() => void loadUsage().catch(() => {})}
-        importInputRef={importInputRef}
-        onImportChange={handleImportChange}
-      />
+      <div id="usage-actions" className={styles.anchorBlock}>
+        <UsagePageHero
+          timeRange={timeRange}
+          timeRangeOptions={timeRangeOptions}
+          selectedRangeLabel={selectedRangeLabel}
+          visibleModelCount={visibleModelNames.length}
+          selectedSeriesCount={chartLines.length}
+          lastRefreshedAt={lastRefreshedAt}
+          loading={loading}
+          exporting={exporting}
+          exportingDetailed={exportingDetailed}
+          importing={importing}
+          onTimeRangeChange={handleTimeRangeChange}
+          onExport={handleExport}
+          onExportDetailed={handleExportDetailed}
+          onImport={handleImport}
+          onRefresh={() => void loadUsage().catch(() => {})}
+          importInputRef={importInputRef}
+          onImportChange={handleImportChange}
+        />
+      </div>
 
       {error && <div className={styles.errorBox}>{error}</div>}
 
-      <section className={styles.section}>
+      <section id="usage-overview" className={`${styles.section} ${styles.overviewPanel}`}>
         <UsageSectionIntro
           title={t('usage_stats.overview_title')}
           description={t('usage_stats.overview_desc')}
+          eyebrow={
+            <>
+              <IconChartLine size={15} />
+              {t('usage_stats.core_overview', { defaultValue: '核心概览' })}
+            </>
+          }
         />
         <StatCards
           window={deferredWindow}
@@ -180,7 +188,7 @@ export function UsagePage() {
         />
       </section>
 
-      <section className={styles.section}>
+      <section id="usage-trends" className={styles.section}>
         <UsageSectionIntro
           title={t('usage_stats.trends_title')}
           description={t('usage_stats.trends_desc')}
@@ -250,18 +258,20 @@ export function UsagePage() {
         )}
       </section>
 
-      <UsageAnalysisSection
-        window={deferredWindow}
-        loading={loading}
-        isDark={isDark}
-        isMobile={isMobile}
-        hourWindowHours={hourWindowHours}
-        modelPrices={modelPrices}
-        collapsed={analysisCollapsed}
-        onToggleCollapse={() => setAnalysisCollapsed((current) => !current)}
-      />
+      <div id="usage-analysis" className={styles.anchorBlock}>
+        <UsageAnalysisSection
+          window={deferredWindow}
+          loading={loading}
+          isDark={isDark}
+          isMobile={isMobile}
+          hourWindowHours={hourWindowHours}
+          modelPrices={modelPrices}
+          collapsed={analysisCollapsed}
+          onToggleCollapse={() => setAnalysisCollapsed((current) => !current)}
+        />
+      </div>
 
-      <section className={styles.section}>
+      <section id="usage-models" className={styles.section}>
         <UsageSectionIntro
           title={t('usage_stats.details_title')}
           description={t('usage_stats.details_desc')}
@@ -273,22 +283,26 @@ export function UsagePage() {
       </section>
 
       <div className={styles.supportStack}>
-        <CredentialStatsCard
-          credentials={deferredWindow?.credentials ?? []}
-          loading={loading}
-          geminiKeys={config?.geminiApiKeys || []}
-          claudeConfigs={config?.claudeApiKeys || []}
-          codexConfigs={config?.codexApiKeys || []}
-          vertexConfigs={config?.vertexApiKeys || []}
-          openaiProviders={config?.openaiCompatibility || []}
-        />
+        <div id="usage-health" className={styles.anchorBlock}>
+          <CredentialStatsCard
+            credentials={deferredWindow?.credentials ?? []}
+            loading={loading}
+            geminiKeys={config?.geminiApiKeys || []}
+            claudeConfigs={config?.claudeApiKeys || []}
+            codexConfigs={config?.codexApiKeys || []}
+            vertexConfigs={config?.vertexApiKeys || []}
+            openaiProviders={config?.openaiCompatibility || []}
+          />
+        </div>
 
-        <PriceSettingsCard
-          modelNames={allModelNames}
-          modelPrices={modelPrices}
-          onPricesChange={setModelPrices}
-        />
+        <div id="usage-pricing" className={styles.anchorBlock}>
+          <PriceSettingsCard
+            modelNames={allModelNames}
+            modelPrices={modelPrices}
+            onPricesChange={setModelPrices}
+          />
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

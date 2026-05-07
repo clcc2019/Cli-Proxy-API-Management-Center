@@ -2,6 +2,13 @@ import { memo, type ChangeEventHandler, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
+import {
+  IconChartLine,
+  IconDatabase,
+  IconDownload,
+  IconFileText,
+  IconRefreshCw,
+} from '@/components/ui/icons';
 import styles from '@/pages/UsagePage.module.scss';
 
 interface TimeRangeOption {
@@ -53,7 +60,12 @@ export const UsagePageHero = memo(function UsagePageHero({
   return (
     <section className={styles.hero}>
       <div className={styles.heroCopy}>
-        <h1 className={styles.pageTitle}>{t('usage_stats.title')}</h1>
+        <h1 className={styles.pageTitle}>
+          <span className={styles.pageTitleIcon}>
+            <IconChartLine size={25} />
+          </span>
+          <span>{t('usage_stats.title')}</span>
+        </h1>
         <p className={styles.pageSubtitle}>{t('usage_stats.subtitle')}</p>
         <div className={styles.heroMeta}>
           <div className={styles.heroChip}>
@@ -79,6 +91,9 @@ export const UsagePageHero = memo(function UsagePageHero({
 
       <div className={styles.heroActions}>
         <div className={styles.timeRangeGroup}>
+          <span className={styles.timeRangeIcon}>
+            <IconDatabase size={17} />
+          </span>
           <span className={styles.timeRangeLabel}>{t('usage_stats.range_filter')}</span>
           <Select
             value={timeRange}
@@ -92,13 +107,15 @@ export const UsagePageHero = memo(function UsagePageHero({
 
         <div className={styles.actionGrid}>
           <Button
-            variant="secondary"
+            variant="primary"
             size="sm"
             onClick={onExport}
             loading={exporting}
             disabled={loading || importing || exportingDetailed}
+            className={styles.heroActionPrimary}
           >
-            {t('usage_stats.export')}
+            <IconDownload size={15} />
+            <span>{t('usage_stats.export')}</span>
           </Button>
           <Button
             variant="secondary"
@@ -107,7 +124,8 @@ export const UsagePageHero = memo(function UsagePageHero({
             loading={exportingDetailed}
             disabled={loading || importing || exporting}
           >
-            {t('usage_stats.export_details')}
+            <IconFileText size={15} />
+            <span>{t('usage_stats.export_details')}</span>
           </Button>
           <Button
             variant="secondary"
@@ -116,7 +134,8 @@ export const UsagePageHero = memo(function UsagePageHero({
             loading={importing}
             disabled={loading || exporting || exportingDetailed}
           >
-            {t('usage_stats.import')}
+            <IconDatabase size={15} />
+            <span>{t('usage_stats.import')}</span>
           </Button>
           <Button
             variant="secondary"
@@ -124,7 +143,8 @@ export const UsagePageHero = memo(function UsagePageHero({
             onClick={onRefresh}
             disabled={loading || exporting || exportingDetailed || importing}
           >
-            {loading ? t('common.loading') : t('usage_stats.refresh')}
+            <IconRefreshCw size={15} />
+            <span>{loading ? t('common.loading') : t('usage_stats.refresh')}</span>
           </Button>
         </div>
 

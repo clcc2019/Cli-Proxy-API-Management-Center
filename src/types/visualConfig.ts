@@ -1,3 +1,5 @@
+import type { ClientApiKeyQuota } from './config';
+
 export type PayloadParamValueType = 'string' | 'number' | 'boolean' | 'json';
 export type PayloadParamValidationErrorCode =
   | 'payload_invalid_number'
@@ -60,6 +62,7 @@ export interface VisualApiKeyEntry {
   apiKey: string;
   allowedModels: string[];
   excludedModels: string[];
+  quota?: ClientApiKeyQuota;
 }
 
 export type VisualConfigValues = {

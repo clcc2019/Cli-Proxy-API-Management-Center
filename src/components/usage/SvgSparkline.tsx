@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useId, useMemo } from 'react';
 import type { SparklineBundle } from './hooks/useSparklines';
 
 export interface SvgSparklineProps {
@@ -20,6 +20,7 @@ export const SvgSparkline = memo(function SvgSparkline({
   sparkline,
   className,
 }: SvgSparklineProps) {
+  const gradientId = `sparkline-gradient-${useId().replace(/:/g, '')}`;
   const dataset = sparkline.data.datasets[0];
   const values = dataset.data;
 
@@ -61,7 +62,14 @@ export const SvgSparkline = memo(function SvgSparkline({
       aria-hidden="true"
       focusable="false"
     >
-      <path d={areaPath} fill={dataset.backgroundColor} />
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={dataset.borderColor} stopOpacity="0.22" />
+          <stop offset="62%" stopColor={dataset.borderColor} stopOpacity="0.08" />
+          <stop offset="100%" stopColor={dataset.borderColor} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill={`url(#${gradientId})`} />
       <path
         d={linePath}
         fill="none"

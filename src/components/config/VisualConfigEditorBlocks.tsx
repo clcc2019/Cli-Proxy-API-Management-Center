@@ -21,12 +21,60 @@ import {
   VISUAL_CONFIG_PAYLOAD_VALUE_TYPE_OPTIONS,
   VISUAL_CONFIG_PROTOCOL_OPTIONS,
 } from '@/hooks/useVisualConfig';
-import { excludedModelsToText, parseExcludedModels, parseTextList } from '@/components/providers/utils';
+import {
+  excludedModelsToText,
+  parseExcludedModels,
+  parseTextList,
+} from '@/components/providers/utils';
 import { maskApiKey } from '@/utils/format';
 import { isValidApiKeyCharset } from '@/utils/validation';
+import type { ClientApiKeyQuota } from '@/types/config';
+import {
+  CLIENT_API_KEY_QUOTA_FIELDS,
+  clientApiKeyQuotaLimitCount,
+  hasClientApiKeyQuota,
+  type ClientApiKeyQuotaField,
+} from '@/utils/clientApiKeyQuota';
 
 /** Minimum character count before the expand/collapse toggle appears. */
 const EXPAND_THRESHOLD = 30;
+
+type QuotaInputValues = Record<ClientApiKeyQuotaField, string>;
+
+const emptyQuotaInputValues = (): QuotaInputValues => ({
+  dailyCost: '',
+  monthlyCost: '',
+  totalCost: '',
+});
+
+const quotaToInputValues = (quota?: ClientApiKeyQuota): QuotaInputValues => {
+  const values = emptyQuotaInputValues();
+  CLIENT_API_KEY_QUOTA_FIELDS.forEach(({ field }) => {
+    const limit = quota?.[field];
+    values[field] = Number.isFinite(limit) && Number(limit) > 0 ? String(limit) : '';
+  });
+  return values;
+};
+
+const parseQuotaInputValues = (
+  values: QuotaInputValues
+): { ok: true; quota?: ClientApiKeyQuota } | { ok: false } => {
+  const quota: ClientApiKeyQuota = {};
+
+  for (const { field } of CLIENT_API_KEY_QUOTA_FIELDS) {
+    const raw = values[field].trim();
+    if (!raw) continue;
+    if (!/^\d+(?:\.\d+)?$/.test(raw)) return { ok: false };
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return { ok: false };
+    if (parsed > 0) quota[field] = parsed;
+  }
+
+  return { ok: true, quota: hasClientApiKeyQuota(quota) ? quota : undefined };
+};
+
+const quotaFieldLabelKey = (field: ClientApiKeyQuotaField) =>
+  `config_management.visual.api_keys.quota_${field.replace(/[A-Z]/g, (char) => `_${char.toLowerCase()}`)}`;
 
 /** Auto-expanding textarea that collapses back to a single-line input on demand. */
 function ExpandableInput({
@@ -181,6 +229,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const [inputValue, setInputValue] = useState('');
   const [allowedModelsValue, setAllowedModelsValue] = useState('');
   const [excludedModelsValue, setExcludedModelsValue] = useState('');
+  const [quotaValues, setQuotaValues] = useState<QuotaInputValues>(() => emptyQuotaInputValues());
   const [formError, setFormError] = useState('');
 
   function generateSecureApiKey(): string {
@@ -195,6 +244,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setInputValue('');
     setAllowedModelsValue('');
     setExcludedModelsValue('');
+    setQuotaValues(emptyQuotaInputValues());
     setFormError('');
     setModalOpen(true);
   };
@@ -205,6 +255,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setInputValue(entry?.apiKey ?? '');
     setAllowedModelsValue(excludedModelsToText(entry?.allowedModels));
     setExcludedModelsValue(excludedModelsToText(entry?.excludedModels));
+    setQuotaValues(quotaToInputValues(entry?.quota));
     setFormError('');
     setModalOpen(true);
   };
@@ -214,6 +265,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setInputValue('');
     setAllowedModelsValue('');
     setExcludedModelsValue('');
+    setQuotaValues(emptyQuotaInputValues());
     setEditingApiKeyId(null);
     setFormError('');
   };
@@ -234,11 +286,17 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     }
     const allowedModels = parseTextList(allowedModelsValue);
     const excludedModels = parseExcludedModels(excludedModelsValue);
+    const parsedQuota = parseQuotaInputValues(quotaValues);
+    if (!parsedQuota.ok) {
+      setFormError(t('config_management.visual.api_keys.quota_error_invalid'));
+      return;
+    }
     const nextEntry: VisualApiKeyEntry = {
       id: editingApiKeyId ?? makeClientId(),
       apiKey: trimmed,
       allowedModels,
       excludedModels,
+      ...(parsedQuota.quota ? { quota: parsedQuota.quota } : {}),
     };
     const nextKeys =
       editingApiKeyId === null
@@ -287,6 +345,13 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
                     {t('config_management.visual.api_keys.rules_summary', {
                       allowed: entry.allowedModels.length,
                       excluded: entry.excludedModels.length,
+                    })}
+                  </div>
+                )}
+                {hasClientApiKeyQuota(entry.quota) && (
+                  <div className="item-subtitle">
+                    {t('config_management.visual.api_keys.quota_summary', {
+                      count: clientApiKeyQuotaLimitCount(entry.quota),
                     })}
                   </div>
                 )}
@@ -402,6 +467,33 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
             disabled={disabled}
           />
           <div className="hint">{t('config_management.visual.api_keys.excluded_models_hint')}</div>
+        </div>
+        <div className="form-group">
+          <label>{t('config_management.visual.api_keys.quota_title')}</label>
+          <div className={styles.quotaGrid}>
+            {CLIENT_API_KEY_QUOTA_FIELDS.map(({ field }) => (
+              <div key={field} className={styles.quotaField}>
+                <label className={styles.quotaFieldLabel} htmlFor={`${apiKeyInputId}-${field}`}>
+                  {t(quotaFieldLabelKey(field))}
+                </label>
+                <input
+                  id={`${apiKeyInputId}-${field}`}
+                  className="input"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder={t('config_management.visual.api_keys.quota_placeholder')}
+                  value={quotaValues[field]}
+                  onChange={(e) =>
+                    setQuotaValues((current) => ({ ...current, [field]: e.target.value }))
+                  }
+                  disabled={disabled}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="hint">{t('config_management.visual.api_keys.quota_hint')}</div>
         </div>
       </Modal>
     </div>

@@ -3,7 +3,7 @@
  */
 
 import { apiClient } from './client';
-import { computeKeyStats, KeyStats } from '@/utils/usage';
+import { computeKeyStats, type KeyStats, type ModelPrice } from '@/utils/usage';
 
 const USAGE_TIMEOUT_MS = 60 * 1000;
 
@@ -21,6 +21,29 @@ const extractUsageSnapshot = (value: unknown): Record<string, unknown> | null =>
   }
 
   return value;
+};
+
+const normalizeModelPrices = (value: unknown): Record<string, ModelPrice> => {
+  if (!isRecord(value)) return {};
+
+  const prices: Record<string, ModelPrice> = {};
+  Object.entries(value).forEach(([model, rawPrice]) => {
+    const price = isRecord(rawPrice) ? rawPrice : null;
+    if (!model || !price) return;
+
+    const prompt = Number(price.prompt);
+    const completion = Number(price.completion);
+    const cache = Number(price.cache);
+    const normalized = {
+      prompt: Number.isFinite(prompt) && prompt > 0 ? prompt : 0,
+      completion: Number.isFinite(completion) && completion > 0 ? completion : 0,
+      cache: Number.isFinite(cache) && cache > 0 ? cache : 0
+    };
+    if (normalized.prompt > 0 || normalized.completion > 0 || normalized.cache > 0) {
+      prices[model] = normalized;
+    }
+  });
+  return prices;
 };
 
 export interface UsageExportPayload {
@@ -59,6 +82,14 @@ export const usageApi = {
    */
   getUsageAggregated: () =>
     apiClient.get<Record<string, unknown>>('/usage/aggregated', { timeout: USAGE_TIMEOUT_MS }),
+
+  async getModelPrices(): Promise<Record<string, ModelPrice>> {
+    const data = await apiClient.get<Record<string, unknown>>('/model-prices');
+    return normalizeModelPrices(data?.['model-prices'] ?? data?.modelPrices ?? data?.value ?? data);
+  },
+
+  updateModelPrices: (prices: Record<string, ModelPrice>) =>
+    apiClient.put('/model-prices', { value: prices }),
 
   /**
    * 导出聚合使用统计快照

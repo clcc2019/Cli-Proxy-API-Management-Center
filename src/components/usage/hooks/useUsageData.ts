@@ -5,6 +5,8 @@ import { usageApi } from '@/services/api/usage';
 import { downloadBlob } from '@/utils/download';
 import { loadModelPrices, saveModelPrices, type ModelPrice } from '@/utils/usage';
 
+const hasPrices = (prices: Record<string, ModelPrice>) => Object.keys(prices).length > 0;
+
 export interface UsagePayload {
   total_requests?: number;
   success_count?: number;
@@ -51,6 +53,14 @@ export function useUsageData(): UseUsageDataReturn {
   useEffect(() => {
     void loadUsageStats({ staleTimeMs: USAGE_STATS_STALE_TIME_MS }).catch(() => {});
     setModelPrices(loadModelPrices());
+    void usageApi
+      .getModelPrices()
+      .then((prices) => {
+        if (!hasPrices(prices)) return;
+        setModelPrices(prices);
+        saveModelPrices(prices);
+      })
+      .catch(() => {});
   }, [loadUsageStats]);
 
   const handleExport = async () => {
@@ -129,10 +139,20 @@ export function useUsageData(): UseUsageDataReturn {
     }
   };
 
-  const handleSetModelPrices = useCallback((prices: Record<string, ModelPrice>) => {
-    setModelPrices(prices);
-    saveModelPrices(prices);
-  }, []);
+  const handleSetModelPrices = useCallback(
+    (prices: Record<string, ModelPrice>) => {
+      setModelPrices(prices);
+      saveModelPrices(prices);
+      void usageApi.updateModelPrices(prices).catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : '';
+        showNotification(
+          `${t('notification.save_failed')}${message ? `: ${message}` : ''}`,
+          'error'
+        );
+      });
+    },
+    [showNotification, t]
+  );
 
   const usage = usageSnapshot as UsagePayload | null;
   const error = storeError || '';

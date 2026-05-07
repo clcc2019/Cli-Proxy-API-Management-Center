@@ -4,9 +4,14 @@
 
 import { apiClient } from './client';
 import type { ClientApiKeyConfig } from '@/types/config';
+import { extractClientApiKeyQuota, serializeClientApiKeyQuota } from '@/utils/clientApiKeyQuota';
 
 const normalizeModelPatterns = (value: unknown): string[] => {
-  const rawList = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[\n,]/) : [];
+  const rawList = Array.isArray(value)
+    ? value
+    : typeof value === 'string'
+      ? value.split(/[\n,]/)
+      : [];
   const seen = new Set<string>();
   const normalized: string[] = [];
 
@@ -50,8 +55,32 @@ const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
   if (excludedModels.length) {
     config.excludedModels = excludedModels;
   }
+  if (record) {
+    const quota = extractClientApiKeyQuota(record);
+    if (quota) {
+      config.quota = quota;
+    }
+  }
 
   return config;
+};
+
+const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<string, unknown> => {
+  const apiKey = String(entry.apiKey ?? '').trim();
+  const allowedModels = normalizeModelPatterns(entry.allowedModels);
+  const excludedModels = normalizeModelPatterns(entry.excludedModels);
+  const quota = serializeClientApiKeyQuota(entry.quota);
+
+  if (!allowedModels.length && !excludedModels.length && !quota) {
+    return apiKey;
+  }
+
+  return {
+    'api-key': apiKey,
+    ...(allowedModels.length ? { 'allowed-models': allowedModels } : {}),
+    ...(excludedModels.length ? { 'excluded-models': excludedModels } : {}),
+    ...(quota ? { quota } : {}),
+  };
 };
 
 export const apiKeysApi = {
@@ -63,12 +92,16 @@ export const apiKeysApi = {
       : [];
   },
 
-  replace: (keys: ClientApiKeyConfig[]) => apiClient.put('/api-keys', keys),
+  replace: (keys: ClientApiKeyConfig[]) =>
+    apiClient.put(
+      '/api-keys',
+      keys.map((entry) => serializeClientApiKey(entry))
+    ),
 
   update: (index: number, value: ClientApiKeyConfig) =>
     apiClient.patch('/api-keys', {
       index,
-      value,
+      entry: serializeClientApiKey(value),
     }),
 
   delete: (index: number) => apiClient.delete(`/api-keys?index=${index}`),

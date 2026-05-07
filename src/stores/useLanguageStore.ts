@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Language } from '@/types';
 import { LANGUAGE_ORDER, STORAGE_KEY_LANGUAGE } from '@/utils/constants';
-import i18n from '@/i18n';
+import { changeI18nLanguage } from '@/i18n';
 import { getInitialLanguage, isSupportedLanguage } from '@/utils/language';
 
 interface LanguageState {
@@ -15,6 +15,8 @@ interface LanguageState {
   setLanguage: (language: string) => void;
   toggleLanguage: () => void;
 }
+
+let languageChangeToken = 0;
 
 export const useLanguageStore = create<LanguageState>()(
   persist(
@@ -25,9 +27,14 @@ export const useLanguageStore = create<LanguageState>()(
         if (!isSupportedLanguage(language)) {
           return;
         }
-        // 切换 i18next 语言
-        i18n.changeLanguage(language);
-        set({ language });
+        const token = (languageChangeToken += 1);
+        void changeI18nLanguage(language)
+          .then(() => {
+            if (token === languageChangeToken) {
+              set({ language });
+            }
+          })
+          .catch(() => undefined);
       },
 
       toggleLanguage: () => {
@@ -35,7 +42,7 @@ export const useLanguageStore = create<LanguageState>()(
         const currentIndex = LANGUAGE_ORDER.indexOf(language);
         const nextLanguage = LANGUAGE_ORDER[(currentIndex + 1) % LANGUAGE_ORDER.length];
         setLanguage(nextLanguage);
-      }
+      },
     }),
     {
       name: STORAGE_KEY_LANGUAGE,
@@ -45,11 +52,11 @@ export const useLanguageStore = create<LanguageState>()(
           return {
             ...currentState,
             ...(persistedState as Partial<LanguageState>),
-            language: nextLanguage
+            language: nextLanguage,
           };
         }
         return currentState;
-      }
+      },
     }
   )
 );

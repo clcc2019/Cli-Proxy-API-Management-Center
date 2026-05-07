@@ -10,6 +10,13 @@ export interface ClientApiKeyConfig {
   apiKey: string;
   allowedModels?: string[];
   excludedModels?: string[];
+  quota?: ClientApiKeyQuota;
+}
+
+export interface ClientApiKeyQuota {
+  dailyCost?: number;
+  monthlyCost?: number;
+  totalCost?: number;
 }
 
 export interface QuotaExceededConfig {

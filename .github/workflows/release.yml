@@ -2,8 +2,15 @@ name: Build and Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+  cancel-in-progress: true
 
 jobs:
   build-and-release:
@@ -28,10 +35,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Resolve release metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "release_kind=versioned" >> "${GITHUB_OUTPUT}"
+            echo "release_tag=${GITHUB_REF_NAME}" >> "${GITHUB_OUTPUT}"
+            echo "release_name=${GITHUB_REF_NAME}" >> "${GITHUB_OUTPUT}"
+            echo "build_version=${GITHUB_REF_NAME}" >> "${GITHUB_OUTPUT}"
+          else
+            short_sha="${GITHUB_SHA::7}"
+            echo "release_kind=latest" >> "${GITHUB_OUTPUT}"
+            echo "release_tag=latest" >> "${GITHUB_OUTPUT}"
+            echo "release_name=Latest Build" >> "${GITHUB_OUTPUT}"
+            echo "build_version=latest-${short_sha}" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Build release HTML
         run: npm run build:singlefile
         env:
-          VERSION: ${{ github.ref_name }}
+          VERSION: ${{ steps.meta.outputs.build_version }}
 
       - name: Prepare release assets
         run: |
@@ -46,23 +70,82 @@ jobs:
       - name: Generate release notes
         run: |
           set -euo pipefail
-          current_tag="${GITHUB_REF_NAME}"
-          previous_tag="$(git tag --list 'v*' --sort=-v:refname | grep -v "^${current_tag}$" | head -n 1 || true)"
-          if [ -n "${previous_tag}" ]; then
-            range="${previous_tag}..${current_tag}"
+          if [[ "${{ steps.meta.outputs.release_kind }}" == "versioned" ]]; then
+            current_tag="${{ steps.meta.outputs.release_tag }}"
+            previous_tag="$(git tag --list 'v*' --sort=-v:refname | grep -v "^${current_tag}$" | head -n 1 || true)"
+            if [[ -n "${previous_tag}" ]]; then
+              range="${previous_tag}..${current_tag}"
+            else
+              range="${current_tag}"
+            fi
+
+            {
+              echo "## ${current_tag}"
+              echo
+              git log --pretty=format:"- %h %s" "${range}"
+              echo
+            } > release-notes.md
           else
-            range="${current_tag}"
+            short_sha="${GITHUB_SHA::7}"
+            {
+              echo "## Latest build"
+              echo
+              echo "- Commit: [\`${short_sha}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+              echo "- Branch: \`${GITHUB_REF_NAME}\`"
+              echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+              echo
+              echo "## Recent commits"
+              git log -n 20 --pretty=format:"- %h %s"
+              echo
+            } > release-notes.md
           fi
 
-          : > release-notes.md
-          git log --pretty=format:"- %h %s" "${range}" >> release-notes.md
-
-      - name: Create Release
+      - name: Create versioned release
+        if: steps.meta.outputs.release_kind == 'versioned'
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.meta.outputs.release_tag }}
+          name: ${{ steps.meta.outputs.release_name }}
           files: dist/management.html
           body_path: release-notes.md
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Refresh latest release
+        if: steps.meta.outputs.release_kind == 'latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.meta.outputs.release_tag }}
+          RELEASE_NAME: ${{ steps.meta.outputs.release_name }}
+        run: |
+          set -euo pipefail
+
+          if release_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" --jq '.id' 2>/dev/null)"; then
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/${release_id}" >/dev/null
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git push origin ":refs/tags/${RELEASE_TAG}" 2>/dev/null || true
+          git tag -f "${RELEASE_TAG}" "${GITHUB_SHA}"
+          git push origin "refs/tags/${RELEASE_TAG}" --force
+
+          upload_url="$(
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/releases" \
+              -f tag_name="${RELEASE_TAG}" \
+              -f name="${RELEASE_NAME}" \
+              -F draft=false \
+              -F prerelease=true \
+              -f make_latest=false \
+              -f body="$(cat release-notes.md)" \
+              --jq '.upload_url'
+          )"
+          upload_url="${upload_url%\{*}"
+
+          curl -fsSL -X POST "${upload_url}?name=management.html" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: text/html" \
+            --data-binary @dist/management.html >/dev/null

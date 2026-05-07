@@ -1,20 +1,33 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  formatCompactNumber,
-  type TokenCategory
-} from '@/utils/usage';
+import { formatCompactNumber, type TokenCategory } from '@/utils/usage';
 import { buildAggregateTokenBreakdown } from '@/utils/usageAggregate';
-import { buildChartOptions } from '@/utils/usage/chartConfig';
+import {
+  USAGE_CHART_COLORS,
+  buildChartOptions,
+  withUsageColorAlpha,
+} from '@/utils/usage/chartConfig';
 import { getAdaptiveAnalysisChartPeriod } from './chartPeriod';
 import { UsageChartPanel } from './UsageChartPanel';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
 
 const TOKEN_COLORS: Record<TokenCategory, { border: string; bg: string }> = {
-  input: { border: '#8b8680', bg: 'rgba(139, 134, 128, 0.25)' },
-  output: { border: '#22c55e', bg: 'rgba(34, 197, 94, 0.25)' },
-  cached: { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.25)' },
-  reasoning: { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.25)' },
+  input: {
+    border: USAGE_CHART_COLORS.tokens,
+    bg: withUsageColorAlpha(USAGE_CHART_COLORS.tokens, 0.18),
+  },
+  output: {
+    border: USAGE_CHART_COLORS.requests,
+    bg: withUsageColorAlpha(USAGE_CHART_COLORS.requests, 0.18),
+  },
+  cached: {
+    border: USAGE_CHART_COLORS.cost,
+    bg: withUsageColorAlpha(USAGE_CHART_COLORS.cost, 0.18),
+  },
+  reasoning: {
+    border: USAGE_CHART_COLORS.tpm,
+    bg: withUsageColorAlpha(USAGE_CHART_COLORS.tpm, 0.18),
+  },
 };
 
 const CATEGORIES: TokenCategory[] = ['input', 'output', 'cached', 'reasoning'];
@@ -61,7 +74,7 @@ export const TokenBreakdownChart = memo(function TokenBreakdownChart({
         pointBackgroundColor: TOKEN_COLORS[cat].border,
         pointBorderColor: TOKEN_COLORS[cat].border,
         fill: true,
-        tension: 0.35,
+        tension: 0.3,
       })),
     };
 
@@ -97,7 +110,7 @@ export const TokenBreakdownChart = memo(function TokenBreakdownChart({
         { label: t('usage_stats.input_tokens'), value: formatCompactNumber(totals.input) },
         { label: t('usage_stats.output_tokens'), value: formatCompactNumber(totals.output) },
         { label: t('usage_stats.cached_tokens'), value: formatCompactNumber(totals.cached) },
-      ]
+      ],
     };
   }, [isDark, isMobile, period, t, window]);
 

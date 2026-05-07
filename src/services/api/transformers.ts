@@ -11,6 +11,7 @@ import type {
   AmpcodeUpstreamApiKeyMapping,
 } from '@/types';
 import type { ClientApiKeyConfig, Config } from '@/types/config';
+import { extractClientApiKeyQuota } from '@/utils/clientApiKeyQuota';
 import { buildHeaderObject } from '@/utils/headers';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -146,6 +147,12 @@ const normalizeClientApiKeyConfig = (entry: unknown): ClientApiKeyConfig | null 
   }
   if (excludedModels.length) {
     config.excludedModels = excludedModels;
+  }
+  if (record) {
+    const quota = extractClientApiKeyQuota(record);
+    if (quota) {
+      config.quota = quota;
+    }
   }
 
   return config;

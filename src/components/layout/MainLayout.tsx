@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
+import { preloadPrimaryRoutes } from '@/router/routeLoaders';
 import {
   IconSidebarAuthFiles,
   IconSidebarConfig,
@@ -206,6 +207,71 @@ const THEME_CARDS: Array<{
   },
 ];
 
+const AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS = 3500;
+const ROUTE_PRELOAD_IDLE_TIMEOUT_MS = 2000;
+
+type IdleCapableWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+type NetworkAwareNavigator = Navigator & {
+  connection?: {
+    effectiveType?: string;
+    saveData?: boolean;
+  };
+};
+
+const shouldPreloadPrimaryRoutes = () => {
+  if (typeof navigator === 'undefined') {
+    return true;
+  }
+
+  const connection = (navigator as NetworkAwareNavigator).connection;
+  if (!connection) {
+    return true;
+  }
+
+  if (connection.saveData) {
+    return false;
+  }
+
+  return connection.effectiveType !== 'slow-2g' && connection.effectiveType !== '2g';
+};
+
+function scheduleAuthenticatedRoutePreload() {
+  if (typeof window === 'undefined') {
+    return () => undefined;
+  }
+
+  const idleWindow = window as IdleCapableWindow;
+  let idleHandle: number | null = null;
+
+  const preload = () => {
+    if (!shouldPreloadPrimaryRoutes()) {
+      return;
+    }
+    void preloadPrimaryRoutes();
+  };
+
+  const timeoutId = window.setTimeout(() => {
+    if (typeof idleWindow.requestIdleCallback === 'function') {
+      idleHandle = idleWindow.requestIdleCallback(preload, {
+        timeout: ROUTE_PRELOAD_IDLE_TIMEOUT_MS,
+      });
+      return;
+    }
+    preload();
+  }, AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS);
+
+  return () => {
+    window.clearTimeout(timeoutId);
+    if (idleHandle !== null) {
+      idleWindow.cancelIdleCallback?.(idleHandle);
+    }
+  };
+}
+
 export function MainLayout() {
   const { t } = useTranslation();
   const { showNotification } = useNotificationStore();
@@ -384,6 +450,13 @@ export function MainLayout() {
       // ignore initial failure; login flow会提示
     });
   }, [fetchConfig]);
+
+  useEffect(() => {
+    if (connectionStatus !== 'connected') {
+      return undefined;
+    }
+    return scheduleAuthenticatedRoutePreload();
+  }, [connectionStatus]);
 
   const statusClass =
     connectionStatus === 'connected'

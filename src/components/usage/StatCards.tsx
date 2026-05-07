@@ -5,7 +5,7 @@ import {
   IconDollarSign,
   IconSatellite,
   IconTimer,
-  IconTrendingUp
+  IconTrendingUp,
 } from '@/components/ui/icons';
 import {
   LATENCY_SOURCE_FIELD,
@@ -13,13 +13,14 @@ import {
   formatDurationMs,
   formatPerMinuteValue,
   formatUsd,
-  type ModelPrice
+  type ModelPrice,
 } from '@/utils/usage';
+import { USAGE_CHART_COLORS, withUsageColorAlpha } from '@/utils/usage/chartConfig';
 import {
   calculateAggregateWindowCost,
   getAggregateLatencySummary,
   getAggregateRateStats,
-  getAggregateTokenBreakdown
+  getAggregateTokenBreakdown,
 } from '@/utils/usageAggregate';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
 import { SvgSparkline } from './SvgSparkline';
@@ -55,12 +56,12 @@ export const StatCards = memo(function StatCards({
   window,
   loading,
   modelPrices,
-  sparklines
+  sparklines,
 }: StatCardsProps) {
   const { t } = useTranslation();
   const latencyHint = t('usage_stats.latency_unit_hint', {
     field: LATENCY_SOURCE_FIELD,
-    unit: t('usage_stats.duration_unit_ms')
+    unit: t('usage_stats.duration_unit_ms'),
   });
 
   const hasPrices = Object.keys(modelPrices).length > 0;
@@ -73,8 +74,8 @@ export const StatCards = memo(function StatCards({
       latencyStats: {
         averageMs: null as number | null,
         totalMs: null as number | null,
-        sampleCount: 0
-      }
+        sampleCount: 0,
+      },
     };
 
     if (!window) return empty;
@@ -83,7 +84,7 @@ export const StatCards = memo(function StatCards({
       tokenBreakdown: getAggregateTokenBreakdown(window),
       rateStats: getAggregateRateStats(window),
       totalCost: hasPrices ? calculateAggregateWindowCost(window, modelPrices) : 0,
-      latencyStats: getAggregateLatencySummary(window)
+      latencyStats: getAggregateLatencySummary(window),
     };
   }, [hasPrices, modelPrices, window]);
 
@@ -92,18 +93,24 @@ export const StatCards = memo(function StatCards({
       key: 'requests',
       label: t('usage_stats.total_requests'),
       icon: <IconSatellite size={16} />,
-      accent: '#8b8680',
-      accentSoft: 'rgba(139, 134, 128, 0.18)',
-      accentBorder: 'rgba(139, 134, 128, 0.35)',
+      accent: USAGE_CHART_COLORS.requests,
+      accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.requests, 0.16),
+      accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.requests, 0.32),
       value: loading ? '-' : (window?.total_requests ?? 0).toLocaleString(),
       meta: (
         <>
           <span className={styles.statMetaItem}>
-            <span className={styles.statMetaDot} style={{ backgroundColor: '#10b981' }} />
+            <span
+              className={styles.statMetaDot}
+              style={{ backgroundColor: USAGE_CHART_COLORS.success }}
+            />
             {t('usage_stats.success_requests')}: {loading ? '-' : (window?.success_count ?? 0)}
           </span>
           <span className={styles.statMetaItem}>
-            <span className={styles.statMetaDot} style={{ backgroundColor: '#c65746' }} />
+            <span
+              className={styles.statMetaDot}
+              style={{ backgroundColor: USAGE_CHART_COLORS.failure }}
+            />
             {t('usage_stats.failed_requests')}: {loading ? '-' : (window?.failure_count ?? 0)}
           </span>
           {latencyStats.sampleCount > 0 && (
@@ -120,9 +127,9 @@ export const StatCards = memo(function StatCards({
       key: 'tokens',
       label: t('usage_stats.total_tokens'),
       icon: <IconDiamond size={16} />,
-      accent: '#8b5cf6',
-      accentSoft: 'rgba(139, 92, 246, 0.18)',
-      accentBorder: 'rgba(139, 92, 246, 0.35)',
+      accent: USAGE_CHART_COLORS.tokens,
+      accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.tokens, 0.16),
+      accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.tokens, 0.32),
       value: loading ? '-' : formatCompactNumber(window?.total_tokens ?? 0),
       meta: (
         <>
@@ -142,9 +149,9 @@ export const StatCards = memo(function StatCards({
       key: 'rpm',
       label: t('usage_stats.rpm_30m'),
       icon: <IconTimer size={16} />,
-      accent: '#22c55e',
-      accentSoft: 'rgba(34, 197, 94, 0.18)',
-      accentBorder: 'rgba(34, 197, 94, 0.32)',
+      accent: USAGE_CHART_COLORS.rpm,
+      accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.16),
+      accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.32),
       value: loading ? '-' : formatPerMinuteValue(rateStats.rpm),
       meta: (
         <span className={styles.statMetaItem}>
@@ -158,9 +165,9 @@ export const StatCards = memo(function StatCards({
       key: 'tpm',
       label: t('usage_stats.tpm_30m'),
       icon: <IconTrendingUp size={16} />,
-      accent: '#f97316',
-      accentSoft: 'rgba(249, 115, 22, 0.18)',
-      accentBorder: 'rgba(249, 115, 22, 0.32)',
+      accent: USAGE_CHART_COLORS.tpm,
+      accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.tpm, 0.16),
+      accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.tpm, 0.32),
       value: loading ? '-' : formatPerMinuteValue(rateStats.tpm),
       meta: (
         <span className={styles.statMetaItem}>
@@ -174,9 +181,9 @@ export const StatCards = memo(function StatCards({
       key: 'cost',
       label: t('usage_stats.total_cost'),
       icon: <IconDollarSign size={16} />,
-      accent: '#f59e0b',
-      accentSoft: 'rgba(245, 158, 11, 0.18)',
-      accentBorder: 'rgba(245, 158, 11, 0.32)',
+      accent: USAGE_CHART_COLORS.cost,
+      accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.cost, 0.16),
+      accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.cost, 0.32),
       value: loading ? '-' : hasPrices ? formatUsd(totalCost) : '--',
       meta: (
         <>

@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next';
 import type { ScriptableContext } from 'chart.js';
 import { formatUsd, type ModelPrice } from '@/utils/usage';
 import { buildAggregateCostTrend } from '@/utils/usageAggregate';
-import { buildChartOptions } from '@/utils/usage/chartConfig';
+import {
+  USAGE_CHART_COLORS,
+  buildChartOptions,
+  buildUsageAreaGradient,
+  withUsageColorAlpha,
+} from '@/utils/usage/chartConfig';
 import { getAdaptiveAnalysisChartPeriod } from './chartPeriod';
 import { UsageChartPanel } from './UsageChartPanel';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
@@ -17,19 +22,8 @@ export interface CostTrendChartProps {
   hourWindowHours?: number;
 }
 
-const COST_COLOR = '#f59e0b';
-const COST_BG = 'rgba(245, 158, 11, 0.15)';
-
-function buildGradient(ctx: ScriptableContext<'line'>) {
-  const chart = ctx.chart;
-  const area = chart.chartArea;
-  if (!area) return COST_BG;
-  const gradient = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-  gradient.addColorStop(0, 'rgba(245, 158, 11, 0.28)');
-  gradient.addColorStop(0.6, 'rgba(245, 158, 11, 0.12)');
-  gradient.addColorStop(1, 'rgba(245, 158, 11, 0.02)');
-  return gradient;
-}
+const COST_COLOR = USAGE_CHART_COLORS.cost;
+const COST_BG = withUsageColorAlpha(COST_COLOR, 0.14);
 
 export const CostTrendChart = memo(function CostTrendChart({
   window,
@@ -54,7 +48,7 @@ export const CostTrendChart = memo(function CostTrendChart({
         chartData: { labels: [], datasets: [] },
         chartOptions: {},
         hasData: false,
-        summaryItems: []
+        summaryItems: [],
       };
     }
 
@@ -67,11 +61,12 @@ export const CostTrendChart = memo(function CostTrendChart({
           label: t('usage_stats.total_cost'),
           data: series.data,
           borderColor: COST_COLOR,
-          backgroundColor: buildGradient,
+          backgroundColor: (ctx: ScriptableContext<'line'>) =>
+            buildUsageAreaGradient(ctx, COST_COLOR, COST_BG),
           pointBackgroundColor: COST_COLOR,
           pointBorderColor: COST_COLOR,
           fill: true,
-          tension: 0.35,
+          tension: 0.3,
         },
       ],
     };
@@ -103,8 +98,8 @@ export const CostTrendChart = memo(function CostTrendChart({
       summaryItems: [
         { label: t('usage_stats.chart_latest'), value: formatUsd(latest) },
         { label: t('usage_stats.chart_peak'), value: formatUsd(peak) },
-        { label: t('usage_stats.chart_points'), value: series.labels.length.toString() }
-      ]
+        { label: t('usage_stats.chart_points'), value: series.labels.length.toString() },
+      ],
     };
   }, [window, period, isDark, isMobile, modelPrices, hasPrices, t]);
 

@@ -49,6 +49,39 @@ const findOpenAIProviderIndex = (
   return items.findIndex((item) => item.name === target.name);
 };
 
+const normalizeOptionalString = (value: string | null | undefined) => (value ?? '').trim();
+
+const findProviderKeyConfigIndex = <
+  T extends { apiKey: string; baseUrl?: string; prefix?: string },
+>(
+  items: T[],
+  target: T
+) => {
+  const referenceIndex = items.indexOf(target);
+  if (referenceIndex >= 0) return referenceIndex;
+
+  const apiKey = normalizeOptionalString(target.apiKey);
+  const baseUrl = normalizeOptionalString(target.baseUrl);
+  const prefix = normalizeOptionalString(target.prefix);
+
+  const exactIndex = items.findIndex(
+    (item) =>
+      normalizeOptionalString(item.apiKey) === apiKey &&
+      normalizeOptionalString(item.baseUrl) === baseUrl &&
+      normalizeOptionalString(item.prefix) === prefix
+  );
+  if (exactIndex >= 0) return exactIndex;
+
+  const apiAndUrlIndex = items.findIndex(
+    (item) =>
+      normalizeOptionalString(item.apiKey) === apiKey &&
+      normalizeOptionalString(item.baseUrl) === baseUrl
+  );
+  if (apiAndUrlIndex >= 0) return apiAndUrlIndex;
+
+  return items.findIndex((item) => normalizeOptionalString(item.apiKey) === apiKey);
+};
+
 const sortToggleableProviderConfigs = <T extends { priority?: number | null; excludedModels?: string[] }>(
   items: T[]
 ) =>
@@ -210,6 +243,47 @@ export function AiProvidersPage() {
       navigate(path, { state: { fromAiProviders: true } });
     },
     [navigate]
+  );
+
+  const openProviderKeyEditor = useCallback(
+    (
+      provider: 'gemini' | 'codex' | 'claude' | 'vertex',
+      displayIndex: number
+    ) => {
+      const displayItems =
+        provider === 'gemini'
+          ? geminiKeys
+          : provider === 'codex'
+            ? codexConfigs
+            : provider === 'claude'
+              ? claudeConfigs
+              : vertexConfigs;
+      const rawItems =
+        provider === 'gemini'
+          ? config?.geminiApiKeys
+          : provider === 'codex'
+            ? config?.codexApiKeys
+            : provider === 'claude'
+              ? config?.claudeApiKeys
+              : config?.vertexApiKeys;
+      const current = displayItems[displayIndex];
+      const rawIndex = current
+        ? findProviderKeyConfigIndex(rawItems || displayItems, current)
+        : -1;
+
+      openEditor(`/ai-providers/${provider}/${rawIndex >= 0 ? rawIndex : displayIndex}`);
+    },
+    [
+      claudeConfigs,
+      codexConfigs,
+      config?.claudeApiKeys,
+      config?.codexApiKeys,
+      config?.geminiApiKeys,
+      config?.vertexApiKeys,
+      geminiKeys,
+      openEditor,
+      vertexConfigs,
+    ]
   );
 
   const deleteGemini = async (index: number) => {
@@ -485,7 +559,7 @@ export function AiProvidersPage() {
             disableControls={disableControls}
             isSwitching={isSwitching}
             onAdd={() => openEditor('/ai-providers/codex/new')}
-            onEdit={(index) => openEditor(`/ai-providers/codex/${index}`)}
+            onEdit={(index) => openProviderKeyEditor('codex', index)}
             onDelete={(index) => void deleteProviderEntry('codex', index)}
             onToggle={(index, enabled) => void setConfigEnabled('codex', index, enabled)}
           />
@@ -500,7 +574,7 @@ export function AiProvidersPage() {
             disableControls={disableControls}
             isSwitching={isSwitching}
             onAdd={() => openEditor('/ai-providers/gemini/new')}
-            onEdit={(index) => openEditor(`/ai-providers/gemini/${index}`)}
+            onEdit={(index) => openProviderKeyEditor('gemini', index)}
             onDelete={deleteGemini}
             onToggle={(index, enabled) => void setConfigEnabled('gemini', index, enabled)}
           />
@@ -515,7 +589,7 @@ export function AiProvidersPage() {
             disableControls={disableControls}
             isSwitching={isSwitching}
             onAdd={() => openEditor('/ai-providers/claude/new')}
-            onEdit={(index) => openEditor(`/ai-providers/claude/${index}`)}
+            onEdit={(index) => openProviderKeyEditor('claude', index)}
             onDelete={(index) => void deleteProviderEntry('claude', index)}
             onToggle={(index, enabled) => void setConfigEnabled('claude', index, enabled)}
           />
@@ -530,7 +604,7 @@ export function AiProvidersPage() {
             disableControls={disableControls}
             isSwitching={isSwitching}
             onAdd={() => openEditor('/ai-providers/vertex/new')}
-            onEdit={(index) => openEditor(`/ai-providers/vertex/${index}`)}
+            onEdit={(index) => openProviderKeyEditor('vertex', index)}
             onDelete={deleteVertex}
             onToggle={(index, enabled) => void setConfigEnabled('vertex', index, enabled)}
           />

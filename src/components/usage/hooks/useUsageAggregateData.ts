@@ -27,6 +27,8 @@ export interface UseUsageAggregateDataReturn {
 const asAggregateSnapshot = (value: unknown): UsageAggregateSnapshot | null =>
   value && typeof value === "object" ? (value as UsageAggregateSnapshot) : null;
 
+const hasPrices = (prices: Record<string, ModelPrice>) => Object.keys(prices).length > 0;
+
 const buildExportFilename = (prefix: string, payload: UsageExportPayload) => {
   const exportedAt =
     typeof payload?.exported_at === 'string' ? new Date(payload.exported_at) : new Date();
@@ -75,6 +77,14 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   useEffect(() => {
     void loadUsage().catch(() => {});
     setModelPrices(loadModelPrices());
+    void usageApi
+      .getModelPrices()
+      .then((prices) => {
+        if (!hasPrices(prices)) return;
+        setModelPrices(prices);
+        saveModelPrices(prices);
+      })
+      .catch(() => {});
   }, [loadUsage]);
 
   const downloadExport = useCallback(
@@ -174,10 +184,20 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
     [loadUsage, showNotification, t]
   );
 
-  const handleSetModelPrices = useCallback((prices: Record<string, ModelPrice>) => {
-    setModelPrices(prices);
-    saveModelPrices(prices);
-  }, []);
+  const handleSetModelPrices = useCallback(
+    (prices: Record<string, ModelPrice>) => {
+      setModelPrices(prices);
+      saveModelPrices(prices);
+      void usageApi.updateModelPrices(prices).catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : '';
+        showNotification(
+          `${t('notification.save_failed')}${message ? `: ${message}` : ''}`,
+          'error'
+        );
+      });
+    },
+    [showNotification, t]
+  );
 
   return {
     usage,

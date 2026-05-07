@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next';
 import type { ScriptableContext } from 'chart.js';
 import { formatLatencyMs } from '@/utils/usage';
 import { buildAggregateLatencyTrend } from '@/utils/usageAggregate';
-import { buildChartOptions } from '@/utils/usage/chartConfig';
+import {
+  USAGE_CHART_COLORS,
+  buildChartOptions,
+  buildUsageAreaGradient,
+  withUsageColorAlpha,
+} from '@/utils/usage/chartConfig';
 import { getAdaptiveAnalysisChartPeriod } from './chartPeriod';
 import { UsageChartPanel } from './UsageChartPanel';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
@@ -16,21 +21,10 @@ export interface LatencyTrendChartProps {
   hourWindowHours?: number;
 }
 
-const LATENCY_COLOR = '#0f766e';
-const LATENCY_BG = 'rgba(15, 118, 110, 0.16)';
+const LATENCY_COLOR = USAGE_CHART_COLORS.latency;
+const LATENCY_BG = withUsageColorAlpha(LATENCY_COLOR, 0.14);
 const isNonNegativeNumber = (value: number | null): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0;
-
-function buildGradient(ctx: ScriptableContext<'line'>) {
-  const chart = ctx.chart;
-  const area = chart.chartArea;
-  if (!area) return LATENCY_BG;
-  const gradient = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-  gradient.addColorStop(0, 'rgba(15, 118, 110, 0.3)');
-  gradient.addColorStop(0.6, 'rgba(15, 118, 110, 0.12)');
-  gradient.addColorStop(1, 'rgba(15, 118, 110, 0.02)');
-  return gradient;
-}
 
 export const LatencyTrendChart = memo(function LatencyTrendChart({
   window,
@@ -63,11 +57,12 @@ export const LatencyTrendChart = memo(function LatencyTrendChart({
           label: t('usage_stats.avg_latency'),
           data: series.data,
           borderColor: LATENCY_COLOR,
-          backgroundColor: buildGradient,
+          backgroundColor: (ctx: ScriptableContext<'line'>) =>
+            buildUsageAreaGradient(ctx, LATENCY_COLOR, LATENCY_BG),
           pointBackgroundColor: LATENCY_COLOR,
           pointBorderColor: LATENCY_COLOR,
           fill: true,
-          tension: 0.35,
+          tension: 0.3,
           spanGaps: true,
         },
       ],
@@ -94,7 +89,7 @@ export const LatencyTrendChart = memo(function LatencyTrendChart({
       chartData: data,
       chartOptions: options,
       hasData: series.hasData,
-      summary: { latest, peak, average }
+      summary: { latest, peak, average },
     };
   }, [isDark, isMobile, period, t, window]);
 

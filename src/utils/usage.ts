@@ -6,6 +6,11 @@
 import type { ScriptableContext } from 'chart.js';
 import type { LatencyAccumulator, LatencyStats } from './usage/latency';
 import {
+  buildUsageAreaGradient,
+  getUsageSeriesColor,
+  withUsageColorAlpha,
+} from './usage/chartConfig';
+import {
   addLatencySample,
   calculateLatencyStatsFromDetails,
   createLatencyAccumulator,
@@ -263,7 +268,9 @@ type UsageWithAggregatedView = Record<string, unknown> & {
   [AGGREGATED_WINDOW_KEY_FIELD]?: AggregatedWindowKey;
 };
 
-const getEmbeddedAggregatedSnapshot = (usageData: unknown): AggregatedUsageSnapshotRecord | null => {
+const getEmbeddedAggregatedSnapshot = (
+  usageData: unknown
+): AggregatedUsageSnapshotRecord | null => {
   const usageRecord = isRecord(usageData) ? (usageData as UsageWithAggregatedView) : null;
   const embedded = usageRecord?.[AGGREGATED_USAGE_FIELD];
   return isRecord(embedded) ? (embedded as AggregatedUsageSnapshotRecord) : null;
@@ -312,7 +319,9 @@ const parseAggregatedModelNames = (value: unknown): string[] => {
 const parseTimestampArray = (value: unknown): string[] =>
   Array.isArray(value)
     ? value
-        .map((item) => (typeof item === 'string' ? item : item instanceof Date ? item.toISOString() : ''))
+        .map((item) =>
+          typeof item === 'string' ? item : item instanceof Date ? item.toISOString() : ''
+        )
         .filter(Boolean)
     : [];
 
@@ -335,10 +344,7 @@ const parseNullableNumberArray = (value: unknown): Array<number | null> =>
       })
     : [];
 
-const buildAggregatedUsageView = <T>(
-  usageData: T,
-  range: UsageTimeRange
-): T => {
+const buildAggregatedUsageView = <T>(usageData: T, range: UsageTimeRange): T => {
   const usageRecord = isRecord(usageData) ? (usageData as UsageWithAggregatedView) : null;
   const aggregated = getEmbeddedAggregatedSnapshot(usageData);
   if (!usageRecord || !aggregated || !isRecord(aggregated.windows)) {
@@ -1071,7 +1077,8 @@ export function calculateTokenBreakdown(usageData: unknown): TokenBreakdown {
       const tokenBreakdown = aggregatedWindow.token_breakdown;
       return {
         cachedTokens:
-          typeof tokenBreakdown.cached_tokens === 'number' && Number.isFinite(tokenBreakdown.cached_tokens)
+          typeof tokenBreakdown.cached_tokens === 'number' &&
+          Number.isFinite(tokenBreakdown.cached_tokens)
             ? tokenBreakdown.cached_tokens
             : 0,
         reasoningTokens:
@@ -1437,7 +1444,9 @@ export function getApiStats(
                     ? stats.failure_count
                     : 0,
                 tokens:
-                  typeof stats.tokens === 'number' && Number.isFinite(stats.tokens) ? stats.tokens : 0,
+                  typeof stats.tokens === 'number' && Number.isFinite(stats.tokens)
+                    ? stats.tokens
+                    : 0,
               };
 
               if (isRecord(stats.token_breakdown)) {
@@ -1499,7 +1508,8 @@ export function getApiStats(
         if (!isRecord(modelData)) return;
         const details = Array.isArray(modelData.details) ? modelData.details : [];
         const hasExplicitCounts =
-          typeof modelData.success_count === 'number' || typeof modelData.failure_count === 'number';
+          typeof modelData.success_count === 'number' ||
+          typeof modelData.failure_count === 'number';
 
         let successCount = 0;
         let failureCount = 0;
@@ -1593,7 +1603,9 @@ export function getModelStats(
           return {
             model: item.model,
             requests:
-              typeof item.requests === 'number' && Number.isFinite(item.requests) ? item.requests : 0,
+              typeof item.requests === 'number' && Number.isFinite(item.requests)
+                ? item.requests
+                : 0,
             successCount:
               typeof item.success_count === 'number' && Number.isFinite(item.success_count)
                 ? item.success_count
@@ -1662,7 +1674,8 @@ export function getModelStats(
         const details = Array.isArray(modelData.details) ? modelData.details : [];
         const price = modelPrices[modelName];
         const hasExplicitCounts =
-          typeof modelData.success_count === 'number' || typeof modelData.failure_count === 'number';
+          typeof modelData.success_count === 'number' ||
+          typeof modelData.failure_count === 'number';
 
         if (hasExplicitCounts) {
           existing.successCount += Number(modelData.success_count) || 0;
@@ -1825,8 +1838,11 @@ export function buildHourlySeriesByModel(
     () => {
       const aggregatedWindow = getSelectedAggregatedWindow(usageData);
       const aggregatedSeriesRoot =
-        aggregatedWindow && isRecord(metric === 'tokens' ? aggregatedWindow.tokens : aggregatedWindow.requests)
-          ? (metric === 'tokens' ? aggregatedWindow.tokens : aggregatedWindow.requests)
+        aggregatedWindow &&
+        isRecord(metric === 'tokens' ? aggregatedWindow.tokens : aggregatedWindow.requests)
+          ? metric === 'tokens'
+            ? aggregatedWindow.tokens
+            : aggregatedWindow.requests
           : null;
       const aggregatedSeries =
         aggregatedSeriesRoot && isRecord(aggregatedSeriesRoot.hour)
@@ -1932,8 +1948,11 @@ export function buildDailySeriesByModel(
   return getCachedUsageDerivedValue(usageData, `series:day:${metric}`, () => {
     const aggregatedWindow = getSelectedAggregatedWindow(usageData);
     const aggregatedSeriesRoot =
-      aggregatedWindow && isRecord(metric === 'tokens' ? aggregatedWindow.tokens : aggregatedWindow.requests)
-        ? (metric === 'tokens' ? aggregatedWindow.tokens : aggregatedWindow.requests)
+      aggregatedWindow &&
+      isRecord(metric === 'tokens' ? aggregatedWindow.tokens : aggregatedWindow.requests)
+        ? metric === 'tokens'
+          ? aggregatedWindow.tokens
+          : aggregatedWindow.requests
         : null;
     const aggregatedSeries =
       aggregatedSeriesRoot && isRecord(aggregatedSeriesRoot.day)
@@ -2021,63 +2040,6 @@ export interface ChartData {
   datasets: ChartDataset[];
 }
 
-const CHART_COLORS = [
-  { borderColor: '#8b8680', backgroundColor: 'rgba(139, 134, 128, 0.15)' },
-  { borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.15)' },
-  { borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.15)' },
-  { borderColor: '#c65746', backgroundColor: 'rgba(198, 87, 70, 0.15)' },
-  { borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.15)' },
-  { borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.15)' },
-  { borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)' },
-  { borderColor: '#84cc16', backgroundColor: 'rgba(132, 204, 22, 0.15)' },
-  { borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.15)' },
-];
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
-  const normalized = hex.trim().replace('#', '');
-  if (normalized.length !== 6) {
-    return null;
-  }
-  const r = Number.parseInt(normalized.slice(0, 2), 16);
-  const g = Number.parseInt(normalized.slice(2, 4), 16);
-  const b = Number.parseInt(normalized.slice(4, 6), 16);
-  if (![r, g, b].every((channel) => Number.isFinite(channel))) {
-    return null;
-  }
-  return { r, g, b };
-};
-
-const withAlpha = (hex: string, alpha: number) => {
-  const rgb = hexToRgb(hex);
-  if (!rgb) {
-    return hex;
-  }
-  const clamped = clamp(alpha, 0, 1);
-  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamped})`;
-};
-
-const buildAreaGradient = (
-  context: ScriptableContext<'line'>,
-  baseHex: string,
-  fallback: string
-) => {
-  const chart = context.chart;
-  const ctx = chart.ctx;
-  const area = chart.chartArea;
-
-  if (!area) {
-    return fallback;
-  }
-
-  const gradient = ctx.createLinearGradient(0, area.top, 0, area.bottom);
-  gradient.addColorStop(0, withAlpha(baseHex, 0.28));
-  gradient.addColorStop(0.6, withAlpha(baseHex, 0.12));
-  gradient.addColorStop(1, withAlpha(baseHex, 0.02));
-  return gradient;
-};
-
 /**
  * 构建图表数据
  */
@@ -2114,21 +2076,21 @@ export function buildChartData(
     const data = isAll
       ? getAllSeries()
       : dataByModel.get(model) || new Array(labels.length).fill(0);
-    const colorIndex = index % CHART_COLORS.length;
-    const style = CHART_COLORS[colorIndex];
+    const color = getUsageSeriesColor(metric, index);
+    const areaFallback = withUsageColorAlpha(color, 0.14);
     const shouldFill = modelsToShow.length === 1 || (isAll && modelsToShow.length > 1);
 
     return {
       label: isAll ? 'All Models' : model,
       data,
-      borderColor: style.borderColor,
+      borderColor: color,
       backgroundColor: shouldFill
-        ? (ctx) => buildAreaGradient(ctx, style.borderColor, style.backgroundColor)
-        : style.backgroundColor,
-      pointBackgroundColor: style.borderColor,
-      pointBorderColor: style.borderColor,
+        ? (ctx: ScriptableContext<'line'>) => buildUsageAreaGradient(ctx, color, areaFallback)
+        : areaFallback,
+      pointBackgroundColor: color,
+      pointBorderColor: color,
       fill: shouldFill,
-      tension: 0.35,
+      tension: 0.3,
     };
   });
 
@@ -2728,7 +2690,9 @@ export function buildHourlyCostSeries(
     () => {
       const aggregatedWindow = getSelectedAggregatedWindow(usageData);
       const costBasisRoot =
-        aggregatedWindow && isRecord(aggregatedWindow.cost_basis) ? aggregatedWindow.cost_basis : null;
+        aggregatedWindow && isRecord(aggregatedWindow.cost_basis)
+          ? aggregatedWindow.cost_basis
+          : null;
       const costBasis =
         costBasisRoot && isRecord(costBasisRoot.hour)
           ? (costBasisRoot.hour as AggregatedCostBasisSeriesRecord)
@@ -2850,7 +2814,7 @@ export function buildHourlyLatencySeries(
         return {
           labels,
           data,
-          hasData: data.some((value) => typeof value === 'number' && Number.isFinite(value))
+          hasData: data.some((value) => typeof value === 'number' && Number.isFinite(value)),
         };
       }
 
@@ -2882,7 +2846,9 @@ export function buildHourlyLatencySeries(
         if (latencyMs === null) return;
 
         const timestamp =
-          typeof detail.__timestampMs === 'number' ? detail.__timestampMs : parseTimestampMs(detail.timestamp);
+          typeof detail.__timestampMs === 'number'
+            ? detail.__timestampMs
+            : parseTimestampMs(detail.timestamp);
         if (!Number.isFinite(timestamp) || timestamp <= 0) return;
         const normalized = new Date(timestamp);
         normalized.setMinutes(0, 0, 0);
@@ -2902,7 +2868,7 @@ export function buildHourlyLatencySeries(
         data: latencySums.map((sum, index) =>
           latencyCounts[index] > 0 ? Number((sum / latencyCounts[index]).toFixed(2)) : null
         ),
-        hasData
+        hasData,
       };
     }
   );
@@ -2929,7 +2895,7 @@ export function buildDailyLatencySeries(usageData: unknown): LatencySeries {
       return {
         labels,
         data,
-        hasData: data.some((value) => typeof value === 'number' && Number.isFinite(value))
+        hasData: data.some((value) => typeof value === 'number' && Number.isFinite(value)),
       };
     }
 
@@ -2942,7 +2908,9 @@ export function buildDailyLatencySeries(usageData: unknown): LatencySeries {
       if (latencyMs === null) return;
 
       const timestamp =
-        typeof detail.__timestampMs === 'number' ? detail.__timestampMs : parseTimestampMs(detail.timestamp);
+        typeof detail.__timestampMs === 'number'
+          ? detail.__timestampMs
+          : parseTimestampMs(detail.timestamp);
       if (!Number.isFinite(timestamp) || timestamp <= 0) return;
       const dayLabel = formatDayLabel(new Date(timestamp));
       if (!dayLabel) return;
@@ -2963,7 +2931,7 @@ export function buildDailyLatencySeries(usageData: unknown): LatencySeries {
         const bucket = dayMap[label];
         return bucket.count > 0 ? Number((bucket.sum / bucket.count).toFixed(2)) : null;
       }),
-      hasData
+      hasData,
     };
   });
 }
@@ -2979,7 +2947,9 @@ export function buildDailyCostSeries(
   return getCachedUsageDerivedValue(usageData, `costSeries:day:${priceFingerprint}`, () => {
     const aggregatedWindow = getSelectedAggregatedWindow(usageData);
     const costBasisRoot =
-      aggregatedWindow && isRecord(aggregatedWindow.cost_basis) ? aggregatedWindow.cost_basis : null;
+      aggregatedWindow && isRecord(aggregatedWindow.cost_basis)
+        ? aggregatedWindow.cost_basis
+        : null;
     const costBasis =
       costBasisRoot && isRecord(costBasisRoot.day)
         ? (costBasisRoot.day as AggregatedCostBasisSeriesRecord)

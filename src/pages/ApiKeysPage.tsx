@@ -8,17 +8,12 @@ import { apiKeysApi } from '@/services/api/apiKeys';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type { ClientApiKeyConfig } from '@/types/config';
 import { makeClientId, type VisualApiKeyEntry } from '@/types/visualConfig';
+import { hasClientApiKeyQuota, serializeClientApiKeyQuota } from '@/utils/clientApiKeyQuota';
 import editorStyles from '@/components/config/VisualConfigEditor.module.scss';
 import styles from './ConfigPage.module.scss';
 
 const normalizeModelPatterns = (patterns: string[] | undefined): string[] =>
-  Array.from(
-    new Set(
-      (patterns ?? [])
-        .map((item) => String(item ?? '').trim())
-        .filter(Boolean)
-    )
-  );
+  Array.from(new Set((patterns ?? []).map((item) => String(item ?? '').trim()).filter(Boolean)));
 
 const toVisualApiKeys = (keys: ClientApiKeyConfig[]): VisualApiKeyEntry[] =>
   keys.map((entry) => ({
@@ -26,6 +21,7 @@ const toVisualApiKeys = (keys: ClientApiKeyConfig[]): VisualApiKeyEntry[] =>
     apiKey: entry.apiKey,
     allowedModels: normalizeModelPatterns(entry.allowedModels),
     excludedModels: normalizeModelPatterns(entry.excludedModels),
+    ...(hasClientApiKeyQuota(entry.quota) ? { quota: entry.quota } : {}),
   }));
 
 const toClientApiKeys = (keys: VisualApiKeyEntry[]): ClientApiKeyConfig[] =>
@@ -36,10 +32,12 @@ const toClientApiKeys = (keys: VisualApiKeyEntry[]): ClientApiKeyConfig[] =>
 
       const allowedModels = normalizeModelPatterns(entry.allowedModels);
       const excludedModels = normalizeModelPatterns(entry.excludedModels);
+      const quota = serializeClientApiKeyQuota(entry.quota);
       return {
         apiKey,
         ...(allowedModels.length ? { allowedModels } : {}),
         ...(excludedModels.length ? { excludedModels } : {}),
+        ...(quota ? { quota: entry.quota } : {}),
       };
     })
     .filter(Boolean) as ClientApiKeyConfig[];
@@ -69,6 +67,7 @@ export function ApiKeysPage() {
   const restrictedCount = apiKeys.filter(
     (entry) => entry.allowedModels.length > 0 || entry.excludedModels.length > 0
   ).length;
+  const quotaCount = apiKeys.filter((entry) => hasClientApiKeyQuota(entry.quota)).length;
 
   useUnsavedChangesGuard({
     shouldBlock: isDirty && !saving,
@@ -209,7 +208,11 @@ export function ApiKeysPage() {
                     {t('api_keys.configured_count', { count: apiKeys.length })}
                   </h3>
                   <p className={editorStyles.subsectionDescription}>
-                    {t('api_keys.restricted_count', { count: restrictedCount })}
+                    {t('api_keys.restricted_count', {
+                      count: restrictedCount,
+                      restricted: restrictedCount,
+                      quota: quotaCount,
+                    })}
                   </p>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { USAGE_CHART_COLORS, withUsageColorAlpha } from '@/utils/usage/chartConfig';
 import { buildAggregateSparklines } from '@/utils/usageAggregate';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
 import type { SparklineBundle } from './useSparklines';
@@ -18,7 +19,7 @@ export interface UseUsageAggregateSparklinesReturn {
 
 export function useUsageAggregateSparklines({
   window,
-  loading
+  loading,
 }: UseUsageAggregateSparklinesOptions): UseUsageAggregateSparklinesReturn {
   const sparklineSeries = useMemo(() => buildAggregateSparklines(window), [window]);
 
@@ -43,10 +44,10 @@ export function useUsageAggregateSparklines({
               fill: true,
               tension: 0.45,
               pointRadius: 0,
-              borderWidth: 2
-            }
-          ]
-        }
+              borderWidth: 2,
+            },
+          ],
+        },
       };
     },
     [loading]
@@ -56,8 +57,8 @@ export function useUsageAggregateSparklines({
     () =>
       buildSparkline(
         { labels: sparklineSeries.labels, data: sparklineSeries.requests },
-        '#8b8680',
-        'rgba(139, 134, 128, 0.18)'
+        USAGE_CHART_COLORS.requests,
+        withUsageColorAlpha(USAGE_CHART_COLORS.requests, 0.18)
       ),
     [buildSparkline, sparklineSeries.labels, sparklineSeries.requests]
   );
@@ -66,8 +67,8 @@ export function useUsageAggregateSparklines({
     () =>
       buildSparkline(
         { labels: sparklineSeries.labels, data: sparklineSeries.tokens },
-        '#8b5cf6',
-        'rgba(139, 92, 246, 0.18)'
+        USAGE_CHART_COLORS.tokens,
+        withUsageColorAlpha(USAGE_CHART_COLORS.tokens, 0.18)
       ),
     [buildSparkline, sparklineSeries.labels, sparklineSeries.tokens]
   );
@@ -76,8 +77,8 @@ export function useUsageAggregateSparklines({
     () =>
       buildSparkline(
         { labels: sparklineSeries.labels, data: sparklineSeries.requests },
-        '#22c55e',
-        'rgba(34, 197, 94, 0.18)'
+        USAGE_CHART_COLORS.rpm,
+        withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.18)
       ),
     [buildSparkline, sparklineSeries.labels, sparklineSeries.requests]
   );
@@ -86,8 +87,8 @@ export function useUsageAggregateSparklines({
     () =>
       buildSparkline(
         { labels: sparklineSeries.labels, data: sparklineSeries.tokens },
-        '#f97316',
-        'rgba(249, 115, 22, 0.18)'
+        USAGE_CHART_COLORS.tpm,
+        withUsageColorAlpha(USAGE_CHART_COLORS.tpm, 0.18)
       ),
     [buildSparkline, sparklineSeries.labels, sparklineSeries.tokens]
   );
@@ -96,8 +97,8 @@ export function useUsageAggregateSparklines({
     () =>
       buildSparkline(
         { labels: sparklineSeries.labels, data: sparklineSeries.tokens },
-        '#f59e0b',
-        'rgba(245, 158, 11, 0.18)'
+        USAGE_CHART_COLORS.cost,
+        withUsageColorAlpha(USAGE_CHART_COLORS.cost, 0.18)
       ),
     [buildSparkline, sparklineSeries.labels, sparklineSeries.tokens]
   );
@@ -107,6 +108,6 @@ export function useUsageAggregateSparklines({
     tokensSparkline,
     rpmSparkline,
     tpmSparkline,
-    costSparkline
+    costSparkline,
   };
 }

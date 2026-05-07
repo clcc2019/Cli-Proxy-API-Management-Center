@@ -8,14 +8,14 @@ import type {
   ModelPrice,
   ModelStatsSummary,
   TokenBreakdownSeries,
-  TokenCategory
+  TokenCategory,
 } from './usage';
 import {
   formatDayLabel,
   formatHourLabel,
   maskUsageSensitiveValue,
   normalizeAuthIndex,
-  normalizeUsageSourceId
+  normalizeUsageSourceId,
 } from './usage';
 import type {
   UsageAggregateApiModelStat,
@@ -30,74 +30,25 @@ import type {
   UsageAggregateTokenSeries,
   UsageAggregateTokenStats,
   UsageAggregateTokenBreakdownSeries,
-  UsageAggregateWindow
+  UsageAggregateWindow,
 } from '@/types/usageAggregate';
+import {
+  buildUsageAreaGradient,
+  getUsageSeriesColor,
+  withUsageColorAlpha,
+  type UsageChartMetric,
+} from './usage/chartConfig';
 
 const TOKENS_PER_PRICE_UNIT = 1_000_000;
-const CHART_COLORS = [
-  { borderColor: '#8b8680', backgroundColor: 'rgba(139, 134, 128, 0.15)' },
-  { borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.15)' },
-  { borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.15)' },
-  { borderColor: '#c65746', backgroundColor: 'rgba(198, 87, 70, 0.15)' },
-  { borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.15)' },
-  { borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.15)' },
-  { borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)' },
-  { borderColor: '#84cc16', backgroundColor: 'rgba(132, 204, 22, 0.15)' },
-  { borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.15)' }
-];
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
-  const normalized = hex.trim().replace('#', '');
-  if (normalized.length !== 6) {
-    return null;
-  }
-
-  const r = Number.parseInt(normalized.slice(0, 2), 16);
-  const g = Number.parseInt(normalized.slice(2, 4), 16);
-  const b = Number.parseInt(normalized.slice(4, 6), 16);
-  if (![r, g, b].every((channel) => Number.isFinite(channel))) {
-    return null;
-  }
-
-  return { r, g, b };
-};
-
-const withAlpha = (hex: string, alpha: number) => {
-  const rgb = hexToRgb(hex);
-  if (!rgb) {
-    return hex;
-  }
-
-  const clamped = clamp(alpha, 0, 1);
-  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamped})`;
-};
-
-const buildAreaGradient = (
-  context: ScriptableContext<'line'>,
-  baseHex: string,
-  fallback: string
-) => {
-  const chart = context.chart;
-  const area = chart.chartArea;
-  if (!area) {
-    return fallback;
-  }
-
-  const gradient = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-  gradient.addColorStop(0, withAlpha(baseHex, 0.28));
-  gradient.addColorStop(0.6, withAlpha(baseHex, 0.12));
-  gradient.addColorStop(1, withAlpha(baseHex, 0.02));
-  return gradient;
-};
 
 const asNumber = (value: unknown): number => {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : 0;
 };
 
-const normalizeTokenStats = (tokens?: UsageAggregateTokenStats): Required<UsageAggregateTokenStats> => {
+const normalizeTokenStats = (
+  tokens?: UsageAggregateTokenStats
+): Required<UsageAggregateTokenStats> => {
   const input = Math.max(asNumber(tokens?.input_tokens), 0);
   const output = Math.max(asNumber(tokens?.output_tokens), 0);
   const reasoning = Math.max(asNumber(tokens?.reasoning_tokens), 0);
@@ -109,7 +60,7 @@ const normalizeTokenStats = (tokens?: UsageAggregateTokenStats): Required<UsageA
     output_tokens: output,
     reasoning_tokens: reasoning,
     cached_tokens: cached,
-    total_tokens: total
+    total_tokens: total,
   };
 };
 
@@ -174,7 +125,8 @@ const sumNumberArrays = (arrays: number[][], size: number) => {
 
 const buildPeriodSeries = (
   periodSeries: UsageAggregateModelSeries | undefined,
-  selectedModels: string[]
+  selectedModels: string[],
+  metric: UsageChartMetric
 ): ChartData => {
   const labels = formatPeriodLabels(periodSeries?.timestamps, 'hour');
   const dataByModel = periodSeries?.series ?? {};
@@ -186,20 +138,21 @@ const buildPeriodSeries = (
     const data = isAll
       ? allSeries
       : (dataByModel[model] ?? new Array(labels.length).fill(0)).map((value) => asNumber(value));
-    const style = CHART_COLORS[index % CHART_COLORS.length];
+    const color = getUsageSeriesColor(metric, index);
+    const areaFallback = withUsageColorAlpha(color, 0.14);
     const shouldFill = modelsToShow.length === 1 || (isAll && modelsToShow.length > 1);
 
     return {
       label: isAll ? 'All Models' : model,
       data,
-      borderColor: style.borderColor,
+      borderColor: color,
       backgroundColor: shouldFill
-        ? (ctx) => buildAreaGradient(ctx, style.borderColor, style.backgroundColor)
-        : style.backgroundColor,
-      pointBackgroundColor: style.borderColor,
-      pointBorderColor: style.borderColor,
+        ? (ctx: ScriptableContext<'line'>) => buildUsageAreaGradient(ctx, color, areaFallback)
+        : areaFallback,
+      pointBackgroundColor: color,
+      pointBorderColor: color,
       fill: shouldFill,
-      tension: 0.35
+      tension: 0.3,
     };
   });
 
@@ -216,12 +169,10 @@ const buildCategorySeries = (
     input: (source?.input ?? []).map((value) => asNumber(value)),
     output: (source?.output ?? []).map((value) => asNumber(value)),
     cached: (source?.cached ?? []).map((value) => asNumber(value)),
-    reasoning: (source?.reasoning ?? []).map((value) => asNumber(value))
+    reasoning: (source?.reasoning ?? []).map((value) => asNumber(value)),
   };
 
-  const hasData = Object.values(dataByCategory).some((values) =>
-    values.some((value) => value > 0)
-  );
+  const hasData = Object.values(dataByCategory).some((values) => values.some((value) => value > 0));
 
   return { labels, dataByCategory, hasData };
 };
@@ -256,7 +207,7 @@ const calculateSeriesCost = (
         input_tokens: input[index],
         output_tokens: output[index],
         cached_tokens: cached[index],
-        reasoning_tokens: reasoning[index]
+        reasoning_tokens: reasoning[index],
       },
       price
     )
@@ -283,7 +234,7 @@ export const getAggregateRateStats = (window: UsageAggregateWindow | null) => ({
   tpm: asNumber(window?.rate_30m?.tpm),
   windowMinutes: Math.max(asNumber(window?.rate_30m?.window_minutes), 30),
   requestCount: asNumber(window?.rate_30m?.request_count),
-  tokenCount: asNumber(window?.rate_30m?.token_count)
+  tokenCount: asNumber(window?.rate_30m?.token_count),
 });
 
 export const getAggregateLatencySummary = (window: UsageAggregateWindow | null) => {
@@ -291,7 +242,7 @@ export const getAggregateLatencySummary = (window: UsageAggregateWindow | null) 
   return {
     averageMs,
     totalMs: asNumber(window?.latency?.total_ms) || null,
-    sampleCount: asNumber(window?.latency?.count)
+    sampleCount: asNumber(window?.latency?.count),
   };
 };
 
@@ -299,7 +250,7 @@ export const getAggregateTokenBreakdown = (window: UsageAggregateWindow | null) 
   const tokenBreakdown = normalizeTokenStats(window?.token_breakdown);
   return {
     cachedTokens: tokenBreakdown.cached_tokens,
-    reasoningTokens: tokenBreakdown.reasoning_tokens
+    reasoningTokens: tokenBreakdown.reasoning_tokens,
   };
 };
 
@@ -320,7 +271,7 @@ export const buildAggregateChartData = (
 ): ChartData => {
   const metricSeries = metric === 'requests' ? window?.requests : window?.tokens;
   const periodSeries = period === 'hour' ? metricSeries?.hour : metricSeries?.day;
-  const chartData = buildPeriodSeries(periodSeries, selectedModels);
+  const chartData = buildPeriodSeries(periodSeries, selectedModels, metric);
 
   if (period === 'day') {
     chartData.labels = formatPeriodLabels(periodSeries?.timestamps, 'day');
@@ -342,7 +293,8 @@ export const buildAggregateLatencyTrend = (
   window: UsageAggregateWindow | null,
   period: 'hour' | 'day'
 ): LatencySeries => {
-  const periodSeries = period === 'hour' ? window?.latency_series?.hour : window?.latency_series?.day;
+  const periodSeries =
+    period === 'hour' ? window?.latency_series?.hour : window?.latency_series?.day;
   return buildLatencySeries(periodSeries?.timestamps, period, periodSeries);
 };
 
@@ -368,7 +320,7 @@ export const buildAggregateCostTrend = (
   return {
     labels,
     data,
-    hasData: data.some((value) => value > 0)
+    hasData: data.some((value) => value > 0),
   };
 };
 
@@ -376,7 +328,7 @@ const mapApiModelStats = (modelStat: UsageAggregateApiModelStat) => ({
   requests: asNumber(modelStat.requests),
   successCount: asNumber(modelStat.success_count),
   failureCount: asNumber(modelStat.failure_count),
-  tokens: asNumber(modelStat.tokens)
+  tokens: asNumber(modelStat.tokens),
 });
 
 export const getAggregateApiStats = (
@@ -387,7 +339,7 @@ export const getAggregateApiStats = (
     const models = Object.fromEntries(
       Object.entries(stat.models ?? {}).map(([modelName, modelStat]) => [
         modelName,
-        mapApiModelStats(modelStat)
+        mapApiModelStats(modelStat),
       ])
     );
 
@@ -402,7 +354,7 @@ export const getAggregateApiStats = (
       failureCount: asNumber(stat.failure_count),
       totalTokens: asNumber(stat.total_tokens),
       totalCost,
-      models
+      models,
     };
   });
 
@@ -421,11 +373,11 @@ export const getAggregateModelStats = (
       cost: calculateCostForTokens(stat.token_breakdown, modelPrices[modelName]),
       averageLatencyMs: averageLatencyMs(stat.latency),
       totalLatencyMs: asNumber(stat.latency?.total_ms) || null,
-      latencySampleCount: asNumber(stat.latency?.count)
+      latencySampleCount: asNumber(stat.latency?.count),
     };
   });
 
 export const normalizeAggregateCredentialKey = (credential: UsageAggregateCredentialStat) => ({
   source: normalizeUsageSourceId(credential.source),
-  authIndex: normalizeAuthIndex(credential.auth_index)
+  authIndex: normalizeAuthIndex(credential.auth_index),
 });

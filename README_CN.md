@@ -68,7 +68,7 @@ npm run build
 
 ### 远程管理
 
-当你从非 localhost 的浏览器访问时，服务端通常需要开启远程管理（例如 `allow-remote-management: true`）。  
+当你从非 localhost 的浏览器访问时，服务端通常需要开启远程管理（例如 `allow-remote-management: true`）。
 
 ## 功能一览（按页面对应）
 
@@ -119,7 +119,8 @@ npm run build
 
 - `npm run build` 默认输出拆分后的生产包，生产环境中的路由懒加载与浏览器缓存可以真正生效。
 - `npm run build:singlefile` 仍然输出 **单文件 HTML**（`dist/index.html`），资源全部内联（`vite-plugin-singlefile`）。
-- 打 `vX.Y.Z` 标签会触发 `.github/workflows/release.yml`，发布 `dist/management.html`。
+- 推送到 `main` 会刷新名为 `latest` 的预发布版本；稳定产物地址为 `releases/download/latest/management.html`。
+- 打 `vX.Y.Z` 标签会触发 `.github/workflows/release.yml`，发布正式版本的 `dist/management.html`。
 - 页脚显示的 UI 版本在构建期注入（优先使用环境变量 `VERSION`，否则使用 git tag / `package.json`）。
 
 ## 安全提示

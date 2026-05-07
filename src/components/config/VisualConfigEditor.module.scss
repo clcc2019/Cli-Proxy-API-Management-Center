@@ -739,11 +739,31 @@
   }
 }
 
+.quotaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quotaField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quotaFieldLabel {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 @media (max-width: 900px) {
   .payloadRuleModelRow,
   .payloadRuleModelRowProtocolFirst,
   .payloadRuleParamRow,
-  .payloadFilterModelRow {
+  .payloadFilterModelRow,
+  .quotaGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 

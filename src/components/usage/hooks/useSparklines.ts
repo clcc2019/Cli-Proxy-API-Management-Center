@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { collectUsageDetails, extractTotalTokens } from '@/utils/usage';
+import { USAGE_CHART_COLORS, withUsageColorAlpha } from '@/utils/usage/chartConfig';
 import type { UsagePayload } from './useUsageData';
 
 export interface SparklineData {
@@ -13,7 +14,7 @@ export interface SparklineData {
       tension: number;
       pointRadius: number;
       borderWidth: number;
-    }
+    },
   ];
 }
 
@@ -35,7 +36,11 @@ export interface UseSparklinesReturn {
   costSparkline: SparklineBundle | null;
 }
 
-export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): UseSparklinesReturn {
+export function useSparklines({
+  usage,
+  loading,
+  nowMs,
+}: UseSparklinesOptions): UseSparklinesReturn {
   const lastHourSeries = useMemo(() => {
     if (!usage) return { labels: [], requests: [], tokens: [] };
 
@@ -129,10 +134,10 @@ export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): 
               fill: true,
               tension: 0.45,
               pointRadius: 0,
-              borderWidth: 2
-            }
-          ]
-        }
+              borderWidth: 2,
+            },
+          ],
+        },
       };
     },
     [loading]
@@ -142,8 +147,8 @@ export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): 
     () =>
       buildSparkline(
         { labels: lastHourSeries.labels, data: lastHourSeries.requests },
-        '#8b8680',
-        'rgba(139, 134, 128, 0.18)'
+        USAGE_CHART_COLORS.requests,
+        withUsageColorAlpha(USAGE_CHART_COLORS.requests, 0.18)
       ),
     [buildSparkline, lastHourSeries.labels, lastHourSeries.requests]
   );
@@ -152,8 +157,8 @@ export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): 
     () =>
       buildSparkline(
         { labels: lastHourSeries.labels, data: lastHourSeries.tokens },
-        '#8b5cf6',
-        'rgba(139, 92, 246, 0.18)'
+        USAGE_CHART_COLORS.tokens,
+        withUsageColorAlpha(USAGE_CHART_COLORS.tokens, 0.18)
       ),
     [buildSparkline, lastHourSeries.labels, lastHourSeries.tokens]
   );
@@ -162,8 +167,8 @@ export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): 
     () =>
       buildSparkline(
         { labels: lastHourSeries.labels, data: lastHourSeries.requests },
-        '#22c55e',
-        'rgba(34, 197, 94, 0.18)'
+        USAGE_CHART_COLORS.rpm,
+        withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.18)
       ),
     [buildSparkline, lastHourSeries.labels, lastHourSeries.requests]
   );
@@ -172,8 +177,8 @@ export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): 
     () =>
       buildSparkline(
         { labels: lastHourSeries.labels, data: lastHourSeries.tokens },
-        '#f97316',
-        'rgba(249, 115, 22, 0.18)'
+        USAGE_CHART_COLORS.tpm,
+        withUsageColorAlpha(USAGE_CHART_COLORS.tpm, 0.18)
       ),
     [buildSparkline, lastHourSeries.labels, lastHourSeries.tokens]
   );
@@ -182,8 +187,8 @@ export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): 
     () =>
       buildSparkline(
         { labels: lastHourSeries.labels, data: lastHourSeries.tokens },
-        '#f59e0b',
-        'rgba(245, 158, 11, 0.18)'
+        USAGE_CHART_COLORS.cost,
+        withUsageColorAlpha(USAGE_CHART_COLORS.cost, 0.18)
       ),
     [buildSparkline, lastHourSeries.labels, lastHourSeries.tokens]
   );
@@ -193,6 +198,6 @@ export function useSparklines({ usage, loading, nowMs }: UseSparklinesOptions): 
     tokensSparkline,
     rpmSparkline,
     tpmSparkline,
-    costSparkline
+    costSparkline,
   };
 }

@@ -120,7 +120,8 @@ The UI language is automatically detected from browser settings and can be manua
 
 - `npm run build` now emits a split production bundle so route lazy-loading and browser caching actually work in production.
 - `npm run build:singlefile` still produces a **single HTML** output (`dist/index.html`) with all assets inlined (via `vite-plugin-singlefile`).
-- Tagging `vX.Y.Z` triggers `.github/workflows/release.yml` to publish `dist/management.html`.
+- Pushing to `main` refreshes a prerelease named `latest`; the stable artifact URL is `releases/download/latest/management.html`.
+- Tagging `vX.Y.Z` triggers `.github/workflows/release.yml` to publish an official versioned `dist/management.html`.
 - The UI version shown in the footer is injected at build time (env `VERSION`, git tag, or `package.json` fallback).
 
 ## Security notes

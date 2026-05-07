@@ -12,6 +12,7 @@ import type {
 } from '@/types/visualConfig';
 import { DEFAULT_VISUAL_VALUES, makeClientId } from '@/types/visualConfig';
 import { areStringArraysEqual } from '@/utils/compare';
+import { extractClientApiKeyQuota, serializeClientApiKeyQuota } from '@/utils/clientApiKeyQuota';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -67,12 +68,14 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
   const excludedModels = normalizeApiKeyModelPatterns(
     record['excluded-models'] ?? record.excludedModels ?? record['excluded_models']
   );
+  const quota = extractClientApiKeyQuota(record);
 
   return {
     id: makeClientId(),
     apiKey,
     allowedModels,
     excludedModels,
+    ...(quota ? { quota } : {}),
   };
 }
 
@@ -581,6 +584,12 @@ function areApiKeyEntriesEqual(left: VisualApiKeyEntry[], right: VisualApiKeyEnt
     if (leftEntry.apiKey !== rightEntry.apiKey) return false;
     if (!areStringArraysEqual(leftEntry.allowedModels, rightEntry.allowedModels)) return false;
     if (!areStringArraysEqual(leftEntry.excludedModels, rightEntry.excludedModels)) return false;
+    if (
+      JSON.stringify(serializeClientApiKeyQuota(leftEntry.quota) ?? {}) !==
+      JSON.stringify(serializeClientApiKeyQuota(rightEntry.quota) ?? {})
+    ) {
+      return false;
+    }
   }
   return true;
 }
@@ -699,8 +708,7 @@ function getNextDirtyFields(
   if (Object.prototype.hasOwnProperty.call(patch, 'redisUsageQueueRetentionSeconds')) {
     updateDirty(
       'redisUsageQueueRetentionSeconds',
-      nextValues.redisUsageQueueRetentionSeconds ===
-        baselineValues.redisUsageQueueRetentionSeconds
+      nextValues.redisUsageQueueRetentionSeconds === baselineValues.redisUsageQueueRetentionSeconds
     );
   }
   if (Object.prototype.hasOwnProperty.call(patch, 'proxyUrl')) {
@@ -963,9 +971,9 @@ export function useVisualConfig() {
         routingStrategy: routing?.strategy === 'fill-first' ? 'fill-first' : 'round-robin',
         routingSessionAffinity: Boolean(
           routing?.['session-affinity'] ??
-            routing?.sessionAffinity ??
-            routing?.['session_affinity'] ??
-            false
+          routing?.sessionAffinity ??
+          routing?.['session_affinity'] ??
+          false
         ),
         routingSessionAffinityTTL:
           typeof routing?.['session-affinity-ttl'] === 'string'
