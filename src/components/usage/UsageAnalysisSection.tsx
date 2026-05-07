@@ -1,11 +1,8 @@
-import { memo } from 'react';
+import { Suspense, lazy, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DeferredRender } from '@/components/common/DeferredRender';
 import styles from '@/pages/UsagePage.module.scss';
 import { DeferredUsageCard } from './DeferredUsageCard';
-import { CostTrendChart } from './CostTrendChart';
-import { LatencyTrendChart } from './LatencyTrendChart';
-import { TokenBreakdownChart } from './TokenBreakdownChart';
 import { UsageSectionIntro } from './UsageSectionIntro';
 import type { ModelPrice } from '@/utils/usage';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
@@ -21,6 +18,16 @@ export interface UsageAnalysisSectionProps {
   onToggleCollapse?: () => void;
 }
 
+const LazyLatencyTrendChart = lazy(async () => ({
+  default: (await import('./LatencyTrendChart')).LatencyTrendChart,
+}));
+const LazyCostTrendChart = lazy(async () => ({
+  default: (await import('./CostTrendChart')).CostTrendChart,
+}));
+const LazyTokenBreakdownChart = lazy(async () => ({
+  default: (await import('./TokenBreakdownChart')).TokenBreakdownChart,
+}));
+
 export const UsageAnalysisSection = memo(function UsageAnalysisSection({
   window,
   loading,
@@ -33,6 +40,9 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
 }: UsageAnalysisSectionProps) {
   const { t } = useTranslation();
   const deferredChartCaption = t('usage_stats.render_on_demand');
+  const latencyTrendTitle = t('usage_stats.latency_trend');
+  const costTrendTitle = t('usage_stats.cost_trend');
+  const tokenBreakdownTitle = t('usage_stats.token_breakdown');
 
   return (
     <section className={styles.section}>
@@ -61,58 +71,65 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
             className={styles.deferredBlock}
             minHeight={380}
             placeholder={
-              <DeferredUsageCard
-                title={t('usage_stats.latency_trend')}
-                caption={deferredChartCaption}
-              />
+              <DeferredUsageCard title={latencyTrendTitle} caption={deferredChartCaption} />
             }
           >
-            <LatencyTrendChart
-              window={window}
-              loading={loading}
-              isDark={isDark}
-              isMobile={isMobile}
-              hourWindowHours={hourWindowHours}
-            />
+            <Suspense
+              fallback={
+                <DeferredUsageCard title={latencyTrendTitle} caption={deferredChartCaption} />
+              }
+            >
+              <LazyLatencyTrendChart
+                window={window}
+                loading={loading}
+                isDark={isDark}
+                isMobile={isMobile}
+                hourWindowHours={hourWindowHours}
+              />
+            </Suspense>
           </DeferredRender>
 
           <DeferredRender
             className={styles.deferredBlock}
             minHeight={380}
             placeholder={
-              <DeferredUsageCard
-                title={t('usage_stats.cost_trend')}
-                caption={deferredChartCaption}
-              />
+              <DeferredUsageCard title={costTrendTitle} caption={deferredChartCaption} />
             }
           >
-            <CostTrendChart
-              window={window}
-              loading={loading}
-              isDark={isDark}
-              isMobile={isMobile}
-              modelPrices={modelPrices}
-              hourWindowHours={hourWindowHours}
-            />
+            <Suspense
+              fallback={<DeferredUsageCard title={costTrendTitle} caption={deferredChartCaption} />}
+            >
+              <LazyCostTrendChart
+                window={window}
+                loading={loading}
+                isDark={isDark}
+                isMobile={isMobile}
+                modelPrices={modelPrices}
+                hourWindowHours={hourWindowHours}
+              />
+            </Suspense>
           </DeferredRender>
 
           <DeferredRender
             className={styles.deferredBlock}
             minHeight={380}
             placeholder={
-              <DeferredUsageCard
-                title={t('usage_stats.token_breakdown')}
-                caption={deferredChartCaption}
-              />
+              <DeferredUsageCard title={tokenBreakdownTitle} caption={deferredChartCaption} />
             }
           >
-            <TokenBreakdownChart
-              window={window}
-              loading={loading}
-              isDark={isDark}
-              isMobile={isMobile}
-              hourWindowHours={hourWindowHours}
-            />
+            <Suspense
+              fallback={
+                <DeferredUsageCard title={tokenBreakdownTitle} caption={deferredChartCaption} />
+              }
+            >
+              <LazyTokenBreakdownChart
+                window={window}
+                loading={loading}
+                isDark={isDark}
+                isMobile={isMobile}
+                hourWindowHours={hourWindowHours}
+              />
+            </Suspense>
           </DeferredRender>
         </div>
       )}

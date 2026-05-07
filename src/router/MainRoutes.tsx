@@ -2,6 +2,7 @@ import { Suspense, lazy, type ComponentType } from 'react';
 import { Navigate, useRoutes, type Location } from 'react-router-dom';
 import { PageLoadFallback } from '@/components/common/PageLoadFallback';
 import {
+  loadApiKeysPage,
   loadAiProvidersPage,
   loadAuthFilesPage,
   loadConfigPage,
@@ -30,6 +31,7 @@ function renderLazyPage(Component: ComponentType) {
 }
 
 const LazyDashboardPage = lazyNamed(loadDashboardPage, 'DashboardPage');
+const LazyApiKeysPage = lazyNamed(loadApiKeysPage, 'ApiKeysPage');
 const LazyAiProvidersPage = lazyNamed(loadAiProvidersPage, 'AiProvidersPage');
 const LazyAiProvidersAmpcodeEditPage = lazyNamed(
   () => import('@/pages/AiProvidersAmpcodeEditPage'),
@@ -92,7 +94,7 @@ const mainRoutes = [
   { path: '/', element: renderLazyPage(LazyDashboardPage) },
   { path: '/dashboard', element: renderLazyPage(LazyDashboardPage) },
   { path: '/settings', element: <Navigate to="/config" replace /> },
-  { path: '/api-keys', element: <Navigate to="/config" replace /> },
+  { path: '/api-keys', element: renderLazyPage(LazyApiKeysPage) },
   { path: '/ai-providers/gemini/new', element: renderLazyPage(LazyAiProvidersGeminiEditPage) },
   { path: '/ai-providers/gemini/:index', element: renderLazyPage(LazyAiProvidersGeminiEditPage) },
   { path: '/ai-providers/codex/new', element: renderLazyPage(LazyAiProvidersCodexEditPage) },

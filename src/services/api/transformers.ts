@@ -313,6 +313,8 @@ const normalizeOpenAIProvider = (provider: unknown): OpenAIProviderConfig | null
     apiKeyEntries,
   };
 
+  const disabled = normalizeBoolean(provider.disabled ?? provider['disabled']);
+  if (disabled !== undefined) result.disabled = disabled;
   const prefix = normalizePrefix(provider.prefix ?? provider['prefix']);
   if (prefix) result.prefix = prefix;
   if (headers) result.headers = headers;
@@ -455,6 +457,9 @@ export const normalizeConfigResponse = (raw: unknown): Config => {
       switchProject: normalizeBoolean(quota['switch-project'] ?? quota.switchProject),
       switchPreviewModel: normalizeBoolean(
         quota['switch-preview-model'] ?? quota.switchPreviewModel
+      ),
+      antigravityCredits: normalizeBoolean(
+        quota['antigravity-credits'] ?? quota.antigravityCredits
       ),
     };
   }

@@ -1,6 +1,5 @@
 import { memo, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Line } from 'react-chartjs-2';
 import {
   IconDiamond,
   IconDollarSign,
@@ -22,8 +21,8 @@ import {
   getAggregateRateStats,
   getAggregateTokenBreakdown
 } from '@/utils/usageAggregate';
-import { sparklineOptions } from '@/utils/usage/chartConfig';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
+import { SvgSparkline } from './SvgSparkline';
 import type { SparklineBundle } from './hooks/useSparklines';
 import styles from '@/pages/UsagePage.module.scss';
 
@@ -220,11 +219,7 @@ export const StatCards = memo(function StatCards({
           {card.meta && <div className={styles.statMetaRow}>{card.meta}</div>}
           <div className={styles.statTrend}>
             {card.trend ? (
-              <Line
-                className={styles.sparkline}
-                data={card.trend.data}
-                options={sparklineOptions}
-              />
+              <SvgSparkline className={styles.sparkline} sparkline={card.trend} />
             ) : (
               <div className={styles.statTrendPlaceholder}></div>
             )}

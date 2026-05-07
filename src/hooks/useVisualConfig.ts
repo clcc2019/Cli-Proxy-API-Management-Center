@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useReducer } from 'react';
-import { Scalar, isMap, parse as parseYaml, parseDocument } from 'yaml';
-import type { YAMLMap, YAMLSeq } from 'yaml';
+import { isMap, parse as parseYaml, parseDocument } from 'yaml';
 import type {
   PayloadFilterRule,
   PayloadParamEntry,
@@ -119,49 +118,6 @@ function ensureMapInDoc(doc: YamlDocument, path: YamlPath): void {
   doc.setIn(path, doc.createNode({}));
 }
 
-function createDoubleQuotedStringSeq(doc: YamlDocument, values: string[]) {
-  const sequence = doc.createNode([]) as YAMLSeq<Scalar<string>>;
-  sequence.items = values.map((value) => {
-    const node = new Scalar(value);
-    node.type = Scalar.QUOTE_DOUBLE;
-    return node;
-  });
-  return sequence;
-}
-
-function createDoubleQuotedStringNode(value: string) {
-  const node = new Scalar(value);
-  node.type = Scalar.QUOTE_DOUBLE;
-  return node;
-}
-
-function createClientApiKeysSeq(doc: YamlDocument, entries: VisualApiKeyEntry[]) {
-  const sequence = doc.createNode([]) as YAMLSeq;
-  sequence.items = entries
-    .map((entry) => {
-      const apiKey = entry.apiKey.trim();
-      if (!apiKey) return null;
-
-      const allowedModels = normalizeApiKeyModelPatterns(entry.allowedModels);
-      const excludedModels = normalizeApiKeyModelPatterns(entry.excludedModels);
-      if (allowedModels.length === 0 && excludedModels.length === 0) {
-        return createDoubleQuotedStringNode(apiKey);
-      }
-
-      const mapping = doc.createNode({}) as YAMLMap;
-      mapping.set('api-key', createDoubleQuotedStringNode(apiKey));
-      if (allowedModels.length > 0) {
-        mapping.set('allowed-models', createDoubleQuotedStringSeq(doc, allowedModels));
-      }
-      if (excludedModels.length > 0) {
-        mapping.set('excluded-models', createDoubleQuotedStringSeq(doc, excludedModels));
-      }
-      return mapping;
-    })
-    .filter(Boolean);
-  return sequence;
-}
-
 function deleteIfMapEmpty(doc: YamlDocument, path: YamlPath): void {
   const value = doc.getIn(path, true);
   if (!isMap(value)) return;
@@ -240,6 +196,7 @@ export function getVisualConfigValidationErrors(
     requestRetry: getNonNegativeIntegerError(values.requestRetry),
     maxRetryCredentials: getNonNegativeIntegerError(values.maxRetryCredentials),
     maxRetryInterval: getNonNegativeIntegerError(values.maxRetryInterval),
+    routingSessionAffinityTTL: getNonNegativeIntegerError(values.routingSessionAffinityTTL),
     'streaming.keepaliveSeconds': getNonNegativeIntegerError(values.streaming.keepaliveSeconds),
     'streaming.bootstrapRetries': getNonNegativeIntegerError(values.streaming.bootstrapRetries),
     'streaming.nonstreamKeepaliveInterval': getNonNegativeIntegerError(
@@ -391,18 +348,6 @@ function parseRawPayloadParamValue(raw: unknown): string {
 function parsePayloadProtocol(raw: unknown): string | undefined {
   if (typeof raw !== 'string') return undefined;
   return raw.trim() ? raw : undefined;
-}
-
-function deleteLegacyApiKeysProvider(doc: YamlDocument): void {
-  if (docHas(doc, ['auth', 'providers', 'config-api-key', 'api-key-entries'])) {
-    doc.deleteIn(['auth', 'providers', 'config-api-key', 'api-key-entries']);
-  }
-  if (docHas(doc, ['auth', 'providers', 'config-api-key', 'api-keys'])) {
-    doc.deleteIn(['auth', 'providers', 'config-api-key', 'api-keys']);
-  }
-  deleteIfMapEmpty(doc, ['auth', 'providers', 'config-api-key']);
-  deleteIfMapEmpty(doc, ['auth', 'providers']);
-  deleteIfMapEmpty(doc, ['auth']);
 }
 
 function parsePayloadRules(rules: unknown): PayloadRule[] {
@@ -797,8 +742,26 @@ function getNextDirtyFields(
       nextValues.quotaSwitchPreviewModel === baselineValues.quotaSwitchPreviewModel
     );
   }
+  if (Object.prototype.hasOwnProperty.call(patch, 'quotaAntigravityCredits')) {
+    updateDirty(
+      'quotaAntigravityCredits',
+      nextValues.quotaAntigravityCredits === baselineValues.quotaAntigravityCredits
+    );
+  }
   if (Object.prototype.hasOwnProperty.call(patch, 'routingStrategy')) {
     updateDirty('routingStrategy', nextValues.routingStrategy === baselineValues.routingStrategy);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'routingSessionAffinity')) {
+    updateDirty(
+      'routingSessionAffinity',
+      nextValues.routingSessionAffinity === baselineValues.routingSessionAffinity
+    );
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'routingSessionAffinityTTL')) {
+    updateDirty(
+      'routingSessionAffinityTTL',
+      nextValues.routingSessionAffinityTTL === baselineValues.routingSessionAffinityTTL
+    );
   }
   if (Object.prototype.hasOwnProperty.call(patch, 'payloadDefaultRules')) {
     updateDirty(
@@ -995,8 +958,21 @@ export function useVisualConfig() {
 
         quotaSwitchProject: Boolean(quotaExceeded?.['switch-project'] ?? true),
         quotaSwitchPreviewModel: Boolean(quotaExceeded?.['switch-preview-model'] ?? true),
+        quotaAntigravityCredits: Boolean(quotaExceeded?.['antigravity-credits'] ?? false),
 
         routingStrategy: routing?.strategy === 'fill-first' ? 'fill-first' : 'round-robin',
+        routingSessionAffinity: Boolean(
+          routing?.['session-affinity'] ??
+            routing?.sessionAffinity ??
+            routing?.['session_affinity'] ??
+            false
+        ),
+        routingSessionAffinityTTL:
+          typeof routing?.['session-affinity-ttl'] === 'string'
+            ? routing['session-affinity-ttl']
+            : typeof routing?.sessionAffinityTTL === 'string'
+              ? routing.sessionAffinityTTL
+              : String(routing?.['session-affinity-ttl'] ?? routing?.sessionAffinityTTL ?? ''),
 
         payloadDefaultRules: parsePayloadRules(payload?.default),
         payloadDefaultRawRules: parseRawPayloadRules(payload?.['default-raw']),
@@ -1069,13 +1045,6 @@ export function useVisualConfig() {
         }
 
         setStringInDoc(doc, ['auth-dir'], values.authDir);
-        const apiKeys = values.apiKeys.filter((entry) => entry.apiKey.trim());
-        if (apiKeys.length > 0) {
-          doc.setIn(['api-keys'], createClientApiKeysSeq(doc, apiKeys));
-        } else if (docHas(doc, ['api-keys'])) {
-          doc.deleteIn(['api-keys']);
-        }
-        deleteLegacyApiKeysProvider(doc);
 
         setBooleanInDoc(doc, ['debug'], values.debug);
 
@@ -1127,17 +1096,34 @@ export function useVisualConfig() {
         if (
           docHas(doc, ['quota-exceeded']) ||
           !values.quotaSwitchProject ||
-          !values.quotaSwitchPreviewModel
+          !values.quotaSwitchPreviewModel ||
+          values.quotaAntigravityCredits
         ) {
           ensureMapInDoc(doc, ['quota-exceeded']);
           doc.setIn(['quota-exceeded', 'switch-project'], values.quotaSwitchProject);
           doc.setIn(['quota-exceeded', 'switch-preview-model'], values.quotaSwitchPreviewModel);
+          setBooleanInDoc(
+            doc,
+            ['quota-exceeded', 'antigravity-credits'],
+            values.quotaAntigravityCredits
+          );
           deleteIfMapEmpty(doc, ['quota-exceeded']);
         }
 
-        if (docHas(doc, ['routing']) || values.routingStrategy !== 'round-robin') {
+        if (
+          docHas(doc, ['routing']) ||
+          values.routingStrategy !== 'round-robin' ||
+          values.routingSessionAffinity ||
+          values.routingSessionAffinityTTL.trim()
+        ) {
           ensureMapInDoc(doc, ['routing']);
           doc.setIn(['routing', 'strategy'], values.routingStrategy);
+          setBooleanInDoc(doc, ['routing', 'session-affinity'], values.routingSessionAffinity);
+          setIntFromStringInDoc(
+            doc,
+            ['routing', 'session-affinity-ttl'],
+            values.routingSessionAffinityTTL
+          );
           deleteIfMapEmpty(doc, ['routing']);
         }
 

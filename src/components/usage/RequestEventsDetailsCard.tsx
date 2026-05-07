@@ -8,6 +8,8 @@ import { authFilesApi } from '@/services/api/authFiles';
 import type { GeminiKeyConfig, ProviderKeyConfig, OpenAIProviderConfig } from '@/types';
 import type { AuthFileItem } from '@/types/authFile';
 import type { CredentialInfo } from '@/types/sourceInfo';
+import { maskApiKey } from '@/utils/format';
+import { parseTimestampMs } from '@/utils/timestamp';
 import { buildSourceInfoMap, resolveSourceDisplay } from '@/utils/sourceResolver';
 import {
   calculateCost,
@@ -36,6 +38,8 @@ type RequestEventRow = {
   source: string;
   sourceType: string;
   authIndex: string;
+  apiKey: string;
+  apiKeyMasked: string;
   failed: boolean;
   modelReasoningEffort: string;
   latencyMs: number | null;
@@ -138,7 +142,7 @@ export function RequestEventsDetailsCard({
         const timestampMs =
           typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
             ? detail.__timestampMs
-            : Date.parse(timestamp);
+            : parseTimestampMs(timestamp);
         const date = Number.isNaN(timestampMs) ? null : new Date(timestampMs);
         const sourceRaw = String(detail.source ?? '').trim();
         const authIndexRaw = detail.auth_index as unknown;
@@ -146,6 +150,7 @@ export function RequestEventsDetailsCard({
           authIndexRaw === null || authIndexRaw === undefined || authIndexRaw === ''
             ? '-'
             : String(authIndexRaw);
+        const apiKey = String(detail.api_key ?? '').trim();
         const sourceInfo = resolveSourceDisplay(
           sourceRaw,
           authIndexRaw,
@@ -183,6 +188,8 @@ export function RequestEventsDetailsCard({
           source,
           sourceType,
           authIndex,
+          apiKey,
+          apiKeyMasked: apiKey ? maskApiKey(apiKey) : '-',
           failed: detail.failed === true,
           modelReasoningEffort,
           latencyMs,
@@ -287,6 +294,7 @@ export function RequestEventsDetailsCard({
       'source',
       'source_raw',
       'auth_index',
+      'api_key',
       'result',
       'model_reasoning_effort',
       ...(hasLatencyData ? ['latency_ms'] : []),
@@ -305,6 +313,7 @@ export function RequestEventsDetailsCard({
         row.source,
         row.sourceRaw,
         row.authIndex,
+        row.apiKey,
         row.failed ? 'failed' : 'success',
         row.modelReasoningEffort,
         ...(hasLatencyData ? [row.latencyMs ?? ''] : []),
@@ -336,6 +345,7 @@ export function RequestEventsDetailsCard({
       source: row.source,
       source_raw: row.sourceRaw,
       auth_index: row.authIndex,
+      api_key: row.apiKey,
       failed: row.failed,
       model_reasoning_effort: row.modelReasoningEffort === '-' ? '' : row.modelReasoningEffort,
       ...(hasLatencyData && row.latencyMs !== null ? { latency_ms: row.latencyMs } : {}),
@@ -466,6 +476,7 @@ export function RequestEventsDetailsCard({
                   <th>{t('usage_stats.model_name')}</th>
                   <th>{t('usage_stats.request_events_source')}</th>
                   <th>{t('usage_stats.request_events_auth_index')}</th>
+                  <th>{t('usage_stats.request_events_api_key')}</th>
                   <th>{t('usage_stats.request_events_result')}</th>
                   <th>{t('usage_stats.request_events_reasoning_effort')}</th>
                   {hasLatencyData && <th title={latencyHint}>{t('usage_stats.time')}</th>}
@@ -492,6 +503,9 @@ export function RequestEventsDetailsCard({
                     </td>
                     <td className={styles.requestEventsAuthIndex} title={row.authIndex}>
                       {row.authIndex}
+                    </td>
+                    <td className={styles.requestEventsAuthIndex} title={row.apiKeyMasked}>
+                      {row.apiKeyMasked}
                     </td>
                     <td>
                       <span

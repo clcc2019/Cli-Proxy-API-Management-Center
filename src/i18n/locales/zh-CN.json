@@ -191,6 +191,15 @@
   },
   "api_keys": {
     "title": "API 密钥管理",
+    "page_eyebrow": "客户端访问控制",
+    "page_description": "集中管理调用代理服务时使用的客户端 API 密钥，以及每个密钥可访问或排除的模型规则。",
+    "section_title": "客户端 API 密钥",
+    "section_description": "这些密钥保存到服务端 api-keys 配置，并会被代理入口鉴权使用。",
+    "configured_count": "已配置 {{count}} 个 API 密钥",
+    "restricted_count": "{{count}} 个密钥包含模型访问规则",
+    "reload_confirm_message": "重新加载将丢弃当前未保存的 API 密钥修改，确定继续吗？",
+    "save_success": "API 密钥已保存",
+    "load_failed": "API 密钥加载失败",
     "proxy_auth_title": "代理服务认证密钥",
     "add_button": "添加密钥",
     "empty_title": "暂无API密钥",
@@ -1089,6 +1098,7 @@
     "request_events_timestamp": "时间",
     "request_events_source": "来源",
     "request_events_auth_index": "认证索引",
+    "request_events_api_key": "API 密钥",
     "request_events_result": "结果",
     "request_events_reasoning_effort": "思考强度",
     "time": "延迟",
@@ -1292,7 +1302,7 @@
         },
         "auth": {
           "title": "认证配置",
-          "description": "API 密钥与认证文件目录设置",
+          "description": "认证文件目录设置；客户端 API 密钥请在独立菜单中管理。",
           "auth_dir": "认证文件目录 (auth-dir)",
           "auth_dir_hint": "存放认证文件的目录路径（支持 ~）"
         },
@@ -1345,6 +1355,9 @@
           "routing_strategy_hint": "选择凭据选择策略",
           "strategy_round_robin": "轮询 (Round Robin)",
           "strategy_fill_first": "填充优先 (Fill First)",
+          "session_affinity_ttl": "会话粘性 TTL",
+          "session_affinity": "会话粘性路由",
+          "session_affinity_desc": "尽可能让同一会话的请求固定使用同一凭据",
           "force_model_prefix": "强制模型前缀",
           "force_model_prefix_desc": "未带前缀的模型请求只使用无前缀凭据",
           "ws_auth": "WebSocket 认证",
@@ -1356,7 +1369,9 @@
           "switch_project": "切换项目",
           "switch_project_desc": "配额耗尽时自动切换到其他项目",
           "switch_preview_model": "切换预览模型",
-          "switch_preview_model_desc": "配额耗尽时切换到预览版本模型"
+          "switch_preview_model_desc": "配额耗尽时切换到预览版本模型",
+          "antigravity_credits": "Antigravity Credits 重试",
+          "antigravity_credits_desc": "Antigravity 返回 quota_exhausted 429 时，使用 enabledCreditTypes=[\"GOOGLE_ONE_AI\"] 重试一次"
         },
         "streaming": {
           "title": "流式传输配置",
@@ -1394,7 +1409,7 @@
         "add_title": "添加 API 密钥",
         "input_label": "API 密钥",
         "input_placeholder": "粘贴你的 API 密钥",
-        "input_hint": "此处仅修改本地配置文件内容，不会自动同步到 API 密钥管理接口",
+        "input_hint": "保存后会写入服务端 api-keys 配置；模型规则会随密钥一起保存。",
         "allowed_models_label": "允许模型",
         "allowed_models_placeholder": "每行一个模式，例如 gpt-5*\nclaude-sonnet-*",
         "allowed_models_hint": "留空表示允许所有未被显式排除的模型。",
@@ -1581,6 +1596,7 @@
   "language": {
     "switch": "语言",
     "chinese": "中文",
+    "chinese_tw": "繁體中文",
     "english": "English",
     "russian": "Русский"
   },

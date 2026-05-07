@@ -1,17 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { Suspense, lazy, useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  Decimation,
-  Filler,
-  Legend,
-  LineElement,
-  LinearScale,
-  PointElement,
-  Title,
-  Tooltip,
-} from 'chart.js';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -21,12 +9,12 @@ import {
   UsageAnalysisSection,
   ChartLineSelector,
   CredentialStatsCard,
+  DeferredUsageCard,
   ModelStatsCard,
   PriceSettingsCard,
   StatCards,
   UsagePageHero,
   UsageSectionIntro,
-  UsageChart,
   useUsageAggregateChartData,
   useUsageAggregateData,
   useUsageAggregateSparklines,
@@ -36,20 +24,19 @@ import {
   getAggregateApiStats,
   getAggregateModelNames,
   getAggregateModelStats,
-  getAggregateWindowModelNames
+  getAggregateWindowModelNames,
 } from '@/utils/usageAggregate';
 import styles from './UsagePage.module.scss';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  Decimation
+const LazyUsageChart = lazy(async () => ({
+  default: (await import('@/components/usage/UsageChart')).UsageChart,
+}));
+
+const buildTrendChartFallback = (requestTitle: string, tokenTitle: string, caption: string) => (
+  <>
+    <DeferredUsageCard title={requestTitle} caption={caption} />
+    <DeferredUsageCard title={tokenTitle} caption={caption} />
+  </>
 );
 
 export function UsagePage() {
@@ -75,7 +62,7 @@ export function UsagePage() {
     importInputRef,
     exporting,
     exportingDetailed,
-    importing
+    importing,
   } = useUsageAggregateData();
 
   const {
@@ -123,7 +110,7 @@ export function UsagePage() {
     isDark,
     isMobile,
     preferredPeriod: preferredChartPeriod,
-    allModelsLabel: t('usage_stats.chart_line_all')
+    allModelsLabel: t('usage_stats.chart_line_all'),
   });
 
   const apiStats = useMemo(
@@ -137,6 +124,9 @@ export function UsagePage() {
 
   const hasPrices = Object.keys(modelPrices).length > 0;
   const showComparePanel = visibleModelNames.length > 1;
+  const trendRequestsTitle = t('usage_stats.requests_trend');
+  const trendTokensTitle = t('usage_stats.tokens_trend');
+  const deferredChartCaption = t('usage_stats.render_on_demand');
 
   return (
     <div className={styles.container}>
@@ -225,28 +215,36 @@ export function UsagePage() {
                 .filter(Boolean)
                 .join(' ')}
             >
-              <UsageChart
-                title={t('usage_stats.requests_trend')}
-                period={requestsPeriod}
-                onPeriodChange={setRequestsPeriod}
-                chartData={requestsChartData}
-                chartOptions={requestsChartOptions}
-                loading={loading}
-                isMobile={isMobile}
-                emptyText={t('usage_stats.no_data')}
-                tone="neutral"
-              />
-              <UsageChart
-                title={t('usage_stats.tokens_trend')}
-                period={tokensPeriod}
-                onPeriodChange={setTokensPeriod}
-                chartData={tokensChartData}
-                chartOptions={tokensChartOptions}
-                loading={loading}
-                isMobile={isMobile}
-                emptyText={t('usage_stats.no_data')}
-                tone="violet"
-              />
+              <Suspense
+                fallback={buildTrendChartFallback(
+                  trendRequestsTitle,
+                  trendTokensTitle,
+                  deferredChartCaption
+                )}
+              >
+                <LazyUsageChart
+                  title={trendRequestsTitle}
+                  period={requestsPeriod}
+                  onPeriodChange={setRequestsPeriod}
+                  chartData={requestsChartData}
+                  chartOptions={requestsChartOptions}
+                  loading={loading}
+                  isMobile={isMobile}
+                  emptyText={t('usage_stats.no_data')}
+                  tone="neutral"
+                />
+                <LazyUsageChart
+                  title={trendTokensTitle}
+                  period={tokensPeriod}
+                  onPeriodChange={setTokensPeriod}
+                  chartData={tokensChartData}
+                  chartOptions={tokensChartOptions}
+                  loading={loading}
+                  isMobile={isMobile}
+                  emptyText={t('usage_stats.no_data')}
+                  tone="violet"
+                />
+              </Suspense>
             </div>
           </div>
         )}

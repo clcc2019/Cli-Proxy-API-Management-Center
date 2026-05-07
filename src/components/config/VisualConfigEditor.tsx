@@ -23,11 +23,7 @@ import type {
   VisualConfigValidationErrors,
   VisualConfigValues,
 } from '@/types/visualConfig';
-import {
-  ApiKeysCardEditor,
-  PayloadFilterRulesEditor,
-  PayloadRulesEditor,
-} from './VisualConfigEditorBlocks';
+import { PayloadFilterRulesEditor, PayloadRulesEditor } from './VisualConfigEditorBlocks';
 import styles from './VisualConfigEditor.module.scss';
 
 interface VisualConfigEditorProps {
@@ -173,6 +169,10 @@ export function VisualConfigEditor({
   const requestRetryError = getValidationMessage(t, validationErrors?.requestRetry);
   const maxRetryCredentialsError = getValidationMessage(t, validationErrors?.maxRetryCredentials);
   const maxRetryIntervalError = getValidationMessage(t, validationErrors?.maxRetryInterval);
+  const routingSessionAffinityTtlError = getValidationMessage(
+    t,
+    validationErrors?.routingSessionAffinityTTL
+  );
   const keepaliveError = getValidationMessage(t, validationErrors?.['streaming.keepaliveSeconds']);
   const bootstrapRetriesError = getValidationMessage(
     t,
@@ -183,10 +183,6 @@ export function VisualConfigEditor({
     validationErrors?.['streaming.nonstreamKeepaliveInterval']
   );
 
-  const handleApiKeysChange = useCallback(
-    (apiKeys: VisualConfigValues['apiKeys']) => onChange({ apiKeys }),
-    [onChange]
-  );
   const handlePayloadDefaultRulesChange = useCallback(
     (payloadDefaultRules: PayloadRule[]) => onChange({ payloadDefaultRules }),
     [onChange]
@@ -337,13 +333,6 @@ export function VisualConfigEditor({
                 disabled={disabled}
                 hint={t('config_management.visual.sections.auth.auth_dir_hint')}
               />
-              <div className={styles.subsection}>
-                <ApiKeysCardEditor
-                  value={values.apiKeys}
-                  disabled={disabled}
-                  onChange={handleApiKeysChange}
-                />
-              </div>
             </SectionStack>
           </ConfigSection>
 
@@ -556,6 +545,15 @@ export function VisualConfigEditor({
                   disabled={disabled}
                   error={maxRetryIntervalError}
                 />
+                <Input
+                  label={t('config_management.visual.sections.network.session_affinity_ttl')}
+                  type="number"
+                  placeholder="3600"
+                  value={values.routingSessionAffinityTTL}
+                  onChange={(e) => onChange({ routingSessionAffinityTTL: e.target.value })}
+                  disabled={disabled}
+                  error={routingSessionAffinityTtlError}
+                />
                 <FieldShell
                   label={t('config_management.visual.sections.network.routing_strategy')}
                   labelId={routingStrategyLabelId}
@@ -598,6 +596,13 @@ export function VisualConfigEditor({
                   onChange={(forceModelPrefix) => onChange({ forceModelPrefix })}
                 />
                 <ToggleRow
+                  title={t('config_management.visual.sections.network.session_affinity')}
+                  description={t('config_management.visual.sections.network.session_affinity_desc')}
+                  checked={values.routingSessionAffinity}
+                  disabled={disabled}
+                  onChange={(routingSessionAffinity) => onChange({ routingSessionAffinity })}
+                />
+                <ToggleRow
                   title={t('config_management.visual.sections.network.ws_auth')}
                   description={t('config_management.visual.sections.network.ws_auth_desc')}
                   checked={values.wsAuth}
@@ -629,6 +634,13 @@ export function VisualConfigEditor({
                 checked={values.quotaSwitchPreviewModel}
                 disabled={disabled}
                 onChange={(quotaSwitchPreviewModel) => onChange({ quotaSwitchPreviewModel })}
+              />
+              <ToggleRow
+                title={t('config_management.visual.sections.quota.antigravity_credits')}
+                description={t('config_management.visual.sections.quota.antigravity_credits_desc')}
+                checked={values.quotaAntigravityCredits}
+                disabled={disabled}
+                onChange={(quotaAntigravityCredits) => onChange({ quotaAntigravityCredits })}
               />
             </SectionGrid>
           </ConfigSection>

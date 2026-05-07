@@ -415,14 +415,15 @@
 }
 
 .trendSidebar {
-  grid-column: span 4;
+  grid-column: span 3;
   min-width: 0;
 }
 
 .trendCharts {
-  grid-column: span 8;
+  grid-column: span 9;
   display: grid;
   gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
 
   > * {
     min-width: 0;
@@ -1473,6 +1474,11 @@
   .analysisGrid > *:nth-child(-n + 2),
   .analysisGrid > *:nth-child(3) {
     grid-column: 1 / -1;
+  }
+
+  .trendCharts,
+  .trendChartsFull {
+    grid-template-columns: 1fr;
   }
 }
 

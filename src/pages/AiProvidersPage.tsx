@@ -38,6 +38,17 @@ const sortByPriorityDesc = <T extends { priority?: number | null }>(items: T[]) 
     })
     .map(({ item }) => item);
 
+const findOpenAIProviderIndex = (
+  items: OpenAIProviderConfig[],
+  target: OpenAIProviderConfig
+) => {
+  const exactIndex = items.findIndex(
+    (item) => item.name === target.name && item.baseUrl === target.baseUrl
+  );
+  if (exactIndex >= 0) return exactIndex;
+  return items.findIndex((item) => item.name === target.name);
+};
+
 const sortToggleableProviderConfigs = <T extends { priority?: number | null; excludedModels?: string[] }>(
   items: T[]
 ) =>
@@ -105,7 +116,7 @@ export function AiProvidersPage() {
     codexConfigs.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length +
     claudeConfigs.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length +
     vertexConfigs.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length +
-    openaiProviders.length;
+    openaiProviders.filter((item) => item.disabled !== true).length;
 
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
@@ -328,6 +339,47 @@ export function AiProvidersPage() {
     }
   };
 
+  const setOpenAIProviderEnabled = async (index: number, enabled: boolean) => {
+    const current = openaiProviders[index];
+    if (!current) return;
+
+    const switchingKey = `openai:${current.name}:${index}`;
+    setConfigSwitchingKey(switchingKey);
+
+    const previousList = openaiProviders;
+    const previousConfigList = config?.openaiCompatibility || previousList;
+    const configIndex = findOpenAIProviderIndex(previousConfigList, current);
+    const patchIndex = configIndex >= 0 ? configIndex : index;
+    const nextItem: OpenAIProviderConfig = { ...current, disabled: !enabled };
+    const nextList = previousList.map((item, idx) => (idx === index ? nextItem : item));
+    const nextConfigList =
+      configIndex >= 0
+        ? previousConfigList.map((item, idx) =>
+            idx === configIndex ? { ...item, disabled: !enabled } : item
+          )
+        : nextList;
+
+    setOpenaiProviders(nextList);
+    updateConfigValue('openai-compatibility', nextConfigList);
+    clearCache('openai-compatibility');
+
+    try {
+      await providersApi.updateOpenAIProviderDisabled(patchIndex, !enabled);
+      showNotification(
+        enabled ? t('notification.config_enabled') : t('notification.config_disabled'),
+        'success'
+      );
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
+      setOpenaiProviders(previousList);
+      updateConfigValue('openai-compatibility', previousConfigList);
+      clearCache('openai-compatibility');
+      showNotification(`${t('notification.update_failed')}: ${message}`, 'error');
+    } finally {
+      setConfigSwitchingKey(null);
+    }
+  };
+
   const deleteProviderEntry = async (type: 'codex' | 'claude', index: number) => {
     const source = type === 'codex' ? codexConfigs : claudeConfigs;
     const entry = source[index];
@@ -506,6 +558,7 @@ export function AiProvidersPage() {
             onAdd={() => openEditor('/ai-providers/openai/new')}
             onEdit={(index) => openEditor(`/ai-providers/openai/${index}`)}
             onDelete={deleteOpenai}
+            onToggle={(index, enabled) => void setOpenAIProviderEnabled(index, enabled)}
           />
         </div>
       </div>

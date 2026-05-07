@@ -191,6 +191,15 @@
   },
   "api_keys": {
     "title": "Управление API-ключами",
+    "page_eyebrow": "Контроль доступа клиентов",
+    "page_description": "Управляйте клиентскими API-ключами для доступа к прокси-сервису и правилами разрешения/запрета моделей для каждого ключа.",
+    "section_title": "Клиентские API-ключи",
+    "section_description": "Эти ключи сохраняются в серверной конфигурации api-keys и используются для аутентификации входящих запросов прокси.",
+    "configured_count": "Настроено API-ключей: {{count}}",
+    "restricted_count": "Ключей с правилами доступа к моделям: {{count}}",
+    "reload_confirm_message": "Перезагрузка отбросит несохранённые изменения API-ключей. Продолжить?",
+    "save_success": "API-ключи сохранены",
+    "load_failed": "Не удалось загрузить API-ключи",
     "proxy_auth_title": "Ключи аутентификации прокси-сервиса",
     "add_button": "Добавить ключ",
     "empty_title": "API-ключи отсутствуют",
@@ -1080,6 +1089,7 @@
     "request_events_timestamp": "Время",
     "request_events_source": "Источник",
     "request_events_auth_index": "Auth Index",
+    "request_events_api_key": "API-ключ",
     "request_events_result": "Результат",
     "request_events_reasoning_effort": "Уровень рассуждений",
     "time": "Задержка",
@@ -1283,7 +1293,7 @@
         },
         "auth": {
           "title": "Настройки аутентификации",
-          "description": "API-ключи и каталог аутентификации",
+          "description": "Настройки каталога аутентификации. Клиентские API-ключи управляются в отдельном меню.",
           "auth_dir": "Каталог auth-dir",
           "auth_dir_hint": "Путь к каталогу с файлами аутентификации (поддерживает ~)"
         },
@@ -1338,6 +1348,9 @@
           "routing_strategy_hint": "Выберите стратегию подбора учётных данных",
           "strategy_round_robin": "По кругу",
           "strategy_fill_first": "Сначала заполнить",
+          "session_affinity_ttl": "TTL привязки сессии",
+          "session_affinity": "Маршрутизация с привязкой сессии",
+          "session_affinity_desc": "По возможности закреплять запросы одной сессии за одними и теми же учётными данными",
           "force_model_prefix": "Принудительный префикс модели",
           "force_model_prefix_desc": "Запросы к моделям без префикса используют только учётные данные без префикса",
           "ws_auth": "Аутентификация WebSocket",
@@ -1349,7 +1362,9 @@
           "switch_project": "Переключить проект",
           "switch_project_desc": "Автоматически переходить на другой проект при превышении квоты",
           "switch_preview_model": "Переключить на preview-модель",
-          "switch_preview_model_desc": "Переключаться на preview-версию модели при превышении квоты"
+          "switch_preview_model_desc": "Переключаться на preview-версию модели при превышении квоты",
+          "antigravity_credits": "Повтор Antigravity Credits",
+          "antigravity_credits_desc": "Повторить один раз с enabledCreditTypes=[\"GOOGLE_ONE_AI\"], когда Antigravity вернёт quota_exhausted 429"
         },
         "streaming": {
           "title": "Настройки стриминга",
@@ -1387,7 +1402,7 @@
         "add_title": "Добавление API-ключа",
         "input_label": "API-ключ",
         "input_placeholder": "Вставьте API-ключ",
-        "input_hint": "Меняет только содержимое локального файла конфигурации, не синхронизируется с интерфейсом управления API-ключами",
+        "input_hint": "При сохранении данные записываются в серверную конфигурацию api-keys. Правила моделей сохраняются вместе с ключом.",
         "allowed_models_label": "Разрешённые модели",
         "allowed_models_placeholder": "По одному шаблону на строку, например gpt-5*\nclaude-sonnet-*",
         "allowed_models_hint": "Оставьте пустым, чтобы разрешить все модели, которые не исключены явно.",
@@ -1574,6 +1589,7 @@
   "language": {
     "switch": "Язык",
     "chinese": "中文",
+    "chinese_tw": "繁體中文",
     "english": "English",
     "russian": "Русский"
   },

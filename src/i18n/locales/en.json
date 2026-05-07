@@ -191,6 +191,15 @@
   },
   "api_keys": {
     "title": "API Keys Management",
+    "page_eyebrow": "Client access control",
+    "page_description": "Manage the client API keys used to call the proxy service and the model allow/deny rules attached to each key.",
+    "section_title": "Client API Keys",
+    "section_description": "These keys are saved to the server api-keys configuration and are used by proxy entrypoint authentication.",
+    "configured_count": "{{count}} API keys configured",
+    "restricted_count": "{{count}} keys include model access rules",
+    "reload_confirm_message": "Reloading will discard unsaved API key changes. Continue?",
+    "save_success": "API keys saved",
+    "load_failed": "Failed to load API keys",
     "proxy_auth_title": "Proxy Service Authentication Keys",
     "add_button": "Add Key",
     "empty_title": "No API Keys",
@@ -1089,6 +1098,7 @@
     "request_events_timestamp": "Timestamp",
     "request_events_source": "Source",
     "request_events_auth_index": "Auth Index",
+    "request_events_api_key": "API Key",
     "request_events_result": "Result",
     "request_events_reasoning_effort": "Reasoning Effort",
     "time": "Latency",
@@ -1292,7 +1302,7 @@
         },
         "auth": {
           "title": "Authentication Configuration",
-          "description": "API keys and authentication directory settings",
+          "description": "Authentication directory settings. Manage client API keys from the dedicated menu.",
           "auth_dir": "Auth Directory (auth-dir)",
           "auth_dir_hint": "Directory path for authentication files (supports ~)"
         },
@@ -1345,6 +1355,9 @@
           "routing_strategy_hint": "Select credential selection strategy",
           "strategy_round_robin": "Round Robin",
           "strategy_fill_first": "Fill First",
+          "session_affinity_ttl": "Session Affinity TTL",
+          "session_affinity": "Session Affinity Routing",
+          "session_affinity_desc": "Keep requests from the same session on the same credential when possible",
           "force_model_prefix": "Force Model Prefix",
           "force_model_prefix_desc": "Unprefixed model requests only use credentials without prefix",
           "ws_auth": "WebSocket Authentication",
@@ -1356,7 +1369,9 @@
           "switch_project": "Switch Project",
           "switch_project_desc": "Automatically switch to another project when quota is exceeded",
           "switch_preview_model": "Switch to Preview Model",
-          "switch_preview_model_desc": "Switch to preview model version when quota is exceeded"
+          "switch_preview_model_desc": "Switch to preview model version when quota is exceeded",
+          "antigravity_credits": "Antigravity Credits Retry",
+          "antigravity_credits_desc": "Retry once with enabledCreditTypes=[\"GOOGLE_ONE_AI\"] when Antigravity returns quota_exhausted 429"
         },
         "streaming": {
           "title": "Streaming Configuration",
@@ -1394,7 +1409,7 @@
         "add_title": "Add API Key",
         "input_label": "API Key",
         "input_placeholder": "Paste your API key",
-        "input_hint": "This only modifies the local config file content, it will not sync to the API Key Management interface",
+        "input_hint": "Saving writes to the server api-keys configuration. Model rules are saved with the key.",
         "allowed_models_label": "Allowed Models",
         "allowed_models_placeholder": "One pattern per line, e.g. gpt-5*\nclaude-sonnet-*",
         "allowed_models_hint": "Leave empty to allow all models that are not explicitly excluded.",
@@ -1581,6 +1596,7 @@
   "language": {
     "switch": "Language",
     "chinese": "中文",
+    "chinese_tw": "繁體中文",
     "english": "English",
     "russian": "Русский"
   },

@@ -1,12 +1,36 @@
 import { memo, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ChartOptions } from 'chart.js';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  Decimation,
+  Filler,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+  type ChartOptions,
+} from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { ChartData } from '@/utils/usage';
 import { getHourChartMinWidth } from '@/utils/usage/chartConfig';
 import styles from './UsageCharts.module.scss';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  Decimation
+);
 
 export type UsageChartTone = 'neutral' | 'success' | 'warning' | 'danger' | 'violet';
 
