@@ -547,11 +547,12 @@ export function VisualConfigEditor({
                 />
                 <Input
                   label={t('config_management.visual.sections.network.session_affinity_ttl')}
-                  type="number"
-                  placeholder="3600"
+                  type="text"
+                  placeholder="1h"
                   value={values.routingSessionAffinityTTL}
                   onChange={(e) => onChange({ routingSessionAffinityTTL: e.target.value })}
                   disabled={disabled}
+                  hint={t('config_management.visual.sections.network.session_affinity_ttl_hint')}
                   error={routingSessionAffinityTtlError}
                 />
                 <FieldShell

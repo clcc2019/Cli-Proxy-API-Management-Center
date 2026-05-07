@@ -1143,6 +1143,7 @@
           "strategy_round_robin": "輪詢（Round Robin）",
           "strategy_fill_first": "填充優先（Fill First）",
           "session_affinity_ttl": "會話黏性 TTL",
+          "session_affinity_ttl_hint": "使用 Go duration 格式，如 30m、1h 或 2h30m。",
           "force_model_prefix": "強制模型前綴",
           "force_model_prefix_desc": "未帶前綴的模型請求只使用無前綴憑證",
           "session_affinity": "會話黏性路由",
@@ -1253,6 +1254,7 @@
         "validation_blocked": "請先修復表單驗證錯誤再儲存",
         "port_range": "請輸入 1 到 65535 之間的有效連接埠",
         "non_negative_integer": "請輸入非負整數",
+        "duration_string": "請輸入類似 30m、1h 或 2h30m 的時長",
         "payload_invalid_number": "請輸入有效數字",
         "payload_invalid_boolean": "請選擇 true 或 false",
         "payload_invalid_json": "請輸入有效的 JSON"

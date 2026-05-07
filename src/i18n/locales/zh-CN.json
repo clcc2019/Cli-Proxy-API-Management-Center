@@ -1356,6 +1356,7 @@
           "strategy_round_robin": "轮询 (Round Robin)",
           "strategy_fill_first": "填充优先 (Fill First)",
           "session_affinity_ttl": "会话粘性 TTL",
+          "session_affinity_ttl_hint": "使用 Go duration 格式，如 30m、1h 或 2h30m。",
           "session_affinity": "会话粘性路由",
           "session_affinity_desc": "尽可能让同一会话的请求固定使用同一凭据",
           "force_model_prefix": "强制模型前缀",
@@ -1467,6 +1468,7 @@
         "validation_blocked": "请先修复表单校验错误再保存",
         "port_range": "请输入 1 到 65535 之间的有效端口",
         "non_negative_integer": "请输入非负整数",
+        "duration_string": "请输入类似 30m、1h 或 2h30m 的时长",
         "payload_invalid_number": "请输入有效数字",
         "payload_invalid_boolean": "请选择 true 或 false",
         "payload_invalid_json": "请输入有效的 JSON"

@@ -1349,6 +1349,7 @@
           "strategy_round_robin": "По кругу",
           "strategy_fill_first": "Сначала заполнить",
           "session_affinity_ttl": "TTL привязки сессии",
+          "session_affinity_ttl_hint": "Используйте Go duration, например 30m, 1h или 2h30m.",
           "session_affinity": "Маршрутизация с привязкой сессии",
           "session_affinity_desc": "По возможности закреплять запросы одной сессии за одними и теми же учётными данными",
           "force_model_prefix": "Принудительный префикс модели",
@@ -1460,6 +1461,7 @@
         "validation_blocked": "Исправьте ошибки валидации перед сохранением",
         "port_range": "Введите корректный порт от 1 до 65535",
         "non_negative_integer": "Введите неотрицательное целое число",
+        "duration_string": "Введите длительность вроде 30m, 1h или 2h30m",
         "payload_invalid_number": "Введите корректное число",
         "payload_invalid_boolean": "Выберите true или false",
         "payload_invalid_json": "Введите корректный JSON"

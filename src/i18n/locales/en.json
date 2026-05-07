@@ -1356,6 +1356,7 @@
           "strategy_round_robin": "Round Robin",
           "strategy_fill_first": "Fill First",
           "session_affinity_ttl": "Session Affinity TTL",
+          "session_affinity_ttl_hint": "Use a Go duration such as 30m, 1h, or 2h30m.",
           "session_affinity": "Session Affinity Routing",
           "session_affinity_desc": "Keep requests from the same session on the same credential when possible",
           "force_model_prefix": "Force Model Prefix",
@@ -1467,6 +1468,7 @@
         "validation_blocked": "Fix validation errors before saving",
         "port_range": "Enter a valid port between 1 and 65535",
         "non_negative_integer": "Enter a non-negative whole number",
+        "duration_string": "Enter a duration like 30m, 1h, or 2h30m",
         "payload_invalid_number": "Enter a valid number",
         "payload_invalid_boolean": "Choose true or false",
         "payload_invalid_json": "Enter valid JSON"

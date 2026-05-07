@@ -107,6 +107,17 @@ function resolveApiKeys(parsed: Record<string, unknown>): VisualApiKeyEntry[] {
   return parseApiKeys(configApiKeyProvider['api-keys']);
 }
 
+function resolveRoutingSessionAffinityTTL(routing: Record<string, unknown> | null): string {
+  const raw =
+    routing?.['session-affinity-ttl'] ??
+    routing?.sessionAffinityTTL ??
+    routing?.['session_affinity_ttl'];
+
+  if (typeof raw === 'string') return raw;
+  if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) return `${raw}s`;
+  return '';
+}
+
 type YamlDocument = ReturnType<typeof parseDocument>;
 type YamlPath = string[];
 
@@ -175,6 +186,18 @@ function getNonNegativeIntegerError(value: string): 'non_negative_integer' | und
   return Number(trimmed) >= 0 ? undefined : 'non_negative_integer';
 }
 
+function getPositiveDurationError(value: string): 'duration_string' | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (!/^(?:\d+(?:\.\d+)?(?:ns|us|ms|s|m|h))+$/.test(trimmed)) return 'duration_string';
+
+  const hasPositiveSegment = Array.from(
+    trimmed.matchAll(/(\d+(?:\.\d+)?)(?:ns|us|ms|s|m|h)/g)
+  ).some((match) => Number(match[1]) > 0);
+
+  return hasPositiveSegment ? undefined : 'duration_string';
+}
+
 function getPortError(value: string): 'port_range' | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
@@ -199,7 +222,7 @@ export function getVisualConfigValidationErrors(
     requestRetry: getNonNegativeIntegerError(values.requestRetry),
     maxRetryCredentials: getNonNegativeIntegerError(values.maxRetryCredentials),
     maxRetryInterval: getNonNegativeIntegerError(values.maxRetryInterval),
-    routingSessionAffinityTTL: getNonNegativeIntegerError(values.routingSessionAffinityTTL),
+    routingSessionAffinityTTL: getPositiveDurationError(values.routingSessionAffinityTTL),
     'streaming.keepaliveSeconds': getNonNegativeIntegerError(values.streaming.keepaliveSeconds),
     'streaming.bootstrapRetries': getNonNegativeIntegerError(values.streaming.bootstrapRetries),
     'streaming.nonstreamKeepaliveInterval': getNonNegativeIntegerError(
@@ -973,14 +996,11 @@ export function useVisualConfig() {
           routing?.['session-affinity'] ??
           routing?.sessionAffinity ??
           routing?.['session_affinity'] ??
+          routing?.['claude-code-session-affinity'] ??
+          routing?.claudeCodeSessionAffinity ??
           false
         ),
-        routingSessionAffinityTTL:
-          typeof routing?.['session-affinity-ttl'] === 'string'
-            ? routing['session-affinity-ttl']
-            : typeof routing?.sessionAffinityTTL === 'string'
-              ? routing.sessionAffinityTTL
-              : String(routing?.['session-affinity-ttl'] ?? routing?.sessionAffinityTTL ?? ''),
+        routingSessionAffinityTTL: resolveRoutingSessionAffinityTTL(routing),
 
         payloadDefaultRules: parsePayloadRules(payload?.default),
         payloadDefaultRawRules: parseRawPayloadRules(payload?.['default-raw']),
@@ -1127,7 +1147,10 @@ export function useVisualConfig() {
           ensureMapInDoc(doc, ['routing']);
           doc.setIn(['routing', 'strategy'], values.routingStrategy);
           setBooleanInDoc(doc, ['routing', 'session-affinity'], values.routingSessionAffinity);
-          setIntFromStringInDoc(
+          if (docHas(doc, ['routing', 'claude-code-session-affinity'])) {
+            doc.deleteIn(['routing', 'claude-code-session-affinity']);
+          }
+          setStringInDoc(
             doc,
             ['routing', 'session-affinity-ttl'],
             values.routingSessionAffinityTTL
