@@ -26,7 +26,7 @@ import { downloadBlob } from '@/utils/download';
 import styles from '@/pages/UsagePage.module.scss';
 
 const ALL_FILTER = '__all__';
-const MAX_RENDERED_EVENTS = 500;
+const REQUEST_EVENTS_RETAIN_LIMIT = 100;
 
 type RequestEventRow = {
   id: string;
@@ -134,74 +134,83 @@ export function RequestEventsDetailsCard({
   );
 
   const rows = useMemo<RequestEventRow[]>(() => {
-    const details = collectUsageDetails(usage);
-
-    return details
-      .map((detail, index) => {
-        const timestamp = detail.timestamp;
-        const timestampMs =
-          typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
-            ? detail.__timestampMs
-            : parseTimestampMs(timestamp);
-        const date = Number.isNaN(timestampMs) ? null : new Date(timestampMs);
-        const sourceRaw = String(detail.source ?? '').trim();
-        const authIndexRaw = detail.auth_index as unknown;
-        const authIndex =
-          authIndexRaw === null || authIndexRaw === undefined || authIndexRaw === ''
-            ? '-'
-            : String(authIndexRaw);
-        const apiKey = String(detail.api_key ?? '').trim();
-        const sourceInfo = resolveSourceDisplay(
-          sourceRaw,
-          authIndexRaw,
-          sourceInfoMap,
-          authFileMap
+    const details = collectUsageDetails(usage)
+      .slice()
+      .sort((a, b) => {
+        const leftTimestampMs =
+          typeof a.__timestampMs === 'number' && a.__timestampMs > 0
+            ? a.__timestampMs
+            : parseTimestampMs(a.timestamp);
+        const rightTimestampMs =
+          typeof b.__timestampMs === 'number' && b.__timestampMs > 0
+            ? b.__timestampMs
+            : parseTimestampMs(b.timestamp);
+        return (
+          (Number.isNaN(rightTimestampMs) ? 0 : rightTimestampMs) -
+          (Number.isNaN(leftTimestampMs) ? 0 : leftTimestampMs)
         );
-        const source = sourceInfo.displayName;
-        const sourceType = sourceInfo.type;
-        const model = String(detail.__modelName ?? '').trim() || '-';
-        const modelReasoningEffort =
-          typeof detail.model_reasoning_effort === 'string' && detail.model_reasoning_effort.trim()
-            ? detail.model_reasoning_effort.trim()
-            : '-';
-        const inputTokens = Math.max(toNumber(detail.tokens?.input_tokens), 0);
-        const outputTokens = Math.max(toNumber(detail.tokens?.output_tokens), 0);
-        const reasoningTokens = Math.max(toNumber(detail.tokens?.reasoning_tokens), 0);
-        const cachedTokens = Math.max(
-          Math.max(toNumber(detail.tokens?.cached_tokens), 0),
-          Math.max(toNumber(detail.tokens?.cache_tokens), 0)
-        );
-        const totalTokens = Math.max(
-          toNumber(detail.tokens?.total_tokens),
-          extractTotalTokens(detail)
-        );
-        const latencyMs = extractLatencyMs(detail);
-        const totalCost = calculateCost(detail, modelPrices);
-
-        return {
-          id: `${timestamp}-${model}-${sourceRaw || source}-${authIndex}-${index}`,
-          timestamp,
-          timestampMs: Number.isNaN(timestampMs) ? 0 : timestampMs,
-          timestampLabel: date ? date.toLocaleString(i18n.language) : timestamp || '-',
-          model,
-          sourceRaw: sourceRaw || '-',
-          source,
-          sourceType,
-          authIndex,
-          apiKey,
-          apiKeyMasked: apiKey ? maskApiKey(apiKey) : '-',
-          failed: detail.failed === true,
-          modelReasoningEffort,
-          latencyMs,
-          inputTokens,
-          outputTokens,
-          reasoningTokens,
-          cachedTokens,
-          totalTokens,
-          totalCost,
-        };
       })
-      .sort((a, b) => b.timestampMs - a.timestampMs);
+      .slice(0, REQUEST_EVENTS_RETAIN_LIMIT);
+
+    return details.map((detail, index) => {
+      const timestamp = detail.timestamp;
+      const timestampMs =
+        typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
+          ? detail.__timestampMs
+          : parseTimestampMs(timestamp);
+      const date = Number.isNaN(timestampMs) ? null : new Date(timestampMs);
+      const sourceRaw = String(detail.source ?? '').trim();
+      const authIndexRaw = detail.auth_index as unknown;
+      const authIndex =
+        authIndexRaw === null || authIndexRaw === undefined || authIndexRaw === ''
+          ? '-'
+          : String(authIndexRaw);
+      const apiKey = String(detail.api_key ?? '').trim();
+      const sourceInfo = resolveSourceDisplay(sourceRaw, authIndexRaw, sourceInfoMap, authFileMap);
+      const source = sourceInfo.displayName;
+      const sourceType = sourceInfo.type;
+      const model = String(detail.__modelName ?? '').trim() || '-';
+      const modelReasoningEffort =
+        typeof detail.model_reasoning_effort === 'string' && detail.model_reasoning_effort.trim()
+          ? detail.model_reasoning_effort.trim()
+          : '-';
+      const inputTokens = Math.max(toNumber(detail.tokens?.input_tokens), 0);
+      const outputTokens = Math.max(toNumber(detail.tokens?.output_tokens), 0);
+      const reasoningTokens = Math.max(toNumber(detail.tokens?.reasoning_tokens), 0);
+      const cachedTokens = Math.max(
+        Math.max(toNumber(detail.tokens?.cached_tokens), 0),
+        Math.max(toNumber(detail.tokens?.cache_tokens), 0)
+      );
+      const totalTokens = Math.max(
+        toNumber(detail.tokens?.total_tokens),
+        extractTotalTokens(detail)
+      );
+      const latencyMs = extractLatencyMs(detail);
+      const totalCost = calculateCost(detail, modelPrices);
+
+      return {
+        id: `${timestamp}-${model}-${sourceRaw || source}-${authIndex}-${index}`,
+        timestamp,
+        timestampMs: Number.isNaN(timestampMs) ? 0 : timestampMs,
+        timestampLabel: date ? date.toLocaleString(i18n.language) : timestamp || '-',
+        model,
+        sourceRaw: sourceRaw || '-',
+        source,
+        sourceType,
+        authIndex,
+        apiKey,
+        apiKeyMasked: apiKey ? maskApiKey(apiKey) : '-',
+        failed: detail.failed === true,
+        modelReasoningEffort,
+        latencyMs,
+        inputTokens,
+        outputTokens,
+        reasoningTokens,
+        cachedTokens,
+        totalTokens,
+        totalCost,
+      };
+    });
   }, [authFileMap, i18n.language, modelPrices, sourceInfoMap, usage]);
 
   const hasLatencyData = useMemo(() => rows.some((row) => row.latencyMs !== null), [rows]);
@@ -271,8 +280,6 @@ export function RequestEventsDetailsCard({
       }),
     [effectiveAuthIndexFilter, effectiveModelFilter, effectiveSourceFilter, rows]
   );
-
-  const renderedRows = useMemo(() => filteredRows.slice(0, MAX_RENDERED_EVENTS), [filteredRows]);
 
   const hasActiveFilters =
     effectiveModelFilter !== ALL_FILTER ||
@@ -458,14 +465,6 @@ export function RequestEventsDetailsCard({
           <div className={styles.requestEventsMeta}>
             <span>{t('usage_stats.request_events_count', { count: filteredRows.length })}</span>
             {hasLatencyData && <span className={styles.requestEventsLimitHint}>{latencyHint}</span>}
-            {filteredRows.length > MAX_RENDERED_EVENTS && (
-              <span className={styles.requestEventsLimitHint}>
-                {t('usage_stats.request_events_limit_hint', {
-                  shown: MAX_RENDERED_EVENTS,
-                  total: filteredRows.length,
-                })}
-              </span>
-            )}
           </div>
 
           <div className={styles.requestEventsTableWrapper}>
@@ -489,7 +488,7 @@ export function RequestEventsDetailsCard({
                 </tr>
               </thead>
               <tbody>
-                {renderedRows.map((row) => (
+                {filteredRows.map((row) => (
                   <tr key={row.id}>
                     <td title={row.timestamp} className={styles.requestEventsTimestamp}>
                       {row.timestampLabel}
