@@ -53,6 +53,36 @@ import { AuthFileWarningIndicator } from '@/features/authFiles/components/AuthFi
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 const HEALTHY_STATUS_MESSAGES = new Set(['ok', 'healthy', 'ready', 'success', 'available']);
+const AUTH_FILE_NAME_MASK = '*';
+
+const getStableMaskSeed = (value: string): number => {
+  let hash = 2166136261;
+  for (const char of value) {
+    hash ^= char.codePointAt(0) ?? 0;
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const getNextMaskSeed = (seed: number): number => {
+  return (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+};
+
+const maskAuthFileDisplayName = (value: string): string => {
+  const chars = Array.from(value);
+  if (chars.length === 0) return value;
+
+  const maskCount = Math.min(2, chars.length);
+  const maskIndexes = new Set<number>();
+  let seed = getStableMaskSeed(value) || 1;
+
+  while (maskIndexes.size < maskCount) {
+    seed = getNextMaskSeed(seed);
+    maskIndexes.add(seed % chars.length);
+  }
+
+  return chars.map((char, index) => (maskIndexes.has(index) ? AUTH_FILE_NAME_MASK : char)).join('');
+};
 
 export type AuthFileCardProps = {
   file: AuthFileItem;
@@ -155,6 +185,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
   const totalRequests = fileUsageStats.success + fileUsageStats.failure;
   const tokenDisplay = formatMillionTokens(fileUsageStats.totalTokens);
   const authFileDisplayName = file.name.replace(/\.json$/i, '');
+  const maskedAuthFileDisplayName = maskAuthFileDisplayName(authFileDisplayName);
   const canDisplayCost = totalRequests === 0 || fileUsageStats.pricedRequests > 0;
   const costDisplay = canDisplayCost ? formatUsd(fileUsageStats.totalCost) : '--';
   const costTitle = canDisplayCost
@@ -237,8 +268,8 @@ export function AuthFileCard(props: AuthFileCardProps) {
                 )}
               </div>
               <div className={styles.fileNameRow}>
-                <span className={styles.fileName} title={authFileDisplayName}>
-                  {authFileDisplayName}
+                <span className={styles.fileName} title={maskedAuthFileDisplayName}>
+                  {maskedAuthFileDisplayName}
                 </span>
                 <button
                   type="button"
