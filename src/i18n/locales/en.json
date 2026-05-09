@@ -743,6 +743,24 @@
     "credit_label": "Google One AI Credits",
     "credit_amount": "{{count}} credits"
   },
+  "kiro_quota": {
+    "title": "Kiro Credits",
+    "empty_title": "No Kiro Auth Files",
+    "empty_desc": "Upload a Kiro credential to view Credits quota.",
+    "idle": "Click here to refresh Credits",
+    "loading": "Loading Credits...",
+    "load_failed": "Failed to load Credits: {{message}}",
+    "empty_data": "No Credits data available",
+    "refresh_button": "Refresh Credits",
+    "fetch_all": "Fetch All",
+    "plan_label": "Subscription",
+    "account_label": "Account",
+    "credit_label": "Credits",
+    "remaining_label": "Total remaining",
+    "remaining_amount": "Remaining {{count}}",
+    "agentic_request": "Agentic requests",
+    "free_trial_label": "{{label}} free trial"
+  },
   "kimi_quota": {
     "title": "Kimi Quota",
     "empty_title": "No Kimi Auth Files",

@@ -716,6 +716,24 @@
     "credit_label": "Google One AI 點數",
     "credit_amount": "{{count}} 點數"
   },
+  "kiro_quota": {
+    "title": "Kiro Credits",
+    "empty_title": "暫無 Kiro 驗證",
+    "empty_desc": "上傳 Kiro 驗證檔案後即可查看 Credits 配額。",
+    "idle": "點擊此處重新整理 Credits",
+    "loading": "正在載入 Credits...",
+    "load_failed": "Credits 取得失敗：{{message}}",
+    "empty_data": "暫無 Credits 資料",
+    "refresh_button": "重新整理 Credits",
+    "fetch_all": "取得全部",
+    "plan_label": "訂閱",
+    "account_label": "帳號",
+    "credit_label": "Credits",
+    "remaining_label": "總剩餘",
+    "remaining_amount": "剩餘 {{count}}",
+    "agentic_request": "Agentic 請求",
+    "free_trial_label": "{{label}} 免費試用"
+  },
   "kimi_quota": {
     "title": "Kimi 配額",
     "empty_title": "暫無 Kimi 驗證",

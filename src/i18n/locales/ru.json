@@ -734,6 +734,24 @@
     "credit_label": "Google One AI кредиты",
     "credit_amount": "{{count}} кредитов"
   },
+  "kiro_quota": {
+    "title": "Kiro Credits",
+    "empty_title": "Файлы авторизации Kiro отсутствуют",
+    "empty_desc": "Загрузите учётные данные Kiro, чтобы увидеть квоту Credits.",
+    "idle": "Нажмите здесь, чтобы обновить Credits",
+    "loading": "Загрузка Credits...",
+    "load_failed": "Не удалось загрузить Credits: {{message}}",
+    "empty_data": "Данные Credits отсутствуют",
+    "refresh_button": "Обновить Credits",
+    "fetch_all": "Получить все",
+    "plan_label": "Подписка",
+    "account_label": "Аккаунт",
+    "credit_label": "Credits",
+    "remaining_label": "Всего осталось",
+    "remaining_amount": "Осталось {{count}}",
+    "agentic_request": "Agentic-запросы",
+    "free_trial_label": "{{label}}: пробный период"
+  },
   "kimi_quota": {
     "title": "Квота Kimi",
     "empty_title": "Файлы авторизации Kimi отсутствуют",

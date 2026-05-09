@@ -492,6 +492,10 @@
   background-image: linear-gradient(180deg, rgba(224, 232, 255, 0.08), transparent);
 }
 
+.kiroCard {
+  background-image: linear-gradient(180deg, rgba(255, 243, 220, 0.08), transparent);
+}
+
 .kimiCard {
   background-image: linear-gradient(180deg, rgba(220, 232, 255, 0.08), transparent);
 }
@@ -2624,6 +2628,13 @@
       radial-gradient(circle at 8% 0%, rgba(49, 134, 255, 0.2), transparent 34%),
       radial-gradient(circle at 100% 100%, rgba(100, 181, 246, 0.1), transparent 38%),
       linear-gradient(180deg, #20242b 0%, #191d23 52%, #14171c 100%);
+  }
+
+  .fileCard.kiroCard {
+    background:
+      radial-gradient(circle at 8% 0%, rgba(255, 189, 90, 0.2), transparent 34%),
+      radial-gradient(circle at 100% 100%, rgba(255, 153, 0, 0.1), transparent 38%),
+      linear-gradient(180deg, #282217 0%, #1f1b14 52%, #17140f 100%);
   }
 
   .fileCard.kimiCard {

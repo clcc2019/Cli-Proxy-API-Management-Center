@@ -306,3 +306,100 @@ export interface KimiQuotaState {
   error?: string;
   errorStatus?: number;
 }
+
+export interface KiroSubscriptionInfo {
+  subscriptionTitle?: string;
+  subscription_title?: string;
+  type?: string;
+}
+
+export interface KiroUserInfo {
+  email?: string;
+  userId?: string;
+  user_id?: string;
+}
+
+export interface KiroFreeTrialInfo {
+  freeTrialStatus?: string;
+  free_trial_status?: string;
+  usageLimit?: number;
+  usage_limit?: number;
+  currentUsage?: number;
+  current_usage?: number;
+  usageLimitWithPrecision?: number;
+  usage_limit_with_precision?: number;
+  currentUsageWithPrecision?: number;
+  current_usage_with_precision?: number;
+  remainingWithPrecision?: number;
+  remaining_with_precision?: number;
+  usagePercentage?: number;
+  usage_percentage?: number;
+  exhausted?: boolean;
+}
+
+export interface KiroUsageBreakdown {
+  resourceType?: string;
+  resource_type?: string;
+  displayName?: string;
+  display_name?: string;
+  usageLimit?: number;
+  usage_limit?: number;
+  currentUsage?: number;
+  current_usage?: number;
+  usageLimitWithPrecision?: number;
+  usage_limit_with_precision?: number;
+  currentUsageWithPrecision?: number;
+  current_usage_with_precision?: number;
+  remainingWithPrecision?: number;
+  remaining_with_precision?: number;
+  usagePercentage?: number;
+  usage_percentage?: number;
+  nextDateReset?: number | string;
+  next_date_reset?: number | string;
+  freeTrialInfo?: KiroFreeTrialInfo | null;
+  free_trial_info?: KiroFreeTrialInfo | null;
+  exhausted?: boolean;
+}
+
+export interface KiroUsageResponse {
+  userInfo?: KiroUserInfo | null;
+  user_info?: KiroUserInfo | null;
+  subscriptionInfo?: KiroSubscriptionInfo | null;
+  subscription_info?: KiroSubscriptionInfo | null;
+  usageBreakdownList?: KiroUsageBreakdown[];
+  usage_breakdown_list?: KiroUsageBreakdown[];
+  nextDateReset?: number | string;
+  next_date_reset?: number | string;
+  nextResetAt?: string;
+  next_reset_at?: string;
+  totalUsageLimitWithPrecision?: number;
+  total_usage_limit_with_precision?: number;
+  totalCurrentUsageWithPrecision?: number;
+  total_current_usage_with_precision?: number;
+  totalRemainingUsageWithPrecision?: number;
+  total_remaining_usage_with_precision?: number;
+  totalUsagePercentage?: number;
+  total_usage_percentage?: number;
+  exhausted?: boolean;
+}
+
+export interface KiroQuotaRow {
+  id: string;
+  label: string;
+  used: number | null;
+  limit: number | null;
+  remaining: number | null;
+  usedPercent: number | null;
+  resetTime?: string;
+}
+
+export interface KiroQuotaState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  rows: KiroQuotaRow[];
+  subscriptionTitle?: string | null;
+  subscriptionType?: string | null;
+  userEmail?: string | null;
+  totalRemaining?: number | null;
+  error?: string;
+  errorStatus?: number;
+}

@@ -4,6 +4,7 @@ import {
   CLAUDE_CONFIG,
   CODEX_CONFIG,
   GEMINI_CLI_CONFIG,
+  KIRO_CONFIG,
   KIMI_CONFIG,
 } from '@/components/quota';
 import { useQuotaStore } from '@/stores';
@@ -34,6 +35,7 @@ export const getAuthFileQuotaConfig = (type: QuotaProviderType) => {
   if (type === 'antigravity') return ANTIGRAVITY_CONFIG;
   if (type === 'claude') return CLAUDE_CONFIG;
   if (type === 'codex') return CODEX_CONFIG;
+  if (type === 'kiro') return KIRO_CONFIG;
   if (type === 'kimi') return KIMI_CONFIG;
   return GEMINI_CLI_CONFIG;
 };
@@ -46,6 +48,7 @@ const getQuotaEntry = (quotaType: QuotaProviderType, fileName: string): QuotaSta
   if (quotaType === 'antigravity') return state.antigravityQuota[fileName] as QuotaState;
   if (quotaType === 'claude') return state.claudeQuota[fileName] as QuotaState;
   if (quotaType === 'codex') return state.codexQuota[fileName] as QuotaState;
+  if (quotaType === 'kiro') return state.kiroQuota[fileName] as QuotaState;
   if (quotaType === 'kimi') return state.kimiQuota[fileName] as QuotaState;
   return state.geminiCliQuota[fileName] as QuotaState;
 };
@@ -63,6 +66,9 @@ const getQuotaStateUpdater = (quotaType: QuotaProviderType) => {
   }
   if (quotaType === 'kimi') {
     return state.setKimiQuota as unknown as (updater: unknown) => void;
+  }
+  if (quotaType === 'kiro') {
+    return state.setKiroQuota as unknown as (updater: unknown) => void;
   }
   return state.setGeminiCliQuota as unknown as (updater: unknown) => void;
 };

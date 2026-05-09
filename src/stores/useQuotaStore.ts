@@ -9,6 +9,7 @@ import type {
   ClaudeQuotaState,
   CodexQuotaState,
   GeminiCliQuotaState,
+  KiroQuotaState,
   KimiQuotaState,
 } from '@/types';
 import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
@@ -16,7 +17,7 @@ import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
 type QuotaUpdater<T> = T | ((prev: T) => T);
 type PersistableQuotaState = Pick<
   QuotaStoreState,
-  'antigravityQuota' | 'claudeQuota' | 'codexQuota' | 'geminiCliQuota' | 'kimiQuota'
+  'antigravityQuota' | 'claudeQuota' | 'codexQuota' | 'geminiCliQuota' | 'kiroQuota' | 'kimiQuota'
 >;
 type PersistedQuotaEnvelope = { state?: Partial<PersistableQuotaState>; version?: number };
 type QuotaSnapshot = { status?: string };
@@ -26,11 +27,13 @@ interface QuotaStoreState {
   claudeQuota: Record<string, ClaudeQuotaState>;
   codexQuota: Record<string, CodexQuotaState>;
   geminiCliQuota: Record<string, GeminiCliQuotaState>;
+  kiroQuota: Record<string, KiroQuotaState>;
   kimiQuota: Record<string, KimiQuotaState>;
   setAntigravityQuota: (updater: QuotaUpdater<Record<string, AntigravityQuotaState>>) => void;
   setClaudeQuota: (updater: QuotaUpdater<Record<string, ClaudeQuotaState>>) => void;
   setCodexQuota: (updater: QuotaUpdater<Record<string, CodexQuotaState>>) => void;
   setGeminiCliQuota: (updater: QuotaUpdater<Record<string, GeminiCliQuotaState>>) => void;
+  setKiroQuota: (updater: QuotaUpdater<Record<string, KiroQuotaState>>) => void;
   setKimiQuota: (updater: QuotaUpdater<Record<string, KimiQuotaState>>) => void;
   clearQuotaCache: () => void;
 }
@@ -40,6 +43,7 @@ const createEmptyQuotaCache = (): PersistableQuotaState => ({
   claudeQuota: {},
   codexQuota: {},
   geminiCliQuota: {},
+  kiroQuota: {},
   kimiQuota: {},
 });
 
@@ -83,6 +87,7 @@ const sanitizePersistedQuotaState = (
   claudeQuota: sanitizeQuotaRecord(state?.claudeQuota),
   codexQuota: sanitizeQuotaRecord(state?.codexQuota),
   geminiCliQuota: sanitizeQuotaRecord(state?.geminiCliQuota),
+  kiroQuota: sanitizeQuotaRecord(state?.kiroQuota),
   kimiQuota: sanitizeQuotaRecord(state?.kimiQuota),
 });
 
@@ -118,6 +123,7 @@ const mergePersistedQuotaState = (
   claudeQuota: mergeQuotaRecord(previous?.claudeQuota, next?.claudeQuota),
   codexQuota: mergeQuotaRecord(previous?.codexQuota, next?.codexQuota),
   geminiCliQuota: mergeQuotaRecord(previous?.geminiCliQuota, next?.geminiCliQuota),
+  kiroQuota: mergeQuotaRecord(previous?.kiroQuota, next?.kiroQuota),
   kimiQuota: mergeQuotaRecord(previous?.kimiQuota, next?.kimiQuota),
 });
 
@@ -173,6 +179,10 @@ export const useQuotaStore = create<QuotaStoreState>()(
         set((state) => ({
           geminiCliQuota: resolveUpdater(updater, state.geminiCliQuota),
         })),
+      setKiroQuota: (updater) =>
+        set((state) => ({
+          kiroQuota: resolveUpdater(updater, state.kiroQuota),
+        })),
       setKimiQuota: (updater) =>
         set((state) => ({
           kimiQuota: resolveUpdater(updater, state.kimiQuota),
@@ -187,6 +197,7 @@ export const useQuotaStore = create<QuotaStoreState>()(
         claudeQuota: state.claudeQuota,
         codexQuota: state.codexQuota,
         geminiCliQuota: state.geminiCliQuota,
+        kiroQuota: state.kiroQuota,
         kimiQuota: state.kimiQuota,
       }),
       merge: (persistedState, currentState) => ({
