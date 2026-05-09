@@ -5,6 +5,7 @@ import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconCheck,
+  IconCopy,
   IconDatabase,
   IconDownload,
   IconDollarSign,
@@ -67,6 +68,7 @@ export type AuthFileCardProps = {
   keyUsageStats: KeyUsageStats;
   statusBarCache: Map<string, AuthFileStatusBarData>;
   onShowModels: (file: AuthFileItem) => void;
+  onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
@@ -96,6 +98,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
     keyUsageStats,
     statusBarCache,
     onShowModels,
+    onCopyName,
     onDownload,
     onOpenPrefixProxyEditor,
     onDelete,
@@ -151,6 +154,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
   const noteValue = typeof file.note === 'string' ? file.note.trim() : '';
   const totalRequests = fileUsageStats.success + fileUsageStats.failure;
   const tokenDisplay = formatMillionTokens(fileUsageStats.totalTokens);
+  const authFileDisplayName = file.name.replace(/\.json$/i, '');
   const canDisplayCost = totalRequests === 0 || fileUsageStats.pricedRequests > 0;
   const costDisplay = canDisplayCost ? formatUsd(fileUsageStats.totalCost) : '--';
   const costTitle = canDisplayCost
@@ -232,9 +236,23 @@ export function AuthFileCard(props: AuthFileCardProps) {
                   </span>
                 )}
               </div>
-              <span className={styles.fileName} title={file.name}>
-                {file.name}
-              </span>
+              <div className={styles.fileNameRow}>
+                <span className={styles.fileName} title={authFileDisplayName}>
+                  {authFileDisplayName}
+                </span>
+                <button
+                  type="button"
+                  className={styles.fileNameCopyButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void onCopyName(authFileDisplayName);
+                  }}
+                  title={t('common.copy')}
+                  aria-label={t('common.copy')}
+                >
+                  <IconCopy size={13} />
+                </button>
+              </div>
               {!compact && noteValue && (
                 <div className={styles.noteText} title={noteValue}>
                   <span className={styles.noteLabel}>{t('auth_files.note_display')}</span>

@@ -1374,17 +1374,26 @@
   border-color: color-mix(in srgb, #f97316 40%, transparent);
 }
 
+.fileNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .fileName {
+  min-width: 0;
+  max-width: 100%;
   font-size: 14px;
   font-weight: 850;
   color: var(--text-primary);
-  word-break: break-all;
   line-height: 1.25;
-  display: -webkit-box;
+  display: block;
   overflow: hidden;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0;
 
   @include mobile {
     font-size: 14px;
@@ -1392,10 +1401,42 @@
   }
 }
 
+.fileNameCopyButton {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.fileNameCopyButton:hover {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--bg-secondary));
+  transform: translateY(-1px);
+}
+
+.fileNameCopyButton:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 60%, transparent);
+  outline-offset: 2px;
+}
+
 @media (max-width: 640px) {
   .fileName {
     font-size: 13px;
     line-height: 1.35;
+    -webkit-line-clamp: unset;
   }
 
   .metaLabel {

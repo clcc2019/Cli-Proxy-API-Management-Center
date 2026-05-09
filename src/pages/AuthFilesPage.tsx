@@ -1082,6 +1082,7 @@ export function AuthFilesPage() {
                     keyUsageStats={keyUsageStats}
                     statusBarCache={statusBarCache}
                     onShowModels={showModels}
+                    onCopyName={copyTextWithNotification}
                     onDownload={handleDownload}
                     onOpenPrefixProxyEditor={openPrefixProxyEditor}
                     onDelete={handleDelete}
