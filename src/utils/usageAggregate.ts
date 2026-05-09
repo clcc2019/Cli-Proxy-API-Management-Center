@@ -13,6 +13,7 @@ import type {
 import {
   formatDayLabel,
   formatHourLabel,
+  lookupModelPrice,
   maskUsageSensitiveValue,
   normalizeAuthIndex,
   normalizeUsageSourceId,
@@ -226,7 +227,9 @@ export const calculateAggregateWindowCost = (
 ) =>
   (window?.models ?? []).reduce((sum, stat) => {
     const modelName = typeof stat.model === 'string' ? stat.model : '';
-    return sum + calculateCostForTokens(stat.token_breakdown, modelPrices[modelName]);
+    return (
+      sum + calculateCostForTokens(stat.token_breakdown, lookupModelPrice(modelPrices, modelName))
+    );
   }, 0);
 
 export const getAggregateRateStats = (window: UsageAggregateWindow | null) => ({
@@ -311,7 +314,11 @@ export const buildAggregateCostTrend = (
   const data = new Array(length).fill(0);
 
   Object.entries(periodSeries?.models ?? {}).forEach(([modelName, series]) => {
-    const modelSeries = calculateSeriesCost(series, modelPrices[modelName], length);
+    const modelSeries = calculateSeriesCost(
+      series,
+      lookupModelPrice(modelPrices, modelName),
+      length
+    );
     modelSeries.forEach((value, index) => {
       data[index] += value;
     });
@@ -344,7 +351,10 @@ export const getAggregateApiStats = (
     );
 
     const totalCost = Object.entries(stat.models ?? {}).reduce((sum, [modelName, modelStat]) => {
-      return sum + calculateCostForTokens(modelStat.token_breakdown, modelPrices[modelName]);
+      return (
+        sum +
+        calculateCostForTokens(modelStat.token_breakdown, lookupModelPrice(modelPrices, modelName))
+      );
     }, 0);
 
     return {
@@ -370,7 +380,7 @@ export const getAggregateModelStats = (
       successCount: asNumber(stat.success_count),
       failureCount: asNumber(stat.failure_count),
       tokens: asNumber(stat.tokens),
-      cost: calculateCostForTokens(stat.token_breakdown, modelPrices[modelName]),
+      cost: calculateCostForTokens(stat.token_breakdown, lookupModelPrice(modelPrices, modelName)),
       averageLatencyMs: averageLatencyMs(stat.latency),
       totalLatencyMs: asNumber(stat.latency?.total_ms) || null,
       latencySampleCount: asNumber(stat.latency?.count),

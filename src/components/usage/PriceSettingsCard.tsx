@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
-import type { ModelPrice } from '@/utils/usage';
+import { lookupModelPrice, type ModelPrice } from '@/utils/usage';
 import styles from '@/pages/UsagePage.module.scss';
 
 export interface PriceSettingsCardProps {
@@ -17,7 +17,7 @@ export interface PriceSettingsCardProps {
 export function PriceSettingsCard({
   modelNames,
   modelPrices,
-  onPricesChange
+  onPricesChange,
 }: PriceSettingsCardProps) {
   const { t } = useTranslation();
 
@@ -53,7 +53,7 @@ export function PriceSettingsCard({
   };
 
   const handleOpenEdit = (model: string) => {
-    const price = modelPrices[model];
+    const price = lookupModelPrice(modelPrices, model);
     setEditModel(model);
     setEditPrompt(price?.prompt?.toString() || '');
     setEditCompletion(price?.completion?.toString() || '');
@@ -72,7 +72,7 @@ export function PriceSettingsCard({
 
   const handleModelSelect = (value: string) => {
     setSelectedModel(value);
-    const price = modelPrices[value];
+    const price = lookupModelPrice(modelPrices, value);
     if (price) {
       setPromptPrice(price.prompt.toString());
       setCompletionPrice(price.completion.toString());
@@ -87,7 +87,7 @@ export function PriceSettingsCard({
   const options = useMemo(
     () => [
       { value: '', label: t('usage_stats.model_price_select_placeholder') },
-      ...modelNames.map((name) => ({ value: name, label: name }))
+      ...modelNames.map((name) => ({ value: name, label: name })),
     ],
     [modelNames, t]
   );

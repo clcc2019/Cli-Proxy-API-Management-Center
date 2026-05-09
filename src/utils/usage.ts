@@ -128,6 +128,7 @@ const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const MODEL_PRICE_STORAGE_KEY = 'cli-proxy-model-prices-v2';
 const USAGE_ENDPOINT_METHOD_REGEX = /^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)\s+(\S+)/i;
+const MODEL_DATE_SUFFIX_REGEX = /-\d{8}$/;
 const DEFAULT_MODEL_PRICES: Record<string, ModelPrice> = {
   'gpt-5.4': {
     prompt: 2.5,
@@ -138,6 +139,51 @@ const DEFAULT_MODEL_PRICES: Record<string, ModelPrice> = {
     prompt: 5,
     completion: 30,
     cache: 0.25,
+  },
+  'claude-opus-4.7': {
+    prompt: 5,
+    completion: 25,
+    cache: 0.5,
+  },
+  'claude-opus-4.6': {
+    prompt: 5,
+    completion: 25,
+    cache: 0.5,
+  },
+  'claude-opus-4.5': {
+    prompt: 5,
+    completion: 25,
+    cache: 0.5,
+  },
+  'claude-sonnet-4.6': {
+    prompt: 3,
+    completion: 15,
+    cache: 0.3,
+  },
+  'claude-sonnet-4.5': {
+    prompt: 3,
+    completion: 15,
+    cache: 0.3,
+  },
+  'claude-sonnet-4': {
+    prompt: 3,
+    completion: 15,
+    cache: 0.3,
+  },
+  'claude-haiku-4.5': {
+    prompt: 1,
+    completion: 5,
+    cache: 0.1,
+  },
+  'claude-opus-4.1': {
+    prompt: 15,
+    completion: 75,
+    cache: 1.5,
+  },
+  'claude-opus-4': {
+    prompt: 15,
+    completion: 75,
+    cache: 1.5,
   },
 };
 const USAGE_TIME_RANGE_MS: Record<Exclude<UsageTimeRange, 'all'>, number> = {
@@ -151,6 +197,105 @@ const USAGE_TIME_RANGE_MS: Record<Exclude<UsageTimeRange, 'all'>, number> = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const isDigits = (value: string): boolean => /^\d+$/.test(value);
+
+const hyphenNumericVersionToDot = (modelName: string): string => {
+  const parts = modelName.split('-');
+  for (let index = 0; index < parts.length - 1; index += 1) {
+    if (isDigits(parts[index]) && isDigits(parts[index + 1])) {
+      return [
+        ...parts.slice(0, index),
+        `${parts[index]}.${parts[index + 1]}`,
+        ...parts.slice(index + 2),
+      ].join('-');
+    }
+  }
+  return modelName;
+};
+
+const dotNumericVersionToHyphen = (modelName: string): string => {
+  const parts = modelName.split('-');
+  for (let index = 0; index < parts.length; index += 1) {
+    const [left, right, extra] = parts[index].split('.');
+    if (extra === undefined && right !== undefined && isDigits(left) && isDigits(right)) {
+      const converted = [...parts];
+      converted[index] = `${left}-${right}`;
+      return converted.join('-');
+    }
+  }
+  return modelName;
+};
+
+const modelPriceAliasCandidates = (modelName: string): string[] => {
+  const trimmed = modelName.trim();
+  if (!trimmed) return [];
+
+  const candidates: string[] = [];
+  const add = (value: string) => {
+    const normalized = value.trim();
+    if (normalized && normalized !== trimmed) {
+      candidates.push(normalized);
+    }
+  };
+
+  const parenIndex = trimmed.indexOf('(');
+  if (parenIndex > 0) add(trimmed.slice(0, parenIndex));
+  if (trimmed.startsWith('models/')) add(trimmed.slice('models/'.length));
+  const slashIndex = trimmed.lastIndexOf('/');
+  if (slashIndex >= 0 && slashIndex + 1 < trimmed.length) add(trimmed.slice(slashIndex + 1));
+  ['kiro-', 'amazonq-'].forEach((prefix) => {
+    if (trimmed.startsWith(prefix)) add(trimmed.slice(prefix.length));
+  });
+  ['-agentic', '-chat', '-thinking', '-1m'].forEach((suffix) => {
+    if (trimmed.endsWith(suffix)) add(trimmed.slice(0, -suffix.length));
+  });
+  const withoutDate = trimmed.replace(MODEL_DATE_SUFFIX_REGEX, '');
+  if (withoutDate !== trimmed) add(withoutDate);
+  const dotted = hyphenNumericVersionToDot(trimmed);
+  if (dotted !== trimmed) add(dotted);
+  const hyphenated = dotNumericVersionToHyphen(trimmed);
+  if (hyphenated !== trimmed) add(hyphenated);
+
+  return candidates;
+};
+
+export function getModelPriceLookupKeys(modelName: string): string[] {
+  const first = modelName.trim();
+  if (!first) return [];
+
+  const seen = new Set<string>();
+  const keys: string[] = [];
+  const queue: string[] = [];
+  const add = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    keys.push(trimmed);
+    queue.push(trimmed);
+  };
+
+  add(first);
+  add(first.toLowerCase());
+  for (let index = 0; index < queue.length; index += 1) {
+    modelPriceAliasCandidates(queue[index]).forEach((candidate) => {
+      add(candidate);
+      add(candidate.toLowerCase());
+    });
+  }
+  return keys;
+}
+
+export function lookupModelPrice(
+  modelPrices: Record<string, ModelPrice>,
+  modelName: string
+): ModelPrice | undefined {
+  for (const key of getModelPriceLookupKeys(modelName)) {
+    const price = modelPrices[key];
+    if (price) return price;
+  }
+  return undefined;
+}
 
 const getApisRecord = (usageData: unknown): Record<string, unknown> | null => {
   const usageRecord = isRecord(usageData) ? usageData : null;
@@ -1234,7 +1379,7 @@ export function calculateCost(
   modelPrices: Record<string, ModelPrice>
 ): number {
   const modelName = detail.__modelName || '';
-  const price = modelPrices[modelName];
+  const price = lookupModelPrice(modelPrices, modelName);
   if (!price) {
     return 0;
   }
@@ -1518,7 +1663,7 @@ export function getApiStats(
           failureCount += Number(modelData.failure_count) || 0;
         }
 
-        const price = modelPrices[modelName];
+        const price = lookupModelPrice(modelPrices, modelName);
         if (details.length > 0 && (!hasExplicitCounts || price)) {
           details.forEach((detail) => {
             const detailRecord = isRecord(detail) ? detail : null;
@@ -1672,7 +1817,7 @@ export function getModelStats(
         existing.tokens += Number(modelData.total_tokens) || 0;
 
         const details = Array.isArray(modelData.details) ? modelData.details : [];
-        const price = modelPrices[modelName];
+        const price = lookupModelPrice(modelPrices, modelName);
         const hasExplicitCounts =
           typeof modelData.success_count === 'number' ||
           typeof modelData.failure_count === 'number';
@@ -2502,7 +2647,9 @@ export function computeKeyUsageStatsFromDetails(
     const isFailed = detail.failed === true;
     const totalTokens = extractTotalTokens(detail);
     const totalCost = calculateCost(detail, modelPrices);
-    const hasModelPrice = Boolean(detail.__modelName && modelPrices[detail.__modelName]);
+    const hasModelPrice = Boolean(
+      detail.__modelName && lookupModelPrice(modelPrices, detail.__modelName)
+    );
 
     if (isFailed) {
       bucket.failure += 1;
