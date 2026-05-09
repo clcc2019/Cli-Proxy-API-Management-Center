@@ -30,6 +30,11 @@ export interface AuthFileItem {
   status?: string;
   statusMessage?: string;
   lastRefresh?: string | number;
+  last_refresh?: string | number;
+  last_refreshed_at?: string | number;
+  runtimeUpdatedAt?: string | number;
+  runtime_updated_at?: string | number;
+  runtime_saved_at?: string | number;
   modified?: number;
   user_agent?: string;
   websockets?: boolean;

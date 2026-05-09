@@ -189,7 +189,15 @@ const readTextField = (entry: AuthFileEntry, key: string): string => {
 };
 
 const readDateField = (entry: AuthFileEntry): number => {
-  const candidates = [entry['modtime'], entry.modified, entry['updated_at'], entry['last_refresh']];
+  const candidates = [
+    entry['modtime'],
+    entry.modified,
+    entry['updated_at'],
+    entry['last_refresh'],
+    entry.lastRefresh,
+    entry['last_refreshed_at'],
+    entry['runtime_updated_at'],
+  ];
 
   for (const value of candidates) {
     if (typeof value === 'number' && Number.isFinite(value)) {

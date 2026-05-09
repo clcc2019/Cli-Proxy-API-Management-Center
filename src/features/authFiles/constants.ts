@@ -323,8 +323,7 @@ export function resolveAuthFileUsageStats(
   );
 }
 
-export const formatModified = (item: AuthFileItem): string => {
-  const raw = item['modtime'] ?? item.modified;
+const formatAuthFileDate = (raw: unknown): string => {
   if (!raw) return '-';
   const asNumber = Number(raw);
   const date =
@@ -332,6 +331,14 @@ export const formatModified = (item: AuthFileItem): string => {
       ? new Date(asNumber < 1e12 ? asNumber * 1000 : asNumber)
       : new Date(String(raw));
   return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
+};
+
+export const formatModified = (item: AuthFileItem): string => {
+  return formatAuthFileDate(item['modtime'] ?? item.modified);
+};
+
+export const formatLastRefresh = (item: AuthFileItem): string => {
+  return formatAuthFileDate(item['last_refresh'] ?? item.lastRefresh ?? item['last_refreshed_at']);
 };
 
 // 检查模型是否被 OAuth 排除

@@ -29,6 +29,7 @@ import {
 import { formatFileSize } from '@/utils/format';
 import {
   QUOTA_PROVIDER_TYPES,
+  formatLastRefresh,
   formatModified,
   getAuthFileIcon,
   getAuthFileStatusMessage,
@@ -306,6 +307,10 @@ export function AuthFileCard(props: AuthFileCardProps) {
             <div className={styles.metaItem}>
               <span className={styles.metaLabel}>{t('auth_files.file_modified')}</span>
               <span className={styles.metaValue}>{formatModified(file)}</span>
+            </div>
+            <div className={styles.metaItem}>
+              <span className={styles.metaLabel}>{t('auth_files.last_refresh_label')}</span>
+              <span className={styles.metaValue}>{formatLastRefresh(file)}</span>
             </div>
             {priorityValue !== undefined && (
               <div className={`${styles.metaItem} ${styles.priorityBadge}`}>

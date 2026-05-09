@@ -159,6 +159,18 @@
   }
 }
 
+.kiroOptions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  :global(.form-group) {
+    margin-top: 0;
+    margin-bottom: 0;
+    gap: $spacing-sm;
+  }
+}
+
 .formItem {
   display: flex;
   flex-direction: column;
