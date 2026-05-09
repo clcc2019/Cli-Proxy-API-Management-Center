@@ -33,15 +33,21 @@ export interface IFlowCookieAuthResponse {
   type?: string;
 }
 
-const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'antigravity', 'kiro', 'gemini-cli'];
+const WEBUI_SUPPORTED: OAuthProvider[] = [
+  'codex',
+  'anthropic',
+  'antigravity',
+  'kiro',
+  'gemini-cli',
+];
 const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
-  'gemini-cli': 'gemini'
+  'gemini-cli': 'gemini',
 };
 
 export const oauthApi = {
   startAuth: (
     provider: OAuthProvider,
-    options?: { projectId?: string; authFileName?: string; kiroProvider?: KiroOAuthProvider; forceReauth?: boolean }
+    options?: { projectId?: string; authFileName?: string; kiroProvider?: KiroOAuthProvider }
   ) => {
     const params: Record<string, string | boolean> = {};
     if (WEBUI_SUPPORTED.includes(provider)) {
@@ -55,29 +61,26 @@ export const oauthApi = {
     }
     if (provider === 'kiro') {
       params.provider = options?.kiroProvider || 'google';
-      if (options?.forceReauth) {
-        params.force_reauth = true;
-      }
     }
     return apiClient.get<OAuthStartResponse>(`/${provider}-auth-url`, {
-      params: Object.keys(params).length ? params : undefined
+      params: Object.keys(params).length ? params : undefined,
     });
   },
 
   getAuthStatus: (state: string) =>
     apiClient.get<{ status: 'ok' | 'wait' | 'error'; error?: string }>(`/get-auth-status`, {
-      params: { state }
+      params: { state },
     }),
 
   submitCallback: (provider: OAuthProvider, redirectUrl: string) => {
     const callbackProvider = CALLBACK_PROVIDER_MAP[provider] ?? provider;
     return apiClient.post<OAuthCallbackResponse>('/oauth-callback', {
       provider: callbackProvider,
-      redirect_url: redirectUrl
+      redirect_url: redirectUrl,
     });
   },
 
   /** iFlow cookie 认证 */
   iflowCookieAuth: (cookie: string) =>
-    apiClient.post<IFlowCookieAuthResponse>('/iflow-auth-url', { cookie })
+    apiClient.post<IFlowCookieAuthResponse>('/iflow-auth-url', { cookie }),
 };
