@@ -4,6 +4,7 @@ import iconClaude from '@/assets/icons/claude.svg';
 import iconCodex from '@/assets/icons/codex.svg';
 import iconGemini from '@/assets/icons/gemini.svg';
 import iconIflow from '@/assets/icons/iflow.svg';
+import iconKiro from '@/assets/icons/kiro.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
@@ -94,6 +95,11 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
     light: { bg: '#f5e3fc', text: '#9025c8' },
     dark: { bg: '#521490', text: '#d49cf5' },
   },
+  // Kiro / Amazon Q: AWS 深蓝底 + 橙色强调
+  kiro: {
+    light: { bg: '#fff3dc', text: '#9a5a00' },
+    dark: { bg: '#3a2a12', text: '#ffbd5a' },
+  },
   // Vertex logo: Google 蓝 #4285F4
   vertex: {
     light: { bg: '#e4edfd', text: '#2b5fbc' },
@@ -117,6 +123,7 @@ export const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
   gemini: iconGemini,
   'gemini-cli': iconGemini,
   iflow: iconIflow,
+  kiro: iconKiro,
   kimi: { light: iconKimiLight, dark: iconKimiDark },
   qwen: iconQwen,
   vertex: iconVertex,

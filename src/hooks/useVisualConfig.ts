@@ -1290,6 +1290,11 @@ export const VISUAL_CONFIG_PROTOCOL_OPTIONS = [
     defaultLabel: 'Codex',
   },
   {
+    value: 'kiro',
+    labelKey: 'config_management.visual.payload_rules.provider_kiro',
+    defaultLabel: 'Kiro',
+  },
+  {
     value: 'antigravity',
     labelKey: 'config_management.visual.payload_rules.provider_antigravity',
     defaultLabel: 'Antigravity',

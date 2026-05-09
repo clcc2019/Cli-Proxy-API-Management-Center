@@ -26,6 +26,7 @@ const OAUTH_PROVIDER_PRESETS = [
   'antigravity',
   'claude',
   'codex',
+  'kiro',
   'qwen',
   'kimi',
   'iflow',
