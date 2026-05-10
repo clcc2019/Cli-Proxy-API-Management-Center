@@ -82,10 +82,10 @@
 
 .errorBox {
   padding: $spacing-md;
-  background-color: color-mix(in srgb, var(--danger-strong) 10%, transparent);
-  border: 1px solid var(--danger-strong);
+  background-color: rgba($error-color, 0.1);
+  border: 1px solid var(--danger-color);
   border-radius: $radius-md;
-  color: var(--danger-strong);
+  color: var(--danger-color);
   font-size: 14px;
   margin-bottom: $spacing-md;
 }
@@ -113,20 +113,20 @@
 
 .filterAllIconWrap {
   position: relative;
-  border-color: color-mix(in srgb, var(--brand-color) 20%, var(--border-subtle));
+  border-color: color-mix(in srgb, var(--primary-color) 20%, var(--border-color));
   background: linear-gradient(
     145deg,
-    color-mix(in srgb, var(--surface-2) 94%, var(--brand-color) 8%),
-    color-mix(in srgb, var(--surface-1) 92%, var(--brand-color) 5%)
+    color-mix(in srgb, var(--bg-secondary) 94%, var(--primary-color) 8%),
+    color-mix(in srgb, var(--bg-primary) 92%, var(--primary-color) 5%)
   );
-  box-shadow: 0 10px 22px -18px color-mix(in srgb, var(--brand-color) 50%, transparent);
+  box-shadow: 0 10px 22px -18px color-mix(in srgb, var(--primary-color) 50%, transparent);
 }
 
 .filterAllIcon {
   position: relative;
   z-index: 1;
   display: block;
-  color: color-mix(in srgb, var(--brand-color) 70%, var(--text-primary));
+  color: color-mix(in srgb, var(--primary-color) 70%, var(--text-primary));
 }
 
 .filterContent {
@@ -152,26 +152,26 @@
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.2;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 56%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 56%, transparent);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
   transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
+    border-color $transition-fast,
+    background-color $transition-fast,
+    color $transition-fast;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--filter-color) 40%, var(--border-subtle));
-    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+    border-color: color-mix(in srgb, var(--filter-color) 40%, var(--border-color));
+    background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
     color: var(--text-primary);
   }
 }
 
 .filterTagActive {
-  border-color: color-mix(in srgb, var(--filter-color) 50%, var(--border-subtle));
-  background: color-mix(in srgb, var(--filter-surface) 22%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--filter-color) 50%, var(--border-color));
+  background: color-mix(in srgb, var(--filter-surface) 22%, var(--bg-secondary));
   color: var(--text-primary);
 
   .filterTagIconWrap {
@@ -194,8 +194,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 45%, transparent);
-  background: color-mix(in srgb, var(--surface-3) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 50%, transparent);
 }
 
 .filterTagIcon {
@@ -243,8 +243,8 @@
 .filterControlsPanel {
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent);
-  background: color-mix(in srgb, var(--surface-2) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
 }
 
 .filterControls {
@@ -313,13 +313,13 @@
   min-height: 40px;
   padding: 0 10px;
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent);
-  background: color-mix(in srgb, var(--surface-1) 60%, transparent);
-  transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
+  transition: border-color $transition-fast, background-color $transition-fast;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--brand-color) 32%, var(--border-subtle));
-    background: color-mix(in srgb, var(--surface-1) 80%, transparent);
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+    background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
   }
 }
 
@@ -342,9 +342,9 @@
 .pageSizeSelect {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   border-radius: 8px;
-  background-color: var(--surface-2);
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
   font-size: 14px;
   cursor: text;
@@ -353,8 +353,8 @@
 
   &:focus {
     outline: none;
-    border-color: var(--brand-color);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-color) 12%, transparent);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 12%, transparent);
   }
 }
 
@@ -438,7 +438,7 @@
 .kimiCard {
   box-shadow:
     inset 0 2px 0 var(--provider-accent),
-    var(--elevation-1);
+    var(--shadow-card);
 }
 
 .antigravityCard {
@@ -471,7 +471,7 @@
   gap: 10px;
   padding-top: 12px;
   margin-top: 2px;
-  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
 }
 
 .quotaSectionHeader {
@@ -487,7 +487,7 @@
   font-weight: 900;
   line-height: 1.2;
   letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--brand-color) 70%, var(--text-secondary));
+  color: color-mix(in srgb, var(--primary-color) 70%, #64748b);
   text-transform: uppercase;
 }
 
@@ -526,8 +526,8 @@
 }
 
 .quotaRefreshButtonSpinning {
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
+  border-color: #cfd8e6;
+  color: #202a3a;
 }
 
 @keyframes quotaRefreshSpin {
@@ -586,8 +586,8 @@
   height: 11px;
   padding: 2px;
   box-sizing: border-box;
-  background: color-mix(in srgb, var(--surface-3) 60%, var(--surface-2));
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary));
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   border-radius: 999px;
   overflow: hidden;
   box-shadow:
@@ -602,9 +602,9 @@
   border-radius: 999px;
   overflow: hidden;
   // 通过 --quota-fill-start/mid/end 变量驱动渐变色，3 种变体共用同一组规则
-  --quota-fill-start: var(--success-strong);
-  --quota-fill-mid: color-mix(in srgb, var(--success-strong) 75%, white);
-  --quota-fill-end: color-mix(in srgb, var(--success-strong) 50%, white);
+  --quota-fill-start: #22c55e;
+  --quota-fill-mid: #38d66f;
+  --quota-fill-end: #7be35c;
   --quota-fill-glow: rgba(34, 197, 94, 0.3);
   background: linear-gradient(
     90deg,
@@ -631,23 +631,23 @@
 }
 
 .quotaBarFillHigh {
-  --quota-fill-start: var(--success-strong);
-  --quota-fill-mid: color-mix(in srgb, var(--success-strong) 75%, white);
-  --quota-fill-end: color-mix(in srgb, var(--success-strong) 50%, white);
+  --quota-fill-start: #22c55e;
+  --quota-fill-mid: #38d66f;
+  --quota-fill-end: #7be35c;
   --quota-fill-glow: rgba(34, 197, 94, 0.34);
 }
 
 .quotaBarFillMedium {
-  --quota-fill-start: var(--warning-strong);
-  --quota-fill-mid: color-mix(in srgb, var(--warning-strong) 75%, white);
-  --quota-fill-end: color-mix(in srgb, var(--warning-strong) 50%, white);
+  --quota-fill-start: #f59e0b;
+  --quota-fill-mid: #fbbf24;
+  --quota-fill-end: #facc15;
   --quota-fill-glow: rgba(255, 202, 40, 0.36);
 }
 
 .quotaBarFillLow {
-  --quota-fill-start: var(--danger-strong);
-  --quota-fill-mid: color-mix(in srgb, var(--danger-strong) 75%, white);
-  --quota-fill-end: color-mix(in srgb, var(--danger-strong) 50%, white);
+  --quota-fill-start: #ef4444;
+  --quota-fill-mid: #f43f5e;
+  --quota-fill-end: #fb7185;
   --quota-fill-glow: rgba(255, 23, 68, 0.38);
 }
 
@@ -698,7 +698,7 @@
 
 .quotaPercent {
   font-weight: 900;
-  color: var(--success-strong);
+  color: #16a34a;
 }
 
 .quotaReset {
@@ -723,10 +723,10 @@
   width: 100%;
   min-height: 34px;
   padding: 8px 10px;
-  border: 1px dashed color-mix(in srgb, var(--brand-color) 42%, var(--border-subtle));
+  border: 1px dashed color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
   border-radius: 10px;
-  background: color-mix(in srgb, var(--brand-color) 8%, var(--surface-2));
-  color: color-mix(in srgb, var(--brand-color) 76%, var(--text-primary));
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-secondary));
+  color: color-mix(in srgb, var(--primary-color) 76%, var(--text-primary));
   cursor: pointer;
   font-family: inherit;
   font-size: 12px;
@@ -734,16 +734,16 @@
   line-height: 1.35;
   text-decoration: none;
   transition:
-    color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+    color $transition-fast,
+    background-color $transition-fast,
+    border-color $transition-fast,
+    box-shadow $transition-fast;
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
-    background: color-mix(in srgb, var(--brand-color) 12%, var(--surface-2));
-    border-color: color-mix(in srgb, var(--brand-color) 60%, var(--border-subtle));
-    box-shadow: 0 8px 18px -16px color-mix(in srgb, var(--brand-color) 55%, transparent);
+    background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-secondary));
+    border-color: color-mix(in srgb, var(--primary-color) 60%, var(--border-color));
+    box-shadow: 0 8px 18px -16px color-mix(in srgb, var(--primary-color) 55%, transparent);
   }
 
   &:disabled {
@@ -755,16 +755,16 @@
 
 .quotaError {
   font-size: 12px;
-  color: var(--danger-strong);
-  background-color: color-mix(in srgb, var(--danger-strong) 8%, transparent);
-  border: 1px solid var(--danger-strong);
+  color: var(--danger-color);
+  background-color: rgba($error-color, 0.08);
+  border: 1px solid var(--danger-color);
   border-radius: $radius-sm;
   padding: $spacing-xs $spacing-sm;
 }
 
 .quotaWarning {
   font-size: 12px;
-  color: var(--warning-strong);
+  color: var(--warning-text);
   background-color: var(--warning-bg);
   border: 1px solid var(--warning-border);
   border-radius: $radius-sm;
@@ -812,24 +812,24 @@
 .fileCard {
   position: relative;
   overflow: hidden;
-  background: var(--surface-1);
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+  background: var(--surface-raised);
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
   border-radius: 14px;
   padding: 14px;
   display: flex;
   flex-direction: column;
   min-height: 100%;
   isolation: isolate;
-  box-shadow: var(--elevation-1);
+  box-shadow: var(--shadow-card);
   transition:
-    transform var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+    transform $transition-fast,
+    box-shadow $transition-fast,
+    border-color $transition-fast;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: var(--elevation-2);
-    border-color: color-mix(in srgb, var(--brand-color) 32%, var(--border-subtle));
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
   }
 
   // subtle top highlight, not an expensive blurred gradient
@@ -841,7 +841,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in srgb, var(--brand-color) 28%, transparent),
+      color-mix(in srgb, var(--primary-color) 28%, transparent),
       transparent
     );
     opacity: 0.6;
@@ -862,11 +862,11 @@
 }
 
 .fileCardSelected {
-  border-color: color-mix(in srgb, var(--brand-color) 60%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-color) 30%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 30%, transparent);
 
   &:hover {
-    border-color: color-mix(in srgb, var(--brand-color) 60%, transparent);
+    border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
   }
 }
 
@@ -876,14 +876,14 @@
   &:hover {
     transform: none;
     box-shadow: none;
-    border-color: var(--border-subtle);
+    border-color: var(--border-color);
   }
 }
 
 .fileCardCompact {
   padding: 10px 12px;
   border-radius: 10px;
-  box-shadow: var(--elevation-1);
+  box-shadow: var(--shadow-card);
 
   .fileCardMain {
     gap: 8px;
@@ -1076,22 +1076,22 @@
   justify-content: center;
   padding: 0;
   cursor: pointer;
-  color: var(--text-on-brand);
-  background: color-mix(in srgb, var(--danger-strong) 88%, transparent);
-  box-shadow: 0 4px 14px -8px color-mix(in srgb, var(--danger-strong) 70%, transparent);
+  color: #fff;
+  background: color-mix(in srgb, var(--danger-color) 88%, transparent);
+  box-shadow: 0 4px 14px -8px color-mix(in srgb, var(--danger-color) 70%, transparent);
   transition:
-    transform var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+    transform $transition-fast,
+    background-color $transition-fast,
+    box-shadow $transition-fast;
 
   &:hover,
   &:focus-visible {
-    background: color-mix(in srgb, var(--danger-strong) 96%, transparent);
-    box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--danger-strong) 76%, transparent);
+    background: color-mix(in srgb, var(--danger-color) 96%, transparent);
+    box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--danger-color) 76%, transparent);
   }
 
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--danger-strong) 42%, white);
+    outline: 2px solid color-mix(in srgb, var(--danger-color) 42%, white);
     outline-offset: 2px;
   }
 }
@@ -1111,9 +1111,9 @@
   border-radius: 10px;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--danger-strong);
-  background: color-mix(in srgb, var(--surface-1) 94%, transparent);
-  border: 1px solid color-mix(in srgb, var(--danger-strong) 28%, var(--border-subtle));
+  color: var(--danger-color);
+  background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger-color) 28%, var(--border-color));
   box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.28);
   word-break: break-word;
 
@@ -1123,7 +1123,7 @@
     right: 8px;
     bottom: calc(100% - 1px);
     border: 6px solid transparent;
-    border-bottom-color: color-mix(in srgb, var(--danger-strong) 28%, var(--border-subtle));
+    border-bottom-color: color-mix(in srgb, var(--danger-color) 28%, var(--border-color));
   }
 
   &::after {
@@ -1132,7 +1132,7 @@
     right: 8px;
     bottom: calc(100% - 0px);
     border: 6px solid transparent;
-    border-bottom-color: color-mix(in srgb, var(--surface-1) 94%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--bg-primary) 94%, transparent);
     transform: translateY(1px);
   }
 }
@@ -1145,7 +1145,7 @@
     width: 18px;
     height: 18px;
     border-radius: 6px;
-    border-color: color-mix(in srgb, var(--border-default) 90%, transparent);
+    border-color: color-mix(in srgb, #cbd5e1 90%, transparent);
     background: rgba(255, 255, 255, 0.8);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.72),
@@ -1161,9 +1161,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 11px;
-  border: 1px solid color-mix(in srgb, var(--brand-color) 18%, var(--border-subtle));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
   box-shadow:
-    0 16px 28px -18px color-mix(in srgb, var(--brand-color) 72%, transparent),
+    0 16px 28px -18px color-mix(in srgb, var(--primary-color) 72%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.62);
 
   @include mobile {
@@ -1262,26 +1262,26 @@
 }
 
 .stateBadgeActive {
-  color: var(--success-strong);
-  background: var(--success-bg);
-  border: 1px solid var(--success-border);
+  color: var(--success-badge-text, #065f46);
+  background: var(--success-badge-bg, #d1fae5);
+  border: 1px solid var(--success-badge-border, #6ee7b7);
 }
 
 .stateBadgeWarning {
-  color: var(--warning-strong);
+  color: var(--warning-text);
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
 }
 
 .stateBadgeDisabled {
   color: var(--text-secondary);
-  background: color-mix(in srgb, var(--surface-3) 86%, transparent);
-  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-tertiary) 86%, transparent);
+  border: 1px solid var(--border-color);
 }
 
 .stateBadgeVirtual {
   color: var(--text-secondary);
-  background: color-mix(in srgb, var(--surface-3) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 82%, transparent);
   border: 1px dashed color-mix(in srgb, var(--border-primary) 90%, transparent);
 }
 
@@ -1340,8 +1340,8 @@
 
 .featureBadgeDisabled {
   color: var(--text-secondary);
-  background: color-mix(in srgb, var(--surface-3) 86%, transparent);
-  border-color: color-mix(in srgb, var(--border-subtle) 92%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 86%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 92%, transparent);
 }
 
 .featureBadgeWarning {
@@ -1385,9 +1385,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--surface-2) 78%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
   color: var(--text-secondary);
   cursor: pointer;
   transition:
@@ -1399,13 +1399,13 @@
 
 .fileNameCopyButton:hover {
   color: var(--text-primary);
-  border-color: color-mix(in srgb, var(--brand-color) 44%, var(--border-subtle));
-  background: color-mix(in srgb, var(--brand-color) 10%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--bg-secondary));
   transform: translateY(-1px);
 }
 
 .fileNameCopyButton:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--brand-color) 60%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 60%, transparent);
   outline-offset: 2px;
 }
 
@@ -1676,23 +1676,23 @@
 }
 
 .statSuccess {
-  background: var(--success-bg);
-  color: var(--success-strong);
+  background: var(--success-badge-bg, #dcfce7);
+  color: var(--success-badge-text, #15803d);
 }
 
 .statSuccess .statIcon {
-  background: var(--success-strong);
-  color: var(--text-on-brand);
+  background: var(--success-color, #16a34a);
+  color: #fff;
 }
 
 .statFailure {
-  background: var(--danger-bg);
-  color: var(--danger-strong);
+  background: var(--failure-badge-bg, #fee2e2);
+  color: var(--failure-badge-text, #b91c1c);
 }
 
 .statFailure .statIcon {
-  background: var(--danger-strong);
-  color: var(--text-on-brand);
+  background: var(--error-color, #dc2626);
+  color: #fff;
 }
 
 .statToken {
@@ -1783,7 +1783,7 @@
 .statusPanelIcon {
   width: 12px;
   height: 12px;
-  color: color-mix(in srgb, var(--text-tertiary) 88%, var(--text-tertiary));
+  color: color-mix(in srgb, var(--text-tertiary) 88%, #94a3b8);
   stroke-width: 2.35;
 }
 
@@ -1835,7 +1835,7 @@
 }
 
 .statusBlockIdle {
-  background: color-mix(in srgb, var(--surface-3) 80%, var(--border-subtle));
+  background: color-mix(in srgb, var(--bg-tertiary) 80%, var(--border-color));
 }
 
 .statusTooltip {
@@ -1843,8 +1843,8 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--surface-4);
-  border: 1px solid var(--border-subtle);
+  background: var(--bg-quinary, var(--bg-primary, #fff));
+  border: 1px solid var(--border-secondary, #e5e7eb);
   border-radius: 10px;
   padding: 8px 10px;
   font-size: 11px;
@@ -1862,7 +1862,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: var(--surface-4);
+    border-top-color: var(--bg-quinary, var(--bg-primary, #fff));
   }
 
   &::before {
@@ -1872,7 +1872,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: var(--border-subtle);
+    border-top-color: var(--border-secondary, #e5e7eb);
   }
 }
 
@@ -1913,11 +1913,11 @@
 }
 
 .tooltipSuccess {
-  color: var(--success-strong);
+  color: var(--success-color, #22c55e);
 }
 
 .tooltipFailure {
-  color: var(--danger-strong);
+  color: var(--danger-color, #ef4444);
 }
 
 .tooltipRate {
@@ -1937,24 +1937,24 @@
   white-space: nowrap;
   padding: 0 9px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-3) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
   color: var(--text-secondary);
   flex-shrink: 0;
 }
 
 .statusRateHigh {
-  color: var(--success-strong);
-  background: var(--success-bg);
+  color: var(--success-badge-text, #15803d);
+  background: var(--success-badge-bg, #dcfce7);
 }
 
 .statusRateMedium {
-  color: var(--warning-strong);
-  background: var(--warning-bg);
+  color: var(--warning-text, #b45309);
+  background: var(--warning-bg, #fef3c7);
 }
 
 .statusRateLow {
-  color: var(--danger-strong);
-  background: var(--danger-bg);
+  color: var(--failure-badge-text, #b91c1c);
+  background: var(--failure-badge-bg, #fee2e2);
 }
 
 @include mobile {
@@ -1977,18 +1977,18 @@
 }
 
 .prefixProxyModal {
-  border-color: color-mix(in srgb, var(--border-subtle) 52%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 52%, transparent);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--surface-1) 97%, transparent),
-    color-mix(in srgb, var(--surface-2) 32%, var(--surface-1))
+    color-mix(in srgb, var(--bg-primary) 97%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 32%, var(--bg-primary))
   );
   box-shadow: 0 24px 56px rgba(15, 23, 42, 0.16);
 
   :global(.modal-header) {
     padding-right: 56px;
-    border-bottom-color: color-mix(in srgb, var(--border-subtle) 46%, transparent);
-    background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--border-color) 46%, transparent);
+    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
   }
 
   :global(.modal-body) {
@@ -1996,8 +1996,8 @@
     max-height: min(72vh, calc(100vh - 176px));
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--surface-1) 96%, transparent),
-      color-mix(in srgb, var(--surface-2) 20%, var(--surface-1))
+      color-mix(in srgb, var(--bg-primary) 96%, transparent),
+      color-mix(in srgb, var(--bg-secondary) 20%, var(--bg-primary))
     );
   }
 
@@ -2005,8 +2005,8 @@
     position: sticky;
     bottom: 0;
     z-index: 2;
-    border-top-color: color-mix(in srgb, var(--border-subtle) 42%, transparent);
-    background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+    border-top-color: color-mix(in srgb, var(--border-color) 42%, transparent);
+    background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
     backdrop-filter: blur(10px);
   }
 
@@ -2051,9 +2051,9 @@
   padding: $spacing-sm $spacing-md;
   border-radius: $radius-md;
   border: 0;
-  border-left: 3px solid var(--danger-strong);
-  background-color: color-mix(in srgb, var(--danger-strong) 8%, transparent);
-  color: var(--danger-strong);
+  border-left: 3px solid var(--danger-color);
+  background-color: rgba($error-color, 0.08);
+  color: var(--danger-color);
   font-size: 12px;
 }
 
@@ -2078,9 +2078,9 @@
 .prefixProxyTextarea {
   width: 100%;
   padding: $spacing-sm $spacing-md;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
   border-radius: $radius-md;
-  background-color: color-mix(in srgb, var(--surface-2) 72%, transparent);
+  background-color: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
   color: var(--text-primary);
   font-size: 12px;
   font-family: monospace;
@@ -2091,8 +2091,8 @@
 
   &:focus {
     outline: none;
-    border-color: var(--brand-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-color) 12%, transparent);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 12%, transparent);
   }
 
   @include mobile {
@@ -2116,13 +2116,13 @@
 
   :global(.input),
   :global(textarea.input) {
-    border-color: color-mix(in srgb, var(--border-subtle) 38%, transparent);
-    background-color: color-mix(in srgb, var(--surface-2) 68%, transparent);
+    border-color: color-mix(in srgb, var(--border-color) 38%, transparent);
+    background-color: color-mix(in srgb, var(--bg-secondary) 68%, transparent);
   }
 
   :global(.input:focus),
   :global(textarea.input:focus) {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-color) 12%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 12%, transparent);
   }
 
   :global(.hint) {
@@ -2135,8 +2135,8 @@
 }
 
 .prefixProxyTextareaInvalid {
-  border-color: var(--danger-strong);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-strong) 12%, transparent);
+  border-color: var(--danger-color);
+  box-shadow: 0 0 0 3px rgba($error-color, 0.12);
 }
 
 .prefixProxyTokenPanel {
@@ -2175,8 +2175,8 @@
 }
 
 .prefixProxyTokenPanel :global(.btn.btn-secondary) {
-  border-color: color-mix(in srgb, var(--border-subtle) 34%, transparent);
-  background: color-mix(in srgb, var(--surface-2) 48%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 34%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
 }
 
 .prefixProxyTokenPanel + .prefixProxyFields,
@@ -2185,7 +2185,7 @@
 .prefixProxyJsonWrapper + .prefixProxyJsonWrapper,
 .prefixProxyJsonWrapper + .prefixProxyFields {
   padding-top: $spacing-md;
-  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 48%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 48%, transparent);
 
   @include mobile {
     padding-top: $spacing-sm;
@@ -2199,7 +2199,7 @@
   gap: 8px;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 78%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   min-width: 0;
   width: 100%;
 }
@@ -2225,12 +2225,12 @@
 .modelsActionButton:global(.btn.btn-sm) {
   background: linear-gradient(180deg, #ffffff, #f7f9fd);
   border-color: #d8e0ec;
-  color: var(--text-primary);
+  color: #202a3a;
 }
 
 .modelsActionButton:global(.btn.btn-sm):hover {
   border-color: #c9d3e2;
-  background: var(--text-on-brand);
+  background: #fff;
 }
 
 .cardUtilityActions {
@@ -2296,12 +2296,12 @@
   font-weight: 900;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--text-secondary);
+  color: #64748b;
   text-shadow: none;
 }
 
 .cardToggleSwitch > input:checked + span:first-of-type > span:first-child {
-  color: var(--text-on-brand);
+  color: #fff;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
 }
 
@@ -2310,7 +2310,7 @@
   left: 3px;
   width: 26px;
   height: 26px;
-  background: var(--text-on-brand);
+  background: #fff;
   border: 1px solid rgba(226, 232, 240, 0.95);
   box-shadow:
     0 8px 16px -10px rgba(15, 23, 42, 0.58),
@@ -2337,15 +2337,15 @@
   border-color: #d8e0ec;
   border-width: 1px;
   background: linear-gradient(180deg, #ffffff, #f7f9fd);
-  color: var(--text-primary);
+  color: #202a3a;
   box-shadow:
     0 12px 24px -18px rgba(15, 23, 42, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.82);
   transition:
-    color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+    color $transition-fast,
+    background-color $transition-fast,
+    border-color $transition-fast,
+    box-shadow $transition-fast;
 
   > span {
     display: flex;
@@ -2361,7 +2361,7 @@
 .iconButton:global(.btn.btn-danger.btn-sm) {
   background: linear-gradient(135deg, #f05252, #dc2626 62%, #d52b2b);
   border-color: #df3f3f;
-  color: var(--text-on-brand);
+  color: #fff;
   box-shadow:
     0 14px 26px -17px rgba(220, 38, 38, 0.72),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -2383,8 +2383,8 @@
 }
 
 .refreshActionButton:global(.btn.btn-sm):hover:not(:disabled) {
-  background: var(--text-on-brand);
-  border-color: var(--border-default);
+  background: #fff;
+  border-color: #cbd5e1;
   color: #111827;
   box-shadow:
     0 14px 28px -18px rgba(15, 23, 42, 0.48),
@@ -2392,8 +2392,8 @@
 }
 
 .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
-  border-color: var(--border-subtle);
-  background: var(--text-on-brand);
+  border-color: #cfd8e6;
+  background: #fff;
   color: #1f2937;
 }
 
@@ -2621,21 +2621,21 @@
 
 :global([data-theme='dark']) {
   .fileCard {
-    background: var(--surface-1);
-    border-color: color-mix(in srgb, var(--border-subtle) 80%, transparent);
-    box-shadow: var(--elevation-1);
+    background: var(--surface-raised);
+    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+    box-shadow: var(--shadow-card);
 
     &::before {
       background: linear-gradient(
         90deg,
         transparent,
-        color-mix(in srgb, var(--brand-color) 28%, transparent),
+        color-mix(in srgb, var(--primary-color) 28%, transparent),
         transparent
       );
     }
 
     &:hover {
-      border-color: color-mix(in srgb, var(--brand-active) 44%, var(--border-subtle));
+      border-color: color-mix(in srgb, var(--primary-active) 44%, var(--border-color));
       box-shadow: 0 10px 28px -20px rgba(0, 0, 0, 0.58);
     }
   }
@@ -2647,16 +2647,16 @@
   .fileCard.geminiCliCard,
   .fileCard.kiroCard,
   .fileCard.kimiCard {
-    background: var(--surface-1);
+    background: var(--surface-raised);
     box-shadow:
       inset 0 2px 0 var(--provider-accent),
-      var(--elevation-1);
+      var(--shadow-card);
   }
 
   .fileCardSelected {
-    border-color: color-mix(in srgb, var(--brand-active) 72%, transparent);
+    border-color: color-mix(in srgb, var(--primary-active) 72%, transparent);
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--brand-active) 34%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--primary-active) 34%, transparent),
       0 22px 58px -34px rgba(0, 0, 0, 0.86),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
@@ -2767,7 +2767,7 @@
   }
 
   .quotaSectionTitle {
-    color: color-mix(in srgb, var(--brand-active) 74%, #d8d1c8);
+    color: color-mix(in srgb, var(--primary-active) 74%, #d8d1c8);
   }
 
   .quotaModel {
@@ -2860,7 +2860,7 @@
 
   .statFailure .statIcon {
     background: #ef4444;
-    color: var(--text-on-brand);
+    color: #fff;
   }
 
   .statToken {
@@ -3002,7 +3002,7 @@
   }
 
   .cardToggleSwitch > input:checked + span:first-of-type > span:first-child {
-    color: var(--text-on-brand);
+    color: #fff;
   }
 }
 
@@ -3015,7 +3015,7 @@
   flex-wrap: wrap;
   margin-top: $spacing-lg;
   padding-top: $spacing-md;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border-color);
 }
 
 .batchActionContainer {
@@ -3037,12 +3037,12 @@
   gap: $spacing-sm;
   padding: 10px 12px;
   border-radius: $radius-lg;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
-  background: color-mix(in srgb, var(--surface-1) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 84%, transparent);
   --glass-blur: 12px;
   backdrop-filter: var(--glass-backdrop-filter);
   -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  box-shadow: var(--elevation-3);
+  box-shadow: var(--shadow-lg);
 }
 
 .batchActionLeft,
@@ -3104,7 +3104,7 @@
   font-size: 13px;
   color: var(--text-secondary);
   padding: $spacing-xs $spacing-md;
-  background-color: var(--surface-2);
+  background-color: var(--bg-secondary);
   border-radius: $radius-md;
 }
 
@@ -3120,9 +3120,9 @@
   justify-content: space-between;
   align-items: center;
   padding: $spacing-md;
-  background-color: var(--surface-2);
+  background-color: var(--bg-secondary);
   border-radius: $radius-md;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-color);
   gap: $spacing-md;
 
   @include mobile {
@@ -3178,18 +3178,18 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border-subtle);
-  background-color: var(--surface-2);
+  border-radius: $radius-full;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all $transition-fast;
 
   &:hover {
-    border-color: var(--brand-color);
+    border-color: var(--primary-color);
     color: var(--text-primary);
-    background-color: var(--surface-2);
+    background-color: var(--bg-hover);
   }
 
   &:disabled {
@@ -3199,14 +3199,14 @@
 }
 
 .providerTagActive {
-  background-color: var(--brand-color);
-  border-color: var(--brand-color);
-  color: var(--text-on-brand);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
 
   &:hover {
-    background-color: var(--brand-color);
-    border-color: var(--brand-color);
-    color: var(--text-on-brand);
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
   }
 }
 
@@ -3214,7 +3214,7 @@
 .aliasChartSection {
   margin-bottom: $spacing-lg;
   padding-bottom: $spacing-lg;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .aliasChartHeader {
@@ -3255,8 +3255,8 @@
   max-width: 100%;
   padding: 2px;
   border-radius: $radius-md;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 
   :global(.btn.btn-sm) {
     min-width: 0;
@@ -3311,8 +3311,8 @@
 }
 
 .jsonContent {
-  background-color: var(--surface-2);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: $radius-md;
   padding: $spacing-md;
   font-family: monospace;
@@ -3340,9 +3340,9 @@
 .textarea {
   width: 100%;
   padding: $spacing-sm $spacing-md;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-color);
   border-radius: $radius-md;
-  background-color: var(--surface-1);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   font-size: 14px;
   font-family: monospace;
@@ -3350,7 +3350,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--brand-color);
+    border-color: var(--primary-color);
   }
 
   &::placeholder {
@@ -3378,16 +3378,16 @@
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
-  background-color: var(--surface-2);
+  background-color: var(--bg-secondary);
   border-radius: $radius-md;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-color);
   flex-wrap: wrap;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all $transition-fast;
 
   &:hover {
-    background-color: var(--surface-2);
-    border-color: var(--brand-color);
+    background-color: var(--bg-hover);
+    border-color: var(--primary-color);
   }
 
   &:active {
@@ -3412,7 +3412,7 @@
 .modelType {
   font-size: 11px;
   color: var(--text-tertiary);
-  background-color: var(--surface-3);
+  background-color: var(--bg-tertiary);
   padding: 2px 8px;
   border-radius: 10px;
   flex-shrink: 0;
@@ -3421,7 +3421,7 @@
 
 .modelItemExcluded {
   opacity: 0.6;
-  background-color: var(--surface-3);
+  background-color: var(--bg-tertiary);
   border-style: dashed;
 
   .modelId {
@@ -3430,17 +3430,17 @@
   }
 
   &:hover {
-    border-color: var(--danger-strong);
+    border-color: var(--danger-color);
   }
 }
 
 .modelExcludedBadge {
   font-size: 10px;
-  color: var(--danger-strong);
-  background-color: color-mix(in srgb, var(--danger-strong) 10%, transparent);
+  color: var(--danger-color);
+  background-color: rgba($error-color, 0.1);
   padding: 2px 6px;
   border-radius: 8px;
-  border: 1px solid var(--danger-strong);
+  border: 1px solid var(--danger-color);
   flex-shrink: 0;
 }
 
@@ -3451,10 +3451,10 @@
   gap: $spacing-xs;
   max-height: 280px;
   overflow-y: auto;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-color);
   border-radius: $radius-md;
   padding: $spacing-sm;
-  background-color: var(--surface-2);
+  background-color: var(--bg-secondary);
 }
 
 .excludedCheckItem {
@@ -3464,17 +3464,17 @@
   padding: $spacing-xs $spacing-sm;
   border-radius: $radius-sm;
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-standard);
+  transition: background-color $transition-fast;
 
   &:hover {
-    background-color: var(--surface-2);
+    background-color: var(--bg-hover);
   }
 
   input[type='checkbox'] {
     width: 16px;
     height: 16px;
     cursor: pointer;
-    accent-color: var(--brand-color);
+    accent-color: var(--primary-color);
   }
 }
 

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, type MouseEvent } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Select } from '@/components/ui/Select';
 import { authFilesApi } from '@/services/api/authFiles';
 import type { GeminiKeyConfig, ProviderKeyConfig, OpenAIProviderConfig } from '@/types';
 import type { AuthFileItem } from '@/types/authFile';
@@ -25,6 +25,7 @@ import {
 import { downloadBlob } from '@/utils/download';
 import styles from '@/pages/UsagePage.module.scss';
 
+const ALL_FILTER = '__all__';
 const REQUEST_EVENTS_RETAIN_LIMIT = 100;
 
 type RequestEventRow = {
@@ -48,13 +49,6 @@ type RequestEventRow = {
   cachedTokens: number;
   totalTokens: number;
   totalCost: number;
-};
-
-type CredentialTooltipState = {
-  content: string;
-  left: number;
-  top: number;
-  placement: 'above' | 'below';
 };
 
 export interface RequestEventsDetailsCardProps {
@@ -97,8 +91,10 @@ export function RequestEventsDetailsCard({
     unit: t('usage_stats.duration_unit_ms'),
   });
 
+  const [modelFilter, setModelFilter] = useState(ALL_FILTER);
+  const [sourceFilter, setSourceFilter] = useState(ALL_FILTER);
+  const [authIndexFilter, setAuthIndexFilter] = useState(ALL_FILTER);
   const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(new Map());
-  const [credentialTooltip, setCredentialTooltip] = useState<CredentialTooltipState | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,29 +133,24 @@ export function RequestEventsDetailsCard({
     [claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]
   );
 
-  const sortedDetails = useMemo(
-    () =>
-      collectUsageDetails(usage)
-        .slice()
-        .sort((a, b) => {
-          const leftTimestampMs =
-            typeof a.__timestampMs === 'number' && a.__timestampMs > 0
-              ? a.__timestampMs
-              : parseTimestampMs(a.timestamp);
-          const rightTimestampMs =
-            typeof b.__timestampMs === 'number' && b.__timestampMs > 0
-              ? b.__timestampMs
-              : parseTimestampMs(b.timestamp);
-          return (
-            (Number.isNaN(rightTimestampMs) ? 0 : rightTimestampMs) -
-            (Number.isNaN(leftTimestampMs) ? 0 : leftTimestampMs)
-          );
-        }),
-    [usage]
-  );
-
   const rows = useMemo<RequestEventRow[]>(() => {
-    const details = sortedDetails.slice(0, REQUEST_EVENTS_RETAIN_LIMIT);
+    const details = collectUsageDetails(usage)
+      .slice()
+      .sort((a, b) => {
+        const leftTimestampMs =
+          typeof a.__timestampMs === 'number' && a.__timestampMs > 0
+            ? a.__timestampMs
+            : parseTimestampMs(a.timestamp);
+        const rightTimestampMs =
+          typeof b.__timestampMs === 'number' && b.__timestampMs > 0
+            ? b.__timestampMs
+            : parseTimestampMs(b.timestamp);
+        return (
+          (Number.isNaN(rightTimestampMs) ? 0 : rightTimestampMs) -
+          (Number.isNaN(leftTimestampMs) ? 0 : leftTimestampMs)
+        );
+      })
+      .slice(0, REQUEST_EVENTS_RETAIN_LIMIT);
 
     return details.map((detail, index) => {
       const timestamp = detail.timestamp;
@@ -220,14 +211,89 @@ export function RequestEventsDetailsCard({
         totalCost,
       };
     });
-  }, [authFileMap, i18n.language, modelPrices, sortedDetails, sourceInfoMap]);
-
-  const hasLimitedRows = sortedDetails.length > rows.length;
+  }, [authFileMap, i18n.language, modelPrices, sourceInfoMap, usage]);
 
   const hasLatencyData = useMemo(() => rows.some((row) => row.latencyMs !== null), [rows]);
 
+  const modelOptions = useMemo(
+    () => [
+      { value: ALL_FILTER, label: t('usage_stats.filter_all') },
+      ...Array.from(new Set(rows.map((row) => row.model))).map((model) => ({
+        value: model,
+        label: model,
+      })),
+    ],
+    [rows, t]
+  );
+
+  const sourceOptions = useMemo(
+    () => [
+      { value: ALL_FILTER, label: t('usage_stats.filter_all') },
+      ...Array.from(new Set(rows.map((row) => row.source))).map((source) => ({
+        value: source,
+        label: source,
+      })),
+    ],
+    [rows, t]
+  );
+
+  const authIndexOptions = useMemo(
+    () => [
+      { value: ALL_FILTER, label: t('usage_stats.filter_all') },
+      ...Array.from(new Set(rows.map((row) => row.authIndex))).map((authIndex) => ({
+        value: authIndex,
+        label: authIndex,
+      })),
+    ],
+    [rows, t]
+  );
+
+  const modelOptionSet = useMemo(
+    () => new Set(modelOptions.map((option) => option.value)),
+    [modelOptions]
+  );
+  const sourceOptionSet = useMemo(
+    () => new Set(sourceOptions.map((option) => option.value)),
+    [sourceOptions]
+  );
+  const authIndexOptionSet = useMemo(
+    () => new Set(authIndexOptions.map((option) => option.value)),
+    [authIndexOptions]
+  );
+
+  const effectiveModelFilter = modelOptionSet.has(modelFilter) ? modelFilter : ALL_FILTER;
+  const effectiveSourceFilter = sourceOptionSet.has(sourceFilter) ? sourceFilter : ALL_FILTER;
+  const effectiveAuthIndexFilter = authIndexOptionSet.has(authIndexFilter)
+    ? authIndexFilter
+    : ALL_FILTER;
+
+  const filteredRows = useMemo(
+    () =>
+      rows.filter((row) => {
+        const modelMatched =
+          effectiveModelFilter === ALL_FILTER || row.model === effectiveModelFilter;
+        const sourceMatched =
+          effectiveSourceFilter === ALL_FILTER || row.source === effectiveSourceFilter;
+        const authIndexMatched =
+          effectiveAuthIndexFilter === ALL_FILTER || row.authIndex === effectiveAuthIndexFilter;
+        return modelMatched && sourceMatched && authIndexMatched;
+      }),
+    [effectiveAuthIndexFilter, effectiveModelFilter, effectiveSourceFilter, rows]
+  );
+
+  const hasActiveFilters =
+    effectiveModelFilter !== ALL_FILTER ||
+    effectiveSourceFilter !== ALL_FILTER ||
+    effectiveAuthIndexFilter !== ALL_FILTER;
+
+  const handleClearFilters = () => {
+    setModelFilter(ALL_FILTER);
+    setSourceFilter(ALL_FILTER);
+    setAuthIndexFilter(ALL_FILTER);
+  };
+
   const handleExportCsv = () => {
-    if (!rows.length) return;
+    if (!filteredRows.length) return;
 
     const csvHeader = [
       'timestamp',
@@ -247,7 +313,7 @@ export function RequestEventsDetailsCard({
       'total_cost',
     ];
 
-    const csvRows = rows.map((row) =>
+    const csvRows = filteredRows.map((row) =>
       [
         row.timestamp,
         row.model,
@@ -278,9 +344,9 @@ export function RequestEventsDetailsCard({
   };
 
   const handleExportJson = () => {
-    if (!rows.length) return;
+    if (!filteredRows.length) return;
 
-    const payload = rows.map((row) => ({
+    const payload = filteredRows.map((row) => ({
       timestamp: row.timestamp,
       model: row.model,
       source: row.source,
@@ -308,210 +374,166 @@ export function RequestEventsDetailsCard({
     });
   };
 
-  const getCredentialTitle = (row: RequestEventRow) =>
-    [
-      `${t('usage_stats.request_events_source')}: ${row.source}`,
-      row.sourceRaw && row.sourceRaw !== '-' && row.sourceRaw !== row.source
-        ? `${t('usage_stats.request_events_source')}(raw): ${row.sourceRaw}`
-        : '',
-      row.sourceType ? `类型: ${row.sourceType}` : '',
-      `${t('usage_stats.request_events_auth_index')}: ${row.authIndex}`,
-      `${t('usage_stats.request_events_api_key')}: ${row.apiKey || '-'}`,
-    ]
-      .filter(Boolean)
-      .join('\n');
-
-  const showCredentialTooltip = (event: MouseEvent<HTMLElement>, row: RequestEventRow) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const tooltipWidth = Math.min(560, Math.max(260, window.innerWidth - 32));
-    const left = Math.min(
-      Math.max(rect.left + rect.width / 2, 16 + tooltipWidth / 2),
-      window.innerWidth - 16 - tooltipWidth / 2
-    );
-    const placement = rect.top > 132 ? 'above' : 'below';
-    const top = placement === 'above' ? rect.top : rect.bottom;
-
-    setCredentialTooltip({
-      content: getCredentialTitle(row),
-      left,
-      top,
-      placement,
-    });
-  };
-
-  const tooltipNode = credentialTooltip ? (
-    <div
-      className={`${styles.requestEventsCredentialTooltip} ${
-        credentialTooltip.placement === 'below' ? styles.requestEventsCredentialTooltipBelow : ''
-      }`}
-      style={{
-        left: credentialTooltip.left,
-        top: credentialTooltip.top,
-      }}
-    >
-      {credentialTooltip.content}
-    </div>
-  ) : null;
-
   return (
-    <>
-      <Card
-        title={t('usage_stats.request_events_title')}
-        className={styles.requestEventsCard}
-        density="compact"
-        extra={
-          <div className={styles.requestEventsActions}>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleExportCsv}
-              disabled={rows.length === 0}
-            >
-              {t('usage_stats.export_csv')}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleExportJson}
-              disabled={rows.length === 0}
-            >
-              {t('usage_stats.export_json')}
-            </Button>
-          </div>
-        }
-      >
-        {loading && rows.length === 0 ? (
-          <div className={styles.hint}>{t('common.loading')}</div>
-        ) : rows.length === 0 ? (
-          <EmptyState
-            title={t('usage_stats.request_events_empty_title')}
-            description={t('usage_stats.request_events_empty_desc')}
+    <Card
+      title={t('usage_stats.request_events_title')}
+      extra={
+        <div className={styles.requestEventsActions}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters}
+          >
+            {t('usage_stats.clear_filters')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleExportCsv}
+            disabled={filteredRows.length === 0}
+          >
+            {t('usage_stats.export_csv')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleExportJson}
+            disabled={filteredRows.length === 0}
+          >
+            {t('usage_stats.export_json')}
+          </Button>
+        </div>
+      }
+    >
+      <div className={styles.requestEventsToolbar}>
+        <div className={styles.requestEventsFilterItem}>
+          <span className={styles.requestEventsFilterLabel}>
+            {t('usage_stats.request_events_filter_model')}
+          </span>
+          <Select
+            value={effectiveModelFilter}
+            options={modelOptions}
+            onChange={setModelFilter}
+            className={styles.requestEventsSelect}
+            ariaLabel={t('usage_stats.request_events_filter_model')}
+            fullWidth={false}
           />
-        ) : (
-          <>
-            <div className={styles.requestEventsMeta}>
-              <span>{t('usage_stats.request_events_count', { count: rows.length })}</span>
-              <span className={styles.requestEventsMetaHints}>
-                {hasLimitedRows && (
-                  <span className={styles.requestEventsLimitHint}>
-                    {t('usage_stats.request_events_limit_hint', {
-                      shown: rows.length,
-                      total: sortedDetails.length,
-                    })}
-                  </span>
-                )}
-                {hasLatencyData && (
-                  <span className={styles.requestEventsLimitHint}>{latencyHint}</span>
-                )}
-              </span>
-            </div>
+        </div>
+        <div className={styles.requestEventsFilterItem}>
+          <span className={styles.requestEventsFilterLabel}>
+            {t('usage_stats.request_events_filter_source')}
+          </span>
+          <Select
+            value={effectiveSourceFilter}
+            options={sourceOptions}
+            onChange={setSourceFilter}
+            className={styles.requestEventsSelect}
+            ariaLabel={t('usage_stats.request_events_filter_source')}
+            fullWidth={false}
+          />
+        </div>
+        <div className={styles.requestEventsFilterItem}>
+          <span className={styles.requestEventsFilterLabel}>
+            {t('usage_stats.request_events_filter_auth_index')}
+          </span>
+          <Select
+            value={effectiveAuthIndexFilter}
+            options={authIndexOptions}
+            onChange={setAuthIndexFilter}
+            className={styles.requestEventsSelect}
+            ariaLabel={t('usage_stats.request_events_filter_auth_index')}
+            fullWidth={false}
+          />
+        </div>
+      </div>
 
-            <div className={styles.requestEventsTableWrapper}>
-              <table className={styles.table}>
-                <colgroup>
-                  <col className={styles.requestEventsTimeColumn} />
-                  <col className={styles.requestEventsModelColumn} />
-                  <col className={styles.requestEventsCredentialColumn} />
-                  <col className={styles.requestEventsResultColumn} />
-                  <col className={styles.requestEventsEffortColumn} />
-                  {hasLatencyData && <col className={styles.requestEventsLatencyColumn} />}
-                  <col className={styles.requestEventsTokensColumn} />
-                  <col className={styles.requestEventsCostColumn} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>{t('usage_stats.request_events_timestamp')}</th>
-                    <th>{t('usage_stats.model_name')}</th>
-                    <th>{t('usage_stats.credential_name')}</th>
-                    <th>{t('usage_stats.request_events_result')}</th>
-                    <th>{t('usage_stats.request_events_reasoning_effort')}</th>
-                    {hasLatencyData && <th title={latencyHint}>{t('usage_stats.time')}</th>}
-                    <th>{t('usage_stats.total_tokens')}</th>
-                    <th>{t('usage_stats.total_cost')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.id}>
-                      <td title={row.timestamp} className={styles.requestEventsTimestamp}>
-                        {row.timestampLabel}
-                      </td>
-                      <td className={`${styles.modelCell} ${styles.requestEventsModelCell}`}>
-                        {row.model}
-                      </td>
-                      <td
-                        className={styles.requestEventsCredentialCell}
-                        title={getCredentialTitle(row)}
-                        onMouseEnter={(event) => showCredentialTooltip(event, row)}
-                        onMouseLeave={() => setCredentialTooltip(null)}
-                      >
-                        <span className={styles.requestEventsCredentialStack}>
-                          <span className={styles.requestEventsCredentialName}>{row.source}</span>
-                          <span className={styles.requestEventsCredentialMeta}>
-                            {row.sourceType && (
-                              <span className={styles.credentialType}>{row.sourceType}</span>
-                            )}
-                            <span
-                              title={`${t('usage_stats.request_events_auth_index')}: ${row.authIndex}`}
-                            >
-                              #{row.authIndex}
-                            </span>
-                            <span
-                              title={`${t('usage_stats.request_events_api_key')}: ${row.apiKey || '-'}`}
-                            >
-                              {row.apiKeyMasked}
-                            </span>
-                          </span>
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className={
-                            row.failed
-                              ? styles.requestEventsResultFailed
-                              : styles.requestEventsResultSuccess
-                          }
-                        >
-                          {row.failed ? t('stats.failure') : t('stats.success')}
-                        </span>
-                      </td>
-                      <td className={styles.requestEventsEffortCell}>{row.modelReasoningEffort}</td>
-                      {hasLatencyData && (
-                        <td className={styles.durationCell}>{formatDurationMs(row.latencyMs)}</td>
+      {loading && rows.length === 0 ? (
+        <div className={styles.hint}>{t('common.loading')}</div>
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title={t('usage_stats.request_events_empty_title')}
+          description={t('usage_stats.request_events_empty_desc')}
+        />
+      ) : filteredRows.length === 0 ? (
+        <EmptyState
+          title={t('usage_stats.request_events_no_result_title')}
+          description={t('usage_stats.request_events_no_result_desc')}
+        />
+      ) : (
+        <>
+          <div className={styles.requestEventsMeta}>
+            <span>{t('usage_stats.request_events_count', { count: filteredRows.length })}</span>
+            {hasLatencyData && <span className={styles.requestEventsLimitHint}>{latencyHint}</span>}
+          </div>
+
+          <div className={styles.requestEventsTableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>{t('usage_stats.request_events_timestamp')}</th>
+                  <th>{t('usage_stats.model_name')}</th>
+                  <th>{t('usage_stats.request_events_source')}</th>
+                  <th>{t('usage_stats.request_events_auth_index')}</th>
+                  <th>{t('usage_stats.request_events_api_key')}</th>
+                  <th>{t('usage_stats.request_events_result')}</th>
+                  <th>{t('usage_stats.request_events_reasoning_effort')}</th>
+                  {hasLatencyData && <th title={latencyHint}>{t('usage_stats.time')}</th>}
+                  <th>{t('usage_stats.input_tokens')}</th>
+                  <th>{t('usage_stats.output_tokens')}</th>
+                  <th>{t('usage_stats.reasoning_tokens')}</th>
+                  <th>{t('usage_stats.cached_tokens')}</th>
+                  <th>{t('usage_stats.total_tokens')}</th>
+                  <th>{t('usage_stats.total_cost')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRows.map((row) => (
+                  <tr key={row.id}>
+                    <td title={row.timestamp} className={styles.requestEventsTimestamp}>
+                      {row.timestampLabel}
+                    </td>
+                    <td className={styles.modelCell}>{row.model}</td>
+                    <td className={styles.requestEventsSourceCell} title={row.source}>
+                      <span>{row.source}</span>
+                      {row.sourceType && (
+                        <span className={styles.credentialType}>{row.sourceType}</span>
                       )}
-                      <td className={styles.requestEventsTokensCell}>
-                        <span className={styles.requestEventsTokensStack}>
-                          <span className={styles.requestEventsTokenTotal}>
-                            {row.totalTokens.toLocaleString()}
-                          </span>
-                          <span className={styles.requestEventsTokenBreakdown}>
-                            <span title={t('usage_stats.input_tokens')}>
-                              入 {row.inputTokens.toLocaleString()}
-                            </span>
-                            <span title={t('usage_stats.output_tokens')}>
-                              出 {row.outputTokens.toLocaleString()}
-                            </span>
-                            <span title={t('usage_stats.reasoning_tokens')}>
-                              思 {row.reasoningTokens.toLocaleString()}
-                            </span>
-                            <span title={t('usage_stats.cached_tokens')}>
-                              缓 {row.cachedTokens.toLocaleString()}
-                            </span>
-                          </span>
-                        </span>
-                      </td>
-                      <td className={styles.requestEventsCostCell}>
-                        {row.totalCost > 0 ? formatUsd(row.totalCost) : '--'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-      </Card>
-      {tooltipNode && createPortal(tooltipNode, document.body)}
-    </>
+                    </td>
+                    <td className={styles.requestEventsAuthIndex} title={row.authIndex}>
+                      {row.authIndex}
+                    </td>
+                    <td className={styles.requestEventsAuthIndex} title={row.apiKeyMasked}>
+                      {row.apiKeyMasked}
+                    </td>
+                    <td>
+                      <span
+                        className={
+                          row.failed
+                            ? styles.requestEventsResultFailed
+                            : styles.requestEventsResultSuccess
+                        }
+                      >
+                        {row.failed ? t('stats.failure') : t('stats.success')}
+                      </span>
+                    </td>
+                    <td>{row.modelReasoningEffort}</td>
+                    {hasLatencyData && (
+                      <td className={styles.durationCell}>{formatDurationMs(row.latencyMs)}</td>
+                    )}
+                    <td>{row.inputTokens.toLocaleString()}</td>
+                    <td>{row.outputTokens.toLocaleString()}</td>
+                    <td>{row.reasoningTokens.toLocaleString()}</td>
+                    <td>{row.cachedTokens.toLocaleString()}</td>
+                    <td>{row.totalTokens.toLocaleString()}</td>
+                    <td>{row.totalCost > 0 ? formatUsd(row.totalCost) : '--'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </Card>
   );
 }

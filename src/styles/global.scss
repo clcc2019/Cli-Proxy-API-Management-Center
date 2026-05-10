@@ -8,7 +8,6 @@
 @use './themes.scss';
 @use './components.scss';
 @use './layout.scss';
-@use './utilities.scss';
 
 html,
 body,
@@ -17,27 +16,19 @@ body,
 }
 
 html {
-  background: var(--surface-0);
+  background: var(--bg-secondary);
 }
 
 body {
   min-width: 320px;
-  font-family: $font-sans;
-  font-size: $text-base;
-  line-height: $leading-normal;
-  background-color: var(--surface-0);
+  font-family: $font-family;
+  line-height: 1.5;
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
-  transition:
-    background-color var(--duration-base) var(--ease-standard),
-    color var(--duration-base) var(--ease-standard);
+  transition: background-color $transition-normal, color $transition-normal;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  // Inter 字体细节特性：字母间距微调、紧凑数字
-  font-feature-settings:
-    'cv11' on,  // 单层 a
-    'ss01' on,  // 开放的 4/6/9
-    'ss03' on;  // 紧凑的 l
   // 避免 iOS Safari 横屏时字号自动膨胀
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -64,8 +55,7 @@ a {
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--focus-ring);
-  border-radius: var(--radius-xs);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -76,6 +66,21 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-color: #4a453f;
+    --border-primary: #2d2a26;
+    --text-secondary: #2d2a26;
+    --focus-ring: rgba(37, 42, 47, 0.55);
+  }
+  [data-theme='dark'] {
+    --border-color: #c9c3bb;
+    --border-primary: #d7d2ca;
+    --text-secondary: #f6f4f1;
+    --focus-ring: rgba(246, 244, 241, 0.6);
   }
 }
 
@@ -91,12 +96,12 @@ body.modal-open .content {
 // 滚动条样式 —firefox + webkit 双适配
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-color: var(--border-color) transparent;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -104,18 +109,15 @@ body.modal-open .content {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: $radius-pill;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  background: var(--border-color);
+  border-radius: $radius-full;
 
   &:hover {
-    background: var(--border-strong);
-    background-clip: padding-box;
+    background: var(--border-hover);
   }
 }
 
-// 通用工具类（保留 container / flex-center / text-ellipsis 给老页面）
+// 通用工具类
 .container {
   width: 100%;
   max-width: 1280px;

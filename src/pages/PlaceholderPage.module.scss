@@ -1,33 +1,32 @@
 .container {
+  width: 100%;
+  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-height: 400px;
 }
 
 .placeholder {
-  padding: $space-2xl;
   text-align: center;
+  padding: $spacing-2xl;
 
   .icon {
-    margin-bottom: $space-lg;
-    color: var(--text-tertiary);
-    font-size: 56px;
-    opacity: 0.6;
+    font-size: 64px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-bottom: $spacing-lg;
   }
 
   h2 {
-    margin: 0 0 $space-md;
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text-primary);
-    font-size: $text-xl;
-    font-weight: $weight-bold;
-    letter-spacing: $tracking-tight;
+    margin: 0 0 $spacing-md 0;
   }
 
   p {
-    margin: 0;
+    font-size: 14px;
     color: var(--text-secondary);
-    font-size: $text-sm;
+    margin: 0;
   }
 }

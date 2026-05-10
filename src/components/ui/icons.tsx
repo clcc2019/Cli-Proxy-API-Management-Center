@@ -84,41 +84,6 @@ export function IconBot({ size = 20, ...props }: IconProps) {
   );
 }
 
-export function IconMessageCircle({ size = 20, ...props }: IconProps) {
-  return (
-    <svg {...baseSvgProps} width={size} height={size} {...props}>
-      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-    </svg>
-  );
-}
-
-export function IconSendHorizontal({ size = 20, ...props }: IconProps) {
-  return (
-    <svg {...baseSvgProps} width={size} height={size} {...props}>
-      <path d="m3 3 3 9-3 9 19-9Z" />
-      <path d="M6 12h16" />
-    </svg>
-  );
-}
-
-export function IconImage({ size = 20, ...props }: IconProps) {
-  return (
-    <svg {...baseSvgProps} width={size} height={size} {...props}>
-      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-      <circle cx="9" cy="9" r="2" />
-      <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
-    </svg>
-  );
-}
-
-export function IconSquare({ size = 20, ...props }: IconProps) {
-  return (
-    <svg {...baseSvgProps} width={size} height={size} {...props}>
-      <rect width="14" height="14" x="5" y="5" rx="2" />
-    </svg>
-  );
-}
-
 export function IconModelCluster({ size = 20, ...props }: IconProps) {
   return (
     <svg {...baseSvgProps} width={size} height={size} {...props}>
@@ -439,17 +404,6 @@ export function IconSidebarDashboard({ size = 20, ...props }: IconProps) {
       <rect x="13.5" y="3" width="7.5" height="5" rx="1.5" fill="currentColor" fillOpacity="0.12" />
       <rect x="3" y="14" width="7.5" height="7" rx="1.5" fill="currentColor" fillOpacity="0.12" />
       <rect x="13.5" y="11" width="7.5" height="10" rx="1.5" />
-    </svg>
-  );
-}
-
-export function IconSidebarChat({ size = 20, ...props }: IconProps) {
-  return (
-    <svg {...sidebarSvgProps} width={size} height={size} {...props}>
-      <path d="M5 6h14" />
-      <path d="M5 11h10" />
-      <path d="M5 16h7" />
-      <path d="M18 17.5 22 21V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11.5a2 2 0 0 0 2 2Z" />
     </svg>
   );
 }

@@ -1,6 +1,5 @@
 export * from './client';
 export * from './apiCall';
-export * from './chat';
 export * from './config';
 export * from './configFile';
 export * from './apiKeys';

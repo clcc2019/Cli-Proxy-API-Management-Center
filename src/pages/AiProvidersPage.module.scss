@@ -1,37 +1,26 @@
 @use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
-// ============================================================
-// AiProvidersPage · Linear 风重构
-// ------------------------------------------------------------
-// 设计原则：
-//   1. 所有颜色走 semantic tokens，暗色模式自动跟随，不再写 [data-theme]
-//   2. 卡片扁平：surface-1 / border-subtle / elevation-1
-//   3. Field icons：保留语义色（key/url/priority）但降档到 --*-bg 底色
-//   4. 按钮依赖 Button 组件的 subtle / danger-subtle variant
-// ============================================================
-
 .container {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: $space-md;
+  gap: $spacing-md;
 }
 
-// ─── Page header ────────────────────────────────────────────
 .pageHeader {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) auto;
+  gap: 16px;
   align-items: end;
-  gap: $space-md;
-  padding: clamp(16px, 1.4vw + 10px, 22px);
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--elevation-1);
+  padding: clamp(14px, 1.4vw + 8px, 20px);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
 
-  // 顶部 1px 主色分割线
+  // 顶部的 1px 主色线条取代之前的 radial-gradient 背景
   &::before {
     content: '';
     position: absolute;
@@ -40,7 +29,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in srgb, var(--brand-color) 40%, transparent),
+      color-mix(in srgb, var(--primary-color) 36%, transparent),
       transparent
     );
     opacity: 0.7;
@@ -55,6 +44,7 @@
 }
 
 .pageHeaderCopy {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -62,25 +52,32 @@
 }
 
 .pageEyebrow {
-  color: var(--text-tertiary);
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
-  letter-spacing: $tracking-caps;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .pageTitleBlock {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+
+.cardTitle,
+.pageTitle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
 }
 
 .pageTitle {
   margin: 0;
-  font-size: clamp(26px, 4vw, 36px);
-  font-weight: $weight-bold;
-  line-height: 1.05;
-  letter-spacing: $tracking-tight;
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
   color: var(--text-primary);
 }
 
@@ -88,14 +85,15 @@
   margin: 0;
   max-width: 48rem;
   color: var(--text-secondary);
-  font-size: $text-base;
-  line-height: $leading-relaxed;
+  font-size: 15px;
+  line-height: 1.7;
 }
 
 .pageMeta {
+  position: relative;
   display: flex;
   align-items: stretch;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: flex-end;
 
@@ -108,15 +106,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 42px;
   padding: 0 16px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 86%, transparent);
   color: var(--text-primary);
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
-  letter-spacing: $tracking-snug;
+  font-size: 13px;
+  font-weight: 700;
   text-align: center;
 
   @include mobile {
@@ -129,11 +126,11 @@
   flex-direction: column;
   justify-content: center;
   min-width: 140px;
-  padding: 12px 16px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--elevation-1);
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  box-shadow: var(--shadow);
 
   @include mobile {
     flex: 1;
@@ -142,101 +139,106 @@
 }
 
 .metaValue {
-  font-size: $text-2xl;
-  font-weight: $weight-bold;
+  font-size: 28px;
+  font-weight: 800;
   line-height: 1;
-  letter-spacing: $tracking-tight;
+  letter-spacing: -0.04em;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .metaLabel {
-  margin-top: 6px;
-  font-size: $text-xs;
-  font-weight: $weight-medium;
-  line-height: $leading-snug;
-  color: var(--text-tertiary);
-  letter-spacing: $tracking-snug;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
-// ─── Content ────────────────────────────────────────────────
+.cardTitleIcon {
+  width: 26px;
+  height: 26px;
+}
+
 .content {
   display: flex;
   flex-direction: column;
-  gap: $space-xl;
+  gap: $spacing-xl;
   padding-bottom: calc(
-    var(--provider-nav-height, 60px) + 12px + env(safe-area-inset-bottom) + #{$space-md}
+    var(--provider-nav-height, 60px) + 12px + env(safe-area-inset-bottom) + #{$spacing-md}
   );
 }
 
 .errorBanner {
-  padding: 12px 16px;
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  border-radius: var(--radius-lg);
-  color: var(--danger-fg);
-  font-size: $text-sm;
-  line-height: $leading-snug;
+  background: rgba($error-color, 0.08);
+  border: 1px solid rgba($error-color, 0.26);
+  border-radius: 16px;
+  padding: 14px 16px;
+  color: $error-color;
+  line-height: 1.6;
+  box-shadow: var(--shadow);
 }
 
-// ─── Provider section anchor ────────────────────────────────
 .providerSectionAnchor {
   scroll-margin-top: 28px;
 
   :global(.card) {
     overflow: hidden;
-    background: var(--surface-1);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--elevation-1);
-    transition:
-      border-color var(--duration-fast) var(--ease-standard),
-      box-shadow var(--duration-fast) var(--ease-standard);
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-card);
+    transition: border-color $transition-fast, box-shadow $transition-fast;
 
     &:hover {
-      border-color: var(--border-default);
+      box-shadow: var(--shadow-card-hover);
     }
   }
 
   :global(.card-header) {
     margin: -14px -14px 12px;
     padding: 12px 14px;
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
   }
 
   :global(.card-header .title) {
-    font-size: $text-md;
-    font-weight: $weight-semibold;
-    letter-spacing: $tracking-snug;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  :global(.card-header .btn.btn-sm) {
+    min-height: 32px;
+    border-radius: 8px;
+    padding-inline: 12px;
+    font-weight: 600;
   }
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: $space-md;
+  gap: $spacing-md;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: $space-md;
+  gap: $spacing-md;
 
   h3 {
     margin: 0;
-    font-size: $text-xl;
-    font-weight: $weight-semibold;
-    letter-spacing: $tracking-snug;
+    font-size: 20px;
+    font-weight: 600;
     color: var(--text-primary);
   }
 }
 
-// ─── Provider list layouts ──────────────────────────────────
 .providerList {
   display: grid;
-  gap: $space-md;
+  gap: $spacing-md;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
 
   @include mobile {
@@ -246,7 +248,7 @@
 
 .providerConfigList {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
 
   @media (min-width: 1760px) {
@@ -254,33 +256,30 @@
   }
 }
 
-// ─── Single provider card ───────────────────────────────────
 .providerConfigItem {
   position: relative;
-  display: flex;
+  overflow: hidden;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: 12px;
   height: 100%;
+  gap: 12px;
   min-height: 100%;
   padding: 14px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--elevation-1);
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
   isolation: isolate;
-  transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
-  overflow: hidden;
+  transition: transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
 
   &:hover {
-    border-color: var(--border-default);
-    box-shadow: var(--elevation-2);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
   }
 
-  // 顶部 1px 主色微光
+  // 顶部 1px 色带代替整块渐变
   &::before {
     content: '';
     position: absolute;
@@ -289,23 +288,22 @@
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in srgb, var(--brand-color) 34%, transparent),
+      color-mix(in srgb, var(--primary-color) 30%, transparent),
       transparent
     );
-    opacity: 0.55;
+    opacity: 0.6;
     pointer-events: none;
   }
 
   :global(.item-meta) {
+    min-width: 0;
+    width: 100%;
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-    width: 100%;
+    gap: 5px;
   }
 
-  // Avatar（头部左侧图标）
   :global(.provider-card-avatar) {
     position: absolute;
     top: 14px;
@@ -314,11 +312,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: color-mix(in srgb, var(--brand-color) 8%, var(--surface-2));
-    border: 1px solid color-mix(in srgb, var(--brand-color) 18%, var(--border-subtle));
-    border-radius: var(--radius-md);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
+    background: color-mix(in srgb, var(--primary-color) 6%, var(--surface-raised-strong));
+    box-shadow: 0 4px 12px -8px color-mix(in srgb, var(--primary-color) 40%, transparent);
 
     img,
     svg {
@@ -329,7 +328,6 @@
     }
   }
 
-  // 启用/禁用小徽章
   :global(.provider-card-state) {
     position: absolute;
     top: 22px;
@@ -338,29 +336,27 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 22px;
+    min-height: 24px;
     padding: 0 9px;
-    border-radius: var(--radius-pill);
-    font-size: $text-2xs;
-    font-weight: $weight-semibold;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
     line-height: 1;
-    letter-spacing: $tracking-snug;
     white-space: nowrap;
   }
 
   :global(.provider-card-state.is-enabled) {
-    color: var(--success-strong);
-    background: var(--success-bg);
-    border: 1px solid var(--success-border);
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
   }
 
   :global(.provider-card-state.is-disabled) {
-    color: var(--text-tertiary);
-    background: var(--surface-2);
-    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   }
 
-  // 三点菜单（视觉装饰）
   :global(.provider-card-menu) {
     position: absolute;
     top: 25px;
@@ -372,29 +368,29 @@
     justify-content: center;
     gap: 3px;
     width: 22px;
-    height: 24px;
-    color: var(--text-tertiary);
+    height: 26px;
+    color: #0f172a;
   }
 
   :global(.provider-card-menu span) {
     width: 3px;
     height: 3px;
-    border-radius: 50%;
+    border-radius: 999px;
     background: currentColor;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04);
   }
 
-  // 卡片标题
   :global(.item-title) {
     position: relative;
     display: flex;
     align-items: center;
     min-height: 40px;
-    margin: 0 90px 14px 52px;
-    color: var(--text-primary);
-    font-size: $text-lg;
-    font-weight: $weight-bold;
-    line-height: 1.15;
-    letter-spacing: $tracking-tight;
+    margin: 0 90px 18px 52px;
+    color: #111827;
+    font-size: 19px;
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -0.04em;
   }
 
   :global(.item-title)::after {
@@ -402,20 +398,18 @@
     position: absolute;
     left: -52px;
     right: -90px;
-    bottom: -8px;
+    bottom: -10px;
     height: 1px;
-    background: var(--border-subtle);
+    background: color-mix(in srgb, var(--border-color) 86%, transparent);
   }
 
-  // 底部按钮行
   :global(.item-actions) {
     width: 100%;
     margin-top: auto;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
+    padding-top: 11px;
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
     justify-content: flex-start;
+    align-items: center;
     gap: 7px;
     flex-wrap: nowrap;
   }
@@ -423,40 +417,99 @@
   :global(.provider-card-action.btn.btn-sm) {
     flex: 0 0 auto;
     min-width: 78px;
+    min-height: 32px;
+    padding: 0 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: 0 14px 28px -22px rgba(15, 23, 42, 0.34);
+
+    > span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      line-height: 1;
+    }
 
     svg {
-      width: 15px;
-      height: 15px;
-      stroke-width: 2.2;
+      width: 16px;
+      height: 16px;
+      stroke-width: 2.35;
     }
   }
 
+  :global(.provider-card-action-edit.btn.btn-sm) {
+    border-color: #dce2eb;
+    background: linear-gradient(180deg, #ffffff, #f9fbff);
+    color: #1f2937;
+  }
+
+  :global(.provider-card-action-delete.btn.btn-sm) {
+    border-color: #fecaca;
+    background: linear-gradient(180deg, #fff7f7, #fff1f1);
+    color: #b91c1c;
+  }
+
   &:global(.provider-card-disabled) {
-    background: color-mix(in srgb, var(--surface-2) 60%, var(--surface-1));
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: color-mix(in srgb, var(--bg-tertiary) 40%, var(--surface-raised));
     opacity: 0.78;
   }
 }
 
-// ─── Toggle（Provider card 自带开关）────────────────────────
-// Note: .providerCardToggle 用在 ToggleSwitch 上方作为外层 label
-// ToggleSwitch 本身已经 token 化，这里只需微调位置 / 颜色
 .providerCardToggle {
   flex: 0 0 auto;
   margin-left: auto;
   gap: 8px;
-  color: var(--text-primary);
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
   line-height: 1;
   white-space: nowrap;
+
+  > span:first-of-type {
+    width: 46px;
+    min-width: 46px;
+    height: 26px;
+    min-height: 26px;
+    padding: 0;
+    border: 1px solid #cbd5e1;
+    background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 10px 22px -16px rgba(15, 23, 42, 0.38);
+  }
+
+  > input:checked + span:first-of-type {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-color: #22c55e;
+    box-shadow:
+      0 14px 28px -18px rgba(34, 197, 94, 0.62),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  > span:first-of-type > span:last-child {
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    background: #fff;
+    box-shadow:
+      0 8px 16px -9px rgba(15, 23, 42, 0.52),
+      inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  }
+
+  > input:checked + span:first-of-type > span:last-child {
+    transform: translateX(20px);
+  }
 }
 
-// ─── Field Grid（紧凑双列字段） ─────────────────────────────
 .fieldGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
   gap: 7px;
+  align-items: stretch;
 }
 
 .fieldGrid .fieldRowUrl {
@@ -470,8 +523,8 @@
   gap: 9px;
   min-height: 36px;
   margin: 0;
-  font-size: $text-sm;
-  line-height: $leading-snug;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .fieldGrid .fieldRow {
@@ -482,11 +535,12 @@
   row-gap: 2px;
   min-width: 0;
   min-height: 34px;
-  padding: 7px 9px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  font-size: $text-xs;
+  padding: 7px 8px;
+  border: 1px solid #e7ecf4;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f9fbff);
+  font-size: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .fieldIcon {
@@ -495,7 +549,7 @@
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   border: 1px solid transparent;
   flex: 0 0 auto;
 
@@ -503,15 +557,15 @@
     display: block;
     width: 17px;
     height: 17px;
-    stroke-width: 2.2;
+    stroke-width: 2.35;
   }
 }
 
 .fieldGrid .fieldIcon {
   grid-row: 1 / 3;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-sm);
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
 
   svg {
     width: 13px;
@@ -522,9 +576,8 @@
 .fieldLabel {
   display: inline-flex;
   align-items: center;
-  color: var(--text-primary);
-  font-weight: $weight-semibold;
-  letter-spacing: $tracking-snug;
+  color: #111827;
+  font-weight: 900;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -532,30 +585,27 @@
 .fieldGrid .fieldLabel {
   min-width: 0;
   overflow: hidden;
-  font-size: $text-2xs;
+  font-size: 10px;
   line-height: 1;
   text-overflow: ellipsis;
-  letter-spacing: $tracking-wide;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
 }
 
 .fieldValue {
   min-width: 0;
-  color: var(--text-secondary);
-  font-weight: $weight-medium;
+  color: #475569;
+  font-weight: 650;
   word-break: break-all;
-  font-family: $font-mono;
+  font-family: 'Monaco', 'Menlo', 'Consolas', 'Ubuntu Mono', monospace;
 }
 
 .fieldGrid .fieldValue {
   overflow: hidden;
-  font-size: $text-xs;
+  font-size: 11px;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
   word-break: normal;
-  color: var(--text-primary);
 }
 
 .fieldGrid .fieldRowUrl .fieldValue {
@@ -564,44 +614,42 @@
   word-break: break-all;
 }
 
-// ─── Field icon 语义色（降档到 --*-bg） ─────────────────────
 .fieldRowKey .fieldIcon {
-  color: var(--info-strong);
-  background: var(--info-bg);
-  border-color: var(--info-border);
+  color: #6d5dfc;
+  background: linear-gradient(135deg, #f4f0ff, #f8f7ff);
+  border-color: #ebe4ff;
 }
 
 .fieldRowPriority .fieldIcon {
-  color: var(--info-strong);
-  background: var(--info-bg);
-  border-color: var(--info-border);
+  color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff, #f7fbff);
+  border-color: #dbeafe;
 }
 
 .fieldRowUrl .fieldIcon,
 .fieldRowProxy .fieldIcon {
-  color: var(--success-strong);
-  background: var(--success-bg);
-  border-color: var(--success-border);
+  color: #14b8a6;
+  background: linear-gradient(135deg, #ecfdf5, #eefbf9);
+  border-color: #d4f5ed;
 }
 
 .fieldRowPrefix .fieldIcon,
 .fieldRowOption .fieldIcon,
 .fieldRowModel .fieldIcon {
-  color: var(--brand-hover);
-  background: var(--brand-soft);
-  border-color: color-mix(in srgb, var(--brand-color) 24%, transparent);
+  color: #6476ff;
+  background: linear-gradient(135deg, #eef2ff, #f7f8ff);
+  border-color: #e0e7ff;
 }
 
-// ─── Model Count Header ─────────────────────────────────────
 .modelCountLabel {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  font-size: $text-sm;
-  font-weight: $weight-semibold;
+  font-size: 13px;
+  font-weight: 900;
   line-height: 1.2;
-  color: var(--text-secondary);
+  color: #475569;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -612,14 +660,14 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  color: var(--info-strong);
+  color: #3b82f6;
   flex: 0 0 auto;
 
   svg {
     display: block;
     width: 17px;
     height: 17px;
-    stroke-width: 2;
+    stroke-width: 2.25;
   }
 }
 
@@ -628,46 +676,46 @@
   align-items: center;
   justify-content: center;
   min-width: 26px;
-  height: 24px;
+  height: 26px;
   padding: 0 8px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
   color: var(--text-primary);
-  font-size: $text-xs;
-  font-weight: $weight-bold;
+  font-size: 13px;
+  font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
 
-// ─── Model tags ─────────────────────────────────────────────
+// 单个模型标签
 .modelTag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 26px;
+  min-height: 28px;
+  background: linear-gradient(180deg, #ffffff, #f8f9ff);
+  color: #312e81;
+  border: 1px solid #e3e7f4;
+  border-radius: 999px;
   padding: 0 11px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-  color: var(--text-primary);
-  font-size: $text-xs;
-  transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+  font-size: 12px;
+  box-shadow:
+    0 10px 22px -18px rgba(49, 46, 129, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.15s ease;
 
   &:hover {
-    background: var(--surface-3);
-    border-color: var(--border-default);
+    background: #fff;
+    border-color: #c7d2fe;
   }
 }
 
 .modelName {
-  font-weight: $weight-semibold;
+  font-weight: 900;
   color: currentColor;
 }
 
 .modelAlias {
-  color: var(--text-tertiary);
+  color: #64748b;
   font-style: italic;
 
   &::before {
@@ -675,17 +723,18 @@
   }
 }
 
-// excluded 模型（警告）
+// 排除模型标签（警告色）
 .excludedModelTag {
-  color: var(--warning-strong);
-  background: var(--warning-bg);
-  border-color: var(--warning-border);
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
 
   .modelName {
     color: currentColor;
   }
 }
 
+// 排除模型区块
 .excludedModelsSection {
   margin-top: 8px;
 
@@ -697,36 +746,24 @@
 }
 
 .excludedModelsLabel {
+  font-size: 12px;
+  font-weight: 900;
+  color: #9a3412;
   margin-bottom: 6px;
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
-  color: var(--warning-strong);
-  letter-spacing: $tracking-snug;
 }
 
-.modelTagList {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-subtle);
-}
-
-// ─── API Key entries section ───────────────────────────────
+// API密钥条目列表（二级卡片）
 .apiKeyEntriesSection {
   margin-top: 10px;
   padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
 }
 
 .apiKeyEntriesLabel {
+  font-size: 12px;
+  font-weight: 900;
+  color: #475569;
   margin-bottom: 10px;
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
-  color: var(--text-secondary);
-  letter-spacing: $tracking-snug;
-  text-transform: uppercase;
 }
 
 .apiKeyEntryList {
@@ -741,10 +778,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  font-size: $text-xs;
+  background: linear-gradient(180deg, #fbfdff, #f7f9fd);
+  border: 1px solid #e4eaf2;
+  border-radius: 14px;
+  font-size: 12px;
 }
 
 .apiKeyEntryIndex {
@@ -754,27 +791,27 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--brand-color);
-  color: var(--text-on-brand);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
+  background: linear-gradient(135deg, #6476ff, #5865f2);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
 .apiKeyEntryKey {
-  font-family: $font-mono;
-  font-weight: $weight-semibold;
-  color: var(--text-primary);
+  font-family: 'Monaco', 'Menlo', 'Consolas', 'Ubuntu Mono', monospace;
+  font-weight: 600;
+  color: #1f2937;
   word-break: break-all;
 }
 
 .apiKeyEntryProxy {
-  font-size: $text-2xs;
-  color: var(--text-tertiary);
+  color: #64748b;
+  font-size: 11px;
 
   &::before {
     content: '| Proxy: ';
-    color: var(--text-disabled);
+    color: var(--text-quaternary);
   }
 }
 
@@ -789,9 +826,9 @@
   align-items: center;
   gap: 3px;
   padding: 3px 7px;
-  border-radius: var(--radius-pill);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
 
   svg {
     display: block;
@@ -799,22 +836,23 @@
 }
 
 .apiKeyEntryStatSuccess {
-  background: var(--success-bg);
-  color: var(--success-strong);
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .apiKeyEntryStatFailure {
-  background: var(--danger-bg);
-  color: var(--danger-strong);
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
-// ─── Model discovery (OpenAI 二级界面) ──────────────────────
+// OpenAI 模型发现（二级界面）
 .modelDiscoveryList {
   display: flex;
   flex-direction: column;
   gap: 6px;
   max-height: 360px;
   overflow-y: auto;
+  margin-top: 0;
   padding-right: 4px;
 }
 
@@ -824,13 +862,13 @@
   gap: 8px;
   width: 100%;
   padding: 8px 10px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
   cursor: pointer;
   transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+    background 0.15s ease,
+    border-color 0.15s ease;
 
   input[type='checkbox'] {
     margin-top: 2px;
@@ -838,8 +876,8 @@
   }
 
   &:hover {
-    background: var(--surface-2);
-    border-color: var(--border-default);
+    border-color: var(--primary-color);
+    background: var(--bg-secondary);
   }
 }
 
@@ -849,8 +887,8 @@
 }
 
 .modelDiscoveryRowSelected {
-  background: var(--brand-soft);
-  border-color: color-mix(in srgb, var(--brand-color) 36%, transparent);
+  border-color: var(--primary-color);
+  background: var(--bg-tertiary);
 }
 
 .modelDiscoveryMeta {
@@ -860,7 +898,7 @@
 }
 
 .modelDiscoveryName {
-  font-weight: $weight-semibold;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -871,7 +909,7 @@
 }
 
 .modelDiscoveryDesc {
-  font-size: $text-xs;
+  font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.4;
 }
@@ -880,35 +918,35 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $space-sm;
+  gap: $spacing-sm;
   flex-wrap: wrap;
 }
 
 .modelDiscoveryToolbarActions {
   display: flex;
   align-items: center;
-  gap: $space-xs;
+  gap: $spacing-xs;
   flex-wrap: wrap;
 }
 
 .modelDiscoverySelectionSummary {
-  font-size: $text-xs;
+  font-size: 12px;
   color: var(--text-tertiary);
   line-height: 1.4;
 }
 
 .openaiTestButtonSuccess {
-  background: var(--success-bg);
-  border-color: var(--success-border);
-  color: var(--success-strong);
+  background-color: var(--success-badge-bg, #d1fae5);
+  border-color: var(--success-badge-border, #6ee7b7);
+  color: var(--success-badge-text, #065f46);
 
   &:hover {
-    background: var(--success-bg);
-    border-color: var(--success-strong);
+    background-color: var(--success-badge-bg, #d1fae5);
+    border-color: var(--success-badge-border, #6ee7b7);
   }
 }
 
-// ─── Status bar（底部成功率历史 block） ─────────────────────
+// 状态监测栏
 .statusBar {
   display: flex;
   align-items: center;
@@ -916,44 +954,48 @@
   width: 100%;
   margin-top: 8px;
   padding: 9px 11px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  max-width: none;
+  border: 1px solid #e0e6ef;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #ffffff, #fbfcff);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 12px 28px -24px rgba(15, 23, 42, 0.3);
 }
 
 .statusBlocks {
-  position: relative;
   display: flex;
+  gap: 4px;
   flex: 1;
-  gap: 3px;
   min-width: 0;
+  position: relative;
 }
 
 .statusBlockWrapper {
-  position: relative;
   flex: 1;
   min-width: 4px;
+  position: relative;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .statusBlock {
   width: 100%;
-  height: 14px;
-  border-radius: var(--radius-pill);
+  height: 16px;
+  border-radius: 999px;
   transition:
-    transform var(--duration-fast) var(--ease-standard),
-    opacity var(--duration-fast) var(--ease-standard);
+    transform 0.15s ease,
+    opacity 0.15s ease;
 
   .statusBlockWrapper:hover &,
   .statusBlockWrapper.statusBlockActive & {
-    transform: scaleY(1.6);
+    transform: scaleY(1.8);
     opacity: 0.9;
   }
 }
 
 .statusBlockIdle {
-  background: var(--surface-sunken);
+  background: linear-gradient(180deg, #eef2f7, #e6ebf2);
 }
 
 .statusTooltip {
@@ -961,18 +1003,19 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  z-index: $z-dropdown;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 8px 10px;
-  background: var(--surface-4);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: var(--elevation-3);
-  font-size: $text-2xs;
+  font-size: 11px;
   line-height: 1.5;
   white-space: nowrap;
-  color: var(--text-primary);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
+  z-index: $z-dropdown;
   pointer-events: none;
+  color: var(--text-primary);
 
+  // 小箭头
   &::after {
     content: '';
     position: absolute;
@@ -980,7 +1023,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: var(--surface-4);
+    border-top-color: var(--bg-primary, #fff);
   }
 
   &::before {
@@ -990,7 +1033,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: var(--border-default);
+    border-top-color: var(--border-secondary, #e5e7eb);
   }
 }
 
@@ -1020,9 +1063,9 @@
 }
 
 .tooltipTime {
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 2px;
-  color: var(--text-tertiary);
 }
 
 .tooltipStats {
@@ -1032,16 +1075,16 @@
 }
 
 .tooltipSuccess {
-  color: var(--success-strong);
+  color: var(--success-color, #22c55e);
 }
 
 .tooltipFailure {
-  color: var(--danger-strong);
+  color: var(--danger-color, #ef4444);
 }
 
 .tooltipRate {
+  color: var(--text-secondary);
   margin-left: 2px;
-  color: var(--text-tertiary);
 }
 
 .statusRate {
@@ -1051,39 +1094,52 @@
   justify-content: center;
   gap: 4px;
   min-width: 52px;
-  height: 32px;
-  font-size: $text-xs;
-  font-weight: $weight-bold;
+  height: 34px;
+  font-size: 12px;
+  font-weight: 900;
   white-space: nowrap;
-  color: var(--text-tertiary);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #64748b;
 
   strong {
     display: block;
     color: currentColor;
-    font-size: $text-md;
+    font-size: 17px;
     line-height: 1;
-    letter-spacing: $tracking-tight;
+    letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
   }
 
   small {
     display: block;
-    color: var(--text-tertiary);
-    font-size: $text-2xs;
-    font-weight: $weight-semibold;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
     line-height: 1;
   }
 }
 
-.statusRateHigh   { color: var(--success-strong); }
-.statusRateMedium { color: var(--warning-strong); }
-.statusRateLow    { color: var(--danger-strong); }
+.statusRateHigh {
+  color: #16a34a;
+  background: transparent;
+}
 
-// ─── Mobile ─────────────────────────────────────────────────
+.statusRateMedium {
+  color: #d97706;
+  background: transparent;
+}
+
+.statusRateLow {
+  color: #dc2626;
+  background: transparent;
+}
+
 @include mobile {
   .providerSectionAnchor {
     :global(.card) {
-      border-radius: var(--radius-lg);
+      border-radius: 12px;
       padding: 14px;
     }
 
@@ -1099,78 +1155,88 @@
 
   .providerConfigItem {
     padding: 14px;
-    border-radius: var(--radius-lg);
+    border-radius: 12px;
     gap: 12px;
 
     :global(.provider-card-avatar) {
       top: 12px;
       left: 12px;
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
 
       img,
       svg {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
       }
     }
 
     :global(.provider-card-state) {
       top: 20px;
       right: 44px;
-      min-height: 22px;
+      min-height: 24px;
       padding: 0 9px;
-      font-size: $text-2xs;
+      font-size: 11px;
     }
 
     :global(.provider-card-menu) {
-      top: 20px;
+      top: 19px;
       right: 14px;
       width: 20px;
       height: 26px;
     }
 
     :global(.item-title) {
-      min-height: 36px;
-      margin: 0 92px 18px 48px;
-      font-size: $text-md;
+      min-height: 38px;
+      margin: 0 92px 20px 50px;
+      font-size: 18px;
     }
 
     :global(.item-title)::after {
-      left: -48px;
+      left: -50px;
       right: -92px;
-      bottom: -9px;
+      bottom: -11px;
     }
 
     :global(.item-actions) {
-      gap: 6px;
-      padding-top: 10px;
+      gap: 7px;
+      padding-top: 12px;
     }
 
     :global(.provider-card-action.btn.btn-sm) {
-      min-width: 72px;
+      min-width: 74px;
+      min-height: 34px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 12px;
+
+      > span {
+        gap: 7px;
+      }
 
       svg {
-        width: 14px;
-        height: 14px;
+        width: 15px;
+        height: 15px;
       }
     }
   }
 
   .fieldRow {
-    grid-template-columns: 30px minmax(52px, max-content) minmax(0, 1fr);
+    grid-template-columns: 32px minmax(52px, max-content) minmax(0, 1fr);
     gap: 8px;
-    min-height: 32px;
-    font-size: $text-xs;
+    min-height: 34px;
+    font-size: 12px;
   }
 
   .fieldIcon {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
 
     svg {
-      width: 15px;
-      height: 15px;
+      width: 16px;
+      height: 16px;
     }
   }
 
@@ -1188,17 +1254,26 @@
     column-gap: 5px;
     row-gap: 1px;
     padding: 6px 7px;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
 
   .fieldGrid .fieldIcon {
     width: 22px;
     height: 22px;
+    border-radius: 7px;
 
     svg {
       width: 12px;
       height: 12px;
     }
+  }
+
+  .fieldGrid .fieldLabel {
+    font-size: 9px;
+  }
+
+  .fieldGrid .fieldValue {
+    font-size: 10px;
   }
 
   .modelTagList {
@@ -1209,73 +1284,130 @@
 
   .modelCountLabel {
     gap: 8px;
-    font-size: $text-xs;
+    font-size: 12px;
+  }
+
+  .modelCountIcon {
+    width: 20px;
+    height: 20px;
   }
 
   .modelCountBadge {
-    min-width: 24px;
-    height: 22px;
+    min-width: 26px;
+    height: 26px;
     padding: 0 8px;
-    font-size: $text-xs;
+    font-size: 13px;
   }
 
   .modelTag {
-    min-height: 26px;
+    min-height: 28px;
     padding: 0 10px;
-    font-size: $text-2xs;
+    font-size: 11px;
   }
 
   .statusBar {
     gap: 8px;
     padding: 8px;
-    border-radius: var(--radius-md);
+    border-radius: 12px;
+  }
+
+  .statusBlocks {
+    gap: 4px;
   }
 
   .statusBlock {
-    height: 12px;
+    height: 14px;
   }
 
   .statusRate {
     min-width: 46px;
-    height: 30px;
+    height: 32px;
 
     strong {
-      font-size: $text-sm;
+      font-size: 15px;
     }
 
     small {
-      font-size: $text-2xs;
+      font-size: 10px;
     }
+  }
+
+  .providerCardToggle {
+    gap: 7px;
+    font-size: 12px;
+
+    > span:first-of-type {
+      width: 44px;
+      min-width: 44px;
+      height: 24px;
+      min-height: 24px;
+    }
+
+    > span:first-of-type > span:last-child {
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+    }
+
+    > input:checked + span:first-of-type > span:last-child {
+      transform: translateX(20px);
+    }
+  }
+
+  .statusTooltip {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .statusBlocks {
+    min-width: 0;
   }
 }
 
 @media (max-width: 420px) {
   .providerConfigItem {
+    padding: 14px;
+
+    :global(.provider-card-avatar) {
+      top: 14px;
+      left: 14px;
+    }
+
     :global(.provider-card-state) {
       top: 18px;
       right: 40px;
-      min-height: 20px;
+      min-height: 23px;
       padding: 0 8px;
-      font-size: $text-2xs;
+      font-size: 10px;
     }
 
     :global(.provider-card-menu) {
-      top: 18px;
+      top: 16px;
       right: 12px;
     }
 
     :global(.item-title) {
-      margin: 0 82px 16px 46px;
-      font-size: $text-base;
+      margin: 0 82px 19px 48px;
+      font-size: 17px;
     }
 
     :global(.item-title)::after {
-      left: -46px;
+      left: -48px;
       right: -82px;
+      bottom: -10px;
+    }
+
+    :global(.item-actions) {
+      gap: 6px;
     }
 
     :global(.provider-card-action.btn.btn-sm) {
-      min-width: 64px;
+      min-width: 68px;
+      min-height: 32px;
+      padding: 0 9px;
+      border-radius: 999px;
+      font-size: 11px;
     }
   }
 
@@ -1288,16 +1420,281 @@
   .fieldGrid .fieldRowUrl {
     grid-column: auto;
   }
+
+  .providerCardToggle {
+    gap: 6px;
+    font-size: 11px;
+
+    > span:first-of-type {
+      width: 40px;
+      min-width: 40px;
+      height: 22px;
+      min-height: 22px;
+    }
+
+    > span:first-of-type > span:last-child {
+      width: 18px;
+      height: 18px;
+    }
+
+    > input:checked + span:first-of-type > span:last-child {
+      transform: translateX(18px);
+    }
+  }
+}
+
+:global([data-theme='dark']) {
+  // dark 模式 card/header 已通过 --surface-raised / --border-color / --shadow-card 自动跟随
+  // 这里只做 provider 内部细节的微调
+
+  .providerConfigItem {
+    // 跟随 --surface-raised 变色，去掉原来 3 层渐变 + 高光 inset
+    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+
+    :global(.provider-card-avatar) {
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+      background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-raised-strong));
+      box-shadow: 0 4px 12px -8px rgba(0, 0, 0, 0.56);
+    }
+
+    :global(.provider-card-state.is-enabled) {
+      color: var(--success-badge-text);
+      background: var(--success-badge-bg);
+      border-color: var(--success-badge-border);
+    }
+
+    :global(.provider-card-state.is-disabled) {
+      color: var(--text-secondary);
+      background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+    }
+
+    :global(.provider-card-menu) {
+      color: var(--text-secondary);
+    }
+
+    :global(.item-title) {
+      color: var(--text-primary);
+    }
+
+    :global(.item-title)::after {
+      background: color-mix(in srgb, var(--border-color) 60%, transparent);
+    }
+
+    :global(.item-actions) {
+      border-top-color: color-mix(in srgb, var(--border-color) 60%, transparent);
+    }
+
+    :global(.provider-card-action-edit.btn.btn-sm) {
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+      background: var(--surface-raised-strong);
+      color: var(--text-primary);
+      box-shadow:
+        0 14px 28px -20px rgba(0, 0, 0, 0.74),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    :global(.provider-card-action-delete.btn.btn-sm) {
+      border-color: color-mix(in srgb, var(--danger-color) 60%, transparent);
+      background: color-mix(in srgb, var(--danger-color) 18%, var(--surface-raised));
+      color: var(--warning-text);
+    }
+
+    &:global(.provider-card-disabled) {
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+      background: color-mix(in srgb, var(--bg-tertiary) 40%, var(--surface-raised));
+      opacity: 0.78;
+    }
+  }
+
+  .fieldIcon {
+    border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+  }
+
+  .fieldRowKey .fieldIcon {
+    color: #a78bfa;
+    background: color-mix(in srgb, #6d5dfc 14%, transparent);
+  }
+
+  .fieldRowPriority .fieldIcon {
+    color: #93c5fd;
+    background: color-mix(in srgb, #3b82f6 13%, transparent);
+  }
+
+  .fieldRowUrl .fieldIcon,
+  .fieldRowProxy .fieldIcon {
+    color: #5eead4;
+    background: color-mix(in srgb, #14b8a6 12%, transparent);
+  }
+
+  .fieldRowPrefix .fieldIcon,
+  .fieldRowOption .fieldIcon,
+  .fieldRowModel .fieldIcon {
+    color: #a5b4fc;
+    background: color-mix(in srgb, #6366f1 13%, transparent);
+  }
+
+  .fieldLabel {
+    color: var(--text-primary);
+  }
+
+  .fieldValue,
+  .apiKeyEntryKey {
+    color: var(--text-secondary);
+  }
+
+  .headerBadge {
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+
+    strong {
+      color: #f1ede8;
+    }
+  }
+
+  .modelTagList,
+  .apiKeyEntriesSection {
+    border-top-color: rgba(78, 71, 64, 0.72);
+  }
+
+  .modelCountLabel,
+  .apiKeyEntriesLabel {
+    color: #d8d1c8;
+  }
+
+  .modelCountIcon {
+    color: #93c5fd;
+  }
+
+  .modelCountBadge {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f7f3ee;
+  }
+
+  .modelTag {
+    color: #c7d2fe;
+    background: linear-gradient(180deg, rgba(49, 46, 129, 0.3), rgba(37, 33, 86, 0.22));
+    border-color: rgba(129, 140, 248, 0.24);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 10px 24px -20px rgba(0, 0, 0, 0.6);
+  }
+
+  .modelAlias {
+    color: #a9a29a;
+  }
+
+  .excludedModelTag {
+    background: rgba(249, 115, 22, 0.14);
+    border-color: rgba(251, 146, 60, 0.28);
+    color: #fdba74;
+  }
+
+  .excludedModelsLabel {
+    color: #fdba74;
+  }
+
+  .apiKeyEntryCard {
+    background: linear-gradient(180deg, #25221e, #211e1a);
+    border-color: rgba(88, 80, 72, 0.78);
+  }
+
+  .apiKeyEntryProxy {
+    color: #9c958d;
+  }
+
+  .apiKeyEntryStatSuccess {
+    color: #86efac;
+    background: rgba(16, 185, 129, 0.16);
+    border-color: rgba(52, 211, 153, 0.28);
+  }
+
+  .apiKeyEntryStatFailure {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+
+  .statusBar {
+    border-color: rgba(79, 72, 65, 0.94);
+    background: linear-gradient(180deg, #211e1a, #191714);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.62),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+      0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .statusBlockIdle {
+    background: linear-gradient(180deg, #474038, #39342f);
+  }
+
+  .statusTooltip {
+    color: #f3eee8;
+    background: #26221e;
+    border-color: rgba(92, 84, 75, 0.9);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.48);
+
+    &::after {
+      border-top-color: #26221e;
+    }
+
+    &::before {
+      border-top-color: rgba(92, 84, 75, 0.9);
+    }
+  }
+
+  .statusRate {
+    color: #bdb5aa;
+    background: transparent;
+
+    small {
+      color: #a9a29a;
+    }
+  }
+
+  .statusRateHigh {
+    color: #86efac;
+  }
+
+  .statusRateMedium {
+    color: #facc15;
+  }
+
+  .statusRateLow {
+    color: #fca5a5;
+  }
+
+  .providerCardToggle {
+    color: #f1ede8;
+
+    > span:first-of-type {
+      border-color: rgba(89, 81, 72, 0.92);
+      background: linear-gradient(180deg, #35302a 0%, #28241f 100%);
+      box-shadow:
+        0 14px 28px -22px rgba(0, 0, 0, 0.82),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.34);
+    }
+
+    > input:checked + span:first-of-type {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border-color: rgba(52, 211, 153, 0.78);
+      box-shadow:
+        0 15px 30px -20px rgba(34, 197, 94, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    }
+  }
 }
 
 // ============================================
-// Model config section · OpenAI Edit 用
+// Model Config Section - Unified Layout
 // ============================================
 
 .openaiEditForm {
   display: flex;
   flex-direction: column;
-  gap: $space-md;
+  gap: $spacing-md;
 
   :global(.form-group) {
     margin-bottom: 0;
@@ -1315,15 +1712,15 @@
 
 .sectionHint {
   margin: 0;
-  font-size: $text-sm;
-  line-height: $leading-snug;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--text-secondary);
 }
 
 .openaiModelsContent {
   display: flex;
   flex-direction: column;
-  gap: $space-md;
+  gap: $spacing-md;
 
   :global(.form-group) {
     margin-bottom: 0;
@@ -1333,20 +1730,20 @@
 .openaiModelsEndpointSection {
   display: flex;
   flex-direction: column;
-  gap: $space-xs;
+  gap: $spacing-xs;
 }
 
 .openaiModelsEndpointLabel {
   display: block;
   margin: 0;
-  font-weight: $weight-semibold;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
 .openaiModelsEndpointControls {
   display: flex;
   align-items: center;
-  gap: $space-sm;
+  gap: $spacing-sm;
 
   @include mobile {
     flex-direction: column;
@@ -1360,17 +1757,17 @@
 }
 
 .modelConfigSection {
-  margin-bottom: $space-md;
+  margin-bottom: $spacing-md;
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
+  gap: $spacing-sm;
 }
 
 .modelConfigHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $space-sm;
+  gap: $spacing-sm;
   flex-wrap: wrap;
 
   @include mobile {
@@ -1380,15 +1777,15 @@
 
 .modelConfigTitle {
   margin: 0;
-  font-weight: $weight-semibold;
+  font-weight: 600;
   color: var(--text-primary);
-  line-height: $leading-snug;
+  line-height: 1.5;
 }
 
 .modelConfigToolbar {
   display: flex;
   align-items: center;
-  gap: $space-xs;
+  gap: $spacing-xs;
   flex-wrap: wrap;
   justify-content: flex-end;
 
@@ -1403,22 +1800,31 @@
 }
 
 .modelInputList {
-  gap: $space-xs;
+  gap: $spacing-xs;
 }
 
 .modelInputRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  gap: $spacing-sm;
   align-items: center;
-  gap: $space-sm;
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr) auto;
-    row-gap: $space-xs;
+    row-gap: $spacing-xs;
 
-    > :nth-child(2) { display: none; }
-    > :nth-child(3) { grid-column: 1 / 3; }
-    > :nth-child(4) { grid-column: 2 / 3; grid-row: 1 / 2; }
+    > :nth-child(2) {
+      display: none;
+    }
+
+    > :nth-child(3) {
+      grid-column: 1 / 3;
+    }
+
+    > :nth-child(4) {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+    }
   }
 }
 
@@ -1434,11 +1840,12 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: $space-md;
-  padding: $space-sm $space-md;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  gap: $spacing-md;
+  margin-top: 0;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  background: var(--bg-secondary);
 
   @include mobile {
     flex-direction: column;
@@ -1454,23 +1861,23 @@
 }
 
 .modelTestLabel {
-  font-size: $text-sm;
-  font-weight: $weight-semibold;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-secondary);
-  line-height: $leading-snug;
+  line-height: 1.5;
 }
 
 .modelTestHint {
-  font-size: $text-xs;
+  font-size: 12px;
   color: var(--text-tertiary);
-  line-height: $leading-snug;
+  line-height: 1.5;
 }
 
 .modelTestControls {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: $space-xs;
+  gap: $spacing-xs;
   flex: 1;
   min-width: 0;
 
@@ -1480,104 +1887,108 @@
 }
 
 // ============================================
-// Key Entry · Table layout
+// Key Entry Styles - Table Design
 // ============================================
 
 .keyEntriesSection {
+  margin-bottom: 0;
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
+  gap: $spacing-sm;
 }
 
 .keyEntriesHeader {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-bottom: 0;
 }
 
 .keyEntriesTitle {
   display: block;
   margin: 0;
-  font-weight: $weight-semibold;
+  font-weight: 600;
   color: var(--text-primary);
-  line-height: $leading-snug;
+  line-height: 1.5;
 }
 
 .keyEntriesHint {
-  font-size: $text-sm;
-  line-height: $leading-snug;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--text-secondary);
 }
 
 .keyEntriesList {
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
+  gap: $spacing-sm;
 }
 
 .keyEntriesToolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $space-sm;
+  gap: $spacing-sm;
   flex-wrap: wrap;
 }
 
 .keyEntriesCount {
-  font-size: $text-sm;
-  font-weight: $weight-semibold;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-secondary);
 }
 
 .keyTableShell {
   overflow-x: auto;
-  border-radius: var(--radius-md);
+  border-radius: $radius-md;
 }
 
+// 表头
 .keyTableHeader {
   display: grid;
   grid-template-columns: 46px 56px minmax(220px, 1.4fr) minmax(200px, 1.1fr) 180px;
-  gap: $space-sm;
+  gap: $spacing-sm;
   min-width: 760px;
-  padding: 10px $space-md;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
+  padding: 10px $spacing-md;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-bottom: none;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-radius: $radius-md $radius-md 0 0;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-secondary);
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
-  letter-spacing: $tracking-caps;
-  text-transform: uppercase;
+  text-transform: none;
   align-items: center;
   text-align: center;
 }
 
+// 数据行
 .keyTableRow {
   display: grid;
   grid-template-columns: 46px 56px minmax(220px, 1.4fr) minmax(200px, 1.1fr) 180px;
-  gap: $space-sm;
+  gap: $spacing-sm;
   min-width: 760px;
-  padding: 10px $space-md;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
+  padding: 10px $spacing-md;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-top: none;
   align-items: center;
 
   &:last-child {
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    border-radius: 0 0 $radius-md $radius-md;
   }
 
   &:hover {
-    background: var(--surface-2);
+    background: var(--bg-tertiary);
   }
 }
 
+// 列定义
 .keyTableColIndex {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: $weight-semibold;
+  font-weight: 600;
   color: var(--text-tertiary);
 }
 
@@ -1593,17 +2004,17 @@
 
 .keyTableColKey,
 .keyTableColProxy {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 0;
 }
 
 .keyTableColAction {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-xs;
+  gap: $spacing-xs;
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -1611,8 +2022,8 @@
 .keyTableInput {
   width: 100%;
   padding: 8px 10px;
-  font-size: $text-sm;
-  min-height: 34px;
+  font-size: 14px;
+  min-height: 38px;
   text-align: center;
 }
 
@@ -1643,31 +2054,94 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
 .statusIconSpin {
-  animation: ai-providers-spin 1s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
-.headerBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-  color: var(--text-secondary);
-  font-size: $text-xs;
-
-  strong {
-    color: var(--text-primary);
-    font-weight: $weight-semibold;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes ai-providers-spin {
-  to { transform: rotate(360deg); }
+// 暗色主题适配
+:global([data-theme='dark']) {
+  .headerBadge {
+    background: rgba(45, 41, 37, 0.9);
+    border-color: rgba(88, 80, 72, 0.84);
+    color: #c9c1b7;
+
+    strong {
+      color: #f1ede8;
+    }
+  }
+
+  .modelTag {
+    color: #c7d2fe;
+    background: linear-gradient(180deg, rgba(49, 46, 129, 0.3), rgba(37, 33, 86, 0.22));
+    border-color: rgba(129, 140, 248, 0.24);
+  }
+
+  .excludedModelTag {
+    background: rgba($warning-color, 0.22);
+    border-color: rgba($warning-color, 0.55);
+    color: var(--warning-color);
+
+    .modelName {
+      color: var(--warning-color);
+    }
+  }
+
+  .excludedModelsLabel {
+    color: var(--warning-color);
+  }
+
+  .apiKeyEntryCard {
+    background: var(--bg-tertiary);
+    border-color: var(--border-primary);
+  }
+
+  .apiKeyEntryIndex {
+    background: var(--primary-color);
+  }
+
+  .statusBlockIdle {
+    background: linear-gradient(180deg, #474038, #39342f);
+  }
+
+  .statusTooltip {
+    background: var(--bg-secondary, #1f2937);
+    border-color: var(--border-primary, #374151);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    &::after {
+      border-top-color: var(--bg-secondary, #1f2937);
+    }
+
+    &::before {
+      border-top-color: var(--border-primary, #374151);
+    }
+  }
+
+  .statusRateHigh {
+    background: transparent;
+    color: #86efac;
+  }
+
+  .statusRateMedium {
+    background: transparent;
+    color: #fde68a;
+  }
+
+  .statusRateLow {
+    background: transparent;
+    color: #f1b0a6;
+  }
 }

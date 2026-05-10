@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconSettings, IconTrash2 } from '@/components/ui/icons';
-import { cx } from '@/utils/cx';
 
 interface ProviderListProps<T> {
   items: T[];
@@ -50,17 +49,19 @@ export function ProviderList<T>({
     return <EmptyState title={emptyTitle} description={emptyDescription} />;
   }
 
-  const listClasses = cx('item-list', listClassName);
+  const listClasses = ['item-list', listClassName].filter(Boolean).join(' ');
 
   return (
     <div className={listClasses}>
       {items.map((item, index) => {
         const rowDisabled = getRowDisabled ? getRowDisabled(item, index) : false;
-        const rowClasses = cx(
+        const rowClasses = [
           'item-row',
           rowClassName,
-          rowDisabled ? 'provider-card-disabled' : 'provider-card-enabled'
-        );
+          rowDisabled ? 'provider-card-disabled' : 'provider-card-enabled',
+        ]
+          .filter(Boolean)
+          .join(' ');
         const statusLabel = rowDisabled
           ? t('ai_providers.config_disabled_badge')
           : t('ai_providers.config_enabled_badge', {
@@ -86,7 +87,7 @@ export function ProviderList<T>({
             <div className="item-meta">{renderContent(item, index)}</div>
             <div className="item-actions">
               <Button
-                variant="subtle"
+                variant="secondary"
                 size="sm"
                 onClick={() => onEdit(index)}
                 disabled={actionsDisabled}
@@ -96,7 +97,7 @@ export function ProviderList<T>({
                 <span>{t('common.edit')}</span>
               </Button>
               <Button
-                variant="danger-subtle"
+                variant="danger"
                 size="sm"
                 onClick={() => onDelete(index)}
                 disabled={actionsDisabled}

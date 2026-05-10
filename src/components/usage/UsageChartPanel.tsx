@@ -16,7 +16,6 @@ import {
 import { Line } from 'react-chartjs-2';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { cx } from '@/utils/cx';
 import type { ChartData } from '@/utils/usage';
 import { getHourChartMinWidth } from '@/utils/usage/chartConfig';
 import styles from './UsageCharts.module.scss';
@@ -101,7 +100,7 @@ export const UsageChartPanel = memo(function UsageChartPanel({
 
   return (
     <Card
-      className={cx(styles.panelCard, toneClassName, className)}
+      className={[styles.panelCard, toneClassName, className].filter(Boolean).join(' ')}
       title={
         <div className={styles.panelHeading}>
           <span className={styles.panelTitle}>{title}</span>

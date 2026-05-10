@@ -5,7 +5,6 @@ import {
   loadApiKeysPage,
   loadAiProvidersPage,
   loadAuthFilesPage,
-  loadChatPage,
   loadConfigPage,
   loadDashboardPage,
   loadRequestLogsPage,
@@ -75,7 +74,6 @@ const LazyAiProvidersVertexEditPage = lazyNamed(
   'AiProvidersVertexEditPage'
 );
 const LazyAuthFilesPage = lazyNamed(loadAuthFilesPage, 'AuthFilesPage');
-const LazyChatPage = lazyNamed(loadChatPage, 'ChatPage');
 const LazyAuthFilesOAuthExcludedEditPage = lazyNamed(
   () => import('@/pages/AuthFilesOAuthExcludedEditPage'),
   'AuthFilesOAuthExcludedEditPage'
@@ -97,7 +95,6 @@ const mainRoutes = [
   { path: '/dashboard', element: renderLazyPage(LazyDashboardPage) },
   { path: '/settings', element: <Navigate to="/config" replace /> },
   { path: '/api-keys', element: renderLazyPage(LazyApiKeysPage) },
-  { path: '/chat', element: renderLazyPage(LazyChatPage) },
   { path: '/ai-providers/gemini/new', element: renderLazyPage(LazyAiProvidersGeminiEditPage) },
   { path: '/ai-providers/gemini/:index', element: renderLazyPage(LazyAiProvidersGeminiEditPage) },
   { path: '/ai-providers/codex/new', element: renderLazyPage(LazyAiProvidersCodexEditPage) },

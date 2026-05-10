@@ -1,15 +1,5 @@
 @use '../styles/mixins' as *;
 
-// ============================================================
-// LogsPage · Linear 风重构
-// ------------------------------------------------------------
-// 原则：
-//   1. 颜色全部走 token（--brand-*, --info-*, --success-*, --warning-*, --danger-*）
-//   2. Badge / pill 统一用 4 元组（fg/bg/border/strong）
-//   3. Long list：contain + content-visibility 保留
-//   4. 字号使用 $text-* token，font-weight 用 $weight-*
-// ============================================================
-
 .container {
   width: 100%;
   flex: 1;
@@ -24,36 +14,34 @@
 }
 
 .pageTitle {
-  margin: 0 0 $space-md;
-  color: var(--text-primary);
   font-size: clamp(20px, 1.2vw + 14px, 24px);
-  font-weight: $weight-bold;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0 0 $spacing-md 0;
   line-height: 1.2;
-  letter-spacing: $tracking-tight;
 }
 
-// ─── Tabs ───────────────────────────────────────────────────
 .tabBar {
   display: flex;
-  gap: $space-xs;
-  margin-bottom: $space-md;
-  border-bottom: 1px solid var(--border-subtle);
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tabItem {
   @include button-reset;
   padding: 10px 16px;
-  margin-bottom: -1px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
   background: transparent;
   border-bottom: 2px solid transparent;
-  color: var(--text-secondary);
-  font-size: $text-sm;
-  font-weight: $weight-semibold;
-  letter-spacing: $tracking-snug;
+  margin-bottom: -1px;
   cursor: pointer;
   transition:
-    color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+    color 0.15s ease,
+    border-color 0.15s ease;
 
   &:hover {
     color: var(--text-primary);
@@ -67,20 +55,19 @@
 }
 
 .tabActive {
-  color: var(--brand-color);
-  border-bottom-color: var(--brand-color);
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
 }
 
-// ─── Content ────────────────────────────────────────────────
 .content {
   display: flex;
   flex-direction: column;
+  gap: $spacing-lg;
   flex: 1;
-  gap: $space-lg;
   min-height: 0;
 
   @include mobile {
-    gap: $space-md;
+    gap: $spacing-md;
     min-height: auto;
   }
 }
@@ -99,11 +86,10 @@
   }
 }
 
-// ─── Toolbar / Filters ──────────────────────────────────────
 .toolbar {
   display: flex;
   align-items: center;
-  gap: $space-sm;
+  gap: $spacing-sm;
   flex-wrap: wrap;
   margin-left: auto;
 
@@ -117,17 +103,17 @@
 .filters {
   display: flex;
   align-items: center;
-  gap: $space-md;
+  gap: $spacing-md;
   flex-wrap: wrap;
-  margin-bottom: $space-md;
+  margin-bottom: $spacing-md;
 
   :global(.form-group) {
     margin: 0;
   }
 
   @include mobile {
-    gap: $space-sm;
-    margin-bottom: $space-sm;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-sm;
   }
 }
 
@@ -157,23 +143,22 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: var(--brand-soft);
-  border-radius: var(--radius-pill);
-  color: var(--brand-hover);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
+  border-radius: $radius-full;
+  background: rgba($primary-color, 0.12);
+  color: var(--primary-color);
+  font-size: 12px;
   line-height: 1.2;
 }
 
 .structuredFilters {
   display: flex;
   flex-direction: column;
-  flex: 1 1 100%;
   gap: 8px;
-  padding: 10px 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  flex: 1 1 100%;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
 }
 
 .filterChipGroup {
@@ -184,21 +169,19 @@
 }
 
 .filterChipLabel {
-  min-width: 68px;
-  color: var(--text-tertiary);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 700;
   line-height: 28px;
-  letter-spacing: $tracking-caps;
-  text-transform: uppercase;
+  min-width: 68px;
 }
 
 .filterChipList {
   display: flex;
   align-items: center;
-  flex: 1;
   gap: 6px;
   flex-wrap: wrap;
+  flex: 1;
 }
 
 .filterChip {
@@ -207,26 +190,25 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  max-width: 280px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border-radius: $radius-full;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: $text-2xs;
+  font-size: 12px;
   line-height: 1.3;
+  cursor: pointer;
+  max-width: 280px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
   transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard);
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
-    border-color: var(--border-hover);
-    background: var(--surface-2);
+    border-color: var(--primary-color);
   }
 
   &:disabled {
@@ -236,20 +218,14 @@
 }
 
 .filterChipActive {
-  color: var(--brand-hover);
-  background: var(--brand-soft);
-  border-color: color-mix(in srgb, var(--brand-color) 40%, transparent);
-
-  &:hover:not(:disabled) {
-    color: var(--brand-hover);
-    background: var(--brand-soft);
-    border-color: color-mix(in srgb, var(--brand-color) 50%, transparent);
-  }
+  color: var(--primary-color);
+  border-color: rgba($primary-color, 0.45);
+  background: rgba($primary-color, 0.14);
 }
 
 .filterChipHint {
+  font-size: 12px;
   color: var(--text-tertiary);
-  font-size: $text-2xs;
 }
 
 @include mobile {
@@ -278,8 +254,7 @@
   }
 }
 
-// ─── Search ─────────────────────────────────────────────────
-// Note: Input rightElement 自动加 36px padding，无需覆盖
+// Note: 现在 Input rightElement 自动加 36px padding，不再需要 !important 覆盖
 .searchIcon {
   color: var(--text-tertiary);
   pointer-events: none;
@@ -292,25 +267,21 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-pill);
+  border-radius: $radius-full;
   color: var(--text-secondary);
-  transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
 
   &:hover {
-    background: var(--surface-2);
-    color: var(--text-primary);
+    background: var(--bg-secondary);
   }
 }
 
 .filterStats {
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
+  font-size: 12px;
   color: var(--text-secondary);
-  font-size: $text-2xs;
   white-space: nowrap;
 }
 
@@ -327,7 +298,9 @@
   align-items: center;
   gap: 6px;
 
-  svg { flex: 0 0 auto; }
+  svg {
+    flex: 0 0 auto;
+  }
 }
 
 .switchLabel {
@@ -335,25 +308,26 @@
   align-items: center;
   gap: 6px;
 
-  svg { flex: 0 0 auto; }
+  svg {
+    flex: 0 0 auto;
+  }
 }
 
-// ─── Log Panel ──────────────────────────────────────────────
 .logPanel {
-  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
   flex: 1 1 auto;
   min-height: 280px;
   max-height: calc(100vh - 320px);
   height: auto;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
   overflow: auto;
+  position: relative;
   resize: vertical;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   overscroll-behavior: contain;
-  // 大量 log 行时，contain 让滚动条 paint 只重绘列表本身
+  // 大量 log 行时，contain:strict 让滚动条 paint 只重绘列表本身
   contain: layout paint;
 
   @supports (height: 100dvh) {
@@ -394,22 +368,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $space-sm;
+  gap: $spacing-sm;
   padding: 8px 12px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: $text-2xs;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  font-size: 12px;
 
   @include mobile {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    gap: $space-xs;
+    gap: $spacing-xs;
 
-    > span { width: 100%; }
+    > span {
+      width: 100%;
+    }
   }
 }
 
@@ -421,85 +395,98 @@
 .loadMoreStats {
   display: flex;
   align-items: center;
-  gap: $space-md;
+  gap: $spacing-md;
 
   @include mobile {
     width: 100%;
     flex-wrap: wrap;
-    gap: $space-sm;
+    gap: $spacing-sm;
 
-    > span { white-space: nowrap; }
+    > span {
+      white-space: nowrap;
+    }
   }
 }
 
-// ─── Raw / Rows ─────────────────────────────────────────────
+.logList {
+  display: flex;
+  flex-direction: column;
+}
+
 .rawLog {
   margin: 0;
   padding: 10px 12px;
-  color: var(--text-primary);
-  font-family: $font-mono;
-  font-size: $text-xs;
-  line-height: 1.5;
   cursor: text;
   user-select: text;
   white-space: pre;
+  color: var(--text-primary);
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 12.5px;
+  line-height: 1.45;
 
   @include tablet {
     padding: 8px 10px;
-    font-size: $text-xs;
+    font-size: 12px;
   }
 
   @include mobile {
     padding: 8px 10px;
-    font-size: $text-2xs;
+    font-size: 11.5px;
   }
 }
 
 .logRow {
   display: grid;
   grid-template-columns: 170px 1fr;
-  gap: $space-md;
+  gap: $spacing-md;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-color);
   border-left: 3px solid transparent;
-  color: var(--text-primary);
-  font-family: $font-mono;
-  font-size: $text-xs;
-  line-height: 1.5;
   cursor: copy;
-  // 单行隔离：某一行 hover/reflow 时不影响其它行 layout
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  // 单行隔离：某一行 hover/reflow 时不影响其它行的 layout
   contain: layout style;
   content-visibility: auto;
   contain-intrinsic-size: 1px 44px;
-  transition: background-color var(--duration-fast) var(--ease-standard);
 
   &:hover {
-    background: var(--surface-2);
+    background: rgba($primary-color, 0.06);
   }
 
   @include tablet {
     grid-template-columns: 140px 1fr;
-    gap: $space-sm;
+    gap: $spacing-sm;
     padding: 8px 10px;
-    font-size: $text-xs;
+    font-size: 12px;
   }
 
   @include mobile {
     grid-template-columns: 1fr;
-    gap: $space-xs;
+    gap: $spacing-xs;
     padding: 8px 10px;
-    font-size: $text-2xs;
+    font-size: 11.5px;
   }
 }
 
-.rowWarn  { border-left-color: var(--warning-strong); }
-.rowError { border-left-color: var(--danger-strong); }
+.rowWarn {
+  border-left-color: var(--warning-color);
+}
+
+.rowError {
+  border-left-color: var(--error-color);
+}
 
 .timestamp {
   color: var(--text-tertiary);
   white-space: nowrap;
   padding-top: 2px;
-  font-variant-numeric: tabular-nums;
 
   @include mobile {
     white-space: normal;
@@ -514,26 +501,35 @@
   min-width: 0;
 }
 
-// ─── Badges & Pills ─────────────────────────────────────────
-.badge,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: $radius-full;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border-radius: $radius-full;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: $text-2xs;
   white-space: nowrap;
 }
 
-.badge { font-weight: $weight-bold; }
-.pill  { font-weight: $weight-semibold; }
-
 .source {
-  max-width: 240px;
   color: var(--text-secondary);
+  max-width: 240px;
   @include text-ellipsis;
 
   @include mobile {
@@ -542,79 +538,77 @@
 }
 
 .requestIdBadge {
-  font-family: $font-mono;
-  font-size: $text-2xs;
-  color: var(--info-strong);
-  background: var(--info-bg);
-  border-color: var(--info-border);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 11px;
+  color: #0891b2;
+  background: rgba(8, 145, 178, 0.1);
+  border-color: rgba(8, 145, 178, 0.25);
 }
 
 .statusBadge {
   font-variant-numeric: tabular-nums;
 }
 
-// Status: 2xx / 1xx / 3xx / 4xx / 5xx
 .statusSuccess {
-  color: var(--success-strong);
-  background: var(--success-bg);
-  border-color: var(--success-border);
+  color: var(--success-badge-text);
+  background: var(--success-badge-bg);
+  border-color: var(--success-badge-border);
 }
 
 .statusInfo {
-  color: var(--info-strong);
-  background: var(--info-bg);
-  border-color: var(--info-border);
+  color: var(--info-color);
+  background: rgba($primary-color, 0.12);
+  border-color: rgba($primary-color, 0.25);
 }
 
 .statusWarn {
-  color: var(--warning-strong);
+  color: var(--warning-text);
   background: var(--warning-bg);
   border-color: var(--warning-border);
 }
 
 .statusError {
-  color: var(--danger-strong);
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
+  color: var(--failure-badge-text);
+  background: var(--failure-badge-bg);
+  border-color: var(--failure-badge-border);
 }
 
-// Level: info / warn / error / debug / trace
 .levelInfo {
-  color: var(--info-strong);
-  background: var(--info-bg);
-  border-color: var(--info-border);
+  color: var(--info-color);
+  background: rgba($primary-color, 0.12);
+  border-color: rgba($primary-color, 0.25);
 }
 
 .levelWarn {
-  color: var(--warning-strong);
+  color: var(--warning-text);
   background: var(--warning-bg);
   border-color: var(--warning-border);
 }
 
 .levelError {
-  color: var(--danger-strong);
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
+  color: var(--error-color);
+  background: rgba($error-color, 0.12);
+  border-color: rgba($error-color, 0.25);
 }
 
 .levelDebug,
 .levelTrace {
   color: var(--text-secondary);
-  background: var(--surface-3);
-  border-color: var(--border-subtle);
+  background: rgba(107, 114, 128, 0.12);
+  border-color: rgba(107, 114, 128, 0.25);
 }
 
 .methodBadge {
   color: var(--text-primary);
-  background: var(--brand-soft);
-  border-color: color-mix(in srgb, var(--brand-color) 22%, transparent);
-  font-weight: $weight-bold;
+  background: rgba($primary-color, 0.08);
+  border-color: rgba($primary-color, 0.22);
 }
 
 .path {
-  max-width: 520px;
   color: var(--text-primary);
-  font-weight: $weight-bold;
+  font-weight: 700;
+  max-width: 520px;
   @include text-ellipsis;
 
   @include mobile {
@@ -632,58 +626,49 @@
   }
 }
 
-// ─── Trace Button ───────────────────────────────────────────
 .traceButton {
   @include button-reset;
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: var(--brand-soft);
-  border: 1px solid color-mix(in srgb, var(--brand-color) 28%, transparent);
-  border-radius: var(--radius-pill);
-  color: var(--brand-hover);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
+  border-radius: $radius-full;
+  border: 1px solid rgba($primary-color, 0.3);
+  background: rgba($primary-color, 0.1);
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1.2;
   cursor: pointer;
   transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 
   &:hover {
-    background: color-mix(in srgb, var(--brand-color) 18%, transparent);
-    border-color: color-mix(in srgb, var(--brand-color) 42%, transparent);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    background: rgba($primary-color, 0.16);
+    border-color: rgba($primary-color, 0.45);
   }
 }
 
-// ─── Trace Panel ────────────────────────────────────────────
 .tracePanel {
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
+  gap: $spacing-sm;
 }
 
 .traceNotice {
-  padding: 10px 12px;
-  background: var(--warning-bg);
+  padding: 8px 10px;
+  border-radius: $radius-md;
   border: 1px solid var(--warning-border);
-  border-radius: var(--radius-md);
-  color: var(--warning-strong);
-  font-size: $text-2xs;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 12px;
 }
 
 .traceSectionTitle {
   margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text-primary);
-  font-size: $text-sm;
-  font-weight: $weight-bold;
-  letter-spacing: $tracking-snug;
 }
 
 .traceCandidatesHeader {
@@ -708,10 +693,10 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  padding: 10px 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  background: var(--bg-secondary);
 }
 
 .traceInfoItemWide {
@@ -719,16 +704,14 @@
 }
 
 .traceInfoLabel {
-  color: var(--text-tertiary);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
-  letter-spacing: $tracking-caps;
-  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 700;
 }
 
 .traceInfoValue {
+  font-size: 12px;
   color: var(--text-primary);
-  font-size: $text-xs;
   word-break: break-word;
 }
 
@@ -737,11 +720,11 @@
   align-items: center;
   margin-left: 6px;
   padding: 0 6px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border-radius: $radius-full;
+  border: 1px solid var(--border-color);
+  font-size: 11px;
   color: var(--text-secondary);
-  font-size: $text-2xs;
+  background: var(--bg-primary);
 }
 
 .traceCandidates {
@@ -750,17 +733,16 @@
   gap: 10px;
   max-height: 320px;
   overflow: auto;
-  overscroll-behavior: contain;
 }
 
 .traceCandidate {
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  padding: 10px;
+  background: var(--bg-secondary);
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
 }
 
 .traceCandidateHeader {
@@ -774,18 +756,17 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: var(--success-bg);
-  border: 1px solid var(--success-border);
-  border-radius: var(--radius-pill);
-  color: var(--success-strong);
-  font-size: $text-2xs;
-  font-weight: $weight-bold;
+  border-radius: $radius-full;
+  border: 1px solid var(--success-badge-border, #6ee7b7);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--success-badge-text, #065f46);
+  background: var(--success-badge-bg, #d1fae5);
 }
 
 .traceDelta {
+  font-size: 11px;
   color: var(--text-secondary);
-  font-size: $text-2xs;
-  font-variant-numeric: tabular-nums;
 }
 
 .traceCandidateGrid {
@@ -798,15 +779,14 @@
   }
 }
 
-// ─── Responsive height compaction ──────────────────────────
 @media (max-height: 820px) {
   .pageTitle {
-    font-size: 22px;
-    margin-bottom: $space-md;
+    font-size: 24px;
+    margin-bottom: $spacing-md;
   }
 
   .tabBar {
-    margin-bottom: $space-md;
+    margin-bottom: $spacing-md;
   }
 
   .tabItem {
@@ -814,11 +794,11 @@
   }
 
   .content {
-    gap: $space-md;
+    gap: $spacing-md;
   }
 
   .logCard {
-    padding: $space-md;
+    padding: $spacing-md;
   }
 
   .logPanel {
@@ -828,7 +808,7 @@
 
   .logRow {
     padding: 8px 10px;
-    font-size: $text-xs;
+    font-size: 12px;
   }
 
   .errorPanel {
@@ -839,29 +819,29 @@
 @media (max-height: 600px) {
   .pageTitle {
     font-size: 20px;
-    margin-bottom: $space-sm;
+    margin-bottom: $spacing-sm;
   }
 
   .tabBar {
-    margin-bottom: $space-sm;
+    margin-bottom: $spacing-sm;
   }
 
   .tabItem {
     padding: 8px 12px;
-    font-size: $text-xs;
+    font-size: 13px;
   }
 
   .content {
-    gap: $space-sm;
+    gap: $spacing-sm;
   }
 
   .filters {
-    gap: $space-sm;
-    margin-bottom: $space-sm;
+    margin-bottom: $spacing-sm;
+    gap: $spacing-sm;
   }
 
   .logCard {
-    padding: $space-sm;
+    padding: $spacing-sm;
   }
 
   .logPanel {
@@ -870,10 +850,10 @@
   }
 
   .logRow {
-    grid-template-columns: 130px 1fr;
-    gap: $space-xs;
     padding: 6px 8px;
-    font-size: $text-2xs;
+    font-size: 11px;
+    grid-template-columns: 130px 1fr;
+    gap: $spacing-xs;
   }
 
   .loadMoreBanner {

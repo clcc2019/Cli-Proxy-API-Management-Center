@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { IconChevronLeft } from '@/components/ui/icons';
-import { cx } from '@/utils/cx';
 import { usePageTransitionLayer } from './PageTransitionLayer';
 import styles from './SecondaryScreenShell.module.scss';
 
@@ -42,12 +41,14 @@ export const SecondaryScreenShell = forwardRef<HTMLDivElement, SecondaryScreenSh
     },
     ref
   ) {
-    const containerClassName = cx(styles.container, className);
-    const contentClasses = cx(
+    const containerClassName = [styles.container, className].filter(Boolean).join(' ');
+    const contentClasses = [
       styles.content,
-      floatingAction && styles.contentWithFloatingAction,
-      contentClassName
-    );
+      floatingAction ? styles.contentWithFloatingAction : '',
+      contentClassName,
+    ]
+      .filter(Boolean)
+      .join(' ');
     const titleTooltip = typeof title === 'string' ? title : undefined;
     const resolvedBackAriaLabel = backAriaLabel ?? backLabel;
     const pageTransitionLayer = usePageTransitionLayer();

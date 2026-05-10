@@ -1,17 +1,10 @@
 @use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
-// ============================================================
-// QuotaPage · Linear 风重构
-// ------------------------------------------------------------
-// 保留：premiumPlanValue 金色徽章（设计语言标识），含 P3/HDR 渲染
-// 重写：quota bar、card tint、button 容器，全部走 token
-// ============================================================
-
 .container {
   display: flex;
   flex-direction: column;
-  gap: $space-md;
+  gap: $spacing-md;
 }
 
 .pageHeader {
@@ -22,46 +15,47 @@
 }
 
 .pageTitle {
-  margin: 0;
-  color: var(--text-primary);
   font-size: clamp(20px, 1.2vw + 14px, 24px);
-  font-weight: $weight-bold;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0;
   line-height: 1.2;
-  letter-spacing: $tracking-tight;
 }
 
 .description {
-  margin: 0;
+  font-size: 14px;
   color: var(--text-secondary);
-  font-size: $text-sm;
+  margin: 0;
 }
 
 .headerActions {
   display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: $space-sm;
   min-width: 0;
 
   :global(.btn.btn-sm) {
-    min-width: 0;
     line-height: 16px;
+    min-width: 0;
   }
 
-  :global(svg) { display: block; }
+  :global(svg) {
+    display: block;
+  }
 
   @include mobile {
     width: 100%;
     justify-content: stretch;
-    gap: $space-xs;
   }
 }
 
 .titleWrapper {
   display: flex;
   align-items: center;
-  gap: $space-sm;
+  gap: $spacing-sm;
   line-height: 24px;
 }
 
@@ -72,55 +66,53 @@
   height: 24px;
   min-width: 24px;
   padding: 0 8px;
-  background: var(--brand-soft);
-  border-radius: var(--radius-pill);
-  color: var(--brand-hover);
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--count-badge-text);
+  background-color: var(--count-badge-bg);
+  box-sizing: border-box;
 }
 
 .errorBox {
-  padding: $space-md;
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  border-radius: var(--radius-md);
-  color: var(--danger-strong);
-  font-size: $text-sm;
+  padding: $spacing-md;
+  background-color: rgba($error-color, 0.1);
+  border: 1px solid var(--danger-color);
+  border-radius: $radius-md;
+  color: var(--danger-color);
+  font-size: 14px;
 }
 
-// ─── Inputs / pickers ───────────────────────────────────────
 .pageSizeSelect {
-  box-sizing: border-box;
-  height: 36px;
   padding: 8px 12px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-size: $text-sm;
+  font-size: 14px;
   cursor: text;
+  height: 38px;
+  box-sizing: border-box;
 
   &:focus {
     outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    border-color: var(--primary-color);
   }
 }
 
 .statsInfo {
+  padding: 8px 12px;
+  background-color: var(--bg-secondary);
+  border-radius: $radius-md;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  height: 38px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  box-sizing: border-box;
-  height: 36px;
-  padding: 8px 12px;
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: $text-xs;
-  white-space: nowrap;
 }
 
-// ─── Grids & controls ───────────────────────────────────────
 .antigravityGrid,
 .claudeGrid,
 .codexGrid,
@@ -128,8 +120,8 @@
 .kiroGrid,
 .kimiGrid {
   display: grid;
+  gap: $spacing-md;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: $space-md;
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -143,10 +135,10 @@
 .kiroControls,
 .kimiControls {
   display: flex;
-  align-items: flex-end;
+  gap: $spacing-md;
   flex-wrap: wrap;
-  gap: $space-md;
-  margin-bottom: $space-md;
+  align-items: flex-end;
+  margin-bottom: $spacing-md;
 }
 
 .antigravityControl,
@@ -160,24 +152,22 @@
   gap: 4px;
 
   label {
-    color: var(--text-tertiary);
-    font-size: $text-2xs;
-    font-weight: $weight-semibold;
-    letter-spacing: $tracking-caps;
-    text-transform: uppercase;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
     white-space: nowrap;
   }
 }
 
-// ─── View-mode toggle (grid / list) ─────────────────────────
 .viewModeToggle {
   display: inline-flex;
+  gap: $spacing-xs;
   align-items: center;
-  gap: $space-xs;
   padding: 3px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
 
   @include mobile {
     flex: 1 1 auto;
@@ -187,19 +177,21 @@
 
 .viewModeButton:global(.btn.btn-sm) {
   padding: 8px 14px;
-  background: transparent;
+  border-radius: 999px;
   border-color: transparent;
-  border-radius: var(--radius-pill);
+  background: transparent;
   color: var(--text-secondary);
   box-shadow: none;
 
   &:hover:not(:disabled) {
-    background: var(--surface-3);
     border-color: transparent;
+    background: color-mix(in srgb, var(--bg-hover) 72%, transparent);
     color: var(--text-primary);
   }
 
-  > span { white-space: nowrap; }
+  > span {
+    white-space: nowrap;
+  }
 
   @include mobile {
     flex: 1 1 0;
@@ -207,24 +199,24 @@
 }
 
 .viewModeButtonActive:global(.btn.btn-sm) {
-  background: var(--brand-color);
-  border-color: var(--brand-color);
-  color: var(--text-on-brand);
-  box-shadow: var(--elevation-1);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--primary-contrast, #fff);
+  box-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.45);
 
   &:hover:not(:disabled) {
-    background: var(--brand-hover);
-    border-color: var(--brand-hover);
-    color: var(--text-on-brand);
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: var(--primary-contrast, #fff);
   }
 }
 
 .refreshAllButton:global(.btn.btn-sm) {
   padding-inline: 14px;
-  background: var(--brand-soft);
-  border-color: color-mix(in srgb, var(--brand-color) 22%, transparent);
-  border-radius: var(--radius-pill);
-  color: var(--brand-hover);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--primary-color) 22%, var(--border-color));
+  color: var(--text-primary);
 
   > span {
     display: inline-flex;
@@ -234,8 +226,8 @@
   }
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--brand-color) 18%, transparent);
-    border-color: color-mix(in srgb, var(--brand-color) 34%, transparent);
+    background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-secondary));
+    border-color: color-mix(in srgb, var(--primary-color) 34%, var(--border-color));
   }
 
   @include mobile {
@@ -244,65 +236,78 @@
   }
 }
 
-// ─── Per-type card tints (flattened) ────────────────────────
-// 原先 6 种彩色渐变改为淡色 tint，保留视觉分辨但降低噪点
+:global([data-theme='dark']) .viewModeToggle {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:global([data-theme='dark']) .refreshAllButton:global(.btn.btn-sm) {
+  background: color-mix(in srgb, var(--primary-color) 18%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+}
+
+@include mobile {
+  .headerActions {
+    gap: $spacing-xs;
+  }
+}
+
+// 卡片渐变背景 — 基于 TYPE_COLORS light.bg 转 rgba
 .claudeCard {
   background-image: linear-gradient(180deg,
-      color-mix(in srgb, #f97316 8%, transparent),
-      transparent);
+      rgba(251, 236, 228, 0.18),
+      rgba(251, 236, 228, 0));
 }
 
 .antigravityCard {
   background-image: linear-gradient(180deg,
-      color-mix(in srgb, var(--info-strong) 6%, transparent),
-      transparent);
+      rgba(224, 247, 250, 0.12),
+      rgba(224, 247, 250, 0));
 }
 
 .codexCard {
   background-image: linear-gradient(180deg,
-      color-mix(in srgb, #8b5cf6 8%, transparent),
-      transparent);
+      rgba(234, 231, 255, 0.18),
+      rgba(234, 231, 255, 0));
 }
 
 .geminiCliCard {
   background-image: linear-gradient(180deg,
-      color-mix(in srgb, var(--info-strong) 8%, transparent),
-      transparent);
+      rgba(224, 232, 255, 0.2),
+      rgba(224, 232, 255, 0));
 }
 
 .kiroCard {
   background-image: linear-gradient(180deg,
-      color-mix(in srgb, var(--warning-strong) 8%, transparent),
-      transparent);
+      rgba(255, 243, 220, 0.2),
+      rgba(255, 243, 220, 0));
 }
 
 .kimiCard {
   background-image: linear-gradient(180deg,
-      color-mix(in srgb, var(--brand-color) 8%, transparent),
-      transparent);
+      rgba(220, 232, 255, 0.2),
+      rgba(220, 232, 255, 0));
 }
 
-// ─── Quota section & rows ───────────────────────────────────
 .quotaSection {
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
-  padding-top: $space-sm;
-  margin-top: $space-xs;
-  border-top: 1px dashed var(--border-subtle);
+  gap: $spacing-sm;
+  padding-top: $spacing-sm;
+  margin-top: $spacing-xs;
+  border-top: 1px dashed var(--border-color);
 }
 
 .quotaRow {
   display: flex;
   flex-direction: column;
-  gap: $space-xs;
+  gap: $spacing-xs;
 }
 
 .quotaRowHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $space-sm;
+  gap: $spacing-sm;
   min-width: 0;
 
   @include mobile {
@@ -312,62 +317,86 @@
 }
 
 .quotaModel {
-  flex: 1;
-  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 
   @include mobile {
     white-space: normal;
   }
 }
 
-// ─── Quota progress bar ─────────────────────────────────────
 .quotaBar {
   position: relative;
-  height: 8px;
-  padding: 0;
-  background: var(--surface-3);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  height: 10px;
+  padding: 1px;
+  box-sizing: border-box;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 92%, white 8%),
+      color-mix(in srgb, var(--bg-tertiary) 72%, black 4%)
+    );
+  border: 1px solid color-mix(in srgb, var(--border-color) 34%, transparent);
+  border-radius: 999px;
   overflow: hidden;
+  box-shadow:
+    inset 0 1px 1px rgba(15, 23, 42, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .quotaBarFill {
   position: relative;
   height: 100%;
-  background: var(--success-strong);
-  border-radius: var(--radius-pill);
+  border-radius: 999px;
   overflow: hidden;
+  background: linear-gradient(90deg, #16a34a, #22c55e 54%, #14b8a6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 0 10px color-mix(in srgb, var(--success-color, #22c55e) 30%, transparent);
   transition:
-    width var(--duration-slow) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard);
+    width 0.28s ease,
+    background-color 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), transparent 62%);
+    pointer-events: none;
+  }
 }
 
 .quotaBarFillHigh {
-  background: var(--success-strong);
+  background: linear-gradient(90deg, #16a34a, #22c55e 54%, #14b8a6);
 }
 
 .quotaBarFillMedium {
-  background: var(--warning-strong);
+  background: linear-gradient(90deg, #d97706, #f59e0b 52%, #facc15);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    0 0 10px rgba(245, 158, 11, 0.24);
 }
 
 .quotaBarFillLow {
-  background: var(--danger-strong);
+  background: linear-gradient(90deg, #dc2626, #ef4444 54%, #f97316);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 0 10px rgba(239, 68, 68, 0.24);
 }
 
 .quotaMeta {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 12px;
   color: var(--text-secondary);
-  font-size: $text-2xs;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 
   @include mobile {
     justify-content: flex-start;
@@ -375,8 +404,8 @@
 }
 
 .quotaPercent {
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: $weight-semibold;
 }
 
 .quotaReset {
@@ -388,10 +417,10 @@
 }
 
 .quotaMessage {
-  padding: $space-sm 0;
+  font-size: 12px;
   color: var(--text-tertiary);
-  font-size: $text-2xs;
   text-align: center;
+  padding: $spacing-sm 0;
 }
 
 .quotaMessageAction {
@@ -401,76 +430,82 @@
   width: 100%;
   min-height: 34px;
   padding: 8px 10px;
-  background: var(--brand-soft);
-  border: 1px dashed color-mix(in srgb, var(--brand-color) 42%, var(--border-default));
-  border-radius: var(--radius-md);
-  color: var(--brand-hover);
+  border: 1px dashed color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-secondary));
+  color: color-mix(in srgb, var(--primary-color) 76%, var(--text-primary));
+  cursor: pointer;
   font-family: inherit;
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.35;
   text-decoration: none;
-  cursor: pointer;
   transition:
-    color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+    color $transition-fast,
+    background-color $transition-fast,
+    border-color $transition-fast,
+    box-shadow $transition-fast;
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
-    background: color-mix(in srgb, var(--brand-color) 14%, transparent);
-    border-color: color-mix(in srgb, var(--brand-color) 60%, var(--border-default));
+    background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-secondary));
+    border-color: color-mix(in srgb, var(--primary-color) 60%, var(--border-color));
+    box-shadow: 0 8px 18px -16px color-mix(in srgb, var(--primary-color) 55%, transparent);
   }
 
   &:disabled {
-    opacity: 0.55;
     cursor: not-allowed;
+    opacity: 0.6;
     text-decoration: none;
   }
 }
 
 .quotaError {
-  padding: $space-xs $space-sm;
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  border-radius: var(--radius-sm);
-  color: var(--danger-strong);
-  font-size: $text-2xs;
+  font-size: 12px;
+  color: var(--danger-color);
+  background-color: rgba($error-color, 0.08);
+  border: 1px solid var(--danger-color);
+  border-radius: $radius-sm;
+  padding: $spacing-xs $spacing-sm;
 }
 
 .quotaWarning {
-  padding: $space-xs $space-sm;
-  background: var(--warning-bg);
+  font-size: 12px;
+  color: var(--warning-text);
+  background-color: var(--warning-bg);
   border: 1px solid var(--warning-border);
-  border-radius: var(--radius-sm);
-  color: var(--warning-strong);
-  font-size: $text-2xs;
+  border-radius: $radius-sm;
+  padding: $spacing-xs $spacing-sm;
 }
 
 .codexPlan {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 12px;
   color: var(--text-secondary);
-  font-size: $text-2xs;
 }
 
-.codexPlanLabel { color: var(--text-tertiary); }
+.codexPlanLabel {
+  color: var(--text-tertiary);
+}
 
 .codexPlanValue {
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: $weight-semibold;
   text-transform: capitalize;
 }
 
-// ─── Premium badge — 金色 gem，保留设计语言 ──────────────────
 .premiumPlanValue {
   position: relative;
   display: inline-flex;
   align-items: center;
+  font-weight: 700;
+  font-size: 12px;
   padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgba(217, 165, 22, 0.72);
+  border-radius: 999px;
+  overflow: visible;
+  isolation: isolate;
   background:
     radial-gradient(
       circle at 18% 24%,
@@ -479,30 +514,27 @@
       rgba(255, 255, 255, 0) 42%
     ),
     linear-gradient(135deg, #fff9e3 0%, #ffe07f 52%, #e0aa14 100%);
+  border: 1px solid rgba(217, 165, 22, 0.72);
   box-shadow:
     0 1px 3px rgba(133, 92, 0, 0.16),
     0 0 0 1px rgba(255, 255, 255, 0.22) inset,
     0 0 16px rgba(255, 214, 98, 0.28);
   color: #6b4b00;
-  font-size: $text-2xs;
-  font-weight: $weight-bold;
-  text-transform: capitalize;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
-  isolation: isolate;
-  overflow: visible;
+  text-transform: capitalize;
 
   &::before {
     content: '';
     position: absolute;
     inset: -6px -9px;
-    --glass-blur: 9px;
+    border-radius: inherit;
     background: radial-gradient(
       circle at 18% 22%,
       rgba(255, 255, 255, 0.9) 0%,
       rgba(255, 237, 158, 0.58) 32%,
       rgba(255, 215, 91, 0) 72%
     );
-    border-radius: inherit;
+    --glass-blur: 9px;
     filter: var(--glass-filter);
     opacity: 0.75;
     pointer-events: none;
@@ -553,7 +585,6 @@
   }
 }
 
-// Dark theme 的 premium 保留深色 gem 风格
 :global([data-theme='dark']) .premiumPlanValue {
   background:
     radial-gradient(
@@ -625,68 +656,63 @@
   }
 }
 
-// ─── File card / Pagination / Warning ───────────────────────
 .fileCard {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-lg;
+  padding: $spacing-md;
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
-  padding: $space-md;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  transition:
-    transform var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+  gap: $spacing-sm;
+  transition: transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
 
   &:hover {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--brand-color) 34%, var(--border-default));
-    box-shadow: var(--elevation-2);
+    box-shadow: $shadow-md;
+    border-color: rgba(37, 99, 235, 0.2);
   }
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
-  gap: $space-sm;
+  gap: $spacing-sm;
   min-height: 28px;
 }
 
 .typeBadge {
-  flex-shrink: 0;
   padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .fileName {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-size: $text-sm;
-  font-weight: $weight-semibold;
-  line-height: 1.4;
   word-break: break-all;
+  line-height: 1.4;
 }
 
 .pagination {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: $space-md;
-  margin-top: $space-lg;
-  padding-top: $space-md;
-  border-top: 1px solid var(--border-subtle);
+  align-items: center;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+  padding-top: $spacing-md;
+  border-top: 1px solid var(--border-color);
 }
 
 .pageInfo {
-  padding: $space-xs $space-md;
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
+  font-size: 13px;
   color: var(--text-secondary);
-  font-size: $text-xs;
-  font-variant-numeric: tabular-nums;
+  padding: $spacing-xs $spacing-md;
+  background-color: var(--bg-secondary);
+  border-radius: $radius-md;
 }
 
 .warningOverlay {
@@ -695,28 +721,25 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--text-primary) 46%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  z-index: 1000;
 }
 
 .warningModal {
+  background-color: var(--bg-primary);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
   max-width: 400px;
-  padding: $space-lg;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--elevation-4);
   text-align: center;
+  box-shadow: $shadow-lg;
 
   p {
-    margin: 0 0 $space-md;
+    margin: 0 0 $spacing-md 0;
     color: var(--text-primary);
-    font-size: $text-sm;
+    font-size: 14px;
     line-height: 1.6;
   }
 }

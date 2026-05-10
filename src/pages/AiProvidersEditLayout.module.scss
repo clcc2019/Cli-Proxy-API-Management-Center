@@ -1,4 +1,3 @@
-// AiProvidersEditLayout · Linear-style shell for per-provider edit pages
 .content {
   width: 100%;
   max-width: 960px;
@@ -11,33 +10,37 @@
   gap: 8px;
 }
 
-.floatingBackButton { min-width: 82px; }
-.floatingSaveButton { min-width: 88px; }
+.floatingBackButton {
+  min-width: 82px;
+}
+
+.floatingSaveButton {
+  min-width: 88px;
+}
 
 .upstreamApiKeyRow {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
 .upstreamApiKeyHint {
   margin: 0;
   color: var(--text-secondary);
-  font-size: $text-sm;
+  font-size: 13px;
 }
 
-// ─── Ampcode sub-sections ───────────────────────────────────
 .ampcodeSectionCard {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 16px;
   padding: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
 }
 
 .ampcodeSectionIntro {
@@ -47,10 +50,9 @@
 
   label {
     margin: 0;
+    font-size: 13px;
+    font-weight: 700;
     color: var(--text-primary);
-    font-size: $text-sm;
-    font-weight: $weight-bold;
-    letter-spacing: $tracking-snug;
   }
 }
 
@@ -58,10 +60,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 8px;
+  flex-wrap: wrap;
 
-  label { margin: 0; }
+  label {
+    margin: 0;
+  }
 }
 
 .ampcodeUpstreamMappingsList {
@@ -71,40 +75,38 @@
 }
 
 .ampcodeUpstreamMappingCard {
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  gap: 7px;
 }
 
 .ampcodeUpstreamMappingCardTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .ampcodeUpstreamMappingTitle {
-  color: var(--text-tertiary);
-  font-size: $text-2xs;
-  font-weight: $weight-semibold;
-  letter-spacing: $tracking-caps;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
 }
 
 .ampcodeCompactInput {
   min-height: 38px;
-  font-size: $text-sm;
+  font-size: 13px;
 }
 
 .ampcodeCompactTextarea {
-  min-height: 76px;
+  min-height: 74px;
   resize: vertical;
-  font-size: $text-sm;
+  font-size: 13px;
 }
 
 .ampcodeMappingRemoveButton {
@@ -120,10 +122,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
   gap: 8px;
-  padding: 12px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
 }
 
 @media (max-width: 768px) {
@@ -134,7 +136,9 @@
   .ampcodeUpstreamMappingsHeader {
     align-items: stretch;
 
-    label { display: none; }
+    label {
+      display: none;
+    }
   }
 
   .ampcodeModelMappingRow {

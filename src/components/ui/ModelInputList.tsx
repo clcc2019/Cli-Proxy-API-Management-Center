@@ -1,7 +1,6 @@
 import { Fragment } from 'react';
 import { Button } from './Button';
 import { IconX } from './icons';
-import { cx } from '@/utils/cx';
 import type { ModelEntry } from './modelInputListUtils';
 
 interface ModelInputListProps {
@@ -38,9 +37,9 @@ export function ModelInputList({
   removeButtonAriaLabel = 'Remove',
 }: ModelInputListProps) {
   const currentEntries = entries.length ? entries : [{ name: '', alias: '' }];
-  const containerClassName = cx('header-input-list', className);
-  const inputClassNames = cx('input', inputClassName);
-  const rowClassNames = cx('header-input-row', rowClassName);
+  const containerClassName = ['header-input-list', className].filter(Boolean).join(' ');
+  const inputClassNames = ['input', inputClassName].filter(Boolean).join(' ');
+  const rowClassNames = ['header-input-row', rowClassName].filter(Boolean).join(' ');
 
   const updateEntry = (index: number, field: 'name' | 'alias', value: string) => {
     const next = currentEntries.map((entry, idx) => (idx === index ? { ...entry, [field]: value } : entry));

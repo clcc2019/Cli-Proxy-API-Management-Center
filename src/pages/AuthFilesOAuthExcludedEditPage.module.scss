@@ -1,15 +1,15 @@
+@use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
-// AuthFiles · OAuth Excluded Models edit page
 .pageContent {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 0 $space-lg $space-2xl;
+  padding: 0 $spacing-lg $spacing-2xl;
 
   @include mobile {
-    padding-left: $space-md;
-    padding-right: $space-md;
+    padding-left: $spacing-md;
+    padding-right: $spacing-md;
   }
 }
 
@@ -21,39 +21,38 @@
 .settingsHeader {
   display: flex;
   flex-direction: column;
-  gap: $space-xs;
-  padding: $space-md $space-lg;
-  border-bottom: 1px solid var(--border-subtle);
+  gap: $spacing-xs;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1px solid var(--border-color);
 
   @include mobile {
-    padding-left: $space-md;
-    padding-right: $space-md;
+    padding-left: $spacing-md;
+    padding-right: $spacing-md;
   }
 }
 
 .settingsHeaderTitle {
   display: inline-flex;
   align-items: center;
-  gap: $space-xs;
+  gap: $spacing-xs;
+  font-weight: 700;
   color: var(--text-primary);
-  font-weight: $weight-bold;
-  letter-spacing: $tracking-snug;
 }
 
 .settingsHeaderHint {
+  font-size: 13px;
   color: var(--text-secondary);
-  font-size: $text-sm;
 }
 
 .settingsSection {
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
-  padding: $space-md $space-lg $space-lg;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-lg $spacing-lg;
 
   @include mobile {
-    padding-left: $space-md;
-    padding-right: $space-md;
+    padding-left: $spacing-md;
+    padding-right: $spacing-md;
   }
 }
 
@@ -61,32 +60,32 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: $space-lg;
+  gap: $spacing-lg;
 
   @include mobile {
     flex-direction: column;
     align-items: stretch;
-    gap: $space-sm;
+    gap: $spacing-sm;
   }
 }
 
 .settingsInfo {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  flex: 1;
   gap: 4px;
-  min-width: 0;
 }
 
 .settingsLabel {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-size: $text-sm;
-  font-weight: $weight-semibold;
 }
 
 .settingsDesc {
+  font-size: 13px;
   color: var(--text-secondary);
-  font-size: $text-xs;
 }
 
 .settingsControl {
@@ -100,79 +99,73 @@
   }
 }
 
-// ─── Tag list ───────────────────────────────────────────────
 .tagList {
   display: flex;
   flex-wrap: wrap;
-  gap: $space-xs;
+  gap: $spacing-xs;
 }
 
 .tag {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border-radius: $radius-full;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
   color: var(--text-secondary);
-  font-size: $text-2xs;
+  font-size: 12px;
   cursor: pointer;
-  transition:
-    color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+  transition: all $transition-fast;
 
   &:hover {
+    border-color: var(--primary-color);
     color: var(--text-primary);
-    background: var(--surface-3);
-    border-color: var(--border-hover);
+    background-color: var(--bg-tertiary);
   }
 
   &:disabled {
-    opacity: 0.55;
+    opacity: 0.6;
     cursor: not-allowed;
   }
 }
 
 .tagActive {
-  color: var(--text-on-brand);
-  background: var(--brand-color);
-  border-color: var(--brand-color);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
 
   &:hover {
-    color: var(--text-on-brand);
-    background: var(--brand-hover);
-    border-color: var(--brand-hover);
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
   }
 }
 
-// ─── Model list ─────────────────────────────────────────────
 .modelsHint {
   display: flex;
   align-items: center;
-  gap: $space-xs;
+  gap: $spacing-xs;
+  font-size: 13px;
   color: var(--text-secondary);
-  font-size: $text-xs;
 }
 
 .loadingModels {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-sm;
-  padding: $space-xl 0;
+  gap: $spacing-sm;
+  padding: $spacing-xl 0;
   color: var(--text-secondary);
 }
 
 .modelList {
   max-height: 520px;
   overflow: auto;
-  overscroll-behavior: contain;
-  padding: $space-sm $space-lg $space-lg;
+  padding: $spacing-sm $spacing-lg $spacing-lg;
 
   @include mobile {
-    padding-left: $space-md;
-    padding-right: $space-md;
+    padding-left: $spacing-md;
+    padding-right: $spacing-md;
   }
 }
 
@@ -180,46 +173,48 @@
   width: 100%;
   align-items: flex-start;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  transition: background-color var(--duration-fast) var(--ease-standard);
+  border-bottom: 1px solid var(--border-color);
+  border-radius: $radius-sm;
+  transition: background-color $transition-fast;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 
   &:hover {
-    background: var(--surface-2);
+    background-color: var(--bg-hover);
   }
 }
 
 .modelText {
   display: flex;
   flex-direction: column;
-  flex: 1;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .modelId {
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-size: $text-xs;
-  font-weight: $weight-semibold;
   word-break: break-all;
 }
 
 .modelDisplayName {
+  font-size: 12px;
   color: var(--text-secondary);
-  font-size: $text-2xs;
   word-break: break-all;
 }
 
 .emptyModels {
-  padding: $space-xl $space-lg;
-  color: var(--text-tertiary);
-  font-size: $text-xs;
+  padding: $spacing-xl $spacing-lg;
+  color: var(--text-secondary);
+  font-size: 13px;
   text-align: center;
 
   @include mobile {
-    padding-left: $space-md;
-    padding-right: $space-md;
+    padding-left: $spacing-md;
+    padding-right: $spacing-md;
   }
 }

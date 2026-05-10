@@ -465,14 +465,9 @@ export function LogsPage() {
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>{t('logs.title')}</h1>
 
-      <div className={styles.tabBar} role="tablist" aria-label={t('logs.title')}>
+      <div className={styles.tabBar}>
         <button
           type="button"
-          role="tab"
-          aria-selected={activeTab === 'logs'}
-          aria-controls="logs-tabpanel-logs"
-          id="logs-tab-logs"
-          tabIndex={activeTab === 'logs' ? 0 : -1}
           className={`${styles.tabItem} ${activeTab === 'logs' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('logs')}
         >
@@ -480,11 +475,6 @@ export function LogsPage() {
         </button>
         <button
           type="button"
-          role="tab"
-          aria-selected={activeTab === 'errors'}
-          aria-controls="logs-tabpanel-errors"
-          id="logs-tab-errors"
-          tabIndex={activeTab === 'errors' ? 0 : -1}
           className={`${styles.tabItem} ${activeTab === 'errors' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('errors')}
         >
@@ -494,12 +484,6 @@ export function LogsPage() {
 
       <div className={styles.content}>
         {activeTab === 'logs' && (
-          <div
-            role="tabpanel"
-            id="logs-tabpanel-logs"
-            aria-labelledby="logs-tab-logs"
-            className={styles.tabPanel}
-          >
           <Card className={styles.logCard}>
             {error && <div className="error-box">{error}</div>}
 
@@ -874,16 +858,9 @@ export function LogsPage() {
               <EmptyState title={t('logs.empty_title')} description={t('logs.empty_desc')} />
             )}
           </Card>
-          </div>
         )}
 
         {activeTab === 'errors' && (
-          <div
-            role="tabpanel"
-            id="logs-tabpanel-errors"
-            aria-labelledby="logs-tab-errors"
-            className={styles.tabPanel}
-          >
           <Card
             extra={
               <Button
@@ -941,7 +918,6 @@ export function LogsPage() {
               </div>
             </div>
           </Card>
-          </div>
         )}
       </div>
 

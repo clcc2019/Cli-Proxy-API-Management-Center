@@ -15,7 +15,9 @@ const fallbackResource = zhCN as TranslationResource;
 
 const localeLoaders: Record<Language, () => Promise<{ default: TranslationResource }>> = {
   'zh-CN': () => Promise.resolve({ default: fallbackResource }),
+  'zh-TW': () => import('./locales/zh-TW.json'),
   en: () => import('./locales/en.json'),
+  ru: () => import('./locales/ru.json'),
 };
 
 const loadedLanguages = new Set<Language>();

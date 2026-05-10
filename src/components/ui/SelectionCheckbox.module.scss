@@ -4,15 +4,14 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: $space-sm;
+  gap: $spacing-sm;
   cursor: pointer;
   user-select: none;
-  font-size: $text-sm;
 }
 
 .disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.6;
 }
 
 .input {
@@ -29,33 +28,35 @@
 }
 
 .box {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--primary-contrast, #fff);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  background: var(--surface-1);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-xs);
-  color: var(--text-on-brand);
   transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    border-color $transition-fast,
+    background-color $transition-fast,
+    box-shadow $transition-fast,
+    transform $transition-fast;
 }
 
 .root:hover .box {
-  border-color: var(--brand-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 16%, transparent);
 }
 
 .root:active .box {
-  transform: scale(0.94);
+  transform: scale(0.95);
 }
 
 .disabled:hover .box {
-  border-color: var(--border-strong);
+  border-color: var(--border-color);
+  box-shadow: none;
 }
 
 .disabled:active .box {
@@ -63,13 +64,15 @@
 }
 
 .input:focus-visible + .box {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--focus-ring);
+  border-color: var(--primary-color);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--primary-color) 16%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 50%, transparent);
 }
 
 .boxChecked {
-  border-color: var(--brand-color);
-  background: var(--brand-color);
+  border-color: var(--primary-color);
+  background: var(--primary-color);
 }
 
 .boxChecked svg {
@@ -79,7 +82,6 @@
 
 .label {
   color: var(--text-primary);
-  font-size: $text-sm;
-  font-weight: $weight-medium;
-  letter-spacing: $tracking-snug;
+  font-size: 14px;
+  font-weight: 500;
 }

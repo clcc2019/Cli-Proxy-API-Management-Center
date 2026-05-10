@@ -109,7 +109,6 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "chat": "Model Chat",
     "basic_settings": "Basic Settings",
     "api_keys": "API Keys",
     "ai_providers": "AI Providers",
@@ -121,44 +120,6 @@
     "config_management": "Config Panel",
     "logs": "Logs Viewer",
     "system_info": "Management Center Info"
-  },
-  "chat": {
-    "title": "Model Chat",
-    "eyebrow": "Proxy Playground",
-    "refresh_models": "Refresh Models",
-    "client_key": "Client Key",
-    "client_key_configured": "Configured Key",
-    "client_key_none": "No Key",
-    "client_key_manual": "Manual Key",
-    "manual_client_key": "Manual Key",
-    "models_load_failed": "Failed to load models",
-    "conversation": "Conversation",
-    "model": "Model",
-    "select_model": "Select model",
-    "system_prompt": "System Prompt",
-    "system_prompt_placeholder": "Optional system prompt",
-    "empty_conversation": "No messages",
-    "you": "You",
-    "assistant": "Assistant",
-    "streaming": "Streaming",
-    "waiting": "Waiting...",
-    "input_placeholder": "Type a message",
-    "send": "Send",
-    "stop": "Stop",
-    "clear": "Clear",
-    "copied": "Copied",
-    "send_failed": "Send failed",
-    "image_generation": "Image Generation",
-    "image_model": "Image Model",
-    "image_prompt": "Prompt",
-    "image_prompt_placeholder": "Type an image prompt",
-    "image_size": "Size",
-    "image_count": "Count",
-    "generate_image": "Generate Image",
-    "empty_images": "No images",
-    "image_empty": "No images returned",
-    "image_failed": "Image generation failed",
-    "download_image": "Download image"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1687,7 +1648,9 @@
   "language": {
     "switch": "Language",
     "chinese": "中文",
-    "english": "English"
+    "chinese_tw": "繁體中文",
+    "english": "English",
+    "russian": "Русский"
   },
   "theme": {
     "switch": "Theme",

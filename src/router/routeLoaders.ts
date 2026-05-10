@@ -1,6 +1,5 @@
 const loadDashboardPage = () => import('@/pages/DashboardPage');
 const loadApiKeysPage = () => import('@/pages/ApiKeysPage');
-const loadChatPage = () => import('@/pages/ChatPage');
 const loadAiProvidersPage = () => import('@/pages/AiProvidersPage');
 const loadAuthFilesPage = () => import('@/pages/AuthFilesPage');
 const loadUsagePage = () => import('@/pages/UsagePage');
@@ -12,7 +11,6 @@ const PRIMARY_ROUTE_LOADERS = [
   loadDashboardPage,
   loadConfigPage,
   loadApiKeysPage,
-  loadChatPage,
   loadAiProvidersPage,
   loadAuthFilesPage,
   loadUsagePage,
@@ -35,7 +33,6 @@ export {
   loadApiKeysPage,
   loadAiProvidersPage,
   loadAuthFilesPage,
-  loadChatPage,
   loadConfigPage,
   loadDashboardPage,
   loadRequestLogsPage,

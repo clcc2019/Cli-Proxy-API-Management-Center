@@ -1,4 +1,4 @@
-import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
@@ -260,11 +260,7 @@ export function ConfigPage() {
         }
       }
 
-      // Switching tabs may swap in a heavy component (CodeMirror vs. visual form).
-      // Wrap in startTransition so tab-button click feedback isn't blocked by the mount.
-      startTransition(() => {
-        setActiveTab(tab);
-      });
+      setActiveTab(tab);
       localStorage.setItem('config-management:tab', tab);
     },
     [
@@ -524,14 +520,9 @@ export function ConfigPage() {
 
         <div className={styles.pageMeta}>
           <div className={`${styles.statusBadge} ${getStatusClass()}`}>{getStatusText()}</div>
-          <div className={styles.tabBar} role="tablist" aria-label={t('config_management.title')}>
+          <div className={styles.tabBar}>
             <button
               type="button"
-              role="tab"
-              id="config-tab-visual"
-              aria-selected={activeTab === 'visual'}
-              aria-controls="config-tabpanel-visual"
-              tabIndex={activeTab === 'visual' ? 0 : -1}
               className={`${styles.tabItem} ${activeTab === 'visual' ? styles.tabActive : ''}`}
               onClick={() => handleTabChange('visual')}
               disabled={saving || loading}
@@ -540,11 +531,6 @@ export function ConfigPage() {
             </button>
             <button
               type="button"
-              role="tab"
-              id="config-tab-source"
-              aria-selected={activeTab === 'source'}
-              aria-controls="config-tabpanel-source"
-              tabIndex={activeTab === 'source' ? 0 : -1}
               className={`${styles.tabItem} ${activeTab === 'source' ? styles.tabActive : ''}`}
               onClick={() => handleTabChange('source')}
               disabled={saving || loading}
@@ -565,22 +551,15 @@ export function ConfigPage() {
           )}
 
           {activeTab === 'visual' ? (
-            <div role="tabpanel" id="config-tabpanel-visual" aria-labelledby="config-tab-visual">
-              <VisualConfigEditor
-                values={visualValues}
-                validationErrors={visualValidationErrors}
-                hasPayloadValidationErrors={visualHasPayloadValidationErrors}
-                disabled={disableControls || loading}
-                onChange={setVisualValues}
-              />
-            </div>
+            <VisualConfigEditor
+              values={visualValues}
+              validationErrors={visualValidationErrors}
+              hasPayloadValidationErrors={visualHasPayloadValidationErrors}
+              disabled={disableControls || loading}
+              onChange={setVisualValues}
+            />
           ) : (
-            <div
-              role="tabpanel"
-              id="config-tabpanel-source"
-              aria-labelledby="config-tab-source"
-              className={styles.sourceWorkspace}
-            >
+            <div className={styles.sourceWorkspace}>
               <div className={styles.sourceToolbar}>
                 <div className={styles.searchInputWrapper}>
                   <Input

@@ -1,6 +1,5 @@
 import type { ChangeEvent, ReactNode } from 'react';
 import { IconCheck } from './icons';
-import { cx } from '@/utils/cx';
 import styles from './SelectionCheckbox.module.scss';
 
 interface SelectionCheckboxProps {
@@ -24,9 +23,11 @@ export function SelectionCheckbox({
   className,
   labelClassName,
 }: SelectionCheckboxProps) {
-  const rootClassName = cx(styles.root, disabled && styles.disabled, className);
-  const boxClassName = cx(styles.box, checked && styles.boxChecked);
-  const textClassName = cx(styles.label, labelClassName);
+  const rootClassName = [styles.root, disabled ? styles.disabled : '', className]
+    .filter(Boolean)
+    .join(' ');
+  const boxClassName = [styles.box, checked ? styles.boxChecked : ''].filter(Boolean).join(' ');
+  const textClassName = [styles.label, labelClassName].filter(Boolean).join(' ');
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.checked);
