@@ -1,23 +1,53 @@
 import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+type InputDensity = 'sm' | 'md';
+
+interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   hint?: string;
   error?: string;
   rightElement?: ReactNode;
+  leftElement?: ReactNode;
+  /** 尺寸密度；避免与原生 <input size> 冲突，改名为 density */
+  density?: InputDensity;
+  /** 占满父宽度（默认 true） */
+  fullWidth?: boolean;
 }
 
-export function Input({ label, hint, error, rightElement, className = '', id, ...rest }: InputProps) {
+export function Input({
+  label,
+  hint,
+  error,
+  rightElement,
+  leftElement,
+  density = 'md',
+  fullWidth = true,
+  className = '',
+  id,
+  ...rest
+}: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const hintId = hint ? `${inputId}-hint` : undefined;
   const errorId = error ? `${inputId}-error` : undefined;
-  const describedBy = [rest['aria-describedby'], errorId, hintId].filter(Boolean).join(' ') || undefined;
+  const describedBy =
+    [rest['aria-describedby'], errorId, hintId].filter(Boolean).join(' ') || undefined;
+
+  const controlClasses = ['input-control'];
+  if (density === 'sm') controlClasses.push('input-control-sm');
+  if (leftElement) controlClasses.push('input-control-with-left');
+  if (rightElement) controlClasses.push('input-control-with-right');
+  if (!fullWidth) controlClasses.push('input-control-inline');
 
   return (
     <div className="form-group">
       {label && <label htmlFor={inputId}>{label}</label>}
-      <div style={{ position: 'relative' }}>
+      <div className={controlClasses.join(' ')}>
+        {leftElement && (
+          <span className="input-affix input-affix-left" aria-hidden="true">
+            {leftElement}
+          </span>
+        )}
         <input
           id={inputId}
           className={`input ${className}`.trim()}
@@ -26,9 +56,46 @@ export function Input({ label, hint, error, rightElement, className = '', id, ..
           {...rest}
         />
         {rightElement && (
-          <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}>
+          <span className="input-affix input-affix-right" aria-hidden="true">
             {rightElement}
-          </div>
+          </span>
+        )}
+      </div>
+      {hint && (
+        <div id={hintId} className="hint">
+          {hint}
+        </div>
+      )}
+      {error && (
+        <div id={errorId} className="error-box">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+  return (
+    <div className="form-group">
+      {label && <label htmlFor={inputId}>{label}</label>}
+      <div className={controlClasses.join(' ')}>
+        {leftElement && (
+          <span className="input-affix input-affix-left" aria-hidden="true">
+            {leftElement}
+          </span>
+        )}
+        <input
+          id={inputId}
+          className={`input ${className}`.trim()}
+          aria-invalid={Boolean(error) || rest['aria-invalid']}
+          aria-describedby={describedBy}
+          {...rest}
+        />
+        {rightElement && (
+          <span className="input-affix input-affix-right" aria-hidden="true">
+            {rightElement}
+          </span>
         )}
       </div>
       {hint && (

@@ -5,51 +5,41 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: $spacing-md;
 }
 
 .pageHeader {
   position: relative;
-  overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) auto;
-  gap: 24px;
+  gap: 16px;
   align-items: end;
-  padding: clamp(22px, 3vw, 30px);
-  border-radius: 28px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background:
-    radial-gradient(
-      circle at top right,
-      color-mix(in srgb, var(--primary-color) 14%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--bg-primary) 94%, transparent),
-      color-mix(in srgb, var(--bg-secondary) 96%, transparent)
-    );
-  box-shadow: var(--shadow-soft);
+  padding: clamp(14px, 1.4vw + 8px, 20px);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
 
+  // 顶部的 1px 主色线条取代之前的 radial-gradient 背景
   &::before {
     content: '';
     position: absolute;
-    inset: 0 auto auto 0;
-    width: min(280px, 48vw);
-    height: min(280px, 48vw);
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--primary-color) 12%, transparent),
-      transparent 70%
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--primary-color) 36%, transparent),
+      transparent
     );
-    pointer-events: none;
     opacity: 0.7;
+    pointer-events: none;
   }
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-    gap: 16px;
+    gap: 12px;
   }
 }
 
@@ -194,34 +184,35 @@
 
   :global(.card) {
     overflow: hidden;
-    border-radius: 30px;
-    border-color: color-mix(in srgb, #dbe3ef 78%, transparent);
-    background:
-      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary-color) 5%, transparent), transparent 32%),
-      linear-gradient(180deg, color-mix(in srgb, #ffffff 98%, var(--bg-primary)), #f8fafc);
-    box-shadow:
-      0 24px 64px -42px rgba(15, 23, 42, 0.34),
-      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-card);
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+
+    &:hover {
+      box-shadow: var(--shadow-card-hover);
+    }
   }
 
   :global(.card-header) {
-    margin: -#{$spacing-lg} -#{$spacing-lg} 22px;
-    padding: 22px 24px;
-    border-bottom: 1px solid color-mix(in srgb, #dbe3ef 88%, transparent);
-    background: rgba(255, 255, 255, 0.62);
+    margin: -14px -14px 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
   }
 
   :global(.card-header .title) {
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: -0.03em;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   :global(.card-header .btn.btn-sm) {
-    min-height: 38px;
-    border-radius: 999px;
-    padding-inline: 16px;
-    font-weight: 850;
+    min-height: 32px;
+    border-radius: 8px;
+    padding-inline: 12px;
+    font-weight: 600;
   }
 }
 
@@ -274,26 +265,34 @@
   height: 100%;
   gap: 12px;
   min-height: 100%;
-  padding: 18px;
-  border: 1px solid color-mix(in srgb, #dbe3ef 80%, transparent);
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.06), transparent 32%),
-    radial-gradient(circle at 100% 100%, rgba(148, 163, 184, 0.09), transparent 34%),
-    linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
-  box-shadow:
-    0 22px 54px -38px rgba(15, 23, 42, 0.46),
-    0 8px 22px -22px rgba(15, 23, 42, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
   isolation: isolate;
+  transition: transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
 
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+  }
+
+  // 顶部 1px 色带代替整块渐变
   &::before {
     content: '';
     position: absolute;
-    inset: 0;
-    z-index: -1;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--primary-color) 30%, transparent),
+      transparent
+    );
+    opacity: 0.6;
     pointer-events: none;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.78), transparent 34%);
   }
 
   :global(.item-meta) {
@@ -307,28 +306,24 @@
 
   :global(.provider-card-avatar) {
     position: absolute;
-    top: 18px;
-    left: 18px;
+    top: 14px;
+    left: 14px;
     z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 11px;
-    border: 1px solid color-mix(in srgb, var(--primary-color) 16%, #e4e8f0);
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 252, 0.92)),
-      color-mix(in srgb, var(--primary-color) 6%, #fff);
-    box-shadow:
-      0 18px 32px -22px rgba(79, 70, 229, 0.42),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
+    background: color-mix(in srgb, var(--primary-color) 6%, var(--surface-raised-strong));
+    box-shadow: 0 4px 12px -8px color-mix(in srgb, var(--primary-color) 40%, transparent);
 
     img,
     svg {
       display: block;
-      width: 23px;
-      height: 23px;
+      width: 20px;
+      height: 20px;
       object-fit: contain;
     }
   }
@@ -357,9 +352,9 @@
   }
 
   :global(.provider-card-state.is-disabled) {
-    color: #64748b;
-    background: #eef2f7;
-    border: 1px solid #e2e8f0;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   }
 
   :global(.provider-card-menu) {
@@ -405,14 +400,14 @@
     right: -90px;
     bottom: -10px;
     height: 1px;
-    background: color-mix(in srgb, #dbe3ef 86%, transparent);
+    background: color-mix(in srgb, var(--border-color) 86%, transparent);
   }
 
   :global(.item-actions) {
     width: 100%;
     margin-top: auto;
     padding-top: 11px;
-    border-top: 1px solid color-mix(in srgb, #dbe3ef 82%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
     justify-content: flex-start;
     align-items: center;
     gap: 7px;
@@ -457,10 +452,9 @@
   }
 
   &:global(.provider-card-disabled) {
-    border-color: #e2e8f0;
-    background:
-      radial-gradient(circle at 10% 0%, rgba(148, 163, 184, 0.08), transparent 32%),
-      linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: color-mix(in srgb, var(--bg-tertiary) 40%, var(--surface-raised));
+    opacity: 0.78;
   }
 }
 
@@ -685,8 +679,8 @@
   height: 26px;
   padding: 0 8px;
   border-radius: 999px;
-  background: #f1f5f9;
-  color: #111827;
+  background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
@@ -762,7 +756,7 @@
 .apiKeyEntriesSection {
   margin-top: 10px;
   padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, #dbe3ef 84%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
 }
 
 .apiKeyEntriesLabel {
@@ -1145,13 +1139,13 @@
 @include mobile {
   .providerSectionAnchor {
     :global(.card) {
-      border-radius: 22px;
+      border-radius: 12px;
       padding: 14px;
     }
 
     :global(.card-header) {
-      margin: -14px -14px 16px;
-      padding: 16px;
+      margin: -14px -14px 12px;
+      padding: 12px 14px;
     }
   }
 
@@ -1160,21 +1154,21 @@
   }
 
   .providerConfigItem {
-    padding: 16px;
-    border-radius: 20px;
+    padding: 14px;
+    border-radius: 12px;
     gap: 12px;
 
     :global(.provider-card-avatar) {
-      top: 16px;
-      left: 16px;
-      width: 38px;
-      height: 38px;
-      border-radius: 11px;
+      top: 12px;
+      left: 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
 
       img,
       svg {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
       }
     }
 
@@ -1450,145 +1444,109 @@
 }
 
 :global([data-theme='dark']) {
-  .providerSectionAnchor {
-    :global(.card) {
-      border-color: rgba(86, 78, 70, 0.86);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(139, 134, 128, 0.14), transparent 32%),
-        linear-gradient(180deg, #24211e 0%, #1a1815 100%);
-      box-shadow:
-        0 26px 68px -42px rgba(0, 0, 0, 0.84),
-        inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    }
-
-    :global(.card-header) {
-      border-bottom-color: rgba(78, 71, 64, 0.72);
-      background: rgba(36, 33, 30, 0.78);
-    }
-  }
+  // dark 模式 card/header 已通过 --surface-raised / --border-color / --shadow-card 自动跟随
+  // 这里只做 provider 内部细节的微调
 
   .providerConfigItem {
-    border-color: rgba(92, 84, 75, 0.86);
-    background:
-      radial-gradient(circle at 10% 0%, rgba(139, 134, 128, 0.14), transparent 32%),
-      radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.07), transparent 36%),
-      linear-gradient(180deg, #26231f 0%, #1c1916 52%, #171513 100%);
-    box-shadow:
-      0 24px 60px -36px rgba(0, 0, 0, 0.86),
-      0 10px 28px -24px rgba(0, 0, 0, 0.78),
-      inset 0 1px 0 rgba(255, 255, 255, 0.07);
-
-    &::before {
-      background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 38%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 44%);
-    }
+    // 跟随 --surface-raised 变色，去掉原来 3 层渐变 + 高光 inset
+    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
 
     :global(.provider-card-avatar) {
-      border-color: rgba(255, 255, 255, 0.12);
-      background:
-        linear-gradient(145deg, rgba(58, 53, 48, 0.96), rgba(39, 35, 31, 0.92)),
-        #24211e;
-      box-shadow:
-        0 18px 34px -22px rgba(0, 0, 0, 0.82),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+      background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-raised-strong));
+      box-shadow: 0 4px 12px -8px rgba(0, 0, 0, 0.56);
     }
 
     :global(.provider-card-state.is-enabled) {
-      color: #86efac;
-      background: rgba(16, 185, 129, 0.16);
-      border-color: rgba(52, 211, 153, 0.34);
+      color: var(--success-badge-text);
+      background: var(--success-badge-bg);
+      border-color: var(--success-badge-border);
     }
 
     :global(.provider-card-state.is-disabled) {
-      color: #b4aca3;
-      background: rgba(45, 41, 37, 0.88);
-      border-color: rgba(88, 80, 72, 0.84);
+      color: var(--text-secondary);
+      background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
     }
 
     :global(.provider-card-menu) {
-      color: #d8d1c8;
+      color: var(--text-secondary);
     }
 
     :global(.item-title) {
-      color: #f7f3ee;
-      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+      color: var(--text-primary);
     }
 
     :global(.item-title)::after {
-      background: rgba(78, 71, 64, 0.72);
+      background: color-mix(in srgb, var(--border-color) 60%, transparent);
     }
 
     :global(.item-actions) {
-      border-top-color: rgba(78, 71, 64, 0.72);
+      border-top-color: color-mix(in srgb, var(--border-color) 60%, transparent);
     }
 
     :global(.provider-card-action-edit.btn.btn-sm) {
-      border-color: rgba(89, 81, 72, 0.92);
-      background: linear-gradient(180deg, #312c27 0%, #26221e 100%);
-      color: #e7dfd5;
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+      background: var(--surface-raised-strong);
+      color: var(--text-primary);
       box-shadow:
         0 14px 28px -20px rgba(0, 0, 0, 0.74),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
     :global(.provider-card-action-delete.btn.btn-sm) {
-      border-color: rgba(198, 87, 70, 0.6);
-      background: linear-gradient(135deg, rgba(185, 71, 59, 0.26), rgba(116, 35, 30, 0.22));
-      color: #f1b0a6;
-      box-shadow:
-        0 16px 32px -22px rgba(198, 87, 70, 0.42),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border-color: color-mix(in srgb, var(--danger-color) 60%, transparent);
+      background: color-mix(in srgb, var(--danger-color) 18%, var(--surface-raised));
+      color: var(--warning-text);
     }
 
     &:global(.provider-card-disabled) {
-      border-color: rgba(78, 71, 64, 0.88);
-      background:
-        radial-gradient(circle at 10% 0%, rgba(139, 134, 128, 0.11), transparent 32%),
-        linear-gradient(180deg, #24211e 0%, #191714 100%);
+      border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+      background: color-mix(in srgb, var(--bg-tertiary) 40%, var(--surface-raised));
+      opacity: 0.78;
     }
   }
 
   .fieldIcon {
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
   }
 
   .fieldRowKey .fieldIcon {
     color: #a78bfa;
-    background: rgba(109, 93, 252, 0.14);
+    background: color-mix(in srgb, #6d5dfc 14%, transparent);
   }
 
   .fieldRowPriority .fieldIcon {
     color: #93c5fd;
-    background: rgba(59, 130, 246, 0.13);
+    background: color-mix(in srgb, #3b82f6 13%, transparent);
   }
 
   .fieldRowUrl .fieldIcon,
   .fieldRowProxy .fieldIcon {
     color: #5eead4;
-    background: rgba(20, 184, 166, 0.12);
+    background: color-mix(in srgb, #14b8a6 12%, transparent);
   }
 
   .fieldRowPrefix .fieldIcon,
   .fieldRowOption .fieldIcon,
   .fieldRowModel .fieldIcon {
     color: #a5b4fc;
-    background: rgba(99, 102, 241, 0.13);
+    background: color-mix(in srgb, #6366f1 13%, transparent);
   }
 
   .fieldLabel {
-    color: #f1ede8;
+    color: var(--text-primary);
   }
 
   .fieldValue,
   .apiKeyEntryKey {
-    color: #cfc7bd;
+    color: var(--text-secondary);
   }
 
   .headerBadge {
-    color: #c9c1b7;
-    background: rgba(45, 41, 37, 0.9);
-    border-color: rgba(88, 80, 72, 0.84);
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
 
     strong {
       color: #f1ede8;

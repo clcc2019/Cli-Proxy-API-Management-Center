@@ -387,34 +387,9 @@
   }
 }
 
-.antigravityGrid {
-  display: grid;
-  gap: $spacing-md;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  @include tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-.codexGrid {
-  display: grid;
-  gap: $spacing-md;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  @include tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
+// provider grids/controls —— 6 种提供商共用同一套样式（结构相同，视觉差异只在卡片色带）
+.antigravityGrid,
+.codexGrid,
 .geminiCliGrid {
   display: grid;
   gap: $spacing-md;
@@ -429,48 +404,8 @@
   }
 }
 
-.antigravityControls {
-  display: flex;
-  gap: $spacing-md;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  margin-bottom: $spacing-md;
-}
-
-.antigravityControl {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-}
-
-.codexControls {
-  display: flex;
-  gap: $spacing-md;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  margin-bottom: $spacing-md;
-}
-
-.codexControl {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-}
-
+.antigravityControls,
+.codexControls,
 .geminiCliControls {
   display: flex;
   gap: $spacing-md;
@@ -479,6 +414,8 @@
   margin-bottom: $spacing-md;
 }
 
+.antigravityControl,
+.codexControl,
 .geminiCliControl {
   display: flex;
   flex-direction: column;
@@ -492,41 +429,40 @@
   }
 }
 
-// 卡片渐变背景 — 顶部 2px 提供商色带，低成本
-.antigravityCard {
+// 卡片顶部 2px 提供商色带 —— 使用 --provider-accent 变量驱动，6 种提供商共用一套规则
+.antigravityCard,
+.claudeCard,
+.codexCard,
+.geminiCliCard,
+.kiroCard,
+.kimiCard {
   box-shadow:
-    inset 0 2px 0 rgba(6, 182, 212, 0.32),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+    inset 0 2px 0 var(--provider-accent),
+    var(--shadow-card);
+}
+
+.antigravityCard {
+  --provider-accent: rgba(6, 182, 212, 0.32);
 }
 
 .claudeCard {
-  box-shadow:
-    inset 0 2px 0 rgba(198, 87, 70, 0.32),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+  --provider-accent: rgba(198, 87, 70, 0.32);
 }
 
 .codexCard {
-  box-shadow:
-    inset 0 2px 0 rgba(99, 102, 241, 0.32),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+  --provider-accent: rgba(99, 102, 241, 0.32);
 }
 
 .geminiCliCard {
-  box-shadow:
-    inset 0 2px 0 rgba(66, 133, 244, 0.32),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+  --provider-accent: rgba(66, 133, 244, 0.32);
 }
 
 .kiroCard {
-  box-shadow:
-    inset 0 2px 0 rgba(245, 158, 11, 0.32),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+  --provider-accent: rgba(245, 158, 11, 0.32);
 }
 
 .kimiCard {
-  box-shadow:
-    inset 0 2px 0 rgba(59, 130, 246, 0.32),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+  --provider-accent: rgba(59, 130, 246, 0.32);
 }
 
 .quotaSection {
@@ -877,7 +813,7 @@
   flex-direction: column;
   min-height: 100%;
   isolation: isolate;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-card);
   transition:
     transform $transition-fast,
     box-shadow $transition-fast,
@@ -885,7 +821,7 @@
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px -16px rgba(15, 23, 42, 0.18);
+    box-shadow: var(--shadow-card-hover);
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
   }
 
@@ -940,7 +876,7 @@
 .fileCardCompact {
   padding: 10px 12px;
   border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: var(--shadow-card);
 
   .fileCardMain {
     gap: 8px;
@@ -1994,8 +1930,8 @@
   white-space: nowrap;
   padding: 0 9px;
   border-radius: 999px;
-  background: #eef2f7;
-  color: #64748b;
+  background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -2256,7 +2192,7 @@
   gap: 8px;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid color-mix(in srgb, #dbe3ef 78%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   min-width: 0;
   width: 100%;
 }
@@ -2678,72 +2614,36 @@
 
 :global([data-theme='dark']) {
   .fileCard {
-    background:
-      radial-gradient(circle at 0% 0%, rgba(139, 134, 128, 0.16), transparent 34%),
-      radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.08), transparent 36%),
-      linear-gradient(180deg, #24211e 0%, #1c1916 48%, #171513 100%);
-    border-color: rgba(92, 84, 75, 0.86);
-    box-shadow:
-      0 24px 60px -34px rgba(0, 0, 0, 0.82),
-      0 10px 28px -24px rgba(0, 0, 0, 0.78),
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.34);
+    background: var(--surface-raised);
+    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+    box-shadow: var(--shadow-card);
 
     &::before {
-      background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.075), transparent 38%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 44%);
+      background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--primary-color) 28%, transparent),
+        transparent
+      );
     }
 
     &:hover {
-      border-color: color-mix(in srgb, var(--primary-active) 44%, #5a5148);
-      box-shadow:
-        0 28px 68px -32px rgba(0, 0, 0, 0.88),
-        0 12px 34px -24px rgba(0, 0, 0, 0.82),
-        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+      border-color: color-mix(in srgb, var(--primary-active) 44%, var(--border-color));
+      box-shadow: 0 10px 28px -20px rgba(0, 0, 0, 0.58);
     }
   }
 
-  .fileCard.antigravityCard {
-    background:
-      radial-gradient(circle at 8% 0%, rgba(83, 168, 154, 0.2), transparent 34%),
-      radial-gradient(circle at 100% 100%, rgba(55, 137, 249, 0.11), transparent 38%),
-      linear-gradient(180deg, #232622 0%, #1b1f1d 50%, #151716 100%);
-  }
-
-  .fileCard.claudeCard {
-    background:
-      radial-gradient(circle at 8% 0%, rgba(217, 119, 87, 0.22), transparent 34%),
-      radial-gradient(circle at 100% 100%, rgba(139, 134, 128, 0.1), transparent 38%),
-      linear-gradient(180deg, #27211d 0%, #1f1a17 52%, #171412 100%);
-  }
-
-  .fileCard.codexCard {
-    background:
-      radial-gradient(circle at 8% 0%, rgba(100, 118, 255, 0.24), transparent 34%),
-      radial-gradient(circle at 100% 100%, rgba(177, 167, 255, 0.1), transparent 38%),
-      linear-gradient(180deg, #22212a 0%, #1b1a22 50%, #15141a 100%);
-  }
-
-  .fileCard.geminiCliCard {
-    background:
-      radial-gradient(circle at 8% 0%, rgba(49, 134, 255, 0.2), transparent 34%),
-      radial-gradient(circle at 100% 100%, rgba(100, 181, 246, 0.1), transparent 38%),
-      linear-gradient(180deg, #20242b 0%, #191d23 52%, #14171c 100%);
-  }
-
-  .fileCard.kiroCard {
-    background:
-      radial-gradient(circle at 8% 0%, rgba(255, 189, 90, 0.2), transparent 34%),
-      radial-gradient(circle at 100% 100%, rgba(255, 153, 0, 0.1), transparent 38%),
-      linear-gradient(180deg, #282217 0%, #1f1b14 52%, #17140f 100%);
-  }
-
+  // 深色模式下，6 种 provider 卡片共用同一个"表面色+顶部色带"规则
+  .fileCard.antigravityCard,
+  .fileCard.claudeCard,
+  .fileCard.codexCard,
+  .fileCard.geminiCliCard,
+  .fileCard.kiroCard,
   .fileCard.kimiCard {
-    background:
-      radial-gradient(circle at 8% 0%, rgba(2, 122, 255, 0.22), transparent 34%),
-      radial-gradient(circle at 100% 100%, rgba(112, 181, 255, 0.1), transparent 38%),
-      linear-gradient(180deg, #1f242b 0%, #181d23 52%, #13171c 100%);
+    background: var(--surface-raised);
+    box-shadow:
+      inset 0 2px 0 var(--provider-accent),
+      var(--shadow-card);
   }
 
   .fileCardSelected {

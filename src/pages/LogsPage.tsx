@@ -493,7 +493,6 @@ export function LogsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('logs.search_placeholder')}
-                  className={styles.searchInput}
                   rightElement={
                     searchQuery ? (
                       <button

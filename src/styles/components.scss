@@ -118,6 +118,64 @@ textarea {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
+
+  &[aria-invalid='true'] {
+    border-color: var(--error-color);
+  }
+}
+
+// Input 控件容器 —— left/right affix, size 变体
+.input-control {
+  position: relative;
+  display: block;
+  width: 100%;
+
+  // left/right icon 容器
+  .input-affix {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    pointer-events: none;
+    // 内部交互元素（清除按钮等）允许接收点击
+    > * {
+      pointer-events: auto;
+    }
+  }
+
+  .input-affix-left {
+    left: 10px;
+  }
+
+  .input-affix-right {
+    right: 8px;
+  }
+}
+
+.input-control-with-left .input {
+  padding-left: 36px;
+}
+
+.input-control-with-right .input {
+  padding-right: 36px;
+}
+
+.input-control-sm .input {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.input-control-inline {
+  display: inline-block;
+  width: auto;
+
+  .input {
+    width: auto;
+  }
 }
 
 .form-group {
@@ -150,6 +208,29 @@ textarea {
   }
 }
 
+// 紧凑密度：14px 内边距、12px 圆角，适合密集列表场景
+.card.card-compact {
+  padding: 14px;
+  border-radius: 12px;
+}
+
+// 舒适密度：20px 内边距，适合需要呼吸感的重要卡片
+.card.card-cozy {
+  padding: clamp(16px, 1.4vw + 10px, 22px);
+}
+
+// flush: 去边框/阴影，让父容器自己带视觉层级
+.card.card-flush {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+
+  &:hover {
+    box-shadow: none;
+  }
+}
+
 .card-header {
   display: flex;
   align-items: center;
@@ -172,6 +253,20 @@ textarea {
     letter-spacing: -0.01em;
     color: var(--text-primary);
   }
+}
+
+// flush header: 不画分割线
+.card-header.card-header-flush {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+// bleed header: 贴到卡片顶边，适合带强烈识别色的头部
+.card-header.card-header-bleed {
+  margin: calc(clamp(14px, 1.2vw + 8px, 20px) * -1) calc(clamp(14px, 1.2vw + 8px, 20px) * -1)
+    $spacing-sm;
+  padding: $spacing-sm clamp(14px, 1.2vw + 8px, 20px);
+  background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
 }
 
 .status-badge {

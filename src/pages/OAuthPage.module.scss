@@ -20,14 +20,14 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-primary);
-  margin: 0 0 $spacing-lg 0;
+  margin: 0 0 $spacing-md 0;
   line-height: 1.2;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xl;
+  gap: $spacing-lg;
 }
 
 .cardContent {
@@ -62,13 +62,13 @@
 .oauthSection {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: $spacing-md;
 }
 
 .oauthGrid {
   display: grid;
-  gap: $spacing-lg;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: $spacing-md;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
 
   @include mobile {
     grid-template-columns: 1fr;

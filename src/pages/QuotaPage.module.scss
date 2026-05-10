@@ -4,13 +4,14 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: $spacing-md;
 }
 
 .pageHeader {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: 2px;
+  margin-bottom: -4px;
 }
 
 .pageTitle {
