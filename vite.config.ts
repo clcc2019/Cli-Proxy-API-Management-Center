@@ -62,18 +62,27 @@ function resolveManualChunk(id: string) {
     return undefined;
   }
 
-  if (
-    id.includes('react-chartjs-2') ||
-    id.includes('chart.js')
-  ) {
+  if (id.includes('react-chartjs-2') || id.includes('chart.js')) {
     return 'charts';
   }
 
-  if (
-    id.includes('@uiw/react-codemirror') ||
-    id.includes('@codemirror/')
-  ) {
+  if (id.includes('@uiw/react-codemirror') || id.includes('@codemirror/')) {
     return 'editor';
+  }
+
+  // motion 只有 PageTransition 用得到，独立一个 chunk 便于被首屏之外懒加载
+  if (id.includes('/motion/') || id.includes('/motion-dom/')) {
+    return 'motion';
+  }
+
+  // yaml 仅 ConfigPage 使用，走独立 chunk
+  if (id.includes('/yaml/')) {
+    return 'yaml';
+  }
+
+  // axios 很稳定、很少变动，独立便于长缓存
+  if (id.includes('/axios/')) {
+    return 'http';
   }
 
   if (

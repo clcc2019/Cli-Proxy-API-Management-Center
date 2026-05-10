@@ -13,11 +13,20 @@
   background: var(--bg-canvas);
   color: var(--text-primary);
 
+  @supports (height: 100dvh) {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+
   @media (max-width: $breakpoint-mobile) {
     height: auto;
     min-height: 100vh;
     overflow: visible;
     overflow-y: auto;
+
+    @supports (min-height: 100dvh) {
+      min-height: 100dvh;
+    }
   }
 }
 
@@ -418,8 +427,43 @@
       min-width: 80px;
     }
 
+    // 移动端：收成极简点状胶囊，继续传达连接状态
     @media (max-width: $breakpoint-mobile) {
-      display: none;
+      padding: 4px 8px;
+      gap: 6px;
+
+      .status-badge {
+        padding: 0;
+        border: none;
+        background: transparent;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        font-size: 0;
+        color: transparent;
+
+        &.success {
+          background: var(--success-color);
+        }
+
+        &.warning {
+          background: var(--quota-medium-color);
+        }
+
+        &.error {
+          background: var(--error-color);
+        }
+
+        &.muted {
+          background: var(--text-tertiary);
+        }
+      }
+
+      .base {
+        max-width: 120px;
+        min-width: 0;
+        font-size: 12px;
+      }
     }
   }
 }

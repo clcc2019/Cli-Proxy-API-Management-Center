@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -467,58 +468,71 @@ export function MainLayout() {
           ? 'error'
           : 'muted';
 
-  const navItems = [
-    { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
-    { path: '/config', label: t('nav.config_management'), icon: sidebarIcons.config },
-    { path: '/api-keys', label: t('nav.api_keys'), icon: sidebarIcons.apiKeys },
-    { path: '/ai-providers', label: t('nav.ai_providers'), icon: sidebarIcons.aiProviders },
-    { path: '/auth-files', label: t('nav.auth_files'), icon: sidebarIcons.authFiles },
-    { path: '/oauth', label: t('nav.oauth', { defaultValue: 'OAuth' }), icon: sidebarIcons.oauth },
-    { path: '/quota', label: t('nav.quota_management'), icon: sidebarIcons.quota },
-    { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
-    { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
-    ...(config?.loggingToFile
-      ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
-      : []),
-    { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
-  ];
-  const navOrder = navItems.map((item) => item.path);
-  const getRouteOrder = (pathname: string) => {
-    const trimmedPath =
-      pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-    const normalizedPath = trimmedPath === '/dashboard' ? '/' : trimmedPath;
+  const navItems = useMemo(
+    () => [
+      { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
+      { path: '/config', label: t('nav.config_management'), icon: sidebarIcons.config },
+      { path: '/api-keys', label: t('nav.api_keys'), icon: sidebarIcons.apiKeys },
+      { path: '/ai-providers', label: t('nav.ai_providers'), icon: sidebarIcons.aiProviders },
+      { path: '/auth-files', label: t('nav.auth_files'), icon: sidebarIcons.authFiles },
+      {
+        path: '/oauth',
+        label: t('nav.oauth', { defaultValue: 'OAuth' }),
+        icon: sidebarIcons.oauth,
+      },
+      { path: '/quota', label: t('nav.quota_management'), icon: sidebarIcons.quota },
+      { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
+      { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
+      ...(config?.loggingToFile
+        ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
+        : []),
+      { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
+    ],
+    [t, config?.loggingToFile]
+  );
 
-    const aiProvidersIndex = navOrder.indexOf('/ai-providers');
-    if (aiProvidersIndex !== -1) {
-      if (normalizedPath === '/ai-providers') return aiProvidersIndex;
-      if (normalizedPath.startsWith('/ai-providers/')) {
-        if (normalizedPath.startsWith('/ai-providers/gemini')) return aiProvidersIndex + 0.1;
-        if (normalizedPath.startsWith('/ai-providers/codex')) return aiProvidersIndex + 0.2;
-        if (normalizedPath.startsWith('/ai-providers/claude')) return aiProvidersIndex + 0.3;
-        if (normalizedPath.startsWith('/ai-providers/vertex')) return aiProvidersIndex + 0.4;
-        if (normalizedPath.startsWith('/ai-providers/ampcode')) return aiProvidersIndex + 0.5;
-        if (normalizedPath.startsWith('/ai-providers/openai')) return aiProvidersIndex + 0.6;
-        return aiProvidersIndex + 0.05;
+  const navOrder = useMemo(() => navItems.map((item) => item.path), [navItems]);
+
+  const getRouteOrder = useCallback(
+    (pathname: string) => {
+      const trimmedPath =
+        pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+      const normalizedPath = trimmedPath === '/dashboard' ? '/' : trimmedPath;
+
+      const aiProvidersIndex = navOrder.indexOf('/ai-providers');
+      if (aiProvidersIndex !== -1) {
+        if (normalizedPath === '/ai-providers') return aiProvidersIndex;
+        if (normalizedPath.startsWith('/ai-providers/')) {
+          if (normalizedPath.startsWith('/ai-providers/gemini')) return aiProvidersIndex + 0.1;
+          if (normalizedPath.startsWith('/ai-providers/codex')) return aiProvidersIndex + 0.2;
+          if (normalizedPath.startsWith('/ai-providers/claude')) return aiProvidersIndex + 0.3;
+          if (normalizedPath.startsWith('/ai-providers/vertex')) return aiProvidersIndex + 0.4;
+          if (normalizedPath.startsWith('/ai-providers/ampcode')) return aiProvidersIndex + 0.5;
+          if (normalizedPath.startsWith('/ai-providers/openai')) return aiProvidersIndex + 0.6;
+          return aiProvidersIndex + 0.05;
+        }
       }
-    }
 
-    const authFilesIndex = navOrder.indexOf('/auth-files');
-    if (authFilesIndex !== -1) {
-      if (normalizedPath === '/auth-files') return authFilesIndex;
-      if (normalizedPath.startsWith('/auth-files/')) {
-        if (normalizedPath.startsWith('/auth-files/oauth-excluded')) return authFilesIndex + 0.1;
-        if (normalizedPath.startsWith('/auth-files/oauth-model-alias')) return authFilesIndex + 0.2;
-        return authFilesIndex + 0.05;
+      const authFilesIndex = navOrder.indexOf('/auth-files');
+      if (authFilesIndex !== -1) {
+        if (normalizedPath === '/auth-files') return authFilesIndex;
+        if (normalizedPath.startsWith('/auth-files/')) {
+          if (normalizedPath.startsWith('/auth-files/oauth-excluded')) return authFilesIndex + 0.1;
+          if (normalizedPath.startsWith('/auth-files/oauth-model-alias'))
+            return authFilesIndex + 0.2;
+          return authFilesIndex + 0.05;
+        }
       }
-    }
 
-    const exactIndex = navOrder.indexOf(normalizedPath);
-    if (exactIndex !== -1) return exactIndex;
-    const nestedIndex = navOrder.findIndex(
-      (path) => path !== '/' && normalizedPath.startsWith(`${path}/`)
-    );
-    return nestedIndex === -1 ? null : nestedIndex;
-  };
+      const exactIndex = navOrder.indexOf(normalizedPath);
+      if (exactIndex !== -1) return exactIndex;
+      const nestedIndex = navOrder.findIndex(
+        (path) => path !== '/' && normalizedPath.startsWith(`${path}/`)
+      );
+      return nestedIndex === -1 ? null : nestedIndex;
+    },
+    [navOrder]
+  );
 
   const getTransitionVariant = useCallback((fromPathname: string, toPathname: string) => {
     const normalize = (pathname: string) => {
@@ -567,12 +581,22 @@ export function MainLayout() {
             variant="ghost"
             size="sm"
             onClick={() => setSidebarOpen((prev) => !prev)}
+            aria-label={t('sidebar.toggle_mobile', { defaultValue: 'Toggle navigation' })}
+            aria-expanded={sidebarOpen}
+            aria-controls="main-sidebar"
           >
             {headerIcons.menu}
           </Button>
           <button
             className="sidebar-toggle-header"
             onClick={() => setSidebarCollapsed((prev) => !prev)}
+            aria-label={
+              sidebarCollapsed
+                ? t('sidebar.expand', { defaultValue: '展开侧边栏' })
+                : t('sidebar.collapse', { defaultValue: '收起侧边栏' })
+            }
+            aria-expanded={!sidebarCollapsed}
+            aria-controls="main-sidebar"
             title={
               sidebarCollapsed
                 ? t('sidebar.expand', { defaultValue: '展开' })
@@ -616,6 +640,7 @@ export function MainLayout() {
               size="sm"
               onClick={handleRefreshAll}
               title={t('header.refresh_all')}
+              aria-label={t('header.refresh_all')}
             >
               {headerIcons.refresh}
             </Button>
@@ -729,7 +754,13 @@ export function MainLayout() {
                 </div>
               )}
             </div>
-            <Button variant="ghost" size="sm" onClick={logout} title={t('header.logout')}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              title={t('header.logout')}
+              aria-label={t('header.logout')}
+            >
               {headerIcons.logout}
             </Button>
           </div>
@@ -747,7 +778,9 @@ export function MainLayout() {
         />
 
         <aside
+          id="main-sidebar"
           className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
+          aria-label={t('nav.dashboard', { defaultValue: '导航' })}
         >
           <div className="nav-section">
             {navItems.map((item) => (

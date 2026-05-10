@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -29,13 +29,86 @@ interface ProviderStats {
 
 type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
-function getTimeOfDay(): TimeOfDay {
-  const hour = new Date().getHours();
+function getTimeOfDay(date = new Date()): TimeOfDay {
+  const hour = date.getHours();
   if (hour >= 5 && hour < 12) return 'morning';
   if (hour >= 12 && hour < 17) return 'afternoon';
   if (hour >= 17 && hour < 21) return 'evening';
   return 'night';
 }
+
+/**
+ * 时间区域单独抽组件，避免分钟级 tick 触发整个 Dashboard 重渲染。
+ * React.memo 避免父组件传 prop 变化时无谓重渲。
+ */
+const HeroTimeBlock = memo(function HeroTimeBlock() {
+  const { i18n } = useTranslation();
+  const [now, setNow] = useState<Date>(() => new Date());
+
+  useEffect(() => {
+    // 第一次对齐到下一个整分钟，之后每 60s 更新
+    const current = new Date();
+    const msToNextMinute = 60_000 - (current.getSeconds() * 1000 + current.getMilliseconds());
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    const initialId = window.setTimeout(() => {
+      setNow(new Date());
+      intervalId = setInterval(() => setNow(new Date()), 60_000);
+    }, msToNextMinute);
+
+    return () => {
+      window.clearTimeout(initialId);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, []);
+
+  const formattedTime = useMemo(
+    () => now.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' }),
+    [now, i18n.language]
+  );
+  const formattedDate = useMemo(
+    () =>
+      now.toLocaleDateString(i18n.language, {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+    [now, i18n.language]
+  );
+
+  return (
+    <div className={styles.dateTimeBlock}>
+      <span className={styles.time}>{formattedTime}</span>
+      <span className={styles.date}>{formattedDate}</span>
+    </div>
+  );
+});
+
+/**
+ * 问候语也独立，读同一个时间源（每 5 分钟检查足够），减少重渲。
+ */
+const HeroGreeting = memo(function HeroGreeting() {
+  const { t } = useTranslation();
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay);
+
+  useEffect(() => {
+    // 5 分钟检查一次 time-of-day 切换已足够
+    const id = setInterval(() => {
+      const tod = getTimeOfDay();
+      setTimeOfDay((prev) => (prev === tod ? prev : tod));
+    }, 5 * 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <>
+      <span className={styles.heroGreeting}>{t(`dashboard.greeting_${timeOfDay}`)}</span>
+      <h1 className={styles.heroTitle}>{t('dashboard.welcome_back')}</h1>
+      <p className={styles.heroCaring}>{t(`dashboard.caring_${timeOfDay}`)}</p>
+    </>
+  );
+});
 
 export function DashboardPage() {
   const { t, i18n } = useTranslation();
@@ -66,26 +139,13 @@ export function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
 
-  // Time-of-day state for dynamic greeting
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay);
-  const [currentTime, setCurrentTime] = useState(() => new Date());
-
   const apiKeysCache = useRef<string[]>([]);
 
   useEffect(() => {
     apiKeysCache.current = [];
   }, [apiBase, config?.apiKeys]);
 
-  // Update time every 60 seconds
-  useEffect(() => {
-    const id = setInterval(() => {
-      setTimeOfDay(getTimeOfDay());
-      setCurrentTime(new Date());
-    }, 60_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const normalizeApiKeyList = (input: unknown): string[] => {
+  const normalizeApiKeyList = useCallback((input: unknown): string[] => {
     if (!Array.isArray(input)) return [];
     const seen = new Set<string>();
     const keys: string[] = [];
@@ -108,7 +168,7 @@ export function DashboardPage() {
     });
 
     return keys;
-  };
+  }, []);
 
   const resolveApiKeysForModels = useCallback(async () => {
     if (apiKeysCache.current.length) {
@@ -131,7 +191,7 @@ export function DashboardPage() {
     } catch {
       return [];
     }
-  }, [config?.apiKeys]);
+  }, [config?.apiKeys, normalizeApiKeyList]);
 
   const fetchModels = useCallback(async () => {
     if (connectionStatus !== 'connected' || !apiBase) {
@@ -151,14 +211,15 @@ export function DashboardPage() {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        const [keysRes, filesRes, geminiRes, codexRes, claudeRes, openaiRes] = await Promise.allSettled([
-          apiKeysApi.list(),
-          authFilesApi.list(),
-          providersApi.getGeminiKeys(),
-          providersApi.getCodexConfigs(),
-          providersApi.getClaudeConfigs(),
-          providersApi.getOpenAIProviders()
-        ]);
+        const [keysRes, filesRes, geminiRes, codexRes, claudeRes, openaiRes] =
+          await Promise.allSettled([
+            apiKeysApi.list(),
+            authFilesApi.list(),
+            providersApi.getGeminiKeys(),
+            providersApi.getCodexConfigs(),
+            providersApi.getClaudeConfigs(),
+            providersApi.getOpenAIProviders()
+          ]);
 
         setStats({
           apiKeys: keysRes.status === 'fulfilled' ? keysRes.value.length : null,
@@ -184,7 +245,6 @@ export function DashboardPage() {
     }
   }, [connectionStatus, fetchModels]);
 
-  // Calculate total provider keys only when all provider stats are available.
   const providerStatsReady =
     providerStats.gemini !== null &&
     providerStats.codex !== null &&
@@ -202,47 +262,64 @@ export function DashboardPage() {
       (providerStats.openai ?? 0)
     : 0;
 
-  const quickStats: QuickStat[] = [
-    {
-      label: t('dashboard.management_keys'),
-      value: stats.apiKeys ?? '-',
-      icon: <IconKey size={24} />,
-      path: '/config',
-      loading: loading && stats.apiKeys === null,
-      sublabel: t('nav.config_management')
-    },
-    {
-      label: t('nav.ai_providers'),
-      value: loading ? '-' : providerStatsReady ? totalProviderKeys : '-',
-      icon: <IconBot size={24} />,
-      path: '/ai-providers',
-      loading: loading,
-      sublabel: hasProviderStats
-        ? t('dashboard.provider_keys_detail', {
-            gemini: providerStats.gemini ?? '-',
-            codex: providerStats.codex ?? '-',
-            claude: providerStats.claude ?? '-',
-            openai: providerStats.openai ?? '-'
-          })
-        : undefined
-    },
-    {
-      label: t('nav.auth_files'),
-      value: stats.authFiles ?? '-',
-      icon: <IconFileText size={24} />,
-      path: '/auth-files',
-      loading: loading && stats.authFiles === null,
-      sublabel: t('dashboard.oauth_credentials')
-    },
-    {
-      label: t('dashboard.available_models'),
-      value: modelsLoading ? '-' : models.length,
-      icon: <IconSatellite size={24} />,
-      path: '/system',
-      loading: modelsLoading,
-      sublabel: t('dashboard.available_models_desc')
-    }
-  ];
+  const quickStats: QuickStat[] = useMemo(
+    () => [
+      {
+        label: t('dashboard.management_keys'),
+        value: stats.apiKeys ?? '-',
+        icon: <IconKey size={24} />,
+        path: '/config',
+        loading: loading && stats.apiKeys === null,
+        sublabel: t('nav.config_management')
+      },
+      {
+        label: t('nav.ai_providers'),
+        value: loading ? '-' : providerStatsReady ? totalProviderKeys : '-',
+        icon: <IconBot size={24} />,
+        path: '/ai-providers',
+        loading: loading,
+        sublabel: hasProviderStats
+          ? t('dashboard.provider_keys_detail', {
+              gemini: providerStats.gemini ?? '-',
+              codex: providerStats.codex ?? '-',
+              claude: providerStats.claude ?? '-',
+              openai: providerStats.openai ?? '-'
+            })
+          : undefined
+      },
+      {
+        label: t('nav.auth_files'),
+        value: stats.authFiles ?? '-',
+        icon: <IconFileText size={24} />,
+        path: '/auth-files',
+        loading: loading && stats.authFiles === null,
+        sublabel: t('dashboard.oauth_credentials')
+      },
+      {
+        label: t('dashboard.available_models'),
+        value: modelsLoading ? '-' : models.length,
+        icon: <IconSatellite size={24} />,
+        path: '/system',
+        loading: modelsLoading,
+        sublabel: t('dashboard.available_models_desc')
+      }
+    ],
+    [
+      t,
+      stats.apiKeys,
+      stats.authFiles,
+      loading,
+      providerStatsReady,
+      totalProviderKeys,
+      hasProviderStats,
+      providerStats.gemini,
+      providerStats.codex,
+      providerStats.claude,
+      providerStats.openai,
+      modelsLoading,
+      models.length
+    ]
+  );
 
   const routingStrategyRaw = config?.routingStrategy?.trim() || '';
   const routingStrategyDisplay = !routingStrategyRaw
@@ -260,25 +337,21 @@ export function DashboardPage() {
         ? styles.configBadgeFillFirst
         : styles.configBadgeUnknown;
 
-  // Derived time-based values
-  const greetingKey = `dashboard.greeting_${timeOfDay}`;
-  const caringKey = `dashboard.caring_${timeOfDay}`;
+  const buildDateText = useMemo(
+    () => (serverBuildDate ? new Date(serverBuildDate).toLocaleDateString(i18n.language) : null),
+    [serverBuildDate, i18n.language]
+  );
 
-  const formattedDate = currentTime.toLocaleDateString(i18n.language, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  const formattedTime = currentTime.toLocaleTimeString(i18n.language, {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const statusLabel =
+    connectionStatus === 'connected'
+      ? 'common.connected'
+      : connectionStatus === 'connecting'
+        ? 'common.connecting'
+        : 'common.disconnected';
 
   return (
     <div className={styles.dashboard}>
-      {/* Decorative background orbs */}
+      {/* Decorative background orbs — hidden on mobile & reduced-motion via CSS */}
       <div className={styles.backgroundOrbs} aria-hidden="true">
         <div className={styles.orb1} />
         <div className={styles.orb2} />
@@ -290,15 +363,10 @@ export function DashboardPage() {
           OVERVIEW
         </span>
         <div className={styles.heroContent}>
-          <span className={styles.heroGreeting}>{t(greetingKey)}</span>
-          <h1 className={styles.heroTitle}>{t('dashboard.welcome_back')}</h1>
-          <p className={styles.heroCaring}>{t(caringKey)}</p>
+          <HeroGreeting />
         </div>
         <div className={styles.heroMeta}>
-          <div className={styles.dateTimeBlock}>
-            <span className={styles.time}>{formattedTime}</span>
-            <span className={styles.date}>{formattedDate}</span>
-          </div>
+          <HeroTimeBlock />
           <div className={styles.connectionPill}>
             <span
               className={`${styles.statusDot} ${
@@ -310,22 +378,10 @@ export function DashboardPage() {
               }`}
             />
             <span className={styles.pillText}>
-              {serverVersion
-                ? `v${serverVersion.trim().replace(/^[vV]+/, '')}`
-                : t(
-                    connectionStatus === 'connected'
-                      ? 'common.connected'
-                      : connectionStatus === 'connecting'
-                        ? 'common.connecting'
-                        : 'common.disconnected'
-                  )}
+              {serverVersion ? `v${serverVersion.trim().replace(/^[vV]+/, '')}` : t(statusLabel)}
             </span>
           </div>
-          {serverBuildDate && (
-            <span className={styles.buildDate}>
-              {new Date(serverBuildDate).toLocaleDateString(i18n.language)}
-            </span>
-          )}
+          {buildDateText && <span className={styles.buildDate}>{buildDateText}</span>}
         </div>
       </section>
 
@@ -342,9 +398,7 @@ export function DashboardPage() {
             >
               <div className={styles.bentoIcon}>{stat.icon}</div>
               <div className={styles.bentoContent}>
-                <span className={styles.bentoValue}>
-                  {stat.loading ? '...' : stat.value}
-                </span>
+                <span className={styles.bentoValue}>{stat.loading ? '…' : stat.value}</span>
                 <span className={styles.bentoLabel}>{stat.label}</span>
                 {stat.sublabel && !stat.loading && (
                   <span className={styles.bentoSublabel}>{stat.sublabel}</span>
@@ -362,29 +416,47 @@ export function DashboardPage() {
           <div className={styles.configPillGrid}>
             <div className={styles.configPill}>
               <span className={styles.configPillLabel}>{t('basic_settings.debug_enable')}</span>
-              <span className={`${styles.configPillValue} ${config.debug ? styles.on : styles.off}`}>
+              <span
+                className={`${styles.configPillValue} ${config.debug ? styles.on : styles.off}`}
+              >
                 {config.debug ? t('common.yes') : t('common.no')}
               </span>
             </div>
             <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>{t('basic_settings.usage_statistics_enable')}</span>
-              <span className={`${styles.configPillValue} ${config.usageStatisticsEnabled ? styles.on : styles.off}`}>
+              <span className={styles.configPillLabel}>
+                {t('basic_settings.usage_statistics_enable')}
+              </span>
+              <span
+                className={`${styles.configPillValue} ${
+                  config.usageStatisticsEnabled ? styles.on : styles.off
+                }`}
+              >
                 {config.usageStatisticsEnabled ? t('common.yes') : t('common.no')}
               </span>
             </div>
             <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>{t('basic_settings.logging_to_file_enable')}</span>
-              <span className={`${styles.configPillValue} ${config.loggingToFile ? styles.on : styles.off}`}>
+              <span className={styles.configPillLabel}>
+                {t('basic_settings.logging_to_file_enable')}
+              </span>
+              <span
+                className={`${styles.configPillValue} ${
+                  config.loggingToFile ? styles.on : styles.off
+                }`}
+              >
                 {config.loggingToFile ? t('common.yes') : t('common.no')}
               </span>
             </div>
             <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>{t('basic_settings.retry_count_label')}</span>
+              <span className={styles.configPillLabel}>
+                {t('basic_settings.retry_count_label')}
+              </span>
               <span className={styles.configPillValue}>{config.requestRetry ?? 0}</span>
             </div>
             <div className={styles.configPill}>
               <span className={styles.configPillLabel}>{t('basic_settings.ws_auth_enable')}</span>
-              <span className={`${styles.configPillValue} ${config.wsAuth ? styles.on : styles.off}`}>
+              <span
+                className={`${styles.configPillValue} ${config.wsAuth ? styles.on : styles.off}`}
+              >
                 {config.wsAuth ? t('common.yes') : t('common.no')}
               </span>
             </div>

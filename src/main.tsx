@@ -29,6 +29,11 @@ const bootstrap = async () => {
       <App />
     </StrictMode>
   );
+
+  // 移除首屏 loading 占位；使用 rAF 保证下一帧再标记，确保首屏已挂载
+  requestAnimationFrame(() => {
+    document.documentElement.classList.add('__booted__');
+  });
 };
 
 void bootstrap();

@@ -4,7 +4,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: $spacing-md;
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
@@ -13,21 +13,25 @@
 .pageHeader {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: 2px;
+  margin-bottom: -4px;
 }
 
 .pageTitle {
-  font-size: 28px;
+  font-size: clamp(20px, 1.2vw + 14px, 24px);
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
   margin: 0;
+  line-height: 1.2;
 }
 
 .description {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
   max-width: 880px;
+  line-height: 1.5;
 }
 
 .headerActions {
@@ -91,20 +95,19 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
-  margin-bottom: $spacing-lg;
+  margin-bottom: $spacing-md;
 }
 
 .filterRail {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 
   @include mobile {
-    padding: 10px;
+    padding: 0;
   }
 }
 
@@ -144,13 +147,13 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 12px 7px 8px;
-  border-radius: 10px;
-  font-size: 13px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 8px;
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 1.2;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 56%, transparent);
+  background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
@@ -161,7 +164,7 @@
 
   &:hover {
     border-color: color-mix(in srgb, var(--filter-color) 40%, var(--border-color));
-    background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
     color: var(--text-primary);
   }
 }
@@ -184,15 +187,15 @@
 }
 
 .filterTagIconWrap {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
-  background: color-mix(in srgb, var(--bg-tertiary) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 50%, transparent);
 }
 
 .filterTagIcon {
@@ -238,10 +241,10 @@
 }
 
 .filterControlsPanel {
-  padding: 14px;
+  padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
 }
 
 .filterControls {
@@ -308,10 +311,16 @@
   display: flex;
   align-items: center;
   min-height: 40px;
-  padding: 0 2px;
+  padding: 0 10px;
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
+  transition: border-color $transition-fast, background-color $transition-fast;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+    background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+  }
 }
 
 .filterToggle {
@@ -352,17 +361,17 @@
 // 卡片网格
 .fileGrid {
   display: grid;
-  gap: $spacing-md;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
 
   @include mobile {
-    gap: $spacing-sm;
+    gap: 10px;
     grid-template-columns: 1fr;
   }
 }
 
 .fileGridQuotaManaged {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -370,7 +379,8 @@
 }
 
 .fileGridCompact {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -482,29 +492,41 @@
   }
 }
 
-// 卡片渐变背景 — subtle tint only
+// 卡片渐变背景 — 顶部 2px 提供商色带，低成本
 .antigravityCard {
-  background-image: linear-gradient(180deg, rgba(224, 247, 250, 0.06), transparent);
+  box-shadow:
+    inset 0 2px 0 rgba(6, 182, 212, 0.32),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .claudeCard {
-  background-image: linear-gradient(180deg, rgba(251, 236, 228, 0.08), transparent);
+  box-shadow:
+    inset 0 2px 0 rgba(198, 87, 70, 0.32),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .codexCard {
-  background-image: linear-gradient(180deg, rgba(234, 231, 255, 0.08), transparent);
+  box-shadow:
+    inset 0 2px 0 rgba(99, 102, 241, 0.32),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .geminiCliCard {
-  background-image: linear-gradient(180deg, rgba(224, 232, 255, 0.08), transparent);
+  box-shadow:
+    inset 0 2px 0 rgba(66, 133, 244, 0.32),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .kiroCard {
-  background-image: linear-gradient(180deg, rgba(255, 243, 220, 0.08), transparent);
+  box-shadow:
+    inset 0 2px 0 rgba(245, 158, 11, 0.32),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .kimiCard {
-  background-image: linear-gradient(180deg, rgba(220, 232, 255, 0.08), transparent);
+  box-shadow:
+    inset 0 2px 0 rgba(59, 130, 246, 0.32),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .quotaSection {
@@ -513,7 +535,7 @@
   gap: 10px;
   padding-top: 12px;
   margin-top: 2px;
-  border-top: 1px solid color-mix(in srgb, #dbe3ef 78%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
 }
 
 .quotaSectionHeader {
@@ -847,61 +869,52 @@
 .fileCard {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.09), transparent 32%),
-    radial-gradient(circle at 100% 100%, rgba(148, 163, 184, 0.1), transparent 34%),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-primary) 98%, white 2%),
-      color-mix(in srgb, var(--bg-primary) 90%, var(--bg-secondary) 10%)
-    );
-  --glass-blur: 8px;
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  border: 1px solid color-mix(in srgb, #dbe3ef 74%, transparent);
-  border-radius: 20px;
-  padding: 16px;
+  background: var(--surface-raised);
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  border-radius: 14px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   min-height: 100%;
   isolation: isolate;
-  box-shadow:
-    0 22px 44px -34px rgba(15, 23, 42, 0.42),
-    0 8px 20px -22px rgba(15, 23, 42, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   transition:
     transform $transition-fast,
     box-shadow $transition-fast,
     border-color $transition-fast;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 24px 54px -30px rgba(15, 23, 42, 0.44),
-      0 8px 20px -18px rgba(15, 23, 42, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -16px rgba(15, 23, 42, 0.18);
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
   }
 
+  // subtle top highlight, not an expensive blurred gradient
   &::before {
     content: '';
     position: absolute;
-    inset: 0;
-    z-index: -1;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--primary-color) 28%, transparent),
+      transparent
+    );
+    opacity: 0.6;
     pointer-events: none;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), transparent 34%);
   }
 
   @include mobile {
     width: 100%;
-    padding: 16px 14px;
-    border-radius: 16px;
+    padding: 14px 12px;
+    border-radius: 12px;
   }
 }
 
 @media (max-width: 640px) {
   .fileCard {
-    padding: 18px 14px;
+    padding: 14px 12px;
   }
 }
 
@@ -925,9 +938,9 @@
 }
 
 .fileCardCompact {
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 10px;
-  box-shadow: none;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 
   .fileCardMain {
     gap: 8px;

@@ -14,10 +14,12 @@
 }
 
 .pageTitle {
-  font-size: 28px;
+  font-size: clamp(20px, 1.2vw + 14px, 24px);
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  margin: 0 0 $spacing-lg 0;
+  margin: 0 0 $spacing-md 0;
+  line-height: 1.2;
 }
 
 .tabBar {
@@ -328,6 +330,12 @@
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   overscroll-behavior: contain;
+  // 大量 log 行时，contain:strict 让滚动条 paint 只重绘列表本身
+  contain: layout paint;
+
+  @supports (height: 100dvh) {
+    max-height: calc(100dvh - 320px);
+  }
 
   @include tablet {
     min-height: 240px;
@@ -340,6 +348,13 @@
     flex: 0 0 auto;
     overflow: auto;
   }
+}
+
+.logList {
+  display: flex;
+  flex-direction: column;
+  // 让长列表行走 content-visibility:auto，离屏跳过布局
+  contain: layout style;
 }
 
 .errorPanel {
@@ -439,6 +454,10 @@
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--text-primary);
+  // 单行隔离：某一行 hover/reflow 时不影响其它行的 layout
+  contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 44px;
 
   &:hover {
     background: rgba($primary-color, 0.06);
