@@ -1,10 +1,12 @@
 /**
  * SCSS 混入
+ * ---------------------------------------------
+ * 保留历史混入 + 新增常用模式（focus ring / card surface / elevation）。
  */
 
 @use './variables.scss' as *;
 
-// 响应式断点
+// ─── 响应式断点 ───────────────────────────────
 @mixin mobile {
   @media (max-width: #{$breakpoint-mobile}) {
     @content;
@@ -23,21 +25,39 @@
   }
 }
 
-// Flexbox 居中
+@mixin wide {
+  @media (min-width: #{$breakpoint-wide}) {
+    @content;
+  }
+}
+
+// ─── Flex / Layout 便捷 ───────────────────────
 @mixin flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-// 文本截断
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin stack($gap: $space-md) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+}
+
+// ─── 文本截断 ─────────────────────────────────
 @mixin text-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
-// 多行文本截断
 @mixin text-ellipsis-multiline($lines: 2) {
   display: -webkit-box;
   -webkit-line-clamp: $lines;
@@ -45,7 +65,7 @@
   overflow: hidden;
 }
 
-// 按钮重置
+// ─── 按钮重置 ─────────────────────────────────
 @mixin button-reset {
   border: none;
   background: none;
@@ -56,8 +76,61 @@
   color: inherit;
   outline: none;
 
-  &:focus {
-    outline: 2px solid $primary-color;
-    outline-offset: 2px;
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--focus-ring);
+  }
+}
+
+// ─── 统一 focus ring ──────────────────────────
+@mixin focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--focus-ring);
+}
+
+// ─── 卡片表面（供组件级 SCSS 复用）───────────
+@mixin surface-card($radius: $radius-lg, $elevation: var(--elevation-1)) {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: $radius;
+  box-shadow: $elevation;
+}
+
+// ─── 可交互表面（hover 提亮）──────────────────
+@mixin surface-interactive {
+  transition:
+    border-color $transition-fast,
+    background-color $transition-fast,
+    box-shadow $transition-fast,
+    transform $transition-fast;
+
+  &:hover {
+    border-color: var(--border-hover);
+    background: var(--surface-2);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// ─── 状态着色（成功/警告/危险/信息）──────────
+@mixin status-tint($kind: 'success') {
+  @if $kind == 'success' {
+    color: var(--success-fg);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  } @else if $kind == 'warning' {
+    color: var(--warning-fg);
+    background: var(--warning-bg);
+    border-color: var(--warning-border);
+  } @else if $kind == 'danger' {
+    color: var(--danger-fg);
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+  } @else if $kind == 'info' {
+    color: var(--info-fg);
+    background: var(--info-bg);
+    border-color: var(--info-border);
   }
 }

@@ -1,65 +1,61 @@
 @use '../styles/mixins' as *;
 @use '../styles/variables' as *;
 
+// ============================================================
+// ConfigPage · Linear 风重构
+// ------------------------------------------------------------
+// 1. 容器扁平：workspaceShell 从 32px 圆角 / rainbow 渐变改为 var(--radius-xl)
+//    + 统一 surface-1 底
+// 2. Tabs 用 brand-soft active，取消 box-shadow 手工值
+// 3. Status badge 四元组：默认 / modified (warning) / saved (success) / error (danger)
+// 4. Floating action bar 使用 glass token，按钮 focus-ring 标准化
+// 5. CodeMirror 搜索高亮走 --warning-bg / --warning-border，跨主题自适应
+// ============================================================
+
 .container {
   width: 100%;
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: $space-md;
   overflow-y: auto;
   padding-bottom: calc(
-    var(--config-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom) + #{$spacing-md}
+    var(--config-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom) + #{$space-md}
   );
 }
 
+// ─── Page Header ────────────────────────────────────────────
 .pageHeader {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) auto;
-  gap: 16px;
+  gap: $space-md;
   align-items: end;
-  padding: clamp(14px, 1.4vw + 8px, 20px);
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-card);
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--primary-color) 36%, transparent),
-      transparent
-    );
-    opacity: 0.7;
-    pointer-events: none;
-  }
+  padding: clamp(16px, 1.4vw + 8px, 22px);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-1);
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-    gap: 12px;
+    gap: $space-sm;
   }
 }
 
 .pageHeaderCopy {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .pageEyebrow {
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  font-size: $text-2xs;
+  font-weight: $weight-semibold;
+  letter-spacing: $tracking-caps;
   text-transform: uppercase;
 }
 
@@ -67,24 +63,24 @@
   margin: 0;
   color: var(--text-primary);
   font-size: clamp(22px, 1.8vw + 12px, 28px);
+  font-weight: $weight-bold;
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: $tracking-tight;
 }
 
 .description {
   margin: 0;
   max-width: 46rem;
   color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: $text-sm;
+  line-height: $leading-relaxed;
 }
 
 .pageMeta {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 
   @include mobile {
@@ -92,18 +88,20 @@
   }
 }
 
+// ─── Status Badge ───────────────────────────────────────────
 .statusBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
+  min-height: 34px;
   padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 86%, transparent);
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 700;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+  letter-spacing: $tracking-snug;
   text-align: center;
 
   @include mobile {
@@ -111,22 +109,21 @@
   }
 }
 
+// ─── Tabs ───────────────────────────────────────────────────
 .tabBar {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 4px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
   width: fit-content;
   max-width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
   overflow-x: auto;
   scrollbar-width: none;
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &::-webkit-scrollbar { display: none; }
 
   @include mobile {
     width: 100%;
@@ -135,29 +132,33 @@
 
 .tabItem {
   @include button-reset;
-  padding: 10px 16px;
-  border-radius: 999px;
+  padding: 8px 16px;
   border: 1px solid transparent;
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 700;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  letter-spacing: $tracking-snug;
   white-space: nowrap;
+  cursor: pointer;
   transition:
-    color 0.15s ease,
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
-    background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
-    border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
+    background: var(--surface-1);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: not-allowed;
-    transform: none;
   }
 
   @include mobile {
@@ -167,48 +168,54 @@
 }
 
 .tabActive {
-  color: var(--text-primary);
-  background: var(--bg-primary);
-  border-color: color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
-  box-shadow: 0 16px 32px -28px rgba(0, 0, 0, 0.3);
+  color: var(--brand-hover);
+  background: var(--brand-soft);
+  border-color: color-mix(in srgb, var(--brand-color) 26%, transparent);
+  box-shadow: var(--elevation-1);
+
+  &:hover:not(:disabled) {
+    color: var(--brand-hover);
+    background: var(--brand-soft);
+  }
 }
 
+// ─── Workspace Shell ────────────────────────────────────────
 .workspaceShell {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
-  padding: clamp(18px, 3vw, 28px);
-  border-radius: 32px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 74%, transparent);
-  box-shadow: var(--shadow);
+  gap: $space-lg;
+  padding: clamp(18px, 2.2vw, 24px);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-1);
 
   @include mobile {
     padding: 16px;
-    border-radius: 28px;
+    border-radius: var(--radius-lg);
   }
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: $space-lg;
   min-height: 0;
 }
 
 .sourceWorkspace {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: $space-md;
   min-height: 0;
 }
 
 .sourceToolbar {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
-  padding-bottom: 16px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  gap: $space-sm;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid var(--border-subtle);
 
   @include mobile {
     flex-direction: column;
@@ -217,11 +224,11 @@
 }
 
 .searchInputWrapper {
-  flex: 1;
-  min-width: 0;
   position: relative;
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 0;
 
   :global(.form-group) {
     margin-bottom: 0;
@@ -231,7 +238,6 @@
 
 .searchInput {
   flex: 1;
-  border-radius: 16px !important;
   padding-right: 132px !important;
 }
 
@@ -244,16 +250,16 @@
 .searchCount {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 26px;
   padding: 0 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  pointer-events: none;
+  font-size: $text-2xs;
+  font-weight: $weight-semibold;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 .searchButton {
@@ -261,24 +267,30 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: var(--primary-color);
-  border: 1px solid var(--primary-color);
-  color: #fff;
+  width: 32px;
+  height: 32px;
+  background: var(--brand-color);
+  border: 1px solid var(--brand-color);
+  border-radius: var(--radius-pill);
+  color: var(--text-on-brand);
+  cursor: pointer;
   transition:
-    background-color $transition-fast,
-    border-color $transition-fast,
-    opacity $transition-fast;
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 
   &:hover:not(:disabled) {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
+    background: var(--brand-hover);
+    border-color: var(--brand-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
@@ -293,7 +305,7 @@
     width: 36px;
     height: 36px;
     padding: 0 !important;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
   }
 
   @include mobile {
@@ -306,14 +318,15 @@
   }
 }
 
+// ─── CodeMirror Wrapper ─────────────────────────────────────
 .editorWrapper {
   width: 100%;
   flex: 0 0 auto;
   height: clamp(420px, 64vh, 980px);
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  border-radius: 28px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: color-mix(in srgb, var(--bg-primary) 90%, transparent);
 
   @supports (height: 100dvh) {
     height: clamp(420px, 64dvh, 980px);
@@ -322,9 +335,9 @@
   :global {
     .cm-editor {
       height: 100%;
-      font-size: 14px;
-      font-family: 'Consolas', 'Monaco', 'Menlo', monospace;
       background: transparent;
+      font-family: $font-mono;
+      font-size: $text-sm;
     }
 
     .cm-scroller {
@@ -335,76 +348,66 @@
     }
 
     .cm-gutters {
-      border-right: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-      background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+      background: var(--surface-1);
+      border-right: 1px solid var(--border-subtle);
     }
 
     .cm-lineNumbers .cm-gutterElement {
-      padding: 0 8px 0 12px;
       min-width: 40px;
-      color: var(--text-muted);
+      padding: 0 8px 0 12px;
+      color: var(--text-tertiary);
     }
 
-    .cm-activeLine {
-      background: var(--bg-hover);
-    }
-
+    .cm-activeLine,
     .cm-activeLineGutter {
-      background: var(--bg-hover);
+      background: var(--surface-2);
     }
 
+    // 搜索高亮走 warning token，明暗主题自动适配
     .cm-selectionMatch {
-      background: rgba(255, 193, 7, 0.3);
+      background: color-mix(in srgb, var(--warning-strong) 18%, transparent);
     }
 
     .cm-searchMatch {
-      background: rgba(255, 193, 7, 0.4);
-      outline: 1px solid rgba(255, 193, 7, 0.6);
+      background: color-mix(in srgb, var(--warning-strong) 28%, transparent);
+      outline: 1px solid color-mix(in srgb, var(--warning-strong) 46%, transparent);
     }
 
     .cm-searchMatch-selected {
-      background: rgba(255, 152, 0, 0.5);
-    }
-
-    [data-theme='dark'] & {
-      .cm-gutters {
-        background: var(--bg-tertiary);
-      }
-
-      .cm-selectionMatch {
-        background: rgba(255, 193, 7, 0.2);
-      }
+      background: color-mix(in srgb, var(--warning-strong) 42%, transparent);
     }
   }
 }
 
+// ─── Status States (modifier classes applied to .statusBadge / .floatingStatus) ──
 .modified {
-  color: var(--warning-text);
+  color: var(--warning-strong);
   background: var(--warning-bg);
   border-color: var(--warning-border);
 }
 
 .saved {
-  color: var(--success-color);
-  background: color-mix(in srgb, var(--success-color) 12%, var(--bg-primary));
-  border-color: color-mix(in srgb, var(--success-color) 28%, var(--border-color));
+  color: var(--success-strong);
+  background: var(--success-bg);
+  border-color: var(--success-border);
 }
 
 .error {
-  color: var(--warning-text);
-  background: var(--warning-bg);
-  border-color: var(--warning-border);
+  color: var(--danger-strong);
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
 }
 
+// ─── Floating Action Bar ────────────────────────────────────
 .floatingActionContainer {
   position: fixed;
   left: var(--content-center-x, 50%);
   bottom: calc(16px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 50;
-  pointer-events: auto;
   width: fit-content;
   max-width: calc(100vw - 24px);
+  pointer-events: auto;
 }
 
 .floatingActionList {
@@ -412,20 +415,17 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  --glass-blur: 12px;
+  max-width: inherit;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop-filter);
   -webkit-backdrop-filter: var(--glass-backdrop-filter);
   border: 1px solid var(--glass-border);
-  border-radius: 999px;
-  box-shadow: var(--shadow-lg);
-  max-width: inherit;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--elevation-3);
   overflow-x: auto;
   scrollbar-width: none;
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &::-webkit-scrollbar { display: none; }
 }
 
 .floatingStatus {
@@ -433,18 +433,19 @@
   align-items: center;
   min-width: 0;
   min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
-  color: var(--text-primary);
-  font-size: 11px;
-  font-weight: 700;
-  text-align: center;
+  padding: 0 12px;
   max-width: min(280px, 46vw);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-primary);
+  font-size: $text-2xs;
+  font-weight: $weight-semibold;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: $tracking-snug;
 }
 
 .floatingStatusCompact {
@@ -459,22 +460,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  cursor: pointer;
+  width: 38px;
+  height: 38px;
+  background: transparent;
+  border-radius: var(--radius-pill);
   color: var(--text-primary);
+  cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    transform 0.15s ease;
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--text-primary) 10%, transparent);
-    transform: scale(1.08);
+    background: var(--surface-2);
+    transform: translateY(-1px);
   }
 
   &:active:not(:disabled) {
-    transform: scale(0.95);
+    transform: scale(0.96);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   &:disabled {
@@ -490,11 +497,12 @@
   right: 8px;
   width: 7px;
   height: 7px;
-  border-radius: 999px;
-  background: var(--warning-color);
-  box-shadow: 0 0 0 2px rgba($warning-color, 0.25);
+  background: var(--warning-strong);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning-strong) 24%, transparent);
 }
 
+// ─── Responsive ─────────────────────────────────────────────
 @media (max-width: 1200px) {
   .floatingActionContainer {
     bottom: calc(12px + env(safe-area-inset-bottom));
@@ -508,13 +516,13 @@
 
   .floatingStatus {
     max-width: min(180px, 40vw);
-    font-size: 10px;
     padding: 0 8px;
+    font-size: 10px;
   }
 
   .floatingActionButton {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     flex: 0 0 auto;
   }
 }

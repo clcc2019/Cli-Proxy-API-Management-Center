@@ -16,6 +16,7 @@ import { MainRoutes } from '@/router/MainRoutes';
 import { preloadPrimaryRoutes } from '@/router/routeLoaders';
 import {
   IconSidebarAuthFiles,
+  IconSidebarChat,
   IconSidebarConfig,
   IconSidebarDashboard,
   IconFileText,
@@ -42,6 +43,7 @@ import type { Theme } from '@/types';
 
 const sidebarIcons: Record<string, ReactNode> = {
   dashboard: <IconSidebarDashboard size={18} />,
+  chat: <IconSidebarChat size={18} />,
   apiKeys: <IconKey size={18} />,
   aiProviders: <IconSidebarProviders size={18} />,
   authFiles: <IconSidebarAuthFiles size={18} />,
@@ -471,6 +473,7 @@ export function MainLayout() {
   const navItems = useMemo(
     () => [
       { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
+      { path: '/chat', label: t('nav.chat'), icon: sidebarIcons.chat },
       { path: '/config', label: t('nav.config_management'), icon: sidebarIcons.config },
       { path: '/api-keys', label: t('nav.api_keys'), icon: sidebarIcons.apiKeys },
       { path: '/ai-providers', label: t('nav.ai_providers'), icon: sidebarIcons.aiProviders },

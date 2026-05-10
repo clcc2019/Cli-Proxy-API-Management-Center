@@ -109,6 +109,7 @@
   },
   "nav": {
     "dashboard": "仪表盘",
+    "chat": "模型对话",
     "basic_settings": "基础设置",
     "api_keys": "API 密钥",
     "ai_providers": "AI 提供商",
@@ -120,6 +121,44 @@
     "config_management": "配置面板",
     "logs": "日志查看",
     "system_info": "中心信息"
+  },
+  "chat": {
+    "title": "模型对话",
+    "eyebrow": "Proxy Playground",
+    "refresh_models": "刷新模型",
+    "client_key": "客户端密钥",
+    "client_key_configured": "配置密钥",
+    "client_key_none": "不使用密钥",
+    "client_key_manual": "手动输入",
+    "manual_client_key": "手动密钥",
+    "models_load_failed": "模型加载失败",
+    "conversation": "对话",
+    "model": "模型",
+    "select_model": "选择模型",
+    "system_prompt": "系统提示词",
+    "system_prompt_placeholder": "可选系统提示词",
+    "empty_conversation": "暂无对话",
+    "you": "你",
+    "assistant": "助手",
+    "streaming": "生成中",
+    "waiting": "等待响应...",
+    "input_placeholder": "输入消息",
+    "send": "发送",
+    "stop": "停止",
+    "clear": "清空",
+    "copied": "已复制",
+    "send_failed": "发送失败",
+    "image_generation": "图片生成",
+    "image_model": "图片模型",
+    "image_prompt": "提示词",
+    "image_prompt_placeholder": "输入图片提示词",
+    "image_size": "尺寸",
+    "image_count": "数量",
+    "generate_image": "生成图片",
+    "empty_images": "暂无图片",
+    "image_empty": "未返回图片",
+    "image_failed": "图片生成失败",
+    "download_image": "下载图片"
   },
   "dashboard": {
     "title": "仪表盘",
@@ -1648,9 +1687,7 @@
   "language": {
     "switch": "语言",
     "chinese": "中文",
-    "chinese_tw": "繁體中文",
-    "english": "English",
-    "russian": "Русский"
+    "english": "English"
   },
   "theme": {
     "switch": "主题",

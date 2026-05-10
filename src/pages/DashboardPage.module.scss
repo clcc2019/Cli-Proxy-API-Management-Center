@@ -1,143 +1,144 @@
-@use 'sass:color';
-@use '../styles/variables.scss' as *;
+@use '../styles/variables' as *;
+@use '../styles/mixins' as *;
 
-// ─── Container ──────────────────────────────────────────
+// ============================================================
+// DashboardPage · Linear 风重构
+// ------------------------------------------------------------
+// 设计原则：
+//   1. Hero 收敛：watermark 更浅更小、orb 更克制、边框 + 表面替代大面积渐变
+//   2. Bento：扁平 + 清晰层级、hover 单一过渡方向
+//   3. Config pills：紧凑、高度统一、值对齐
+//   4. 全部 token 驱动，无硬编码
+// ============================================================
 
 .dashboard {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xl;
+  gap: $space-xl;
   width: 100%;
   max-width: 1680px;
   margin: 0 auto;
-  position: relative;
 }
 
-// ─── Decorative Background Orbs ─────────────────────────
-
+// ─── Decorative background orbs ─────────────────────────────
+// 比原先克制：小一档、更淡、主色 orb 移到角落
 .backgroundOrbs {
   position: absolute;
   inset: 0;
-  pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .orb1 {
   position: absolute;
-  width: 420px;
-  height: 420px;
+  top: -120px;
+  right: -60px;
+  width: 360px;
+  height: 360px;
   border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--primary-color) 11%, transparent), transparent 72%);
-  top: -140px;
-  right: -80px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--brand-color) 10%, transparent),
+    transparent 70%
+  );
   will-change: transform;
-  animation: orbFloat 22s ease-in-out infinite alternate;
+  animation: dashboardOrbFloat 24s ease-in-out infinite alternate;
 }
 
 .orb2 {
   position: absolute;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--success-color) 8%, transparent), transparent 72%);
   bottom: 18%;
   left: -100px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--info-strong) 7%, transparent),
+    transparent 70%
+  );
   will-change: transform;
-  animation: orbFloat 28s ease-in-out infinite alternate-reverse;
+  animation: dashboardOrbFloat 30s ease-in-out infinite alternate-reverse;
 }
 
-// 移动端 / 低功耗 / 低对比度 下关闭装饰性动画与大尺寸模糊，避免长时间占用合成器
+// 移动 / 低动效 / 低透明 下一律隐藏装饰
 @media (max-width: $breakpoint-mobile),
-  (prefers-reduced-motion: reduce),
-  (prefers-reduced-transparency: reduce) {
-  .backgroundOrbs {
-    display: none;
-  }
+       (prefers-reduced-motion: reduce),
+       (prefers-reduced-transparency: reduce) {
+  .backgroundOrbs { display: none; }
 }
 
-@keyframes orbFloat {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  100% {
-    transform: translate3d(30px, -20px, 0) scale(1.1);
-  }
+@keyframes dashboardOrbFloat {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(24px, -16px, 0) scale(1.06); }
 }
 
-// ─── Hero Welcome Section ───────────────────────────────
-
+// ─── Hero ───────────────────────────────────────────────────
 .hero {
   position: relative;
   z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: $spacing-lg;
-  padding: $spacing-2xl $spacing-xl;
-  border-radius: 18px;
-  --glass-blur: 12px;
+  gap: $space-lg;
+  padding: clamp(24px, 3vw, 40px) clamp(20px, 2.4vw, 32px);
   background: var(--surface-hero);
-  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-1);
   overflow: hidden;
-  animation: heroEnter 0.6s ease-out both;
-  box-shadow: var(--shadow-soft);
+  animation: dashboardHeroEnter var(--duration-slow) var(--ease-decelerate) both;
 
+  // 右下角浅色光晕，视觉"焦点"
   &::after {
     content: '';
     position: absolute;
-    inset: auto -100px -120px auto;
-    width: 320px;
-    height: 320px;
+    inset: auto -80px -100px auto;
+    width: 280px;
+    height: 280px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--primary-color) 16%, transparent);
-    filter: blur(24px);
-    opacity: 0.55;
+    background: color-mix(in srgb, var(--brand-color) 14%, transparent);
+    filter: blur(28px);
+    opacity: 0.5;
     pointer-events: none;
   }
 
-  @media (max-width: $breakpoint-mobile) {
+  @include mobile {
     grid-template-columns: 1fr;
     align-items: flex-start;
-    padding: $spacing-xl $spacing-lg;
+    padding: $space-lg $space-md;
   }
 }
 
-// Large watermark text behind hero content
+// Watermark：更浅、不抢戏
 .heroWatermark {
   position: absolute;
   top: 50%;
-  left: $spacing-xl;
+  left: clamp(20px, 2.4vw, 32px);
   transform: translateY(-50%);
-  font-size: clamp(64px, 12vw, 120px);
-  font-weight: 900;
+  font-size: clamp(56px, 10vw, 104px);
+  font-weight: $weight-bold;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: $tracking-tight;
   text-transform: uppercase;
   color: var(--text-primary);
-  opacity: 0.05;
+  opacity: 0.035;
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
-  animation: watermarkEnter 0.8s ease-out 0.1s both;
+  animation: dashboardWatermarkEnter var(--duration-slower) var(--ease-decelerate) 0.1s both;
 
-  @media (max-width: $breakpoint-mobile) {
-    font-size: clamp(48px, 14vw, 80px);
-    left: $spacing-lg;
+  @include mobile {
+    font-size: clamp(40px, 12vw, 72px);
+    left: $space-lg;
   }
 }
 
-@keyframes watermarkEnter {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) translateX(-20px);
-  }
-  to {
-    opacity: 0.04;
-    transform: translateY(-50%) translateX(0);
-  }
+@keyframes dashboardWatermarkEnter {
+  from { opacity: 0; transform: translateY(-50%) translateX(-16px); }
+  to   { opacity: 0.035; transform: translateY(-50%) translateX(0); }
 }
 
 .heroContent {
@@ -145,57 +146,56 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: 10px;
 }
 
 .heroGreeting {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+  letter-spacing: $tracking-caps;
   text-transform: uppercase;
-  color: var(--primary-color);
-  animation: fadeSlideUp 0.5s ease-out 0.1s both;
+  animation: dashboardFadeSlideUp var(--duration-base) var(--ease-decelerate) 0.1s both;
 }
 
 .heroTitle {
   margin: 0;
-  font-size: clamp(34px, 5vw, 52px);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-size: clamp(28px, 4.2vw, 44px);
+  font-weight: $weight-bold;
+  line-height: 1.05;
+  letter-spacing: $tracking-tight;
   color: var(--text-primary);
-  animation: fadeSlideUp 0.5s ease-out 0.2s both;
+  animation: dashboardFadeSlideUp var(--duration-base) var(--ease-decelerate) 0.18s both;
 }
 
 .heroCaring {
   margin: 0;
-  font-size: 15px;
   color: var(--text-secondary);
-  line-height: 1.5;
-  animation: fadeSlideUp 0.5s ease-out 0.3s both;
+  font-size: $text-md;
+  line-height: $leading-relaxed;
+  animation: dashboardFadeSlideUp var(--duration-base) var(--ease-decelerate) 0.26s both;
 }
 
-// ─── Hero Meta (right side) ─────────────────────────────
-
+// ─── Hero Meta（右侧时间 + pill） ────────────────────────────
 .heroMeta {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: $spacing-sm;
+  gap: 10px;
   flex-shrink: 0;
-  animation: fadeSlideUp 0.5s ease-out 0.35s both;
-  padding: $spacing-md;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--surface-raised) 76%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--surface-1) 82%, transparent);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+  animation: dashboardFadeSlideUp var(--duration-base) var(--ease-decelerate) 0.32s both;
 
-  @media (max-width: $breakpoint-mobile) {
+  @include mobile {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: $spacing-sm;
+    gap: $space-sm;
     width: 100%;
   }
 }
@@ -203,75 +203,70 @@
 .dateTimeBlock {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 2px;
 }
 
 .time {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: $text-2xl;
+  font-weight: $weight-bold;
+  line-height: 1.1;
   color: var(--text-primary);
+  letter-spacing: $tracking-snug;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
 }
 
 .date {
-  font-size: 13px;
-  color: var(--text-secondary);
+  font-size: $text-xs;
+  color: var(--text-tertiary);
 }
 
-// ─── Connection Pill ────────────────────────────────────
-
+// ─── Connection Pill ────────────────────────────────────────
 .connectionPill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: $radius-full;
-  --glass-blur: 8px;
-  background: color-mix(in srgb, var(--surface-raised-strong) 78%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  font-size: 12px;
-  box-shadow: var(--shadow);
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  font-size: $text-xs;
 }
 
 .statusDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: $gray-400;
+  background: var(--text-tertiary);
   flex-shrink: 0;
 
   &.connected {
-    background: $success-color;
-    box-shadow: 0 0 6px rgba($success-color, 0.5);
+    background: var(--success-strong);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-strong) 22%, transparent);
   }
 
   &.connecting {
-    background: $warning-color;
-    animation: pulse 1s ease-in-out infinite;
+    background: var(--warning-strong);
+    animation: dashboardPulse 1.2s ease-in-out infinite;
   }
 
   &.disconnected {
-    background: $error-color;
+    background: var(--danger-strong);
   }
 }
 
 .pillText {
-  font-weight: 600;
   color: var(--text-primary);
+  font-weight: $weight-semibold;
+  letter-spacing: $tracking-snug;
 }
 
 .buildDate {
-  font-size: 12px;
+  font-size: $text-2xs;
   color: var(--text-tertiary);
   text-align: left;
 }
 
-// ─── Bento Stats Grid ───────────────────────────────────
-
+// ─── Bento Stats Grid ───────────────────────────────────────
 .statsSection {
   position: relative;
   z-index: 1;
@@ -281,27 +276,26 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  margin: 0 0 $space-md;
   color: var(--text-tertiary);
-  margin: 0 0 $spacing-md;
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+  letter-spacing: $tracking-caps;
+  text-transform: uppercase;
 
   &::after {
     content: '';
-    width: 44px;
+    width: 48px;
     height: 1px;
-    background: color-mix(in srgb, var(--border-color) 80%, transparent);
+    background: var(--border-subtle);
   }
 }
 
 .bentoGrid {
   display: grid;
-  // auto-fit + minmax 让卡片在 600~1680px 间平滑伸缩，避免在 900/500 断点处硬跳
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   grid-template-rows: auto auto;
-  gap: $spacing-md;
+  gap: $space-md;
 
   @media (min-width: 1100px) {
     grid-template-columns: repeat(3, 1fr);
@@ -315,32 +309,32 @@
 .bentoCard {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
-  padding: $spacing-lg;
-  background: var(--surface-raised);
-  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
-  border-radius: $radius-lg;
+  gap: $space-md;
+  padding: $space-lg;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
   text-decoration: none;
   transition:
-    border-color $transition-fast,
-    box-shadow $transition-fast,
-    transform $transition-fast;
-  animation: cardEnter 0.4s ease-out both;
-  box-shadow: var(--shadow);
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+  animation: dashboardCardEnter var(--duration-base) var(--ease-decelerate) both;
 
   &:hover {
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow-soft);
-    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--brand-color) 36%, var(--border-default));
+    box-shadow: var(--elevation-2);
+    transform: translateY(-2px);
   }
 
   &:focus-visible {
     outline: none;
-    box-shadow: var(--shadow-soft), 0 0 0 3px var(--focus-ring);
+    box-shadow: var(--elevation-2), 0 0 0 3px var(--focus-ring);
   }
 }
 
-// First card spans 2 rows — the "hero stat"
+// 大卡：第一张跨两行，带一抹品牌色底
 .bentoLarge {
   @media (min-width: 1100px) {
     grid-row: 1 / 3;
@@ -349,8 +343,8 @@
   justify-content: center;
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--primary-color) 8%, var(--surface-raised)),
-    var(--surface-raised)
+    color-mix(in srgb, var(--brand-color) 7%, var(--surface-1)),
+    var(--surface-1) 60%
   );
 
   .bentoValue {
@@ -358,14 +352,24 @@
   }
 
   .bentoIcon {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
+
+    svg {
+      width: 26px;
+      height: 26px;
+    }
   }
 
   @media (max-width: 1100px) {
     .bentoIcon {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
+
+      svg {
+        width: 22px;
+        height: 22px;
+      }
     }
   }
 }
@@ -374,16 +378,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: $radius-md;
-  background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-raised-strong));
-  color: var(--primary-color);
-  transition: background $transition-fast, transform $transition-fast;
+  width: 42px;
+  height: 42px;
+  background: var(--brand-soft);
+  color: var(--brand-hover);
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+
+  svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+  }
 }
 
 .bentoCard:hover .bentoIcon {
-  background: color-mix(in srgb, var(--primary-color) 16%, var(--surface-raised-strong));
+  background: color-mix(in srgb, var(--brand-color) 18%, var(--surface-2));
   transform: translateY(-1px);
 }
 
@@ -394,42 +406,43 @@
 }
 
 .bentoValue {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: $text-2xl;
+  font-weight: $weight-bold;
   color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: $tracking-tight;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
 }
 
 .bentoLabel {
-  font-size: 13px;
   color: var(--text-secondary);
+  font-size: $text-sm;
+  font-weight: $weight-medium;
+  letter-spacing: $tracking-snug;
 }
 
 .bentoSublabel {
-  font-size: 11px;
-  color: var(--text-secondary);
-  opacity: 0.7;
   margin-top: 2px;
+  color: var(--text-tertiary);
+  font-size: $text-2xs;
+  line-height: $leading-snug;
 }
 
-// ─── Config Pills Section ───────────────────────────────
-
+// ─── Config Pills Section ───────────────────────────────────
 .configSection {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
-  animation: cardEnter 0.4s ease-out 0.5s both;
-  padding: $spacing-lg;
-  background: color-mix(in srgb, var(--surface-overlay) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  // 浏览器在滚动时自动跳过离屏渲染，首屏下移时也不会和其它区域互相 reflow
+  gap: $space-md;
+  padding: $space-lg;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-1);
+  animation: dashboardCardEnter var(--duration-base) var(--ease-decelerate) 0.4s both;
+
+  // 浏览器在滚动时自动跳过离屏渲染
   contain: content;
   content-visibility: auto;
   contain-intrinsic-size: 320px;
@@ -438,66 +451,69 @@
 .configPillGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-sm;
+  gap: $space-sm;
 }
 
 .configPill {
   display: inline-flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: $space-sm;
   padding: 6px 14px;
-  background: var(--surface-raised);
-  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
-  border-radius: $radius-full;
-  font-size: 13px;
-  transition: border-color $transition-fast;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  font-size: $text-xs;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
 
   &:hover {
-    border-color: var(--border-hover);
+    border-color: var(--border-default);
+    background: var(--surface-3);
   }
 }
 
 .configPillWide {
   flex-basis: 100%;
-  border-radius: $radius-md;
+  border-radius: var(--radius-md);
 }
 
 .configPillLabel {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  font-weight: $weight-medium;
   white-space: nowrap;
+  letter-spacing: $tracking-snug;
 }
 
 .configPillValue {
-  font-weight: 600;
   color: var(--text-primary);
+  font-weight: $weight-semibold;
 
-  &.on {
-    color: $success-color;
-  }
-
-  &.off {
-    color: var(--text-secondary);
-  }
+  &.on  { color: var(--success-strong); }
+  &.off { color: var(--text-tertiary); }
 }
 
 .configPillMono {
-  font-size: 12px;
-  font-family: $font-mono;
   color: var(--text-secondary);
+  font-family: $font-mono;
+  font-size: $text-2xs;
   word-break: break-all;
 }
 
-// Config badges (routing strategy)
+// ─── Config badges（路由策略） ──────────────────────────────
 .configBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 2px 8px;
-  border-radius: $radius-full;
-  border: 1px solid var(--border-color);
-  font-size: 11px;
-  font-weight: 600;
+  background: var(--surface-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: $text-2xs;
+  font-weight: $weight-semibold;
   line-height: 1.2;
+  letter-spacing: $tracking-snug;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -505,71 +521,79 @@
 }
 
 .configBadgeRoundRobin {
-  color: var(--primary-color);
-  border-color: rgba($primary-color, 0.24);
-  background: rgba($primary-color, 0.12);
+  color: var(--info-strong);
+  background: var(--info-bg);
+  border-color: var(--info-border);
 }
 
 .configBadgeFillFirst {
-  color: $success-color;
-  border-color: rgba($success-color, 0.3);
-  background: rgba($success-color, 0.12);
+  color: var(--success-strong);
+  background: var(--success-bg);
+  border-color: var(--success-border);
 }
 
 .configBadgeUnknown {
-  color: var(--text-secondary);
-  background: var(--surface-raised);
+  color: var(--text-tertiary);
+  background: var(--surface-2);
 }
 
-// ─── View More Link ─────────────────────────────────────
-
+// ─── View More Link ─────────────────────────────────────────
 .viewMoreLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: var(--primary-color);
-  text-decoration: none;
-  margin-top: $spacing-xs;
-  padding: 8px 14px;
   width: fit-content;
-  border-radius: $radius-full;
-  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
+  margin-top: $space-xs;
+  padding: 7px 14px;
+  background: var(--brand-soft);
+  border: 1px solid color-mix(in srgb, var(--brand-color) 22%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--brand-hover);
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+  letter-spacing: $tracking-snug;
+  text-decoration: none;
   transition:
-    color $transition-fast,
-    background-color $transition-fast,
-    transform $transition-fast;
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 
   &:hover {
-    color: var(--primary-hover);
-    background: color-mix(in srgb, var(--primary-color) 16%, transparent);
+    background: color-mix(in srgb, var(--brand-color) 18%, transparent);
+    border-color: color-mix(in srgb, var(--brand-color) 34%, transparent);
     transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
-@media (max-width: $breakpoint-mobile) {
+// ─── Mobile ─────────────────────────────────────────────────
+@include mobile {
   .dashboard {
-    gap: $spacing-lg;
+    gap: $space-lg;
   }
 
   .hero {
-    padding: $spacing-lg $spacing-md;
-    border-radius: $radius-md;
+    padding: $space-lg $space-md;
+    border-radius: var(--radius-lg);
   }
 
   .heroTitle {
-    font-size: clamp(26px, 9vw, 34px);
+    font-size: clamp(24px, 9vw, 30px);
   }
 
   .heroCaring {
-    font-size: 14px;
+    font-size: $text-sm;
   }
 
   .heroMeta {
     width: 100%;
     align-items: stretch;
-    padding: $spacing-sm;
+    padding: $space-sm $space-md;
   }
 
   .dateTimeBlock {
@@ -577,7 +601,7 @@
   }
 
   .time {
-    font-size: 20px;
+    font-size: $text-xl;
   }
 
   .connectionPill {
@@ -585,22 +609,16 @@
     justify-content: flex-start;
   }
 
-  .buildDate {
-    text-align: left;
-  }
-
   .bentoCard {
-    padding: $spacing-md;
+    padding: $space-md;
   }
 
   .bentoValue {
-    font-size: 24px;
+    font-size: $text-xl;
   }
 
-  .bentoLarge {
-    .bentoValue {
-      font-size: 30px;
-    }
+  .bentoLarge .bentoValue {
+    font-size: $text-2xl;
   }
 
   .configPillGrid {
@@ -609,8 +627,8 @@
   }
 
   .configSection {
-    padding: $spacing-md;
-    border-radius: $radius-lg;
+    padding: $space-md;
+    border-radius: var(--radius-lg);
   }
 
   .configPill {
@@ -623,47 +641,24 @@
     white-space: normal;
   }
 }
-// ─── Animations ─────────────────────────────────────────
 
-@keyframes heroEnter {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+// ─── Animations ─────────────────────────────────────────────
+@keyframes dashboardHeroEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes dashboardFadeSlideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes cardEnter {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes dashboardCardEnter {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+@keyframes dashboardPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
 }

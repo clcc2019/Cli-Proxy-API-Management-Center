@@ -1,15 +1,15 @@
-@use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
+// AuthFiles · OAuth Model Alias edit page
 .pageContent {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 0 $spacing-lg $spacing-2xl;
+  padding: 0 $space-lg $space-2xl;
 
   @include mobile {
-    padding-left: $spacing-md;
-    padding-right: $spacing-md;
+    padding-left: $space-md;
+    padding-right: $space-md;
   }
 }
 
@@ -21,38 +21,39 @@
 .settingsHeader {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
-  padding: $spacing-md $spacing-lg;
-  border-bottom: 1px solid var(--border-color);
+  gap: $space-xs;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid var(--border-subtle);
 
   @include mobile {
-    padding-left: $spacing-md;
-    padding-right: $spacing-md;
+    padding-left: $space-md;
+    padding-right: $space-md;
   }
 }
 
 .settingsHeaderTitle {
   display: inline-flex;
   align-items: center;
-  gap: $spacing-xs;
-  font-weight: 700;
+  gap: $space-xs;
   color: var(--text-primary);
+  font-weight: $weight-bold;
+  letter-spacing: $tracking-snug;
 }
 
 .settingsHeaderHint {
-  font-size: 13px;
   color: var(--text-secondary);
+  font-size: $text-sm;
 }
 
 .settingsSection {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
-  padding: $spacing-md $spacing-lg $spacing-lg;
+  gap: $space-sm;
+  padding: $space-md $space-lg $space-lg;
 
   @include mobile {
-    padding-left: $spacing-md;
-    padding-right: $spacing-md;
+    padding-left: $space-md;
+    padding-right: $space-md;
   }
 }
 
@@ -60,32 +61,32 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: $spacing-lg;
+  gap: $space-lg;
 
   @include mobile {
     flex-direction: column;
     align-items: stretch;
-    gap: $spacing-sm;
+    gap: $space-sm;
   }
 }
 
 .settingsInfo {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 4px;
+  min-width: 0;
 }
 
 .settingsLabel {
-  font-size: 14px;
-  font-weight: 600;
   color: var(--text-primary);
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
 }
 
 .settingsDesc {
-  font-size: 13px;
   color: var(--text-secondary);
+  font-size: $text-xs;
 }
 
 .settingsControl {
@@ -99,88 +100,94 @@
   }
 }
 
+// ─── Tag list (method/status/... choices) ───────────────────
 .tagList {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-xs;
+  gap: $space-xs;
 }
 
 .tag {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: $radius-full;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: $text-2xs;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 
   &:hover {
-    border-color: var(--primary-color);
     color: var(--text-primary);
-    background-color: var(--bg-tertiary);
+    background: var(--surface-3);
+    border-color: var(--border-hover);
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: not-allowed;
   }
 }
 
 .tagActive {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #fff;
+  color: var(--text-on-brand);
+  background: var(--brand-color);
+  border-color: var(--brand-color);
 
   &:hover {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: #fff;
+    color: var(--text-on-brand);
+    background: var(--brand-hover);
+    border-color: var(--brand-hover);
   }
 }
 
+// ─── Mappings body ──────────────────────────────────────────
 .mappingsHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-md;
-  padding: $spacing-md $spacing-lg;
-  border-bottom: 1px solid var(--border-color);
+  gap: $space-md;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid var(--border-subtle);
 
   @include mobile {
-    padding-left: $spacing-md;
-    padding-right: $spacing-md;
+    padding-left: $space-md;
+    padding-right: $space-md;
   }
 }
 
 .mappingsTitle {
-  font-weight: 700;
   color: var(--text-primary);
+  font-weight: $weight-bold;
+  letter-spacing: $tracking-snug;
 }
 
 .modelsHint {
   display: flex;
   align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-sm $spacing-lg;
-  font-size: 13px;
+  gap: $space-xs;
+  padding: $space-sm $space-lg;
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
+  font-size: $text-xs;
 
   @include mobile {
-    padding-left: $spacing-md;
-    padding-right: $spacing-md;
+    padding-left: $space-md;
+    padding-right: $space-md;
   }
 }
 
 .mappingsBody {
-  padding: $spacing-sm $spacing-lg $spacing-lg;
+  padding: $space-sm $space-lg $space-lg;
 
   @include mobile {
-    padding-left: $spacing-md;
-    padding-right: $spacing-md;
+    padding-left: $space-md;
+    padding-right: $space-md;
   }
 }
 
@@ -188,32 +195,26 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr auto auto;
   align-items: center;
-  gap: $spacing-sm;
+  gap: $space-sm;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle);
 
-  &:last-child {
-    border-bottom: none;
-  }
+  &:last-child { border-bottom: none; }
 
   @include mobile {
     grid-template-columns: 1fr;
-    gap: $spacing-sm;
+    gap: $space-sm;
   }
 }
 
 .mappingSeparator {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   text-align: center;
 
-  @include mobile {
-    display: none;
-  }
+  @include mobile { display: none; }
 }
 
-.mappingAliasInput {
-  width: 100%;
-}
+.mappingAliasInput { width: 100%; }
 
 .mappingFork {
   display: flex;

@@ -1,6 +1,6 @@
 import {
   useCallback,
-  type CSSProperties,
+  useDeferredValue,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -20,7 +20,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { IconFilterAll, IconRefreshCw } from '@/components/ui/icons';
+import { IconRefreshCw } from '@/components/ui/icons';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { copyToClipboard } from '@/utils/clipboard';
@@ -30,8 +30,6 @@ import {
   MIN_CARD_PAGE_SIZE,
   QUOTA_PROVIDER_TYPES,
   clampCardPageSize,
-  getAuthFileIcon,
-  getTypeColor,
   getTypeLabel,
   hasAuthFileStatusMessage,
   isRuntimeOnlyAuthFile,
@@ -43,6 +41,7 @@ import {
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
 import { AuthFileModelsModal } from '@/features/authFiles/components/AuthFileModelsModal';
 import { AuthFilesPrefixProxyEditorModal } from '@/features/authFiles/components/AuthFilesPrefixProxyEditorModal';
+import { AuthFilesFilterRail } from '@/features/authFiles/components/AuthFilesFilterRail';
 import { OAuthExcludedCard } from '@/features/authFiles/components/OAuthExcludedCard';
 import { OAuthModelAliasCard } from '@/features/authFiles/components/OAuthModelAliasCard';
 import {
@@ -544,15 +543,21 @@ export function AuthFilesPage() {
   }, [filesMatchingDisplayFilters]);
 
   const normalizedSearch = search.trim();
-  const wildcardSearch = useMemo(() => buildWildcardSearch(normalizedSearch), [normalizedSearch]);
+  // Defer the filter-derived value so typing stays interactive while the
+  // (potentially large) filesMatchingDisplayFilters list re-filters.
+  const deferredNormalizedSearch = useDeferredValue(normalizedSearch);
+  const wildcardSearch = useMemo(
+    () => buildWildcardSearch(deferredNormalizedSearch),
+    [deferredNormalizedSearch]
+  );
 
   const filtered = useMemo(() => {
-    const normalizedTerm = normalizedSearch.toLowerCase();
+    const normalizedTerm = deferredNormalizedSearch.toLowerCase();
 
     return filesMatchingDisplayFilters.filter((item) => {
       const matchType = filter === 'all' || item.type === filter;
       const matchSearch =
-        !normalizedSearch ||
+        !deferredNormalizedSearch ||
         [item.name, item.type, item.provider].some((value) => {
           const content = (value || '').toString();
           return wildcardSearch
@@ -561,7 +566,7 @@ export function AuthFilesPage() {
         });
       return matchType && matchSearch;
     });
-  }, [filesMatchingDisplayFilters, filter, normalizedSearch, wildcardSearch]);
+  }, [filesMatchingDisplayFilters, filter, deferredNormalizedSearch, wildcardSearch]);
 
   const planBadgeMap = useMemo(
     () => new Map(files.map((file) => [file.name, resolveAuthFilePlanBadge(file, planSources)])),
@@ -824,57 +829,7 @@ export function AuthFilesPage() {
     []
   );
 
-  const renderFilterTags = () => (
-    <div className={styles.filterRail}>
-      <div className={styles.filterTags}>
-        {existingTypes.map((type) => {
-          const isActive = filter === type;
-          const iconSrc = getAuthFileIcon(type, resolvedTheme);
-          const color =
-            type === 'all'
-              ? { bg: 'var(--bg-tertiary)', text: 'var(--text-primary)' }
-              : getTypeColor(type, resolvedTheme);
-          const buttonStyle = {
-            '--filter-color': color.text,
-            '--filter-surface': color.bg,
-            '--filter-active-text': resolvedTheme === 'dark' ? '#111827' : '#ffffff',
-          } as CSSProperties;
 
-          return (
-            <button
-              key={type}
-              className={`${styles.filterTag} ${isActive ? styles.filterTagActive : ''}`}
-              style={buttonStyle}
-              onClick={() => {
-                setFilter(type);
-                setPage(1);
-              }}
-            >
-              <span className={styles.filterTagLabel}>
-                {type === 'all' ? (
-                  <span className={`${styles.filterTagIconWrap} ${styles.filterAllIconWrap}`}>
-                    <IconFilterAll className={styles.filterAllIcon} size={16} />
-                  </span>
-                ) : (
-                  <span className={styles.filterTagIconWrap}>
-                    {iconSrc ? (
-                      <img src={iconSrc} alt="" className={styles.filterTagIcon} />
-                    ) : (
-                      <span className={styles.filterTagIconFallback}>
-                        {getTypeLabel(t, type).slice(0, 1).toUpperCase()}
-                      </span>
-                    )}
-                  </span>
-                )}
-                <span className={styles.filterTagText}>{getTypeLabel(t, type)}</span>
-              </span>
-              <span className={styles.filterTagCount}>{typeCounts[type] ?? 0}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
 
   const titleNode = (
     <div className={styles.titleWrapper}>
@@ -945,7 +900,19 @@ export function AuthFilesPage() {
         {error && <div className={styles.errorBox}>{error}</div>}
 
         <div className={styles.filterSection}>
-          {renderFilterTags()}
+          {(
+            <AuthFilesFilterRail
+              types={existingTypes}
+              activeType={String(filter)}
+              typeCounts={typeCounts}
+              resolvedTheme={resolvedTheme}
+              t={t}
+              onChange={(type) => {
+                setFilter(type);
+                setPage(1);
+              }}
+            />
+          )}
 
           <div className={styles.filterContent}>
             <div className={styles.filterControlsPanel}>

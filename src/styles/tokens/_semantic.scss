@@ -1,0 +1,183 @@
+/**
+ * Design Tokens · Semantic (CSS variable scaffold)
+ * ---------------------------------------------
+ * 这一层只声明"语义 token 的结构"，实际色值由主题文件（_light/_dark/_white）赋值。
+ * 不要在此文件写具体色值。
+ *
+ * 消费层：
+ *   - components.scss / pages module.scss 统一通过 var(--token) 使用
+ *   - 三套主题文件会覆盖这里暴露的所有变量
+ *
+ * 分组：
+ *   surface  — 表面层次（0 是页面底、4 是悬浮弹层）
+ *   text     — 文本语义
+ *   border   — 边框强弱
+ *   brand    — 品牌/主色
+ *   status   — 成功/警告/危险/信息（bg/border/fg/strong 四档）
+ *   elevation — 阴影层级（1~4）
+ *   motion   — 动效时长/缓动
+ *   radius   — 语义圆角
+ */
+
+:root {
+  // ─── Surface (0 底 → 4 悬浮) ──────────────────────────
+  --surface-0: initial; // page background
+  --surface-1: initial; // card
+  --surface-2: initial; // raised card / hover
+  --surface-3: initial; // popover / menu
+  --surface-4: initial; // modal / floating
+  --surface-canvas: initial; // app shell background (with gradients)
+  --surface-hero: initial;
+  --surface-sunken: initial; // 比页面还低的区域（代码块、日志区）
+
+  // ─── Text ────────────────────────────────────────────
+  --text-primary: initial;
+  --text-secondary: initial;
+  --text-tertiary: initial;
+  --text-disabled: initial;
+  --text-on-brand: initial;    // 主色按钮文字
+  --text-on-danger: initial;
+  --text-link: initial;
+
+  // legacy aliases（保留旧页面可用）
+  --text-quaternary: initial;
+  --text-muted: initial;
+
+  // ─── Border ──────────────────────────────────────────
+  --border-subtle: initial;   // 卡片默认边框
+  --border-default: initial;  // 分割线、表格
+  --border-strong: initial;   // 输入框、强调
+  --border-hover: initial;
+  --border-focus: initial;    // focus ring 主色
+  --focus-ring: initial;      // focus box-shadow 颜色
+
+  // legacy
+  --border-color: initial;
+  --border-primary: initial;
+  --border-secondary: initial;
+
+  // ─── Brand ───────────────────────────────────────────
+  --brand-color: initial;
+  --brand-hover: initial;
+  --brand-active: initial;
+  --brand-soft: initial;      // 10~15% 透明版，用于 hover bg / badge
+  --brand-softer: initial;    // 更浅，用于大面积 tint
+
+  // legacy aliases
+  --primary-color: initial;
+  --primary-hover: initial;
+  --primary-active: initial;
+  --primary-contrast: initial;
+  --primary-soft: initial;
+
+  // ─── Status: success ─────────────────────────────────
+  --success-fg: initial;
+  --success-bg: initial;
+  --success-border: initial;
+  --success-strong: initial;
+
+  // ─── Status: warning ─────────────────────────────────
+  --warning-fg: initial;
+  --warning-bg: initial;
+  --warning-border: initial;
+  --warning-strong: initial;
+  --warning-text: initial; // legacy
+
+  // ─── Status: danger ──────────────────────────────────
+  --danger-fg: initial;
+  --danger-bg: initial;
+  --danger-border: initial;
+  --danger-strong: initial;
+
+  // ─── Status: info ────────────────────────────────────
+  --info-fg: initial;
+  --info-bg: initial;
+  --info-border: initial;
+  --info-strong: initial;
+
+  // legacy status aliases
+  --success-color: initial;
+  --warning-color: initial;
+  --error-color: initial;
+  --danger-color: initial;
+  --info-color: initial;
+
+  // legacy badges（AiProviders / Auth 页面还在用）
+  --success-badge-bg: initial;
+  --success-badge-text: initial;
+  --success-badge-border: initial;
+
+  --failure-badge-bg: initial;
+  --failure-badge-text: initial;
+  --failure-badge-border: initial;
+
+  --count-badge-bg: initial;
+  --count-badge-text: initial;
+
+  --quota-medium-color: initial;
+
+  // ─── Elevation (层级阴影) ────────────────────────────
+  // 1 贴地（stat card / pill）
+  // 2 卡片悬浮
+  // 3 popover / dropdown
+  // 4 modal / dialog
+  --elevation-1: initial;
+  --elevation-2: initial;
+  --elevation-3: initial;
+  --elevation-4: initial;
+
+  // legacy shadow aliases
+  --shadow: initial;
+  --shadow-lg: initial;
+  --shadow-soft: initial;
+  --shadow-card: initial;
+  --shadow-card-hover: initial;
+  --header-shadow: initial;
+  --sidebar-shadow: initial;
+  --floating-shadow: initial;
+
+  // ─── Radius ──────────────────────────────────────────
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  // ─── Motion ──────────────────────────────────────────
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  // ─── Glass / Overlay ─────────────────────────────────
+  --glass-blur: 14px;
+  --glass-backdrop-filter: saturate(150%) blur(var(--glass-blur));
+  --glass-filter: blur(var(--glass-blur));
+  --glass-bg: initial;
+  --glass-bg-secondary: initial;
+  --glass-border: initial;
+
+  --scrim-color: initial; // modal 遮罩
+
+  // legacy surface aliases used by existing pages（暂保留）
+  --bg-primary: initial;
+  --bg-secondary: initial;
+  --bg-tertiary: initial;
+  --bg-quinary: initial;
+  --bg-hover: initial;
+  --bg-error-light: initial;
+  --surface-raised: initial;
+  --surface-raised-strong: initial;
+  --surface-overlay: initial;
+  --bg-canvas: initial;
+  --floating-surface: initial;
+  --floating-border: initial;
+  --accent-tertiary: initial;
+}

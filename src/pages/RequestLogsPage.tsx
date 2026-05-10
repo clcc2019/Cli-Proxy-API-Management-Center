@@ -46,14 +46,7 @@ export function RequestLogsPage() {
   const { t } = useTranslation();
   const config = useConfigStore((state) => state.config);
 
-  const {
-    usage,
-    loading,
-    error,
-    lastRefreshedAt,
-    modelPrices,
-    loadUsage
-  } = useUsageData();
+  const { usage, loading, error, lastRefreshedAt, modelPrices, loadUsage } = useUsageData();
 
   useHeaderRefresh(loadUsage);
 
@@ -63,7 +56,7 @@ export function RequestLogsPage() {
     () =>
       TIME_RANGE_OPTIONS.map((opt) => ({
         value: opt.value,
-        label: t(opt.labelKey)
+        label: t(opt.labelKey),
       })),
     [t]
   );
@@ -95,10 +88,10 @@ export function RequestLogsPage() {
         </div>
       )}
 
-      <div className={styles.header}>
+      <div className={`${styles.header} ${styles.requestLogsHeader}`}>
         <h1 className={styles.pageTitle}>{t('nav.request_logs')}</h1>
-        <div className={styles.headerActions}>
-          <div className={styles.timeRangeGroup}>
+        <div className={`${styles.headerActions} ${styles.requestLogsHeaderActions}`}>
+          <div className={`${styles.timeRangeGroup} ${styles.requestLogsTimeRangeGroup}`}>
             <span className={styles.timeRangeLabel}>{t('usage_stats.range_filter')}</span>
             <Select
               value={timeRange}
@@ -118,7 +111,7 @@ export function RequestLogsPage() {
             {loading ? t('common.loading') : t('usage_stats.refresh')}
           </Button>
           {lastRefreshedAt && (
-            <span className={styles.lastRefreshed}>
+            <span className={`${styles.lastRefreshed} ${styles.requestLogsLastRefreshed}`}>
               {t('usage_stats.last_updated')}: {lastRefreshedAt.toLocaleTimeString()}
             </span>
           )}

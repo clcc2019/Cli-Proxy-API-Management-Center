@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffec
 import { useTranslation } from 'react-i18next';
 import type { OAuthModelAliasEntry } from '@/types';
 import { useThemeStore } from '@/stores';
+import { cx } from '@/utils/cx';
 import { AliasColumn, ProviderColumn, SourceColumn } from './ModelMappingDiagramColumns';
 import { DiagramContextMenu } from './ModelMappingDiagramContextMenu';
 import {
@@ -508,7 +509,7 @@ export const ModelMappingDiagram = forwardRef<ModelMappingDiagramRef, ModelMappi
 
 
   return (
-    <div className={[styles.scrollContainer, className].filter(Boolean).join(' ')}>
+    <div className={cx(styles.scrollContainer, className)}>
       {enableTapLinking && onUpdate && (
         <div className={styles.tapHint}>{t('oauth_model_alias.diagram_tap_hint')}</div>
       )}

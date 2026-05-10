@@ -1,13 +1,21 @@
 import type { ButtonHTMLAttributes, PropsWithChildren } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type ButtonSize = 'md' | 'sm';
+type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'subtle'
+  | 'danger'
+  | 'danger-subtle';
+type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
   loading?: boolean;
+  /** 只有图标时传 true，让按钮变方形；必须搭配 aria-label */
+  iconOnly?: boolean;
 }
 
 export function Button({
@@ -16,6 +24,7 @@ export function Button({
   size = 'md',
   fullWidth = false,
   loading = false,
+  iconOnly = false,
   className = '',
   disabled,
   ...rest
@@ -24,9 +33,10 @@ export function Button({
   const classes = [
     'btn',
     `btn-${variant}`,
-    size === 'sm' ? 'btn-sm' : '',
+    size === 'sm' ? 'btn-sm' : size === 'lg' ? 'btn-lg' : '',
     fullWidth ? 'btn-full' : '',
-    className
+    iconOnly ? 'btn-icon' : '',
+    className,
   ]
     .filter(Boolean)
     .join(' ');
@@ -34,7 +44,7 @@ export function Button({
   return (
     <button className={classes} disabled={disabled || loading} {...rest}>
       {loading && <span className="loading-spinner" aria-hidden="true" />}
-      {hasChildren && <span>{children}</span>}
+      {hasChildren && (iconOnly ? children : <span>{children}</span>)}
     </button>
   );
 }

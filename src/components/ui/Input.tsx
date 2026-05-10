@@ -1,4 +1,5 @@
 import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
+import { cx } from '@/utils/cx';
 
 type InputDensity = 'sm' | 'md';
 
@@ -31,18 +32,20 @@ export function Input({
   const hintId = hint ? `${inputId}-hint` : undefined;
   const errorId = error ? `${inputId}-error` : undefined;
   const describedBy =
-    [rest['aria-describedby'], errorId, hintId].filter(Boolean).join(' ') || undefined;
+    cx(rest['aria-describedby'], errorId, hintId) || undefined;
 
-  const controlClasses = ['input-control'];
-  if (density === 'sm') controlClasses.push('input-control-sm');
-  if (leftElement) controlClasses.push('input-control-with-left');
-  if (rightElement) controlClasses.push('input-control-with-right');
-  if (!fullWidth) controlClasses.push('input-control-inline');
+  const controlClasses = cx(
+    'input-control',
+    density === 'sm' && 'input-control-sm',
+    leftElement && 'input-control-with-left',
+    rightElement && 'input-control-with-right',
+    !fullWidth && 'input-control-inline'
+  );
 
   return (
     <div className="form-group">
       {label && <label htmlFor={inputId}>{label}</label>}
-      <div className={controlClasses.join(' ')}>
+      <div className={controlClasses}>
         {leftElement && (
           <span className="input-affix input-affix-left" aria-hidden="true">
             {leftElement}

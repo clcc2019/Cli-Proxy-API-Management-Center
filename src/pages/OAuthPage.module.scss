@@ -1,5 +1,6 @@
 @use '../styles/mixins' as *;
 
+// OAuthPage · Linear refactor
 .container {
   width: 100%;
 }
@@ -7,7 +8,7 @@
 .cardTitle {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: $space-sm;
 }
 
 .cardTitleIcon {
@@ -16,59 +17,57 @@
 }
 
 .pageTitle {
-  font-size: clamp(20px, 1.2vw + 14px, 24px);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  margin: 0 0 $space-md;
   color: var(--text-primary);
-  margin: 0 0 $spacing-md 0;
+  font-size: clamp(20px, 1.2vw + 14px, 24px);
+  font-weight: $weight-bold;
   line-height: 1.2;
+  letter-spacing: $tracking-tight;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: $space-lg;
 }
 
 .cardContent {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: $space-md;
 
-  :global(.form-group) {
-    margin-bottom: 0;
-  }
+  :global(.form-group) { margin-bottom: 0; }
 
   :global(.status-badge) {
-    margin-bottom: 0;
     align-self: flex-start;
+    margin-bottom: 0;
   }
 }
 
 .cardHint {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
   color: var(--text-secondary);
+  font-size: $text-sm;
+  line-height: $leading-relaxed;
 }
 
 .cardHintSecondary {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
   color: var(--text-tertiary);
+  font-size: $text-xs;
+  line-height: $leading-snug;
 }
 
 .oauthSection {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: $space-md;
 }
 
 .oauthGrid {
   display: grid;
-  gap: $spacing-md;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: $space-md;
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -78,84 +77,88 @@
 .oauthCard {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: $space-md;
 }
 
+// ─── Status banners ─────────────────────────────────────────
 .oauthStatus {
-  padding: $spacing-md;
-  border-radius: $radius-md;
-  font-size: 14px;
+  padding: $space-md;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: $text-sm;
+  line-height: $leading-relaxed;
 
   &.success {
-    background-color: rgba(34, 197, 94, 0.1);
-    color: #16a34a;
+    color: var(--success-strong);
+    background: var(--success-bg);
+    border-color: var(--success-border);
   }
 
   &.error {
-    background-color: rgba($error-color, 0.12);
-    color: $error-color;
+    color: var(--danger-strong);
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
   }
 
   &.waiting {
-    background-color: rgba($primary-color, 0.12);
-    color: var(--primary-color);
+    color: var(--info-strong);
+    background: var(--info-bg);
+    border-color: var(--info-border);
   }
 }
 
 .callbackSection {
-  margin-top: 0;
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: $space-sm;
 }
 
 .callbackActions {
   display: flex;
-  gap: $spacing-md;
+  gap: $space-md;
 }
 
 .authUrlBox {
-  background: var(--bg-secondary);
-  border: 1px dashed var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-md;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: $space-xs;
+  padding: $space-md;
+  background: var(--surface-2);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
 }
 
 .authUrlLabel {
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: $text-sm;
 }
 
 .authUrlValue {
-  font-weight: 700;
+  max-width: 100%;
   color: var(--text-primary);
+  font-weight: $weight-semibold;
+  line-height: 1.5;
   word-break: break-all;
   overflow-wrap: anywhere;
-  line-height: 1.5;
-  max-width: 100%;
 }
 
 .authUrlActions {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
+  flex-wrap: wrap;
+  gap: $space-sm;
+  margin-top: $space-sm;
 }
 
 .geminiProjectField {
   :global(.form-group) {
-    margin-top: 0;
-    margin-bottom: 0;
-    gap: $spacing-sm;
+    margin: 0;
+    gap: $space-sm;
   }
 
   :global(.input:disabled) {
-    background-color: var(--bg-tertiary);
-    border-color: var(--border-color);
+    background: var(--surface-2);
+    border-color: var(--border-subtle);
     color: var(--text-tertiary);
     cursor: not-allowed;
   }
@@ -164,64 +167,63 @@
 .kiroOptions {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: $space-md;
 
   :global(.form-group) {
-    margin-top: 0;
-    margin-bottom: 0;
-    gap: $spacing-sm;
+    margin: 0;
+    gap: $space-sm;
   }
 }
 
 .formItem {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: $space-xs;
 }
 
 .formItemLabel {
   margin: 0;
-  font-weight: 600;
   color: var(--text-primary);
+  font-weight: $weight-semibold;
 }
 
 .filePicker {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
   flex-wrap: wrap;
+  gap: $space-sm;
 }
 
 .fileName {
   flex: 1;
   min-width: 220px;
   padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  background: var(--bg-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: $text-sm;
 }
 
 .fileNamePlaceholder {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
 }
 
 .connectionBox {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-md;
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: $space-sm;
+  padding: $space-md;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
 }
 
 .connectionLabel {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
   color: var(--text-primary);
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
 }
 
 .keyValueList {
@@ -233,8 +235,8 @@
 .keyValueItem {
   display: grid;
   grid-template-columns: 140px 1fr;
-  gap: 10px;
   align-items: start;
+  gap: 10px;
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -243,12 +245,13 @@
 }
 
 .keyValueKey {
-  color: var(--text-secondary);
-  font-size: 13px;
+  color: var(--text-tertiary);
+  font-size: $text-xs;
 }
 
 .keyValueValue {
   color: var(--text-primary);
+  font-size: $text-sm;
   word-break: break-all;
   overflow-wrap: anywhere;
 }

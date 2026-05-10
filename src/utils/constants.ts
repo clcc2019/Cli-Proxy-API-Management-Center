@@ -42,12 +42,10 @@ export const STORAGE_KEY_SIDEBAR = 'cli-proxy-sidebar-collapsed';
 export const STORAGE_KEY_AUTH_FILES_PAGE_SIZE = 'cli-proxy-auth-files-page-size';
 
 // 语言配置
-export const LANGUAGE_ORDER = defineLanguageOrder(['zh-CN', 'zh-TW', 'en', 'ru'] as const);
+export const LANGUAGE_ORDER = defineLanguageOrder(['zh-CN', 'en'] as const);
 export const LANGUAGE_LABEL_KEYS: Record<Language, string> = {
   'zh-CN': 'language.chinese',
-  'zh-TW': 'language.chinese_tw',
   en: 'language.english',
-  ru: 'language.russian'
 };
 export const SUPPORTED_LANGUAGES = LANGUAGE_ORDER;
 
@@ -62,7 +60,7 @@ export const OAUTH_CARD_IDS = [
   'kiro-oauth-card',
   'gemini-cli-oauth-card',
   'kimi-oauth-card',
-  'qwen-oauth-card'
+  'qwen-oauth-card',
 ];
 export const OAUTH_PROVIDERS = {
   CODEX: 'codex',
@@ -71,7 +69,7 @@ export const OAUTH_PROVIDERS = {
   KIRO: 'kiro',
   GEMINI_CLI: 'gemini-cli',
   KIMI: 'kimi',
-  QWEN: 'qwen'
+  QWEN: 'qwen',
 } as const;
 
 // API 端点
@@ -83,5 +81,5 @@ export const API_ENDPOINTS = {
   AUTH_FILES: '/auth-files',
   OAUTH: '/oauth',
   USAGE: '/usage',
-  LOGS: '/logs'
+  LOGS: '/logs',
 } as const;
