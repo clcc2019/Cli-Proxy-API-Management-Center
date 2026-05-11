@@ -13,6 +13,17 @@ import {
   isRuntimeOnlyAuthFile,
 } from '@/features/authFiles/constants';
 
+const normalizeDeleteAuthIndex = (value: unknown): string | number | null => {
+  if (typeof value === 'string') return value.trim() || null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  return null;
+};
+
+const getAuthFileDeleteTarget = (file: AuthFileItem) => ({
+  name: file.name,
+  authIndex: normalizeDeleteAuthIndex(file['auth_index'] ?? file.authIndex),
+});
+
 type DeleteAllOptions = {
   filter: string;
   problemOnly: boolean;
@@ -263,7 +274,10 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       const runDelete = async () => {
         setDeleting(name);
         try {
-          const result = await authFilesApi.deleteFile(name);
+          const file = files.find((item) => item.name === name);
+          const result = await authFilesApi.deleteFiles([
+            file ? getAuthFileDeleteTarget(file) : name,
+          ]);
           showNotification(t('auth_files.delete_success'), 'success');
           applyDeletedFiles(result.files.length > 0 ? result.files : [name]);
         } catch (err: unknown) {
@@ -276,7 +290,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
       void runDelete();
     },
-    [applyDeletedFiles, showNotification, t]
+    [applyDeletedFiles, files, showNotification, t]
   );
 
   const handleDeleteAll = useCallback(
@@ -315,7 +329,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
               return;
             }
 
-            const result = await authFilesApi.deleteFiles(filesToDelete.map((file) => file.name));
+            const result = await authFilesApi.deleteFiles(
+              filesToDelete.map(getAuthFileDeleteTarget)
+            );
             const success = result.deleted;
             const failed = result.failed.length;
 
@@ -569,7 +585,13 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
       const runBatchDelete = async () => {
         try {
-          const result = await authFilesApi.deleteFiles(uniqueNames);
+          const fileByName = new Map(files.map((file) => [file.name, file]));
+          const result = await authFilesApi.deleteFiles(
+            uniqueNames.map((name) => {
+              const file = fileByName.get(name);
+              return file ? getAuthFileDeleteTarget(file) : name;
+            })
+          );
           applyDeletedFiles(result.files);
 
           if (result.failed.length === 0) {
@@ -595,7 +617,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
       void runBatchDelete();
     },
-    [applyDeletedFiles, showNotification, t]
+    [applyDeletedFiles, files, showNotification, t]
   );
 
   return {
