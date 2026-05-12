@@ -10,3 +10,4 @@ export { useMediaQuery } from './useMediaQuery';
 export { useReducedMotion } from './useReducedMotion';
 export { usePagination } from './usePagination';
 export { useHeaderRefresh } from './useHeaderRefresh';
+export { useEventCallback } from './useEventCallback';

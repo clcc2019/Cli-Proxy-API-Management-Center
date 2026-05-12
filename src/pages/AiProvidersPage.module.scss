@@ -469,6 +469,32 @@
       transform: none;
     }
   }
+
+  &:global(.provider-card-switching) {
+    position: relative;
+    pointer-events: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: color-mix(in srgb, var(--surface-raised) 35%, transparent);
+      backdrop-filter: blur(0.5px);
+      animation: providerCardSwitchingPulse 1.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+  }
+}
+
+@keyframes providerCardSwitchingPulse {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 .providerCardToggle {

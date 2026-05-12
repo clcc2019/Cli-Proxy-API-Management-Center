@@ -17,6 +17,11 @@ interface ProviderListProps<T> {
   editLabel?: string;
   actionsDisabled?: boolean;
   getRowDisabled?: (item: T, index: number) => boolean;
+  /**
+   * 是否给该行显示“正在保存”的视觉状态（如轻微 loading / disabled）。
+   * 与 `actionsDisabled` 不同，这是针对单个行的实时切换反馈。
+   */
+  isRowSwitching?: (item: T, index: number) => boolean;
   renderExtraActions?: (item: T, index: number) => ReactNode;
   leadingIcon?: ReactNode;
   listClassName?: string;
@@ -36,6 +41,7 @@ function ProviderListImpl<T>({
   editLabel,
   actionsDisabled = false,
   getRowDisabled,
+  isRowSwitching,
   renderExtraActions,
   leadingIcon,
   listClassName,
@@ -57,10 +63,12 @@ function ProviderListImpl<T>({
     <div className={listClasses}>
       {items.map((item, index) => {
         const rowDisabled = getRowDisabled ? getRowDisabled(item, index) : false;
+        const rowSwitching = isRowSwitching ? isRowSwitching(item, index) : false;
         const rowClasses = [
           'item-row',
           rowClassName,
           rowDisabled ? 'provider-card-disabled' : 'provider-card-enabled',
+          rowSwitching ? 'provider-card-switching' : '',
         ]
           .filter(Boolean)
           .join(' ');
@@ -70,9 +78,14 @@ function ProviderListImpl<T>({
               defaultValue: t('ai_providers.config_toggle_label'),
             });
         const extraActions = renderExtraActions ? renderExtraActions(item, index) : null;
+        const rowActionsDisabled = actionsDisabled || rowSwitching;
 
         return (
-          <div key={keyField(item, index)} className={rowClasses}>
+          <div
+            key={keyField(item, index)}
+            className={rowClasses}
+            aria-busy={rowSwitching || undefined}
+          >
             <div className="provider-card-header">
               {leadingIcon && <span className="provider-card-avatar">{leadingIcon}</span>}
               <span
@@ -88,7 +101,7 @@ function ProviderListImpl<T>({
                 variant="secondary"
                 size="sm"
                 onClick={() => onEdit(index)}
-                disabled={actionsDisabled}
+                disabled={rowActionsDisabled}
                 className="provider-card-action provider-card-action-edit"
                 title={editLabel || t('common.edit')}
                 aria-label={editLabel || t('common.edit')}
@@ -99,7 +112,7 @@ function ProviderListImpl<T>({
                 variant="danger"
                 size="sm"
                 onClick={() => onDelete(index)}
-                disabled={actionsDisabled}
+                disabled={rowActionsDisabled}
                 className="provider-card-action provider-card-action-delete"
                 title={deleteLabel || t('common.delete')}
                 aria-label={deleteLabel || t('common.delete')}

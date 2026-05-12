@@ -17,6 +17,7 @@ import {
   withoutDisableAllModelsRule,
 } from '@/components/providers/utils';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
+import { useEventCallback } from '@/hooks/useEventCallback';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { ampcodeApi, providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore, useThemeStore } from '@/stores';
@@ -139,10 +140,48 @@ export function AiProvidersPage() {
     () => sortByPriorityDesc(configOpenaiCompatibility || [])
   );
 
-  const [configSwitchingKey, setConfigSwitchingKey] = useState<string | null>(null);
+  const [switchingKeys, setSwitchingKeys] = useState<Set<string>>(() => new Set());
+
+  const beginSwitching = useCallback((key: string) => {
+    setSwitchingKeys((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }, []);
+
+  const endSwitching = useCallback((key: string) => {
+    setSwitchingKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
 
   const disableControls = connectionStatus !== 'connected';
-  const isSwitching = Boolean(configSwitchingKey);
+  const isSwitching = switchingKeys.size > 0;
+
+  // 分类出每个 section 正在切换的 item key，使得：
+  // 1. 保存某张卡片时，同 section 的其他卡片仍然可点击；
+  // 2. 跨 section 完全互不影响；
+  // 3. 同一张卡片在保存期间只禁用它自己，不会阻塞其他卡片。
+  const switchingByProvider = useMemo(() => {
+    const codex = new Set<string>();
+    const gemini = new Set<string>();
+    const claude = new Set<string>();
+    const vertex = new Set<string>();
+    const openai = new Set<string>();
+    switchingKeys.forEach((key) => {
+      if (key.startsWith('codex:')) codex.add(key.slice('codex:'.length));
+      else if (key.startsWith('gemini:')) gemini.add(key.slice('gemini:'.length));
+      else if (key.startsWith('claude:')) claude.add(key.slice('claude:'.length));
+      else if (key.startsWith('vertex:')) vertex.add(key.slice('vertex:'.length));
+      else if (key.startsWith('openai:')) openai.add(key.slice('openai:'.length));
+    });
+    return { codex, gemini, claude, vertex, openai };
+  }, [switchingKeys]);
 
   const totalConfiguredEntries = useMemo(
     () =>
@@ -329,16 +368,23 @@ export function AiProvidersPage() {
       const current = geminiKeys[index];
       if (!current) return;
 
-      const switchingKey = `${provider}:${current.apiKey}`;
-      setConfigSwitchingKey(switchingKey);
+      const switchingKey = `${provider}:${current.apiKey}:${current.baseUrl ?? ''}`;
+      if (switchingKeys.has(switchingKey)) return;
+      beginSwitching(switchingKey);
 
       const previousList = geminiKeys;
       const nextExcluded = enabled
         ? withoutDisableAllModelsRule(current.excludedModels)
         : withDisableAllModelsRule(current.excludedModels);
       const nextItem: GeminiKeyConfig = { ...current, excludedModels: nextExcluded };
+      // 使用 key-based 定位，避免排序造成的 index 漂移
       const nextList = sortToggleableProviderConfigs(
-        previousList.map((item, idx) => (idx === index ? nextItem : item))
+        previousList.map((item) =>
+          item.apiKey === current.apiKey &&
+          (item.baseUrl ?? '') === (current.baseUrl ?? '')
+            ? nextItem
+            : item
+        )
       );
 
       setGeminiKeys(nextList);
@@ -358,7 +404,7 @@ export function AiProvidersPage() {
         clearCache('gemini-api-key');
         showNotification(`${t('notification.update_failed')}: ${message}`, 'error');
       } finally {
-        setConfigSwitchingKey(null);
+        endSwitching(switchingKey);
       }
       return;
     }
@@ -372,8 +418,9 @@ export function AiProvidersPage() {
     const current = source[index];
     if (!current) return;
 
-    const switchingKey = `${provider}:${current.apiKey}`;
-    setConfigSwitchingKey(switchingKey);
+    const switchingKey = `${provider}:${current.apiKey}:${current.baseUrl ?? ''}:${current.prefix ?? ''}`;
+    if (switchingKeys.has(switchingKey)) return;
+    beginSwitching(switchingKey);
 
     const previousList = source;
     const nextExcluded = enabled
@@ -381,7 +428,13 @@ export function AiProvidersPage() {
       : withDisableAllModelsRule(current.excludedModels);
     const nextItem: ProviderKeyConfig = { ...current, excludedModels: nextExcluded };
     const nextList = sortToggleableProviderConfigs(
-      previousList.map((item, idx) => (idx === index ? nextItem : item))
+      previousList.map((item) =>
+        item.apiKey === current.apiKey &&
+        (item.baseUrl ?? '') === (current.baseUrl ?? '') &&
+        (item.prefix ?? '') === (current.prefix ?? '')
+          ? nextItem
+          : item
+      )
     );
 
     if (provider === 'codex') {
@@ -427,7 +480,7 @@ export function AiProvidersPage() {
       }
       showNotification(`${t('notification.update_failed')}: ${message}`, 'error');
     } finally {
-      setConfigSwitchingKey(null);
+      endSwitching(switchingKey);
     }
   };
 
@@ -435,15 +488,19 @@ export function AiProvidersPage() {
     const current = openaiProviders[index];
     if (!current) return;
 
-    const switchingKey = `openai:${current.name}:${index}`;
-    setConfigSwitchingKey(switchingKey);
+    const switchingKey = `openai:${current.name}`;
+    if (switchingKeys.has(switchingKey)) return;
+    beginSwitching(switchingKey);
 
     const previousList = openaiProviders;
     const previousConfigList = configOpenaiCompatibility || previousList;
     const configIndex = findOpenAIProviderIndex(previousConfigList, current);
     const patchIndex = configIndex >= 0 ? configIndex : index;
     const nextItem: OpenAIProviderConfig = { ...current, disabled: !enabled };
-    const nextList = previousList.map((item, idx) => (idx === index ? nextItem : item));
+    // 使用 name 匹配而不是 index，避免排序/增删导致错位
+    const nextList = previousList.map((item) =>
+      item.name === current.name && item.baseUrl === current.baseUrl ? nextItem : item
+    );
     const nextConfigList =
       configIndex >= 0
         ? previousConfigList.map((item, idx) =>
@@ -468,7 +525,7 @@ export function AiProvidersPage() {
       clearCache('openai-compatibility');
       showNotification(`${t('notification.update_failed')}: ${message}`, 'error');
     } finally {
-      setConfigSwitchingKey(null);
+      endSwitching(switchingKey);
     }
   };
 
@@ -530,69 +587,64 @@ export function AiProvidersPage() {
     }
   };
 
-  // Stable callbacks so memoized Section components don't re-render on every parent render.
-  const handleCodexAdd = useCallback(() => openEditor('/ai-providers/codex/new'), [openEditor]);
-  const handleCodexEdit = useCallback(
-    (index: number) => openProviderKeyEditor('codex', index),
-    [openProviderKeyEditor]
+  // 使用 useEventCallback 让 handler 保持稳定引用（子组件被 memo 包裹，
+  // 不希望因为父组件每次渲染就重建回调），同时始终读到最新的 state。
+  const handleCodexAdd = useEventCallback(() => openEditor('/ai-providers/codex/new'));
+  const handleCodexEdit = useEventCallback((index: number) =>
+    openProviderKeyEditor('codex', index)
   );
-  const handleCodexDelete = useCallback(
-    (index: number) => void deleteProviderEntry('codex', index),
-    []
-  );
-  const handleCodexToggle = useCallback(
-    (index: number, enabled: boolean) => void setConfigEnabled('codex', index, enabled),
-    []
-  );
+  const handleCodexDelete = useEventCallback((index: number) => {
+    void deleteProviderEntry('codex', index);
+  });
+  const handleCodexToggle = useEventCallback((index: number, enabled: boolean) => {
+    void setConfigEnabled('codex', index, enabled);
+  });
 
-  const handleGeminiAdd = useCallback(() => openEditor('/ai-providers/gemini/new'), [openEditor]);
-  const handleGeminiEdit = useCallback(
-    (index: number) => openProviderKeyEditor('gemini', index),
-    [openProviderKeyEditor]
+  const handleGeminiAdd = useEventCallback(() => openEditor('/ai-providers/gemini/new'));
+  const handleGeminiEdit = useEventCallback((index: number) =>
+    openProviderKeyEditor('gemini', index)
   );
-  const handleGeminiDelete = useCallback((index: number) => void deleteGemini(index), []);
-  const handleGeminiToggle = useCallback(
-    (index: number, enabled: boolean) => void setConfigEnabled('gemini', index, enabled),
-    []
-  );
+  const handleGeminiDelete = useEventCallback((index: number) => {
+    void deleteGemini(index);
+  });
+  const handleGeminiToggle = useEventCallback((index: number, enabled: boolean) => {
+    void setConfigEnabled('gemini', index, enabled);
+  });
 
-  const handleClaudeAdd = useCallback(() => openEditor('/ai-providers/claude/new'), [openEditor]);
-  const handleClaudeEdit = useCallback(
-    (index: number) => openProviderKeyEditor('claude', index),
-    [openProviderKeyEditor]
+  const handleClaudeAdd = useEventCallback(() => openEditor('/ai-providers/claude/new'));
+  const handleClaudeEdit = useEventCallback((index: number) =>
+    openProviderKeyEditor('claude', index)
   );
-  const handleClaudeDelete = useCallback(
-    (index: number) => void deleteProviderEntry('claude', index),
-    []
-  );
-  const handleClaudeToggle = useCallback(
-    (index: number, enabled: boolean) => void setConfigEnabled('claude', index, enabled),
-    []
-  );
+  const handleClaudeDelete = useEventCallback((index: number) => {
+    void deleteProviderEntry('claude', index);
+  });
+  const handleClaudeToggle = useEventCallback((index: number, enabled: boolean) => {
+    void setConfigEnabled('claude', index, enabled);
+  });
 
-  const handleVertexAdd = useCallback(() => openEditor('/ai-providers/vertex/new'), [openEditor]);
-  const handleVertexEdit = useCallback(
-    (index: number) => openProviderKeyEditor('vertex', index),
-    [openProviderKeyEditor]
+  const handleVertexAdd = useEventCallback(() => openEditor('/ai-providers/vertex/new'));
+  const handleVertexEdit = useEventCallback((index: number) =>
+    openProviderKeyEditor('vertex', index)
   );
-  const handleVertexDelete = useCallback((index: number) => void deleteVertex(index), []);
-  const handleVertexToggle = useCallback(
-    (index: number, enabled: boolean) => void setConfigEnabled('vertex', index, enabled),
-    []
-  );
+  const handleVertexDelete = useEventCallback((index: number) => {
+    void deleteVertex(index);
+  });
+  const handleVertexToggle = useEventCallback((index: number, enabled: boolean) => {
+    void setConfigEnabled('vertex', index, enabled);
+  });
 
-  const handleAmpcodeEdit = useCallback(() => openEditor('/ai-providers/ampcode'), [openEditor]);
+  const handleAmpcodeEdit = useEventCallback(() => openEditor('/ai-providers/ampcode'));
 
-  const handleOpenaiAdd = useCallback(() => openEditor('/ai-providers/openai/new'), [openEditor]);
-  const handleOpenaiEdit = useCallback(
-    (index: number) => openEditor(`/ai-providers/openai/${index}`),
-    [openEditor]
+  const handleOpenaiAdd = useEventCallback(() => openEditor('/ai-providers/openai/new'));
+  const handleOpenaiEdit = useEventCallback((index: number) =>
+    openEditor(`/ai-providers/openai/${index}`)
   );
-  const handleOpenaiDelete = useCallback((index: number) => void deleteOpenai(index), []);
-  const handleOpenaiToggle = useCallback(
-    (index: number, enabled: boolean) => void setOpenAIProviderEnabled(index, enabled),
-    []
-  );
+  const handleOpenaiDelete = useEventCallback((index: number) => {
+    void deleteOpenai(index);
+  });
+  const handleOpenaiToggle = useEventCallback((index: number, enabled: boolean) => {
+    void setOpenAIProviderEnabled(index, enabled);
+  });
 
   return (
     <div className={styles.container}>
@@ -640,6 +692,7 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
+            switchingItemKeys={switchingByProvider.codex}
             onAdd={handleCodexAdd}
             onEdit={handleCodexEdit}
             onDelete={handleCodexDelete}
@@ -655,6 +708,7 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
+            switchingItemKeys={switchingByProvider.gemini}
             onAdd={handleGeminiAdd}
             onEdit={handleGeminiEdit}
             onDelete={handleGeminiDelete}
@@ -670,6 +724,7 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
+            switchingItemKeys={switchingByProvider.claude}
             onAdd={handleClaudeAdd}
             onEdit={handleClaudeEdit}
             onDelete={handleClaudeDelete}
@@ -685,6 +740,7 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
+            switchingItemKeys={switchingByProvider.vertex}
             onAdd={handleVertexAdd}
             onEdit={handleVertexEdit}
             onDelete={handleVertexDelete}
@@ -710,6 +766,7 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
+            switchingItemKeys={switchingByProvider.openai}
             resolvedTheme={resolvedTheme}
             onAdd={handleOpenaiAdd}
             onEdit={handleOpenaiEdit}

@@ -27,6 +27,8 @@ interface OpenAISectionProps {
   loading: boolean;
   disableControls: boolean;
   isSwitching: boolean;
+  /** 正在切换开关的 item key 集合（provider name） */
+  switchingItemKeys?: ReadonlySet<string>;
   resolvedTheme: string;
   onAdd: () => void;
   onEdit: (index: number) => void;
@@ -41,6 +43,7 @@ export const OpenAISection = memo(function OpenAISection({
   loading,
   disableControls,
   isSwitching,
+  switchingItemKeys,
   resolvedTheme,
   onAdd,
   onEdit,
@@ -48,8 +51,12 @@ export const OpenAISection = memo(function OpenAISection({
   onToggle,
 }: OpenAISectionProps) {
   const { t } = useTranslation();
-  const actionsDisabled = disableControls || loading || isSwitching;
-  const toggleDisabled = disableControls || loading || isSwitching;
+  void isSwitching;
+  const actionsDisabled = disableControls || loading;
+  const toggleGloballyDisabled = disableControls || loading;
+
+  const isItemSwitching = (item: OpenAIProviderConfig) =>
+    switchingItemKeys ? switchingItemKeys.has(item.name) : false;
 
   const statusBarCache = useMemo(() => {
     const cache = new Map<string, ReturnType<typeof calculateStatusBarData>>();
@@ -107,10 +114,11 @@ export const OpenAISection = memo(function OpenAISection({
           onDelete={onDelete}
           actionsDisabled={actionsDisabled}
           getRowDisabled={(item) => item.disabled === true}
+          isRowSwitching={(item) => isItemSwitching(item)}
           renderExtraActions={(item, index) => (
             <ToggleSwitch
               checked={!item.disabled}
-              disabled={toggleDisabled}
+              disabled={toggleGloballyDisabled || isItemSwitching(item)}
               label={t('ai_providers.config_toggle_label')}
               labelInside
               ariaLabel={t('ai_providers.config_toggle_label')}

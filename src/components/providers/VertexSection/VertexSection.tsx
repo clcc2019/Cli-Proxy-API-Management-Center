@@ -21,6 +21,8 @@ interface VertexSectionProps {
   loading: boolean;
   disableControls: boolean;
   isSwitching: boolean;
+  /** 正在切换开关的 item key 集合（apiKey:baseUrl:prefix 格式） */
+  switchingItemKeys?: ReadonlySet<string>;
   onAdd: () => void;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
@@ -33,14 +35,21 @@ export const VertexSection = memo(function VertexSection({
   loading,
   disableControls,
   isSwitching,
+  switchingItemKeys,
   onAdd,
   onEdit,
   onDelete,
   onToggle,
 }: VertexSectionProps) {
   const { t } = useTranslation();
-  const actionsDisabled = disableControls || loading || isSwitching;
-  const toggleDisabled = disableControls || loading || isSwitching;
+  void isSwitching;
+  const actionsDisabled = disableControls || loading;
+  const toggleGloballyDisabled = disableControls || loading;
+
+  const buildItemKey = (item: ProviderKeyConfig) =>
+    `${item.apiKey}:${item.baseUrl ?? ''}:${item.prefix ?? ''}`;
+  const isItemSwitching = (item: ProviderKeyConfig) =>
+    switchingItemKeys ? switchingItemKeys.has(buildItemKey(item)) : false;
 
   const statusBarCache = useMemo(() => {
     const cache = new Map<string, ReturnType<typeof calculateStatusBarData>>();
@@ -89,12 +98,13 @@ export const VertexSection = memo(function VertexSection({
           onDelete={onDelete}
           actionsDisabled={actionsDisabled}
           getRowDisabled={(item) => hasDisableAllModelsRule(item.excludedModels)}
+          isRowSwitching={(item) => isItemSwitching(item)}
           renderExtraActions={(item, index) => (
             <ToggleSwitch
               label={t('ai_providers.config_toggle_label')}
               checked={!hasDisableAllModelsRule(item.excludedModels)}
               className={styles.providerCardToggle}
-              disabled={toggleDisabled}
+              disabled={toggleGloballyDisabled || isItemSwitching(item)}
               onChange={(value) => void onToggle(index, value)}
             />
           )}

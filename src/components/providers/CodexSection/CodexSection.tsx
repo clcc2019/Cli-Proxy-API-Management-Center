@@ -34,6 +34,8 @@ interface CodexSectionProps {
   loading: boolean;
   disableControls: boolean;
   isSwitching: boolean;
+  /** 正在切换开关的 item key 集合（apiKey:baseUrl:prefix 格式） */
+  switchingItemKeys?: ReadonlySet<string>;
   onAdd: () => void;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
@@ -47,6 +49,7 @@ export const CodexSection = memo(function CodexSection({
   loading,
   disableControls,
   isSwitching,
+  switchingItemKeys,
   onAdd,
   onEdit,
   onDelete,
@@ -54,8 +57,17 @@ export const CodexSection = memo(function CodexSection({
 }: CodexSectionProps) {
   const { t } = useTranslation();
   void keyStats;
-  const actionsDisabled = disableControls || loading || isSwitching;
-  const toggleDisabled = disableControls || loading || isSwitching;
+  void isSwitching;
+  // 父级按钮（“新增”）仍然受全局 loading/连接状态控制，但卡片级别的按钮
+  // 交由每张卡片的 switchingItemKeys 决定，从而允许多张卡片并发切换。
+  const actionsDisabled = disableControls || loading;
+  const toggleGloballyDisabled = disableControls || loading;
+
+  const buildItemKey = (item: ProviderKeyConfig) =>
+    `${item.apiKey}:${item.baseUrl ?? ''}:${item.prefix ?? ''}`;
+
+  const isItemSwitching = (item: ProviderKeyConfig) =>
+    switchingItemKeys ? switchingItemKeys.has(buildItemKey(item)) : false;
 
   const statusBarCache = useMemo(() => {
     const cache = new Map<string, ReturnType<typeof calculateStatusBarData>>();
@@ -104,12 +116,13 @@ export const CodexSection = memo(function CodexSection({
           onDelete={onDelete}
           actionsDisabled={actionsDisabled}
           getRowDisabled={(item) => hasDisableAllModelsRule(item.excludedModels)}
+          isRowSwitching={(item) => isItemSwitching(item)}
           renderExtraActions={(item, index) => (
             <ToggleSwitch
               label={t('ai_providers.config_toggle_label')}
               checked={!hasDisableAllModelsRule(item.excludedModels)}
               className={styles.providerCardToggle}
-              disabled={toggleDisabled}
+              disabled={toggleGloballyDisabled || isItemSwitching(item)}
               onChange={(value) => void onToggle(index, value)}
             />
           )}
