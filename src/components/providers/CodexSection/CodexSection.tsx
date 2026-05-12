@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -40,7 +40,7 @@ interface CodexSectionProps {
   onToggle: (index: number, enabled: boolean) => void;
 }
 
-export function CodexSection({
+export const CodexSection = memo(function CodexSection({
   configs,
   keyStats,
   usageDetailsBySource,
@@ -217,4 +217,4 @@ export function CodexSection({
       </Card>
     </>
   );
-}
+});

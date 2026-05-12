@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { IconLink, IconModelCluster, IconShield } from '@/components/ui/icons';
@@ -15,7 +16,7 @@ interface AmpcodeSectionProps {
   onEdit: () => void;
 }
 
-export function AmpcodeSection({
+export const AmpcodeSection = memo(function AmpcodeSection({
   config,
   loading,
   disableControls,
@@ -102,4 +103,4 @@ export function AmpcodeSection({
       </Card>
     </>
   );
-}
+});

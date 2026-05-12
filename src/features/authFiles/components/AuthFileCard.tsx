@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -91,8 +92,8 @@ export type AuthFileCardProps = {
   selected: boolean;
   resolvedTheme: ResolvedTheme;
   disableControls: boolean;
-  deleting: string | null;
-  statusUpdating: Record<string, boolean>;
+  deleting: boolean;
+  statusUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
   planBadge: AuthFilePlanBadgeInfo | null;
   keyStats: KeyStats;
@@ -113,7 +114,7 @@ const resolveQuotaType = (file: AuthFileItem): QuotaProviderType | null => {
   return provider as QuotaProviderType;
 };
 
-export function AuthFileCard(props: AuthFileCardProps) {
+export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps) {
   const { t } = useTranslation();
   const {
     file,
@@ -417,9 +418,9 @@ export function AuthFileCard(props: AuthFileCardProps) {
                       onClick={() => onDelete(file.name)}
                       className={styles.iconButton}
                       title={t('auth_files.delete_button')}
-                      disabled={disableControls || deleting === file.name}
+                      disabled={disableControls || deleting}
                     >
-                      {deleting === file.name ? (
+                      {deleting ? (
                         <LoadingSpinner size={17} />
                       ) : (
                         <IconTrash2 className={styles.actionIcon} size={18} />
@@ -445,7 +446,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
                       ariaLabel={t('auth_files.status_toggle_label')}
                       checked={!file.disabled}
                       className={styles.cardToggleSwitch}
-                      disabled={disableControls || statusUpdating[file.name] === true}
+                      disabled={disableControls || statusUpdating}
                       label={t('auth_files.status_toggle_label')}
                       labelInside
                       onChange={(value) => onToggleStatus(file, value)}
@@ -459,4 +460,4 @@ export function AuthFileCard(props: AuthFileCardProps) {
       </div>
     </div>
   );
-}
+});

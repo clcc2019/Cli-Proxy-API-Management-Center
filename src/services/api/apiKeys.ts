@@ -42,6 +42,11 @@ const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
   if (!trimmed) return null;
 
   const config: ClientApiKeyConfig = { apiKey: trimmed };
+  const noteRaw = record?.['note'] ?? record?.['remark'] ?? record?.['description'];
+  const note = typeof noteRaw === 'string' ? noteRaw.trim() : '';
+  if (note) {
+    config.note = note;
+  }
   const allowedModels = normalizeModelPatterns(
     record?.['allowed-models'] ?? record?.allowedModels ?? record?.['allowed_models']
   );
@@ -67,16 +72,18 @@ const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
 
 const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<string, unknown> => {
   const apiKey = String(entry.apiKey ?? '').trim();
+  const note = typeof entry.note === 'string' ? entry.note.trim() : '';
   const allowedModels = normalizeModelPatterns(entry.allowedModels);
   const excludedModels = normalizeModelPatterns(entry.excludedModels);
   const quota = serializeClientApiKeyQuota(entry.quota);
 
-  if (!allowedModels.length && !excludedModels.length && !quota) {
+  if (!note && !allowedModels.length && !excludedModels.length && !quota) {
     return apiKey;
   }
 
   return {
     'api-key': apiKey,
+    ...(note ? { note } : {}),
     ...(allowedModels.length ? { 'allowed-models': allowedModels } : {}),
     ...(excludedModels.length ? { 'excluded-models': excludedModels } : {}),
     ...(quota ? { quota } : {}),

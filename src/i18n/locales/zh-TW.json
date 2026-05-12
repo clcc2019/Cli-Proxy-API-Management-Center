@@ -1238,6 +1238,10 @@
         "input_label": "API 金鑰",
         "input_placeholder": "貼上你的 API 金鑰",
         "input_hint": "儲存後會寫入服務端 api-keys 設定；模型規則和消費額度會隨金鑰一起儲存。",
+        "note_label": "備註",
+        "note_placeholder": "例如：正式環境 / 張三專用",
+        "note_hint": "自訂標識，便於在多金鑰場景下區分用途。",
+        "note_display_label": "備註",
         "allowed_models_label": "允許模型",
         "allowed_models_placeholder": "每行一個模式，例如 gpt-5*\nclaude-sonnet-*",
         "allowed_models_hint": "留空表示允許所有未被明確排除的模型。",
@@ -1254,7 +1258,11 @@
         "quota_error_invalid": "額度限制必須是非負數字",
         "rules_summary": "允許 {{allowed}} | 排除 {{excluded}}",
         "error_empty": "請輸入 API 金鑰",
-        "error_invalid": "API 金鑰包含無效字元"
+        "error_invalid": "API 金鑰包含無效字元",
+        "copy_key_only": "僅複製金鑰",
+        "copy_full": "複製設定",
+        "copy_full_hint": "複製 API 位址與金鑰，可直接貼到 OpenAI 相容客戶端。",
+        "copy_full_success": "已複製 API 位址與金鑰"
       },
       "payload_rules": {
         "rule": "規則",

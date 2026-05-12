@@ -1452,6 +1452,10 @@
         "input_label": "API 密钥",
         "input_placeholder": "粘贴你的 API 密钥",
         "input_hint": "保存后会写入服务端 api-keys 配置；模型规则和消费额度会随密钥一起保存。",
+        "note_label": "备注",
+        "note_placeholder": "例如：生产环境 / 张三专用",
+        "note_hint": "自定义标识，便于在多密钥场景下区分用途。",
+        "note_display_label": "备注",
         "allowed_models_label": "允许模型",
         "allowed_models_placeholder": "每行一个模式，例如 gpt-5*\nclaude-sonnet-*",
         "allowed_models_hint": "留空表示允许所有未被显式排除的模型。",
@@ -1468,7 +1472,11 @@
         "quota_error_invalid": "额度限制必须是非负数字",
         "rules_summary": "允许 {{allowed}} | 排除 {{excluded}}",
         "error_empty": "请输入 API 密钥",
-        "error_invalid": "API 密钥包含无效字符"
+        "error_invalid": "API 密钥包含无效字符",
+        "copy_key_only": "仅复制密钥",
+        "copy_full": "复制配置",
+        "copy_full_hint": "复制 API 地址与密钥，可直接粘贴到 OpenAI 兼容客户端。",
+        "copy_full_success": "已复制 API 地址与密钥"
       },
       "payload_rules": {
         "rule": "规则",

@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -27,7 +27,7 @@ interface VertexSectionProps {
   onToggle: (index: number, enabled: boolean) => void;
 }
 
-export function VertexSection({
+export const VertexSection = memo(function VertexSection({
   configs,
   usageDetailsBySource,
   loading,
@@ -199,4 +199,4 @@ export function VertexSection({
       </Card>
     </>
   );
-}
+});

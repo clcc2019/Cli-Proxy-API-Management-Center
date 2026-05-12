@@ -108,7 +108,12 @@ export function AiProvidersPage() {
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
 
-  const config = useConfigStore((state) => state.config);
+  const ampcodeConfig = useConfigStore((state) => state.config?.ampcode);
+  const configGeminiApiKeys = useConfigStore((state) => state.config?.geminiApiKeys);
+  const configCodexApiKeys = useConfigStore((state) => state.config?.codexApiKeys);
+  const configClaudeApiKeys = useConfigStore((state) => state.config?.claudeApiKeys);
+  const configVertexApiKeys = useConfigStore((state) => state.config?.vertexApiKeys);
+  const configOpenaiCompatibility = useConfigStore((state) => state.config?.openaiCompatibility);
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
   const clearCache = useConfigStore((state) => state.clearCache);
@@ -119,37 +124,50 @@ export function AiProvidersPage() {
   const [error, setError] = useState('');
 
   const [geminiKeys, setGeminiKeys] = useState<GeminiKeyConfig[]>(
-    () => sortToggleableProviderConfigs(config?.geminiApiKeys || [])
+    () => sortToggleableProviderConfigs(configGeminiApiKeys || [])
   );
   const [codexConfigs, setCodexConfigs] = useState<ProviderKeyConfig[]>(
-    () => sortToggleableProviderConfigs(config?.codexApiKeys || [])
+    () => sortToggleableProviderConfigs(configCodexApiKeys || [])
   );
   const [claudeConfigs, setClaudeConfigs] = useState<ProviderKeyConfig[]>(
-    () => sortToggleableProviderConfigs(config?.claudeApiKeys || [])
+    () => sortToggleableProviderConfigs(configClaudeApiKeys || [])
   );
   const [vertexConfigs, setVertexConfigs] = useState<ProviderKeyConfig[]>(
-    () => sortToggleableProviderConfigs(config?.vertexApiKeys || [])
+    () => sortToggleableProviderConfigs(configVertexApiKeys || [])
   );
   const [openaiProviders, setOpenaiProviders] = useState<OpenAIProviderConfig[]>(
-    () => sortByPriorityDesc(config?.openaiCompatibility || [])
+    () => sortByPriorityDesc(configOpenaiCompatibility || [])
   );
 
   const [configSwitchingKey, setConfigSwitchingKey] = useState<string | null>(null);
 
   const disableControls = connectionStatus !== 'connected';
   const isSwitching = Boolean(configSwitchingKey);
-  const totalConfiguredEntries =
-    geminiKeys.length +
-    codexConfigs.length +
-    claudeConfigs.length +
-    vertexConfigs.length +
-    openaiProviders.length;
-  const enabledConfiguredEntries =
-    geminiKeys.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length +
-    codexConfigs.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length +
-    claudeConfigs.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length +
-    vertexConfigs.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length +
-    openaiProviders.filter((item) => item.disabled !== true).length;
+
+  const totalConfiguredEntries = useMemo(
+    () =>
+      geminiKeys.length +
+      codexConfigs.length +
+      claudeConfigs.length +
+      vertexConfigs.length +
+      openaiProviders.length,
+    [
+      claudeConfigs.length,
+      codexConfigs.length,
+      geminiKeys.length,
+      openaiProviders.length,
+      vertexConfigs.length,
+    ]
+  );
+  const enabledConfiguredEntries = useMemo(() => {
+    let count = 0;
+    for (const item of geminiKeys) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
+    for (const item of codexConfigs) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
+    for (const item of claudeConfigs) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
+    for (const item of vertexConfigs) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
+    for (const item of openaiProviders) if (item.disabled !== true) count += 1;
+    return count;
+  }, [claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]);
 
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
@@ -223,17 +241,17 @@ export function AiProvidersPage() {
   }, [isCurrentLayer, loadKeyStats]);
 
   useEffect(() => {
-    if (config?.geminiApiKeys) setGeminiKeys(sortToggleableProviderConfigs(config.geminiApiKeys));
-    if (config?.codexApiKeys) setCodexConfigs(sortToggleableProviderConfigs(config.codexApiKeys));
-    if (config?.claudeApiKeys) setClaudeConfigs(sortToggleableProviderConfigs(config.claudeApiKeys));
-    if (config?.vertexApiKeys) setVertexConfigs(sortToggleableProviderConfigs(config.vertexApiKeys));
-    if (config?.openaiCompatibility) setOpenaiProviders(sortByPriorityDesc(config.openaiCompatibility));
+    if (configGeminiApiKeys) setGeminiKeys(sortToggleableProviderConfigs(configGeminiApiKeys));
+    if (configCodexApiKeys) setCodexConfigs(sortToggleableProviderConfigs(configCodexApiKeys));
+    if (configClaudeApiKeys) setClaudeConfigs(sortToggleableProviderConfigs(configClaudeApiKeys));
+    if (configVertexApiKeys) setVertexConfigs(sortToggleableProviderConfigs(configVertexApiKeys));
+    if (configOpenaiCompatibility) setOpenaiProviders(sortByPriorityDesc(configOpenaiCompatibility));
   }, [
-    config?.geminiApiKeys,
-    config?.codexApiKeys,
-    config?.claudeApiKeys,
-    config?.vertexApiKeys,
-    config?.openaiCompatibility,
+    configGeminiApiKeys,
+    configCodexApiKeys,
+    configClaudeApiKeys,
+    configVertexApiKeys,
+    configOpenaiCompatibility,
   ]);
 
   useHeaderRefresh(refreshKeyStats, isCurrentLayer);
@@ -260,12 +278,12 @@ export function AiProvidersPage() {
               : vertexConfigs;
       const rawItems =
         provider === 'gemini'
-          ? config?.geminiApiKeys
+          ? configGeminiApiKeys
           : provider === 'codex'
-            ? config?.codexApiKeys
+            ? configCodexApiKeys
             : provider === 'claude'
-              ? config?.claudeApiKeys
-              : config?.vertexApiKeys;
+              ? configClaudeApiKeys
+              : configVertexApiKeys;
       const current = displayItems[displayIndex];
       const rawIndex = current
         ? findProviderKeyConfigIndex(rawItems || displayItems, current)
@@ -276,10 +294,10 @@ export function AiProvidersPage() {
     [
       claudeConfigs,
       codexConfigs,
-      config?.claudeApiKeys,
-      config?.codexApiKeys,
-      config?.geminiApiKeys,
-      config?.vertexApiKeys,
+      configClaudeApiKeys,
+      configCodexApiKeys,
+      configGeminiApiKeys,
+      configVertexApiKeys,
       geminiKeys,
       openEditor,
       vertexConfigs,
@@ -421,7 +439,7 @@ export function AiProvidersPage() {
     setConfigSwitchingKey(switchingKey);
 
     const previousList = openaiProviders;
-    const previousConfigList = config?.openaiCompatibility || previousList;
+    const previousConfigList = configOpenaiCompatibility || previousList;
     const configIndex = findOpenAIProviderIndex(previousConfigList, current);
     const patchIndex = configIndex >= 0 ? configIndex : index;
     const nextItem: OpenAIProviderConfig = { ...current, disabled: !enabled };
@@ -512,6 +530,70 @@ export function AiProvidersPage() {
     }
   };
 
+  // Stable callbacks so memoized Section components don't re-render on every parent render.
+  const handleCodexAdd = useCallback(() => openEditor('/ai-providers/codex/new'), [openEditor]);
+  const handleCodexEdit = useCallback(
+    (index: number) => openProviderKeyEditor('codex', index),
+    [openProviderKeyEditor]
+  );
+  const handleCodexDelete = useCallback(
+    (index: number) => void deleteProviderEntry('codex', index),
+    []
+  );
+  const handleCodexToggle = useCallback(
+    (index: number, enabled: boolean) => void setConfigEnabled('codex', index, enabled),
+    []
+  );
+
+  const handleGeminiAdd = useCallback(() => openEditor('/ai-providers/gemini/new'), [openEditor]);
+  const handleGeminiEdit = useCallback(
+    (index: number) => openProviderKeyEditor('gemini', index),
+    [openProviderKeyEditor]
+  );
+  const handleGeminiDelete = useCallback((index: number) => void deleteGemini(index), []);
+  const handleGeminiToggle = useCallback(
+    (index: number, enabled: boolean) => void setConfigEnabled('gemini', index, enabled),
+    []
+  );
+
+  const handleClaudeAdd = useCallback(() => openEditor('/ai-providers/claude/new'), [openEditor]);
+  const handleClaudeEdit = useCallback(
+    (index: number) => openProviderKeyEditor('claude', index),
+    [openProviderKeyEditor]
+  );
+  const handleClaudeDelete = useCallback(
+    (index: number) => void deleteProviderEntry('claude', index),
+    []
+  );
+  const handleClaudeToggle = useCallback(
+    (index: number, enabled: boolean) => void setConfigEnabled('claude', index, enabled),
+    []
+  );
+
+  const handleVertexAdd = useCallback(() => openEditor('/ai-providers/vertex/new'), [openEditor]);
+  const handleVertexEdit = useCallback(
+    (index: number) => openProviderKeyEditor('vertex', index),
+    [openProviderKeyEditor]
+  );
+  const handleVertexDelete = useCallback((index: number) => void deleteVertex(index), []);
+  const handleVertexToggle = useCallback(
+    (index: number, enabled: boolean) => void setConfigEnabled('vertex', index, enabled),
+    []
+  );
+
+  const handleAmpcodeEdit = useCallback(() => openEditor('/ai-providers/ampcode'), [openEditor]);
+
+  const handleOpenaiAdd = useCallback(() => openEditor('/ai-providers/openai/new'), [openEditor]);
+  const handleOpenaiEdit = useCallback(
+    (index: number) => openEditor(`/ai-providers/openai/${index}`),
+    [openEditor]
+  );
+  const handleOpenaiDelete = useCallback((index: number) => void deleteOpenai(index), []);
+  const handleOpenaiToggle = useCallback(
+    (index: number, enabled: boolean) => void setOpenAIProviderEnabled(index, enabled),
+    []
+  );
+
   return (
     <div className={styles.container}>
       <section className={styles.pageHeader}>
@@ -558,10 +640,10 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
-            onAdd={() => openEditor('/ai-providers/codex/new')}
-            onEdit={(index) => openProviderKeyEditor('codex', index)}
-            onDelete={(index) => void deleteProviderEntry('codex', index)}
-            onToggle={(index, enabled) => void setConfigEnabled('codex', index, enabled)}
+            onAdd={handleCodexAdd}
+            onEdit={handleCodexEdit}
+            onDelete={handleCodexDelete}
+            onToggle={handleCodexToggle}
           />
         </div>
 
@@ -573,10 +655,10 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
-            onAdd={() => openEditor('/ai-providers/gemini/new')}
-            onEdit={(index) => openProviderKeyEditor('gemini', index)}
-            onDelete={deleteGemini}
-            onToggle={(index, enabled) => void setConfigEnabled('gemini', index, enabled)}
+            onAdd={handleGeminiAdd}
+            onEdit={handleGeminiEdit}
+            onDelete={handleGeminiDelete}
+            onToggle={handleGeminiToggle}
           />
         </div>
 
@@ -588,10 +670,10 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
-            onAdd={() => openEditor('/ai-providers/claude/new')}
-            onEdit={(index) => openProviderKeyEditor('claude', index)}
-            onDelete={(index) => void deleteProviderEntry('claude', index)}
-            onToggle={(index, enabled) => void setConfigEnabled('claude', index, enabled)}
+            onAdd={handleClaudeAdd}
+            onEdit={handleClaudeEdit}
+            onDelete={handleClaudeDelete}
+            onToggle={handleClaudeToggle}
           />
         </div>
 
@@ -603,20 +685,20 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
-            onAdd={() => openEditor('/ai-providers/vertex/new')}
-            onEdit={(index) => openProviderKeyEditor('vertex', index)}
-            onDelete={deleteVertex}
-            onToggle={(index, enabled) => void setConfigEnabled('vertex', index, enabled)}
+            onAdd={handleVertexAdd}
+            onEdit={handleVertexEdit}
+            onDelete={handleVertexDelete}
+            onToggle={handleVertexToggle}
           />
         </div>
 
         <div id="provider-ampcode" className={styles.providerSectionAnchor}>
           <AmpcodeSection
-            config={config?.ampcode}
+            config={ampcodeConfig}
             loading={loading}
             disableControls={disableControls}
             isSwitching={isSwitching}
-            onEdit={() => openEditor('/ai-providers/ampcode')}
+            onEdit={handleAmpcodeEdit}
           />
         </div>
 
@@ -629,10 +711,10 @@ export function AiProvidersPage() {
             disableControls={disableControls}
             isSwitching={isSwitching}
             resolvedTheme={resolvedTheme}
-            onAdd={() => openEditor('/ai-providers/openai/new')}
-            onEdit={(index) => openEditor(`/ai-providers/openai/${index}`)}
-            onDelete={deleteOpenai}
-            onToggle={(index, enabled) => void setOpenAIProviderEnabled(index, enabled)}
+            onAdd={handleOpenaiAdd}
+            onEdit={handleOpenaiEdit}
+            onDelete={handleOpenaiDelete}
+            onToggle={handleOpenaiToggle}
           />
         </div>
       </div>

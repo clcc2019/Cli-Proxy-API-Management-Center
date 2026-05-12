@@ -8,6 +8,7 @@ import type { AmpcodeConfig } from './ampcode';
 
 export interface ClientApiKeyConfig {
   apiKey: string;
+  note?: string;
   allowedModels?: string[];
   excludedModels?: string[];
   quota?: ClientApiKeyQuota;

@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ApiKeysCardEditor } from '@/components/config/VisualConfigEditorBlocks';
-import { ConfigSection } from '@/components/config/ConfigSection';
-import { IconKey } from '@/components/ui/icons';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { apiKeysApi } from '@/services/api/apiKeys';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
@@ -19,6 +17,7 @@ const toVisualApiKeys = (keys: ClientApiKeyConfig[]): VisualApiKeyEntry[] =>
   keys.map((entry) => ({
     id: makeClientId(),
     apiKey: entry.apiKey,
+    note: typeof entry.note === 'string' ? entry.note : '',
     allowedModels: normalizeModelPatterns(entry.allowedModels),
     excludedModels: normalizeModelPatterns(entry.excludedModels),
     ...(hasClientApiKeyQuota(entry.quota) ? { quota: entry.quota } : {}),
@@ -30,11 +29,13 @@ const toClientApiKeys = (keys: VisualApiKeyEntry[]): ClientApiKeyConfig[] =>
       const apiKey = entry.apiKey.trim();
       if (!apiKey) return null;
 
+      const note = (entry.note ?? '').trim();
       const allowedModels = normalizeModelPatterns(entry.allowedModels);
       const excludedModels = normalizeModelPatterns(entry.excludedModels);
       const quota = serializeClientApiKeyQuota(entry.quota);
       return {
         apiKey,
+        ...(note ? { note } : {}),
         ...(allowedModels.length ? { allowedModels } : {}),
         ...(excludedModels.length ? { excludedModels } : {}),
         ...(quota ? { quota: entry.quota } : {}),
@@ -194,35 +195,27 @@ export function ApiKeysPage() {
       <div className={styles.workspaceShell}>
         <div className={styles.content}>
           {error && <div className="error-box">{error}</div>}
-          <ConfigSection
-            id="api-keys"
-            indexLabel="01"
-            icon={<IconKey size={16} />}
-            title={t('api_keys.section_title')}
-            description={t('api_keys.section_description')}
-          >
-            <div className={editorStyles.sectionStack}>
-              <div className={editorStyles.subsection}>
-                <div className={editorStyles.subsectionHeader}>
-                  <h3 className={editorStyles.subsectionTitle}>
-                    {t('api_keys.configured_count', { count: apiKeys.length })}
-                  </h3>
-                  <p className={editorStyles.subsectionDescription}>
-                    {t('api_keys.restricted_count', {
-                      count: restrictedCount,
-                      restricted: restrictedCount,
-                      quota: quotaCount,
-                    })}
-                  </p>
-                </div>
+          <div id="api-keys" className={editorStyles.sectionStack}>
+            <div className={editorStyles.subsection}>
+              <div className={editorStyles.subsectionHeader}>
+                <h3 className={editorStyles.subsectionTitle}>
+                  {t('api_keys.configured_count', { count: apiKeys.length })}
+                </h3>
+                <p className={editorStyles.subsectionDescription}>
+                  {t('api_keys.restricted_count', {
+                    count: restrictedCount,
+                    restricted: restrictedCount,
+                    quota: quotaCount,
+                  })}
+                </p>
               </div>
-              <ApiKeysCardEditor
-                value={apiKeys}
-                disabled={disableControls || loading || saving}
-                onChange={setApiKeys}
-              />
             </div>
-          </ConfigSection>
+            <ApiKeysCardEditor
+              value={apiKeys}
+              disabled={disableControls || loading || saving}
+              onChange={setApiKeys}
+            />
+          </div>
         </div>
       </div>
     </div>

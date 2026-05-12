@@ -386,20 +386,28 @@ export function ConfigPage() {
     const actionsEl = floatingActionsRef.current;
     if (!actionsEl) return;
 
-    const updatePadding = () => {
-      const height = actionsEl.getBoundingClientRect().height;
-      document.documentElement.style.setProperty('--config-action-bar-height', `${height}px`);
+    let rafId: number | null = null;
+    const scheduleUpdate = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        const height = actionsEl.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--config-action-bar-height', `${height}px`);
+      });
     };
 
-    updatePadding();
-    window.addEventListener('resize', updatePadding);
+    // 初次同步一次，后续 resize / ResizeObserver 通过 rAF 聚合避免布局抖动
+    const height = actionsEl.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--config-action-bar-height', `${height}px`);
+    window.addEventListener('resize', scheduleUpdate);
 
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updatePadding);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleUpdate);
     ro?.observe(actionsEl);
 
     return () => {
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
       ro?.disconnect();
-      window.removeEventListener('resize', updatePadding);
+      window.removeEventListener('resize', scheduleUpdate);
       document.documentElement.style.removeProperty('--config-action-bar-height');
     };
   }, [shouldRenderFloatingActions]);

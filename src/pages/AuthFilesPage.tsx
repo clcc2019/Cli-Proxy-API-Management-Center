@@ -318,20 +318,25 @@ export function AuthFilesPage() {
   useEffect(() => {
     if (!uiStateHydrated) return;
 
-    writeAuthFilesUiState({
-      filter,
-      problemOnly,
-      disabledOnly,
-      premiumOnly,
-      compactMode,
-      search,
-      page,
-      pageSize,
-      regularPageSize: pageSizeByMode.regular,
-      compactPageSize: pageSizeByMode.compact,
-      sortMode,
-    });
-    writePersistedAuthFilesCompactMode(compactMode);
+    // 搜索/翻页等连续操作会频繁改变依赖；用 debounce 聚合 300ms 内的变化，减少 localStorage 同步开销。
+    const timeoutId = window.setTimeout(() => {
+      writeAuthFilesUiState({
+        filter,
+        problemOnly,
+        disabledOnly,
+        premiumOnly,
+        compactMode,
+        search,
+        page,
+        pageSize,
+        regularPageSize: pageSizeByMode.regular,
+        compactPageSize: pageSizeByMode.compact,
+        sortMode,
+      });
+      writePersistedAuthFilesCompactMode(compactMode);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
   }, [
     compactMode,
     disabledOnly,
@@ -743,20 +748,31 @@ export function AuthFilesPage() {
       return;
     }
 
-    const updatePadding = () => {
-      const height = actionsEl.getBoundingClientRect().height;
-      document.documentElement.style.setProperty('--auth-files-action-bar-height', `${height}px`);
+    let rafId: number | null = null;
+    const scheduleUpdate = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        const height = actionsEl.getBoundingClientRect().height;
+        document.documentElement.style.setProperty(
+          '--auth-files-action-bar-height',
+          `${height}px`
+        );
+      });
     };
 
-    updatePadding();
-    window.addEventListener('resize', updatePadding);
+    // 初始同步一次避免首帧抖动；后续用 rAF 节流避免布局抖动
+    const height = actionsEl.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--auth-files-action-bar-height', `${height}px`);
+    window.addEventListener('resize', scheduleUpdate);
 
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updatePadding);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleUpdate);
     ro?.observe(actionsEl);
 
     return () => {
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
       ro?.disconnect();
-      window.removeEventListener('resize', updatePadding);
+      window.removeEventListener('resize', scheduleUpdate);
       document.documentElement.style.removeProperty('--auth-files-action-bar-height');
     };
   }, [batchActionBarVisible, selectionCount]);
@@ -1074,8 +1090,8 @@ export function AuthFilesPage() {
                     selected={selectedFiles.has(file.name)}
                     resolvedTheme={resolvedTheme}
                     disableControls={disableControls}
-                    deleting={deleting}
-                    statusUpdating={statusUpdating}
+                    deleting={deleting === file.name}
+                    statusUpdating={statusUpdating[file.name] === true}
                     quotaFilterType={quotaFilterType}
                     planBadge={planBadgeMap.get(file.name) ?? null}
                     keyStats={keyStats}

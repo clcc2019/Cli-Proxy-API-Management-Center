@@ -63,6 +63,7 @@ export interface StreamingConfig {
 export interface VisualApiKeyEntry {
   id: string;
   apiKey: string;
+  note: string;
   allowedModels: string[];
   excludedModels: string[];
   quota?: ClientApiKeyQuota;

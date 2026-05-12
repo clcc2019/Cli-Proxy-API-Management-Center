@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -23,7 +23,7 @@ interface ProviderListProps<T> {
   rowClassName?: string;
 }
 
-export function ProviderList<T>({
+function ProviderListImpl<T>({
   items,
   loading,
   keyField,
@@ -113,3 +113,5 @@ export function ProviderList<T>({
     </div>
   );
 }
+
+export const ProviderList = memo(ProviderListImpl) as typeof ProviderListImpl;

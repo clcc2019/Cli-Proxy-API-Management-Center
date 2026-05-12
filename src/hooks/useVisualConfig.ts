@@ -43,6 +43,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
       ? {
           id: makeClientId(),
           apiKey: trimmed,
+          note: '',
           allowedModels: [],
           excludedModels: [],
         }
@@ -62,6 +63,8 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
   }
   if (!apiKey) return null;
 
+  const noteRaw = record['note'] ?? record['remark'] ?? record['description'];
+  const note = typeof noteRaw === 'string' ? noteRaw.trim() : '';
   const allowedModels = normalizeApiKeyModelPatterns(
     record['allowed-models'] ?? record.allowedModels ?? record['allowed_models']
   );
@@ -73,6 +76,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
   return {
     id: makeClientId(),
     apiKey,
+    note,
     allowedModels,
     excludedModels,
     ...(quota ? { quota } : {}),
@@ -605,6 +609,7 @@ function areApiKeyEntriesEqual(left: VisualApiKeyEntry[], right: VisualApiKeyEnt
     const rightEntry = right[index];
     if (!rightEntry) return false;
     if (leftEntry.apiKey !== rightEntry.apiKey) return false;
+    if ((leftEntry.note ?? '') !== (rightEntry.note ?? '')) return false;
     if (!areStringArraysEqual(leftEntry.allowedModels, rightEntry.allowedModels)) return false;
     if (!areStringArraysEqual(leftEntry.excludedModels, rightEntry.excludedModels)) return false;
     if (

@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -34,7 +34,7 @@ interface OpenAISectionProps {
   onToggle: (index: number, enabled: boolean) => void;
 }
 
-export function OpenAISection({
+export const OpenAISection = memo(function OpenAISection({
   configs,
   keyStats,
   usageDetailsBySource,
@@ -220,4 +220,4 @@ export function OpenAISection({
       </Card>
     </>
   );
-}
+});

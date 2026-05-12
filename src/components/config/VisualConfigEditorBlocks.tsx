@@ -3,9 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
-import { useNotificationStore } from '@/stores';
+import {
+  IconCopy,
+  IconFileText,
+  IconKey,
+  IconSettings,
+  IconTrash2,
+} from '@/components/ui/icons';
+import { useAuthStore, useNotificationStore } from '@/stores';
 import styles from './VisualConfigEditor.module.scss';
+import apiKeyCardStyles from './ApiKeysCardEditor.module.scss';
 import { copyToClipboard } from '@/utils/clipboard';
+import { normalizeApiBase } from '@/utils/connection';
 import type {
   PayloadFilterRule,
   PayloadModelEntry,
@@ -208,6 +217,20 @@ function buildProtocolOptions(
   return options;
 }
 
+const buildOpenAiBaseUrl = (apiBase: string): string => {
+  const normalized = normalizeApiBase(apiBase);
+  if (!normalized) return '';
+  return `${normalized.replace(/\/+$/, '')}/v1`;
+};
+
+const formatFullCopyText = (apiUrl: string, apiKey: string): string => {
+  const trimmedKey = apiKey.trim();
+  if (!apiUrl) {
+    return `apikey: ${trimmedKey}`;
+  }
+  return `endpoint地址：${apiUrl}\napikey: ${trimmedKey}`;
+};
+
 export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   value,
   disabled,
@@ -219,14 +242,19 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
 }) {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
+  const apiBase = useAuthStore((state) => state.apiBase);
   const apiKeys = useMemo(() => value ?? [], [value]);
+  const apiUrl = useMemo(() => buildOpenAiBaseUrl(apiBase || ''), [apiBase]);
 
   const apiKeyInputId = useId();
   const apiKeyHintId = `${apiKeyInputId}-hint`;
   const apiKeyErrorId = `${apiKeyInputId}-error`;
+  const noteInputId = `${apiKeyInputId}-note`;
+  const noteHintId = `${noteInputId}-hint`;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingApiKeyId, setEditingApiKeyId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
+  const [noteValue, setNoteValue] = useState('');
   const [allowedModelsValue, setAllowedModelsValue] = useState('');
   const [excludedModelsValue, setExcludedModelsValue] = useState('');
   const [quotaValues, setQuotaValues] = useState<QuotaInputValues>(() => emptyQuotaInputValues());
@@ -242,6 +270,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const openAddModal = () => {
     setEditingApiKeyId(null);
     setInputValue('');
+    setNoteValue('');
     setAllowedModelsValue('');
     setExcludedModelsValue('');
     setQuotaValues(emptyQuotaInputValues());
@@ -253,6 +282,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     const entry = apiKeys.find((item) => item.id === apiKeyId);
     setEditingApiKeyId(apiKeyId);
     setInputValue(entry?.apiKey ?? '');
+    setNoteValue(entry?.note ?? '');
     setAllowedModelsValue(excludedModelsToText(entry?.allowedModels));
     setExcludedModelsValue(excludedModelsToText(entry?.excludedModels));
     setQuotaValues(quotaToInputValues(entry?.quota));
@@ -263,6 +293,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const closeModal = () => {
     setModalOpen(false);
     setInputValue('');
+    setNoteValue('');
     setAllowedModelsValue('');
     setExcludedModelsValue('');
     setQuotaValues(emptyQuotaInputValues());
@@ -294,6 +325,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     const nextEntry: VisualApiKeyEntry = {
       id: editingApiKeyId ?? makeClientId(),
       apiKey: trimmed,
+      note: noteValue.trim(),
       allowedModels,
       excludedModels,
       ...(parsedQuota.quota ? { quota: parsedQuota.quota } : {}),
@@ -306,10 +338,21 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     closeModal();
   };
 
-  const handleCopy = async (apiKey: string) => {
+  const handleCopyKey = async (apiKey: string) => {
     const copied = await copyToClipboard(apiKey);
     showNotification(
       t(copied ? 'notification.link_copied' : 'notification.copy_failed'),
+      copied ? 'success' : 'error'
+    );
+  };
+
+  const handleCopyFull = async (apiKey: string) => {
+    const text = formatFullCopyText(apiUrl, apiKey);
+    const copied = await copyToClipboard(text);
+    showNotification(
+      copied
+        ? t('config_management.visual.api_keys.copy_full_success')
+        : t('notification.copy_failed'),
       copied ? 'success' : 'error'
     );
   };
@@ -321,73 +364,122 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
 
   return (
     <div className="form-group" style={{ marginBottom: 0 }}>
-      <div className={styles.blockHeaderRow}>
-        <label style={{ margin: 0 }}>{t('config_management.visual.api_keys.label')}</label>
+      <div className={apiKeyCardStyles.headerRow}>
+        <div className={apiKeyCardStyles.headerCopy}>
+          <label>{t('config_management.visual.api_keys.label')}</label>
+          <p className={apiKeyCardStyles.headerHint}>
+            {t('config_management.visual.api_keys.hint')}
+          </p>
+        </div>
         <Button size="sm" onClick={openAddModal} disabled={disabled}>
           {t('config_management.visual.api_keys.add')}
         </Button>
       </div>
 
       {apiKeys.length === 0 ? (
-        <div className={styles.emptyState}>{t('config_management.visual.api_keys.empty')}</div>
+        <div className={apiKeyCardStyles.emptyState}>
+          {t('config_management.visual.api_keys.empty')}
+        </div>
       ) : (
-        <div className="item-list" style={{ marginTop: 4 }}>
-          {apiKeys.map((entry, index) => (
-            <div key={entry.id} className="item-row">
-              <div className="item-meta">
-                <div className="pill">#{index + 1}</div>
-                <div className="item-title">
-                  {t('config_management.visual.api_keys.input_label')}
+        <div className={apiKeyCardStyles.cardList}>
+          {apiKeys.map((entry, index) => {
+            const note = (entry.note ?? '').trim();
+            const hasRules = entry.allowedModels.length > 0 || entry.excludedModels.length > 0;
+            const hasQuota = hasClientApiKeyQuota(entry.quota);
+
+            return (
+              <div key={entry.id} className={apiKeyCardStyles.card}>
+                <div className={apiKeyCardStyles.cardHeader}>
+                  <span className={apiKeyCardStyles.avatar}>
+                    <IconKey size={20} />
+                  </span>
+                  <span className={apiKeyCardStyles.indexBadge}>#{index + 1}</span>
+                  {note && (
+                    <span className={apiKeyCardStyles.noteBadge} title={note}>
+                      {note}
+                    </span>
+                  )}
                 </div>
-                <div className="item-subtitle">{maskApiKey(String(entry.apiKey || ''))}</div>
-                {(entry.allowedModels.length > 0 || entry.excludedModels.length > 0) && (
-                  <div className="item-subtitle">
-                    {t('config_management.visual.api_keys.rules_summary', {
-                      allowed: entry.allowedModels.length,
-                      excluded: entry.excludedModels.length,
-                    })}
+
+                <div className={apiKeyCardStyles.keyRow}>
+                  <span className={apiKeyCardStyles.keyValue} title={entry.apiKey}>
+                    {maskApiKey(String(entry.apiKey || ''))}
+                  </span>
+                </div>
+
+                {(hasRules || hasQuota) && (
+                  <div className={apiKeyCardStyles.summaryRow}>
+                    {hasRules && (
+                      <span className={apiKeyCardStyles.summaryChip}>
+                        {t('config_management.visual.api_keys.rules_summary', {
+                          allowed: entry.allowedModels.length,
+                          excluded: entry.excludedModels.length,
+                        })}
+                      </span>
+                    )}
+                    {hasQuota && (
+                      <span
+                        className={`${apiKeyCardStyles.summaryChip} ${apiKeyCardStyles.summaryChipQuota}`}
+                      >
+                        {t('config_management.visual.api_keys.quota_summary', {
+                          count: clientApiKeyQuotaLimitCount(entry.quota),
+                        })}
+                      </span>
+                    )}
                   </div>
                 )}
-                {hasClientApiKeyQuota(entry.quota) && (
-                  <div className="item-subtitle">
-                    {t('config_management.visual.api_keys.quota_summary', {
-                      count: clientApiKeyQuotaLimitCount(entry.quota),
-                    })}
-                  </div>
-                )}
+
+                <div className={apiKeyCardStyles.actions}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleCopyFull(entry.apiKey)}
+                    disabled={disabled}
+                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.copyFullButton}`}
+                    title={t('config_management.visual.api_keys.copy_full_hint')}
+                    aria-label={t('config_management.visual.api_keys.copy_full')}
+                  >
+                    <IconFileText size={18} />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleCopyKey(entry.apiKey)}
+                    disabled={disabled}
+                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.copyKeyButton}`}
+                    title={t('config_management.visual.api_keys.copy_key_only')}
+                    aria-label={t('config_management.visual.api_keys.copy_key_only')}
+                  >
+                    <IconCopy size={18} />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => openEditModal(entry.id)}
+                    disabled={disabled}
+                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.editButton}`}
+                    title={t('config_management.visual.common.edit')}
+                    aria-label={t('config_management.visual.common.edit')}
+                  >
+                    <IconSettings size={18} />
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleDelete(entry.id)}
+                    disabled={disabled}
+                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.deleteButton}`}
+                    title={t('config_management.visual.common.delete')}
+                    aria-label={t('config_management.visual.common.delete')}
+                  >
+                    <IconTrash2 size={18} />
+                  </Button>
+                </div>
               </div>
-              <div className="item-actions">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleCopy(entry.apiKey)}
-                  disabled={disabled}
-                >
-                  {t('common.copy')}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => openEditModal(entry.id)}
-                  disabled={disabled}
-                >
-                  {t('config_management.visual.common.edit')}
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDelete(entry.id)}
-                  disabled={disabled}
-                >
-                  {t('config_management.visual.common.delete')}
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-
-      <div className="hint">{t('config_management.visual.api_keys.hint')}</div>
 
       <Modal
         open={modalOpen}
@@ -443,6 +535,24 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
               {formError}
             </div>
           )}
+        </div>
+        <div className="form-group">
+          <label htmlFor={noteInputId}>
+            {t('config_management.visual.api_keys.note_label')}
+          </label>
+          <input
+            id={noteInputId}
+            className="input"
+            placeholder={t('config_management.visual.api_keys.note_placeholder')}
+            value={noteValue}
+            onChange={(e) => setNoteValue(e.target.value)}
+            disabled={disabled}
+            aria-describedby={noteHintId}
+            maxLength={120}
+          />
+          <div id={noteHintId} className="hint">
+            {t('config_management.visual.api_keys.note_hint')}
+          </div>
         </div>
         <div className="form-group">
           <label>{t('config_management.visual.api_keys.allowed_models_label')}</label>

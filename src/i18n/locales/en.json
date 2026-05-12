@@ -1452,6 +1452,10 @@
         "input_label": "API Key",
         "input_placeholder": "Paste your API key",
         "input_hint": "Saving writes to the server api-keys configuration. Model rules and spend quotas are saved with the key.",
+        "note_label": "Note",
+        "note_placeholder": "e.g. Production / Alice",
+        "note_hint": "Free-form label that helps you distinguish keys in multi-key setups.",
+        "note_display_label": "Note",
         "allowed_models_label": "Allowed Models",
         "allowed_models_placeholder": "One pattern per line, e.g. gpt-5*\nclaude-sonnet-*",
         "allowed_models_hint": "Leave empty to allow all models that are not explicitly excluded.",
@@ -1468,7 +1472,11 @@
         "quota_error_invalid": "Quota limits must be non-negative numbers",
         "rules_summary": "Allowed {{allowed}} | Excluded {{excluded}}",
         "error_empty": "Please enter an API key",
-        "error_invalid": "API key contains invalid characters"
+        "error_invalid": "API key contains invalid characters",
+        "copy_key_only": "Copy key only",
+        "copy_full": "Copy config",
+        "copy_full_hint": "Copy the API URL and key in a format ready for OpenAI-compatible clients.",
+        "copy_full_success": "API URL and key copied"
       },
       "payload_rules": {
         "rule": "Rule",
