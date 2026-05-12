@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { modelsToEntries } from '@/components/ui/modelInputListUtils';
-import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
-import { SecondaryScreenShell } from '@/components/common/SecondaryScreenShell';
+import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import iconVertex from '@/assets/icons/vertex.svg';
 import { providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type { ProviderKeyConfig } from '@/types';
@@ -22,7 +21,6 @@ import {
 import { buildHeaderObject, headersToEntries, normalizeHeaderEntries } from '@/utils/headers';
 import { areKeyValueEntriesEqual, areModelEntriesEqual, areStringArraysEqual } from '@/utils/compare';
 import type { VertexFormState } from '@/components/providers';
-import layoutStyles from './AiProvidersEditLayout.module.scss';
 
 type LocationState = { fromAiProviders?: boolean } | null;
 
@@ -119,18 +117,6 @@ export function AiProvidersVertexEditPage() {
     }
     navigate('/ai-providers', { replace: true });
   }, [location.state, navigate]);
-
-  const swipeRef = useEdgeSwipeBack({ onBack: handleBack });
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBack();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBack]);
 
   useEffect(() => {
     let cancelled = false;
@@ -314,128 +300,110 @@ export function AiProvidersVertexEditPage() {
   ]);
 
   return (
-    <SecondaryScreenShell
-      ref={swipeRef}
-      contentClassName={layoutStyles.content}
+    <ProviderEditShell
       title={title}
+      leadingIcon={<img src={iconVertex} alt="" />}
       onBack={handleBack}
-      backLabel={t('common.back')}
-      backAriaLabel={t('common.back')}
-      hideTopBarBackButton
-      hideTopBarRightAction
       floatingAction={
-        <div className={layoutStyles.floatingActions}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleBack}
-            className={layoutStyles.floatingBackButton}
-          >
+        <>
+          <Button variant="secondary" size="sm" onClick={handleBack}>
             {t('common.back')}
           </Button>
-          <Button
-            size="sm"
-            onClick={handleSave}
-            loading={saving}
-            disabled={!canSave}
-            className={layoutStyles.floatingSaveButton}
-          >
+          <Button size="sm" onClick={handleSave} loading={saving} disabled={!canSave}>
             {t('common.save')}
           </Button>
-        </div>
+        </>
       }
       isLoading={loading}
       loadingLabel={t('common.loading')}
     >
-      <Card>
-        {error && <div className="error-box">{error}</div>}
-        {invalidIndexParam || invalidIndex ? (
-          <div className="hint">{t('common.invalid_provider_index')}</div>
-        ) : (
-          <>
-            <Input
-              label={t('ai_providers.vertex_add_modal_key_label')}
-              placeholder={t('ai_providers.vertex_add_modal_key_placeholder')}
-              value={form.apiKey}
-              onChange={(e) => setForm((prev) => ({ ...prev, apiKey: e.target.value }))}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.priority_label')}
-              hint={t('ai_providers.priority_hint')}
-              type="number"
-              step={1}
-              value={form.priority ?? ''}
-              onChange={(e) => {
-                const raw = e.target.value;
-                const parsed = raw.trim() === '' ? undefined : Number(raw);
-                setForm((prev) => ({
-                  ...prev,
-                  priority: parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
-                }));
-              }}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.prefix_label')}
-              placeholder={t('ai_providers.prefix_placeholder')}
-              value={form.prefix ?? ''}
-              onChange={(e) => setForm((prev) => ({ ...prev, prefix: e.target.value }))}
-              hint={t('ai_providers.prefix_hint')}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.vertex_add_modal_url_label')}
-              placeholder={t('ai_providers.vertex_add_modal_url_placeholder')}
-              value={form.baseUrl ?? ''}
-              onChange={(e) => setForm((prev) => ({ ...prev, baseUrl: e.target.value }))}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.vertex_add_modal_proxy_label')}
-              placeholder={t('ai_providers.vertex_add_modal_proxy_placeholder')}
-              value={form.proxyUrl ?? ''}
-              onChange={(e) => setForm((prev) => ({ ...prev, proxyUrl: e.target.value }))}
-              disabled={disableControls || saving}
-            />
-            <HeaderInputList
-              entries={form.headers}
-              onChange={(entries) => setForm((prev) => ({ ...prev, headers: entries }))}
-              addLabel={t('common.custom_headers_add')}
-              keyPlaceholder={t('common.custom_headers_key_placeholder')}
-              valuePlaceholder={t('common.custom_headers_value_placeholder')}
+      {error && <div className="error-box">{error}</div>}
+      {invalidIndexParam || invalidIndex ? (
+        <div className="hint">{t('common.invalid_provider_index')}</div>
+      ) : (
+        <>
+          <Input
+            label={t('ai_providers.vertex_add_modal_key_label')}
+            placeholder={t('ai_providers.vertex_add_modal_key_placeholder')}
+            value={form.apiKey}
+            onChange={(e) => setForm((prev) => ({ ...prev, apiKey: e.target.value }))}
+            disabled={disableControls || saving}
+          />
+          <Input
+            label={t('ai_providers.priority_label')}
+            hint={t('ai_providers.priority_hint')}
+            type="number"
+            step={1}
+            value={form.priority ?? ''}
+            onChange={(e) => {
+              const raw = e.target.value;
+              const parsed = raw.trim() === '' ? undefined : Number(raw);
+              setForm((prev) => ({
+                ...prev,
+                priority: parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
+              }));
+            }}
+            disabled={disableControls || saving}
+          />
+          <Input
+            label={t('ai_providers.prefix_label')}
+            placeholder={t('ai_providers.prefix_placeholder')}
+            value={form.prefix ?? ''}
+            onChange={(e) => setForm((prev) => ({ ...prev, prefix: e.target.value }))}
+            hint={t('ai_providers.prefix_hint')}
+            disabled={disableControls || saving}
+          />
+          <Input
+            label={t('ai_providers.vertex_add_modal_url_label')}
+            placeholder={t('ai_providers.vertex_add_modal_url_placeholder')}
+            value={form.baseUrl ?? ''}
+            onChange={(e) => setForm((prev) => ({ ...prev, baseUrl: e.target.value }))}
+            disabled={disableControls || saving}
+          />
+          <Input
+            label={t('ai_providers.vertex_add_modal_proxy_label')}
+            placeholder={t('ai_providers.vertex_add_modal_proxy_placeholder')}
+            value={form.proxyUrl ?? ''}
+            onChange={(e) => setForm((prev) => ({ ...prev, proxyUrl: e.target.value }))}
+            disabled={disableControls || saving}
+          />
+          <HeaderInputList
+            entries={form.headers}
+            onChange={(entries) => setForm((prev) => ({ ...prev, headers: entries }))}
+            addLabel={t('common.custom_headers_add')}
+            keyPlaceholder={t('common.custom_headers_key_placeholder')}
+            valuePlaceholder={t('common.custom_headers_value_placeholder')}
+            removeButtonTitle={t('common.delete')}
+            removeButtonAriaLabel={t('common.delete')}
+            disabled={disableControls || saving}
+          />
+          <div className="form-group">
+            <label>{t('ai_providers.vertex_models_label')}</label>
+            <ModelInputList
+              entries={form.modelEntries}
+              onChange={(entries) => setForm((prev) => ({ ...prev, modelEntries: entries }))}
+              addLabel={t('ai_providers.vertex_models_add_btn')}
+              namePlaceholder={t('common.model_name_placeholder')}
+              aliasPlaceholder={t('common.model_alias_placeholder')}
               removeButtonTitle={t('common.delete')}
               removeButtonAriaLabel={t('common.delete')}
               disabled={disableControls || saving}
             />
-            <div className="form-group">
-              <label>{t('ai_providers.vertex_models_label')}</label>
-              <ModelInputList
-                entries={form.modelEntries}
-                onChange={(entries) => setForm((prev) => ({ ...prev, modelEntries: entries }))}
-                addLabel={t('ai_providers.vertex_models_add_btn')}
-                namePlaceholder={t('common.model_name_placeholder')}
-                aliasPlaceholder={t('common.model_alias_placeholder')}
-                removeButtonTitle={t('common.delete')}
-                removeButtonAriaLabel={t('common.delete')}
-                disabled={disableControls || saving}
-              />
-            </div>
-            <div className="form-group">
-              <label>{t('ai_providers.excluded_models_label')}</label>
-              <textarea
-                className="input"
-                placeholder={t('ai_providers.excluded_models_placeholder')}
-                value={form.excludedText}
-                onChange={(e) => setForm((prev) => ({ ...prev, excludedText: e.target.value }))}
-                rows={4}
-                disabled={disableControls || saving}
-              />
-              <div className="hint">{t('ai_providers.excluded_models_hint')}</div>
-            </div>
-          </>
-        )}
-      </Card>
-    </SecondaryScreenShell>
+          </div>
+          <div className="form-group">
+            <label>{t('ai_providers.excluded_models_label')}</label>
+            <textarea
+              className="input"
+              placeholder={t('ai_providers.excluded_models_placeholder')}
+              value={form.excludedText}
+              onChange={(e) => setForm((prev) => ({ ...prev, excludedText: e.target.value }))}
+              rows={4}
+              disabled={disableControls || saving}
+            />
+            <div className="hint">{t('ai_providers.excluded_models_hint')}</div>
+          </div>
+        </>
+      )}
+    </ProviderEditShell>
   );
 }

@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
-import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
-import { SecondaryScreenShell } from '@/components/common/SecondaryScreenShell';
+import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import iconAmp from '@/assets/icons/amp.svg';
 import { ampcodeApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type { AmpcodeConfig } from '@/types';
@@ -119,18 +118,6 @@ export function AiProvidersAmpcodeEditPage() {
     }
     navigate('/ai-providers', { replace: true });
   }, [location.state, navigate]);
-
-  const swipeRef = useEdgeSwipeBack({ onBack: handleBack });
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBack();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBack]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -343,205 +330,187 @@ export function AiProvidersAmpcodeEditPage() {
   const canSave = !disableControls && !saving && !loading;
 
   return (
-    <SecondaryScreenShell
-      ref={swipeRef}
-      contentClassName={layoutStyles.content}
+    <ProviderEditShell
       title={title}
+      leadingIcon={<img src={iconAmp} alt="" />}
       onBack={handleBack}
-      backLabel={t('common.back')}
-      backAriaLabel={t('common.back')}
-      hideTopBarBackButton
-      hideTopBarRightAction
       floatingAction={
-        <div className={layoutStyles.floatingActions}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleBack}
-            className={layoutStyles.floatingBackButton}
-          >
+        <>
+          <Button variant="secondary" size="sm" onClick={handleBack}>
             {t('common.back')}
           </Button>
-          <Button
-            size="sm"
-            onClick={() => void saveAmpcode()}
-            loading={saving}
-            disabled={!canSave}
-            className={layoutStyles.floatingSaveButton}
-          >
+          <Button size="sm" onClick={() => void saveAmpcode()} loading={saving} disabled={!canSave}>
             {t('common.save')}
           </Button>
-        </div>
+        </>
       }
       isLoading={loading}
       loadingLabel={t('common.loading')}
     >
-      <Card>
-        {error && <div className="error-box">{error}</div>}
-        <Input
-          label={t('ai_providers.ampcode_upstream_url_label')}
-          placeholder={t('ai_providers.ampcode_upstream_url_placeholder')}
-          value={form.upstreamUrl}
-          onChange={(e) => setForm((prev) => ({ ...prev, upstreamUrl: e.target.value }))}
-          disabled={loading || saving || disableControls}
-          hint={t('ai_providers.ampcode_upstream_url_hint')}
-        />
-        <Input
-          label={t('ai_providers.ampcode_upstream_api_key_label')}
-          placeholder={t('ai_providers.ampcode_upstream_api_key_placeholder')}
-          type="password"
-          value={form.upstreamApiKey}
-          onChange={(e) => setForm((prev) => ({ ...prev, upstreamApiKey: e.target.value }))}
-          disabled={loading || saving || disableControls}
-          hint={t('ai_providers.ampcode_upstream_api_key_hint')}
-        />
-        <div className={layoutStyles.upstreamApiKeyRow}>
-          <div className={layoutStyles.upstreamApiKeyHint}>
-            {t('ai_providers.ampcode_upstream_api_key_current', {
-              key: config?.ampcode?.upstreamApiKey
-                ? maskApiKey(config.ampcode.upstreamApiKey)
-                : t('common.not_set'),
-            })}
-          </div>
+      {error && <div className="error-box">{error}</div>}
+      <Input
+        label={t('ai_providers.ampcode_upstream_url_label')}
+        placeholder={t('ai_providers.ampcode_upstream_url_placeholder')}
+        value={form.upstreamUrl}
+        onChange={(e) => setForm((prev) => ({ ...prev, upstreamUrl: e.target.value }))}
+        disabled={loading || saving || disableControls}
+        hint={t('ai_providers.ampcode_upstream_url_hint')}
+      />
+      <Input
+        label={t('ai_providers.ampcode_upstream_api_key_label')}
+        placeholder={t('ai_providers.ampcode_upstream_api_key_placeholder')}
+        type="password"
+        value={form.upstreamApiKey}
+        onChange={(e) => setForm((prev) => ({ ...prev, upstreamApiKey: e.target.value }))}
+        disabled={loading || saving || disableControls}
+        hint={t('ai_providers.ampcode_upstream_api_key_hint')}
+      />
+      <div className={layoutStyles.upstreamApiKeyRow}>
+        <div className={layoutStyles.upstreamApiKeyHint}>
+          {t('ai_providers.ampcode_upstream_api_key_current', {
+            key: config?.ampcode?.upstreamApiKey
+              ? maskApiKey(config.ampcode.upstreamApiKey)
+              : t('common.not_set'),
+          })}
+        </div>
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={() => void clearAmpcodeUpstreamApiKey()}
+          disabled={loading || saving || disableControls || !config?.ampcode?.upstreamApiKey}
+        >
+          {t('ai_providers.ampcode_clear_upstream_api_key')}
+        </Button>
+      </div>
+
+      <div className={layoutStyles.ampcodeSectionCard}>
+        <div className={layoutStyles.ampcodeSectionIntro}>
+          <label>{t('ai_providers.ampcode_upstream_api_keys_label')}</label>
+          <div className="hint">{t('ai_providers.ampcode_upstream_api_keys_hint')}</div>
+        </div>
+        <div className={layoutStyles.ampcodeUpstreamMappingsHeader}>
           <Button
-            variant="danger"
+            variant="secondary"
             size="sm"
-            onClick={() => void clearAmpcodeUpstreamApiKey()}
-            disabled={loading || saving || disableControls || !config?.ampcode?.upstreamApiKey}
+            onClick={() => {
+              setUpstreamApiKeysDirty(true);
+              setForm((prev) => ({
+                ...prev,
+                upstreamApiKeyEntries: [
+                  ...prev.upstreamApiKeyEntries,
+                  { upstreamApiKey: '', clientApiKeysText: '' },
+                ],
+              }));
+            }}
+            disabled={loading || saving || disableControls}
           >
-            {t('ai_providers.ampcode_clear_upstream_api_key')}
+            {t('ai_providers.ampcode_upstream_api_keys_add_btn')}
           </Button>
         </div>
-
-        <div className={layoutStyles.ampcodeSectionCard}>
-          <div className={layoutStyles.ampcodeSectionIntro}>
-            <label>{t('ai_providers.ampcode_upstream_api_keys_label')}</label>
-            <div className="hint">{t('ai_providers.ampcode_upstream_api_keys_hint')}</div>
-          </div>
-          <div className={layoutStyles.ampcodeUpstreamMappingsHeader}>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setUpstreamApiKeysDirty(true);
-                setForm((prev) => ({
-                  ...prev,
-                  upstreamApiKeyEntries: [
-                    ...prev.upstreamApiKeyEntries,
-                    { upstreamApiKey: '', clientApiKeysText: '' },
-                  ],
-                }));
-              }}
-              disabled={loading || saving || disableControls}
-            >
-              {t('ai_providers.ampcode_upstream_api_keys_add_btn')}
-            </Button>
-          </div>
-          <div className={layoutStyles.ampcodeUpstreamMappingsList}>
-            {(form.upstreamApiKeyEntries.length
-              ? form.upstreamApiKeyEntries
-              : [{ upstreamApiKey: '', clientApiKeysText: '' }]
-            ).map((entry, index, entries) => (
-              <div key={index} className={layoutStyles.ampcodeUpstreamMappingCard}>
-                <div className={layoutStyles.ampcodeUpstreamMappingCardTop}>
-                  <span className={layoutStyles.ampcodeUpstreamMappingTitle}>
-                    #{index + 1}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={layoutStyles.ampcodeMappingRemoveButton}
-                    onClick={() => {
-                      setUpstreamApiKeysDirty(true);
-                      setForm((prev) => {
-                        const nextEntries = prev.upstreamApiKeyEntries.filter((_, entryIndex) => entryIndex !== index);
-                        return {
-                          ...prev,
-                          upstreamApiKeyEntries: nextEntries.length
-                            ? nextEntries
-                            : [{ upstreamApiKey: '', clientApiKeysText: '' }],
-                        };
-                      });
-                    }}
-                    disabled={loading || saving || disableControls || entries.length <= 1}
-                  >
-                    {t('common.delete')}
-                  </Button>
-                </div>
-                <input
-                  className={`input ${layoutStyles.ampcodeCompactInput}`}
-                  placeholder={t('ai_providers.ampcode_upstream_api_keys_upstream_placeholder')}
-                  aria-label={t('ai_providers.ampcode_upstream_api_keys_upstream_placeholder')}
-                  value={entry.upstreamApiKey}
-                  onChange={(e) => {
-                    const value = e.target.value;
+        <div className={layoutStyles.ampcodeUpstreamMappingsList}>
+          {(form.upstreamApiKeyEntries.length
+            ? form.upstreamApiKeyEntries
+            : [{ upstreamApiKey: '', clientApiKeysText: '' }]
+          ).map((entry, index, entries) => (
+            <div key={index} className={layoutStyles.ampcodeUpstreamMappingCard}>
+              <div className={layoutStyles.ampcodeUpstreamMappingCardTop}>
+                <span className={layoutStyles.ampcodeUpstreamMappingTitle}>
+                  #{index + 1}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={layoutStyles.ampcodeMappingRemoveButton}
+                  onClick={() => {
                     setUpstreamApiKeysDirty(true);
-                    setForm((prev) => ({
-                      ...prev,
-                      upstreamApiKeyEntries: prev.upstreamApiKeyEntries.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, upstreamApiKey: value } : item
-                      ),
-                    }));
+                    setForm((prev) => {
+                      const nextEntries = prev.upstreamApiKeyEntries.filter((_, entryIndex) => entryIndex !== index);
+                      return {
+                        ...prev,
+                        upstreamApiKeyEntries: nextEntries.length
+                          ? nextEntries
+                          : [{ upstreamApiKey: '', clientApiKeysText: '' }],
+                      };
+                    });
                   }}
-                  disabled={loading || saving || disableControls}
-                />
-                <textarea
-                  className={`input ${layoutStyles.ampcodeCompactTextarea}`}
-                  placeholder={t('ai_providers.ampcode_upstream_api_keys_clients_placeholder')}
-                  aria-label={t('ai_providers.ampcode_upstream_api_keys_clients_placeholder')}
-                  value={entry.clientApiKeysText}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setUpstreamApiKeysDirty(true);
-                    setForm((prev) => ({
-                      ...prev,
-                      upstreamApiKeyEntries: prev.upstreamApiKeyEntries.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, clientApiKeysText: value } : item
-                      ),
-                    }));
-                  }}
-                  rows={3}
-                  disabled={loading || saving || disableControls}
-                />
+                  disabled={loading || saving || disableControls || entries.length <= 1}
+                >
+                  {t('common.delete')}
+                </Button>
               </div>
-            ))}
-          </div>
+              <input
+                className={`input ${layoutStyles.ampcodeCompactInput}`}
+                placeholder={t('ai_providers.ampcode_upstream_api_keys_upstream_placeholder')}
+                aria-label={t('ai_providers.ampcode_upstream_api_keys_upstream_placeholder')}
+                value={entry.upstreamApiKey}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setUpstreamApiKeysDirty(true);
+                  setForm((prev) => ({
+                    ...prev,
+                    upstreamApiKeyEntries: prev.upstreamApiKeyEntries.map((item, itemIndex) =>
+                      itemIndex === index ? { ...item, upstreamApiKey: value } : item
+                    ),
+                  }));
+                }}
+                disabled={loading || saving || disableControls}
+              />
+              <textarea
+                className={`input ${layoutStyles.ampcodeCompactTextarea}`}
+                placeholder={t('ai_providers.ampcode_upstream_api_keys_clients_placeholder')}
+                aria-label={t('ai_providers.ampcode_upstream_api_keys_clients_placeholder')}
+                value={entry.clientApiKeysText}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setUpstreamApiKeysDirty(true);
+                  setForm((prev) => ({
+                    ...prev,
+                    upstreamApiKeyEntries: prev.upstreamApiKeyEntries.map((item, itemIndex) =>
+                      itemIndex === index ? { ...item, clientApiKeysText: value } : item
+                    ),
+                  }));
+                }}
+                rows={3}
+                disabled={loading || saving || disableControls}
+              />
+            </div>
+          ))}
         </div>
+      </div>
 
-        <div className="form-group">
-          <ToggleSwitch
-            label={t('ai_providers.ampcode_force_model_mappings_label')}
-            checked={form.forceModelMappings}
-            onChange={(value) => setForm((prev) => ({ ...prev, forceModelMappings: value }))}
-            disabled={loading || saving || disableControls}
-          />
-          <div className="hint">{t('ai_providers.ampcode_force_model_mappings_hint')}</div>
-        </div>
+      <div className="form-group">
+        <ToggleSwitch
+          label={t('ai_providers.ampcode_force_model_mappings_label')}
+          checked={form.forceModelMappings}
+          onChange={(value) => setForm((prev) => ({ ...prev, forceModelMappings: value }))}
+          disabled={loading || saving || disableControls}
+        />
+        <div className="hint">{t('ai_providers.ampcode_force_model_mappings_hint')}</div>
+      </div>
 
-        <div className={layoutStyles.ampcodeSectionCard}>
-          <div className={layoutStyles.ampcodeSectionIntro}>
-            <label>{t('ai_providers.ampcode_model_mappings_label')}</label>
-            <div className="hint">{t('ai_providers.ampcode_model_mappings_hint')}</div>
-          </div>
-          <ModelInputList
-            entries={form.mappingEntries}
-            onChange={(entries) => {
-              setModelMappingsDirty(true);
-              setForm((prev) => ({ ...prev, mappingEntries: entries }));
-            }}
-            addLabel={t('ai_providers.ampcode_model_mappings_add_btn')}
-            namePlaceholder={t('ai_providers.ampcode_model_mappings_from_placeholder')}
-            aliasPlaceholder={t('ai_providers.ampcode_model_mappings_to_placeholder')}
-            className={layoutStyles.ampcodeModelMappingsList}
-            rowClassName={layoutStyles.ampcodeModelMappingRow}
-            inputClassName={layoutStyles.ampcodeCompactInput}
-            removeButtonClassName={layoutStyles.ampcodeMappingRemoveButton}
-            removeButtonTitle={t('common.delete')}
-            removeButtonAriaLabel={t('common.delete')}
-            disabled={loading || saving || disableControls}
-          />
+      <div className={layoutStyles.ampcodeSectionCard}>
+        <div className={layoutStyles.ampcodeSectionIntro}>
+          <label>{t('ai_providers.ampcode_model_mappings_label')}</label>
+          <div className="hint">{t('ai_providers.ampcode_model_mappings_hint')}</div>
         </div>
-      </Card>
-    </SecondaryScreenShell>
+        <ModelInputList
+          entries={form.mappingEntries}
+          onChange={(entries) => {
+            setModelMappingsDirty(true);
+            setForm((prev) => ({ ...prev, mappingEntries: entries }));
+          }}
+          addLabel={t('ai_providers.ampcode_model_mappings_add_btn')}
+          namePlaceholder={t('ai_providers.ampcode_model_mappings_from_placeholder')}
+          aliasPlaceholder={t('ai_providers.ampcode_model_mappings_to_placeholder')}
+          className={layoutStyles.ampcodeModelMappingsList}
+          rowClassName={layoutStyles.ampcodeModelMappingRow}
+          inputClassName={layoutStyles.ampcodeCompactInput}
+          removeButtonClassName={layoutStyles.ampcodeMappingRemoveButton}
+          removeButtonTitle={t('common.delete')}
+          removeButtonAriaLabel={t('common.delete')}
+          disabled={loading || saving || disableControls}
+        />
+      </div>
+    </ProviderEditShell>
   );
 }

@@ -19,10 +19,14 @@ export type AuthFileType =
   | 'unknown';
 
 export interface AuthFileItem {
+  id?: string;
   name: string;
   type?: AuthFileType | string;
   provider?: string;
   size?: number;
+  path?: string;
+  file_name?: string;
+  fileName?: string;
   authIndex?: string | number | null;
   runtimeOnly?: boolean | string;
   disabled?: boolean;

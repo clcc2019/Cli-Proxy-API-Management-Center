@@ -19,8 +19,48 @@ const normalizeDeleteAuthIndex = (value: unknown): string | number | null => {
   return null;
 };
 
+const normalizeDeleteText = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+  return value.trim() || null;
+};
+
+const basenameFromPath = (value: string): string => {
+  const normalized = value.trim();
+  if (!normalized) return '';
+  const parts = normalized.split(/[\\/]+/).filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : normalized;
+};
+
+const getAuthFileDeleteIdentifiers = (file: AuthFileItem): string[] => {
+  const path = normalizeDeleteText(file.path);
+  const candidates = [
+    file.name,
+    file.id,
+    file['file_name'],
+    file.fileName,
+    file['auth_index'],
+    file.authIndex,
+    path,
+    path ? basenameFromPath(path) : null,
+  ];
+  const seen = new Set<string>();
+  return candidates.reduce<string[]>((result, value) => {
+    const normalized = String(value ?? '').trim();
+    if (!normalized || seen.has(normalized)) return result;
+    seen.add(normalized);
+    result.push(normalized);
+    return result;
+  }, []);
+};
+
+const authFileMatchesDeletedIdentifiers = (file: AuthFileItem, deletedSet: Set<string>): boolean =>
+  getAuthFileDeleteIdentifiers(file).some((identifier) => deletedSet.has(identifier));
+
 const getAuthFileDeleteTarget = (file: AuthFileItem) => ({
   name: file.name,
+  id: normalizeDeleteText(file.id),
+  path: normalizeDeleteText(file.path),
+  fileName: normalizeDeleteText(file['file_name'] ?? file.fileName),
   authIndex: normalizeDeleteAuthIndex(file['auth_index'] ?? file.authIndex),
 });
 
@@ -130,26 +170,36 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     setSelectedFiles(new Set());
   }, []);
 
-  const applyDeletedFiles = useCallback((names: string[]) => {
-    const deletedNames = Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
-    if (deletedNames.length === 0) return;
+  const applyDeletedFiles = useCallback(
+    (names: string[]) => {
+      const deletedNames = Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
+      if (deletedNames.length === 0) return;
 
-    const deletedSet = new Set(deletedNames);
-    setFiles((prev) => prev.filter((file) => !deletedSet.has(file.name)));
-    setSelectedFiles((prev) => {
-      if (prev.size === 0) return prev;
-      let changed = false;
-      const next = new Set<string>();
-      prev.forEach((name) => {
-        if (deletedSet.has(name)) {
-          changed = true;
-        } else {
-          next.add(name);
-        }
+      const deletedSet = new Set(deletedNames);
+      const removedSelectionNames = new Set(
+        files
+          .filter((file) => authFileMatchesDeletedIdentifiers(file, deletedSet))
+          .map((file) => file.name)
+      );
+      setFiles((prev) =>
+        prev.filter((file) => !authFileMatchesDeletedIdentifiers(file, deletedSet))
+      );
+      setSelectedFiles((prev) => {
+        if (prev.size === 0) return prev;
+        let changed = false;
+        const next = new Set<string>();
+        prev.forEach((name) => {
+          if (deletedSet.has(name) || removedSelectionNames.has(name)) {
+            changed = true;
+          } else {
+            next.add(name);
+          }
+        });
+        return changed ? next : prev;
       });
-      return changed ? next : prev;
-    });
-  }, []);
+    },
+    [files]
+  );
 
   const applyLocalFilePatch = useCallback((name: string, patch: Partial<AuthFileItem>) => {
     const trimmedName = name.trim();

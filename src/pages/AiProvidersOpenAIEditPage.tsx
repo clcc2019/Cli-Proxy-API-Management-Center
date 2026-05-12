@@ -7,16 +7,16 @@ import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import { Input } from '@/components/ui/Input';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { Select } from '@/components/ui/Select';
-import { SecondaryScreenShell } from '@/components/common/SecondaryScreenShell';
-import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
-import { useNotificationStore } from '@/stores';
+import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import iconOpenaiLight from '@/assets/icons/openai-light.svg';
+import iconOpenaiDark from '@/assets/icons/openai-dark.svg';
+import { useNotificationStore, useThemeStore } from '@/stores';
 import { apiCallApi, getApiCallErrorMessage } from '@/services/api';
 import type { ApiKeyEntry } from '@/types';
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
 import { buildApiKeyEntry, buildOpenAIChatCompletionsEndpoint } from '@/components/providers/utils';
 import type { OpenAIEditOutletContext } from './AiProvidersOpenAIEditLayout';
 import styles from './AiProvidersPage.module.scss';
-import layoutStyles from './AiProvidersEditLayout.module.scss';
 
 const OPENAI_TEST_TIMEOUT_MS = 30_000;
 type ConnectivityTestStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -141,23 +141,13 @@ export function AiProvidersOpenAIEditPage() {
     ? t('ai_providers.openai_edit_modal_title')
     : t('ai_providers.openai_add_modal_title');
 
-  const swipeRef = useEdgeSwipeBack({ onBack: handleBack });
   const [isTestingKeys, setIsTestingKeys] = useState(false);
   const [testStatus, setTestStatus] = useState<ConnectivityTestStatus>('idle');
   const [testMessage, setTestMessage] = useState('');
   const [keyTestStatuses, setKeyTestStatuses] = useState<KeyTestStatus[]>(() =>
     buildIdleKeyTestStatuses(form.apiKeyEntries.length)
   );
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBack();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBack]);
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
 
   const canSave = !disableControls && !loading && !saving && !invalidIndexParam && !invalidIndex && !isTestingKeys;
   const hasConfiguredModels = form.modelEntries.some((entry) => entry.name.trim());
@@ -530,35 +520,21 @@ export function AiProvidersOpenAIEditPage() {
   };
 
   return (
-    <SecondaryScreenShell
-      ref={swipeRef}
-      contentClassName={layoutStyles.content}
+    <ProviderEditShell
       title={title}
+      leadingIcon={
+        <img src={resolvedTheme === 'dark' ? iconOpenaiDark : iconOpenaiLight} alt="" />
+      }
       onBack={handleBack}
-      backLabel={t('common.back')}
-      backAriaLabel={t('common.back')}
-      hideTopBarBackButton
-      hideTopBarRightAction
       floatingAction={
-        <div className={layoutStyles.floatingActions}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleBack}
-            className={layoutStyles.floatingBackButton}
-          >
+        <>
+          <Button variant="secondary" size="sm" onClick={handleBack}>
             {t('common.back')}
           </Button>
-          <Button
-            size="sm"
-            onClick={() => void handleSave()}
-            loading={saving}
-            disabled={!canSave}
-            className={layoutStyles.floatingSaveButton}
-          >
+          <Button size="sm" onClick={() => void handleSave()} loading={saving} disabled={!canSave}>
             {t('common.save')}
           </Button>
-        </div>
+        </>
       }
       isLoading={loading}
       loadingLabel={t('common.loading')}
@@ -728,6 +704,6 @@ export function AiProvidersOpenAIEditPage() {
           </div>
         )}
       </Card>
-    </SecondaryScreenShell>
+    </ProviderEditShell>
   );
 }

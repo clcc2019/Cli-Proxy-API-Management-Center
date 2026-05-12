@@ -8,15 +8,14 @@ import { Select } from '@/components/ui/Select';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
-import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
-import { SecondaryScreenShell } from '@/components/common/SecondaryScreenShell';
+import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import iconClaude from '@/assets/icons/claude.svg';
 import { apiCallApi, getApiCallErrorMessage } from '@/services/api';
 import { useNotificationStore } from '@/stores';
 import { buildHeaderObject } from '@/utils/headers';
 import { buildClaudeMessagesEndpoint, parseTextList } from '@/components/providers/utils';
 import type { ClaudeEditOutletContext } from './AiProvidersClaudeEditLayout';
 import styles from './AiProvidersPage.module.scss';
-import layoutStyles from './AiProvidersEditLayout.module.scss';
 
 const CLAUDE_TEST_TIMEOUT_MS = 30_000;
 const DEFAULT_ANTHROPIC_VERSION = '2023-06-01';
@@ -66,21 +65,10 @@ export function AiProvidersClaudeEditPage() {
     ? t('ai_providers.claude_edit_modal_title')
     : t('ai_providers.claude_add_modal_title');
 
-  const swipeRef = useEdgeSwipeBack({ onBack: handleBack });
   const [isTesting, setIsTesting] = useState(false);
   const [testStatus, setTestStatus] = useState<ConnectivityTestStatus>('idle');
   const [testMessage, setTestMessage] = useState('');
   const lastCloakConfigRef = useRef<typeof form.cloak>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBack();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBack]);
 
   useEffect(() => {
     if (!form.cloak) return;
@@ -267,35 +255,19 @@ export function AiProvidersClaudeEditPage() {
   ]);
 
   return (
-    <SecondaryScreenShell
-      ref={swipeRef}
-      contentClassName={layoutStyles.content}
+    <ProviderEditShell
       title={title}
+      leadingIcon={<img src={iconClaude} alt="" />}
       onBack={handleBack}
-      backLabel={t('common.back')}
-      backAriaLabel={t('common.back')}
-      hideTopBarBackButton
-      hideTopBarRightAction
       floatingAction={
-        <div className={layoutStyles.floatingActions}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleBack}
-            className={layoutStyles.floatingBackButton}
-          >
+        <>
+          <Button variant="secondary" size="sm" onClick={handleBack}>
             {t('common.back')}
           </Button>
-          <Button
-            size="sm"
-            onClick={() => void handleSave()}
-            loading={saving}
-            disabled={!canSave}
-            className={layoutStyles.floatingSaveButton}
-          >
+          <Button size="sm" onClick={() => void handleSave()} loading={saving} disabled={!canSave}>
             {t('common.save')}
           </Button>
-        </div>
+        </>
       }
       isLoading={loading}
       loadingLabel={t('common.loading')}
@@ -625,6 +597,6 @@ export function AiProvidersClaudeEditPage() {
           </div>
         )}
       </Card>
-    </SecondaryScreenShell>
+    </ProviderEditShell>
   );
 }

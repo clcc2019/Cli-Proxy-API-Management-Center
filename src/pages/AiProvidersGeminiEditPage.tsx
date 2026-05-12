@@ -8,9 +8,9 @@ import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { Modal } from '@/components/ui/Modal';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
-import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
-import { SecondaryScreenShell } from '@/components/common/SecondaryScreenShell';
+import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import iconGemini from '@/assets/icons/gemini.svg';
 import { modelsApi, providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type { GeminiKeyConfig } from '@/types';
@@ -25,7 +25,6 @@ import {
   parseExcludedModels,
 } from '@/components/providers/utils';
 import type { GeminiFormState } from '@/components/providers';
-import layoutStyles from './AiProvidersEditLayout.module.scss';
 import styles from './AiProvidersPage.module.scss';
 
 type LocationState = { fromAiProviders?: boolean } | null;
@@ -144,18 +143,6 @@ export function AiProvidersGeminiEditPage() {
     }
     navigate('/ai-providers', { replace: true });
   }, [location.state, navigate]);
-
-  const swipeRef = useEdgeSwipeBack({ onBack: handleBack });
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBack();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBack]);
 
   useEffect(() => {
     let cancelled = false;
@@ -517,35 +504,19 @@ export function AiProvidersGeminiEditPage() {
     !disableControls && !saving && !modelDiscoveryFetching && modelDiscoverySelected.size > 0;
 
   return (
-    <SecondaryScreenShell
-      ref={swipeRef}
-      contentClassName={layoutStyles.content}
+    <ProviderEditShell
       title={title}
+      leadingIcon={<img src={iconGemini} alt="" />}
       onBack={handleBack}
-      backLabel={t('common.back')}
-      backAriaLabel={t('common.back')}
-      hideTopBarBackButton
-      hideTopBarRightAction
       floatingAction={
-        <div className={layoutStyles.floatingActions}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleBack}
-            className={layoutStyles.floatingBackButton}
-          >
+        <>
+          <Button variant="secondary" size="sm" onClick={handleBack}>
             {t('common.back')}
           </Button>
-          <Button
-            size="sm"
-            onClick={handleSave}
-            loading={saving}
-            disabled={!canSave}
-            className={layoutStyles.floatingSaveButton}
-          >
+          <Button size="sm" onClick={handleSave} loading={saving} disabled={!canSave}>
             {t('common.save')}
           </Button>
-        </div>
+        </>
       }
       isLoading={loading}
       loadingLabel={t('common.loading')}
@@ -818,6 +789,6 @@ export function AiProvidersGeminiEditPage() {
           </>
         )}
       </Card>
-    </SecondaryScreenShell>
+    </ProviderEditShell>
   );
 }

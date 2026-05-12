@@ -5,15 +5,16 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
-import { SecondaryScreenShell } from '@/components/common/SecondaryScreenShell';
-import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
+import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import iconOpenaiLight from '@/assets/icons/openai-light.svg';
+import iconOpenaiDark from '@/assets/icons/openai-dark.svg';
+import { useThemeStore } from '@/stores';
 import { modelsApi } from '@/services/api';
 import type { ModelInfo } from '@/utils/models';
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
 import { buildOpenAIModelsEndpoint } from '@/components/providers/utils';
 import type { OpenAIEditOutletContext } from './AiProvidersOpenAIEditLayout';
 import styles from './AiProvidersPage.module.scss';
-import layoutStyles from './AiProvidersEditLayout.module.scss';
 
 const getErrorMessage = (err: unknown) => {
   if (err instanceof Error) return err.message;
@@ -127,17 +128,8 @@ export function AiProvidersOpenAIModelsPage() {
     navigate(-1);
   }, [navigate]);
 
-  const swipeRef = useEdgeSwipeBack({ onBack: handleBack });
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBack();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBack]);
 
   const toggleSelection = (name: string) => {
     setSelected((prev) => {
@@ -174,34 +166,21 @@ export function AiProvidersOpenAIModelsPage() {
   const canApply = !disableControls && !saving && !fetching && selected.size > 0;
 
   return (
-    <SecondaryScreenShell
-      ref={swipeRef}
-      contentClassName={layoutStyles.content}
+    <ProviderEditShell
       title={t('ai_providers.openai_models_fetch_title')}
+      leadingIcon={
+        <img src={resolvedTheme === 'dark' ? iconOpenaiDark : iconOpenaiLight} alt="" />
+      }
       onBack={handleBack}
-      backLabel={t('common.back')}
-      backAriaLabel={t('common.back')}
-      hideTopBarBackButton
-      hideTopBarRightAction
       floatingAction={
-        <div className={layoutStyles.floatingActions}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleBack}
-            className={layoutStyles.floatingBackButton}
-          >
+        <>
+          <Button variant="secondary" size="sm" onClick={handleBack}>
             {t('common.back')}
           </Button>
-          <Button
-            size="sm"
-            onClick={handleApply}
-            disabled={!canApply}
-            className={layoutStyles.floatingSaveButton}
-          >
+          <Button size="sm" onClick={handleApply} disabled={!canApply}>
             {t('ai_providers.openai_models_fetch_apply')}
           </Button>
-        </div>
+        </>
       }
       isLoading={initialLoading}
       loadingLabel={t('common.loading')}
@@ -312,6 +291,6 @@ export function AiProvidersOpenAIModelsPage() {
           )}
         </div>
       </Card>
-    </SecondaryScreenShell>
+    </ProviderEditShell>
   );
 }

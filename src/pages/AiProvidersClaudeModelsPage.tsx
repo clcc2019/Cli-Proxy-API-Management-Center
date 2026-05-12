@@ -5,14 +5,13 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
-import { SecondaryScreenShell } from '@/components/common/SecondaryScreenShell';
-import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
+import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import iconClaude from '@/assets/icons/claude.svg';
 import { modelsApi } from '@/services/api';
 import type { ModelInfo } from '@/utils/models';
 import { buildHeaderObject } from '@/utils/headers';
 import type { ClaudeEditOutletContext } from './AiProvidersClaudeEditLayout';
 import styles from './AiProvidersPage.module.scss';
-import layoutStyles from './AiProvidersEditLayout.module.scss';
 
 const getErrorMessage = (err: unknown) => {
   if (err instanceof Error) return err.message;
@@ -146,17 +145,6 @@ export function AiProvidersClaudeModelsPage() {
     navigate(-1);
   }, [navigate]);
 
-  const swipeRef = useEdgeSwipeBack({ onBack: handleBack });
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBack();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBack]);
 
   const toggleSelection = (name: string) => {
     setSelected((prev) => {
@@ -193,34 +181,19 @@ export function AiProvidersClaudeModelsPage() {
   const canApply = !disableControls && !saving && !fetching && selected.size > 0;
 
   return (
-    <SecondaryScreenShell
-      ref={swipeRef}
-      contentClassName={layoutStyles.content}
+    <ProviderEditShell
       title={t('ai_providers.claude_models_fetch_title')}
+      leadingIcon={<img src={iconClaude} alt="" />}
       onBack={handleBack}
-      backLabel={t('common.back')}
-      backAriaLabel={t('common.back')}
-      hideTopBarBackButton
-      hideTopBarRightAction
       floatingAction={
-        <div className={layoutStyles.floatingActions}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleBack}
-            className={layoutStyles.floatingBackButton}
-          >
+        <>
+          <Button variant="secondary" size="sm" onClick={handleBack}>
             {t('common.back')}
           </Button>
-          <Button
-            size="sm"
-            onClick={handleApply}
-            disabled={!canApply}
-            className={layoutStyles.floatingSaveButton}
-          >
+          <Button size="sm" onClick={handleApply} disabled={!canApply}>
             {t('ai_providers.claude_models_fetch_apply')}
           </Button>
-        </div>
+        </>
       }
       isLoading={initialLoading}
       loadingLabel={t('common.loading')}
@@ -331,6 +304,6 @@ export function AiProvidersClaudeModelsPage() {
           )}
         </div>
       </Card>
-    </SecondaryScreenShell>
+    </ProviderEditShell>
   );
 }

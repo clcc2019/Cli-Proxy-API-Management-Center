@@ -36,6 +36,9 @@ type AuthFileBatchDeleteResult = {
 };
 export type AuthFileDeleteTarget = {
   name: string;
+  id?: string | null;
+  path?: string | null;
+  fileName?: string | null;
   authIndex?: string | number | null;
 };
 export type PatchAuthFileFieldsPayload = {
@@ -78,6 +81,30 @@ const normalizeRequestedAuthFileNames = (names: string[]): string[] => {
   return normalized;
 };
 
+const normalizeDeleteIdentifier = (value: unknown): string => String(value ?? '').trim();
+
+const basenameFromPath = (value: string): string => {
+  const normalized = value.trim();
+  if (!normalized) return '';
+  const parts = normalized.split(/[\\/]+/).filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : normalized;
+};
+
+const deleteTargetAliases = (target: AuthFileDeleteTarget): string[] => {
+  const candidates = [
+    target.authIndex,
+    target.id,
+    target.path,
+    target.fileName,
+    target.name,
+  ];
+  const pathBase = basenameFromPath(normalizeDeleteIdentifier(target.path));
+  if (pathBase) {
+    candidates.push(pathBase);
+  }
+  return normalizeRequestedAuthFileNames(candidates.map(normalizeDeleteIdentifier));
+};
+
 const normalizeAuthFileDeleteTargets = (targets: Array<string | AuthFileDeleteTarget>) => {
   const seenIdentifiers = new Set<string>();
   const identifiers: string[] = [];
@@ -87,15 +114,15 @@ const normalizeAuthFileDeleteTargets = (targets: Array<string | AuthFileDeleteTa
   targets.forEach((target) => {
     const name =
       typeof target === 'string' ? String(target ?? '').trim() : String(target.name ?? '').trim();
-    const authIndex = typeof target === 'string' ? '' : String(target.authIndex ?? '').trim();
-    const identifier = authIndex || name;
+    const aliases = typeof target === 'string' ? [name] : deleteTargetAliases(target);
+    const identifier = aliases[0] || name;
     if (!identifier || seenIdentifiers.has(identifier)) return;
 
     seenIdentifiers.add(identifier);
     identifiers.push(identifier);
     if (name) {
       displayNames.push(name);
-      displayNameByIdentifier.set(identifier, name);
+      aliases.forEach((alias) => displayNameByIdentifier.set(alias, name));
     }
   });
 

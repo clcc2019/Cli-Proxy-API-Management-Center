@@ -1,0 +1,150 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.modal {
+  border-color: color-mix(in srgb, var(--border-color) 52%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-primary) 97%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 32%, var(--bg-primary))
+  );
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.16);
+
+  :global(.modal-header) {
+    padding-right: 56px;
+    border-bottom-color: color-mix(in srgb, var(--border-color) 46%, transparent);
+    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+  }
+
+  :global(.modal-body) {
+    padding: $spacing-lg;
+    max-height: min(72vh, calc(100vh - 176px));
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-primary) 96%, transparent),
+      color-mix(in srgb, var(--bg-secondary) 20%, var(--bg-primary))
+    );
+  }
+
+  :global(.modal-footer) {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    border-top-color: color-mix(in srgb, var(--border-color) 42%, transparent);
+    background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  @supports (height: 100dvh) {
+    :global(.modal-body) {
+      max-height: min(72dvh, calc(100dvh - 176px));
+    }
+  }
+
+  @include mobile {
+    width: 100%;
+    border-radius: $radius-md;
+
+    :global(.modal-body) {
+      padding: $spacing-md;
+      max-height: calc(100vh - 148px);
+    }
+
+    @supports (height: 100dvh) {
+      :global(.modal-body) {
+        max-height: calc(100dvh - 148px);
+      }
+    }
+
+    :global(.modal-footer) {
+      padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+    }
+  }
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.titleAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 6%, var(--surface-raised-strong));
+  box-shadow:
+    0 16px 28px -18px color-mix(in srgb, var(--primary-color) 72%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+
+  img,
+  svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  @include mobile {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+
+    img,
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.titleText {
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @include mobile {
+    font-size: 16px;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-width: 0;
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-xl 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  @include mobile {
+    gap: 8px;
+  }
+}
