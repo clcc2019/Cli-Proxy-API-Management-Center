@@ -934,6 +934,23 @@
     -webkit-line-clamp: 1;
   }
 
+  .priorityStepper {
+    height: 26px;
+    border-radius: 7px;
+  }
+
+  .priorityStepButton {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+
+  .priorityInput {
+    width: 36px;
+    height: 24px;
+    font-size: 10px;
+  }
+
   .quotaSection {
     display: none;
   }
@@ -1435,6 +1452,23 @@
   }
 
   .metaValue {
+    font-size: 12px;
+  }
+
+  .priorityStepper {
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .priorityStepButton {
+    width: 34px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .priorityInput {
+    width: 48px;
+    height: 32px;
     font-size: 12px;
   }
 }

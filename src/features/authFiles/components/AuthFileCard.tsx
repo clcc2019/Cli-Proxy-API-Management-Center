@@ -213,7 +213,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   };
 
   const stepPriority = (delta: number) => {
-    const nextPriority = currentPriority + delta;
+    const draftPriority = parsePriorityValue(priorityDraft);
+    const nextPriority = (draftPriority ?? currentPriority) + delta;
     setPriorityDraft(String(nextPriority));
     onPriorityChange(file, nextPriority);
   };
@@ -365,6 +366,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   <button
                     type="button"
                     className={styles.priorityStepButton}
+                    onMouseDown={(event) => event.preventDefault()}
                     onClick={() => stepPriority(-1)}
                     disabled={disableControls || priorityUpdating}
                     title={t('auth_files.priority_decrement')}
@@ -387,6 +389,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   <button
                     type="button"
                     className={styles.priorityStepButton}
+                    onMouseDown={(event) => event.preventDefault()}
                     onClick={() => stepPriority(1)}
                     disabled={disableControls || priorityUpdating}
                     title={t('auth_files.priority_increment')}
