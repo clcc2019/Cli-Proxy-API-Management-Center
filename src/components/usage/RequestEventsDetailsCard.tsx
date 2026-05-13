@@ -41,6 +41,7 @@ type RequestEventRow = {
   apiKey: string;
   apiKeyMasked: string;
   failed: boolean;
+  errorMessage: string;
   modelReasoningEffort: string;
   latencyMs: number | null;
   inputTokens: number;
@@ -187,6 +188,10 @@ export function RequestEventsDetailsCard({
       );
       const latencyMs = extractLatencyMs(detail);
       const totalCost = calculateCost(detail, modelPrices);
+      const errorMessage =
+        detail.failed === true && typeof detail.error_message === 'string'
+          ? detail.error_message.trim()
+          : '';
 
       return {
         id: `${timestamp}-${model}-${sourceRaw || source}-${authIndex}-${index}`,
@@ -201,6 +206,7 @@ export function RequestEventsDetailsCard({
         apiKey,
         apiKeyMasked: apiKey ? maskApiKey(apiKey) : '-',
         failed: detail.failed === true,
+        errorMessage,
         modelReasoningEffort,
         latencyMs,
         inputTokens,
@@ -303,6 +309,7 @@ export function RequestEventsDetailsCard({
       'auth_index',
       'api_key',
       'result',
+      'error_message',
       'model_reasoning_effort',
       ...(hasLatencyData ? ['latency_ms'] : []),
       'input_tokens',
@@ -322,6 +329,7 @@ export function RequestEventsDetailsCard({
         row.authIndex,
         row.apiKey,
         row.failed ? 'failed' : 'success',
+        row.errorMessage,
         row.modelReasoningEffort,
         ...(hasLatencyData ? [row.latencyMs ?? ''] : []),
         row.inputTokens,
@@ -354,6 +362,7 @@ export function RequestEventsDetailsCard({
       auth_index: row.authIndex,
       api_key: row.apiKey,
       failed: row.failed,
+      error_message: row.errorMessage,
       model_reasoning_effort: row.modelReasoningEffort === '-' ? '' : row.modelReasoningEffort,
       ...(hasLatencyData && row.latencyMs !== null ? { latency_ms: row.latencyMs } : {}),
       tokens: {
@@ -512,6 +521,11 @@ export function RequestEventsDetailsCard({
                           row.failed
                             ? styles.requestEventsResultFailed
                             : styles.requestEventsResultSuccess
+                        }
+                        title={
+                          row.failed
+                            ? row.errorMessage || t('usage_stats.request_events_error_empty')
+                            : undefined
                         }
                       >
                         {row.failed ? t('stats.failure') : t('stats.success')}

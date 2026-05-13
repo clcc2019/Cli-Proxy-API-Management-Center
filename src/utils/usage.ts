@@ -75,6 +75,7 @@ export interface UsageDetail {
   source: string;
   auth_index: number;
   model_reasoning_effort?: string;
+  error_message?: string;
   latency_ms?: number;
   tokens: {
     input_tokens: number;
@@ -1003,6 +1004,17 @@ const getModelPricesFingerprint = (modelPrices: Record<string, ModelPrice>): str
   return fingerprint;
 };
 
+const normalizeUsageErrorMessage = (value: unknown): string | undefined => {
+  const raw =
+    typeof value === 'string'
+      ? value
+      : isRecord(value) && typeof value.message === 'string'
+        ? value.message
+        : '';
+  const normalized = raw.trim().replace(/\s+/g, ' ');
+  return normalized || undefined;
+};
+
 /**
  * 从使用数据中收集所有请求明细
  */
@@ -1066,6 +1078,9 @@ export function collectUsageDetails(usageData: unknown): UsageDetail[] {
             typeof detailRaw.model_reasoning_effort === 'string'
               ? detailRaw.model_reasoning_effort
               : undefined,
+          error_message: normalizeUsageErrorMessage(
+            detailRaw.error_message ?? detailRaw.errorMessage ?? detailRaw.error
+          ),
           latency_ms: latencyMs ?? undefined,
           tokens: tokensRaw as unknown as UsageDetail['tokens'],
           failed: detailRaw.failed === true,
@@ -1150,6 +1165,9 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
             typeof detailRaw.model_reasoning_effort === 'string'
               ? detailRaw.model_reasoning_effort
               : undefined,
+          error_message: normalizeUsageErrorMessage(
+            detailRaw.error_message ?? detailRaw.errorMessage ?? detailRaw.error
+          ),
           latency_ms: latencyMs ?? undefined,
           tokens: tokensRaw as unknown as UsageDetail['tokens'],
           failed: detailRaw.failed === true,

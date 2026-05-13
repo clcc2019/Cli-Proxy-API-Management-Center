@@ -1702,6 +1702,7 @@
   color: var(--failure-badge-text);
   background: var(--failure-badge-bg);
   border: 1px solid var(--failure-badge-border);
+  cursor: help;
 }
 
 .requestEventsResultSuccess,

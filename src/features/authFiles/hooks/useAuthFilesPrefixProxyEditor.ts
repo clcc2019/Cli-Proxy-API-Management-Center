@@ -19,6 +19,11 @@ type AuthFileHeadersErrorKey =
   | 'auth_files.headers_invalid_object'
   | 'auth_files.headers_invalid_value';
 
+const PROXY_URL_KEYS = ['proxy_url', 'proxy-url', 'proxyUrl'] as const;
+const EXCLUDED_MODELS_KEYS = ['excluded_models', 'excluded-models', 'excludedModels'] as const;
+const DISABLE_COOLING_KEYS = ['disable_cooling', 'disable-cooling', 'disableCooling'] as const;
+const USER_AGENT_KEYS = ['user_agent', 'user-agent', 'userAgent'] as const;
+
 export type PrefixProxyEditorField =
   | 'prefix'
   | 'proxyUrl'
@@ -77,6 +82,62 @@ export type UseAuthFilesPrefixProxyEditorResult = {
 
 const isRecordObject = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+const hasOwnField = (value: Record<string, unknown>, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(value, key);
+
+const hasAnyOwnField = (value: Record<string, unknown>, keys: readonly string[]): boolean =>
+  keys.some((key) => hasOwnField(value, key));
+
+const hasNonCanonicalOwnField = (
+  value: Record<string, unknown>,
+  keys: readonly string[],
+  canonicalKey: string
+): boolean => keys.some((key) => key !== canonicalKey && hasOwnField(value, key));
+
+const deleteFields = (value: Record<string, unknown>, keys: readonly string[]): void => {
+  keys.forEach((key) => {
+    delete value[key];
+  });
+};
+
+const readFirstDefinedField = (
+  value: Record<string, unknown>,
+  keys: readonly string[]
+): unknown => {
+  for (const key of keys) {
+    if (hasOwnField(value, key)) {
+      return value[key];
+    }
+  }
+  return undefined;
+};
+
+const readStringField = (
+  value: Record<string, unknown>,
+  keys: readonly string[],
+  trim = false
+): string => {
+  const raw = readFirstDefinedField(value, keys);
+  if (raw === undefined || raw === null) return '';
+  const text = typeof raw === 'string' ? raw : String(raw);
+  return trim ? text.trim() : text;
+};
+
+const readProxyUrlFromJson = (value: Record<string, unknown>): string =>
+  readStringField(value, PROXY_URL_KEYS);
+
+const readExcludedModelsFromJson = (value: Record<string, unknown>): string[] => {
+  const raw = readFirstDefinedField(value, EXCLUDED_MODELS_KEYS);
+  if (typeof raw === 'string') return parseExcludedModelsText(raw);
+  return normalizeExcludedModels(raw);
+};
+
+const readDisableCoolingFromJson = (value: Record<string, unknown>): boolean | undefined =>
+  parseDisableCoolingValue(readFirstDefinedField(value, DISABLE_COOLING_KEYS));
+
+const readUserAgentFromJson = (value: Record<string, unknown>): string =>
+  readStringField(value, USER_AGENT_KEYS, true);
 
 const normalizeAuthFileKind = (value: unknown) =>
   String(value ?? '')
@@ -210,8 +271,12 @@ const buildPrefixProxyUpdatedText = (
   if ('prefix' in next || editor.prefix.trim()) {
     next.prefix = editor.prefix;
   }
-  if ('proxy_url' in next || editor.proxyUrl.trim()) {
-    next.proxy_url = editor.proxyUrl;
+  if (hasAnyOwnField(next, PROXY_URL_KEYS) || editor.proxyUrl.trim()) {
+    const proxyUrl = editor.proxyUrl.trim();
+    deleteFields(next, PROXY_URL_KEYS);
+    if (proxyUrl) {
+      next.proxy_url = proxyUrl;
+    }
   }
 
   const parsedPriority = parsePriorityValue(editor.priority);
@@ -222,26 +287,27 @@ const buildPrefixProxyUpdatedText = (
   }
 
   const excludedModels = parseExcludedModelsText(editor.excludedModelsText);
+  deleteFields(next, EXCLUDED_MODELS_KEYS.filter((key) => key !== 'excluded_models'));
   if (excludedModels.length > 0) {
     next.excluded_models = excludedModels;
-  } else if ('excluded_models' in next) {
+  } else if (hasAnyOwnField(next, EXCLUDED_MODELS_KEYS)) {
     delete next.excluded_models;
   }
 
   const parsedDisableCooling = parseDisableCoolingValue(editor.disableCooling);
+  deleteFields(next, DISABLE_COOLING_KEYS.filter((key) => key !== 'disable_cooling'));
   if (parsedDisableCooling !== undefined) {
     next.disable_cooling = parsedDisableCooling;
-  } else if ('disable_cooling' in next) {
+  } else if (hasAnyOwnField(next, DISABLE_COOLING_KEYS)) {
     delete next.disable_cooling;
   }
 
   const trimmedUserAgent = editor.userAgent.trim();
   if (trimmedUserAgent) {
     next.user_agent = trimmedUserAgent;
-    delete next['user-agent'];
+    deleteFields(next, USER_AGENT_KEYS.filter((key) => key !== 'user_agent'));
   } else {
-    delete next.user_agent;
-    delete next['user-agent'];
+    deleteFields(next, USER_AGENT_KEYS);
   }
 
   if (editor.noteTouched) {
@@ -304,6 +370,7 @@ const buildLoadedPrefixProxyEditorState = (
   }
 
   const json = { ...(parsed as Record<string, unknown>) };
+  const fileRecord = file as Record<string, unknown>;
   if (base.isCodexFile) {
     const normalizedWebsockets = readCodexAuthFileWebsockets(json);
     delete json.websocket;
@@ -311,7 +378,10 @@ const buildLoadedPrefixProxyEditorState = (
   }
 
   const originalText = JSON.stringify(json);
-  const derivedPriority = parsePriorityValue(json.priority);
+  const derivedPriority = parsePriorityValue(json.priority ?? fileRecord.priority);
+  const derivedProxyUrl = readProxyUrlFromJson(json) || readProxyUrlFromJson(fileRecord);
+  const derivedDisableCooling =
+    readDisableCoolingFromJson(json) ?? readDisableCoolingFromJson(fileRecord);
   const derivedHeaders = json.headers !== undefined ? JSON.stringify(json.headers, null, 2) : '';
   const derivedHeadersError = derivedHeaders
     ? (() => {
@@ -321,21 +391,12 @@ const buildLoadedPrefixProxyEditorState = (
     : null;
   const derivedState = {
     prefix: typeof json.prefix === 'string' ? json.prefix : '',
-    proxyUrl: typeof json.proxy_url === 'string' ? json.proxy_url : '',
+    proxyUrl: derivedProxyUrl,
     priority: derivedPriority !== undefined ? String(derivedPriority) : '',
-    excludedModelsText: normalizeExcludedModels(json.excluded_models).join('\n'),
+    excludedModelsText: readExcludedModelsFromJson(json).join('\n'),
     disableCooling:
-      parseDisableCoolingValue(json.disable_cooling) === undefined
-        ? ''
-        : parseDisableCoolingValue(json.disable_cooling)
-          ? 'true'
-          : 'false',
-    userAgent:
-      typeof json.user_agent === 'string'
-        ? json.user_agent.trim()
-        : typeof json['user-agent'] === 'string'
-          ? json['user-agent'].trim()
-          : '',
+      derivedDisableCooling === undefined ? '' : derivedDisableCooling ? 'true' : 'false',
+    userAgent: readUserAgentFromJson(json),
     websockets: readCodexAuthFileWebsockets(json),
     note: typeof json.note === 'string' ? json.note : '',
     noteTouched: false,
@@ -384,36 +445,44 @@ const buildPrefixProxyPatchPayload = (
   const source = editor.json ?? {};
   const sourcePriority = parsePriorityValue(source.priority);
   const nextPriority = parsePriorityValue(editor.priority);
+  const sourceProxyUrl = readProxyUrlFromJson(source);
 
   if (editor.prefix !== (typeof source.prefix === 'string' ? source.prefix : '')) {
     payload.prefix = editor.prefix;
   }
-  if (editor.proxyUrl !== (typeof source.proxy_url === 'string' ? source.proxy_url : '')) {
+  if (
+    editor.proxyUrl !== sourceProxyUrl ||
+    hasNonCanonicalOwnField(source, PROXY_URL_KEYS, 'proxy_url')
+  ) {
     payload.proxy_url = editor.proxyUrl;
   }
   if (nextPriority !== sourcePriority) {
     payload.priority = nextPriority ?? null;
   }
 
-  const sourceExcludedModels = normalizeExcludedModels(source.excluded_models);
+  const sourceExcludedModels = readExcludedModelsFromJson(source);
   const nextExcludedModels = parseExcludedModelsText(editor.excludedModelsText);
-  if (!areStringArraysEqual(sourceExcludedModels, nextExcludedModels)) {
+  if (
+    !areStringArraysEqual(sourceExcludedModels, nextExcludedModels) ||
+    hasNonCanonicalOwnField(source, EXCLUDED_MODELS_KEYS, 'excluded_models')
+  ) {
     payload.excluded_models = nextExcludedModels;
   }
 
-  const sourceDisableCooling = parseDisableCoolingValue(source.disable_cooling);
+  const sourceDisableCooling = readDisableCoolingFromJson(source);
   const nextDisableCooling = parseDisableCoolingValue(editor.disableCooling);
-  if (sourceDisableCooling !== nextDisableCooling) {
+  if (
+    sourceDisableCooling !== nextDisableCooling ||
+    hasNonCanonicalOwnField(source, DISABLE_COOLING_KEYS, 'disable_cooling')
+  ) {
     payload.disable_cooling = nextDisableCooling ?? null;
   }
 
-  const sourceUserAgent =
-    typeof source.user_agent === 'string'
-      ? source.user_agent.trim()
-      : typeof source['user-agent'] === 'string'
-        ? source['user-agent'].trim()
-        : '';
-  if (editor.userAgent !== sourceUserAgent) {
+  const sourceUserAgent = readUserAgentFromJson(source);
+  if (
+    editor.userAgent !== sourceUserAgent ||
+    hasNonCanonicalOwnField(source, USER_AGENT_KEYS, 'user_agent')
+  ) {
     payload.user_agent = editor.userAgent;
   }
 

@@ -1141,6 +1141,7 @@
     "request_events_auth_index": "认证索引",
     "request_events_api_key": "API 密钥",
     "request_events_result": "结果",
+    "request_events_error_empty": "暂无错误原因",
     "request_events_reasoning_effort": "思考强度",
     "time": "延迟",
     "avg_time": "平均延迟",
