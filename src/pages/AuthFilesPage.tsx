@@ -25,6 +25,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { copyToClipboard } from '@/utils/clipboard';
 import { resolveAuthProvider } from '@/utils/quota';
+import { authFilesApi } from '@/services/api';
 import {
   MAX_CARD_PAGE_SIZE,
   MIN_CARD_PAGE_SIZE,
@@ -53,6 +54,7 @@ import { useAuthFilesData } from '@/features/authFiles/hooks/useAuthFilesData';
 import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModels';
 import { useAuthFilesOauth } from '@/features/authFiles/hooks/useAuthFilesOauth';
 import { useAuthFilesPrefixProxyEditor } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
+import { extractAuthFileAccessToken } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import { useAuthFilesStats } from '@/features/authFiles/hooks/useAuthFilesStats';
 import { useAuthFilesStatusBarCache } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
 import {
@@ -155,6 +157,8 @@ export function AuthFilesPage() {
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [batchQuotaRefreshing, setBatchQuotaRefreshing] = useState(false);
+  const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
+  const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
   const [displayFilterRefreshVersion, setDisplayFilterRefreshVersion] = useState(0);
   const [displayFilterSnapshot, setDisplayFilterSnapshot] = useState<{
@@ -709,6 +713,64 @@ export function AuthFilesPage() {
     [showNotification, t]
   );
 
+  const handleCopyAccessToken = useCallback(
+    async (file: AuthFileItem) => {
+      const fileName = file.name;
+      if (accessTokenCopying[fileName]) return;
+
+      setAccessTokenCopying((prev) => ({ ...prev, [fileName]: true }));
+      try {
+        const json = await authFilesApi.downloadJsonObject(fileName);
+        const accessToken = extractAuthFileAccessToken(json);
+        if (!accessToken) {
+          showNotification(t('auth_files.access_token_empty'), 'warning');
+          return;
+        }
+        await copyTextWithNotification(accessToken);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        showNotification(`${t('notification.copy_failed')}: ${errorMessage}`, 'error');
+      } finally {
+        setAccessTokenCopying((prev) => {
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
+    },
+    [accessTokenCopying, copyTextWithNotification, showNotification, t]
+  );
+
+  const handlePriorityChange = useCallback(
+    async (file: AuthFileItem, priority: number) => {
+      const fileName = file.name;
+      if (disableControls || priorityUpdating[fileName]) return;
+
+      setPriorityUpdating((prev) => ({ ...prev, [fileName]: true }));
+      try {
+        const response = await authFilesApi.patchFields({ name: fileName, priority });
+        applyLocalFilePatch(fileName, {
+          ...response.file,
+          priority: response.file?.priority ?? priority,
+        });
+        showNotification(
+          t('auth_files.priority_update_success', { priority }),
+          'success'
+        );
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
+      } finally {
+        setPriorityUpdating((prev) => {
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
+    },
+    [applyLocalFilePatch, disableControls, priorityUpdating, showNotification, t]
+  );
+
   const openExcludedEditor = useCallback(
     (provider?: string) => {
       const providerValue = (provider || (filter !== 'all' ? String(filter) : '')).trim();
@@ -1092,6 +1154,8 @@ export function AuthFilesPage() {
                     disableControls={disableControls}
                     deleting={deleting === file.name}
                     statusUpdating={statusUpdating[file.name] === true}
+                    accessTokenCopying={accessTokenCopying[file.name] === true}
+                    priorityUpdating={priorityUpdating[file.name] === true}
                     quotaFilterType={quotaFilterType}
                     planBadge={planBadgeMap.get(file.name) ?? null}
                     keyStats={keyStats}
@@ -1100,6 +1164,8 @@ export function AuthFilesPage() {
                     onShowModels={showModels}
                     onCopyName={copyTextWithNotification}
                     onDownload={handleDownload}
+                    onCopyAccessToken={handleCopyAccessToken}
+                    onPriorityChange={handlePriorityChange}
                     onOpenPrefixProxyEditor={openPrefixProxyEditor}
                     onDelete={handleDelete}
                     onToggleStatus={handleStatusToggle}

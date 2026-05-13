@@ -540,6 +540,9 @@
     "sort_az": "A-Z 名称",
     "sort_priority": "优先级",
     "priority_display": "优先级",
+    "priority_decrement": "降低优先级",
+    "priority_increment": "提高优先级",
+    "priority_update_success": "优先级已更新为 {{priority}}",
     "page_size_label": "单页数量",
     "summary_visible": "当前结果",
     "summary_enabled": "已开启",
@@ -623,6 +626,7 @@
     "access_token_label": "访问令牌（access_token）",
     "access_token_hint": "按后端规则自动从认证文件中解析，优先读取顶层 access_token，再回退到 token.access_token。",
     "access_token_copy": "复制 access_token",
+    "access_token_empty": "该认证文件中没有可复制的 access_token",
     "tokens_stat_label": "tokens",
     "cost_stat_label": "花费",
     "prefix_label": "前缀（prefix）",
@@ -1657,9 +1661,7 @@
   "language": {
     "switch": "语言",
     "chinese": "中文",
-    "chinese_tw": "繁體中文",
-    "english": "English",
-    "russian": "Русский"
+    "english": "English"
   },
   "theme": {
     "switch": "主题",

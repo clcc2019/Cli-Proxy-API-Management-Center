@@ -540,6 +540,9 @@
     "sort_az": "A-Z Name",
     "sort_priority": "Priority",
     "priority_display": "Priority",
+    "priority_decrement": "Decrease priority",
+    "priority_increment": "Increase priority",
+    "priority_update_success": "Priority updated to {{priority}}",
     "page_size_label": "Per page",
     "summary_visible": "Visible",
     "summary_enabled": "Enabled",
@@ -623,6 +626,7 @@
     "access_token_label": "Access token (access_token)",
     "access_token_hint": "Parsed with the backend rule: top-level access_token first, then token.access_token as fallback.",
     "access_token_copy": "Copy access_token",
+    "access_token_empty": "No access_token found in this auth file",
     "tokens_stat_label": "tokens",
     "cost_stat_label": "Cost",
     "prefix_label": "Prefix (prefix)",
@@ -1657,9 +1661,7 @@
   "language": {
     "switch": "Language",
     "chinese": "中文",
-    "chinese_tw": "繁體中文",
-    "english": "English",
-    "russian": "Русский"
+    "english": "English"
   },
   "theme": {
     "switch": "Theme",

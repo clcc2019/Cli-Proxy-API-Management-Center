@@ -10,7 +10,6 @@ import type {
   PrefixProxyEditorFieldValue,
   PrefixProxyEditorState,
 } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
-import { extractAuthFileAccessToken } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 const formatJsonText = (text: string) => {
@@ -38,7 +37,6 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
   const { disableControls, editor, updatedText, dirty, onClose, onCopyText, onSave, onChange } =
     props;
   const previewText = useMemo(() => formatJsonText(updatedText), [updatedText]);
-  const accessToken = useMemo(() => extractAuthFileAccessToken(editor?.json ?? null), [editor]);
 
   return (
     <Modal
@@ -93,28 +91,6 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
           ) : (
             <>
               {editor.error && <div className={styles.prefixProxyError}>{editor.error}</div>}
-              {accessToken && (
-                <div className={styles.prefixProxyTokenPanel}>
-                  <div className={styles.prefixProxyTokenHeader}>
-                    <div className={styles.prefixProxyTokenMeta}>
-                      <label className={styles.prefixProxyLabel}>
-                        {t('auth_files.access_token_label')}
-                      </label>
-                      <div className={styles.prefixProxyTokenHint}>
-                        {t('auth_files.access_token_hint')}
-                      </div>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => void onCopyText(accessToken)}
-                      disabled={editor.saving === true}
-                    >
-                      {t('auth_files.access_token_copy')}
-                    </Button>
-                  </div>
-                </div>
-              )}
               <div className={styles.prefixProxyFields}>
                 <Input
                   label={t('auth_files.prefix_label')}

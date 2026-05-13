@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useEffect, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -11,6 +11,7 @@ import {
   IconDownload,
   IconDollarSign,
   IconInfo,
+  IconKey,
   IconModelCluster,
   IconSettings,
   IconTrash2,
@@ -94,6 +95,8 @@ export type AuthFileCardProps = {
   disableControls: boolean;
   deleting: boolean;
   statusUpdating: boolean;
+  accessTokenCopying: boolean;
+  priorityUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
   planBadge: AuthFilePlanBadgeInfo | null;
   keyStats: KeyStats;
@@ -102,6 +105,8 @@ export type AuthFileCardProps = {
   onShowModels: (file: AuthFileItem) => void;
   onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
+  onCopyAccessToken: (file: AuthFileItem) => void;
+  onPriorityChange: (file: AuthFileItem, priority: number) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
   onToggleStatus: (file: AuthFileItem, enabled: boolean) => void;
@@ -124,6 +129,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     disableControls,
     deleting,
     statusUpdating,
+    accessTokenCopying,
+    priorityUpdating,
     quotaFilterType,
     planBadge,
     keyStats,
@@ -132,6 +139,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onShowModels,
     onCopyName,
     onDownload,
+    onCopyAccessToken,
+    onPriorityChange,
     onOpenPrefixProxyEditor,
     onDelete,
     onToggleStatus,
@@ -183,6 +192,42 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     Boolean(rawStatusMessage) && !HEALTHY_STATUS_MESSAGES.has(rawStatusMessage.toLowerCase());
 
   const priorityValue = parsePriorityValue(file.priority ?? file['priority']);
+  const currentPriority = priorityValue ?? 0;
+  const [priorityDraft, setPriorityDraft] = useState(String(currentPriority));
+
+  useEffect(() => {
+    setPriorityDraft(String(currentPriority));
+  }, [currentPriority]);
+
+  const commitPriorityDraft = () => {
+    const nextPriority = parsePriorityValue(priorityDraft);
+    if (nextPriority === undefined) {
+      setPriorityDraft(String(currentPriority));
+      return;
+    }
+    if (nextPriority !== currentPriority) {
+      onPriorityChange(file, nextPriority);
+      return;
+    }
+    setPriorityDraft(String(currentPriority));
+  };
+
+  const stepPriority = (delta: number) => {
+    const nextPriority = currentPriority + delta;
+    setPriorityDraft(String(nextPriority));
+    onPriorityChange(file, nextPriority);
+  };
+
+  const handlePriorityKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+      return;
+    }
+    if (event.key === 'Escape') {
+      setPriorityDraft(String(currentPriority));
+      event.currentTarget.blur();
+    }
+  };
   const noteValue = typeof file.note === 'string' ? file.note.trim() : '';
   const totalRequests = fileUsageStats.success + fileUsageStats.failure;
   const tokenDisplay = formatMillionTokens(fileUsageStats.totalTokens);
@@ -313,14 +358,52 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               <span className={styles.metaLabel}>{t('auth_files.last_refresh_label')}</span>
               <span className={styles.metaValue}>{formatLastRefresh(file)}</span>
             </div>
-            {priorityValue !== undefined && (
+            {!isRuntimeOnly ? (
+              <div className={`${styles.metaItem} ${styles.priorityControlItem}`}>
+                <span className={styles.metaLabel}>{t('auth_files.priority_display')}</span>
+                <div className={styles.priorityStepper}>
+                  <button
+                    type="button"
+                    className={styles.priorityStepButton}
+                    onClick={() => stepPriority(-1)}
+                    disabled={disableControls || priorityUpdating}
+                    title={t('auth_files.priority_decrement')}
+                    aria-label={t('auth_files.priority_decrement')}
+                  >
+                    -
+                  </button>
+                  <input
+                    className={styles.priorityInput}
+                    type="number"
+                    step={1}
+                    inputMode="numeric"
+                    value={priorityDraft}
+                    disabled={disableControls || priorityUpdating}
+                    aria-label={t('auth_files.priority_display')}
+                    onChange={(event) => setPriorityDraft(event.target.value)}
+                    onBlur={commitPriorityDraft}
+                    onKeyDown={handlePriorityKeyDown}
+                  />
+                  <button
+                    type="button"
+                    className={styles.priorityStepButton}
+                    onClick={() => stepPriority(1)}
+                    disabled={disableControls || priorityUpdating}
+                    title={t('auth_files.priority_increment')}
+                    aria-label={t('auth_files.priority_increment')}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            ) : priorityValue !== undefined ? (
               <div className={`${styles.metaItem} ${styles.priorityBadge}`}>
                 <span className={styles.metaLabel}>{t('auth_files.priority_display')}</span>
                 <span className={`${styles.metaValue} ${styles.priorityValue}`}>
                   {priorityValue}
                 </span>
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className={`${styles.cardInsights} ${compact ? styles.cardInsightsCompact : ''}`}>
@@ -378,6 +461,34 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           <div className={styles.cardActions}>
             <div className={styles.cardActionsMain}>
               <div className={styles.cardActionCluster}>
+                {!isRuntimeOnly && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onOpenPrefixProxyEditor(file)}
+                    className={styles.iconButton}
+                    title={t('auth_files.prefix_proxy_button')}
+                    disabled={disableControls}
+                  >
+                    <IconSettings className={styles.actionIcon} size={18} />
+                  </Button>
+                )}
+                {!isRuntimeOnly && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onCopyAccessToken(file)}
+                    className={styles.iconButton}
+                    title={t('auth_files.access_token_copy')}
+                    disabled={disableControls || accessTokenCopying}
+                  >
+                    {accessTokenCopying ? (
+                      <LoadingSpinner size={17} />
+                    ) : (
+                      <IconKey className={styles.actionIcon} size={18} />
+                    )}
+                  </Button>
+                )}
                 {showModelsButton && (
                   <Button
                     variant="secondary"
@@ -401,16 +512,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       disabled={disableControls}
                     >
                       <IconDownload className={styles.actionIcon} size={18} />
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => onOpenPrefixProxyEditor(file)}
-                      className={styles.iconButton}
-                      title={t('auth_files.prefix_proxy_button')}
-                      disabled={disableControls}
-                    >
-                      <IconSettings className={styles.actionIcon} size={18} />
                     </Button>
                     <Button
                       variant="danger"

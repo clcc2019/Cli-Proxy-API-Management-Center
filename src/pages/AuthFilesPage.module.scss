@@ -1503,6 +1503,89 @@
   font-variant-numeric: tabular-nums;
 }
 
+.priorityControlItem {
+  gap: 6px;
+}
+
+.priorityStepper {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.priorityStepButton {
+  width: 28px;
+  height: 26px;
+  border: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color $transition-fast,
+    color $transition-fast;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
+    outline-offset: -2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.priorityInput {
+  width: 42px;
+  height: 26px;
+  border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
+  padding: 0 3px;
+  text-align: center;
+  background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+  }
+
+  &:focus {
+    outline: none;
+    background: var(--surface-raised);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
 .noteText {
   font-size: 12px;
   color: var(--text-secondary);
@@ -2139,48 +2222,6 @@
   box-shadow: 0 0 0 3px rgba($error-color, 0.12);
 }
 
-.prefixProxyTokenPanel {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.prefixProxyTokenHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: $spacing-sm;
-
-  @include mobile {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-.prefixProxyTokenMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.prefixProxyTokenHint {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.prefixProxyTokenPanel :global(.btn.btn-secondary) {
-  border-color: color-mix(in srgb, var(--border-color) 34%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
-}
-
-.prefixProxyTokenPanel + .prefixProxyFields,
-.prefixProxyTokenPanel + .prefixProxyJsonWrapper,
 .prefixProxyFields + .prefixProxyJsonWrapper,
 .prefixProxyJsonWrapper + .prefixProxyJsonWrapper,
 .prefixProxyJsonWrapper + .prefixProxyFields {
@@ -2425,14 +2466,17 @@
 
   .cardActionsMain {
     gap: 8px;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
   }
 
   .cardActionCluster {
     gap: 6px;
     flex-wrap: wrap;
     flex: 1 1 auto;
+    width: 100%;
   }
 
   .cardUtilityActions {
@@ -2442,10 +2486,11 @@
 
   .cardStatusActions {
     gap: 6px;
-    width: auto;
+    width: 100%;
     justify-content: flex-end;
-    margin-left: auto;
-    padding-top: 0;
+    margin-left: 0;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 66%, transparent);
     flex-wrap: wrap;
   }
 
