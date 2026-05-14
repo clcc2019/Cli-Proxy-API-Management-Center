@@ -43,6 +43,13 @@ export interface AuthFileItem {
   user_agent?: string;
   websockets?: boolean;
   websocket_handshake_debug?: boolean;
+  account_id?: string;
+  accountId?: string;
+  chatgpt_account_id?: string;
+  chatgptAccountId?: string;
+  id_token?: string | Record<string, unknown>;
+  plan_type?: string;
+  planType?: string;
   [key: string]: unknown;
 }
 

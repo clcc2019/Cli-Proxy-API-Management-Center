@@ -1,54 +1,41 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { authFilesApi } from '@/services/api/authFiles';
 import { getTypeColor, normalizeProviderKey } from '@/features/authFiles/constants';
 import { useNotificationStore, useThemeStore } from '@/stores';
-import type { GeminiKeyConfig, ProviderKeyConfig, OpenAIProviderConfig } from '@/types';
-import type { AuthFileItem } from '@/types/authFile';
-import type { CredentialInfo } from '@/types/sourceInfo';
-import { maskApiKey } from '@/utils/format';
-import { parseTimestampMs } from '@/utils/timestamp';
-import { buildSourceInfoMap, resolveSourceDisplay } from '@/utils/sourceResolver';
+import type {
+  GeminiKeyConfig,
+  ProviderKeyConfig,
+  OpenAIProviderConfig,
+} from '@/types';
 import {
-  calculateCost,
-  collectUsageDetails,
-  extractLatencyMs,
-  extractTotalTokens,
-  formatUsd,
   formatDurationMs,
+  formatUsd,
   LATENCY_SOURCE_FIELD,
   type ModelPrice,
-  normalizeAuthIndex,
 } from '@/utils/usage';
 import { copyToClipboard } from '@/utils/clipboard';
+import {
+  useRequestEventRows,
+  REQUEST_EVENT_ROWS_LIMIT,
+} from './hooks/useRequestEventRows';
 import styles from '@/pages/UsagePage.module.scss';
 
-const REQUEST_EVENTS_RETAIN_LIMIT = 100;
+const SKELETON_ROW_COUNT = 5;
 
-type RequestEventRow = {
-  id: string;
-  timestamp: string;
-  timestampMs: number;
-  timestampLabel: string;
-  model: string;
-  sourceRaw: string;
-  source: string;
-  sourceType: string;
-  authIndex: string;
-  apiKey: string;
-  apiKeyMasked: string;
-  failed: boolean;
-  errorMessage: string;
-  modelReasoningEffort: string;
-  latencyMs: number | null;
-  inputTokens: number;
-  outputTokens: number;
-  reasoningTokens: number;
-  cachedTokens: number;
-  totalTokens: number;
-  totalCost: number;
+const getLatencyTone = (
+  latencyMs: number
+): 'normal' | 'slow' | 'verySlow' => {
+  if (latencyMs <= 30_000) return 'normal';
+  if (latencyMs <= 60_000) return 'slow';
+  return 'verySlow';
+};
+
+const LATENCY_TONE_CLASS: Record<'normal' | 'slow' | 'verySlow', string> = {
+  normal: styles.latencyCapsuleNormal,
+  slow: styles.latencyCapsuleSlow,
+  verySlow: styles.latencyCapsuleVerySlow,
 };
 
 export interface RequestEventsDetailsCardProps {
@@ -61,26 +48,6 @@ export interface RequestEventsDetailsCardProps {
   vertexConfigs: ProviderKeyConfig[];
   openaiProviders: OpenAIProviderConfig[];
 }
-
-const toNumber = (value: unknown): number => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return 0;
-  return parsed;
-};
-
-const getLatencyTone = (latencyMs: number): 'normal' | 'slow' | 'verySlow' => {
-  if (latencyMs <= 30_000) return 'normal';
-  if (latencyMs <= 60_000) return 'slow';
-  return 'verySlow';
-};
-
-const LATENCY_TONE_CLASS: Record<'normal' | 'slow' | 'verySlow', string> = {
-  normal: styles.latencyCapsuleNormal,
-  slow: styles.latencyCapsuleSlow,
-  verySlow: styles.latencyCapsuleVerySlow,
-};
-
-const SKELETON_ROW_COUNT = 5;
 
 function RequestEventsSkeleton() {
   return (
@@ -138,139 +105,26 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
   vertexConfigs,
   openaiProviders,
 }: RequestEventsDetailsCardProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
-  const showNotification = useNotificationStore((state) => state.showNotification);
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification
+  );
+
+  const { rows, hasLatencyData } = useRequestEventRows({
+    usage,
+    modelPrices,
+    geminiKeys,
+    claudeConfigs,
+    codexConfigs,
+    vertexConfigs,
+    openaiProviders,
+  });
+
   const latencyHint = t('usage_stats.latency_unit_hint', {
     field: LATENCY_SOURCE_FIELD,
     unit: t('usage_stats.duration_unit_ms'),
   });
-
-  const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(new Map());
-
-  useEffect(() => {
-    let cancelled = false;
-    authFilesApi
-      .list()
-      .then((res) => {
-        if (cancelled) return;
-        const files = Array.isArray(res) ? res : (res as { files?: AuthFileItem[] })?.files;
-        if (!Array.isArray(files)) return;
-        const map = new Map<string, CredentialInfo>();
-        files.forEach((file) => {
-          const key = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
-          if (!key) return;
-          map.set(key, {
-            name: file.name || key,
-            type: (file.type || file.provider || '').toString(),
-          });
-        });
-        setAuthFileMap(map);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const sourceInfoMap = useMemo(
-    () =>
-      buildSourceInfoMap({
-        geminiApiKeys: geminiKeys,
-        claudeApiKeys: claudeConfigs,
-        codexApiKeys: codexConfigs,
-        vertexApiKeys: vertexConfigs,
-        openaiCompatibility: openaiProviders,
-      }),
-    [claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]
-  );
-
-  const rows = useMemo<RequestEventRow[]>(() => {
-    const details = collectUsageDetails(usage)
-      .slice()
-      .sort((a, b) => {
-        const leftTimestampMs =
-          typeof a.__timestampMs === 'number' && a.__timestampMs > 0
-            ? a.__timestampMs
-            : parseTimestampMs(a.timestamp);
-        const rightTimestampMs =
-          typeof b.__timestampMs === 'number' && b.__timestampMs > 0
-            ? b.__timestampMs
-            : parseTimestampMs(b.timestamp);
-        return (
-          (Number.isNaN(rightTimestampMs) ? 0 : rightTimestampMs) -
-          (Number.isNaN(leftTimestampMs) ? 0 : leftTimestampMs)
-        );
-      })
-      .slice(0, REQUEST_EVENTS_RETAIN_LIMIT);
-
-    return details.map((detail, index) => {
-      const timestamp = detail.timestamp;
-      const timestampMs =
-        typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
-          ? detail.__timestampMs
-          : parseTimestampMs(timestamp);
-      const date = Number.isNaN(timestampMs) ? null : new Date(timestampMs);
-      const sourceRaw = String(detail.source ?? '').trim();
-      const authIndexRaw = detail.auth_index as unknown;
-      const authIndex =
-        authIndexRaw === null || authIndexRaw === undefined || authIndexRaw === ''
-          ? '-'
-          : String(authIndexRaw);
-      const apiKey = String(detail.api_key ?? '').trim();
-      const sourceInfo = resolveSourceDisplay(sourceRaw, authIndexRaw, sourceInfoMap, authFileMap);
-      const source = sourceInfo.displayName;
-      const sourceType = sourceInfo.type;
-      const model = String(detail.__modelName ?? '').trim() || '-';
-      const modelReasoningEffort =
-        typeof detail.model_reasoning_effort === 'string' && detail.model_reasoning_effort.trim()
-          ? detail.model_reasoning_effort.trim()
-          : '-';
-      const inputTokens = Math.max(toNumber(detail.tokens?.input_tokens), 0);
-      const outputTokens = Math.max(toNumber(detail.tokens?.output_tokens), 0);
-      const reasoningTokens = Math.max(toNumber(detail.tokens?.reasoning_tokens), 0);
-      const cachedTokens = Math.max(
-        Math.max(toNumber(detail.tokens?.cached_tokens), 0),
-        Math.max(toNumber(detail.tokens?.cache_tokens), 0)
-      );
-      const totalTokens = Math.max(
-        toNumber(detail.tokens?.total_tokens),
-        extractTotalTokens(detail)
-      );
-      const latencyMs = extractLatencyMs(detail);
-      const totalCost = calculateCost(detail, modelPrices);
-      const errorMessage =
-        detail.failed === true && typeof detail.error_message === 'string'
-          ? detail.error_message.trim()
-          : '';
-
-      return {
-        id: `${timestamp}-${model}-${sourceRaw || source}-${authIndex}-${index}`,
-        timestamp,
-        timestampMs: Number.isNaN(timestampMs) ? 0 : timestampMs,
-        timestampLabel: date ? date.toLocaleString(i18n.language) : timestamp || '-',
-        model,
-        sourceRaw: sourceRaw || '-',
-        source,
-        sourceType,
-        authIndex,
-        apiKey,
-        apiKeyMasked: apiKey ? maskApiKey(apiKey) : '-',
-        failed: detail.failed === true,
-        errorMessage,
-        modelReasoningEffort,
-        latencyMs,
-        inputTokens,
-        outputTokens,
-        reasoningTokens,
-        cachedTokens,
-        totalTokens,
-        totalCost,
-      };
-    });
-  }, [authFileMap, i18n.language, modelPrices, sourceInfoMap, usage]);
-
-  const hasLatencyData = useMemo(() => rows.some((row) => row.latencyMs !== null), [rows]);
 
   const handleCopyError = useCallback(
     async (errorMessage: string) => {
@@ -288,7 +142,7 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
   );
 
   return (
-    <Card title={t('usage_stats.request_events_title')}>
+    <Card flush>
       {loading && rows.length === 0 ? (
         <RequestEventsSkeleton />
       ) : rows.length === 0 ? (
@@ -299,8 +153,14 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
       ) : (
         <>
           <div className={styles.requestEventsMeta}>
-            <span>{t('usage_stats.request_events_count', { count: rows.length })}</span>
-            {hasLatencyData && <span className={styles.requestEventsLimitHint}>{latencyHint}</span>}
+            <span>
+              {t('usage_stats.request_events_count', { count: rows.length })}
+            </span>
+            {hasLatencyData && (
+              <span className={styles.requestEventsLimitHint}>
+                {latencyHint}
+              </span>
+            )}
           </div>
 
           <div className={styles.requestEventsTableWrapper}>
@@ -345,14 +205,27 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                     row.modelReasoningEffort && row.modelReasoningEffort !== '-';
                   const hasAuthIndex = row.authIndex && row.authIndex !== '-';
                   const hasApiKey = row.apiKeyMasked && row.apiKeyMasked !== '-';
+                  const typeColor = row.sourceType
+                    ? getTypeColor(
+                        normalizeProviderKey(row.sourceType),
+                        resolvedTheme as 'light' | 'dark'
+                      )
+                    : null;
 
                   return (
                     <tr
                       key={row.id}
-                      className={row.failed ? styles.requestEventsRowFailed : undefined}
+                      className={
+                        row.failed ? styles.requestEventsRowFailed : undefined
+                      }
                     >
-                      <td className={styles.requestEventsTimestamp} title={row.timestamp}>
-                        <div className={styles.cellPrimary}>{row.timestampLabel}</div>
+                      <td
+                        className={styles.requestEventsTimestamp}
+                        title={row.timestamp}
+                      >
+                        <div className={styles.cellPrimary}>
+                          {row.timestampLabel}
+                        </div>
                       </td>
                       <td className={styles.modelCell}>
                         <div className={styles.cellPrimary}>{row.model}</div>
@@ -366,39 +239,43 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                           </div>
                         )}
                       </td>
-                      <td className={styles.requestEventsCredentialCell} title={row.source}>
+                      <td
+                        className={styles.requestEventsCredentialCell}
+                        title={row.source}
+                      >
                         <div className={styles.cellPrimary}>
-                          <span className={styles.credentialName}>{row.source}</span>
-                          {row.sourceType &&
-                            (() => {
-                              const typeColor = getTypeColor(
-                                normalizeProviderKey(row.sourceType),
-                                resolvedTheme
-                              );
-                              return (
-                                <span
-                                  className={styles.credentialType}
-                                  style={{
-                                    background: typeColor.bg,
-                                    color: typeColor.text,
-                                    borderColor: typeColor.bg,
-                                  }}
-                                >
-                                  {row.sourceType}
-                                </span>
-                              );
-                            })()}
+                          <span className={styles.credentialName}>
+                            {row.source}
+                          </span>
+                          {row.sourceType && typeColor && (
+                            <span
+                              className={styles.credentialType}
+                              style={{
+                                background: typeColor.bg,
+                                color: typeColor.text,
+                                borderColor: typeColor.bg,
+                              }}
+                            >
+                              {row.sourceType}
+                            </span>
+                          )}
                         </div>
                         {(hasAuthIndex || hasApiKey) && (
                           <div className={styles.cellSecondary}>
                             {hasAuthIndex && (
                               <span title={row.authIndex}>
-                                {t('usage_stats.request_events_auth_short')} #{row.authIndex}
+                                {t('usage_stats.request_events_auth_short')}{' '}
+                                #{row.authIndex}
                               </span>
                             )}
-                            {hasAuthIndex && hasApiKey && <span aria-hidden="true"> · </span>}
+                            {hasAuthIndex && hasApiKey && (
+                              <span aria-hidden="true"> · </span>
+                            )}
                             {hasApiKey && (
-                              <span className={styles.credentialKey} title={row.apiKeyMasked}>
+                              <span
+                                className={styles.credentialKey}
+                                title={row.apiKeyMasked}
+                              >
                                 {row.apiKeyMasked}
                               </span>
                             )}
@@ -436,7 +313,10 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                               className={`${styles.latencyCapsule} ${LATENCY_TONE_CLASS[getLatencyTone(row.latencyMs)]}`}
                               title={latencyHint}
                             >
-                              <span className={styles.latencyDot} aria-hidden="true" />
+                              <span
+                                className={styles.latencyDot}
+                                aria-hidden="true"
+                              />
                               {formatDurationMs(row.latencyMs)}
                             </span>
                           )}
@@ -447,7 +327,9 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                           {row.totalTokens.toLocaleString()}
                         </div>
                         {tokenParts.length > 0 && (
-                          <div className={styles.cellSecondary}>{tokenParts.join(' · ')}</div>
+                          <div className={styles.cellSecondary}>
+                            {tokenParts.join(' · ')}
+                          </div>
                         )}
                       </td>
                       <td className={styles.requestEventsCostCell}>
@@ -459,6 +341,15 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
               </tbody>
             </table>
           </div>
+
+          {rows.length >= REQUEST_EVENT_ROWS_LIMIT && (
+            <div className={styles.requestEventsLimitHint}>
+              {t('usage_stats.request_events_limit_hint', {
+                shown: rows.length,
+                total: rows.length,
+              })}
+            </div>
+          )}
         </>
       )}
     </Card>

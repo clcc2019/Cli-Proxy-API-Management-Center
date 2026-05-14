@@ -300,10 +300,10 @@
   color: var(--text-primary);
   font-family: inherit;
   letter-spacing: -0.005em;
-  transition: font-weight 0.15s ease;
 
-  &:focus {
-    font-weight: 600;
+  &:focus,
+  &:focus-visible {
+    box-shadow: none;
   }
 
   &::placeholder {

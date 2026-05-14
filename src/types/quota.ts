@@ -361,7 +361,17 @@ export interface KiroUsageBreakdown {
   exhausted?: boolean;
 }
 
+export interface KiroQuotaCompatInfo {
+  used?: number | string;
+  total?: number | string;
+  remaining?: number | string;
+  resetAt?: string | null;
+  reset_at?: string | null;
+  unlimited?: boolean;
+}
+
 export interface KiroUsageResponse {
+  message?: string;
   userInfo?: KiroUserInfo | null;
   user_info?: KiroUserInfo | null;
   subscriptionInfo?: KiroSubscriptionInfo | null;
@@ -381,6 +391,7 @@ export interface KiroUsageResponse {
   totalUsagePercentage?: number;
   total_usage_percentage?: number;
   exhausted?: boolean;
+  quotas?: Record<string, KiroQuotaCompatInfo | null | undefined>;
 }
 
 export interface KiroQuotaRow {

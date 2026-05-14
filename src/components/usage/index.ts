@@ -63,6 +63,3 @@ export type { CredentialStatsCardProps } from './CredentialStatsCard';
 
 export { ServiceHealthCard } from './ServiceHealthCard';
 export type { ServiceHealthCardProps } from './ServiceHealthCard';
-
-export { RequestEventsDetailsCard } from './RequestEventsDetailsCard';
-export type { RequestEventsDetailsCardProps } from './RequestEventsDetailsCard';

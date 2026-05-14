@@ -26,6 +26,7 @@ import type {
   GeminiCliQuotaBucketState,
   GeminiCliQuotaState,
   GeminiCliUserTier,
+  KiroQuotaCompatInfo,
   KiroQuotaRow,
   KiroQuotaState,
   KiroUsageBreakdown,
@@ -409,14 +410,15 @@ const fetchCodexQuota = async (
   file: AuthFileItem,
   t: TFunction
 ): Promise<{ planType: string | null; windows: CodexQuotaWindow[] }> => {
-  const rawAuthIndex = file['auth_index'] ?? file.authIndex;
+  const quotaFile = await resolveCodexQuotaSourceFile(file);
+  const rawAuthIndex = quotaFile['auth_index'] ?? quotaFile.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   if (!authIndex) {
     throw new Error(t('codex_quota.missing_auth_index'));
   }
 
-  const planTypeFromFile = resolveCodexPlanType(file);
-  const accountId = resolveCodexChatgptAccountId(file);
+  const planTypeFromFile = resolveCodexPlanType(quotaFile);
+  const accountId = resolveCodexChatgptAccountId(quotaFile);
   if (!accountId) {
     throw new Error(t('codex_quota.missing_account_id'));
   }
@@ -445,6 +447,26 @@ const fetchCodexQuota = async (
   const planTypeFromUsage = normalizePlanType(payload.plan_type ?? payload.planType);
   const windows = buildCodexQuotaWindows(payload, t);
   return { planType: planTypeFromUsage ?? planTypeFromFile, windows };
+};
+
+const resolveCodexQuotaSourceFile = async (file: AuthFileItem): Promise<AuthFileItem> => {
+  if (resolveCodexChatgptAccountId(file) && resolveCodexPlanType(file)) return file;
+
+  try {
+    const json = await authFilesApi.downloadJsonObject(file.name);
+    return {
+      ...file,
+      ...json,
+      name: file.name,
+      type: file.type ?? (json.type as AuthFileItem['type']),
+      provider: file.provider ?? (json.provider as AuthFileItem['provider']),
+      authIndex: file.authIndex ?? (json.authIndex as AuthFileItem['authIndex']),
+      auth_index: file['auth_index'] ?? json['auth_index'],
+      disabled: file.disabled ?? (json.disabled as AuthFileItem['disabled']),
+    } as AuthFileItem;
+  } catch {
+    return file;
+  }
 };
 
 const GEMINI_CLI_G1_CREDIT_TYPE = 'GOOGLE_ONE_AI';
@@ -1273,8 +1295,47 @@ const formatKiroNumber = (value: number): string =>
 
 const resolveKiroResourceLabel = (resourceType: string | null, displayName: string | null, t: TFunction): string => {
   if (displayName) return displayName;
-  if (resourceType === 'AGENTIC_REQUEST') return t('kiro_quota.agentic_request');
+  const normalizedResourceType = resourceType?.toUpperCase() ?? null;
+  if (normalizedResourceType === 'CREDIT') return t('kiro_quota.credit_label');
+  if (normalizedResourceType === 'AGENTIC_REQUEST') return t('kiro_quota.agentic_request');
   return resourceType || t('kiro_quota.credit_label');
+};
+
+const buildKiroQuotaRowFromCompat = (
+  key: string,
+  quota: KiroQuotaCompatInfo | null | undefined,
+  index: number,
+  t: TFunction
+): KiroQuotaRow | null => {
+  const normalizedKey = key.trim();
+  if (!normalizedKey || !quota) return null;
+
+  const used = firstKiroNumber(quota.used);
+  const limit = firstKiroNumber(quota.total);
+  const explicitRemaining = firstKiroNumber(quota.remaining);
+  const remaining =
+    explicitRemaining ?? (used !== null && limit !== null ? Math.max(0, limit - used) : null);
+  const usedPercent = used !== null && limit !== null && limit > 0 ? (used / limit) * 100 : null;
+
+  if (used === null && limit === null && remaining === null && usedPercent === null) {
+    return null;
+  }
+
+  const isFreeTrial = normalizedKey.toLowerCase().endsWith('_freetrial');
+  const baseResourceType = isFreeTrial
+    ? normalizedKey.slice(0, -'_freetrial'.length)
+    : normalizedKey;
+  const parentLabel = resolveKiroResourceLabel(baseResourceType, null, t);
+
+  return {
+    id: `quota-${normalizedKey}-${index}`,
+    label: isFreeTrial ? t('kiro_quota.free_trial_label', { label: parentLabel }) : parentLabel,
+    used,
+    limit,
+    remaining,
+    usedPercent,
+    resetTime: normalizeKiroResetTime(quota.resetAt ?? quota.reset_at),
+  };
 };
 
 const buildKiroQuotaRow = (
@@ -1398,6 +1459,15 @@ const buildKiroQuotaRows = (
     }
   });
 
+  if (rows.length === 0 && payload.quotas) {
+    Object.entries(payload.quotas).forEach(([key, quota], index) => {
+      const row = buildKiroQuotaRowFromCompat(key, quota, index, t);
+      if (row) {
+        rows.push(row);
+      }
+    });
+  }
+
   return {
     rows,
     subscriptionTitle:
@@ -1426,7 +1496,7 @@ const fetchKiroQuota = async (
   const payload = await authFilesApi.getKiroUsage(file.name, authIndex || undefined);
   const built = buildKiroQuotaRows(payload, t);
   if (built.rows.length === 0 && !built.subscriptionTitle && built.totalRemaining === null) {
-    throw new Error(t('kiro_quota.empty_data'));
+    throw new Error(normalizeStringValue(payload.message) ?? t('kiro_quota.empty_data'));
   }
   return built;
 };
