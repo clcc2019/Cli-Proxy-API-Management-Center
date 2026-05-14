@@ -480,69 +480,120 @@ export function RequestEventsDetailsCard({
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>{t('usage_stats.request_events_timestamp')}</th>
-                  <th>{t('usage_stats.model_name')}</th>
-                  <th>{t('usage_stats.request_events_source')}</th>
-                  <th>{t('usage_stats.request_events_auth_index')}</th>
-                  <th>{t('usage_stats.request_events_api_key')}</th>
-                  <th>{t('usage_stats.request_events_result')}</th>
-                  <th>{t('usage_stats.request_events_reasoning_effort')}</th>
-                  {hasLatencyData && <th title={latencyHint}>{t('usage_stats.time')}</th>}
-                  <th>{t('usage_stats.input_tokens')}</th>
-                  <th>{t('usage_stats.output_tokens')}</th>
-                  <th>{t('usage_stats.reasoning_tokens')}</th>
-                  <th>{t('usage_stats.cached_tokens')}</th>
-                  <th>{t('usage_stats.total_tokens')}</th>
-                  <th>{t('usage_stats.total_cost')}</th>
+                  <th title={hasLatencyData ? latencyHint : undefined}>
+                    {t('usage_stats.request_events_col_time')}
+                  </th>
+                  <th>{t('usage_stats.request_events_col_model')}</th>
+                  <th>{t('usage_stats.request_events_col_credential')}</th>
+                  <th>{t('usage_stats.request_events_col_status')}</th>
+                  <th>{t('usage_stats.request_events_col_tokens')}</th>
+                  <th>{t('usage_stats.request_events_col_cost')}</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((row) => (
-                  <tr key={row.id}>
-                    <td title={row.timestamp} className={styles.requestEventsTimestamp}>
-                      {row.timestampLabel}
-                    </td>
-                    <td className={styles.modelCell}>{row.model}</td>
-                    <td className={styles.requestEventsSourceCell} title={row.source}>
-                      <span>{row.source}</span>
-                      {row.sourceType && (
-                        <span className={styles.credentialType}>{row.sourceType}</span>
-                      )}
-                    </td>
-                    <td className={styles.requestEventsAuthIndex} title={row.authIndex}>
-                      {row.authIndex}
-                    </td>
-                    <td className={styles.requestEventsAuthIndex} title={row.apiKeyMasked}>
-                      {row.apiKeyMasked}
-                    </td>
-                    <td>
-                      <span
-                        className={
-                          row.failed
-                            ? styles.requestEventsResultFailed
-                            : styles.requestEventsResultSuccess
-                        }
-                        title={
-                          row.failed
-                            ? row.errorMessage || t('usage_stats.request_events_error_empty')
-                            : undefined
-                        }
-                      >
-                        {row.failed ? t('stats.failure') : t('stats.success')}
-                      </span>
-                    </td>
-                    <td>{row.modelReasoningEffort}</td>
-                    {hasLatencyData && (
-                      <td className={styles.durationCell}>{formatDurationMs(row.latencyMs)}</td>
-                    )}
-                    <td>{row.inputTokens.toLocaleString()}</td>
-                    <td>{row.outputTokens.toLocaleString()}</td>
-                    <td>{row.reasoningTokens.toLocaleString()}</td>
-                    <td>{row.cachedTokens.toLocaleString()}</td>
-                    <td>{row.totalTokens.toLocaleString()}</td>
-                    <td>{row.totalCost > 0 ? formatUsd(row.totalCost) : '--'}</td>
-                  </tr>
-                ))}
+                {filteredRows.map((row) => {
+                  const tokenParts: string[] = [];
+                  if (row.inputTokens > 0) {
+                    tokenParts.push(
+                      `${t('usage_stats.request_events_token_in')} ${row.inputTokens.toLocaleString()}`
+                    );
+                  }
+                  if (row.outputTokens > 0) {
+                    tokenParts.push(
+                      `${t('usage_stats.request_events_token_out')} ${row.outputTokens.toLocaleString()}`
+                    );
+                  }
+                  if (row.reasoningTokens > 0) {
+                    tokenParts.push(
+                      `${t('usage_stats.request_events_token_reasoning')} ${row.reasoningTokens.toLocaleString()}`
+                    );
+                  }
+                  if (row.cachedTokens > 0) {
+                    tokenParts.push(
+                      `${t('usage_stats.request_events_token_cached')} ${row.cachedTokens.toLocaleString()}`
+                    );
+                  }
+
+                  const hasReasoning =
+                    row.modelReasoningEffort && row.modelReasoningEffort !== '-';
+                  const hasAuthIndex = row.authIndex && row.authIndex !== '-';
+                  const hasApiKey = row.apiKeyMasked && row.apiKeyMasked !== '-';
+
+                  return (
+                    <tr key={row.id}>
+                      <td className={styles.requestEventsTimestamp} title={row.timestamp}>
+                        <div className={styles.cellPrimary}>{row.timestampLabel}</div>
+                        {hasLatencyData && row.latencyMs !== null && (
+                          <div className={styles.cellSecondary} title={latencyHint}>
+                            {formatDurationMs(row.latencyMs)}
+                          </div>
+                        )}
+                      </td>
+                      <td className={styles.modelCell}>
+                        <div className={styles.cellPrimary}>{row.model}</div>
+                        {hasReasoning && (
+                          <div className={styles.cellSecondary}>
+                            <span className={styles.reasoningTag}>
+                              {t('usage_stats.request_events_reasoning_label')}
+                              {' · '}
+                              {row.modelReasoningEffort}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className={styles.requestEventsCredentialCell} title={row.source}>
+                        <div className={styles.cellPrimary}>
+                          <span className={styles.credentialName}>{row.source}</span>
+                          {row.sourceType && (
+                            <span className={styles.credentialType}>{row.sourceType}</span>
+                          )}
+                        </div>
+                        {(hasAuthIndex || hasApiKey) && (
+                          <div className={styles.cellSecondary}>
+                            {hasAuthIndex && (
+                              <span title={row.authIndex}>
+                                {t('usage_stats.request_events_auth_short')} #{row.authIndex}
+                              </span>
+                            )}
+                            {hasAuthIndex && hasApiKey && <span aria-hidden="true"> · </span>}
+                            {hasApiKey && (
+                              <span className={styles.credentialKey} title={row.apiKeyMasked}>
+                                {row.apiKeyMasked}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span
+                          className={
+                            row.failed
+                              ? styles.requestEventsResultFailed
+                              : styles.requestEventsResultSuccess
+                          }
+                          title={
+                            row.failed
+                              ? row.errorMessage || t('usage_stats.request_events_error_empty')
+                              : undefined
+                          }
+                        >
+                          {row.failed ? t('stats.failure') : t('stats.success')}
+                        </span>
+                      </td>
+                      <td className={styles.requestEventsTokenCell}>
+                        <div className={styles.cellPrimary}>
+                          {row.totalTokens.toLocaleString()}
+                        </div>
+                        {tokenParts.length > 0 && (
+                          <div className={styles.cellSecondary}>{tokenParts.join(' · ')}</div>
+                        )}
+                      </td>
+                      <td className={styles.requestEventsCostCell}>
+                        {row.totalCost > 0 ? formatUsd(row.totalCost) : '--'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
