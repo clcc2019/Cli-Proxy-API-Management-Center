@@ -108,7 +108,7 @@ export type UseAuthFilesDataOptions = {
 export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFilesDataResult {
   const { refreshKeyStats } = options;
   const { t } = useTranslation();
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
 
   const [files, setFiles] = useState<AuthFileItem[]>([]);
   const [loading, setLoading] = useState(true);

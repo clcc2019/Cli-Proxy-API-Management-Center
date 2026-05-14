@@ -40,7 +40,7 @@ export type UseAuthFilesOauthOptions = {
 export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFilesOauthResult {
   const { viewMode, files } = options;
   const { t } = useTranslation();
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
 
   const [excluded, setExcluded] = useState<Record<string, string[]>>({});
   const [excludedError, setExcludedError] = useState<UnsupportedError>(null);

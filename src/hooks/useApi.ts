@@ -21,7 +21,7 @@ export function useApi<T = unknown, Args extends unknown[] = unknown[]>(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
 
   const execute = useCallback(
     async (...args: Args) => {

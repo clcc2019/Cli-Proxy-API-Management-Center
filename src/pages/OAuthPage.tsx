@@ -160,7 +160,7 @@ const getIcon = (icon: string | { light: string; dark: string }, theme: 'light' 
 
 export function OAuthPage() {
   const { t } = useTranslation();
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const kiroProviderOptions = useMemo(
     () => [

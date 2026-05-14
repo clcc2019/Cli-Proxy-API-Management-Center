@@ -245,6 +245,322 @@
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
   background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchToolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex: 1 1 320px;
+  min-width: 240px;
+}
+
+.searchToolbarField {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 10px 0 36px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: var(--bg-primary);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &:focus-within {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-primary));
+  }
+}
+
+.searchToolbarFieldIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.searchToolbarInput {
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: inherit;
+  letter-spacing: -0.005em;
+  transition: font-weight 0.15s ease;
+
+  &:focus {
+    font-weight: 600;
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary);
+    font-weight: 400;
+  }
+
+  // Hide the native search clear in WebKit since we render our own.
+  &::-webkit-search-decoration,
+  &::-webkit-search-cancel-button,
+  &::-webkit-search-results-button,
+  &::-webkit-search-results-decoration {
+    appearance: none;
+  }
+}
+
+.searchToolbarFieldClear {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin-left: 6px;
+  border: 0;
+  border-radius: $radius-full;
+  background: color-mix(in srgb, var(--text-tertiary) 14%, transparent);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--text-tertiary) 22%, transparent);
+    color: var(--text-primary);
+  }
+}
+
+.searchToolbarPopoverWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.searchToolbarIconButton {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+.searchToolbarIconButtonActive {
+  border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--bg-primary));
+}
+
+.searchToolbarPopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  max-width: min(280px, calc(100vw - 32px));
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  background: var(--bg-elevated, var(--bg-primary));
+  box-shadow:
+    0 10px 30px -12px rgba(0, 0, 0, 0.32),
+    0 4px 12px -8px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: searchToolbarPopoverIn 0.12s ease-out;
+}
+
+@keyframes searchToolbarPopoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.searchToolbarPopoverHeader {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: 4px 8px 2px;
+}
+
+.searchToolbarOptionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchToolbarOption {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--text-tertiary) 12%, transparent);
+  }
+}
+
+.searchToolbarOptionActive {
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  font-weight: 600;
+
+  &:hover {
+    background: color-mix(in srgb, var(--primary-color) 18%, transparent);
+  }
+}
+
+.searchToolbarPresetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 4px 4px;
+}
+
+.searchToolbarPreset {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    color: var(--text-primary);
+    border-color: color-mix(in srgb, var(--primary-color) 40%, var(--border-color));
+  }
+}
+
+.searchToolbarPresetActive {
+  border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+}
+
+.searchToolbarCustom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 6px 8px 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+}
+
+.searchToolbarCustomLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.searchToolbarCustomInput {
+  appearance: textfield;
+  width: 64px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  &:focus {
+    outline: 0;
+    border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 18%, transparent);
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+}
+
+.filterChipRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
+  margin-left: auto;
+}
+
+.filterChipRowLabel {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .filterControls {
@@ -337,6 +653,58 @@
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.filterChipGroup {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.filterChip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: $radius-full;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 65%, transparent);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+.filterChipActive {
+  border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-primary));
+  color: var(--primary-color);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-color) 18%, transparent);
+
+  &:hover {
+    color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-primary));
+  }
 }
 
 .pageSizeSelect {

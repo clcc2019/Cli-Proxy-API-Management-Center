@@ -66,7 +66,8 @@ type TabType = 'logs' | 'errors';
 
 export function LogsPage() {
   const { t } = useTranslation();
-  const { showNotification, showConfirmation } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const apiBase = useAuthStore((state) => state.apiBase);
   const managementKey = useAuthStore((state) => state.managementKey);

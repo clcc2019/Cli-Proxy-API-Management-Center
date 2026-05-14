@@ -99,7 +99,7 @@ export function AiProvidersCodexEditPage() {
   const location = useLocation();
   const params = useParams<{ index?: string }>();
 
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const disableControls = connectionStatus !== 'connected';
 

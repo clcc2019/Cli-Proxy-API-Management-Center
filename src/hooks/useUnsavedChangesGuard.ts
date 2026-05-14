@@ -21,7 +21,7 @@ export type UseUnsavedChangesGuardOptions = {
 
 export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions) {
   const { enabled = true, shouldBlock, dialog } = options;
-  const { showConfirmation } = useNotificationStore();
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const lastBlockedRef = useRef<string>('');
   const allowNextNavigationUntilRef = useRef(0);
   const allowNextNavigationKeyRef = useRef('');

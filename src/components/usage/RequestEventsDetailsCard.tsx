@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Select } from '@/components/ui/Select';
 import { authFilesApi } from '@/services/api/authFiles';
+import { getTypeColor, normalizeProviderKey } from '@/features/authFiles/constants';
+import { useNotificationStore, useThemeStore } from '@/stores';
 import type { GeminiKeyConfig, ProviderKeyConfig, OpenAIProviderConfig } from '@/types';
 import type { AuthFileItem } from '@/types/authFile';
 import type { CredentialInfo } from '@/types/sourceInfo';
@@ -22,10 +22,9 @@ import {
   type ModelPrice,
   normalizeAuthIndex,
 } from '@/utils/usage';
-import { downloadBlob } from '@/utils/download';
+import { copyToClipboard } from '@/utils/clipboard';
 import styles from '@/pages/UsagePage.module.scss';
 
-const ALL_FILTER = '__all__';
 const REQUEST_EVENTS_RETAIN_LIMIT = 100;
 
 type RequestEventRow = {
@@ -69,14 +68,67 @@ const toNumber = (value: unknown): number => {
   return parsed;
 };
 
-const encodeCsv = (value: string | number): string => {
-  const text = String(value ?? '');
-  const trimmedLeft = text.replace(/^\s+/, '');
-  const safeText = trimmedLeft && /^[=+\-@]/.test(trimmedLeft) ? `'${text}` : text;
-  return `"${safeText.replace(/"/g, '""')}"`;
+const getLatencyTone = (latencyMs: number): 'normal' | 'slow' | 'verySlow' => {
+  if (latencyMs <= 30_000) return 'normal';
+  if (latencyMs <= 60_000) return 'slow';
+  return 'verySlow';
 };
 
-export function RequestEventsDetailsCard({
+const LATENCY_TONE_CLASS: Record<'normal' | 'slow' | 'verySlow', string> = {
+  normal: styles.latencyCapsuleNormal,
+  slow: styles.latencyCapsuleSlow,
+  verySlow: styles.latencyCapsuleVerySlow,
+};
+
+const SKELETON_ROW_COUNT = 5;
+
+function RequestEventsSkeleton() {
+  return (
+    <div
+      className={styles.requestEventsSkeleton}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      {Array.from({ length: SKELETON_ROW_COUNT }).map((_, idx) => (
+        <div key={idx} className={styles.requestEventsSkeletonRow}>
+          <div>
+            <div className={styles.requestEventsSkeletonBlock} />
+            <div
+              className={`${styles.requestEventsSkeletonBlock} ${styles.requestEventsSkeletonBlockTiny}`}
+            />
+          </div>
+          <div>
+            <div
+              className={`${styles.requestEventsSkeletonBlock} ${styles.requestEventsSkeletonBlockShort}`}
+            />
+          </div>
+          <div>
+            <div className={styles.requestEventsSkeletonBlock} />
+            <div
+              className={`${styles.requestEventsSkeletonBlock} ${styles.requestEventsSkeletonBlockTiny}`}
+            />
+          </div>
+          <div>
+            <div
+              className={`${styles.requestEventsSkeletonBlock} ${styles.requestEventsSkeletonBlockShort}`}
+            />
+          </div>
+          <div>
+            <div className={styles.requestEventsSkeletonBlock} />
+          </div>
+          <div>
+            <div
+              className={`${styles.requestEventsSkeletonBlock} ${styles.requestEventsSkeletonBlockShort}`}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
   usage,
   loading,
   modelPrices,
@@ -87,14 +139,13 @@ export function RequestEventsDetailsCard({
   openaiProviders,
 }: RequestEventsDetailsCardProps) {
   const { t, i18n } = useTranslation();
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const latencyHint = t('usage_stats.latency_unit_hint', {
     field: LATENCY_SOURCE_FIELD,
     unit: t('usage_stats.duration_unit_ms'),
   });
 
-  const [modelFilter, setModelFilter] = useState(ALL_FILTER);
-  const [sourceFilter, setSourceFilter] = useState(ALL_FILTER);
-  const [authIndexFilter, setAuthIndexFilter] = useState(ALL_FILTER);
   const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(new Map());
 
   useEffect(() => {
@@ -221,258 +272,34 @@ export function RequestEventsDetailsCard({
 
   const hasLatencyData = useMemo(() => rows.some((row) => row.latencyMs !== null), [rows]);
 
-  const modelOptions = useMemo(
-    () => [
-      { value: ALL_FILTER, label: t('usage_stats.filter_all') },
-      ...Array.from(new Set(rows.map((row) => row.model))).map((model) => ({
-        value: model,
-        label: model,
-      })),
-    ],
-    [rows, t]
+  const handleCopyError = useCallback(
+    async (errorMessage: string) => {
+      const text = errorMessage.trim();
+      if (!text) return;
+      const ok = await copyToClipboard(text);
+      showNotification(
+        ok
+          ? t('usage_stats.request_events_error_copy_success')
+          : t('usage_stats.request_events_error_copy_failed'),
+        ok ? 'success' : 'error'
+      );
+    },
+    [showNotification, t]
   );
-
-  const sourceOptions = useMemo(
-    () => [
-      { value: ALL_FILTER, label: t('usage_stats.filter_all') },
-      ...Array.from(new Set(rows.map((row) => row.source))).map((source) => ({
-        value: source,
-        label: source,
-      })),
-    ],
-    [rows, t]
-  );
-
-  const authIndexOptions = useMemo(
-    () => [
-      { value: ALL_FILTER, label: t('usage_stats.filter_all') },
-      ...Array.from(new Set(rows.map((row) => row.authIndex))).map((authIndex) => ({
-        value: authIndex,
-        label: authIndex,
-      })),
-    ],
-    [rows, t]
-  );
-
-  const modelOptionSet = useMemo(
-    () => new Set(modelOptions.map((option) => option.value)),
-    [modelOptions]
-  );
-  const sourceOptionSet = useMemo(
-    () => new Set(sourceOptions.map((option) => option.value)),
-    [sourceOptions]
-  );
-  const authIndexOptionSet = useMemo(
-    () => new Set(authIndexOptions.map((option) => option.value)),
-    [authIndexOptions]
-  );
-
-  const effectiveModelFilter = modelOptionSet.has(modelFilter) ? modelFilter : ALL_FILTER;
-  const effectiveSourceFilter = sourceOptionSet.has(sourceFilter) ? sourceFilter : ALL_FILTER;
-  const effectiveAuthIndexFilter = authIndexOptionSet.has(authIndexFilter)
-    ? authIndexFilter
-    : ALL_FILTER;
-
-  const filteredRows = useMemo(
-    () =>
-      rows.filter((row) => {
-        const modelMatched =
-          effectiveModelFilter === ALL_FILTER || row.model === effectiveModelFilter;
-        const sourceMatched =
-          effectiveSourceFilter === ALL_FILTER || row.source === effectiveSourceFilter;
-        const authIndexMatched =
-          effectiveAuthIndexFilter === ALL_FILTER || row.authIndex === effectiveAuthIndexFilter;
-        return modelMatched && sourceMatched && authIndexMatched;
-      }),
-    [effectiveAuthIndexFilter, effectiveModelFilter, effectiveSourceFilter, rows]
-  );
-
-  const hasActiveFilters =
-    effectiveModelFilter !== ALL_FILTER ||
-    effectiveSourceFilter !== ALL_FILTER ||
-    effectiveAuthIndexFilter !== ALL_FILTER;
-
-  const handleClearFilters = () => {
-    setModelFilter(ALL_FILTER);
-    setSourceFilter(ALL_FILTER);
-    setAuthIndexFilter(ALL_FILTER);
-  };
-
-  const handleExportCsv = () => {
-    if (!filteredRows.length) return;
-
-    const csvHeader = [
-      'timestamp',
-      'model',
-      'source',
-      'source_raw',
-      'auth_index',
-      'api_key',
-      'result',
-      'error_message',
-      'model_reasoning_effort',
-      ...(hasLatencyData ? ['latency_ms'] : []),
-      'input_tokens',
-      'output_tokens',
-      'reasoning_tokens',
-      'cached_tokens',
-      'total_tokens',
-      'total_cost',
-    ];
-
-    const csvRows = filteredRows.map((row) =>
-      [
-        row.timestamp,
-        row.model,
-        row.source,
-        row.sourceRaw,
-        row.authIndex,
-        row.apiKey,
-        row.failed ? 'failed' : 'success',
-        row.errorMessage,
-        row.modelReasoningEffort,
-        ...(hasLatencyData ? [row.latencyMs ?? ''] : []),
-        row.inputTokens,
-        row.outputTokens,
-        row.reasoningTokens,
-        row.cachedTokens,
-        row.totalTokens,
-        row.totalCost,
-      ]
-        .map((value) => encodeCsv(value))
-        .join(',')
-    );
-
-    const content = [csvHeader.join(','), ...csvRows].join('\n');
-    const fileTime = new Date().toISOString().replace(/[:.]/g, '-');
-    downloadBlob({
-      filename: `usage-events-${fileTime}.csv`,
-      blob: new Blob([content], { type: 'text/csv;charset=utf-8' }),
-    });
-  };
-
-  const handleExportJson = () => {
-    if (!filteredRows.length) return;
-
-    const payload = filteredRows.map((row) => ({
-      timestamp: row.timestamp,
-      model: row.model,
-      source: row.source,
-      source_raw: row.sourceRaw,
-      auth_index: row.authIndex,
-      api_key: row.apiKey,
-      failed: row.failed,
-      error_message: row.errorMessage,
-      model_reasoning_effort: row.modelReasoningEffort === '-' ? '' : row.modelReasoningEffort,
-      ...(hasLatencyData && row.latencyMs !== null ? { latency_ms: row.latencyMs } : {}),
-      tokens: {
-        input_tokens: row.inputTokens,
-        output_tokens: row.outputTokens,
-        reasoning_tokens: row.reasoningTokens,
-        cached_tokens: row.cachedTokens,
-        total_tokens: row.totalTokens,
-      },
-      total_cost: row.totalCost,
-    }));
-
-    const content = JSON.stringify(payload, null, 2);
-    const fileTime = new Date().toISOString().replace(/[:.]/g, '-');
-    downloadBlob({
-      filename: `usage-events-${fileTime}.json`,
-      blob: new Blob([content], { type: 'application/json;charset=utf-8' }),
-    });
-  };
 
   return (
-    <Card
-      title={t('usage_stats.request_events_title')}
-      extra={
-        <div className={styles.requestEventsActions}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClearFilters}
-            disabled={!hasActiveFilters}
-          >
-            {t('usage_stats.clear_filters')}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleExportCsv}
-            disabled={filteredRows.length === 0}
-          >
-            {t('usage_stats.export_csv')}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleExportJson}
-            disabled={filteredRows.length === 0}
-          >
-            {t('usage_stats.export_json')}
-          </Button>
-        </div>
-      }
-    >
-      <div className={styles.requestEventsToolbar}>
-        <div className={styles.requestEventsFilterItem}>
-          <span className={styles.requestEventsFilterLabel}>
-            {t('usage_stats.request_events_filter_model')}
-          </span>
-          <Select
-            value={effectiveModelFilter}
-            options={modelOptions}
-            onChange={setModelFilter}
-            className={styles.requestEventsSelect}
-            ariaLabel={t('usage_stats.request_events_filter_model')}
-            fullWidth={false}
-          />
-        </div>
-        <div className={styles.requestEventsFilterItem}>
-          <span className={styles.requestEventsFilterLabel}>
-            {t('usage_stats.request_events_filter_source')}
-          </span>
-          <Select
-            value={effectiveSourceFilter}
-            options={sourceOptions}
-            onChange={setSourceFilter}
-            className={styles.requestEventsSelect}
-            ariaLabel={t('usage_stats.request_events_filter_source')}
-            fullWidth={false}
-          />
-        </div>
-        <div className={styles.requestEventsFilterItem}>
-          <span className={styles.requestEventsFilterLabel}>
-            {t('usage_stats.request_events_filter_auth_index')}
-          </span>
-          <Select
-            value={effectiveAuthIndexFilter}
-            options={authIndexOptions}
-            onChange={setAuthIndexFilter}
-            className={styles.requestEventsSelect}
-            ariaLabel={t('usage_stats.request_events_filter_auth_index')}
-            fullWidth={false}
-          />
-        </div>
-      </div>
-
+    <Card title={t('usage_stats.request_events_title')}>
       {loading && rows.length === 0 ? (
-        <div className={styles.hint}>{t('common.loading')}</div>
+        <RequestEventsSkeleton />
       ) : rows.length === 0 ? (
         <EmptyState
           title={t('usage_stats.request_events_empty_title')}
           description={t('usage_stats.request_events_empty_desc')}
         />
-      ) : filteredRows.length === 0 ? (
-        <EmptyState
-          title={t('usage_stats.request_events_no_result_title')}
-          description={t('usage_stats.request_events_no_result_desc')}
-        />
       ) : (
         <>
           <div className={styles.requestEventsMeta}>
-            <span>{t('usage_stats.request_events_count', { count: filteredRows.length })}</span>
+            <span>{t('usage_stats.request_events_count', { count: rows.length })}</span>
             {hasLatencyData && <span className={styles.requestEventsLimitHint}>{latencyHint}</span>}
           </div>
 
@@ -480,18 +307,18 @@ export function RequestEventsDetailsCard({
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th title={hasLatencyData ? latencyHint : undefined}>
-                    {t('usage_stats.request_events_col_time')}
-                  </th>
+                  <th>{t('usage_stats.request_events_col_time')}</th>
                   <th>{t('usage_stats.request_events_col_model')}</th>
                   <th>{t('usage_stats.request_events_col_credential')}</th>
-                  <th>{t('usage_stats.request_events_col_status')}</th>
+                  <th title={hasLatencyData ? latencyHint : undefined}>
+                    {t('usage_stats.request_events_col_status')}
+                  </th>
                   <th>{t('usage_stats.request_events_col_tokens')}</th>
                   <th>{t('usage_stats.request_events_col_cost')}</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((row) => {
+                {rows.map((row) => {
                   const tokenParts: string[] = [];
                   if (row.inputTokens > 0) {
                     tokenParts.push(
@@ -520,14 +347,12 @@ export function RequestEventsDetailsCard({
                   const hasApiKey = row.apiKeyMasked && row.apiKeyMasked !== '-';
 
                   return (
-                    <tr key={row.id}>
+                    <tr
+                      key={row.id}
+                      className={row.failed ? styles.requestEventsRowFailed : undefined}
+                    >
                       <td className={styles.requestEventsTimestamp} title={row.timestamp}>
                         <div className={styles.cellPrimary}>{row.timestampLabel}</div>
-                        {hasLatencyData && row.latencyMs !== null && (
-                          <div className={styles.cellSecondary} title={latencyHint}>
-                            {formatDurationMs(row.latencyMs)}
-                          </div>
-                        )}
                       </td>
                       <td className={styles.modelCell}>
                         <div className={styles.cellPrimary}>{row.model}</div>
@@ -544,9 +369,25 @@ export function RequestEventsDetailsCard({
                       <td className={styles.requestEventsCredentialCell} title={row.source}>
                         <div className={styles.cellPrimary}>
                           <span className={styles.credentialName}>{row.source}</span>
-                          {row.sourceType && (
-                            <span className={styles.credentialType}>{row.sourceType}</span>
-                          )}
+                          {row.sourceType &&
+                            (() => {
+                              const typeColor = getTypeColor(
+                                normalizeProviderKey(row.sourceType),
+                                resolvedTheme
+                              );
+                              return (
+                                <span
+                                  className={styles.credentialType}
+                                  style={{
+                                    background: typeColor.bg,
+                                    color: typeColor.text,
+                                    borderColor: typeColor.bg,
+                                  }}
+                                >
+                                  {row.sourceType}
+                                </span>
+                              );
+                            })()}
                         </div>
                         {(hasAuthIndex || hasApiKey) && (
                           <div className={styles.cellSecondary}>
@@ -564,21 +405,42 @@ export function RequestEventsDetailsCard({
                           </div>
                         )}
                       </td>
-                      <td>
-                        <span
-                          className={
-                            row.failed
-                              ? styles.requestEventsResultFailed
-                              : styles.requestEventsResultSuccess
-                          }
-                          title={
-                            row.failed
-                              ? row.errorMessage || t('usage_stats.request_events_error_empty')
-                              : undefined
-                          }
-                        >
-                          {row.failed ? t('stats.failure') : t('stats.success')}
-                        </span>
+                      <td className={styles.requestEventsStatusCell}>
+                        <div className={styles.cellPrimary}>
+                          {row.failed ? (
+                            <button
+                              type="button"
+                              className={`${styles.requestEventsResultFailed} ${styles.requestEventsResultButton}`}
+                              title={
+                                row.errorMessage
+                                  ? `${t('usage_stats.request_events_error_copy_hint')}\n${row.errorMessage}`
+                                  : t('usage_stats.request_events_error_empty')
+                              }
+                              onClick={() =>
+                                void handleCopyError(
+                                  row.errorMessage ||
+                                    t('usage_stats.request_events_error_empty')
+                                )
+                              }
+                              disabled={!row.errorMessage}
+                            >
+                              {t('stats.failure')}
+                            </button>
+                          ) : (
+                            <span className={styles.requestEventsResultSuccess}>
+                              {t('stats.success')}
+                            </span>
+                          )}
+                          {hasLatencyData && row.latencyMs !== null && (
+                            <span
+                              className={`${styles.latencyCapsule} ${LATENCY_TONE_CLASS[getLatencyTone(row.latencyMs)]}`}
+                              title={latencyHint}
+                            >
+                              <span className={styles.latencyDot} aria-hidden="true" />
+                              {formatDurationMs(row.latencyMs)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className={styles.requestEventsTokenCell}>
                         <div className={styles.cellPrimary}>
@@ -601,4 +463,6 @@ export function RequestEventsDetailsCard({
       )}
     </Card>
   );
-}
+});
+
+RequestEventsDetailsCard.displayName = 'RequestEventsDetailsCard';

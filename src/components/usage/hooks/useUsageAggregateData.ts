@@ -40,7 +40,7 @@ const buildExportFilename = (prefix: string, payload: UsageExportPayload) => {
 
 export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   const { t } = useTranslation();
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
 
   const [usage, setUsage] = useState<UsageAggregateSnapshot | null>(null);
   const [loading, setLoading] = useState(false);

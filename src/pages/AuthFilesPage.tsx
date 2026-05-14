@@ -1,12 +1,10 @@
 import {
   useCallback,
-  type CSSProperties,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  type ChangeEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -18,11 +16,8 @@ import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { IconFilterAll, IconRefreshCw } from '@/components/ui/icons';
+import { IconRefreshCw } from '@/components/ui/icons';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { copyToClipboard } from '@/utils/clipboard';
 import { resolveAuthProvider } from '@/utils/quota';
 import { authFilesApi } from '@/services/api';
@@ -31,8 +26,6 @@ import {
   MIN_CARD_PAGE_SIZE,
   QUOTA_PROVIDER_TYPES,
   clampCardPageSize,
-  getAuthFileIcon,
-  getTypeColor,
   getTypeLabel,
   hasAuthFileStatusMessage,
   isRuntimeOnlyAuthFile,
@@ -44,6 +37,8 @@ import {
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
 import { AuthFileModelsModal } from '@/features/authFiles/components/AuthFileModelsModal';
 import { AuthFilesPrefixProxyEditorModal } from '@/features/authFiles/components/AuthFilesPrefixProxyEditorModal';
+import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
+import { SearchToolbar } from '@/features/authFiles/components/SearchToolbar';
 import { OAuthExcludedCard } from '@/features/authFiles/components/OAuthExcludedCard';
 import { OAuthModelAliasCard } from '@/features/authFiles/components/OAuthModelAliasCard';
 import {
@@ -80,6 +75,7 @@ const BATCH_BAR_BASE_TRANSFORM = 'translateX(-50%)';
 const BATCH_BAR_HIDDEN_TRANSFORM = 'translateX(-50%) translateY(56px)';
 const DEFAULT_REGULAR_PAGE_SIZE = 9;
 const DEFAULT_COMPACT_PAGE_SIZE = 12;
+const PAGE_SIZE_PRESETS = [3, 6, 9, 12, 15, 18];
 
 const escapeWildcardSearchSegment = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -152,7 +148,6 @@ export function AuthFilesPage() {
     regular: DEFAULT_REGULAR_PAGE_SIZE,
     compact: DEFAULT_COMPACT_PAGE_SIZE,
   });
-  const [pageSizeInput, setPageSizeInput] = useState('9');
   const [viewMode, setViewMode] = useState<'diagram' | 'list'>('list');
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
@@ -356,10 +351,6 @@ export function AuthFilesPage() {
   ]);
 
   useEffect(() => {
-    setPageSizeInput(String(pageSize));
-  }, [pageSize]);
-
-  useEffect(() => {
     if (previousLoadingRef.current && !loading) {
       setDisplayFilterRefreshVersion((version) => version + 1);
     }
@@ -375,42 +366,6 @@ export function AuthFilesPage() {
     [compactMode]
   );
 
-  const commitPageSizeInput = (rawValue: string) => {
-    const trimmed = rawValue.trim();
-    if (!trimmed) {
-      setPageSizeInput(String(pageSize));
-      return;
-    }
-
-    const value = Number(trimmed);
-    if (!Number.isFinite(value)) {
-      setPageSizeInput(String(pageSize));
-      return;
-    }
-
-    const next = clampCardPageSize(value);
-    setCurrentModePageSize(next);
-    setPageSizeInput(String(next));
-    setPage(1);
-  };
-
-  const handlePageSizeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.currentTarget.value;
-    setPageSizeInput(rawValue);
-
-    const trimmed = rawValue.trim();
-    if (!trimmed) return;
-
-    const parsed = Number(trimmed);
-    if (!Number.isFinite(parsed)) return;
-
-    const rounded = Math.round(parsed);
-    if (rounded < MIN_CARD_PAGE_SIZE || rounded > MAX_CARD_PAGE_SIZE) return;
-
-    setCurrentModePageSize(rounded);
-    setPage(1);
-  };
-
   const handleSortModeChange = useCallback(
     (value: string) => {
       if (!isAuthFilesSortMode(value) || value === sortMode) return;
@@ -424,6 +379,38 @@ export function AuthFilesPage() {
   const handleHeaderRefresh = useCallback(async () => {
     await Promise.all([loadFiles(), refreshKeyStats(), loadExcluded(), loadModelAlias()]);
   }, [loadFiles, refreshKeyStats, loadExcluded, loadModelAlias]);
+
+  const handleToggleProblemOnly = useCallback(() => {
+    setProblemOnly((prev) => !prev);
+    setPage(1);
+  }, []);
+  const handleToggleDisabledOnly = useCallback(() => {
+    setDisabledOnly((prev) => !prev);
+    setPage(1);
+  }, []);
+  const handleTogglePremiumOnly = useCallback(() => {
+    setPremiumOnly((prev) => !prev);
+    setPage(1);
+  }, []);
+  const handleToggleCompactMode = useCallback(() => {
+    setCompactMode((prev) => !prev);
+  }, []);
+  const handleSearchValue = useCallback((value: string) => {
+    setSearch(value);
+    setPage(1);
+  }, []);
+  const handleFilterTagSelect = useCallback((value: string) => {
+    setFilter(value);
+    setPage(1);
+  }, []);
+  const handlePageSizeCommit = useCallback(
+    (next: number) => {
+      const clamped = clampCardPageSize(next);
+      setCurrentModePageSize(clamped);
+      setPage(1);
+    },
+    [setCurrentModePageSize]
+  );
 
   useHeaderRefresh(handleHeaderRefresh);
 
@@ -902,58 +889,6 @@ export function AuthFilesPage() {
     []
   );
 
-  const renderFilterTags = () => (
-    <div className={styles.filterRail}>
-      <div className={styles.filterTags}>
-        {existingTypes.map((type) => {
-          const isActive = filter === type;
-          const iconSrc = getAuthFileIcon(type, resolvedTheme);
-          const color =
-            type === 'all'
-              ? { bg: 'var(--bg-tertiary)', text: 'var(--text-primary)' }
-              : getTypeColor(type, resolvedTheme);
-          const buttonStyle = {
-            '--filter-color': color.text,
-            '--filter-surface': color.bg,
-            '--filter-active-text': resolvedTheme === 'dark' ? '#111827' : '#ffffff',
-          } as CSSProperties;
-
-          return (
-            <button
-              key={type}
-              className={`${styles.filterTag} ${isActive ? styles.filterTagActive : ''}`}
-              style={buttonStyle}
-              onClick={() => {
-                setFilter(type);
-                setPage(1);
-              }}
-            >
-              <span className={styles.filterTagLabel}>
-                {type === 'all' ? (
-                  <span className={`${styles.filterTagIconWrap} ${styles.filterAllIconWrap}`}>
-                    <IconFilterAll className={styles.filterAllIcon} size={16} />
-                  </span>
-                ) : (
-                  <span className={styles.filterTagIconWrap}>
-                    {iconSrc ? (
-                      <img src={iconSrc} alt="" className={styles.filterTagIcon} />
-                    ) : (
-                      <span className={styles.filterTagIconFallback}>
-                        {getTypeLabel(t, type).slice(0, 1).toUpperCase()}
-                      </span>
-                    )}
-                  </span>
-                )}
-                <span className={styles.filterTagText}>{getTypeLabel(t, type)}</span>
-              </span>
-              <span className={styles.filterTagCount}>{typeCounts[type] ?? 0}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-
   const titleNode = (
     <div className={styles.titleWrapper}>
       <span>{t('auth_files.title_section')}</span>
@@ -1023,112 +958,69 @@ export function AuthFilesPage() {
         {error && <div className={styles.errorBox}>{error}</div>}
 
         <div className={styles.filterSection}>
-          {renderFilterTags()}
+          <FilterTagsRail
+            types={existingTypes}
+            activeFilter={filter}
+            typeCounts={typeCounts}
+            resolvedTheme={resolvedTheme}
+            onSelect={handleFilterTagSelect}
+          />
 
           <div className={styles.filterContent}>
             <div className={styles.filterControlsPanel}>
-              <div className={styles.filterControls}>
-                <div className={styles.filterItem}>
-                  <label>{t('auth_files.search_label')}</label>
-                  <Input
-                    value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value);
-                      setPage(1);
-                    }}
-                    placeholder={t('auth_files.search_placeholder')}
-                  />
-                </div>
-                <div className={styles.filterItem}>
-                  <label>{t('auth_files.page_size_label')}</label>
-                  <input
-                    className={styles.pageSizeSelect}
-                    type="number"
-                    min={MIN_CARD_PAGE_SIZE}
-                    max={MAX_CARD_PAGE_SIZE}
-                    step={1}
-                    value={pageSizeInput}
-                    onChange={handlePageSizeChange}
-                    onBlur={(e) => commitPageSizeInput(e.currentTarget.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.currentTarget.blur();
-                      }
-                    }}
-                  />
-                </div>
-                <div className={styles.filterItem}>
-                  <label>{t('auth_files.sort_label')}</label>
-                  <Select
-                    className={styles.sortSelect}
-                    value={sortMode}
-                    options={sortOptions}
-                    onChange={handleSortModeChange}
-                    ariaLabel={t('auth_files.sort_label')}
-                    fullWidth
-                  />
-                </div>
-                <div className={`${styles.filterItem} ${styles.filterToggleItem}`}>
-                  <label>{t('auth_files.display_options_label')}</label>
-                  <div className={styles.filterToggleGroup}>
-                    <div className={styles.filterToggleCard}>
-                      <ToggleSwitch
-                        checked={problemOnly}
-                        onChange={(value) => {
-                          setProblemOnly(value);
-                          setPage(1);
-                        }}
-                        ariaLabel={t('auth_files.problem_filter_only')}
-                        label={
-                          <span className={styles.filterToggleLabel}>
-                            {t('auth_files.problem_filter_only')}
-                          </span>
-                        }
-                      />
-                    </div>
-                    <div className={styles.filterToggleCard}>
-                      <ToggleSwitch
-                        checked={disabledOnly}
-                        onChange={(value) => {
-                          setDisabledOnly(value);
-                          setPage(1);
-                        }}
-                        ariaLabel={t('auth_files.disabled_filter_only')}
-                        label={
-                          <span className={styles.filterToggleLabel}>
-                            {t('auth_files.disabled_filter_only')}
-                          </span>
-                        }
-                      />
-                    </div>
-                    <div className={styles.filterToggleCard}>
-                      <ToggleSwitch
-                        checked={premiumOnly}
-                        onChange={(value) => {
-                          setPremiumOnly(value);
-                          setPage(1);
-                        }}
-                        ariaLabel={t('auth_files.premium_filter_only')}
-                        label={
-                          <span className={styles.filterToggleLabel}>
-                            {t('auth_files.premium_filter_only')}
-                          </span>
-                        }
-                      />
-                    </div>
-                    <div className={styles.filterToggleCard}>
-                      <ToggleSwitch
-                        checked={compactMode}
-                        onChange={(value) => setCompactMode(value)}
-                        ariaLabel={t('auth_files.compact_mode_label')}
-                        label={
-                          <span className={styles.filterToggleLabel}>
-                            {t('auth_files.compact_mode_label')}
-                          </span>
-                        }
-                      />
-                    </div>
-                  </div>
+              <SearchToolbar
+                search={search}
+                onSearchChange={handleSearchValue}
+                searchPlaceholder={t('auth_files.search_placeholder')}
+                sortValue={sortMode}
+                sortOptions={sortOptions}
+                onSortChange={handleSortModeChange}
+                sortLabel={t('auth_files.sort_label')}
+                pageSize={pageSize}
+                pageSizePresets={PAGE_SIZE_PRESETS}
+                pageSizeMin={MIN_CARD_PAGE_SIZE}
+                pageSizeMax={MAX_CARD_PAGE_SIZE}
+                onPageSizeChange={handlePageSizeCommit}
+                pageSizeLabel={t('auth_files.page_size_label')}
+              />
+
+              <div className={styles.filterChipRow}>
+                <span className={styles.filterChipRowLabel}>
+                  {t('auth_files.display_options_label')}
+                </span>
+                <div className={styles.filterChipGroup} role="group">
+                  <button
+                    type="button"
+                    className={`${styles.filterChip} ${problemOnly ? styles.filterChipActive : ''}`}
+                    onClick={handleToggleProblemOnly}
+                    aria-pressed={problemOnly}
+                  >
+                    {t('auth_files.problem_filter_only')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterChip} ${disabledOnly ? styles.filterChipActive : ''}`}
+                    onClick={handleToggleDisabledOnly}
+                    aria-pressed={disabledOnly}
+                  >
+                    {t('auth_files.disabled_filter_only')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterChip} ${premiumOnly ? styles.filterChipActive : ''}`}
+                    onClick={handleTogglePremiumOnly}
+                    aria-pressed={premiumOnly}
+                  >
+                    {t('auth_files.premium_filter_only')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterChip} ${compactMode ? styles.filterChipActive : ''}`}
+                    onClick={handleToggleCompactMode}
+                    aria-pressed={compactMode}
+                  >
+                    {t('auth_files.compact_mode_label')}
+                  </button>
                 </div>
               </div>
             </div>

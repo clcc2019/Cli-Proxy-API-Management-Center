@@ -297,6 +297,43 @@
   }
 }
 
+.requestLogsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 4px;
+}
+
+.requestLogsTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.requestLogsHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  :global(.btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.requestLogsSubtle {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .headerActions {
   display: flex;
   align-items: center;
@@ -1630,17 +1667,118 @@
   max-width: 100%;
   overflow: auto;
   overscroll-behavior-x: contain;
-  max-height: 460px;
+  // 自适应高度：随视口扩展，预留 ~280px 给页头/卡头/计数行/页边距
+  // 同时设置 min/max 边界，避免在超小或超大屏上变形
+  max-height: clamp(360px, calc(100vh - 280px), 1200px);
   border: 1px solid var(--border-color);
   border-radius: $radius-md;
   -webkit-overflow-scrolling: touch;
 
   .table {
     min-width: 760px;
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+      box-shadow: inset 0 -1px 0 var(--border-color);
+      border-bottom-color: transparent;
+    }
+
+    tbody tr {
+      transition:
+        background-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    tbody tr:hover {
+      background-color: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--primary-color) 60%, transparent);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
   }
 
   @include mobile {
-    max-height: 420px;
+    max-height: clamp(320px, calc(100vh - 220px), 800px);
+  }
+}
+
+.requestEventsRowFailed {
+  background-color: color-mix(in srgb, var(--warning-color) 6%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--warning-color) 55%, transparent);
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--warning-color) 10%, transparent) !important;
+    box-shadow: inset 3px 0 0 var(--warning-color) !important;
+  }
+}
+
+.requestEventsSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 4px;
+}
+
+.requestEventsSkeletonRow {
+  display: grid;
+  grid-template-columns: 160px minmax(120px, 1fr) minmax(180px, 1.6fr) 140px minmax(110px, 1fr) 80px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+.requestEventsSkeletonBlock {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--bg-tertiary) 70%, transparent) 0%,
+    color-mix(in srgb, var(--bg-tertiary) 95%, white 5%) 50%,
+    color-mix(in srgb, var(--bg-tertiary) 70%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: requestEventsSkeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.requestEventsSkeletonBlockShort {
+  width: 60%;
+}
+
+.requestEventsSkeletonBlockTiny {
+  width: 40%;
+  height: 9px;
+  margin-top: 6px;
+}
+
+@keyframes requestEventsSkeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .requestEventsSkeletonBlock {
+    animation: none;
   }
 }
 
@@ -1725,6 +1863,11 @@
   white-space: nowrap;
 }
 
+.requestEventsStatusCell {
+  min-width: 180px;
+  white-space: nowrap;
+}
+
 .requestEventsCostCell {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1740,6 +1883,53 @@
   color: var(--text-secondary);
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
+}
+
+.latencyCapsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 7px;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.latencyDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 18%, transparent);
+  flex-shrink: 0;
+}
+
+.latencyCapsuleNormal {
+  color: var(--success-badge-text, #065f46);
+  background: color-mix(in srgb, var(--success-color) 14%, transparent);
+  border-color: color-mix(in srgb, var(--success-color) 32%, transparent);
+}
+
+.latencyCapsuleSlow {
+  color: var(--quota-medium-color, #b97a00);
+  background: color-mix(in srgb, var(--quota-medium-color, #e0aa14) 16%, transparent);
+  border-color: color-mix(in srgb, var(--quota-medium-color, #e0aa14) 36%, transparent);
+}
+
+.latencyCapsuleVerySlow {
+  color: var(--failure-badge-text, #8a3a30);
+  background: color-mix(in srgb, var(--warning-color) 16%, transparent);
+  border-color: color-mix(in srgb, var(--warning-color) 38%, transparent);
 }
 
 @keyframes deferredShimmer {
@@ -1779,6 +1969,35 @@
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.requestEventsResultButton {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.96);
+    box-shadow: 0 4px 10px -6px color-mix(in srgb, var(--warning-color) 50%, transparent);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring, var(--warning-border));
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
 }
 
 .chartLineCard {

@@ -12,7 +12,8 @@ const ANIMATION_DURATION = 300; // ms
 
 export function NotificationContainer() {
   const { t } = useTranslation();
-  const { notifications, removeNotification } = useNotificationStore();
+  const notifications = useNotificationStore((state) => state.notifications);
+  const removeNotification = useNotificationStore((state) => state.removeNotification);
   const [animatedNotifications, setAnimatedNotifications] = useState<AnimatedNotification[]>([]);
   const prevNotificationsRef = useRef<Notification[]>([]);
 

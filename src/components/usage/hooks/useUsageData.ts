@@ -34,7 +34,7 @@ export interface UseUsageDataReturn {
 
 export function useUsageData(): UseUsageDataReturn {
   const { t } = useTranslation();
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const usageSnapshot = useUsageStatsStore((state) => state.usage);
   const loading = useUsageStatsStore((state) => state.loading);
   const storeError = useUsageStatsStore((state) => state.error);

@@ -70,7 +70,8 @@ const compareVersions = (latest?: string | null, current?: string | null) => {
 
 export function SystemPage() {
   const { t, i18n } = useTranslation();
-  const { showNotification, showConfirmation } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const auth = useAuthStore();
   const config = useConfigStore((state) => state.config);

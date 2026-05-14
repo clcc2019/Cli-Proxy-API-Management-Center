@@ -275,7 +275,7 @@ function scheduleAuthenticatedRoutePreload() {
 
 export function MainLayout() {
   const { t } = useTranslation();
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const location = useLocation();
 
   const apiBase = useAuthStore((state) => state.apiBase);

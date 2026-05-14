@@ -105,7 +105,7 @@ const sortToggleableProviderConfigs = <T extends { priority?: number | null; exc
 export function AiProvidersPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { showNotification } = useNotificationStore();
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
 
