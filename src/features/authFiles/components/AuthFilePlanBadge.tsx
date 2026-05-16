@@ -10,15 +10,21 @@ type AuthFilePlanBadgeProps = {
 export function AuthFilePlanBadge(props: AuthFilePlanBadgeProps) {
   const { badge } = props;
   const { t } = useTranslation();
+  const planLabel = t(badge.labelKey, { defaultValue: badge.fallbackLabel });
+  const text = t('auth_files.plan_badge', {
+    plan: planLabel,
+    defaultValue: `Plan: ${planLabel}`,
+  });
 
   return (
     <span
+      title={text}
       className={`${styles.planBadge} ${
         badge.kind === 'plus' ? styles.planBadgePlus : styles.planBadgePro
       }`}
     >
       {badge.kind === 'plus' && <IconDiamond className={styles.planBadgeIcon} size={12} />}
-      <span>{t(badge.labelKey, { defaultValue: badge.fallbackLabel })}</span>
+      <span className={styles.planBadgeText}>{text}</span>
     </span>
   );
 }

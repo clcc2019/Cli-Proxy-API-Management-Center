@@ -12,6 +12,10 @@
   gap: clamp(14px, 1.4vw + 6px, 22px);
   position: relative;
   min-width: 0;
+
+  @include mobile {
+    gap: 12px;
+  }
 }
 
 // =============================================================================
@@ -48,6 +52,14 @@
   @include tablet {
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 12px;
   }
 }
 
@@ -105,6 +117,11 @@
   @include tablet {
     justify-content: space-between;
   }
+
+  @include mobile {
+    justify-content: flex-start;
+    gap: 8px;
+  }
 }
 
 .lastUpdatedPill {
@@ -119,6 +136,11 @@
   border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+
+  @include mobile {
+    max-width: 100%;
+    white-space: normal;
+  }
 }
 
 .lastUpdatedDot {
@@ -162,6 +184,15 @@
   @include tablet {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  @include mobile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+
+    @media (max-width: 420px) {
+      grid-template-columns: 1fr;
+    }
+  }
 }
 
 .kpiCard {
@@ -195,6 +226,12 @@
 
   > * {
     position: relative;
+  }
+
+  @include mobile {
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
   }
 }
 
@@ -310,11 +347,11 @@
 }
 
 // =============================================================================
-// Filter / search bar
+// Filter bar
 // =============================================================================
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
   gap: 10px 14px;
   padding: 10px 12px;
@@ -322,73 +359,21 @@
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   background: var(--surface-raised);
   box-shadow: var(--shadow-card);
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+  }
 
   @include tablet {
     grid-template-columns: 1fr;
   }
-}
 
-.searchWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.searchInput {
-  width: 100%;
-  height: 36px;
-  padding: 0 36px 0 36px;
-  border-radius: 9px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
-  color: var(--text-primary);
-  font-size: 13.5px;
-  transition: border-color $transition-fast, box-shadow $transition-fast,
-    background-color $transition-fast;
-
-  &::placeholder {
-    color: var(--text-tertiary);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background: var(--surface-raised);
-    box-shadow: 0 0 0 3px var(--focus-ring);
-  }
-}
-
-.searchIconLeading {
-  position: absolute;
-  left: 11px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-tertiary);
-  pointer-events: none;
-  display: inline-flex;
-}
-
-.searchClear {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: color $transition-fast, background-color $transition-fast;
-
-  &:hover {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
+  @include mobile {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
   }
 }
 
@@ -401,6 +386,14 @@
   background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
   gap: 0;
   align-self: stretch;
+  justify-self: start;
+
+  @include mobile {
+    width: 100%;
+    align-self: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .statusFilterButton {
@@ -417,16 +410,44 @@
   align-items: center;
   gap: 6px;
   transition: background-color $transition-fast, color $transition-fast,
-    box-shadow $transition-fast;
+    box-shadow $transition-fast, transform $transition-fast;
   white-space: nowrap;
+  min-width: 0;
+  position: relative;
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: var(--text-primary);
+    background: color-mix(in srgb, var(--bg-tertiary) 50%, transparent);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 45%, transparent);
   }
 
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  svg {
+    transition: transform $transition-fast;
+  }
+
+  &:hover:not(:disabled) svg {
+    transform: scale(1.08);
+  }
+
+  @include mobile {
+    flex: 1 0 86px;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
   }
 }
 
@@ -434,6 +455,25 @@
   background: var(--surface-raised);
   color: var(--text-primary);
   box-shadow: var(--shadow-card);
+  animation: requestLogsFilterPop 240ms cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+@keyframes requestLogsFilterPop {
+  0% {
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusFilterButtonActive {
+    animation: none;
+  }
 }
 
 .statusFilterCount {
@@ -448,6 +488,8 @@
   color: var(--text-tertiary);
   font-size: 11px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: background-color $transition-fast, color $transition-fast;
 
   .statusFilterButtonActive & {
     background: color-mix(in srgb, var(--primary-color) 18%, transparent);
@@ -487,9 +529,17 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-align: right;
+  justify-self: end;
 
   @include tablet {
     text-align: left;
+    justify-self: start;
+  }
+
+  @include mobile {
+    white-space: normal;
+    text-align: left;
+    justify-self: start;
   }
 }
 
@@ -501,6 +551,13 @@
   flex-direction: column;
   gap: 8px;
   padding: 6px 0;
+  // Hint browsers we'll be animating mounted children — keeps frame budget tidy.
+  contain: layout style;
+
+  @include mobile {
+    gap: 6px;
+    padding: 2px 0;
+  }
 }
 
 .eventListHeader {
@@ -521,6 +578,21 @@
   @include tablet {
     display: none;
   }
+
+  @include mobile {
+    display: none;
+  }
+}
+
+@keyframes requestLogsRowEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .eventRow {
@@ -538,12 +610,41 @@
   background: var(--surface-raised);
   box-shadow: var(--shadow-card);
   transition: transform $transition-fast, box-shadow $transition-fast,
-    border-color $transition-fast;
+    border-color $transition-fast, background-color $transition-fast;
+  // Skip layout/paint for off-screen rows; keeps long lists smooth.
+  content-visibility: auto;
+  contain-intrinsic-size: 64px;
+  animation: requestLogsRowEnter 220ms ease-out both;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--primary-color) 7%, transparent),
+      transparent 55%
+    );
+    transition: opacity $transition-fast;
+  }
 
   &:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-card-hover);
     border-color: color-mix(in srgb, var(--primary-color) 30%, var(--border-color));
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--primary-color) 40%, var(--border-color));
+    box-shadow: var(--shadow-card-hover),
+      0 0 0 2px color-mix(in srgb, var(--primary-color) 30%, transparent);
   }
 
   @include tablet {
@@ -556,6 +657,48 @@
       'stripe tokens'
       'stripe cost';
     gap: 8px 14px;
+    contain-intrinsic-size: 220px;
+  }
+
+  @include mobile {
+    grid-template-columns: 3px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'stripe time status'
+      'stripe model model'
+      'stripe credential credential'
+      'stripe tokens cost';
+    align-items: start;
+    gap: 5px 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    contain-intrinsic-size: 130px;
+
+    &:hover {
+      transform: none;
+    }
+
+    @media (max-width: 340px) {
+      grid-template-columns: 3px minmax(0, 1fr);
+      grid-template-areas:
+        'stripe time'
+        'stripe status'
+        'stripe model'
+        'stripe credential'
+        'stripe tokens'
+        'stripe cost';
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eventRow {
+    animation: none;
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
   }
 }
 
@@ -564,9 +707,23 @@
   width: 4px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--primary-color) 30%, transparent);
+  transition: background-color $transition-fast, transform $transition-fast;
+
+  .eventRow:hover & {
+    transform: scaleY(1.04);
+  }
 
   @include tablet {
     grid-area: stripe;
+  }
+
+  @include mobile {
+    grid-area: stripe;
+    width: 3px;
+
+    .eventRow:hover & {
+      transform: none;
+    }
   }
 }
 
@@ -576,6 +733,25 @@
 
 .eventRowFailed .eventStripe {
   background: var(--warning-color);
+  // Soft pulse on the stripe to draw the eye to failed rows.
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--warning-color) 50%, transparent);
+  animation: requestLogsFailedPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes requestLogsFailedPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--warning-color) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--warning-color) 18%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eventRowFailed .eventStripe {
+    animation: none;
+  }
 }
 
 .eventRowFailed {
@@ -597,6 +773,15 @@
     gap: 8px;
     overflow: visible;
   }
+
+  @include mobile {
+    grid-area: time;
+    flex-direction: row;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 3px 7px;
+    overflow: visible;
+  }
 }
 
 .eventTimePrimary {
@@ -608,6 +793,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+
+  @include mobile {
+    font-size: 13px;
+  }
 }
 
 .eventTimeSecondary {
@@ -618,6 +807,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+
+  @include mobile {
+    font-size: 11px;
+  }
 }
 
 .eventModel {
@@ -629,6 +822,10 @@
   @include tablet {
     grid-area: model;
   }
+
+  @include mobile {
+    grid-area: model;
+  }
 }
 
 .eventModelName {
@@ -636,7 +833,17 @@
   font-weight: 600;
   color: var(--text-primary);
   word-break: break-all;
+  overflow-wrap: anywhere;
   line-height: 1.3;
+
+  @include mobile {
+    font-size: 13px;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: normal;
+  }
 }
 
 .eventModelMeta {
@@ -650,6 +857,13 @@
   padding: 2px 8px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+
+  @include mobile {
+    display: none;
+  }
 }
 
 .eventCredential {
@@ -661,6 +875,10 @@
   @include tablet {
     grid-area: credential;
   }
+
+  @include mobile {
+    grid-area: credential;
+  }
 }
 
 .eventCredentialMain {
@@ -669,6 +887,7 @@
   gap: 6px;
   flex-wrap: wrap;
   min-width: 0;
+  max-width: 100%;
 }
 
 .eventCredentialName {
@@ -679,6 +898,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+
+  @include mobile {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+  }
 }
 
 .eventCredentialType {
@@ -691,6 +917,16 @@
   border-radius: 999px;
   border: 1px solid transparent;
   text-transform: lowercase;
+  transition: filter $transition-fast;
+
+  .eventRow:hover & {
+    filter: brightness(1.05) saturate(1.1);
+  }
+
+  @include mobile {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
 }
 
 .eventCredentialMeta {
@@ -700,18 +936,25 @@
   font-size: 11.5px;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
+
+  @include mobile {
+    display: none;
+  }
 }
 
 .eventCredentialMetaItem {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .eventCredentialKey {
   font-family: $font-mono;
   font-size: 11px;
   color: var(--text-tertiary);
+  overflow-wrap: anywhere;
 }
 
 .eventStatus {
@@ -727,6 +970,19 @@
     align-items: center;
     flex-wrap: wrap;
   }
+
+  @include mobile {
+    grid-area: status;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    @media (max-width: 340px) {
+      justify-content: flex-start;
+    }
+  }
 }
 
 .eventStatusBadge {
@@ -738,6 +994,16 @@
   font-size: 11.5px;
   font-weight: 600;
   border: 1px solid transparent;
+  min-width: 0;
+  white-space: nowrap;
+  transition: background-color $transition-fast, color $transition-fast,
+    border-color $transition-fast, transform $transition-fast;
+
+  @include mobile {
+    gap: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+  }
 }
 
 .eventStatusBadgeSuccess {
@@ -751,10 +1017,19 @@
   background: color-mix(in srgb, var(--warning-color) 14%, transparent);
   border-color: color-mix(in srgb, var(--warning-color) 36%, transparent);
   cursor: pointer;
-  transition: background-color $transition-fast;
 
   &:hover:not(:disabled) {
     background: color-mix(in srgb, var(--warning-color) 22%, transparent);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning-color) 35%, transparent);
   }
 
   &:disabled {
@@ -781,6 +1056,13 @@
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+  white-space: nowrap;
+
+  @include mobile {
+    gap: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+  }
 }
 
 .eventLatencyDot {
@@ -789,18 +1071,48 @@
   border-radius: 50%;
   background: currentColor;
   opacity: 0.65;
+  flex-shrink: 0;
 }
 
 .eventLatencySlow {
   color: #d97706;
   border-color: rgba(217, 119, 6, 0.3);
   background: rgba(217, 119, 6, 0.08);
+
+  .eventLatencyDot {
+    opacity: 1;
+    animation: requestLogsLatencyBlink 2s ease-in-out infinite;
+  }
 }
 
 .eventLatencyVerySlow {
   color: var(--warning-color);
   border-color: color-mix(in srgb, var(--warning-color) 36%, transparent);
   background: color-mix(in srgb, var(--warning-color) 10%, transparent);
+
+  .eventLatencyDot {
+    opacity: 1;
+    animation: requestLogsLatencyBlink 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes requestLogsLatencyBlink {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eventLatencySlow .eventLatencyDot,
+  .eventLatencyVerySlow .eventLatencyDot {
+    animation: none;
+  }
 }
 
 :global([data-theme='dark']) {
@@ -820,6 +1132,10 @@
   @include tablet {
     grid-area: tokens;
   }
+
+  @include mobile {
+    grid-area: tokens;
+  }
 }
 
 .eventTokensTotal {
@@ -828,6 +1144,10 @@
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
+
+  @include mobile {
+    font-size: 12.5px;
+  }
 }
 
 .eventTokensBreakdown {
@@ -837,6 +1157,11 @@
   font-size: 11px;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+
+  @include mobile {
+    display: none;
+  }
 }
 
 .eventTokensPart {
@@ -858,6 +1183,17 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 
+  @include mobile {
+    font-size: 12.5px;
+    grid-area: cost;
+    align-self: start;
+    text-align: right;
+
+    @media (max-width: 340px) {
+      text-align: left;
+    }
+  }
+
   @include tablet {
     grid-area: cost;
     text-align: left;
@@ -878,6 +1214,17 @@
   gap: 8px;
 }
 
+@keyframes requestLogsSkeletonEnter {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .skeletonRow {
   display: grid;
   grid-template-columns: 14px 168px minmax(0, 1.3fr) minmax(0, 1.4fr) auto minmax(
@@ -890,10 +1237,28 @@
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
   background: var(--surface-raised);
+  animation: requestLogsSkeletonEnter 280ms ease-out both;
 
   @include tablet {
     grid-template-columns: 14px 1fr;
     grid-auto-rows: minmax(14px, auto);
+  }
+
+  @include mobile {
+    grid-template-columns: 14px minmax(0, 1fr);
+    grid-auto-rows: minmax(14px, auto);
+    gap: 8px 12px;
+    padding: 12px;
+  }
+
+  > * {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonRow {
+    animation: none;
   }
 }
 
@@ -940,6 +1305,17 @@
   }
 }
 
+@keyframes requestLogsEmptyEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -951,6 +1327,18 @@
   background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
   text-align: center;
   gap: 10px;
+  animation: requestLogsEmptyEnter 320ms ease-out both;
+
+  @include mobile {
+    padding: 36px 16px;
+    border-radius: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emptyState {
+    animation: none;
+  }
 }
 
 .emptyStateIcon {
@@ -963,6 +1351,12 @@
   color: var(--text-tertiary);
   background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  transition: transform $transition-fast, color $transition-fast;
+
+  .emptyState:hover & {
+    color: var(--text-secondary);
+    transform: rotate(-4deg) scale(1.04);
+  }
 }
 
 .emptyStateTitle {
@@ -989,11 +1383,49 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  animation: requestLogsBannerEnter 260ms ease-out both;
+}
+
+@keyframes requestLogsBannerEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .errorBanner {
+    animation: none;
+  }
 }
 
 // =============================================================================
 // Initial loading overlay
 // =============================================================================
+@keyframes requestLogsOverlayEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes requestLogsOverlayPillEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .loadingOverlay {
   position: absolute;
   inset: 0;
@@ -1004,6 +1436,7 @@
   border-radius: 16px;
   backdrop-filter: blur(2px);
   z-index: 5;
+  animation: requestLogsOverlayEnter 200ms ease-out both;
 }
 
 .loadingOverlayContent {
@@ -1015,6 +1448,14 @@
   background: var(--surface-raised);
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   box-shadow: var(--shadow-soft);
+  animation: requestLogsOverlayPillEnter 280ms cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingOverlay,
+  .loadingOverlayContent {
+    animation: none;
+  }
 }
 
 .loadingOverlaySpinner {

@@ -36,6 +36,24 @@ function normalizeApiKeyModelPatterns(raw: unknown): string[] {
   return normalized;
 }
 
+function parseBooleanFlag(raw: unknown): boolean | undefined {
+  if (typeof raw === 'boolean') return raw;
+  if (typeof raw === 'number') return raw !== 0;
+  if (typeof raw === 'string') {
+    const normalized = raw.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  }
+  return undefined;
+}
+
+function extractApiKeyDisabled(record: Record<string, unknown>): boolean {
+  const disabled = parseBooleanFlag(record.disabled ?? record.disable ?? record.isDisabled);
+  if (disabled !== undefined) return disabled;
+  const enabled = parseBooleanFlag(record.enabled ?? record.enable ?? record.isEnabled);
+  return enabled === undefined ? false : !enabled;
+}
+
 function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
   if (typeof raw === 'string') {
     const trimmed = raw.trim();
@@ -44,6 +62,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
           id: makeClientId(),
           apiKey: trimmed,
           note: '',
+          disabled: false,
           allowedModels: [],
           excludedModels: [],
         }
@@ -77,6 +96,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
     id: makeClientId(),
     apiKey,
     note,
+    disabled: extractApiKeyDisabled(record),
     allowedModels,
     excludedModels,
     ...(quota ? { quota } : {}),
@@ -610,6 +630,7 @@ function areApiKeyEntriesEqual(left: VisualApiKeyEntry[], right: VisualApiKeyEnt
     if (!rightEntry) return false;
     if (leftEntry.apiKey !== rightEntry.apiKey) return false;
     if ((leftEntry.note ?? '') !== (rightEntry.note ?? '')) return false;
+    if (Boolean(leftEntry.disabled) !== Boolean(rightEntry.disabled)) return false;
     if (!areStringArraysEqual(leftEntry.allowedModels, rightEntry.allowedModels)) return false;
     if (!areStringArraysEqual(leftEntry.excludedModels, rightEntry.excludedModels)) return false;
     if (

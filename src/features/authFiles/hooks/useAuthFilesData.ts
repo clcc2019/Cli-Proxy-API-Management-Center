@@ -122,6 +122,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const batchStatusPendingRef = useRef(false);
+  const loadFilesInFlightRef = useRef<Promise<void> | null>(null);
   const selectionCount = selectedFiles.size;
   const toggleSelect = useCallback((name: string) => {
     setSelectedFiles((prev) => {
@@ -235,16 +236,32 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   }, [files, selectedFiles.size]);
 
   const loadFiles = useCallback(async () => {
-    setLoading(true);
-    setError('');
+    if (loadFilesInFlightRef.current) {
+      await loadFilesInFlightRef.current;
+      return;
+    }
+
+    const request = (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await authFilesApi.list();
+        setFiles(data?.files || []);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    loadFilesInFlightRef.current = request;
     try {
-      const data = await authFilesApi.list();
-      setFiles(data?.files || []);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');
-      setError(errorMessage);
+      await request;
     } finally {
-      setLoading(false);
+      if (loadFilesInFlightRef.current === request) {
+        loadFilesInFlightRef.current = null;
+      }
     }
   }, [t]);
 

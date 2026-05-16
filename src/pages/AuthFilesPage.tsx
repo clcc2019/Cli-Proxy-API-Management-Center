@@ -13,13 +13,19 @@ import { animate } from 'motion/mini';
 import type { AnimationPlaybackControlsWithThen } from 'motion-dom';
 import { useInterval } from '@/hooks/useInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
+import { useEventCallback } from '@/hooks';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { IconRefreshCw } from '@/components/ui/icons';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { copyToClipboard } from '@/utils/clipboard';
-import { resolveAuthProvider } from '@/utils/quota';
+import {
+  normalizePlanType,
+  resolveAuthProvider,
+  resolveCodexPlanType,
+  resolveCodexSubscriptionActiveUntil,
+} from '@/utils/quota';
 import { authFilesApi } from '@/services/api';
 import {
   MAX_CARD_PAGE_SIZE,
@@ -77,6 +83,21 @@ const DEFAULT_REGULAR_PAGE_SIZE = 9;
 const DEFAULT_COMPACT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [3, 6, 9, 12, 15, 18];
 
+const scheduleAuthFilesDeferredTask = (callback: () => void): (() => void) => {
+  if (typeof window === 'undefined') {
+    callback();
+    return () => {};
+  }
+
+  if (typeof window.requestIdleCallback === 'function') {
+    const idleId = window.requestIdleCallback(callback, { timeout: 2_000 });
+    return () => window.cancelIdleCallback?.(idleId);
+  }
+
+  const timeoutId = window.setTimeout(callback, 400);
+  return () => window.clearTimeout(timeoutId);
+};
+
 const escapeWildcardSearchSegment = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const buildWildcardSearch = (value: string): RegExp | null => {
@@ -92,22 +113,70 @@ type AuthFileSortSnapshot = {
   disabled: boolean;
   provider: string;
   priority: number;
+  subscriptionExpiryMs: number | null;
+  subscriptionSortRank: number;
 };
 
-const getAuthFileSortSnapshot = (file: AuthFileItem): AuthFileSortSnapshot => ({
-  disabled: file.disabled === true,
-  provider: normalizeProviderKey(String(file.provider ?? file.type ?? 'unknown')),
-  priority: parsePriorityValue(file.priority ?? file['priority']) ?? 0,
-});
+const normalizeSubscriptionExpiryMs = (value: unknown): number | null => {
+  const normalizeTimestamp = (timestamp: number): number | null => {
+    if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
+    return timestamp < 1_000_000_000_000 ? timestamp * 1000 : timestamp;
+  };
+
+  if (typeof value === 'number') {
+    return normalizeTimestamp(value);
+  }
+  if (typeof value !== 'string') return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const numeric = Number(trimmed);
+  if (Number.isFinite(numeric)) {
+    return normalizeTimestamp(numeric);
+  }
+
+  const parsed = Date.parse(trimmed);
+  return Number.isNaN(parsed) ? null : normalizeTimestamp(parsed);
+};
+
+const getAuthFileSortSnapshot = (
+  file: AuthFileItem,
+  planSources?: AuthFilePlanSources
+): AuthFileSortSnapshot => {
+  const planType = normalizePlanType(
+    planSources?.codexQuota[file.name]?.planType ?? resolveCodexPlanType(file)
+  );
+  const subscriptionExpiryMs = normalizeSubscriptionExpiryMs(
+    resolveCodexSubscriptionActiveUntil(file)
+  );
+  const isFreePlan = planType === 'free';
+  const hasKnownPlan = Boolean(planType);
+  const subscriptionSortRank =
+    isFreePlan || (!hasKnownPlan && subscriptionExpiryMs === null)
+      ? 2
+      : subscriptionExpiryMs === null
+        ? 1
+        : 0;
+
+  return {
+    disabled: file.disabled === true,
+    provider: normalizeProviderKey(String(file.provider ?? file.type ?? 'unknown')),
+    priority: parsePriorityValue(file.priority ?? file['priority']) ?? 0,
+    subscriptionExpiryMs,
+    subscriptionSortRank,
+  };
+};
 
 const compareAuthFiles = (
   left: AuthFileItem,
   right: AuthFileItem,
   sortMode: AuthFilesSortMode,
-  sortSnapshot?: Record<string, AuthFileSortSnapshot>
+  sortSnapshot?: Record<string, AuthFileSortSnapshot>,
+  planSources?: AuthFilePlanSources
 ) => {
-  const leftSnapshot = sortSnapshot?.[left.name] ?? getAuthFileSortSnapshot(left);
-  const rightSnapshot = sortSnapshot?.[right.name] ?? getAuthFileSortSnapshot(right);
+  const leftSnapshot = sortSnapshot?.[left.name] ?? getAuthFileSortSnapshot(left, planSources);
+  const rightSnapshot = sortSnapshot?.[right.name] ?? getAuthFileSortSnapshot(right, planSources);
 
   if (leftSnapshot.disabled !== rightSnapshot.disabled) {
     return leftSnapshot.disabled ? 1 : -1;
@@ -120,6 +189,22 @@ const compareAuthFiles = (
   }
 
   if (sortMode === 'az') {
+    return compareAuthFilesByName(left, right);
+  }
+
+  if (sortMode === 'subscription_expiry') {
+    const rankCompare = leftSnapshot.subscriptionSortRank - rightSnapshot.subscriptionSortRank;
+    if (rankCompare !== 0) return rankCompare;
+
+    if (leftSnapshot.subscriptionSortRank === 0 && rightSnapshot.subscriptionSortRank === 0) {
+      const leftExpiry = leftSnapshot.subscriptionExpiryMs ?? Number.POSITIVE_INFINITY;
+      const rightExpiry = rightSnapshot.subscriptionExpiryMs ?? Number.POSITIVE_INFINITY;
+      const expiryCompare = leftExpiry - rightExpiry;
+      if (expiryCompare !== 0) return expiryCompare;
+    }
+
+    const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
+    if (providerCompare !== 0) return providerCompare;
     return compareAuthFilesByName(left, right);
   }
 
@@ -371,9 +456,8 @@ export function AuthFilesPage() {
       if (!isAuthFilesSortMode(value) || value === sortMode) return;
       setSortMode(value);
       setPage(1);
-      void loadFiles().catch(() => {});
     },
-    [loadFiles, sortMode]
+    [sortMode]
   );
 
   const handleHeaderRefresh = useCallback(async () => {
@@ -416,10 +500,25 @@ export function AuthFilesPage() {
 
   useEffect(() => {
     if (!isCurrentLayer) return;
-    loadFiles();
-    void loadKeyStats().catch(() => {});
-    loadExcluded();
-    loadModelAlias();
+
+    let cancelled = false;
+    let cancelDeferred: (() => void) | null = null;
+
+    const loadInitialData = async () => {
+      await loadFiles();
+      if (cancelled) return;
+
+      cancelDeferred = scheduleAuthFilesDeferredTask(() => {
+        void Promise.allSettled([loadKeyStats(), loadExcluded(), loadModelAlias()]);
+      });
+    };
+
+    void loadInitialData();
+
+    return () => {
+      cancelled = true;
+      cancelDeferred?.();
+    };
   }, [isCurrentLayer, loadFiles, loadKeyStats, loadExcluded, loadModelAlias]);
 
   useInterval(
@@ -438,6 +537,16 @@ export function AuthFilesPage() {
     });
     return Array.from(types);
   }, [files]);
+
+  const sortSnapshotByName = useMemo(() => {
+    const snapshot: Record<string, AuthFileSortSnapshot> = {};
+    files.forEach((file) => {
+      snapshot[file.name] = getAuthFileSortSnapshot(file, planSources);
+    });
+    return snapshot;
+  }, [files, planSources]);
+
+  const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
 
   const matchesSupplementalDisplayFilters = useCallback(
     (file: (typeof files)[number]) => {
@@ -464,26 +573,30 @@ export function AuthFilesPage() {
     [matchesSupplementalDisplayFilters, problemOnly]
   );
   const currentFilesMatchingDisplayFilters = useMemo(
-    () => files.filter(matchesDisplayFilters),
-    [files, matchesDisplayFilters]
+    () => (displayOptionsActive ? files.filter(matchesDisplayFilters) : files),
+    [displayOptionsActive, files, matchesDisplayFilters]
   );
   const currentDisplayFilterNames = useMemo(
     () => currentFilesMatchingDisplayFilters.map((file) => file.name),
     [currentFilesMatchingDisplayFilters]
   );
   const currentDisplayFilterSortSnapshot = useMemo(
-    () =>
-      Object.fromEntries(
-        currentFilesMatchingDisplayFilters.map((file) => [file.name, getAuthFileSortSnapshot(file)])
-      ),
-    [currentFilesMatchingDisplayFilters]
+    () => {
+      if (!displayOptionsActive) return {};
+      return Object.fromEntries(
+        currentFilesMatchingDisplayFilters.map((file) => [
+          file.name,
+          sortSnapshotByName[file.name] ?? getAuthFileSortSnapshot(file, planSources),
+        ])
+      );
+    },
+    [currentFilesMatchingDisplayFilters, displayOptionsActive, planSources, sortSnapshotByName]
   );
   const currentDisplayFilterNamesRef = useRef<string[]>([]);
   const currentDisplayFilterSortSnapshotRef = useRef<Record<string, AuthFileSortSnapshot>>({});
   currentDisplayFilterNamesRef.current = currentDisplayFilterNames;
   currentDisplayFilterSortSnapshotRef.current = currentDisplayFilterSortSnapshot;
   const fileByName = useMemo(() => new Map(files.map((file) => [file.name, file])), [files]);
-  const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
   const displayFilterSnapshotKey = displayOptionsActive
     ? [
         problemOnly ? 'problem' : 'normal',
@@ -526,6 +639,7 @@ export function AuthFilesPage() {
       { value: 'default', label: t('auth_files.sort_default') },
       { value: 'az', label: t('auth_files.sort_az') },
       { value: 'priority', label: t('auth_files.sort_priority') },
+      { value: 'subscription_expiry', label: t('auth_files.sort_subscription_expiry') },
     ],
     [t]
   );
@@ -569,10 +683,10 @@ export function AuthFilesPage() {
     const activeSortSnapshot =
       displayFilterSnapshotKey && displayFilterSnapshot?.key === displayFilterSnapshotKey
         ? displayFilterSnapshot.sortSnapshot
-        : undefined;
-    copy.sort((a, b) => compareAuthFiles(a, b, sortMode, activeSortSnapshot));
+        : sortSnapshotByName;
+    copy.sort((a, b) => compareAuthFiles(a, b, sortMode, activeSortSnapshot, planSources));
     return copy;
-  }, [displayFilterSnapshot, displayFilterSnapshotKey, filtered, sortMode]);
+  }, [displayFilterSnapshot, displayFilterSnapshotKey, filtered, planSources, sortMode, sortSnapshotByName]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -700,35 +814,32 @@ export function AuthFilesPage() {
     [showNotification, t]
   );
 
-  const handleCopyAccessToken = useCallback(
-    async (file: AuthFileItem) => {
-      const fileName = file.name;
-      if (accessTokenCopying[fileName]) return;
+  const handleCopyAccessToken = useEventCallback(async (file: AuthFileItem) => {
+    const fileName = file.name;
+    if (accessTokenCopying[fileName]) return;
 
-      setAccessTokenCopying((prev) => ({ ...prev, [fileName]: true }));
-      try {
-        const json = await authFilesApi.downloadJsonObject(fileName);
-        const accessToken = extractAuthFileAccessToken(json);
-        if (!accessToken) {
-          showNotification(t('auth_files.access_token_empty'), 'warning');
-          return;
-        }
-        await copyTextWithNotification(accessToken);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        showNotification(`${t('notification.copy_failed')}: ${errorMessage}`, 'error');
-      } finally {
-        setAccessTokenCopying((prev) => {
-          const next = { ...prev };
-          delete next[fileName];
-          return next;
-        });
+    setAccessTokenCopying((prev) => ({ ...prev, [fileName]: true }));
+    try {
+      const json = await authFilesApi.downloadJsonObject(fileName);
+      const accessToken = extractAuthFileAccessToken(json);
+      if (!accessToken) {
+        showNotification(t('auth_files.access_token_empty'), 'warning');
+        return;
       }
-    },
-    [accessTokenCopying, copyTextWithNotification, showNotification, t]
-  );
+      await copyTextWithNotification(accessToken);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      showNotification(`${t('notification.copy_failed')}: ${errorMessage}`, 'error');
+    } finally {
+      setAccessTokenCopying((prev) => {
+        const next = { ...prev };
+        delete next[fileName];
+        return next;
+      });
+    }
+  });
 
-  const handlePriorityChange = useCallback(
+  const handlePriorityChange = useEventCallback(
     async (file: AuthFileItem, priority: number) => {
       const fileName = file.name;
       if (disableControls || priorityUpdating[fileName]) return;
@@ -754,8 +865,7 @@ export function AuthFilesPage() {
           return next;
         });
       }
-    },
-    [applyLocalFilePatch, disableControls, priorityUpdating, showNotification, t]
+    }
   );
 
   const openExcludedEditor = useCallback(

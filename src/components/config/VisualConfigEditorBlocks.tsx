@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconCopy,
   IconFileText,
@@ -255,6 +256,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const [editingApiKeyId, setEditingApiKeyId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [noteValue, setNoteValue] = useState('');
+  const [disabledValue, setDisabledValue] = useState(false);
   const [allowedModelsValue, setAllowedModelsValue] = useState('');
   const [excludedModelsValue, setExcludedModelsValue] = useState('');
   const [quotaValues, setQuotaValues] = useState<QuotaInputValues>(() => emptyQuotaInputValues());
@@ -271,6 +273,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setEditingApiKeyId(null);
     setInputValue('');
     setNoteValue('');
+    setDisabledValue(false);
     setAllowedModelsValue('');
     setExcludedModelsValue('');
     setQuotaValues(emptyQuotaInputValues());
@@ -283,6 +286,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setEditingApiKeyId(apiKeyId);
     setInputValue(entry?.apiKey ?? '');
     setNoteValue(entry?.note ?? '');
+    setDisabledValue(Boolean(entry?.disabled));
     setAllowedModelsValue(excludedModelsToText(entry?.allowedModels));
     setExcludedModelsValue(excludedModelsToText(entry?.excludedModels));
     setQuotaValues(quotaToInputValues(entry?.quota));
@@ -294,6 +298,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setModalOpen(false);
     setInputValue('');
     setNoteValue('');
+    setDisabledValue(false);
     setAllowedModelsValue('');
     setExcludedModelsValue('');
     setQuotaValues(emptyQuotaInputValues());
@@ -303,6 +308,14 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
 
   const handleDelete = (apiKeyId: string) => {
     onChange(apiKeys.filter((entry) => entry.id !== apiKeyId));
+  };
+
+  const handleToggleDisabled = (apiKeyId: string, disabledState: boolean) => {
+    onChange(
+      apiKeys.map((entry) =>
+        entry.id === apiKeyId ? { ...entry, disabled: disabledState } : entry
+      )
+    );
   };
 
   const handleSave = () => {
@@ -326,6 +339,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
       id: editingApiKeyId ?? makeClientId(),
       apiKey: trimmed,
       note: noteValue.trim(),
+      disabled: disabledValue,
       allowedModels,
       excludedModels,
       ...(parsedQuota.quota ? { quota: parsedQuota.quota } : {}),
@@ -384,16 +398,29 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
         <div className={apiKeyCardStyles.cardList}>
           {apiKeys.map((entry, index) => {
             const note = (entry.note ?? '').trim();
+            const isDisabled = Boolean(entry.disabled);
             const hasRules = entry.allowedModels.length > 0 || entry.excludedModels.length > 0;
             const hasQuota = hasClientApiKeyQuota(entry.quota);
 
             return (
-              <div key={entry.id} className={apiKeyCardStyles.card}>
+              <div
+                key={entry.id}
+                className={`${apiKeyCardStyles.card} ${isDisabled ? apiKeyCardStyles.cardDisabled : ''}`}
+              >
                 <div className={apiKeyCardStyles.cardHeader}>
                   <span className={apiKeyCardStyles.avatar}>
                     <IconKey size={20} />
                   </span>
                   <span className={apiKeyCardStyles.indexBadge}>#{index + 1}</span>
+                  <span
+                    className={`${apiKeyCardStyles.statusBadge} ${isDisabled ? apiKeyCardStyles.statusBadgeDisabled : ''}`}
+                  >
+                    {t(
+                      isDisabled
+                        ? 'config_management.visual.api_keys.status_disabled'
+                        : 'config_management.visual.api_keys.status_enabled'
+                    )}
+                  </span>
                   {note && (
                     <span className={apiKeyCardStyles.noteBadge} title={note}>
                       {note}
@@ -430,6 +457,14 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
                 )}
 
                 <div className={apiKeyCardStyles.actions}>
+                  <ToggleSwitch
+                    checked={!isDisabled}
+                    onChange={(enabled) => handleToggleDisabled(entry.id, !enabled)}
+                    disabled={disabled}
+                    label={t('config_management.visual.api_keys.enabled_toggle')}
+                    ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
+                    className={apiKeyCardStyles.enabledSwitch}
+                  />
                   <Button
                     variant="secondary"
                     size="sm"
@@ -553,6 +588,16 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
           <div id={noteHintId} className="hint">
             {t('config_management.visual.api_keys.note_hint')}
           </div>
+        </div>
+        <div className="form-group">
+          <ToggleSwitch
+            checked={!disabledValue}
+            onChange={(enabled) => setDisabledValue(!enabled)}
+            disabled={disabled}
+            label={t('config_management.visual.api_keys.enabled_toggle')}
+            ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
+          />
+          <div className="hint">{t('config_management.visual.api_keys.disabled_hint')}</div>
         </div>
         <div className="form-group">
           <label>{t('config_management.visual.api_keys.allowed_models_label')}</label>

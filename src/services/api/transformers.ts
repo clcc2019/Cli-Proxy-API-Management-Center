@@ -135,6 +135,11 @@ const normalizeClientApiKeyConfig = (entry: unknown): ClientApiKeyConfig | null 
   if (!trimmed) return null;
 
   const config: ClientApiKeyConfig = { apiKey: trimmed };
+  const disabled = normalizeBoolean(record?.disabled ?? record?.disable ?? record?.isDisabled);
+  const enabled = normalizeBoolean(record?.enabled ?? record?.enable ?? record?.isEnabled);
+  if (disabled === true || (disabled === undefined && enabled === false)) {
+    config.disabled = true;
+  }
   const allowedModels = normalizeExcludedModels(
     record?.['allowed-models'] ?? record?.allowedModels ?? record?.['allowed_models']
   );

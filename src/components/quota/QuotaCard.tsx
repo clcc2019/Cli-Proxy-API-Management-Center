@@ -61,6 +61,7 @@ export function QuotaProgressBar({
 export interface QuotaRenderHelpers {
   styles: typeof styles;
   QuotaProgressBar: (props: QuotaProgressBarProps) => ReactElement;
+  item?: AuthFileItem;
 }
 
 interface QuotaCardProps<TState extends QuotaStatusState> {
@@ -150,7 +151,7 @@ export function QuotaCard<TState extends QuotaStatusState>({
             })}
           </div>
         ) : quota ? (
-          renderQuotaItems(quota, t, { styles, QuotaProgressBar })
+          renderQuotaItems(quota, t, { styles, QuotaProgressBar, item })
         ) : (
           <div className={styles.quotaMessage}>{t(idleMessageKey)}</div>
         )}

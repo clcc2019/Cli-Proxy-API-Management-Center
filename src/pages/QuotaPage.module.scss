@@ -496,6 +496,12 @@
   text-transform: capitalize;
 }
 
+.codexPlanExpiry {
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: none;
+}
+
 .premiumPlanValue {
   position: relative;
   display: inline-flex;

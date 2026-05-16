@@ -27,6 +27,25 @@ const normalizeModelPatterns = (value: unknown): string[] => {
   return normalized;
 };
 
+const parseBooleanFlag = (value: unknown): boolean | undefined => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  }
+  return undefined;
+};
+
+const readDisabledFlag = (record: Record<string, unknown> | null): boolean => {
+  if (!record) return false;
+  const disabled = parseBooleanFlag(record.disabled ?? record.disable ?? record.isDisabled);
+  if (disabled !== undefined) return disabled;
+  const enabled = parseBooleanFlag(record.enabled ?? record.enable ?? record.isEnabled);
+  return enabled === undefined ? false : !enabled;
+};
+
 const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
   if (entry === undefined || entry === null) return null;
   const record =
@@ -42,6 +61,9 @@ const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
   if (!trimmed) return null;
 
   const config: ClientApiKeyConfig = { apiKey: trimmed };
+  if (readDisabledFlag(record)) {
+    config.disabled = true;
+  }
   const noteRaw = record?.['note'] ?? record?.['remark'] ?? record?.['description'];
   const note = typeof noteRaw === 'string' ? noteRaw.trim() : '';
   if (note) {
@@ -73,17 +95,19 @@ const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
 const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<string, unknown> => {
   const apiKey = String(entry.apiKey ?? '').trim();
   const note = typeof entry.note === 'string' ? entry.note.trim() : '';
+  const disabled = Boolean(entry.disabled);
   const allowedModels = normalizeModelPatterns(entry.allowedModels);
   const excludedModels = normalizeModelPatterns(entry.excludedModels);
   const quota = serializeClientApiKeyQuota(entry.quota);
 
-  if (!note && !allowedModels.length && !excludedModels.length && !quota) {
+  if (!note && !disabled && !allowedModels.length && !excludedModels.length && !quota) {
     return apiKey;
   }
 
   return {
     'api-key': apiKey,
     ...(note ? { note } : {}),
+    ...(disabled ? { disabled: true } : {}),
     ...(allowedModels.length ? { 'allowed-models': allowedModels } : {}),
     ...(excludedModels.length ? { 'excluded-models': excludedModels } : {}),
     ...(quota ? { quota } : {}),

@@ -47,6 +47,12 @@ export interface AuthFileItem {
   accountId?: string;
   chatgpt_account_id?: string;
   chatgptAccountId?: string;
+  chatgpt_subscription_active_start?: string | number | null;
+  chatgptSubscriptionActiveStart?: string | number | null;
+  chatgpt_subscription_active_until?: string | number | null;
+  chatgptSubscriptionActiveUntil?: string | number | null;
+  subscription_expires_at?: string | number | null;
+  subscriptionExpiresAt?: string | number | null;
   id_token?: string | Record<string, unknown>;
   plan_type?: string;
   planType?: string;

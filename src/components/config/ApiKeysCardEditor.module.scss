@@ -80,6 +80,22 @@
   }
 }
 
+.cardDisabled {
+  border-color: color-mix(in srgb, var(--danger-color) 24%, var(--border-color));
+  background: color-mix(in srgb, var(--bg-secondary) 42%, var(--surface-raised));
+
+  .avatar {
+    color: var(--text-tertiary);
+    background: color-mix(in srgb, var(--bg-secondary) 78%, var(--surface-raised));
+    border-color: color-mix(in srgb, var(--border-color) 84%, transparent);
+    box-shadow: none;
+  }
+
+  .keyValue {
+    color: var(--text-secondary);
+  }
+}
+
 .cardHeader {
   position: relative;
   z-index: 1;
@@ -147,6 +163,27 @@
   color: color-mix(in srgb, var(--primary-color) 60%, var(--text-primary));
   background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-raised));
   border: 1px solid color-mix(in srgb, var(--primary-color) 26%, var(--border-color));
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  color: color-mix(in srgb, #15803d 72%, var(--text-primary));
+  background: color-mix(in srgb, #22c55e 12%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, #22c55e 28%, var(--border-color));
+}
+
+.statusBadgeDisabled {
+  color: color-mix(in srgb, var(--danger-color) 72%, var(--text-primary));
+  background: color-mix(in srgb, var(--danger-color) 10%, var(--surface-raised));
+  border-color: color-mix(in srgb, var(--danger-color) 30%, var(--border-color));
 }
 
 .keyRow {
@@ -242,6 +279,16 @@
   padding-top: 10px;
   border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   flex-wrap: wrap;
+}
+
+.enabledSwitch {
+  margin-right: auto;
+  min-height: 32px;
+
+  > span:last-child {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
 }
 
 .iconButton:global(.btn.btn-sm) {

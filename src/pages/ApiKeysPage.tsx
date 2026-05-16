@@ -18,6 +18,7 @@ const toVisualApiKeys = (keys: ClientApiKeyConfig[]): VisualApiKeyEntry[] =>
     id: makeClientId(),
     apiKey: entry.apiKey,
     note: typeof entry.note === 'string' ? entry.note : '',
+    disabled: Boolean(entry.disabled),
     allowedModels: normalizeModelPatterns(entry.allowedModels),
     excludedModels: normalizeModelPatterns(entry.excludedModels),
     ...(hasClientApiKeyQuota(entry.quota) ? { quota: entry.quota } : {}),
@@ -36,9 +37,10 @@ const toClientApiKeys = (keys: VisualApiKeyEntry[]): ClientApiKeyConfig[] =>
       return {
         apiKey,
         ...(note ? { note } : {}),
+        ...(entry.disabled ? { disabled: true } : {}),
         ...(allowedModels.length ? { allowedModels } : {}),
         ...(excludedModels.length ? { excludedModels } : {}),
-        ...(quota ? { quota: entry.quota } : {}),
+        ...(quota ? { quota } : {}),
       };
     })
     .filter(Boolean) as ClientApiKeyConfig[];
@@ -69,6 +71,7 @@ export function ApiKeysPage() {
     (entry) => entry.allowedModels.length > 0 || entry.excludedModels.length > 0
   ).length;
   const quotaCount = apiKeys.filter((entry) => hasClientApiKeyQuota(entry.quota)).length;
+  const disabledCount = apiKeys.filter((entry) => entry.disabled).length;
 
   useUnsavedChangesGuard({
     shouldBlock: isDirty && !saving,
@@ -206,6 +209,7 @@ export function ApiKeysPage() {
                     count: restrictedCount,
                     restricted: restrictedCount,
                     quota: quotaCount,
+                    disabled: disabledCount,
                   })}
                 </p>
               </div>

@@ -122,6 +122,10 @@ export interface CodexAdditionalRateLimit {
 export interface CodexUsagePayload {
   plan_type?: string;
   planType?: string;
+  subscription_expires_at?: string | number | null;
+  subscriptionExpiresAt?: string | number | null;
+  chatgpt_subscription_active_until?: string | number | null;
+  chatgptSubscriptionActiveUntil?: string | number | null;
   rate_limit?: CodexRateLimitInfo | null;
   rateLimit?: CodexRateLimitInfo | null;
   code_review_rate_limit?: CodexRateLimitInfo | null;
@@ -242,6 +246,7 @@ export interface CodexQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   windows: CodexQuotaWindow[];
   planType?: string | null;
+  subscriptionUntil?: string | number | null;
   error?: string;
   errorStatus?: number;
 }

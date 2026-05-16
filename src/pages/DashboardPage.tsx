@@ -150,11 +150,25 @@ export function DashboardPage() {
     const seen = new Set<string>();
     const keys: string[] = [];
 
+    const readBooleanFlag = (raw: unknown): boolean | undefined => {
+      if (typeof raw === 'boolean') return raw;
+      if (typeof raw === 'number') return raw !== 0;
+      if (typeof raw === 'string') {
+        const normalized = raw.trim().toLowerCase();
+        if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+        if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+      }
+      return undefined;
+    };
+
     input.forEach((item) => {
       const record =
         item !== null && typeof item === 'object' && !Array.isArray(item)
           ? (item as Record<string, unknown>)
           : null;
+      const disabled = readBooleanFlag(record?.disabled ?? record?.disable ?? record?.isDisabled);
+      const enabled = readBooleanFlag(record?.enabled ?? record?.enable ?? record?.isEnabled);
+      if (disabled === true || (disabled === undefined && enabled === false)) return;
       const value =
         typeof item === 'string'
           ? item

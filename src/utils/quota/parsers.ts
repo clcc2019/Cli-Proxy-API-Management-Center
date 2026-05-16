@@ -76,6 +76,20 @@ export function decodeBase64UrlPayload(value: string): string | null {
   return null;
 }
 
+const ID_TOKEN_PAYLOAD_CACHE_LIMIT = 500;
+const idTokenPayloadCache = new Map<string, Record<string, unknown> | null>();
+
+const cacheIdTokenPayload = (key: string, value: Record<string, unknown> | null) => {
+  if (idTokenPayloadCache.size >= ID_TOKEN_PAYLOAD_CACHE_LIMIT) {
+    const firstKey = idTokenPayloadCache.keys().next().value;
+    if (firstKey !== undefined) {
+      idTokenPayloadCache.delete(firstKey);
+    }
+  }
+  idTokenPayloadCache.set(key, value);
+  return value;
+};
+
 export function parseIdTokenPayload(value: unknown): Record<string, unknown> | null {
   if (!value) return null;
   if (typeof value === 'object') {
@@ -84,23 +98,26 @@ export function parseIdTokenPayload(value: unknown): Record<string, unknown> | n
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
+  if (idTokenPayloadCache.has(trimmed)) {
+    return idTokenPayloadCache.get(trimmed) ?? null;
+  }
   try {
     const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-    if (parsed && typeof parsed === 'object') return parsed;
+    if (parsed && typeof parsed === 'object') return cacheIdTokenPayload(trimmed, parsed);
   } catch {
     // Continue to JWT parsing
   }
   const segments = trimmed.split('.');
-  if (segments.length < 2) return null;
+  if (segments.length < 2) return cacheIdTokenPayload(trimmed, null);
   const decoded = decodeBase64UrlPayload(segments[1]);
-  if (!decoded) return null;
+  if (!decoded) return cacheIdTokenPayload(trimmed, null);
   try {
     const parsed = JSON.parse(decoded) as Record<string, unknown>;
-    if (parsed && typeof parsed === 'object') return parsed;
+    if (parsed && typeof parsed === 'object') return cacheIdTokenPayload(trimmed, parsed);
   } catch {
-    return null;
+    return cacheIdTokenPayload(trimmed, null);
   }
-  return null;
+  return cacheIdTokenPayload(trimmed, null);
 }
 
 export function parseAntigravityPayload(payload: unknown): Record<string, unknown> | null {

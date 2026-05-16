@@ -160,12 +160,35 @@
   transition:
     border-color $transition-fast,
     background-color $transition-fast,
-    color $transition-fast;
+    color $transition-fast,
+    transform $transition-fast,
+    box-shadow $transition-fast;
 
   &:hover {
     border-color: color-mix(in srgb, var(--filter-color) 40%, var(--border-color));
     background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
     color: var(--text-primary);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--filter-color) 35%, transparent);
+  }
+
+  .filterTagIconWrap {
+    transition:
+      border-color $transition-fast,
+      transform $transition-fast,
+      background-color $transition-fast;
+  }
+
+  &:hover .filterTagIconWrap {
+    transform: scale(1.05);
   }
 }
 
@@ -173,9 +196,19 @@
   border-color: color-mix(in srgb, var(--filter-color) 50%, var(--border-color));
   background: color-mix(in srgb, var(--filter-surface) 22%, var(--bg-secondary));
   color: var(--text-primary);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--filter-color) 18%, transparent);
 
   .filterTagIconWrap {
     border-color: color-mix(in srgb, var(--filter-color) 40%, transparent);
+    background: color-mix(in srgb, var(--filter-surface) 30%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filterTag,
+  .filterTag:hover,
+  .filterTag .filterTagIconWrap {
+    transform: none;
   }
 }
 
@@ -233,6 +266,9 @@
   flex: 0 0 auto;
   line-height: 1;
   text-align: center;
+  transition:
+    background-color $transition-fast,
+    color $transition-fast;
 }
 
 .filterTagActive .filterTagCount {
@@ -682,11 +718,17 @@
     border-color 0.15s ease,
     background-color 0.15s ease,
     color 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
     color: var(--text-primary);
+    background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 
   &:focus-visible {
@@ -700,10 +742,29 @@
   background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-primary));
   color: var(--primary-color);
   box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-color) 18%, transparent);
+  animation: authFileChipPop 220ms cubic-bezier(0.34, 1.3, 0.64, 1) both;
 
   &:hover {
     color: var(--primary-color);
     background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-primary));
+  }
+}
+
+@keyframes authFileChipPop {
+  0% {
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filterChipActive {
+    animation: none;
   }
 }
 
@@ -731,6 +792,8 @@
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  // Hint browser to limit reflow scope to this subtree.
+  contain: layout style;
 
   @include mobile {
     gap: 10px;
@@ -1157,6 +1220,12 @@
   text-transform: capitalize;
 }
 
+.codexPlanExpiry {
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: none;
+}
+
 .premiumPlanValue {
   display: inline-flex;
   align-items: center;
@@ -1177,6 +1246,17 @@
 }
 
 // 单个认证文件卡片
+@keyframes authFileCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .fileCard {
   position: relative;
   overflow: hidden;
@@ -1192,12 +1272,31 @@
   transition:
     transform $transition-fast,
     box-shadow $transition-fast,
-    border-color $transition-fast;
+    border-color $transition-fast,
+    background-color $transition-fast;
+  // 长列表里跳过屏外卡片的布局/绘制开销
+  content-visibility: auto;
+  contain-intrinsic-size: 320px;
+  animation: authFileCardEnter 240ms ease-out both;
 
   &:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-card-hover);
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+
+    &::before {
+      opacity: 1;
+    }
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--primary-color) 45%, var(--border-color));
+    box-shadow: var(--shadow-card-hover),
+      0 0 0 2px color-mix(in srgb, var(--primary-color) 26%, transparent);
   }
 
   // subtle top highlight, not an expensive blurred gradient
@@ -1214,12 +1313,47 @@
     );
     opacity: 0.6;
     pointer-events: none;
+    transition: opacity $transition-fast;
+  }
+
+  // 悬停时叠加柔和的顶部光晕，硬件友好（仅 opacity 切换）
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      120% 80% at 50% -10%,
+      color-mix(in srgb, var(--primary-color) 12%, transparent),
+      transparent 60%
+    );
+    transition: opacity $transition-fast;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
   }
 
   @include mobile {
     width: 100%;
     padding: 14px 12px;
     border-radius: 12px;
+    contain-intrinsic-size: 360px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fileCard {
+    animation: none;
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
   }
 }
 
@@ -1231,20 +1365,30 @@
 
 .fileCardSelected {
   border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 30%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 30%, transparent),
+    var(--shadow-card);
+  background: color-mix(in srgb, var(--primary-color) 4%, var(--surface-raised));
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 36%, transparent),
+      var(--shadow-card-hover);
   }
 }
 
 .fileCardDisabled {
   opacity: 0.72;
+  transition:
+    opacity $transition-fast,
+    transform $transition-fast,
+    box-shadow $transition-fast,
+    border-color $transition-fast;
 
   &:hover {
     transform: none;
     box-shadow: none;
     border-color: var(--border-color);
+    opacity: 0.85;
   }
 }
 
@@ -1550,11 +1694,31 @@
   box-shadow:
     0 16px 28px -18px color-mix(in srgb, var(--primary-color) 72%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-fast;
+
+  .fileCard:hover & {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow:
+      0 20px 34px -18px color-mix(in srgb, var(--primary-color) 78%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
 
   @include mobile {
     width: 34px;
     height: 34px;
     border-radius: 10px;
+
+    .fileCard:hover & {
+      transform: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fileCard:hover .providerAvatar {
+    transform: none;
   }
 }
 
@@ -1644,6 +1808,10 @@
   white-space: nowrap;
   letter-spacing: 0.02em;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast,
+    color $transition-fast;
 }
 
 .stateBadgeActive {
@@ -1656,6 +1824,26 @@
   color: var(--warning-text);
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
+  // 让"警告"状态保持轻微视觉脉冲，引起注意但不喧宾夺主
+  animation: authFileBadgeWarn 2.6s ease-in-out infinite;
+}
+
+@keyframes authFileBadgeWarn {
+  0%,
+  100% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36),
+      0 0 0 0 color-mix(in srgb, var(--warning-color) 0%, transparent);
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36),
+      0 0 0 3px color-mix(in srgb, var(--warning-color) 18%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stateBadgeWarning {
+    animation: none;
+  }
 }
 
 .stateBadgeDisabled {
@@ -1699,6 +1887,12 @@
 
 .planBadgeIcon {
   flex: 0 0 auto;
+}
+
+.planBadgeText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .featureBadge {
@@ -2086,6 +2280,14 @@
   line-height: 1;
   overflow: visible;
   white-space: nowrap;
+  transition:
+    transform $transition-fast,
+    filter $transition-fast,
+    box-shadow $transition-fast;
+
+  .fileCard:hover & {
+    filter: brightness(1.02) saturate(1.04);
+  }
 }
 
 @media (max-width: 640px) {
@@ -2866,34 +3068,49 @@
     padding-top: 10px;
   }
 
+  // 移动端：底部按钮整体保持单行；簇内空间不足时簇内横向滚动
   .cardActionsMain {
     gap: 8px;
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
     flex-wrap: nowrap;
-    justify-content: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
   }
 
   .cardActionCluster {
     gap: 6px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     flex: 1 1 auto;
-    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    > * {
+      flex: 0 0 auto;
+    }
   }
 
   .cardUtilityActions {
     gap: 6px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    flex: 0 0 auto;
   }
 
   .cardStatusActions {
     gap: 6px;
-    width: 100%;
+    margin-left: auto;
+    flex: 0 0 auto;
     justify-content: flex-end;
-    margin-left: 0;
-    padding-top: 8px;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 66%, transparent);
-    flex-wrap: wrap;
+    padding-top: 0;
+    border-top: none;
+    flex-wrap: nowrap;
   }
 
   .statusToggle {
@@ -2924,71 +3141,13 @@
     gap: 6px;
   }
 
+  // 给按钮收紧一档以便放进一行；触控目标维持 ≥38px
   .iconButton:global(.btn.btn-sm) {
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-    min-height: 42px;
-    border-radius: 13px;
-  }
-
-  .actionIcon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .cardToggleSwitch > span:first-of-type {
-    width: 76px;
-    min-width: 76px;
+    width: 38px;
     height: 38px;
+    min-width: 38px;
     min-height: 38px;
-    padding: 0 9px 0 36px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type {
-    padding: 0 36px 0 9px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:first-child {
-    font-size: 10px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:last-child {
-    top: 3px;
-    left: 3px;
-    width: 30px;
-    height: 30px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    right: 3px;
-  }
-}
-
-@media (max-width: 420px) {
-  .cardActionsMain {
-    gap: 8px;
-  }
-
-  .cardActionCluster {
-    gap: 6px;
-  }
-
-  .cardStatusActions {
-    gap: 6px;
-    justify-content: flex-end;
-  }
-
-  .cardUtilityActions {
-    gap: 6px;
-  }
-
-  .iconButton:global(.btn.btn-sm) {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    border-radius: 12px;
+    border-radius: 11px;
   }
 
   .actionIcon {
@@ -2996,16 +3155,17 @@
     height: 17px;
   }
 
+  // 状态开关更紧凑
   .cardToggleSwitch > span:first-of-type {
-    width: 72px;
-    min-width: 72px;
-    height: 36px;
-    min-height: 36px;
-    padding: 0 8px 0 34px;
+    width: 60px;
+    min-width: 60px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 7px 0 32px;
   }
 
   .cardToggleSwitch > input:checked + span:first-of-type {
-    padding: 0 34px 0 8px;
+    padding: 0 32px 0 7px;
   }
 
   .cardToggleSwitch > span:first-of-type > span:first-child {
@@ -3024,19 +3184,30 @@
   }
 }
 
-@media (max-width: 360px) {
-  .cardActionsMain,
-  .cardActionCluster,
-  .cardUtilityActions,
+@media (max-width: 420px) {
+  .cardActionsMain {
+    gap: 6px;
+  }
+
+  .cardActionCluster {
+    gap: 5px;
+  }
+
   .cardStatusActions {
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  .cardUtilityActions {
     gap: 5px;
   }
 
   .iconButton:global(.btn.btn-sm) {
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 10px;
   }
 
   .actionIcon {
@@ -3045,15 +3216,63 @@
   }
 
   .cardToggleSwitch > span:first-of-type {
-    width: 68px;
-    min-width: 68px;
-    height: 34px;
-    min-height: 34px;
-    padding: 0 7px 0 32px;
+    width: 56px;
+    min-width: 56px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 6px 0 30px;
   }
 
   .cardToggleSwitch > input:checked + span:first-of-type {
-    padding: 0 32px 0 7px;
+    padding: 0 30px 0 6px;
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:first-child {
+    font-size: 8.5px;
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:last-child {
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
+    right: 3px;
+  }
+}
+
+@media (max-width: 360px) {
+  .cardActionsMain,
+  .cardActionCluster,
+  .cardUtilityActions,
+  .cardStatusActions {
+    gap: 4px;
+  }
+
+  .iconButton:global(.btn.btn-sm) {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  .actionIcon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .cardToggleSwitch > span:first-of-type {
+    width: 52px;
+    min-width: 52px;
+    height: 30px;
+    min-height: 30px;
+    padding: 0 5px 0 28px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type {
+    padding: 0 28px 0 5px;
   }
 
   .cardToggleSwitch > span:first-of-type > span:first-child {
@@ -3061,8 +3280,8 @@
   }
 
   .cardToggleSwitch > span:first-of-type > span:last-child {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
 }
 
@@ -3463,6 +3682,24 @@
   margin-top: $spacing-lg;
   padding-top: $spacing-md;
   border-top: 1px solid var(--border-color);
+  animation: authFilePaginationEnter 240ms ease-out both;
+}
+
+@keyframes authFilePaginationEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagination {
+    animation: none;
+  }
 }
 
 .batchActionContainer {
@@ -3939,4 +4176,264 @@
   font-size: 12px;
   color: var(--text-tertiary);
   font-family: inherit;
+}
+
+// =============================================================================
+// 移动端精修 (<= 768px)
+// 集中处理触控目标、横滑手势、行内紧凑布局；一处调整全页生效
+// =============================================================================
+@include mobile {
+  .pageHeader {
+    gap: 4px;
+  }
+
+  .pageTitle {
+    font-size: clamp(18px, 4.4vw + 6px, 22px);
+  }
+
+  .description {
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .titleWrapper {
+    gap: 8px;
+    line-height: 22px;
+  }
+
+  .countBadge {
+    height: 22px;
+    min-width: 22px;
+    padding: 0 7px;
+    font-size: 12px;
+  }
+
+  // 卡片头部：把警告按钮挪到badge 行末尾，避免抢占首行空间
+  .cardHeader {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .cardWarningIndicator {
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  // 卡片元信息：在小屏从 4 列流式 → 2 列网格，可读性更稳
+  .cardMeta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 12px;
+  }
+
+  .metaItem {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .metaValue {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .priorityControlItem {
+    grid-column: 1 / -1; // 优先级单独占整行，避免被压窄
+  }
+
+  // 优先级 stepper 触控更宽松
+  .priorityStepper {
+    height: 32px;
+  }
+
+  .priorityStepButton {
+    width: 36px;
+    height: 30px;
+    font-size: 17px;
+  }
+
+  .priorityInput {
+    width: 56px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  // 卡片操作区相关样式集中在上方 `@include mobile` / `@media (max-width: 640px)` /
+  // `@media (max-width: 420px)` / `@media (max-width: 360px)` 块中处理，这里不再重复。
+
+  // Insights 区域：更紧凑的纵向间距
+  .cardInsights {
+    gap: 10px;
+  }
+
+  // Stat pills：保持 statSuccess/statFailure/statToken/statCost 的 2×2 网格
+  // （父级 @media max-width 640 已处理）。这里仅微调 padding。
+  .statPill {
+    padding: 0 9px;
+  }
+
+  // -------- 筛选 / 工具条 ---------------------------------------------------
+  .filterRail {
+    margin: 0 -4px;
+    padding: 0 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding: 4px;
+    scroll-snap-type: x proximity;
+    // 边缘渐隐提示可滑动
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent 100%
+    );
+
+    // 隐藏滚动条更"原生"
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+  }
+
+  .filterTags {
+    flex-wrap: nowrap;
+  }
+
+  .filterTag {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+
+  .filterChipRow {
+    gap: 8px;
+  }
+
+  .filterChipGroup {
+    gap: 6px;
+  }
+
+  .filterChip {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 12.5px;
+  }
+
+  // -------- 分页 -----------------------------------------------------------
+  .pagination {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'info info'
+      'prev next';
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 14px;
+
+    > :global(.btn):first-of-type {
+      grid-area: prev;
+    }
+
+    > :global(.btn):last-of-type {
+      grid-area: next;
+    }
+  }
+
+  .pageInfo {
+    grid-area: info;
+    text-align: center;
+    font-size: 12.5px;
+  }
+
+  // -------- 批量操作栏 -----------------------------------------------------
+  .batchActionContainer {
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .batchActionBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .batchActionLeft {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: -4px; // 抵消 padding，避免占多余高度
+
+    > * {
+      flex: 0 0 auto;
+    }
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+  }
+
+  .batchActionRight {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: -4px;
+    justify-content: flex-start;
+
+    > * {
+      flex: 0 0 auto;
+    }
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+  }
+
+  .batchSelectionText {
+    font-size: 12.5px;
+    margin-right: 6px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  // -------- OAuth 排除列表 -------------------------------------------------
+  .excludedItem {
+    padding: 12px;
+    gap: 8px;
+  }
+}
+
+// 极窄屏 (<=380px)：再压一档
+@media (max-width: 380px) {
+  // 仅做布局层调整：按钮 / toggle 尺寸已在 420px / 360px 块中精细处理
+  .cardMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .priorityControlItem {
+    grid-column: auto;
+  }
+
+  .filterChip {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+  }
+
+  // 卡片头部允许换行：avatar + content + warning 流式排
+  .cardHeaderContent {
+    flex-basis: 100%;
+  }
 }

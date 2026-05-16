@@ -323,7 +323,7 @@ export function resolveAuthFileUsageStats(
   );
 }
 
-const formatAuthFileDate = (raw: unknown): string => {
+export const formatAuthFileDate = (raw: unknown): string => {
   if (!raw) return '-';
   const asNumber = Number(raw);
   const date =

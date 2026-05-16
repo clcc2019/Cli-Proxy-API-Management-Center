@@ -134,7 +134,7 @@ export function AuthFileQuotaRefreshButton(props: AuthFileQuotaRefreshButtonProp
 }
 
 export function AuthFileQuotaSection(props: AuthFileQuotaSectionProps) {
-  const { quotaType } = props;
+  const { file, quotaType } = props;
   const { t } = useTranslation();
   const { canRefreshQuota, quota, quotaStatus, refreshLabel, refreshQuotaForFile } =
     useAuthFileQuotaRefresh(props);
@@ -156,7 +156,7 @@ export function AuthFileQuotaSection(props: AuthFileQuotaSectionProps) {
       </div>
       <div className={styles.quotaContent}>
         {showCachedQuotaWhileLoading ? (
-          (config.renderQuotaItems(quota, t, { styles, QuotaProgressBar }) as ReactNode)
+          (config.renderQuotaItems(quota, t, { styles, QuotaProgressBar, item: file }) as ReactNode)
         ) : quotaStatus === 'loading' ? (
           null
         ) : quotaStatus === 'idle' ? (
@@ -176,7 +176,7 @@ export function AuthFileQuotaSection(props: AuthFileQuotaSectionProps) {
             })}
           </div>
         ) : quota ? (
-          (config.renderQuotaItems(quota, t, { styles, QuotaProgressBar }) as ReactNode)
+          (config.renderQuotaItems(quota, t, { styles, QuotaProgressBar, item: file }) as ReactNode)
         ) : (
           <button
             type="button"
