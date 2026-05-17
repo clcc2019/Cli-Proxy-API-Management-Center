@@ -58,6 +58,10 @@ type PatchAuthFileFieldsResponse = {
   status?: string;
   file?: AuthFileEntry;
 };
+export type AuthFilesListCodexSubscriptionMode = 'cache' | 'refresh' | 'skip';
+export type AuthFilesListOptions = {
+  codexSubscription?: AuthFilesListCodexSubscriptionMode;
+};
 
 export const AUTH_FILE_INVALID_JSON_OBJECT_ERROR = 'AUTH_FILE_INVALID_JSON_OBJECT';
 
@@ -473,7 +477,12 @@ const normalizeOauthModelAlias = (payload: unknown): Record<string, OAuthModelAl
 const OAUTH_MODEL_ALIAS_ENDPOINT = '/oauth-model-alias';
 
 export const authFilesApi = {
-  list: async () => dedupeAuthFilesResponse(await apiClient.get<AuthFilesResponse>('/auth-files')),
+  list: async (options: AuthFilesListOptions = {}) =>
+    dedupeAuthFilesResponse(
+      await apiClient.get<AuthFilesResponse>('/auth-files', {
+        params: { codex_subscription: options.codexSubscription ?? 'cache' },
+      })
+    ),
 
   setStatus: (name: string, disabled: boolean) =>
     apiClient.patch<AuthFileStatusResponse>('/auth-files/status', { name, disabled }),

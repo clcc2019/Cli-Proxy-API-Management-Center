@@ -148,27 +148,28 @@
   align-items: center;
   gap: 8px;
   padding: 6px 10px 6px 6px;
-  border-radius: 8px;
+  border-radius: 9px;
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.2;
-  border: 1px solid color-mix(in srgb, var(--border-color) 56%, transparent);
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
   color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
   transition:
-    border-color $transition-fast,
-    background-color $transition-fast,
-    color $transition-fast,
-    transform $transition-fast,
-    box-shadow $transition-fast;
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.12s ease,
+    box-shadow 0.18s ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--filter-color) 40%, var(--border-color));
-    background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+    border-color: color-mix(in srgb, var(--filter-color) 38%, var(--border-color));
+    background: color-mix(in srgb, var(--filter-surface) 14%, var(--bg-secondary));
     color: var(--text-primary);
     transform: translateY(-1px);
+    box-shadow: 0 4px 10px -8px color-mix(in srgb, var(--filter-color) 50%, transparent);
   }
 
   &:active {
@@ -177,30 +178,32 @@
 
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--filter-color) 35%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--filter-color) 28%, transparent);
   }
 
   .filterTagIconWrap {
     transition:
-      border-color $transition-fast,
-      transform $transition-fast,
-      background-color $transition-fast;
+      border-color 0.18s ease,
+      transform 0.18s ease,
+      background-color 0.18s ease;
   }
 
   &:hover .filterTagIconWrap {
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 }
 
 .filterTagActive {
-  border-color: color-mix(in srgb, var(--filter-color) 50%, var(--border-color));
-  background: color-mix(in srgb, var(--filter-surface) 22%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--filter-color) 55%, var(--border-color));
+  background: color-mix(in srgb, var(--filter-surface) 26%, var(--bg-secondary));
   color: var(--text-primary);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--filter-color) 18%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--filter-color) 18%, transparent),
+    0 6px 14px -10px color-mix(in srgb, var(--filter-color) 36%, transparent);
 
   .filterTagIconWrap {
-    border-color: color-mix(in srgb, var(--filter-color) 40%, transparent);
-    background: color-mix(in srgb, var(--filter-surface) 30%, transparent);
+    border-color: color-mix(in srgb, var(--filter-color) 45%, transparent);
+    background: color-mix(in srgb, var(--filter-surface) 36%, transparent);
   }
 }
 
@@ -278,13 +281,14 @@
 
 .filterControlsPanel {
   padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 46%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 36%, transparent);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .searchToolbar {
@@ -303,16 +307,22 @@
   align-items: center;
   height: 38px;
   padding: 0 10px 0 36px;
-  border-radius: 9px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
   background: var(--bg-primary);
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+  }
 
   &:focus-within {
-    border-color: transparent;
-    background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-primary));
+    border-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    background: color-mix(in srgb, var(--primary-color) 5%, var(--bg-primary));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 14%, transparent);
   }
 }
 
@@ -392,24 +402,30 @@
   justify-content: center;
   width: 38px;
   height: 38px;
-  border-radius: 9px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
   background: var(--bg-primary);
   color: var(--text-secondary);
   cursor: pointer;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
     color: var(--text-primary);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 50%, transparent);
     outline-offset: 2px;
   }
 }
@@ -593,10 +609,11 @@
 .filterChipRowLabel {
   font-size: 11px;
   color: var(--text-tertiary);
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
+  opacity: 0.86;
 }
 
 .filterControls {
@@ -633,10 +650,11 @@
   label {
     font-size: 11px;
     color: var(--text-tertiary);
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     white-space: nowrap;
+    opacity: 0.86;
   }
 }
 
@@ -667,7 +685,9 @@
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
   background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
-  transition: border-color $transition-fast, background-color $transition-fast;
+  transition:
+    border-color $transition-fast,
+    background-color $transition-fast;
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
@@ -706,8 +726,8 @@
   height: 30px;
   padding: 0 12px;
   border-radius: $radius-full;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
@@ -715,16 +735,18 @@
   cursor: pointer;
   white-space: nowrap;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
     color: var(--text-primary);
-    background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+    background: color-mix(in srgb, var(--bg-primary) 84%, transparent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px -8px color-mix(in srgb, var(--primary-color) 36%, transparent);
   }
 
   &:active {
@@ -732,17 +754,19 @@
   }
 
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 50%, transparent);
     outline-offset: 2px;
   }
 }
 
 .filterChipActive {
-  border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
   background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-primary));
   color: var(--primary-color);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-color) 18%, transparent);
-  animation: authFileChipPop 220ms cubic-bezier(0.34, 1.3, 0.64, 1) both;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--primary-color) 18%, transparent),
+    0 6px 14px -10px color-mix(in srgb, var(--primary-color) 40%, transparent);
+  animation: authFileChipPop 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 
   &:hover {
     color: var(--primary-color);
@@ -752,10 +776,10 @@
 
 @keyframes authFileChipPop {
   0% {
-    transform: scale(0.94);
+    transform: scale(0.96);
   }
   60% {
-    transform: scale(1.04);
+    transform: scale(1.02);
   }
   100% {
     transform: scale(1);
@@ -860,40 +884,49 @@
   }
 }
 
-// 卡片顶部 2px 提供商色带 —— 使用 --provider-accent 变量驱动，6 种提供商共用一套规则
+// 卡片顶部 provider 色带 —— 使用 --provider-accent 变量驱动，6 种提供商共用一套规则
+// 渐变更柔和，两端渐隐避免硬切线条
 .antigravityCard,
 .claudeCard,
 .codexCard,
 .geminiCliCard,
 .kiroCard,
 .kimiCard {
-  box-shadow:
-    inset 0 2px 0 var(--provider-accent),
-    var(--shadow-card);
+  &::before {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--provider-accent) 18%,
+      var(--provider-accent) 82%,
+      transparent
+    );
+    height: 2px;
+    opacity: 0.85;
+  }
 }
 
 .antigravityCard {
-  --provider-accent: rgba(6, 182, 212, 0.32);
+  --provider-accent: rgba(6, 182, 212, 0.55);
 }
 
 .claudeCard {
-  --provider-accent: rgba(198, 87, 70, 0.32);
+  --provider-accent: rgba(198, 87, 70, 0.55);
 }
 
 .codexCard {
-  --provider-accent: rgba(99, 102, 241, 0.32);
+  --provider-accent: rgba(99, 102, 241, 0.55);
 }
 
 .geminiCliCard {
-  --provider-accent: rgba(66, 133, 244, 0.32);
+  --provider-accent: rgba(66, 133, 244, 0.55);
 }
 
 .kiroCard {
-  --provider-accent: rgba(245, 158, 11, 0.32);
+  --provider-accent: rgba(245, 158, 11, 0.55);
 }
 
 .kimiCard {
-  --provider-accent: rgba(59, 130, 246, 0.32);
+  --provider-accent: rgba(59, 130, 246, 0.55);
 }
 
 .quotaSection {
@@ -914,11 +947,11 @@
 
 .quotaSectionTitle {
   min-width: 0;
-  font-size: 12px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 700;
   line-height: 1.2;
-  letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--primary-color) 70%, #64748b);
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--primary-color) 60%, var(--text-tertiary));
   text-transform: uppercase;
 }
 
@@ -999,7 +1032,7 @@
 
 .quotaModel {
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -1128,8 +1161,9 @@
 }
 
 .quotaPercent {
-  font-weight: 900;
+  font-weight: 800;
   color: #16a34a;
+  font-variant-numeric: tabular-nums;
 }
 
 .quotaReset {
@@ -1205,6 +1239,7 @@
 .codexPlan {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   font-size: 12px;
   color: var(--text-secondary);
@@ -1249,7 +1284,7 @@
 @keyframes authFileCardEnter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -1261,9 +1296,9 @@
   position: relative;
   overflow: hidden;
   background: var(--surface-raised);
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
   border-radius: 14px;
-  padding: 14px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
   min-height: 100%;
@@ -1277,12 +1312,12 @@
   // 长列表里跳过屏外卡片的布局/绘制开销
   content-visibility: auto;
   contain-intrinsic-size: 320px;
-  animation: authFileCardEnter 240ms ease-out both;
+  animation: authFileCardEnter 220ms ease-out both;
 
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: var(--shadow-card-hover);
-    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+    border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
 
     &::before {
       opacity: 1;
@@ -1294,9 +1329,10 @@
   }
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--primary-color) 45%, var(--border-color));
-    box-shadow: var(--shadow-card-hover),
-      0 0 0 2px color-mix(in srgb, var(--primary-color) 26%, transparent);
+    border-color: color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
+    box-shadow:
+      var(--shadow-card-hover),
+      0 0 0 2px color-mix(in srgb, var(--primary-color) 22%, transparent);
   }
 
   // subtle top highlight, not an expensive blurred gradient
@@ -1364,14 +1400,16 @@
 }
 
 .fileCardSelected {
-  border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 30%, transparent),
+  border-color: color-mix(in srgb, var(--primary-color) 55%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 26%, transparent),
     var(--shadow-card);
-  background: color-mix(in srgb, var(--primary-color) 4%, var(--surface-raised));
+  background: color-mix(in srgb, var(--primary-color) 3.5%, var(--surface-raised));
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 36%, transparent),
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--primary-color) 32%, transparent),
       var(--shadow-card-hover);
   }
 }
@@ -1689,36 +1727,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 11px;
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 40%, var(--bg-primary));
   box-shadow:
-    0 16px 28px -18px color-mix(in srgb, var(--primary-color) 72%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+    0 8px 18px -14px color-mix(in srgb, var(--primary-color) 60%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   transition:
-    transform $transition-fast,
+    border-color $transition-fast,
     box-shadow $transition-fast;
 
   .fileCard:hover & {
-    transform: translateY(-1px) scale(1.02);
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
     box-shadow:
-      0 20px 34px -18px color-mix(in srgb, var(--primary-color) 78%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      0 10px 22px -14px color-mix(in srgb, var(--primary-color) 70%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
   }
 
   @include mobile {
     width: 34px;
     height: 34px;
-    border-radius: 10px;
-
-    .fileCard:hover & {
-      transform: none;
-    }
+    border-radius: 9px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .fileCard:hover .providerAvatar {
-    transform: none;
+    box-shadow:
+      0 8px 18px -14px color-mix(in srgb, var(--primary-color) 60%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 }
 
@@ -1769,16 +1806,17 @@
 .typeBadge {
   display: inline-flex;
   align-items: center;
-  min-height: 21px;
-  padding: 0 8px;
+  min-height: 22px;
+  padding: 0 9px;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1;
   border: 1px solid transparent;
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 
 @media (max-width: 640px) {
@@ -1799,15 +1837,15 @@
 .stateBadge {
   display: inline-flex;
   align-items: center;
-  min-height: 21px;
-  padding: 0 8px;
+  min-height: 22px;
+  padding: 0 9px;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 700;
   line-height: 1;
   white-space: nowrap;
   letter-spacing: 0.02em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
   transition:
     background-color $transition-fast,
     border-color $transition-fast,
@@ -1825,18 +1863,20 @@
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
   // 让"警告"状态保持轻微视觉脉冲，引起注意但不喧宾夺主
-  animation: authFileBadgeWarn 2.6s ease-in-out infinite;
+  animation: authFileBadgeWarn 3.2s ease-in-out infinite;
 }
 
 @keyframes authFileBadgeWarn {
   0%,
   100% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
       0 0 0 0 color-mix(in srgb, var(--warning-color) 0%, transparent);
   }
   50% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36),
-      0 0 0 3px color-mix(in srgb, var(--warning-color) 18%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 0 0 2px color-mix(in srgb, var(--warning-color) 14%, transparent);
   }
 }
 
@@ -1900,11 +1940,11 @@
   align-items: center;
   justify-content: center;
   min-width: 22px;
-  height: 21px;
-  padding: 0 8px;
+  height: 22px;
+  padding: 0 9px;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 700;
   line-height: 1;
   white-space: nowrap;
   letter-spacing: 0.02em;
@@ -1941,9 +1981,9 @@
   min-width: 0;
   max-width: 100%;
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.25;
+  line-height: 1.3;
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2072,22 +2112,26 @@
 
 .metaLabel {
   font-size: 10px;
-  font-weight: 750;
+  font-weight: 600;
   color: var(--text-tertiary);
   line-height: 1;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 
   &::after {
     content: ':';
+    margin-left: 1px;
+    opacity: 0.7;
   }
 }
 
 .metaValue {
   min-width: 0;
-  font-size: 11px;
-  font-weight: 850;
-  color: var(--text-secondary);
-  line-height: 1.1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
 
@@ -2124,8 +2168,8 @@
   justify-content: center;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 15px;
-  font-weight: 850;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
   transition:
@@ -2159,8 +2203,8 @@
   text-align: center;
   background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
   color: var(--text-primary);
-  font-size: 11px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   appearance: textfield;
@@ -2268,25 +2312,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   flex: 0 1 auto;
   min-width: 0;
-  height: 25px;
-  min-height: 25px;
-  padding: 0 8px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 9px;
   border-radius: 999px;
-  border: none;
+  border: 1px solid transparent;
   box-sizing: border-box;
   line-height: 1;
   overflow: visible;
   white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
   transition:
-    transform $transition-fast,
-    filter $transition-fast,
-    box-shadow $transition-fast;
+    transform 0.15s ease,
+    filter 0.15s ease,
+    box-shadow 0.15s ease;
 
   .fileCard:hover & {
-    filter: brightness(1.02) saturate(1.04);
+    filter: saturate(1.06);
   }
 }
 
@@ -2326,9 +2371,11 @@
   flex: 0 0 auto;
   min-width: 0;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1;
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  opacity: 0.86;
 }
 
 .statValue {
@@ -2338,7 +2385,7 @@
   flex: 0 0 auto;
   min-width: 0;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -2365,6 +2412,7 @@
 .statSuccess {
   background: var(--success-badge-bg, #dcfce7);
   color: var(--success-badge-text, #15803d);
+  border-color: color-mix(in srgb, var(--success-color, #16a34a) 22%, transparent);
 }
 
 .statSuccess .statIcon {
@@ -2375,6 +2423,7 @@
 .statFailure {
   background: var(--failure-badge-bg, #fee2e2);
   color: var(--failure-badge-text, #b91c1c);
+  border-color: color-mix(in srgb, var(--error-color, #dc2626) 22%, transparent);
 }
 
 .statFailure .statIcon {
@@ -2384,8 +2433,9 @@
 
 .statToken {
   flex: 0 1 auto;
-  background: color-mix(in srgb, #60a5fa 15%, transparent);
-  color: color-mix(in srgb, #2563eb 65%, var(--text-primary));
+  background: color-mix(in srgb, #60a5fa 14%, transparent);
+  color: color-mix(in srgb, #1d4ed8 70%, var(--text-primary));
+  border-color: color-mix(in srgb, #60a5fa 26%, transparent);
 }
 
 .statToken .statIcon {
@@ -2402,8 +2452,9 @@
 
 .statCost {
   flex: 0 1 auto;
-  background: color-mix(in srgb, #f59e0b 18%, transparent);
-  color: color-mix(in srgb, #c76a00 60%, var(--text-primary));
+  background: color-mix(in srgb, #f59e0b 16%, transparent);
+  color: color-mix(in srgb, #b45309 70%, var(--text-primary));
+  border-color: color-mix(in srgb, #f59e0b 28%, transparent);
 }
 
 .statCost .statIcon {
@@ -2511,13 +2562,13 @@
   height: 7px;
   border-radius: 999px;
   transition:
-    transform 0.15s ease,
-    opacity 0.15s ease;
+    transform 0.18s ease,
+    opacity 0.18s ease;
 
   .statusBlockWrapper:hover &,
   .statusBlockWrapper.statusBlockActive & {
-    transform: scaleY(1.6);
-    opacity: 0.9;
+    transform: scaleY(1.4);
+    opacity: 0.95;
   }
 }
 
@@ -2618,9 +2669,9 @@
   justify-content: center;
   gap: 4px;
   min-width: 32px;
-  height: 32px;
+  height: 28px;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 700;
   white-space: nowrap;
   padding: 0 9px;
   border-radius: 999px;
@@ -2868,14 +2919,14 @@
 }
 
 .modelsActionButton:global(.btn.btn-sm) {
-  background: linear-gradient(180deg, #ffffff, #f7f9fd);
-  border-color: #d8e0ec;
-  color: #202a3a;
+  background: linear-gradient(180deg, var(--bg-primary), color-mix(in srgb, var(--bg-secondary) 80%, var(--bg-primary)));
+  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+  color: var(--text-primary);
 }
 
 .modelsActionButton:global(.btn.btn-sm):hover {
-  border-color: #c9d3e2;
-  background: #fff;
+  border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+  background: var(--bg-primary);
 }
 
 .cardUtilityActions {
@@ -2913,20 +2964,29 @@
   height: 32px;
   min-height: 32px;
   padding: 0 8px 0 31px;
-  border: 1px solid #d8e0ec;
-  background: linear-gradient(180deg, #f2f5f9 0%, #e6ebf2 100%);
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-secondary) 88%, var(--bg-primary)) 0%,
+    color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 100%
+  );
   box-shadow:
-    0 12px 22px -18px rgba(15, 23, 42, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.86),
-    inset 0 -1px 0 rgba(148, 163, 184, 0.16);
+    0 8px 18px -16px rgba(15, 23, 42, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.06);
 }
 
 .cardToggleSwitch > input:checked + span:first-of-type {
   padding: 0 31px 0 8px;
-  background: linear-gradient(135deg, #6476ff, #5865f2 54%, #4f46e5);
-  border-color: #5865f2;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary-color) 88%, white),
+    var(--primary-color) 54%,
+    color-mix(in srgb, var(--primary-color) 78%, black)
+  );
+  border-color: color-mix(in srgb, var(--primary-color) 70%, transparent);
   box-shadow:
-    0 14px 26px -18px rgba(79, 70, 229, 0.56),
+    0 10px 22px -16px color-mix(in srgb, var(--primary-color) 60%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
@@ -2937,11 +2997,11 @@
   flex: 1;
   min-width: 0;
   height: 100%;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1;
-  color: #64748b;
+  color: var(--text-tertiary);
   text-shadow: none;
 }
 
@@ -2956,10 +3016,10 @@
   width: 26px;
   height: 26px;
   background: #fff;
-  border: 1px solid rgba(226, 232, 240, 0.95);
+  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
   box-shadow:
-    0 8px 16px -10px rgba(15, 23, 42, 0.58),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    0 6px 12px -8px rgba(15, 23, 42, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
@@ -2979,18 +3039,19 @@
   box-sizing: border-box;
   border-radius: 10px;
   gap: 0;
-  border-color: #d8e0ec;
+  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
   border-width: 1px;
-  background: linear-gradient(180deg, #ffffff, #f7f9fd);
-  color: #202a3a;
+  background: linear-gradient(180deg, var(--bg-primary), color-mix(in srgb, var(--bg-secondary) 80%, var(--bg-primary)));
+  color: var(--text-primary);
   box-shadow:
-    0 12px 24px -18px rgba(15, 23, 42, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    0 8px 18px -16px rgba(15, 23, 42, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   transition:
     color $transition-fast,
     background-color $transition-fast,
     border-color $transition-fast,
-    box-shadow $transition-fast;
+    box-shadow $transition-fast,
+    transform 0.12s ease;
 
   > span {
     display: flex;
@@ -3000,6 +3061,18 @@
     height: 100%;
     line-height: 0;
     padding: 0;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+    box-shadow:
+      0 10px 22px -16px rgba(15, 23, 42, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96);
   }
 }
 
@@ -3018,28 +3091,27 @@
 }
 
 .refreshActionButton:global(.btn.btn-sm) {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 249, 253, 0.96)), #fff;
-  border-color: #d6dfeb;
-  color: #1f2937;
+  background: linear-gradient(180deg, var(--bg-primary), color-mix(in srgb, var(--bg-secondary) 78%, var(--bg-primary)));
+  border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
+  color: var(--text-primary);
   box-shadow:
-    0 12px 24px -18px rgba(15, 23, 42, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(148, 163, 184, 0.1);
+    0 8px 18px -16px rgba(15, 23, 42, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 .refreshActionButton:global(.btn.btn-sm):hover:not(:disabled) {
-  background: #fff;
-  border-color: #cbd5e1;
-  color: #111827;
+  background: var(--bg-primary);
+  border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+  color: var(--text-primary);
   box-shadow:
-    0 14px 28px -18px rgba(15, 23, 42, 0.48),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    0 10px 22px -16px rgba(15, 23, 42, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
-  border-color: #cfd8e6;
-  background: #fff;
-  color: #1f2937;
+  border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .refreshActionButton .quotaRefreshIcon {
@@ -3306,7 +3378,7 @@
     }
   }
 
-  // 深色模式下，6 种 provider 卡片共用同一个"表面色+顶部色带"规则
+  // 深色模式下，6 种 provider 卡片共用相同的表面色，顶部色带由 ::before 渐变实现，色值更亮一档
   .fileCard.antigravityCard,
   .fileCard.claudeCard,
   .fileCard.codexCard,
@@ -3314,43 +3386,66 @@
   .fileCard.kiroCard,
   .fileCard.kimiCard {
     background: var(--surface-raised);
-    box-shadow:
-      inset 0 2px 0 var(--provider-accent),
-      var(--shadow-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .fileCard.antigravityCard {
+    --provider-accent: rgba(34, 211, 238, 0.62);
+  }
+
+  .fileCard.claudeCard {
+    --provider-accent: rgba(248, 113, 113, 0.6);
+  }
+
+  .fileCard.codexCard {
+    --provider-accent: rgba(129, 140, 248, 0.62);
+  }
+
+  .fileCard.geminiCliCard {
+    --provider-accent: rgba(96, 165, 250, 0.62);
+  }
+
+  .fileCard.kiroCard {
+    --provider-accent: rgba(251, 191, 36, 0.62);
+  }
+
+  .fileCard.kimiCard {
+    --provider-accent: rgba(96, 165, 250, 0.62);
   }
 
   .fileCardSelected {
-    border-color: color-mix(in srgb, var(--primary-active) 72%, transparent);
+    border-color: color-mix(in srgb, var(--primary-active) 65%, transparent);
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--primary-active) 34%, transparent),
-      0 22px 58px -34px rgba(0, 0, 0, 0.86),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      0 0 0 1px color-mix(in srgb, var(--primary-active) 32%, transparent),
+      0 14px 36px -22px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .fileCardDisabled {
-    opacity: 0.62;
+    opacity: 0.6;
 
     &:hover {
-      border-color: rgba(74, 68, 61, 0.9);
+      border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
       box-shadow:
-        0 18px 44px -34px rgba(0, 0, 0, 0.76),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        0 12px 30px -22px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
   }
 
   .cardSelection > span {
-    border-color: rgba(106, 96, 86, 0.92);
-    background: rgba(29, 27, 24, 0.78);
+    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 1px 2px rgba(0, 0, 0, 0.28);
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 1px 2px rgba(0, 0, 0, 0.22);
   }
 
   .providerAvatar {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary));
     box-shadow:
-      0 16px 30px -20px rgba(0, 0, 0, 0.78),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      0 10px 22px -16px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .typeBadge,
@@ -3407,46 +3502,50 @@
   }
 
   .fileName {
-    color: #f7f3ee;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+    color: var(--text-primary);
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
   }
 
   .metaLabel,
   .noteLabel,
   .statusPanelLabel {
-    color: #8f867c;
+    color: var(--text-tertiary);
   }
 
   .metaValue,
   .noteText,
   .quotaAmount {
-    color: #cfc7bd;
+    color: var(--text-secondary);
   }
 
   .noteValue {
-    color: #d8d1c8;
+    color: var(--text-primary);
   }
 
   .cardActions,
   .quotaSection {
-    border-color: rgba(78, 71, 64, 0.72);
+    border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
   }
 
   .quotaSectionTitle {
-    color: color-mix(in srgb, var(--primary-active) 74%, #d8d1c8);
+    color: color-mix(in srgb, var(--primary-active) 70%, var(--text-tertiary));
   }
 
   .quotaModel {
-    color: #f1ede8;
+    color: var(--text-primary);
   }
 
   .quotaBar {
-    background: linear-gradient(180deg, #12100e, #211e1a);
-    border-color: rgba(79, 72, 65, 0.94);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-primary)),
+      color-mix(in srgb, var(--bg-tertiary) 40%, var(--bg-secondary))
+    );
+    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
     box-shadow:
-      inset 0 1px 2px rgba(0, 0, 0, 0.62),
+      inset 0 1px 2px rgba(0, 0, 0, 0.5),
       inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-      0 1px 0 rgba(255, 255, 255, 0.04);
+      0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
   .quotaBarFillHigh {
@@ -3474,23 +3573,23 @@
   }
 
   .quotaPercent {
-    color: #74e59f;
+    color: #6ee7b7;
   }
 
   .quotaReset {
-    color: #948b81;
+    color: var(--text-tertiary);
   }
 
   .quotaMessageAction {
-    border-color: rgba(139, 134, 128, 0.42);
-    background: rgba(43, 39, 35, 0.72);
-    color: #d7d0c7;
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+    color: var(--text-secondary);
 
     &:hover:not(:disabled) {
-      background: rgba(51, 47, 42, 0.9);
-      border-color: rgba(166, 160, 153, 0.54);
-      color: #f6f2ec;
-      box-shadow: 0 10px 24px -18px rgba(0, 0, 0, 0.74);
+      background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+      border-color: color-mix(in srgb, var(--primary-active) 50%, var(--border-color));
+      color: var(--text-primary);
+      box-shadow: 0 8px 18px -16px rgba(0, 0, 0, 0.7);
     }
   }
 
@@ -3550,16 +3649,20 @@
   }
 
   .statusPanelIcon {
-    color: #928a80;
+    color: var(--text-tertiary);
   }
 
   .statusBlockIdle {
-    background: linear-gradient(180deg, #474038, #39342f);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 90%, var(--bg-secondary)),
+      color-mix(in srgb, var(--bg-tertiary) 70%, var(--bg-primary))
+    );
   }
 
   .statusRate {
-    color: #bdb5aa;
-    background: rgba(45, 41, 37, 0.92);
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
   }
 
   .statusRateHigh {
@@ -3578,38 +3681,45 @@
   }
 
   .statusTooltip {
-    color: #f3eee8;
-    background: #26221e;
-    border-color: rgba(92, 84, 75, 0.9);
-    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.48);
+    color: var(--text-primary);
+    background: var(--surface-raised);
+    border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
 
     &::after {
-      border-top-color: #26221e;
+      border-top-color: var(--surface-raised);
     }
 
     &::before {
-      border-top-color: rgba(92, 84, 75, 0.9);
+      border-top-color: color-mix(in srgb, var(--border-color) 86%, transparent);
     }
   }
 
   .modelsActionButton:global(.btn.btn-sm),
   .iconButton:global(.btn.btn-sm),
   .refreshActionButton:global(.btn.btn-sm) {
-    background: linear-gradient(180deg, #312c27 0%, #26221e 100%);
-    border-color: rgba(89, 81, 72, 0.92);
-    color: #e7dfd5;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
+      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
+    );
+    border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
+    color: var(--text-primary);
     box-shadow:
-      0 14px 28px -20px rgba(0, 0, 0, 0.74),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+      0 8px 18px -16px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
     &:hover:not(:disabled) {
-      background: linear-gradient(180deg, #38322d 0%, #2c2723 100%);
-      border-color: rgba(125, 114, 102, 0.98);
-      color: #fff8ef;
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--bg-tertiary) 92%, var(--bg-primary)) 0%,
+        color-mix(in srgb, var(--bg-tertiary) 70%, var(--bg-secondary)) 100%
+      );
+      border-color: color-mix(in srgb, var(--primary-active) 36%, var(--border-color));
+      color: var(--text-primary);
       box-shadow:
-        0 16px 32px -20px rgba(0, 0, 0, 0.82),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        0 10px 22px -16px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
   }
 
@@ -3639,32 +3749,45 @@
   }
 
   .cardToggleSwitch > span:first-of-type {
-    border-color: rgba(89, 81, 72, 0.92);
-    background: linear-gradient(180deg, #35302a 0%, #28241f 100%);
+    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
+      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
+    );
     box-shadow:
-      0 14px 28px -22px rgba(0, 0, 0, 0.82),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.34);
+      0 10px 22px -18px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.28);
   }
 
   .cardToggleSwitch > span:first-of-type > span:first-child {
-    color: #aaa197;
+    color: var(--text-tertiary);
   }
 
   .cardToggleSwitch > span:first-of-type > span:last-child {
-    background: linear-gradient(180deg, #f3eee8, #cfc7bd);
-    border-color: rgba(255, 255, 255, 0.28);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--text-primary) 92%, transparent),
+      color-mix(in srgb, var(--text-secondary) 88%, transparent)
+    );
+    border-color: rgba(255, 255, 255, 0.18);
     box-shadow:
-      0 9px 18px -10px rgba(0, 0, 0, 0.82),
-      inset 0 1px 0 rgba(255, 255, 255, 0.72);
+      0 6px 12px -8px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
   .cardToggleSwitch > input:checked + span:first-of-type {
-    background: linear-gradient(135deg, #6f7cff, #5865f2 54%, #4f46e5);
-    border-color: rgba(129, 140, 248, 0.84);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary-active) 92%, white),
+      var(--primary-active) 54%,
+      color-mix(in srgb, var(--primary-active) 80%, black)
+    );
+    border-color: color-mix(in srgb, var(--primary-active) 70%, transparent);
     box-shadow:
-      0 15px 30px -20px rgba(88, 101, 242, 0.84),
-      inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      0 12px 26px -18px color-mix(in srgb, var(--primary-active) 70%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
   }
 
   .cardToggleSwitch > input:checked + span:first-of-type > span:first-child {

@@ -729,7 +729,8 @@
     "plan_team": "Team",
     "plan_free": "Free",
     "plan_pro": "Pro 20x",
-    "plan_prolite": "Pro 5x"
+    "plan_prolite": "Pro 5x",
+    "subscription_active_days": "Active {{days}}d"
   },
   "gemini_cli_quota": {
     "title": "Gemini CLI Quota",

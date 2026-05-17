@@ -63,6 +63,8 @@ import {
   parseKimiUsagePayload,
   resolveCodexChatgptAccountId,
   resolveCodexPlanType,
+  resolveCodexSubscriptionActiveDays,
+  resolveCodexSubscriptionActiveStart,
   resolveCodexSubscriptionActiveUntil,
   resolveGeminiCliProjectId,
   formatCodexResetLabel,
@@ -96,7 +98,12 @@ const QUOTA_PROGRESS_MEDIUM_THRESHOLD = 30;
 const geminiCliSupplementaryRequestIds = new Map<string, number>();
 const geminiCliSupplementaryCache = new Map<
   string,
-  { requestId: number; tierLabel: string | null; tierId: string | null; creditBalance: number | null }
+  {
+    requestId: number;
+    tierLabel: string | null;
+    tierId: string | null;
+    creditBalance: number | null;
+  }
 >();
 
 export interface QuotaStore {
@@ -242,12 +249,19 @@ const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): Codex
   const WINDOW_META = {
     codeFiveHour: { id: 'five-hour', labelKey: 'codex_quota.primary_window' },
     codeWeekly: { id: 'weekly', labelKey: 'codex_quota.secondary_window' },
-    codeReviewFiveHour: { id: 'code-review-five-hour', labelKey: 'codex_quota.code_review_primary_window' },
-    codeReviewWeekly: { id: 'code-review-weekly', labelKey: 'codex_quota.code_review_secondary_window' },
+    codeReviewFiveHour: {
+      id: 'code-review-five-hour',
+      labelKey: 'codex_quota.code_review_primary_window',
+    },
+    codeReviewWeekly: {
+      id: 'code-review-weekly',
+      labelKey: 'codex_quota.code_review_secondary_window',
+    },
   } as const;
 
   const rateLimit = payload.rate_limit ?? payload.rateLimit ?? undefined;
-  const codeReviewLimit = payload.code_review_rate_limit ?? payload.codeReviewRateLimit ?? undefined;
+  const codeReviewLimit =
+    payload.code_review_rate_limit ?? payload.codeReviewRateLimit ?? undefined;
   const additionalRateLimits = payload.additional_rate_limits ?? payload.additionalRateLimits ?? [];
   const windows: CodexQuotaWindow[] = [];
 
@@ -311,7 +325,8 @@ const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): Codex
         fiveHourWindow = primaryWindow && primaryWindow !== weeklyWindow ? primaryWindow : null;
       }
       if (!weeklyWindow) {
-        weeklyWindow = secondaryWindow && secondaryWindow !== fiveHourWindow ? secondaryWindow : null;
+        weeklyWindow =
+          secondaryWindow && secondaryWindow !== fiveHourWindow ? secondaryWindow : null;
       }
     }
 
@@ -379,7 +394,8 @@ const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): Codex
 
       const idPrefix = normalizeWindowId(limitName) || `additional-${index + 1}`;
       const additionalPrimaryWindow = rateInfo.primary_window ?? rateInfo.primaryWindow ?? null;
-      const additionalSecondaryWindow = rateInfo.secondary_window ?? rateInfo.secondaryWindow ?? null;
+      const additionalSecondaryWindow =
+        rateInfo.secondary_window ?? rateInfo.secondaryWindow ?? null;
       const additionalLimitReached = rateInfo.limit_reached ?? rateInfo.limitReached;
       const additionalAllowed = rateInfo.allowed;
 
@@ -412,6 +428,8 @@ const fetchCodexQuota = async (
   t: TFunction
 ): Promise<{
   planType: string | null;
+  subscriptionActiveStart: string | number | null;
+  subscriptionActiveDays: number | null;
   subscriptionUntil: string | number | null;
   windows: CodexQuotaWindow[];
 }> => {
@@ -450,13 +468,22 @@ const fetchCodexQuota = async (
   }
 
   const planTypeFromUsage = normalizePlanType(payload.plan_type ?? payload.planType);
-  const subscriptionUntil = resolveCodexSubscriptionActiveUntil({
+  const subscriptionSource = {
     ...quotaFile,
     ...payload,
     name: quotaFile.name,
-  } as AuthFileItem);
+  } as AuthFileItem;
+  const subscriptionActiveStart = resolveCodexSubscriptionActiveStart(subscriptionSource);
+  const subscriptionActiveDays = resolveCodexSubscriptionActiveDays(subscriptionSource);
+  const subscriptionUntil = resolveCodexSubscriptionActiveUntil(subscriptionSource);
   const windows = buildCodexQuotaWindows(payload, t);
-  return { planType: planTypeFromUsage ?? planTypeFromFile, subscriptionUntil, windows };
+  return {
+    planType: planTypeFromUsage ?? planTypeFromFile,
+    subscriptionActiveStart,
+    subscriptionActiveDays,
+    subscriptionUntil,
+    windows,
+  };
 };
 
 const resolveCodexQuotaSourceFile = async (file: AuthFileItem): Promise<AuthFileItem> => {
@@ -496,8 +523,7 @@ const resolveGeminiCliTierLabel = (
   if (!payload) return null;
   const currentTier: GeminiCliUserTier | null | undefined =
     payload.currentTier ?? payload.current_tier;
-  const paidTier: GeminiCliUserTier | null | undefined =
-    payload.paidTier ?? payload.paid_tier;
+  const paidTier: GeminiCliUserTier | null | undefined = payload.paidTier ?? payload.paid_tier;
   const rawId = normalizeStringValue(paidTier?.id) ?? normalizeStringValue(currentTier?.id);
   if (!rawId) return null;
   const tierId = rawId.toLowerCase();
@@ -505,14 +531,11 @@ const resolveGeminiCliTierLabel = (
   return labelKey ? t(`gemini_cli_quota.${labelKey}`) : rawId;
 };
 
-const resolveGeminiCliTierId = (
-  payload: GeminiCliCodeAssistPayload | null
-): string | null => {
+const resolveGeminiCliTierId = (payload: GeminiCliCodeAssistPayload | null): string | null => {
   if (!payload) return null;
   const currentTier: GeminiCliUserTier | null | undefined =
     payload.currentTier ?? payload.current_tier;
-  const paidTier: GeminiCliUserTier | null | undefined =
-    payload.paidTier ?? payload.paid_tier;
+  const paidTier: GeminiCliUserTier | null | undefined = payload.paidTier ?? payload.paid_tier;
   const rawId = normalizeStringValue(paidTier?.id) ?? normalizeStringValue(currentTier?.id);
   return rawId ? rawId.toLowerCase() : null;
 };
@@ -521,14 +544,12 @@ const resolveGeminiCliCreditBalance = (
   payload: GeminiCliCodeAssistPayload | null
 ): number | null => {
   if (!payload) return null;
-  const paidTier: GeminiCliUserTier | null | undefined =
-    payload.paidTier ?? payload.paid_tier;
+  const paidTier: GeminiCliUserTier | null | undefined = payload.paidTier ?? payload.paid_tier;
   const currentTier: GeminiCliUserTier | null | undefined =
     payload.currentTier ?? payload.current_tier;
   const tier = paidTier ?? currentTier;
   if (!tier) return null;
-  const credits: GeminiCliCredits[] =
-    tier.availableCredits ?? tier.available_credits ?? [];
+  const credits: GeminiCliCredits[] = tier.availableCredits ?? tier.available_credits ?? [];
   let total = 0;
   let found = false;
   for (const credit of credits) {
@@ -794,8 +815,23 @@ const resolveCodexSubscriptionUntilLabel = (
   quota: CodexQuotaState,
   item?: AuthFileItem
 ): string | null => {
-  const value = quota.subscriptionUntil ?? (item ? resolveCodexSubscriptionActiveUntil(item) : null);
+  const value =
+    quota.subscriptionUntil ?? (item ? resolveCodexSubscriptionActiveUntil(item) : null);
   return formatCodexSubscriptionUntil(value);
+};
+
+const resolveCodexSubscriptionActiveDaysLabel = (
+  quota: CodexQuotaState,
+  item: AuthFileItem | undefined,
+  t: TFunction
+): string | null => {
+  const days =
+    quota.subscriptionActiveDays ?? (item ? resolveCodexSubscriptionActiveDays(item) : null);
+  if (days === null || days < 0) return null;
+  return t('codex_quota.subscription_active_days', {
+    days,
+    defaultValue: `Active ${days}d`,
+  });
 };
 
 const renderCodexItems = (
@@ -808,6 +844,11 @@ const renderCodexItems = (
   const windows = quota.windows ?? [];
   const planType = quota.planType ?? null;
   const subscriptionUntilLabel = resolveCodexSubscriptionUntilLabel(quota, helpers.item);
+  const subscriptionActiveDaysLabel = resolveCodexSubscriptionActiveDaysLabel(
+    quota,
+    helpers.item,
+    t
+  );
 
   const getPlanLabel = (pt?: string | null): string | null => {
     const normalized = normalizePlanType(pt);
@@ -826,7 +867,7 @@ const renderCodexItems = (
   const isPremiumPlan = PREMIUM_CODEX_PLAN_TYPES.has(normalizePlanType(planType) ?? '');
   const nodes: ReactNode[] = [];
 
-  if (planLabel || subscriptionUntilLabel) {
+  if (planLabel || subscriptionUntilLabel || subscriptionActiveDaysLabel) {
     const valueClass = isPremiumPlan ? styleMap.premiumPlanValue : styleMap.codexPlanValue;
     nodes.push(
       h(
@@ -836,6 +877,9 @@ const renderCodexItems = (
         h('span', { className: valueClass }, planLabel ?? t('codex_quota.plan_unknown')),
         subscriptionUntilLabel
           ? h('span', { className: styleMap.codexPlanExpiry }, subscriptionUntilLabel)
+          : null,
+        subscriptionActiveDaysLabel
+          ? h('span', { className: styleMap.codexPlanExpiry }, subscriptionActiveDaysLabel)
           : null
       )
     );
@@ -927,7 +971,11 @@ const renderGeminiCliItems = (
 
   if (buckets.length === 0) {
     nodes.push(
-      h('div', { key: 'empty', className: styleMap.quotaMessage }, t('gemini_cli_quota.empty_buckets'))
+      h(
+        'div',
+        { key: 'empty', className: styleMap.quotaMessage },
+        t('gemini_cli_quota.empty_buckets')
+      )
     );
     return h(Fragment, null, ...nodes);
   }
@@ -1049,7 +1097,11 @@ const resolveClaudePlanType = (profile: ClaudeProfileResponse | null): string | 
 const fetchClaudeQuota = async (
   file: AuthFileItem,
   t: TFunction
-): Promise<{ windows: ClaudeQuotaWindow[]; extraUsage?: ClaudeExtraUsage | null; planType?: string | null }> => {
+): Promise<{
+  windows: ClaudeQuotaWindow[];
+  extraUsage?: ClaudeExtraUsage | null;
+  planType?: string | null;
+}> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   if (!authIndex) {
@@ -1231,7 +1283,13 @@ export const ANTIGRAVITY_CONFIG: QuotaConfig<AntigravityQuotaState, AntigravityQ
 
 export const CODEX_CONFIG: QuotaConfig<
   CodexQuotaState,
-  { planType: string | null; subscriptionUntil: string | number | null; windows: CodexQuotaWindow[] }
+  {
+    planType: string | null;
+    subscriptionActiveStart: string | number | null;
+    subscriptionActiveDays: number | null;
+    subscriptionUntil: string | number | null;
+    windows: CodexQuotaWindow[];
+  }
 > = {
   type: 'codex',
   i18nPrefix: 'codex_quota',
@@ -1245,6 +1303,8 @@ export const CODEX_CONFIG: QuotaConfig<
     status: 'success',
     windows: data.windows,
     planType: data.planType,
+    subscriptionActiveStart: data.subscriptionActiveStart,
+    subscriptionActiveDays: data.subscriptionActiveDays,
     subscriptionUntil: data.subscriptionUntil,
   }),
   buildErrorState: (message, status) => ({
@@ -1279,7 +1339,13 @@ export const GEMINI_CLI_CONFIG: QuotaConfig<
   fetchQuota: fetchGeminiCliQuota,
   storeSelector: (state) => state.geminiCliQuota,
   storeSetter: 'setGeminiCliQuota',
-  buildLoadingState: () => ({ status: 'loading', buckets: [], tierLabel: null, tierId: null, creditBalance: null }),
+  buildLoadingState: () => ({
+    status: 'loading',
+    buckets: [],
+    tierLabel: null,
+    tierId: null,
+    creditBalance: null,
+  }),
   buildSuccessState: (data) => {
     const supplementarySnapshot = readGeminiCliSupplementarySnapshot(
       data.fileName,
@@ -1332,7 +1398,11 @@ const formatKiroNumber = (value: number): string =>
     ? value.toLocaleString()
     : value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
-const resolveKiroResourceLabel = (resourceType: string | null, displayName: string | null, t: TFunction): string => {
+const resolveKiroResourceLabel = (
+  resourceType: string | null,
+  displayName: string | null,
+  t: TFunction
+): string => {
   if (displayName) return displayName;
   const normalizedResourceType = resourceType?.toUpperCase() ?? null;
   if (normalizedResourceType === 'CREDIT') return t('kiro_quota.credit_label');
@@ -1412,7 +1482,8 @@ const buildKiroQuotaRow = (
   }
 
   const resetTime =
-    normalizeKiroResetTime(breakdown.nextDateReset ?? breakdown.next_date_reset) ?? fallbackResetTime;
+    normalizeKiroResetTime(breakdown.nextDateReset ?? breakdown.next_date_reset) ??
+    fallbackResetTime;
   return {
     id: `${resourceType || 'usage'}-${index}`,
     label: resolveKiroResourceLabel(resourceType, displayName, t),
@@ -1510,7 +1581,8 @@ const buildKiroQuotaRows = (
   return {
     rows,
     subscriptionTitle:
-      normalizeStringValue(subscription?.subscriptionTitle ?? subscription?.subscription_title) ?? null,
+      normalizeStringValue(subscription?.subscriptionTitle ?? subscription?.subscription_title) ??
+      null,
     subscriptionType: normalizeStringValue(subscription?.type) ?? null,
     userEmail: normalizeStringValue(user?.email) ?? null,
     totalRemaining: firstKiroNumber(
@@ -1683,10 +1755,7 @@ export const KIRO_CONFIG: QuotaConfig<
   renderQuotaItems: renderKiroItems,
 };
 
-const fetchKimiQuota = async (
-  file: AuthFileItem,
-  t: TFunction
-): Promise<KimiQuotaRow[]> => {
+const fetchKimiQuota = async (file: AuthFileItem, t: TFunction): Promise<KimiQuotaRow[]> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   if (!authIndex) {
@@ -1737,7 +1806,7 @@ const renderKimiItems = (
     const percentLabel = remaining === null ? '--' : `${remaining}%`;
     const rowLabel = row.labelKey
       ? t(row.labelKey, (row.labelParams ?? {}) as Record<string, string | number>)
-      : row.label ?? '';
+      : (row.label ?? '');
     const resetLabel = formatKimiResetHint(t, row.resetHint);
 
     return h(
@@ -1751,12 +1820,8 @@ const renderKimiItems = (
           'div',
           { className: styleMap.quotaMeta },
           h('span', { className: styleMap.quotaPercent }, percentLabel),
-          limit > 0
-            ? h('span', { className: styleMap.quotaAmount }, `${used} / ${limit}`)
-            : null,
-          resetLabel
-            ? h('span', { className: styleMap.quotaReset }, resetLabel)
-            : null
+          limit > 0 ? h('span', { className: styleMap.quotaAmount }, `${used} / ${limit}`) : null,
+          resetLabel ? h('span', { className: styleMap.quotaReset }, resetLabel) : null
         )
       ),
       h(QuotaProgressBar, {

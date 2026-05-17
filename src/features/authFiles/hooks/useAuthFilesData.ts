@@ -245,7 +245,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       setLoading(true);
       setError('');
       try {
-        const data = await authFilesApi.list();
+        const data = await authFilesApi.list({ codexSubscription: 'cache' });
         setFiles(data?.files || []);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');

@@ -3,11 +3,7 @@
  */
 
 import type { AuthFileItem } from '@/types';
-import {
-  normalizeStringValue,
-  normalizePlanType,
-  parseIdTokenPayload
-} from './parsers';
+import { normalizeStringValue, normalizePlanType, parseIdTokenPayload } from './parsers';
 
 const OPENAI_AUTH_CLAIM = 'https://api.openai.com/auth';
 
@@ -16,8 +12,9 @@ const asRecord = (value: unknown): Record<string, unknown> | null => {
   return value as Record<string, unknown>;
 };
 
-const resolveOpenAiAuthClaim = (payload: Record<string, unknown> | null): Record<string, unknown> | null =>
-  asRecord(payload?.[OPENAI_AUTH_CLAIM]);
+const resolveOpenAiAuthClaim = (
+  payload: Record<string, unknown> | null
+): Record<string, unknown> | null => asRecord(payload?.[OPENAI_AUTH_CLAIM]);
 
 const normalizeDateLikeValue = (value: unknown): string | number | null => {
   if (typeof value === 'string') {
@@ -27,6 +24,42 @@ const normalizeDateLikeValue = (value: unknown): string | number | null => {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   return null;
 };
+
+const normalizeNonNegativeInteger = (value: unknown): number | null => {
+  const raw = typeof value === 'string' ? Number(value.trim()) : value;
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0) return null;
+  return Math.floor(raw);
+};
+
+const dateLikeToTimestampMs = (value: unknown): number | null => {
+  const normalized = normalizeDateLikeValue(value);
+  if (normalized === null) return null;
+  if (typeof normalized === 'number') {
+    const timestamp = normalized < 1_000_000_000_000 ? normalized * 1000 : normalized;
+    return timestamp > 0 ? timestamp : null;
+  }
+
+  const numeric = Number(normalized);
+  if (Number.isFinite(numeric)) {
+    const timestamp = numeric < 1_000_000_000_000 ? numeric * 1000 : numeric;
+    return timestamp > 0 ? timestamp : null;
+  }
+
+  const parsed = Date.parse(normalized);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+export function calculateCodexSubscriptionActiveDays(
+  startValue: unknown,
+  nowMs = Date.now()
+): number | null {
+  const startMs = dateLikeToTimestampMs(startValue);
+  if (startMs === null || !Number.isFinite(nowMs)) return null;
+  if (startMs > nowMs) return 0;
+  const elapsedMs = nowMs - startMs;
+  const days = Math.ceil(elapsedMs / 86_400_000);
+  return Math.max(1, days);
+}
 
 export function extractCodexChatgptAccountId(value: unknown): string | null {
   const payload = parseIdTokenPayload(value);
@@ -199,6 +232,108 @@ export function resolveCodexSubscriptionActiveUntil(file: AuthFileItem): string 
   return null;
 }
 
+export function resolveCodexSubscriptionActiveStart(file: AuthFileItem): string | number | null {
+  const metadata = asRecord(file.metadata);
+  const attributes = asRecord(file.attributes);
+  const idToken = parseIdTokenPayload(file.id_token);
+  const metadataIdToken = parseIdTokenPayload(metadata?.id_token);
+  const attributesIdToken = parseIdTokenPayload(attributes?.id_token);
+  const authClaim = resolveOpenAiAuthClaim(idToken);
+  const metadataAuthClaim = resolveOpenAiAuthClaim(metadataIdToken);
+  const attributesAuthClaim = resolveOpenAiAuthClaim(attributesIdToken);
+  const candidates = [
+    file.subscription_active_start,
+    file.subscriptionActiveStart,
+    file['subscription_active_start'],
+    file['subscriptionActiveStart'],
+    file.subscription_started_at,
+    file.subscriptionStartedAt,
+    file['subscription_started_at'],
+    file['subscriptionStartedAt'],
+    file.chatgpt_subscription_active_start,
+    file.chatgptSubscriptionActiveStart,
+    file['chatgpt_subscription_active_start'],
+    file['chatgptSubscriptionActiveStart'],
+    idToken?.subscription_active_start,
+    idToken?.subscriptionActiveStart,
+    idToken?.subscription_started_at,
+    idToken?.subscriptionStartedAt,
+    idToken?.chatgpt_subscription_active_start,
+    idToken?.chatgptSubscriptionActiveStart,
+    authClaim?.subscription_active_start,
+    authClaim?.subscriptionActiveStart,
+    authClaim?.subscription_started_at,
+    authClaim?.subscriptionStartedAt,
+    authClaim?.chatgpt_subscription_active_start,
+    authClaim?.chatgptSubscriptionActiveStart,
+    metadata?.subscription_active_start,
+    metadata?.subscriptionActiveStart,
+    metadata?.subscription_started_at,
+    metadata?.subscriptionStartedAt,
+    metadata?.chatgpt_subscription_active_start,
+    metadata?.chatgptSubscriptionActiveStart,
+    metadataIdToken?.subscription_active_start,
+    metadataIdToken?.subscriptionActiveStart,
+    metadataIdToken?.subscription_started_at,
+    metadataIdToken?.subscriptionStartedAt,
+    metadataIdToken?.chatgpt_subscription_active_start,
+    metadataIdToken?.chatgptSubscriptionActiveStart,
+    metadataAuthClaim?.subscription_active_start,
+    metadataAuthClaim?.subscriptionActiveStart,
+    metadataAuthClaim?.subscription_started_at,
+    metadataAuthClaim?.subscriptionStartedAt,
+    metadataAuthClaim?.chatgpt_subscription_active_start,
+    metadataAuthClaim?.chatgptSubscriptionActiveStart,
+    attributes?.subscription_active_start,
+    attributes?.subscriptionActiveStart,
+    attributes?.subscription_started_at,
+    attributes?.subscriptionStartedAt,
+    attributes?.chatgpt_subscription_active_start,
+    attributes?.chatgptSubscriptionActiveStart,
+    attributesIdToken?.subscription_active_start,
+    attributesIdToken?.subscriptionActiveStart,
+    attributesIdToken?.subscription_started_at,
+    attributesIdToken?.subscriptionStartedAt,
+    attributesIdToken?.chatgpt_subscription_active_start,
+    attributesIdToken?.chatgptSubscriptionActiveStart,
+    attributesAuthClaim?.subscription_active_start,
+    attributesAuthClaim?.subscriptionActiveStart,
+    attributesAuthClaim?.subscription_started_at,
+    attributesAuthClaim?.subscriptionStartedAt,
+    attributesAuthClaim?.chatgpt_subscription_active_start,
+    attributesAuthClaim?.chatgptSubscriptionActiveStart,
+  ];
+
+  for (const candidate of candidates) {
+    const value = normalizeDateLikeValue(candidate);
+    if (value !== null) return value;
+  }
+
+  return null;
+}
+
+export function resolveCodexSubscriptionActiveDays(file: AuthFileItem): number | null {
+  const metadata = asRecord(file.metadata);
+  const attributes = asRecord(file.attributes);
+  const directCandidates = [
+    file.subscription_active_days,
+    file.subscriptionActiveDays,
+    file['subscription_active_days'],
+    file['subscriptionActiveDays'],
+    metadata?.subscription_active_days,
+    metadata?.subscriptionActiveDays,
+    attributes?.subscription_active_days,
+    attributes?.subscriptionActiveDays,
+  ];
+
+  for (const candidate of directCandidates) {
+    const days = normalizeNonNegativeInteger(candidate);
+    if (days !== null) return days;
+  }
+
+  return calculateCodexSubscriptionActiveDays(resolveCodexSubscriptionActiveStart(file));
+}
+
 export function extractGeminiCliProjectId(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const matches = Array.from(value.matchAll(/\(([^()]+)\)/g));
@@ -217,12 +352,7 @@ export function resolveGeminiCliProjectId(file: AuthFileItem): string | null {
       ? (file.attributes as Record<string, unknown>)
       : null;
 
-  const candidates = [
-    file.account,
-    file['account'],
-    metadata?.account,
-    attributes?.account
-  ];
+  const candidates = [file.account, file['account'], metadata?.account, attributes?.account];
 
   for (const candidate of candidates) {
     const projectId = extractGeminiCliProjectId(candidate);
