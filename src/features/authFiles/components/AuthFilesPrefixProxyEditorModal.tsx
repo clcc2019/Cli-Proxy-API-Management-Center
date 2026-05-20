@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Input } from '@/components/ui/Input';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { IconCopy } from '@/components/ui/icons';
 import type {
   PrefixProxyEditorField,
   PrefixProxyEditorFieldValue,
@@ -12,10 +13,10 @@ import type {
 } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
-const formatJsonText = (text: string) => {
+const compactJsonText = (text: string) => {
   if (!text) return '';
   try {
-    return JSON.stringify(JSON.parse(text), null, 2);
+    return JSON.stringify(JSON.parse(text)) ?? text;
   } catch {
     return text;
   }
@@ -36,7 +37,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
   const { t } = useTranslation();
   const { disableControls, editor, updatedText, dirty, onClose, onCopyText, onSave, onChange } =
     props;
-  const previewText = useMemo(() => formatJsonText(updatedText), [updatedText]);
+  const previewText = useMemo(() => compactJsonText(updatedText), [updatedText]);
 
   return (
     <Modal
@@ -190,9 +191,27 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                 />
               </div>
               <div className={styles.prefixProxyJsonWrapper}>
-                <label className={styles.prefixProxyLabel}>
-                  {t('auth_files.prefix_proxy_source_label')}
-                </label>
+                <div className={styles.prefixProxyLabelRow}>
+                  <label className={styles.prefixProxyLabel}>
+                    {t('auth_files.prefix_proxy_source_label')}
+                  </label>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className={styles.prefixProxyCopyButton}
+                    onClick={() => {
+                      if (!previewText) return;
+                      void onCopyText(previewText);
+                    }}
+                    disabled={editor.saving || !previewText}
+                    title={t('auth_files.prefix_proxy_copy_json')}
+                    aria-label={t('auth_files.prefix_proxy_copy_json')}
+                  >
+                    <IconCopy size={14} />
+                    {t('auth_files.prefix_proxy_copy_json')}
+                  </Button>
+                </div>
                 <textarea
                   className={styles.prefixProxyTextarea}
                   rows={10}

@@ -1611,17 +1611,19 @@
 @media (max-width: 520px) {
   .cardHeader {
     display: flex;
-    flex-wrap: wrap;
-    align-items: start;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 6px;
   }
 
   .cardHeaderContent {
-    flex: 1 1 calc(100% - 76px);
+    flex: 1 1 auto;
     min-width: 0;
   }
 
   .cardWarningIndicator {
-    margin-left: 0;
+    margin-left: auto;
+    flex-shrink: 0;
   }
 }
 
@@ -1824,13 +1826,18 @@
   .stateBadge,
   .planBadge,
   .featureBadge {
-    min-height: 20px;
+    min-height: 18px;
+    height: auto;
     max-width: 100%;
-    padding: 0 7px;
-    border-radius: 7px;
+    padding: 2px 6px;
+    border-radius: 6px;
     font-size: 9px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .cardBadgeRow {
+    row-gap: 3px;
   }
 }
 
@@ -2044,9 +2051,9 @@
   }
 
   .fileNameCopyButton {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
   }
 
   .metaLabel {
@@ -2058,19 +2065,19 @@
   }
 
   .priorityStepper {
-    height: 34px;
-    border-radius: 10px;
+    height: 28px;
+    border-radius: 8px;
   }
 
   .priorityStepButton {
-    width: 34px;
-    height: 32px;
-    font-size: 16px;
+    width: 28px;
+    height: 26px;
+    font-size: 14px;
   }
 
   .priorityInput {
-    width: 48px;
-    height: 32px;
+    width: 40px;
+    height: 26px;
     font-size: 12px;
   }
 }
@@ -2538,6 +2545,7 @@
   @include mobile {
     flex-direction: column;
     align-items: stretch;
+    gap: 6px;
   }
 }
 
@@ -2813,6 +2821,24 @@
   letter-spacing: 0.01em;
 }
 
+.prefixProxyLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  min-width: 0;
+}
+
+.prefixProxyCopyButton {
+  flex: 0 0 auto;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
 .prefixProxyTextarea {
   width: 100%;
   padding: $spacing-sm $spacing-md;
@@ -2836,6 +2862,12 @@
   @include mobile {
     min-height: 96px;
     font-size: 11px;
+  }
+}
+
+@include mobile {
+  .prefixProxyLabelRow {
+    align-items: flex-start;
   }
 }
 
@@ -3258,68 +3290,19 @@
 
 @media (max-width: 420px) {
   .cardActionsMain {
-    gap: 6px;
+    gap: 5px;
   }
 
   .cardActionCluster {
-    gap: 5px;
+    gap: 4px;
   }
 
   .cardStatusActions {
-    gap: 5px;
+    gap: 4px;
     justify-content: flex-end;
   }
 
   .cardUtilityActions {
-    gap: 5px;
-  }
-
-  .iconButton:global(.btn.btn-sm) {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
-    border-radius: 10px;
-  }
-
-  .actionIcon {
-    width: 16px;
-    height: 16px;
-  }
-
-  .cardToggleSwitch > span:first-of-type {
-    width: 56px;
-    min-width: 56px;
-    height: 32px;
-    min-height: 32px;
-    padding: 0 6px 0 30px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type {
-    padding: 0 30px 0 6px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:first-child {
-    font-size: 8.5px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:last-child {
-    top: 3px;
-    left: 3px;
-    width: 26px;
-    height: 26px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    right: 3px;
-  }
-}
-
-@media (max-width: 360px) {
-  .cardActionsMain,
-  .cardActionCluster,
-  .cardUtilityActions,
-  .cardStatusActions {
     gap: 4px;
   }
 
@@ -3328,6 +3311,7 @@
     height: 34px;
     min-width: 34px;
     min-height: 34px;
+    border-radius: 9px;
   }
 
   .actionIcon {
@@ -3352,8 +3336,63 @@
   }
 
   .cardToggleSwitch > span:first-of-type > span:last-child {
+    top: 3px;
+    left: 3px;
     width: 24px;
     height: 24px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
+    right: 3px;
+  }
+}
+
+@media (max-width: 360px) {
+  .cardActionsMain,
+  .cardActionCluster,
+  .cardUtilityActions,
+  .cardStatusActions {
+    gap: 3px;
+  }
+
+  .iconButton:global(.btn.btn-sm) {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 8px;
+  }
+
+  .actionIcon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .cardToggleSwitch > span:first-of-type {
+    width: 48px;
+    min-width: 48px;
+    height: 28px;
+    min-height: 28px;
+    padding: 0 4px 0 26px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type {
+    padding: 0 26px 0 4px;
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:first-child {
+    font-size: 7.5px;
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:last-child {
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
+    right: 2px;
   }
 }
 

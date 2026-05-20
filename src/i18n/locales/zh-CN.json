@@ -628,6 +628,7 @@
     "prefix_proxy_loading": "正在加载认证文件...",
     "prefix_proxy_info_label": "认证文件信息（info）",
     "prefix_proxy_source_label": "认证文件 JSON（预览）",
+    "prefix_proxy_copy_json": "复制 JSON",
     "access_token_label": "访问令牌（access_token）",
     "access_token_hint": "按后端规则自动从认证文件中解析，优先读取顶层 access_token，再回退到 token.access_token。",
     "access_token_copy": "复制 access_token",
