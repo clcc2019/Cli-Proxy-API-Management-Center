@@ -6,7 +6,7 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 20px;
   position: relative;
   min-width: 0;
 }
@@ -14,27 +14,50 @@
 .hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.58fr);
-  gap: 18px;
-  padding: clamp(16px, 1.6vw + 8px, 22px);
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.52fr);
+  gap: 20px;
+  padding: clamp(18px, 1.8vw + 10px, 26px);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
   background: var(--surface-raised);
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    var(--shadow-card),
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 4%, transparent);
+  overflow: hidden;
 
   &::before {
     content: '';
     position: absolute;
     inset: 0 0 auto 0;
-    height: 1px;
+    height: 3px;
     background: linear-gradient(
       90deg,
-      transparent,
-      color-mix(in srgb, var(--primary-color) 32%, transparent),
-      transparent
+      transparent 5%,
+      color-mix(in srgb, var(--primary-color) 36%, transparent) 30%,
+      color-mix(in srgb, #7c5cff 28%, transparent) 55%,
+      color-mix(in srgb, var(--primary-color) 20%, transparent) 80%,
+      transparent 95%
     );
-    opacity: 0.6;
+    opacity: 0.7;
     pointer-events: none;
+    border-radius: 16px 16px 0 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, #7c5cff 8%, transparent),
+      transparent 70%
+    );
+    pointer-events: none;
+    opacity: 0.5;
   }
 
   @include tablet {
@@ -43,16 +66,22 @@
 
   @include mobile {
     grid-template-columns: 1fr;
-    padding: 14px;
+    padding: 16px;
     gap: 14px;
+
+    &::after {
+      display: none;
+    }
   }
 }
 
 .heroCopy {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .pageSubtitle {
@@ -80,11 +109,24 @@
   display: inline-flex;
   flex-direction: column;
   gap: 4px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 94%, var(--bg-secondary) 6%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--bg-primary) 96%, var(--bg-secondary) 4%),
+    color-mix(in srgb, var(--bg-primary) 90%, var(--bg-secondary) 10%)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
+  }
 }
 
 .heroChipLabel {
@@ -106,10 +148,17 @@
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 16px;
-  border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 92%, var(--bg-secondary) 8%);
+  padding: 18px;
+  border-radius: $radius-lg;
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-primary) 94%, var(--bg-secondary) 6%),
+    color-mix(in srgb, var(--bg-primary) 88%, var(--bg-secondary) 12%)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
 .actionGrid {
@@ -148,17 +197,22 @@
 }
 
 .pageTitleIcon {
-  width: 34px;
-  height: 34px;
-  border-radius: $radius-md;
+  width: 38px;
+  height: 38px;
+  border-radius: $radius-lg;
   color: #7c5cff;
-  background: color-mix(in srgb, #7c5cff 10%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #7c5cff 14%, transparent),
+    color-mix(in srgb, #7c5cff 8%, transparent)
+  );
+  box-shadow: 0 2px 8px color-mix(in srgb, #7c5cff 12%, transparent);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   scroll-margin-top: calc(var(--header-height, 72px) + 20px);
 }
 
@@ -168,15 +222,17 @@
 }
 
 .overviewPanel {
-  padding: 20px;
-  border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  padding: clamp(16px, 1.4vw + 8px, 24px);
+  border-radius: $radius-lg;
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--bg-primary) 98%, white 2%),
     var(--bg-primary)
   );
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+  box-shadow:
+    0 18px 42px rgba(15, 23, 42, 0.07),
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 3%, transparent);
 }
 
 .sectionHeader {
@@ -190,16 +246,19 @@
   align-items: center;
   gap: 8px;
   width: fit-content;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary-color, var(--text-secondary));
 
   &::after {
     content: '';
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--text-secondary) 76%, transparent);
+    background: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 10%, transparent);
   }
 }
 
@@ -221,9 +280,10 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 21px;
+  font-weight: 800;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .sectionDescription {
@@ -240,25 +300,36 @@
   justify-content: center;
   gap: 8px;
   min-height: 36px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: $radius-full;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 92%, var(--bg-secondary) 8%);
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-primary) 94%, var(--bg-secondary) 6%),
+    color-mix(in srgb, var(--bg-primary) 88%, var(--bg-secondary) 12%)
+  );
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   transition:
     color $transition-fast,
     border-color $transition-fast,
-    background-color $transition-fast,
+    background $transition-fast,
+    box-shadow $transition-fast,
     transform $transition-fast;
 
   &:hover {
     color: var(--text-primary);
     border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
-    background: color-mix(in srgb, var(--bg-primary) 84%, var(--bg-secondary) 16%);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-primary) 88%, var(--bg-secondary) 12%),
+      color-mix(in srgb, var(--bg-primary) 82%, var(--bg-secondary) 18%)
+    );
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     transform: translateY(-1px);
   }
 
@@ -276,12 +347,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 16%, transparent);
   color: var(--primary-color);
   font-size: 12px;
+  font-weight: 800;
+  transition: transform $transition-fast;
+
+  .sectionToggle:hover & {
+    transform: scale(1.1);
+  }
 }
 
 .header {
@@ -462,27 +539,29 @@
 .pageTitle {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   font-size: 32px;
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.02em;
 
   @include mobile {
-    font-size: 28px;
+    font-size: 26px;
     line-height: 1.2;
+    gap: 10px;
   }
 }
 
 .trendGrid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 20px;
+  gap: 18px;
   align-items: start;
 
   @include mobile {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
   }
 }
 
@@ -494,7 +573,7 @@
 .trendCharts {
   grid-column: span 9;
   display: grid;
-  gap: 20px;
+  gap: 18px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
 
   > * {
@@ -511,7 +590,7 @@
 .analysisGrid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 20px;
+  gap: 18px;
 
   > * {
     min-width: 0;
@@ -529,7 +608,7 @@
 
   @include mobile {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
   }
 }
 
@@ -550,12 +629,14 @@
 }
 
 .errorBox {
-  padding: 10px;
-  background-color: rgba($error-color, 0.1);
-  border: 1px solid var(--error-color);
-  border-radius: $radius-sm;
+  padding: 12px 16px;
+  background-color: rgba($error-color, 0.08);
+  border: 1px solid color-mix(in srgb, var(--error-color) 40%, transparent);
+  border-radius: $radius-md;
   color: var(--error-color);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .hint {
@@ -604,7 +685,7 @@
 // Stats Grid
 .statsGrid {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   grid-template-columns: repeat(12, minmax(0, 1fr));
 
   @include mobile {
@@ -620,15 +701,21 @@
 
   grid-column: span 4;
   position: relative;
-  padding: 16px;
-  background: var(--surface-raised);
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  padding: 18px;
+  background: linear-gradient(
+    180deg,
+    var(--surface-raised),
+    color-mix(in srgb, var(--surface-raised) 96%, var(--accent) 4%)
+  );
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 65%, transparent);
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-height: 200px;
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition:
     transform $transition-fast,
     box-shadow $transition-fast,
@@ -636,9 +723,11 @@
   overflow: hidden;
 
   &:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     border-color: var(--accent-border);
-    box-shadow: var(--shadow-card-hover);
+    box-shadow:
+      var(--shadow-card-hover),
+      0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
   }
 
   @include tablet {
@@ -656,7 +745,7 @@
   grid-column: span 6;
 
   .statValue {
-    font-size: clamp(26px, 2.4vw + 12px, 32px);
+    font-size: clamp(28px, 2.4vw + 12px, 34px);
   }
 
   .statTrend {
@@ -688,17 +777,28 @@
 }
 
 .statIconBadge {
-  width: 48px;
-  height: 48px;
-  border-radius: $radius-md;
+  width: 44px;
+  height: 44px;
+  border-radius: $radius-lg;
   display: grid;
   place-items: center;
   color: var(--accent);
   font-size: 13px;
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 15%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 2px 6px color-mix(in srgb, var(--accent) 10%, transparent);
   flex-shrink: 0;
+  transition: transform $transition-fast;
+
+  .statCard:hover & {
+    transform: scale(1.06);
+  }
 
   svg {
     display: block;
@@ -726,8 +826,9 @@
   font-size: 28px;
   font-weight: 800;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .statValueRow {
@@ -879,9 +980,14 @@
 
 .apiItem {
   background-color: var(--bg-secondary);
-  border-radius: $radius-sm;
-  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   overflow: hidden;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 20%, var(--border-color));
+  }
 }
 
 .apiHeader {
@@ -959,11 +1065,16 @@
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
   border-radius: $radius-md;
   font-size: 12px;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: var(--bg-tertiary);
+  }
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -992,6 +1103,10 @@
   flex-direction: column;
   height: 520px;
   overflow: hidden;
+  border-radius: $radius-lg;
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
   @include mobile {
     height: auto;
@@ -1209,11 +1324,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 12px;
   background-color: var(--bg-secondary);
-  border-radius: $radius-sm;
-  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
   gap: 10px;
+  transition:
+    border-color $transition-fast,
+    background-color $transition-fast;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 16%, var(--border-color));
+    background-color: color-mix(in srgb, var(--bg-secondary) 94%, var(--bg-tertiary) 6%);
+  }
 
   @include mobile {
     flex-direction: column;
@@ -1280,14 +1403,20 @@
 }
 
 .chartWrapper {
-  padding: 16px;
-  background: color-mix(in srgb, var(--bg-primary) 98%, white 2%);
-  border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  padding: 18px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-primary) 98%, white 2%),
+    var(--bg-primary)
+  );
+  border-radius: $radius-lg;
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+  box-shadow:
+    0 14px 34px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .chartSummaryRow {
@@ -1465,8 +1594,11 @@
     color-mix(in srgb, var(--bg-primary) 96%, white 4%),
     var(--bg-primary)
   );
-  border-color: color-mix(in srgb, var(--border-color) 85%, transparent);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+  border-radius: $radius-lg;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   :global(.card-header) {
     margin-bottom: 18px;
@@ -1480,6 +1612,7 @@
 
   :global(.title) {
     font-size: 17px;
+    font-weight: 700;
     letter-spacing: -0.01em;
   }
 }
@@ -1494,7 +1627,7 @@
 
 .detailsGrid {
   display: grid;
-  gap: 20px;
+  gap: 18px;
   grid-template-columns: minmax(0, 1fr);
 
   > * {
@@ -1510,7 +1643,7 @@
 
 .supportStack {
   display: grid;
-  gap: 20px;
+  gap: 18px;
 
   > * {
     min-width: 0;
@@ -1969,8 +2102,11 @@
     color-mix(in srgb, var(--bg-primary) 96%, white 4%),
     var(--bg-primary)
   );
-  border-color: color-mix(in srgb, var(--border-color) 85%, transparent);
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.07);
+  border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
+  border-radius: $radius-lg;
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   :global(.card-header) {
     margin-bottom: 18px;
@@ -1999,14 +2135,19 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 12px;
+  padding: 12px 14px;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--bg-secondary) 90%, white 10%),
+    color-mix(in srgb, var(--bg-secondary) 92%, white 8%),
     var(--bg-secondary)
   );
-  border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   border-radius: $radius-md;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
+  }
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -2048,14 +2189,20 @@
 
 // Service Health Card
 .healthCard {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-primary) 98%, white 2%),
+    var(--bg-primary)
+  );
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
   border-radius: $radius-lg;
-  padding: 18px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  box-shadow: var(--shadow-lg);
+  gap: 16px;
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .healthHeader {
@@ -2068,9 +2215,10 @@
 
 .healthTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .healthMeta {
