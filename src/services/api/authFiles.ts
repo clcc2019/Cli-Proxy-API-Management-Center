@@ -4,7 +4,7 @@
 
 import { apiClient } from './client';
 import type { AuthFilesResponse } from '@/types/authFile';
-import type { KiroUsageResponse, OAuthModelAliasEntry } from '@/types';
+import type { CodexUsagePayload, KiroUsageResponse, OAuthModelAliasEntry } from '@/types';
 
 type StatusError = { status?: number };
 type AuthFileStatusResponse = { status: string; disabled: boolean };
@@ -61,6 +61,13 @@ type PatchAuthFileFieldsResponse = {
 export type AuthFilesListCodexSubscriptionMode = 'cache' | 'refresh' | 'skip';
 export type AuthFilesListOptions = {
   codexSubscription?: AuthFilesListCodexSubscriptionMode;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  type?: string;
+  sort?: string;
+  problemOnly?: boolean;
+  disabledOnly?: boolean;
 };
 
 export const AUTH_FILE_INVALID_JSON_OBJECT_ERROR = 'AUTH_FILE_INVALID_JSON_OBJECT';
@@ -363,8 +370,34 @@ const dedupeAuthFilesResponse = (payload: AuthFilesResponse): AuthFilesResponse 
   return {
     ...payload,
     files: normalizedFiles,
-    total: normalizedFiles.length,
+    total: typeof payload?.total === 'number' ? payload.total : normalizedFiles.length,
   };
+};
+
+const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
+  const params: Record<string, string | number | boolean> = {
+    codex_subscription: options.codexSubscription ?? 'cache',
+  };
+
+  if (typeof options.page === 'number' && Number.isFinite(options.page) && options.page > 0) {
+    params.page = Math.round(options.page);
+  }
+  if (
+    typeof options.pageSize === 'number' &&
+    Number.isFinite(options.pageSize) &&
+    options.pageSize > 0
+  ) {
+    params.page_size = Math.round(options.pageSize);
+  }
+  const search = options.search?.trim();
+  if (search) params.q = search;
+  const type = options.type?.trim();
+  if (type) params.type = type;
+  const sort = options.sort?.trim();
+  if (sort) params.sort = sort;
+  if (options.problemOnly) params.problem_only = true;
+  if (options.disabledOnly) params.disabled_only = true;
+  return params;
 };
 
 const parseAuthFileJsonObject = (rawText: string): Record<string, unknown> => {
@@ -480,7 +513,7 @@ export const authFilesApi = {
   list: async (options: AuthFilesListOptions = {}) =>
     dedupeAuthFilesResponse(
       await apiClient.get<AuthFilesResponse>('/auth-files', {
-        params: { codex_subscription: options.codexSubscription ?? 'cache' },
+        params: buildAuthFilesListParams(options),
       })
     ),
 
@@ -552,8 +585,24 @@ export const authFilesApi = {
     return blob.text();
   },
 
+  previewText: async (name: string): Promise<string> => {
+    const response = await apiClient.getRaw(
+      `/auth-files/preview?name=${encodeURIComponent(name)}`,
+      {
+        responseType: 'blob',
+      }
+    );
+    const blob = response.data as Blob;
+    return blob.text();
+  },
+
   async downloadJsonObject(name: string): Promise<Record<string, unknown>> {
     const rawText = await authFilesApi.downloadText(name);
+    return parseAuthFileJsonObject(rawText);
+  },
+
+  async previewJsonObject(name: string): Promise<Record<string, unknown>> {
+    const rawText = await authFilesApi.previewText(name);
     return parseAuthFileJsonObject(rawText);
   },
 
@@ -634,6 +683,20 @@ export const authFilesApi = {
       params.set('auth_index', authIndex);
     }
     return apiClient.get<KiroUsageResponse>(`/auth-files/kiro-usage?${params.toString()}`);
+  },
+
+  getCodexUsage: (
+    name: string,
+    authIndex?: string,
+    codexSubscription: AuthFilesListCodexSubscriptionMode = 'refresh'
+  ) => {
+    const params = new URLSearchParams();
+    params.set('name', name);
+    params.set('codex_subscription', codexSubscription);
+    if (authIndex) {
+      params.set('auth_index', authIndex);
+    }
+    return apiClient.get<CodexUsagePayload>(`/auth-files/codex-usage?${params.toString()}`);
   },
 
   // 获取指定 channel 的模型定义

@@ -40,7 +40,6 @@ export type PrefixProxyEditorFieldValue = string | boolean;
 export type PrefixProxyEditorState = {
   file: AuthFileItem;
   fileName: string;
-  fileInfoText: string;
   isCodexFile: boolean;
   loading: boolean;
   saving: boolean;
@@ -153,7 +152,6 @@ const resolveIsCodexFile = (file: AuthFileItem): boolean => {
 const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => ({
   file,
   fileName: file.name,
-  fileInfoText: JSON.stringify(file, null, 2),
   isCodexFile: resolveIsCodexFile(file),
   loading: true,
   saving: false,
@@ -287,7 +285,10 @@ const buildPrefixProxyUpdatedText = (
   }
 
   const excludedModels = parseExcludedModelsText(editor.excludedModelsText);
-  deleteFields(next, EXCLUDED_MODELS_KEYS.filter((key) => key !== 'excluded_models'));
+  deleteFields(
+    next,
+    EXCLUDED_MODELS_KEYS.filter((key) => key !== 'excluded_models')
+  );
   if (excludedModels.length > 0) {
     next.excluded_models = excludedModels;
   } else if (hasAnyOwnField(next, EXCLUDED_MODELS_KEYS)) {
@@ -295,7 +296,10 @@ const buildPrefixProxyUpdatedText = (
   }
 
   const parsedDisableCooling = parseDisableCoolingValue(editor.disableCooling);
-  deleteFields(next, DISABLE_COOLING_KEYS.filter((key) => key !== 'disable_cooling'));
+  deleteFields(
+    next,
+    DISABLE_COOLING_KEYS.filter((key) => key !== 'disable_cooling')
+  );
   if (parsedDisableCooling !== undefined) {
     next.disable_cooling = parsedDisableCooling;
   } else if (hasAnyOwnField(next, DISABLE_COOLING_KEYS)) {
@@ -305,7 +309,10 @@ const buildPrefixProxyUpdatedText = (
   const trimmedUserAgent = editor.userAgent.trim();
   if (trimmedUserAgent) {
     next.user_agent = trimmedUserAgent;
-    deleteFields(next, USER_AGENT_KEYS.filter((key) => key !== 'user_agent'));
+    deleteFields(
+      next,
+      USER_AGENT_KEYS.filter((key) => key !== 'user_agent')
+    );
   } else {
     deleteFields(next, USER_AGENT_KEYS);
   }
@@ -606,7 +613,7 @@ export function useAuthFilesPrefixProxyEditor(
       setPrefixProxyEditor(createEditorState(file));
 
       try {
-        const rawText = await authFilesApi.downloadText(name);
+        const rawText = await authFilesApi.previewText(name);
         setPrefixProxyEditor((prev) => {
           if (!prev || prev.fileName !== name) return prev;
           return buildLoadedPrefixProxyEditorState(file, rawText, t);

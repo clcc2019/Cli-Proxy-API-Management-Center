@@ -3,6 +3,7 @@ import iconAntigravity from '@/assets/icons/antigravity.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconCodex from '@/assets/icons/codex.svg';
 import iconGemini from '@/assets/icons/gemini.svg';
+import iconGrok from '@/assets/icons/grok.svg';
 import iconIflow from '@/assets/icons/iflow.svg';
 import iconKiro from '@/assets/icons/kiro.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
@@ -101,6 +102,11 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
     light: { bg: '#fff3dc', text: '#9a5a00' },
     dark: { bg: '#3a2a12', text: '#ffbd5a' },
   },
+  // xAI / Grok: 黑白品牌，使用偏中性的石墨色标签
+  xai: {
+    light: { bg: '#e7edf3', text: '#27313d' },
+    dark: { bg: '#222a34', text: '#cbd5e1' },
+  },
   // Vertex logo: Google 蓝 #4285F4
   vertex: {
     light: { bg: '#e4edfd', text: '#2b5fbc' },
@@ -127,6 +133,7 @@ export const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
   kiro: iconKiro,
   kimi: { light: iconKimiLight, dark: iconKimiDark },
   qwen: iconQwen,
+  xai: iconGrok,
   vertex: iconVertex,
 };
 

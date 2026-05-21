@@ -11,7 +11,8 @@ export type OAuthProvider =
   | 'kiro'
   | 'gemini-cli'
   | 'kimi'
-  | 'qwen';
+  | 'qwen'
+  | 'xai';
 
 // OAuth 流程状态
 export interface OAuthFlow {

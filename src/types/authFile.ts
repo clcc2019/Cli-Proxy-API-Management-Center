@@ -14,6 +14,7 @@ export type AuthFileType =
   | 'antigravity'
   | 'iflow'
   | 'kiro'
+  | 'xai'
   | 'vertex'
   | 'empty'
   | 'unknown';
@@ -53,19 +54,37 @@ export interface AuthFileItem {
   subscriptionActiveStart?: string | number | null;
   subscription_started_at?: string | number | null;
   subscriptionStartedAt?: string | number | null;
+  current_period_start?: string | number | null;
+  currentPeriodStart?: string | number | null;
+  period_start?: string | number | null;
+  periodStart?: string | number | null;
+  started_at?: string | number | null;
+  startedAt?: string | number | null;
   subscription_active_days?: string | number | null;
   subscriptionActiveDays?: string | number | null;
   chatgpt_subscription_active_until?: string | number | null;
   chatgptSubscriptionActiveUntil?: string | number | null;
   subscription_expires_at?: string | number | null;
   subscriptionExpiresAt?: string | number | null;
+  current_period_end?: string | number | null;
+  currentPeriodEnd?: string | number | null;
+  expires_at?: string | number | null;
+  expiresAt?: string | number | null;
   id_token?: string | Record<string, unknown>;
   plan_type?: string;
   planType?: string;
+  chatgpt_plan_type?: string;
+  chatgptPlanType?: string;
+  has_refresh_token?: boolean;
+  hasRefreshToken?: boolean;
   [key: string]: unknown;
 }
 
 export interface AuthFilesResponse {
   files: AuthFileItem[];
   total?: number;
+  page?: number;
+  page_size?: number;
+  has_more?: boolean;
+  type_counts?: Record<string, number>;
 }

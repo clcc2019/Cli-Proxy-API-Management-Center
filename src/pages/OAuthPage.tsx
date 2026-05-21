@@ -19,6 +19,7 @@ import iconClaude from '@/assets/icons/claude.svg';
 import iconAntigravity from '@/assets/icons/antigravity.svg';
 import iconKiro from '@/assets/icons/kiro.svg';
 import iconGemini from '@/assets/icons/gemini.svg';
+import iconGrok from '@/assets/icons/grok.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
@@ -141,6 +142,13 @@ const PROVIDERS: {
     urlLabelKey: 'auth_login.qwen_oauth_url_label',
     icon: iconQwen,
   },
+  {
+    id: 'xai',
+    titleKey: 'auth_login.xai_oauth_title',
+    hintKey: 'auth_login.xai_oauth_hint',
+    urlLabelKey: 'auth_login.xai_oauth_url_label',
+    icon: iconGrok,
+  },
 ];
 
 const CALLBACK_SUPPORTED: OAuthProvider[] = [
@@ -149,6 +157,7 @@ const CALLBACK_SUPPORTED: OAuthProvider[] = [
   'antigravity',
   'kiro',
   'gemini-cli',
+  'xai',
 ];
 const getProviderI18nPrefix = (provider: OAuthProvider) => provider.replace('-', '_');
 const getAuthKey = (provider: OAuthProvider, suffix: string) =>

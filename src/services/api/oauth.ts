@@ -11,7 +11,8 @@ export type OAuthProvider =
   | 'kiro'
   | 'gemini-cli'
   | 'kimi'
-  | 'qwen';
+  | 'qwen'
+  | 'xai';
 
 export type KiroOAuthProvider = 'google' | 'github';
 
@@ -39,6 +40,7 @@ const WEBUI_SUPPORTED: OAuthProvider[] = [
   'antigravity',
   'kiro',
   'gemini-cli',
+  'xai',
 ];
 const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
   'gemini-cli': 'gemini',

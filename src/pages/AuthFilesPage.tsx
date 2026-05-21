@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +19,7 @@ import {
   resolveCodexPlanType,
   resolveCodexSubscriptionActiveUntil,
 } from '@/utils/quota';
-import { authFilesApi } from '@/services/api';
+import { authFilesApi, type AuthFilesListOptions } from '@/services/api';
 import {
   MAX_CARD_PAGE_SIZE,
   MIN_CARD_PAGE_SIZE,
@@ -60,7 +53,6 @@ import { useAuthFilesStats } from '@/features/authFiles/hooks/useAuthFilesStats'
 import { useAuthFilesStatusBarCache } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
 import {
   hasPremiumAuthFilePlan,
-  resolveAuthFilePlanBadge,
   type AuthFilePlanSources,
 } from '@/features/authFiles/planMetadata';
 import {
@@ -213,6 +205,24 @@ const compareAuthFiles = (
   return compareAuthFilesByName(left, right);
 };
 
+const resolveQuotaRefreshTarget = (
+  file: AuthFileItem
+): { file: AuthFileItem; quotaType: QuotaProviderType } | null => {
+  if (isRuntimeOnlyAuthFile(file) || file.disabled) return null;
+
+  const quotaType = normalizeProviderKey(resolveAuthProvider(file)) as QuotaProviderType;
+  if (!QUOTA_PROVIDER_TYPES.has(quotaType)) return null;
+
+  return { file, quotaType };
+};
+
+const resolveQuotaRefreshTargets = (files: AuthFileItem[]) =>
+  files.reduce<Array<{ file: AuthFileItem; quotaType: QuotaProviderType }>>((items, file) => {
+    const target = resolveQuotaRefreshTarget(file);
+    if (target) items.push(target);
+    return items;
+  }, []);
+
 export function AuthFilesPage() {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
@@ -237,6 +247,7 @@ export function AuthFilesPage() {
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [batchQuotaRefreshing, setBatchQuotaRefreshing] = useState(false);
+  const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
@@ -251,6 +262,40 @@ export function AuthFilesPage() {
   const previousSelectionCountRef = useRef(0);
   const selectionCountRef = useRef(0);
   const previousLoadingRef = useRef(false);
+  const pageSize = compactMode ? pageSizeByMode.compact : pageSizeByMode.regular;
+  const normalizedSearch = search.trim();
+  const serverPaginationEnabled = !premiumOnly;
+  const serverListPage = serverPaginationEnabled ? page : undefined;
+  const serverListPageSize = serverPaginationEnabled ? pageSize : undefined;
+  const serverListSearch = serverPaginationEnabled ? normalizedSearch : undefined;
+  const serverListType = serverPaginationEnabled && filter !== 'all' ? String(filter) : undefined;
+  const serverListSort = serverPaginationEnabled ? sortMode : undefined;
+  const serverListProblemOnly = serverPaginationEnabled ? problemOnly : undefined;
+  const serverListDisabledOnly = serverPaginationEnabled ? disabledOnly : undefined;
+  const authFilesListOptions = useMemo<AuthFilesListOptions>(() => {
+    if (!serverPaginationEnabled) {
+      return { codexSubscription: 'cache' };
+    }
+    return {
+      codexSubscription: 'cache',
+      page: serverListPage,
+      pageSize: serverListPageSize,
+      search: serverListSearch,
+      type: serverListType,
+      sort: serverListSort,
+      problemOnly: serverListProblemOnly,
+      disabledOnly: serverListDisabledOnly,
+    };
+  }, [
+    serverListDisabledOnly,
+    serverListPage,
+    serverListPageSize,
+    serverListProblemOnly,
+    serverListSearch,
+    serverListSort,
+    serverListType,
+    serverPaginationEnabled,
+  ]);
 
   const { keyStats, keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats } =
     useAuthFilesStats();
@@ -265,6 +310,7 @@ export function AuthFilesPage() {
     deletingAll,
     statusUpdating,
     batchStatusUpdating,
+    listMeta,
     fileInputRef,
     loadFiles,
     handleUploadClick,
@@ -281,9 +327,14 @@ export function AuthFilesPage() {
     batchDownload,
     batchSetStatus,
     batchDelete,
-  } = useAuthFilesData({ refreshKeyStats });
+    applyLocalFileUpdates,
+  } = useAuthFilesData({ refreshKeyStats, listOptions: authFilesListOptions });
 
   const statusBarCache = useAuthFilesStatusBarCache(files, usageDetails);
+  const providerTypesFromListMeta = useMemo(
+    () => Object.keys(listMeta.typeCounts ?? {}).filter((type) => type !== 'all'),
+    [listMeta.typeCounts]
+  );
 
   const {
     excluded,
@@ -300,7 +351,7 @@ export function AuthFilesPage() {
     handleToggleFork,
     handleRenameAlias,
     handleDeleteAlias,
-  } = useAuthFilesOauth({ viewMode, files });
+  } = useAuthFilesOauth({ viewMode, files, providerTypes: providerTypesFromListMeta });
 
   const {
     modelsModalOpen,
@@ -336,7 +387,6 @@ export function AuthFilesPage() {
   )
     ? (normalizedFilter as QuotaProviderType)
     : null;
-  const pageSize = compactMode ? pageSizeByMode.compact : pageSizeByMode.regular;
   const planSources = useMemo<AuthFilePlanSources>(
     () => ({
       claudeQuota,
@@ -461,7 +511,12 @@ export function AuthFilesPage() {
   );
 
   const handleHeaderRefresh = useCallback(async () => {
-    await Promise.all([loadFiles(), refreshKeyStats(), loadExcluded(), loadModelAlias()]);
+    await Promise.all([
+      loadFiles({ codexSubscription: 'refresh' }),
+      refreshKeyStats(),
+      loadExcluded(),
+      loadModelAlias(),
+    ]);
   }, [loadFiles, refreshKeyStats, loadExcluded, loadModelAlias]);
 
   const handleToggleProblemOnly = useCallback(() => {
@@ -530,13 +585,19 @@ export function AuthFilesPage() {
 
   const existingTypes = useMemo(() => {
     const types = new Set<string>(['all']);
+    if (listMeta.typeCounts) {
+      Object.keys(listMeta.typeCounts).forEach((type) => {
+        if (type !== 'all') types.add(type);
+      });
+      return Array.from(types);
+    }
     files.forEach((file) => {
       if (file.type) {
         types.add(file.type);
       }
     });
     return Array.from(types);
-  }, [files]);
+  }, [files, listMeta.typeCounts]);
 
   const sortSnapshotByName = useMemo(() => {
     const snapshot: Record<string, AuthFileSortSnapshot> = {};
@@ -580,18 +641,15 @@ export function AuthFilesPage() {
     () => currentFilesMatchingDisplayFilters.map((file) => file.name),
     [currentFilesMatchingDisplayFilters]
   );
-  const currentDisplayFilterSortSnapshot = useMemo(
-    () => {
-      if (!displayOptionsActive) return {};
-      return Object.fromEntries(
-        currentFilesMatchingDisplayFilters.map((file) => [
-          file.name,
-          sortSnapshotByName[file.name] ?? getAuthFileSortSnapshot(file, planSources),
-        ])
-      );
-    },
-    [currentFilesMatchingDisplayFilters, displayOptionsActive, planSources, sortSnapshotByName]
-  );
+  const currentDisplayFilterSortSnapshot = useMemo(() => {
+    if (!displayOptionsActive) return {};
+    return Object.fromEntries(
+      currentFilesMatchingDisplayFilters.map((file) => [
+        file.name,
+        sortSnapshotByName[file.name] ?? getAuthFileSortSnapshot(file, planSources),
+      ])
+    );
+  }, [currentFilesMatchingDisplayFilters, displayOptionsActive, planSources, sortSnapshotByName]);
   const currentDisplayFilterNamesRef = useRef<string[]>([]);
   const currentDisplayFilterSortSnapshotRef = useRef<Record<string, AuthFileSortSnapshot>>({});
   currentDisplayFilterNamesRef.current = currentDisplayFilterNames;
@@ -644,7 +702,7 @@ export function AuthFilesPage() {
     [t]
   );
 
-  const typeCounts = useMemo(() => {
+  const localTypeCounts = useMemo(() => {
     const counts: Record<string, number> = { all: filesMatchingDisplayFilters.length };
     filesMatchingDisplayFilters.forEach((file) => {
       if (!file.type) return;
@@ -652,8 +710,8 @@ export function AuthFilesPage() {
     });
     return counts;
   }, [filesMatchingDisplayFilters]);
+  const typeCounts = listMeta.typeCounts ?? localTypeCounts;
 
-  const normalizedSearch = search.trim();
   const wildcardSearch = useMemo(() => buildWildcardSearch(normalizedSearch), [normalizedSearch]);
 
   const filtered = useMemo(() => {
@@ -673,11 +731,6 @@ export function AuthFilesPage() {
     });
   }, [filesMatchingDisplayFilters, filter, normalizedSearch, wildcardSearch]);
 
-  const planBadgeMap = useMemo(
-    () => new Map(files.map((file) => [file.name, resolveAuthFilePlanBadge(file, planSources)])),
-    [files, planSources]
-  );
-
   const sorted = useMemo(() => {
     const copy = [...filtered];
     const activeSortSnapshot =
@@ -686,12 +739,26 @@ export function AuthFilesPage() {
         : sortSnapshotByName;
     copy.sort((a, b) => compareAuthFiles(a, b, sortMode, activeSortSnapshot, planSources));
     return copy;
-  }, [displayFilterSnapshot, displayFilterSnapshotKey, filtered, planSources, sortMode, sortSnapshotByName]);
+  }, [
+    displayFilterSnapshot,
+    displayFilterSnapshotKey,
+    filtered,
+    planSources,
+    sortMode,
+    sortSnapshotByName,
+  ]);
 
-  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const serverPaginated = listMeta.paginated;
+  const listTotal = serverPaginated ? listMeta.total : sorted.length;
+  const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * pageSize;
-  const pageItems = sorted.slice(start, start + pageSize);
+  const pageItems = serverPaginated ? sorted : sorted.slice(start, start + pageSize);
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
   const selectablePageItems = useMemo(
     () => pageItems.filter((file) => !isRuntimeOnlyAuthFile(file)),
     [pageItems]
@@ -700,6 +767,7 @@ export function AuthFilesPage() {
     () => sorted.filter((file) => !isRuntimeOnlyAuthFile(file)),
     [sorted]
   );
+  const pageQuotaRefreshItems = useMemo(() => resolveQuotaRefreshTargets(pageItems), [pageItems]);
   const selectedNames = useMemo(() => Array.from(selectedFiles), [selectedFiles]);
   const selectedHasStatusUpdating = useMemo(
     () => selectedNames.some((name) => statusUpdating[name] === true),
@@ -711,12 +779,8 @@ export function AuthFilesPage() {
     return files.reduce<Array<{ file: AuthFileItem; quotaType: QuotaProviderType }>>(
       (items, file) => {
         if (!selected.has(file.name)) return items;
-        if (isRuntimeOnlyAuthFile(file) || file.disabled) return items;
-
-        const quotaType = normalizeProviderKey(resolveAuthProvider(file)) as QuotaProviderType;
-        if (!QUOTA_PROVIDER_TYPES.has(quotaType)) return items;
-
-        items.push({ file, quotaType });
+        const target = resolveQuotaRefreshTarget(file);
+        if (target) items.push(target);
         return items;
       },
       []
@@ -728,10 +792,23 @@ export function AuthFilesPage() {
     batchStatusUpdating ||
     selectedHasStatusUpdating;
   const batchQuotaRefreshDisabled =
-    disableControls || batchQuotaRefreshing || selectedNames.length === 0;
+    disableControls || batchQuotaRefreshing || pageQuotaRefreshing || selectedNames.length === 0;
+  const pageQuotaRefreshDisabled =
+    disableControls ||
+    loading ||
+    batchQuotaRefreshing ||
+    pageQuotaRefreshing ||
+    pageItems.length === 0;
 
   const handleBatchRefreshQuota = useCallback(async () => {
-    if (disableControls || batchQuotaRefreshing || selectedNames.length === 0) return;
+    if (
+      disableControls ||
+      batchQuotaRefreshing ||
+      pageQuotaRefreshing ||
+      selectedNames.length === 0
+    ) {
+      return;
+    }
 
     if (selectedQuotaRefreshItems.length === 0) {
       showNotification(t('auth_files.batch_quota_refresh_none'), 'info');
@@ -765,6 +842,10 @@ export function AuthFilesPage() {
           }
         )
       );
+      const authFileUpdates = results.flatMap((result) =>
+        result.status === 'success' && result.authFile ? [result.authFile] : []
+      );
+      applyLocalFileUpdates(authFileUpdates);
       const resultCounts = results.reduce(
         (counts, result) => {
           if (result.status === 'success') {
@@ -795,8 +876,93 @@ export function AuthFilesPage() {
   }, [
     batchQuotaRefreshing,
     disableControls,
+    pageQuotaRefreshing,
+    applyLocalFileUpdates,
     selectedNames.length,
     selectedQuotaRefreshItems,
+    showNotification,
+    t,
+  ]);
+
+  const handlePageRefreshQuota = useCallback(async () => {
+    if (
+      disableControls ||
+      loading ||
+      batchQuotaRefreshing ||
+      pageQuotaRefreshing ||
+      pageItems.length === 0
+    ) {
+      return;
+    }
+
+    if (pageQuotaRefreshItems.length === 0) {
+      showNotification(t('auth_files.page_quota_refresh_none'), 'info');
+      return;
+    }
+
+    setPageQuotaRefreshing(true);
+
+    try {
+      const skippedBeforeRefresh = Math.max(0, pageItems.length - pageQuotaRefreshItems.length);
+      const results: AuthFileQuotaRefreshResult[] = await Promise.all(
+        pageQuotaRefreshItems.map(
+          async ({ file, quotaType }): Promise<AuthFileQuotaRefreshResult> => {
+            try {
+              return await refreshAuthFileQuota({
+                file,
+                quotaType,
+                disableControls,
+                t,
+              });
+            } catch (err: unknown) {
+              return {
+                status: 'error',
+                fileName: file.name,
+                message: err instanceof Error ? err.message : t('common.unknown_error'),
+              };
+            }
+          }
+        )
+      );
+      const authFileUpdates = results.flatMap((result) =>
+        result.status === 'success' && result.authFile ? [result.authFile] : []
+      );
+      applyLocalFileUpdates(authFileUpdates);
+      const resultCounts = results.reduce(
+        (counts, result) => {
+          if (result.status === 'success') {
+            counts.success += 1;
+          } else if (result.status === 'error') {
+            counts.failed += 1;
+          } else {
+            counts.skipped += 1;
+          }
+          return counts;
+        },
+        { success: 0, failed: 0, skipped: skippedBeforeRefresh }
+      );
+
+      if (resultCounts.success === 0 && resultCounts.failed === 0) {
+        showNotification(t('auth_files.page_quota_refresh_none'), 'info');
+      } else if (resultCounts.failed === 0 && resultCounts.skipped === 0) {
+        showNotification(
+          t('auth_files.batch_quota_refresh_success', { count: resultCounts.success }),
+          'success'
+        );
+      } else {
+        showNotification(t('auth_files.batch_quota_refresh_partial', resultCounts), 'warning');
+      }
+    } finally {
+      setPageQuotaRefreshing(false);
+    }
+  }, [
+    batchQuotaRefreshing,
+    disableControls,
+    loading,
+    pageItems.length,
+    applyLocalFileUpdates,
+    pageQuotaRefreshItems,
+    pageQuotaRefreshing,
     showNotification,
     t,
   ]);
@@ -839,34 +1005,29 @@ export function AuthFilesPage() {
     }
   });
 
-  const handlePriorityChange = useEventCallback(
-    async (file: AuthFileItem, priority: number) => {
-      const fileName = file.name;
-      if (disableControls || priorityUpdating[fileName]) return;
+  const handlePriorityChange = useEventCallback(async (file: AuthFileItem, priority: number) => {
+    const fileName = file.name;
+    if (disableControls || priorityUpdating[fileName]) return;
 
-      setPriorityUpdating((prev) => ({ ...prev, [fileName]: true }));
-      try {
-        const response = await authFilesApi.patchFields({ name: fileName, priority });
-        applyLocalFilePatch(fileName, {
-          ...response.file,
-          priority: response.file?.priority ?? priority,
-        });
-        showNotification(
-          t('auth_files.priority_update_success', { priority }),
-          'success'
-        );
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
-      } finally {
-        setPriorityUpdating((prev) => {
-          const next = { ...prev };
-          delete next[fileName];
-          return next;
-        });
-      }
+    setPriorityUpdating((prev) => ({ ...prev, [fileName]: true }));
+    try {
+      const response = await authFilesApi.patchFields({ name: fileName, priority });
+      applyLocalFilePatch(fileName, {
+        ...response.file,
+        priority: response.file?.priority ?? priority,
+      });
+      showNotification(t('auth_files.priority_update_success', { priority }), 'success');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
+    } finally {
+      setPriorityUpdating((prev) => {
+        const next = { ...prev };
+        delete next[fileName];
+        return next;
+      });
     }
-  );
+  });
 
   const openExcludedEditor = useCallback(
     (provider?: string) => {
@@ -913,10 +1074,7 @@ export function AuthFilesPage() {
       rafId = window.requestAnimationFrame(() => {
         rafId = null;
         const height = actionsEl.getBoundingClientRect().height;
-        document.documentElement.style.setProperty(
-          '--auth-files-action-bar-height',
-          `${height}px`
-        );
+        document.documentElement.style.setProperty('--auth-files-action-bar-height', `${height}px`);
       });
     };
 
@@ -1094,6 +1252,27 @@ export function AuthFilesPage() {
                 pageSizeLabel={t('auth_files.page_size_label')}
               />
 
+              <Button
+                variant="secondary"
+                size="sm"
+                className={styles.pageQuotaRefreshButton}
+                onClick={() => void handlePageRefreshQuota()}
+                disabled={pageQuotaRefreshDisabled}
+                aria-busy={pageQuotaRefreshing}
+                aria-label={t('auth_files.refresh_page_quota_aria')}
+                title={t('auth_files.refresh_page_quota_aria')}
+              >
+                <IconRefreshCw
+                  className={[
+                    styles.batchQuotaRefreshIcon,
+                    pageQuotaRefreshing ? styles.quotaRefreshIconSvgSpinning : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  size={15}
+                />
+              </Button>
+
               <div className={styles.filterChipRow}>
                 <span className={styles.filterChipRowLabel}>
                   {t('auth_files.display_options_label')}
@@ -1159,7 +1338,6 @@ export function AuthFilesPage() {
                     accessTokenCopying={accessTokenCopying[file.name] === true}
                     priorityUpdating={priorityUpdating[file.name] === true}
                     quotaFilterType={quotaFilterType}
-                    planBadge={planBadgeMap.get(file.name) ?? null}
                     keyStats={keyStats}
                     keyUsageStats={keyUsageStats}
                     statusBarCache={statusBarCache}
@@ -1169,6 +1347,7 @@ export function AuthFilesPage() {
                     onCopyAccessToken={handleCopyAccessToken}
                     onPriorityChange={handlePriorityChange}
                     onOpenPrefixProxyEditor={openPrefixProxyEditor}
+                    onAuthFileUpdated={(updated) => applyLocalFileUpdates([updated])}
                     onDelete={handleDelete}
                     onToggleStatus={handleStatusToggle}
                     onToggleSelect={toggleSelect}
@@ -1177,7 +1356,7 @@ export function AuthFilesPage() {
               </div>
             )}
 
-            {!loading && sorted.length > pageSize && (
+            {!loading && listTotal > pageSize && (
               <div className={styles.pagination}>
                 <Button
                   variant="secondary"
@@ -1191,7 +1370,7 @@ export function AuthFilesPage() {
                   {t('auth_files.pagination_info', {
                     current: currentPage,
                     total: totalPages,
-                    count: sorted.length,
+                    count: listTotal,
                   })}
                 </div>
                 <Button

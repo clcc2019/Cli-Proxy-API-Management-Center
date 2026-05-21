@@ -35,10 +35,11 @@ export type UseAuthFilesOauthResult = {
 export type UseAuthFilesOauthOptions = {
   viewMode: ViewMode;
   files: AuthFileItem[];
+  providerTypes?: string[];
 };
 
 export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFilesOauthResult {
-  const { viewMode, files } = options;
+  const { viewMode, files, providerTypes = [] } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
 
@@ -61,6 +62,11 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
       if (key) providers.add(key);
     });
 
+    providerTypes.forEach((provider) => {
+      const key = provider.trim().toLowerCase();
+      if (key && key !== 'all') providers.add(key);
+    });
+
     files.forEach((file) => {
       if (typeof file.type === 'string') {
         const key = file.type.trim().toLowerCase();
@@ -72,7 +78,7 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
       }
     });
     return Array.from(providers);
-  }, [files, modelAlias]);
+  }, [files, modelAlias, providerTypes]);
 
   useEffect(() => {
     if (viewMode !== 'diagram') return;

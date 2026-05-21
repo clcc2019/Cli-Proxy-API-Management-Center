@@ -96,13 +96,15 @@ interface QuotaSectionProps<TState extends QuotaStatusState, TData> {
   files: AuthFileItem[];
   loading: boolean;
   disabled: boolean;
+  onAuthFilesUpdated?: (files: AuthFileItem[]) => void;
 }
 
 export function QuotaSection<TState extends QuotaStatusState, TData>({
   config,
   files,
   loading,
-  disabled
+  disabled,
+  onAuthFilesUpdated
 }: QuotaSectionProps<TState, TData>) {
   const { t } = useTranslation();
   const resolvedTheme: ResolvedTheme = useThemeStore((state) => state.resolvedTheme);
@@ -183,8 +185,8 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
     const scope = effectiveViewMode === 'all' ? 'all' : 'page';
     const targets = effectiveViewMode === 'all' ? filteredFiles : pageItems;
     if (targets.length === 0) return;
-    loadQuota(targets, scope, setLoading);
-  }, [loading, effectiveViewMode, filteredFiles, pageItems, loadQuota, setLoading]);
+    loadQuota(targets, scope, setLoading, onAuthFilesUpdated);
+  }, [loading, effectiveViewMode, filteredFiles, pageItems, loadQuota, setLoading, onAuthFilesUpdated]);
 
   useEffect(() => {
     if (loading) return;
@@ -216,6 +218,10 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
 
       try {
         const data = await config.fetchQuota(file, t);
+        const authFileUpdate = config.extractAuthFileUpdate?.(data);
+        if (authFileUpdate) {
+          onAuthFilesUpdated?.([authFileUpdate]);
+        }
         setQuota((prev) => ({
           ...prev,
           [file.name]: config.buildSuccessState(data)
@@ -234,7 +240,7 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
         );
       }
     },
-    [config, disabled, quota, setQuota, showNotification, t]
+    [config, disabled, onAuthFilesUpdated, quota, setQuota, showNotification, t]
   );
 
   const titleNode = (

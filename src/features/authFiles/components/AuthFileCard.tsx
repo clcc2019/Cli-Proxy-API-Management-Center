@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
-import { resolveAuthProvider, resolveCodexPlanType } from '@/utils/quota';
+import { resolveAuthProvider } from '@/utils/quota';
 import {
   calculateStatusBarData,
   formatMillionTokens,
@@ -53,12 +53,10 @@ import {
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
-import type { AuthFilePlanBadgeInfo } from '@/features/authFiles/planMetadata';
 import {
   AuthFileQuotaRefreshButton,
   AuthFileQuotaSection,
 } from '@/features/authFiles/components/AuthFileQuotaSection';
-import { AuthFilePlanBadge } from '@/features/authFiles/components/AuthFilePlanBadge';
 import { AuthFileWarningIndicator } from '@/features/authFiles/components/AuthFileWarningIndicator';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
@@ -105,7 +103,6 @@ export type AuthFileCardProps = {
   accessTokenCopying: boolean;
   priorityUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
-  planBadge: AuthFilePlanBadgeInfo | null;
   keyStats: KeyStats;
   keyUsageStats: KeyUsageStats;
   statusBarCache: Map<string, AuthFileStatusBarData>;
@@ -115,6 +112,7 @@ export type AuthFileCardProps = {
   onCopyAccessToken: (file: AuthFileItem) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
+  onAuthFileUpdated?: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
   onToggleStatus: (file: AuthFileItem, enabled: boolean) => void;
   onToggleSelect: (name: string) => void;
@@ -126,33 +124,31 @@ const resolveQuotaType = (file: AuthFileItem): QuotaProviderType | null => {
   return provider as QuotaProviderType;
 };
 
-const CODEX_PRO_LITE_PLAN_TYPES = new Set(['prolite', 'pro-lite', 'pro_lite']);
+const isRecordObject = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
-const buildFallbackCodexPlanBadge = (file: AuthFileItem): AuthFilePlanBadgeInfo | null => {
-  const planType = resolveCodexPlanType(file);
-  const normalized = planType?.trim().toLowerCase() ?? '';
+const isTruthyFlag = (value: unknown): boolean =>
+  value === true || value === 1 || value === '1' || String(value).trim().toLowerCase() === 'true';
 
-  if (normalized === 'plus') {
-    return { kind: 'plus', labelKey: 'codex_quota.plan_plus', fallbackLabel: 'Plus' };
+const hasRefreshTokenValue = (value: unknown): boolean =>
+  typeof value === 'string' && value.trim().length > 0;
+
+const authFileHasRefreshToken = (file: AuthFileItem): boolean => {
+  if (isTruthyFlag(file.has_refresh_token) || isTruthyFlag(file.hasRefreshToken)) return true;
+
+  for (const key of ['refresh_token', 'refreshToken'] as const) {
+    if (hasRefreshTokenValue(file[key])) return true;
   }
-  if (normalized === 'pro') {
-    return { kind: 'pro', labelKey: 'codex_quota.plan_pro', fallbackLabel: 'Pro' };
+
+  for (const key of ['token', 'tokens', 'token_data', 'tokenData'] as const) {
+    const nested = file[key];
+    if (!isRecordObject(nested)) continue;
+    if (hasRefreshTokenValue(nested.refresh_token) || hasRefreshTokenValue(nested.refreshToken)) {
+      return true;
+    }
   }
-  if (CODEX_PRO_LITE_PLAN_TYPES.has(normalized)) {
-    return { kind: 'pro', labelKey: 'codex_quota.plan_prolite', fallbackLabel: 'Pro' };
-  }
-  if (normalized === 'team') {
-    return { kind: 'pro', labelKey: 'codex_quota.plan_team', fallbackLabel: 'Team' };
-  }
-  if (normalized === 'free') {
-    return { kind: 'pro', labelKey: 'codex_quota.plan_free', fallbackLabel: 'Free' };
-  }
-  if (!planType?.trim()) return null;
-  return {
-    kind: 'pro',
-    labelKey: 'auth_files.plan_unknown',
-    fallbackLabel: planType?.trim() || 'Unknown',
-  };
+
+  return false;
 };
 
 export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps) {
@@ -168,7 +164,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     accessTokenCopying,
     priorityUpdating,
     quotaFilterType,
-    planBadge,
     keyStats,
     keyUsageStats,
     statusBarCache,
@@ -178,16 +173,14 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onCopyAccessToken,
     onPriorityChange,
     onOpenPrefixProxyEditor,
+    onAuthFileUpdated,
     onDelete,
     onToggleStatus,
     onToggleSelect,
   } = props;
 
   // 缓存与 file/keyStats 相关的派生值，避免每次渲染重算
-  const fileStats = useMemo(
-    () => resolveAuthFileStats(file, keyStats),
-    [file, keyStats]
-  );
+  const fileStats = useMemo(() => resolveAuthFileStats(file, keyStats), [file, keyStats]);
   const fileUsageStats = useMemo(
     () => resolveAuthFileUsageStats(file, keyUsageStats),
     [file, keyUsageStats]
@@ -198,10 +191,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const showModelsButton = !isRuntimeOnly || isAistudio;
 
   const typeKey = file.type || 'unknown';
-  const typeColor = useMemo(
-    () => getTypeColor(typeKey, resolvedTheme),
-    [typeKey, resolvedTheme]
-  );
+  const typeColor = useMemo(() => getTypeColor(typeKey, resolvedTheme), [typeKey, resolvedTheme]);
   const typeLabel = useMemo(() => getTypeLabel(t, typeKey), [t, typeKey]);
   const providerIcon = useMemo(
     () => getAuthFileIcon(typeKey, resolvedTheme),
@@ -209,12 +199,10 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   );
 
   const websocketsEnabled = useMemo(() => readAuthFileWebsockets(file), [file]);
-  const websocketsBadgeLabel =
-    websocketsEnabled === null
-      ? null
-      : websocketsEnabled
-        ? t('auth_files.websockets_enabled_badge')
-        : t('auth_files.websockets_disabled_badge');
+  const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
+  const websocketsBadgeLabel = websocketsEnabled
+    ? t('auth_files.websockets_enabled_badge')
+    : null;
 
   const quotaType = useMemo(() => {
     if (!quotaFilterType) return null;
@@ -240,10 +228,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndexKey = useMemo(() => normalizeAuthIndex(rawAuthIndex), [rawAuthIndex]);
-  const displayedPlanBadge = useMemo(
-    () => planBadge ?? buildFallbackCodexPlanBadge(file),
-    [file, planBadge]
-  );
   const statusData = useMemo(
     () => (authIndexKey && statusBarCache.get(authIndexKey)) || calculateStatusBarData([]),
     [authIndexKey, statusBarCache]
@@ -290,25 +274,20 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     event.preventDefault();
   }, []);
 
-  const handlePriorityKeyDown = useEventCallback(
-    (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === 'Enter') {
-        event.currentTarget.blur();
-        return;
-      }
-      if (event.key === 'Escape') {
-        setPriorityDraft(String(currentPriority));
-        event.currentTarget.blur();
-      }
+  const handlePriorityKeyDown = useEventCallback((event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+      return;
     }
-  );
+    if (event.key === 'Escape') {
+      setPriorityDraft(String(currentPriority));
+      event.currentTarget.blur();
+    }
+  });
 
-  const handlePriorityInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setPriorityDraft(event.target.value);
-    },
-    []
-  );
+  const handlePriorityInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setPriorityDraft(event.target.value);
+  }, []);
 
   // 行内交互的稳定化封装
   const handleToggleSelect = useEventCallback(() => onToggleSelect(file.name));
@@ -317,17 +296,12 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
   const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
   const handleDelete = useEventCallback(() => onDelete(file.name));
-  const handleToggleStatus = useEventCallback((value: boolean) =>
-    onToggleStatus(file, value)
-  );
+  const handleToggleStatus = useEventCallback((value: boolean) => onToggleStatus(file, value));
 
   const noteValue = typeof file.note === 'string' ? file.note.trim() : '';
   const totalRequests = fileUsageStats.success + fileUsageStats.failure;
   const tokenDisplay = formatMillionTokens(fileUsageStats.totalTokens);
-  const authFileDisplayName = useMemo(
-    () => file.name.replace(/\.json$/i, ''),
-    [file.name]
-  );
+  const authFileDisplayName = useMemo(() => file.name.replace(/\.json$/i, ''), [file.name]);
   const maskedAuthFileDisplayName = useMemo(
     () => maskAuthFileDisplayName(authFileDisplayName),
     [authFileDisplayName]
@@ -343,23 +317,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const costTitle = canDisplayCost
     ? t('usage_stats.total_cost_hint')
     : t('usage_stats.cost_need_price');
-  const stateLabel = isRuntimeOnly
-    ? t('auth_files.type_virtual') || '虚拟认证文件'
-    : file.disabled
-      ? t('auth_files.health_status_disabled')
-      : hasStatusWarning
-        ? t('auth_files.health_status_warning')
-        : rawStatusMessage
-          ? t('auth_files.health_status_healthy')
-          : t('auth_files.status_toggle_label');
-  const stateBadgeClass = isRuntimeOnly
-    ? styles.stateBadgeVirtual
-    : file.disabled
-      ? styles.stateBadgeDisabled
-      : hasStatusWarning
-        ? styles.stateBadgeWarning
-        : styles.stateBadgeActive;
-
   const avatarStyle = useMemo<CSSProperties>(
     () => ({
       backgroundColor: typeColor.bg,
@@ -398,10 +355,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 title={checkboxLabel}
               />
             )}
-            <div
-              className={styles.providerAvatar}
-              style={avatarStyle}
-            >
+            <div className={styles.providerAvatar} style={avatarStyle}>
               {providerIcon ? (
                 <img src={providerIcon} alt="" className={styles.providerAvatarImage} />
               ) : (
@@ -412,21 +366,22 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
             </div>
             <div className={styles.cardHeaderContent}>
               <div className={styles.cardBadgeRow}>
-                <span
-                  className={styles.typeBadge}
-                  style={typeBadgeStyle}
-                >
+                <span className={styles.typeBadge} style={typeBadgeStyle}>
                   {typeLabel}
                 </span>
-                <span className={`${styles.stateBadge} ${stateBadgeClass}`}>{stateLabel}</span>
-                {displayedPlanBadge && (
-                  <AuthFilePlanBadge badge={displayedPlanBadge} />
+                {hasRefreshToken && (
+                  <span
+                    className={styles.refreshTokenBadge}
+                    title={t('auth_files.refresh_token_badge')}
+                    role="img"
+                    aria-label={t('auth_files.refresh_token_badge')}
+                  >
+                    R
+                  </span>
                 )}
                 {websocketsBadgeLabel && (
                   <span
-                    className={`${styles.featureBadge} ${
-                      websocketsEnabled ? styles.featureBadgeEnabled : styles.featureBadgeDisabled
-                    }`}
+                    className={`${styles.featureBadge} ${styles.featureBadgeEnabled}`}
                     title={t('ai_providers.codex_websockets_hint')}
                   >
                     {websocketsBadgeLabel}
@@ -562,6 +517,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 file={file}
                 quotaType={quotaType}
                 disableControls={disableControls}
+                onAuthFileUpdated={onAuthFileUpdated}
               />
             )}
           </div>
@@ -645,6 +601,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       file={file}
                       quotaType={quotaType}
                       disableControls={disableControls}
+                      onAuthFileUpdated={onAuthFileUpdated}
                       className={`${styles.iconButton} ${styles.refreshActionButton}`}
                       iconClassName={styles.actionIcon}
                       iconSize={18}

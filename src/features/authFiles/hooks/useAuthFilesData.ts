@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { authFilesApi } from '@/services/api';
+import { authFilesApi, type AuthFilesListOptions } from '@/services/api';
 import { apiClient } from '@/services/api/client';
 import { useNotificationStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
@@ -72,6 +72,17 @@ type DeleteAllOptions = {
   onResetProblemOnly: () => void;
 };
 
+export type AuthFilesListMeta = {
+  total: number;
+  page: number;
+  pageSize: number;
+  paginated: boolean;
+  hasMore: boolean;
+  typeCounts?: Record<string, number>;
+};
+
+const DEFAULT_AUTH_FILES_LIST_OPTIONS: AuthFilesListOptions = { codexSubscription: 'cache' };
+
 export type UseAuthFilesDataResult = {
   files: AuthFileItem[];
   selectedFiles: Set<string>;
@@ -83,8 +94,9 @@ export type UseAuthFilesDataResult = {
   deletingAll: boolean;
   statusUpdating: Record<string, boolean>;
   batchStatusUpdating: boolean;
+  listMeta: AuthFilesListMeta;
   fileInputRef: RefObject<HTMLInputElement | null>;
-  loadFiles: () => Promise<void>;
+  loadFiles: (overrideOptions?: Partial<AuthFilesListOptions>) => Promise<void>;
   handleUploadClick: () => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleDelete: (name: string) => void;
@@ -92,6 +104,7 @@ export type UseAuthFilesDataResult = {
   handleDownload: (name: string) => Promise<void>;
   handleStatusToggle: (item: AuthFileItem, enabled: boolean) => Promise<void>;
   applyLocalFilePatch: (name: string, patch: Partial<AuthFileItem>) => void;
+  applyLocalFileUpdates: (updates: AuthFileItem[]) => void;
   toggleSelect: (name: string) => void;
   selectAllVisible: (visibleFiles: AuthFileItem[]) => void;
   invertVisibleSelection: (visibleFiles: AuthFileItem[]) => void;
@@ -103,10 +116,11 @@ export type UseAuthFilesDataResult = {
 
 export type UseAuthFilesDataOptions = {
   refreshKeyStats: () => Promise<void>;
+  listOptions?: AuthFilesListOptions;
 };
 
 export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFilesDataResult {
-  const { refreshKeyStats } = options;
+  const { refreshKeyStats, listOptions = DEFAULT_AUTH_FILES_LIST_OPTIONS } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
 
@@ -119,11 +133,21 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({});
   const [batchStatusUpdating, setBatchStatusUpdating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [listMeta, setListMeta] = useState<AuthFilesListMeta>({
+    total: 0,
+    page: 1,
+    pageSize: 0,
+    paginated: false,
+    hasMore: false,
+  });
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const batchStatusPendingRef = useRef(false);
-  const loadFilesInFlightRef = useRef<Promise<void> | null>(null);
+  const loadFilesInFlightRef = useRef<{ key: string; request: Promise<void> } | null>(null);
+  const loadFilesSeqRef = useRef(0);
   const selectionCount = selectedFiles.size;
+  const listOptionsKey = JSON.stringify(listOptions);
+  const listUsesServerPagination = Boolean(listOptions.pageSize);
   const toggleSelect = useCallback((name: string) => {
     setSelectedFiles((prev) => {
       const next = new Set(prev);
@@ -202,21 +226,47 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     [files]
   );
 
-  const applyLocalFilePatch = useCallback((name: string, patch: Partial<AuthFileItem>) => {
-    const trimmedName = name.trim();
-    if (!trimmedName) return;
-
+  const applyLocalFileUpdates = useCallback((updates: AuthFileItem[]) => {
+    if (updates.length === 0) return;
+    const updatesByName = updates.reduce<Map<string, AuthFileItem>>((map, file) => {
+      const name = String(file.name ?? '').trim();
+      if (name) map.set(name, file);
+      return map;
+    }, new Map());
+    if (updatesByName.size === 0) return;
     setFiles((prev) =>
-      prev.map((file) =>
-        file.name === trimmedName
-          ? {
-              ...file,
-              ...patch,
-            }
-          : file
-      )
+      prev.map((file) => {
+        const updated = updatesByName.get(file.name);
+        return updated ? { ...file, ...updated, name: file.name } : file;
+      })
     );
   }, []);
+
+  const applyLocalFilePatch = useCallback(
+    (name: string, patch: Partial<AuthFileItem>) => {
+      const trimmedName = name.trim();
+      if (!trimmedName) return;
+      applyLocalFileUpdates([{ ...patch, name: trimmedName } as AuthFileItem]);
+    },
+    [applyLocalFileUpdates]
+  );
+
+  const patchLocalFileStatus = useCallback(
+    (item: AuthFileItem, disabled: boolean) => {
+      const name = item.name;
+      setFiles((prev) => {
+        let found = false;
+        const next = prev.map((file) => {
+          if (file.name !== name) return file;
+          found = true;
+          return { ...file, disabled };
+        });
+
+        return found ? next : [{ ...item, disabled }, ...prev];
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     if (selectedFiles.size === 0) return;
@@ -235,35 +285,72 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     });
   }, [files, selectedFiles.size]);
 
-  const loadFiles = useCallback(async () => {
-    if (loadFilesInFlightRef.current) {
-      await loadFilesInFlightRef.current;
-      return;
-    }
+  const loadFiles = useCallback(
+    async (overrideOptions?: Partial<AuthFilesListOptions>) => {
+      const effectiveListOptions = overrideOptions
+        ? { ...listOptions, ...overrideOptions }
+        : listOptions;
+      const effectiveListOptionsKey = overrideOptions
+        ? JSON.stringify(effectiveListOptions)
+        : listOptionsKey;
 
-    const request = (async () => {
-      setLoading(true);
-      setError('');
+      if (loadFilesInFlightRef.current?.key === effectiveListOptionsKey) {
+        await loadFilesInFlightRef.current.request;
+        return;
+      }
+
+      const requestSeq = loadFilesSeqRef.current + 1;
+      loadFilesSeqRef.current = requestSeq;
+
+      const request = (async () => {
+        setLoading(true);
+        setError('');
+        try {
+          const data = await authFilesApi.list(effectiveListOptions);
+          if (loadFilesSeqRef.current !== requestSeq) return;
+
+          const nextFiles = data?.files || [];
+          const nextPage =
+            typeof data?.page === 'number' && Number.isFinite(data.page)
+              ? data.page
+              : (effectiveListOptions.page ?? 1);
+          const nextPageSize =
+            typeof data?.page_size === 'number' && Number.isFinite(data.page_size)
+              ? data.page_size
+              : (effectiveListOptions.pageSize ?? nextFiles.length);
+
+          setFiles(nextFiles);
+          setListMeta({
+            total: typeof data?.total === 'number' ? data.total : nextFiles.length,
+            page: Math.max(1, Math.round(nextPage)),
+            pageSize: Math.max(0, Math.round(nextPageSize)),
+            paginated: Boolean(effectiveListOptions.pageSize),
+            hasMore: data?.has_more === true,
+            typeCounts: data?.type_counts,
+          });
+        } catch (err: unknown) {
+          if (loadFilesSeqRef.current !== requestSeq) return;
+          const errorMessage =
+            err instanceof Error ? err.message : t('notification.refresh_failed');
+          setError(errorMessage);
+        } finally {
+          if (loadFilesSeqRef.current === requestSeq) {
+            setLoading(false);
+          }
+        }
+      })();
+
+      loadFilesInFlightRef.current = { key: effectiveListOptionsKey, request };
       try {
-        const data = await authFilesApi.list({ codexSubscription: 'cache' });
-        setFiles(data?.files || []);
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');
-        setError(errorMessage);
+        await request;
       } finally {
-        setLoading(false);
+        if (loadFilesInFlightRef.current?.request === request) {
+          loadFilesInFlightRef.current = null;
+        }
       }
-    })();
-
-    loadFilesInFlightRef.current = request;
-    try {
-      await request;
-    } finally {
-      if (loadFilesInFlightRef.current === request) {
-        loadFilesInFlightRef.current = null;
-      }
-    }
-  }, [t]);
+    },
+    [listOptions, listOptionsKey, t]
+  );
 
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -347,6 +434,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           ]);
           showNotification(t('auth_files.delete_success'), 'success');
           applyDeletedFiles(result.files.length > 0 ? result.files : [name]);
+          if (listUsesServerPagination) {
+            await loadFiles();
+          }
         } catch (err: unknown) {
           const errorMessage = err instanceof Error ? err.message : '';
           showNotification(`${t('notification.delete_failed')}: ${errorMessage}`, 'error');
@@ -357,7 +447,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
       void runDelete();
     },
-    [applyDeletedFiles, files, showNotification, t]
+    [applyDeletedFiles, files, listUsesServerPagination, loadFiles, showNotification, t]
   );
 
   const handleDeleteAll = useCallback(
@@ -444,6 +534,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
               onResetProblemOnly();
             }
           }
+          if (listUsesServerPagination) {
+            await loadFiles();
+          }
         } catch (err: unknown) {
           const errorMessage = err instanceof Error ? err.message : '';
           showNotification(`${t('notification.delete_failed')}: ${errorMessage}`, 'error');
@@ -454,7 +547,15 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
       void runDeleteAll();
     },
-    [applyDeletedFiles, deselectAll, files, showNotification, t]
+    [
+      applyDeletedFiles,
+      deselectAll,
+      files,
+      listUsesServerPagination,
+      loadFiles,
+      showNotification,
+      t,
+    ]
   );
 
   const handleDownload = useCallback(
@@ -482,13 +583,11 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       const previousDisabled = item.disabled === true;
 
       setStatusUpdating((prev) => ({ ...prev, [name]: true }));
-      setFiles((prev) => prev.map((f) => (f.name === name ? { ...f, disabled: nextDisabled } : f)));
+      patchLocalFileStatus(item, nextDisabled);
 
       try {
         const res = await authFilesApi.setStatus(name, nextDisabled);
-        setFiles((prev) =>
-          prev.map((f) => (f.name === name ? { ...f, disabled: res.disabled } : f))
-        );
+        patchLocalFileStatus(item, res.disabled);
         showNotification(
           enabled
             ? t('auth_files.status_enabled_success', { name })
@@ -497,9 +596,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         );
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : '';
-        setFiles((prev) =>
-          prev.map((f) => (f.name === name ? { ...f, disabled: previousDisabled } : f))
-        );
+        patchLocalFileStatus(item, previousDisabled);
         showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
       } finally {
         setStatusUpdating((prev) => {
@@ -510,7 +607,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         });
       }
     },
-    [showNotification, t]
+    [patchLocalFileStatus, showNotification, t]
   );
 
   const batchSetStatus = useCallback(
@@ -676,6 +773,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
               'warning'
             );
           }
+          if (listUsesServerPagination) {
+            await loadFiles();
+          }
         } catch (err: unknown) {
           const errorMessage = err instanceof Error ? err.message : '';
           showNotification(`${t('notification.delete_failed')}: ${errorMessage}`, 'error');
@@ -684,7 +784,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
       void runBatchDelete();
     },
-    [applyDeletedFiles, files, showNotification, t]
+    [applyDeletedFiles, files, listUsesServerPagination, loadFiles, showNotification, t]
   );
 
   return {
@@ -698,6 +798,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     deletingAll,
     statusUpdating,
     batchStatusUpdating,
+    listMeta,
     fileInputRef,
     loadFiles,
     handleUploadClick,
@@ -707,6 +808,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     handleDownload,
     handleStatusToggle,
     applyLocalFilePatch,
+    applyLocalFileUpdates,
     toggleSelect,
     selectAllVisible,
     invertVisibleSelection,

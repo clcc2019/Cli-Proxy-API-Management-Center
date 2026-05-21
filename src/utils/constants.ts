@@ -60,7 +60,8 @@ export const OAUTH_CARD_IDS = [
   'kiro-oauth-card',
   'gemini-cli-oauth-card',
   'kimi-oauth-card',
-  'qwen-oauth-card'
+  'qwen-oauth-card',
+  'xai-oauth-card'
 ];
 export const OAUTH_PROVIDERS = {
   CODEX: 'codex',
@@ -69,7 +70,8 @@ export const OAUTH_PROVIDERS = {
   KIRO: 'kiro',
   GEMINI_CLI: 'gemini-cli',
   KIMI: 'kimi',
-  QWEN: 'qwen'
+  QWEN: 'qwen',
+  XAI: 'xai'
 } as const;
 
 // API 端点

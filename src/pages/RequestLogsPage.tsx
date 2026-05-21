@@ -1,4 +1,5 @@
 import {
+  type ChangeEvent,
   memo,
   useCallback,
   useEffect,
@@ -13,12 +14,16 @@ import {
   IconCheck,
   IconFilterAll,
   IconInbox,
+  IconRefreshCw,
+  IconSatellite,
+  IconSearch,
   IconX,
 } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useAuthStore, useNotificationStore, useConfigStore, useThemeStore } from '@/stores';
 import { useUsageData } from '@/components/usage';
 import {
+  REQUEST_EVENT_ROWS_LIMIT,
   useRequestEventRows,
   type RequestEventRow,
 } from '@/components/usage/hooks/useRequestEventRows';
@@ -428,7 +433,8 @@ export function RequestLogsPage() {
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
 
-  const { usage, loading, error, modelPrices, loadUsage } = useUsageData();
+  const { usage, loading, error, lastRefreshedAt, modelPrices, loadUsage } =
+    useUsageData();
 
   useHeaderRefresh(loadUsage);
 
@@ -443,8 +449,9 @@ export function RequestLogsPage() {
   });
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const stats = useMemo(() => {
+  const counts = useMemo(() => {
     let success = 0;
     let failed = 0;
     rows.forEach((row) => {
@@ -459,10 +466,29 @@ export function RequestLogsPage() {
   }, [rows]);
 
   const filteredRows = useMemo(() => {
-    if (statusFilter === 'all') return rows;
-    if (statusFilter === 'success') return rows.filter((row) => !row.failed);
-    return rows.filter((row) => row.failed);
-  }, [rows, statusFilter]);
+    const baseRows =
+      statusFilter === 'all'
+        ? rows
+        : rows.filter((row) =>
+            statusFilter === 'success' ? !row.failed : row.failed
+          );
+    const query = searchQuery.trim().toLocaleLowerCase();
+    if (!query) return baseRows;
+    return baseRows.filter((row) =>
+      [
+        row.model,
+        row.modelReasoningEffort,
+        row.source,
+        row.sourceType,
+        row.authIndex,
+        row.apiKeyMasked,
+        row.errorMessage,
+      ]
+        .join(' ')
+        .toLocaleLowerCase()
+        .includes(query)
+    );
+  }, [rows, searchQuery, statusFilter]);
 
   // 自动每 15 秒刷新一次请求详情，文档隐藏时暂停以节省资源，恢复可见后立即刷新一次
   const loadUsageRef = useRef(loadUsage);
@@ -583,6 +609,25 @@ export function RequestLogsPage() {
     []
   );
   const handleSelectFailed = useCallback(() => setStatusFilter('failed'), []);
+  const handleSearchChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(event.target.value);
+    },
+    []
+  );
+  const handleClearSearch = useCallback(() => setSearchQuery(''), []);
+  const handleClearFilters = useCallback(() => {
+    setStatusFilter('all');
+    setSearchQuery('');
+  }, []);
+  const handleRefresh = useCallback(() => {
+    void loadUsage();
+  }, [loadUsage]);
+
+  const lastUpdatedText = lastRefreshedAt
+    ? lastRefreshedAt.toLocaleString(i18n.language)
+    : null;
+  const searchPlaceholder = t('usage_stats.request_events_search_placeholder');
 
   return (
     <div className={styles.page}>
@@ -601,6 +646,50 @@ export function RequestLogsPage() {
       )}
 
       {error && <div className={styles.errorBanner}>{error}</div>}
+
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroEyebrow}>
+            <IconSatellite size={13} aria-hidden="true" />
+            {t('usage_stats.request_events_eyebrow')}
+          </span>
+          <h1 className={styles.heroTitle}>
+            {t('usage_stats.request_events_title')}
+          </h1>
+          <p className={styles.heroSubtitle}>
+            {t('usage_stats.request_events_page_subtitle', {
+              limit: REQUEST_EVENT_ROWS_LIMIT,
+            })}
+          </p>
+        </div>
+
+        <div className={styles.heroActions}>
+          {lastUpdatedText && (
+            <span className={styles.lastUpdatedPill}>
+              <span className={styles.lastUpdatedDot} aria-hidden="true" />
+              <span>
+                {t('usage_stats.last_updated')}: {lastUpdatedText}
+              </span>
+            </span>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            className={styles.refreshButton}
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <IconRefreshCw
+              size={14}
+              className={loading ? styles.refreshIconSpinning : undefined}
+              aria-hidden="true"
+            />
+            {loading
+              ? t('common.refreshing', { defaultValue: 'Refreshing...' })
+              : t('common.refresh', { defaultValue: 'Refresh' })}
+          </Button>
+        </div>
+      </section>
 
       {/* Filters */}
       <div className={styles.toolbar}>
@@ -624,7 +713,7 @@ export function RequestLogsPage() {
             {t('usage_stats.request_events_filter_all', {
               defaultValue: 'All',
             })}
-            <span className={styles.statusFilterCount}>{stats.total}</span>
+            <span className={styles.statusFilterCount}>{counts.total}</span>
           </button>
           <button
             type="button"
@@ -636,11 +725,11 @@ export function RequestLogsPage() {
                 : `${styles.statusFilterButton} ${styles.statusFilterSuccess}`
             }
             onClick={handleSelectSuccess}
-            disabled={stats.success === 0}
+            disabled={counts.success === 0}
           >
             <IconCheck size={12} aria-hidden="true" />
             {successLabel}
-            <span className={styles.statusFilterCount}>{stats.success}</span>
+            <span className={styles.statusFilterCount}>{counts.success}</span>
           </button>
           <button
             type="button"
@@ -652,19 +741,41 @@ export function RequestLogsPage() {
                 : `${styles.statusFilterButton} ${styles.statusFilterFailed}`
             }
             onClick={handleSelectFailed}
-            disabled={stats.failed === 0}
+            disabled={counts.failed === 0}
           >
             <IconX size={12} aria-hidden="true" />
             {failureLabel}
-            <span className={styles.statusFilterCount}>{stats.failed}</span>
+            <span className={styles.statusFilterCount}>{counts.failed}</span>
           </button>
         </div>
+
+        <label className={styles.searchBox}>
+          <IconSearch size={14} aria-hidden="true" />
+          <input
+            className={styles.searchInput}
+            type="search"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className={styles.searchClearButton}
+              onClick={handleClearSearch}
+              aria-label={t('usage_stats.clear_filters')}
+            >
+              <IconX size={12} aria-hidden="true" />
+            </button>
+          )}
+        </label>
 
         <span className={styles.resultMeta}>
           {t('usage_stats.request_events_result_count', {
             defaultValue: '{{shown}} / {{total}} events',
             shown: filteredRows.length,
-            total: stats.total,
+            total: counts.total,
           })}
         </span>
       </div>
@@ -695,7 +806,7 @@ export function RequestLogsPage() {
           <p className={styles.emptyStateDesc}>
             {t('usage_stats.request_events_no_result_desc')}
           </p>
-          <Button variant="ghost" size="sm" onClick={handleSelectAll}>
+          <Button variant="ghost" size="sm" onClick={handleClearFilters}>
             {t('logs.clear_filters', { defaultValue: 'Clear filters' })}
           </Button>
         </div>

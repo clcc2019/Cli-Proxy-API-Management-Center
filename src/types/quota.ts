@@ -2,6 +2,8 @@
  * Quota management types.
  */
 
+import type { AuthFileItem } from './authFile';
+
 // Theme types
 export type ThemeColors = { bg: string; text: string; border?: string };
 export type TypeColorSet = { light: ThemeColors; dark?: ThemeColors };
@@ -120,16 +122,30 @@ export interface CodexAdditionalRateLimit {
 }
 
 export interface CodexUsagePayload {
+  auth_file?: AuthFileItem | null;
+  authFile?: AuthFileItem | null;
   plan_type?: string;
   planType?: string;
+  chatgpt_plan_type?: string;
+  chatgptPlanType?: string;
   subscription_active_start?: string | number | null;
   subscriptionActiveStart?: string | number | null;
   subscription_started_at?: string | number | null;
   subscriptionStartedAt?: string | number | null;
+  current_period_start?: string | number | null;
+  currentPeriodStart?: string | number | null;
+  period_start?: string | number | null;
+  periodStart?: string | number | null;
+  started_at?: string | number | null;
+  startedAt?: string | number | null;
   subscription_active_days?: string | number | null;
   subscriptionActiveDays?: string | number | null;
   subscription_expires_at?: string | number | null;
   subscriptionExpiresAt?: string | number | null;
+  current_period_end?: string | number | null;
+  currentPeriodEnd?: string | number | null;
+  expires_at?: string | number | null;
+  expiresAt?: string | number | null;
   chatgpt_subscription_active_start?: string | number | null;
   chatgptSubscriptionActiveStart?: string | number | null;
   chatgpt_subscription_active_until?: string | number | null;
@@ -140,6 +156,8 @@ export interface CodexUsagePayload {
   codeReviewRateLimit?: CodexRateLimitInfo | null;
   additional_rate_limits?: CodexAdditionalRateLimit[] | null;
   additionalRateLimits?: CodexAdditionalRateLimit[] | null;
+  rate_limit_reached_type?: string | { kind?: string | null } | null;
+  rateLimitReachedType?: string | { kind?: string | null } | null;
 }
 
 // Claude API payload types
@@ -254,6 +272,7 @@ export interface CodexQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   windows: CodexQuotaWindow[];
   planType?: string | null;
+  rateLimitReachedType?: string | null;
   subscriptionActiveStart?: string | number | null;
   subscriptionActiveDays?: number | null;
   subscriptionUntil?: string | number | null;

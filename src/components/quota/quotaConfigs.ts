@@ -43,8 +43,6 @@ import {
   CLAUDE_USAGE_URL,
   CLAUDE_REQUEST_HEADERS,
   CLAUDE_USAGE_WINDOW_KEYS,
-  CODEX_USAGE_URL,
-  CODEX_REQUEST_HEADERS,
   GEMINI_CLI_QUOTA_URL,
   GEMINI_CLI_CODE_ASSIST_URL,
   GEMINI_CLI_REQUEST_HEADERS,
@@ -57,11 +55,9 @@ import {
   normalizeStringValue,
   parseAntigravityPayload,
   parseClaudeUsagePayload,
-  parseCodexUsagePayload,
   parseGeminiCliQuotaPayload,
   parseGeminiCliCodeAssistPayload,
   parseKimiUsagePayload,
-  resolveCodexChatgptAccountId,
   resolveCodexPlanType,
   resolveCodexSubscriptionActiveDays,
   resolveCodexSubscriptionActiveStart,
@@ -133,6 +129,7 @@ export interface QuotaConfig<TState, TData> {
   buildLoadingState: () => TState;
   buildSuccessState: (data: TData) => TState;
   buildErrorState: (message: string, status?: number) => TState;
+  extractAuthFileUpdate?: (data: TData) => AuthFileItem | null;
   cardClassName: string;
   controlsClassName: string;
   controlClassName: string;
@@ -423,87 +420,100 @@ const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): Codex
   return windows;
 };
 
+const resolveCodexRateLimitReachedType = (payload: CodexUsagePayload): string | null => {
+  const raw = payload.rate_limit_reached_type ?? payload.rateLimitReachedType;
+  if (typeof raw === 'string') return normalizeStringValue(raw);
+  if (raw && typeof raw === 'object') return normalizeStringValue(raw.kind);
+  return null;
+};
+
+const resolveCodexUpdatedAuthFile = (
+  file: AuthFileItem,
+  payload: CodexUsagePayload
+): AuthFileItem | null => {
+  const snapshot = payload.auth_file ?? payload.authFile;
+  const normalizedSnapshot =
+    snapshot && typeof snapshot === 'object'
+      ? ({ ...file, ...snapshot, name: file.name } as AuthFileItem)
+      : null;
+
+  if (normalizedSnapshot) return normalizedSnapshot;
+
+  const patch: Partial<AuthFileItem> = {};
+  const planType = normalizePlanType(
+    payload.plan_type ?? payload.planType ?? payload.chatgpt_plan_type ?? payload.chatgptPlanType
+  );
+  if (planType) {
+    patch.plan_type = planType;
+    patch.chatgpt_plan_type = planType;
+  }
+  const subscriptionUntil = resolveCodexSubscriptionActiveUntil(payload as AuthFileItem);
+  if (subscriptionUntil !== null) {
+    patch.subscription_expires_at = subscriptionUntil;
+    patch.chatgpt_subscription_active_until = subscriptionUntil;
+  }
+  const subscriptionStart = resolveCodexSubscriptionActiveStart(payload as AuthFileItem);
+  if (subscriptionStart !== null) {
+    patch.chatgpt_subscription_active_start = subscriptionStart;
+    patch.subscription_active_start = subscriptionStart;
+  }
+  const subscriptionDays = resolveCodexSubscriptionActiveDays(payload as AuthFileItem);
+  if (subscriptionDays !== null) {
+    patch.subscription_active_days = subscriptionDays;
+  }
+
+  return Object.keys(patch).length > 0
+    ? ({ ...file, ...patch, name: file.name } as AuthFileItem)
+    : null;
+};
+
 const fetchCodexQuota = async (
   file: AuthFileItem,
   t: TFunction
 ): Promise<{
+  authFile: AuthFileItem | null;
   planType: string | null;
   subscriptionActiveStart: string | number | null;
   subscriptionActiveDays: number | null;
   subscriptionUntil: string | number | null;
+  rateLimitReachedType: string | null;
   windows: CodexQuotaWindow[];
 }> => {
-  const quotaFile = await resolveCodexQuotaSourceFile(file);
-  const rawAuthIndex = quotaFile['auth_index'] ?? quotaFile.authIndex;
+  const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
-  if (!authIndex) {
-    throw new Error(t('codex_quota.missing_auth_index'));
-  }
-
-  const planTypeFromFile = resolveCodexPlanType(quotaFile);
-  const accountId = resolveCodexChatgptAccountId(quotaFile);
-  if (!accountId) {
-    throw new Error(t('codex_quota.missing_account_id'));
-  }
-
-  const requestHeader: Record<string, string> = {
-    ...CODEX_REQUEST_HEADERS,
-    'Chatgpt-Account-Id': accountId,
-  };
-
-  const result = await apiCallApi.request({
-    authIndex,
-    method: 'GET',
-    url: CODEX_USAGE_URL,
-    header: requestHeader,
-  });
-
-  if (result.statusCode < 200 || result.statusCode >= 300) {
-    throw createStatusError(getApiCallErrorMessage(result), result.statusCode);
-  }
-
-  const payload = parseCodexUsagePayload(result.body ?? result.bodyText);
+  const planTypeFromFile = resolveCodexPlanType(file);
+  const payload = await authFilesApi.getCodexUsage(file.name, authIndex ?? undefined);
   if (!payload) {
     throw new Error(t('codex_quota.empty_windows'));
   }
 
-  const planTypeFromUsage = normalizePlanType(payload.plan_type ?? payload.planType);
+  const planTypeFromUsage = normalizePlanType(
+    payload.plan_type ?? payload.planType ?? payload.chatgpt_plan_type ?? payload.chatgptPlanType
+  );
+  const authFileSnapshot = payload.auth_file ?? payload.authFile;
+  const normalizedAuthFileSnapshot =
+    authFileSnapshot && typeof authFileSnapshot === 'object' ? authFileSnapshot : null;
   const subscriptionSource = {
-    ...quotaFile,
+    ...file,
+    ...normalizedAuthFileSnapshot,
     ...payload,
-    name: quotaFile.name,
+    name: file.name,
   } as AuthFileItem;
   const subscriptionActiveStart = resolveCodexSubscriptionActiveStart(subscriptionSource);
   const subscriptionActiveDays = resolveCodexSubscriptionActiveDays(subscriptionSource);
   const subscriptionUntil = resolveCodexSubscriptionActiveUntil(subscriptionSource);
   const windows = buildCodexQuotaWindows(payload, t);
+  const rateLimitReachedType = resolveCodexRateLimitReachedType(payload);
+  const authFile = resolveCodexUpdatedAuthFile(file, payload);
   return {
+    authFile,
     planType: planTypeFromUsage ?? planTypeFromFile,
     subscriptionActiveStart,
     subscriptionActiveDays,
     subscriptionUntil,
+    rateLimitReachedType,
     windows,
   };
-};
-
-const resolveCodexQuotaSourceFile = async (file: AuthFileItem): Promise<AuthFileItem> => {
-  if (resolveCodexChatgptAccountId(file) && resolveCodexPlanType(file)) return file;
-
-  try {
-    const json = await authFilesApi.downloadJsonObject(file.name);
-    return {
-      ...file,
-      ...json,
-      name: file.name,
-      type: file.type ?? (json.type as AuthFileItem['type']),
-      provider: file.provider ?? (json.provider as AuthFileItem['provider']),
-      authIndex: file.authIndex ?? (json.authIndex as AuthFileItem['authIndex']),
-      auth_index: file['auth_index'] ?? json['auth_index'],
-      disabled: file.disabled ?? (json.disabled as AuthFileItem['disabled']),
-    } as AuthFileItem;
-  } catch {
-    return file;
-  }
 };
 
 const GEMINI_CLI_G1_CREDIT_TYPE = 'GOOGLE_ONE_AI';
@@ -1284,10 +1294,12 @@ export const ANTIGRAVITY_CONFIG: QuotaConfig<AntigravityQuotaState, AntigravityQ
 export const CODEX_CONFIG: QuotaConfig<
   CodexQuotaState,
   {
+    authFile: AuthFileItem | null;
     planType: string | null;
     subscriptionActiveStart: string | number | null;
     subscriptionActiveDays: number | null;
     subscriptionUntil: string | number | null;
+    rateLimitReachedType: string | null;
     windows: CodexQuotaWindow[];
   }
 > = {
@@ -1303,10 +1315,12 @@ export const CODEX_CONFIG: QuotaConfig<
     status: 'success',
     windows: data.windows,
     planType: data.planType,
+    rateLimitReachedType: data.rateLimitReachedType,
     subscriptionActiveStart: data.subscriptionActiveStart,
     subscriptionActiveDays: data.subscriptionActiveDays,
     subscriptionUntil: data.subscriptionUntil,
   }),
+  extractAuthFileUpdate: (data) => data.authFile,
   buildErrorState: (message, status) => ({
     status: 'error',
     windows: [],

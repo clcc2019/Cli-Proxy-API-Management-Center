@@ -6,6 +6,44 @@ import type { AuthFileItem } from '@/types';
 import { normalizeStringValue, normalizePlanType, parseIdTokenPayload } from './parsers';
 
 const OPENAI_AUTH_CLAIM = 'https://api.openai.com/auth';
+const CODEX_SUBSCRIPTION_CONTAINER_KEYS = [
+  'account',
+  'entitlement',
+  'subscription',
+  'providerSpecificData',
+] as const;
+const CODEX_SUBSCRIPTION_UNTIL_KEYS = [
+  'subscription_expires_at',
+  'subscriptionExpiresAt',
+  'chatgpt_subscription_active_until',
+  'chatgptSubscriptionActiveUntil',
+  'subscription_active_until',
+  'subscriptionActiveUntil',
+  'expires_at',
+  'expiresAt',
+  'current_period_end',
+  'currentPeriodEnd',
+  'period_end',
+  'periodEnd',
+] as const;
+const CODEX_SUBSCRIPTION_ACTIVE_START_KEYS = [
+  'chatgpt_subscription_active_start',
+  'chatgptSubscriptionActiveStart',
+  'subscription_active_start',
+  'subscriptionActiveStart',
+  'subscription_started_at',
+  'subscriptionStartedAt',
+  'subscription_start_date',
+  'subscriptionStartDate',
+  'current_period_start',
+  'currentPeriodStart',
+  'period_start',
+  'periodStart',
+  'started_at',
+  'startedAt',
+  'starts_at',
+  'startsAt',
+] as const;
 
 const asRecord = (value: unknown): Record<string, unknown> | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -22,6 +60,35 @@ const normalizeDateLikeValue = (value: unknown): string | number | null => {
     return trimmed ? trimmed : null;
   }
   if (typeof value === 'number' && Number.isFinite(value)) return value;
+  return null;
+};
+
+const resolveDateLikeFromRecord = (
+  record: Record<string, unknown> | null,
+  keys: readonly string[]
+): string | number | null => {
+  if (!record) return null;
+  for (const key of keys) {
+    const value = normalizeDateLikeValue(record[key]);
+    if (value !== null) return value;
+  }
+  return null;
+};
+
+const resolveDateLikeFromRecords = (
+  records: Array<Record<string, unknown> | null>,
+  keys: readonly string[]
+): string | number | null => {
+  for (const record of records) {
+    const direct = resolveDateLikeFromRecord(record, keys);
+    if (direct !== null) return direct;
+
+    for (const containerKey of CODEX_SUBSCRIPTION_CONTAINER_KEYS) {
+      const nested = asRecord(record?.[containerKey]);
+      const nestedValue = resolveDateLikeFromRecord(nested, keys);
+      if (nestedValue !== null) return nestedValue;
+    }
+  }
   return null;
 };
 
@@ -47,6 +114,34 @@ const dateLikeToTimestampMs = (value: unknown): number | null => {
 
   const parsed = Date.parse(normalized);
   return Number.isNaN(parsed) ? null : parsed;
+};
+
+const addMonthsClampedUtc = (date: Date, months: number): Date => {
+  const monthIndex = date.getUTCMonth() + months;
+  const target = new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      monthIndex,
+      1,
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds()
+    )
+  );
+  const lastDay = new Date(
+    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)
+  ).getUTCDate();
+  target.setUTCDate(Math.min(date.getUTCDate(), lastDay));
+  return target;
+};
+
+const deriveCodexSubscriptionActiveStartFromUntil = (untilValue: unknown): string | null => {
+  const untilMs = dateLikeToTimestampMs(untilValue);
+  if (untilMs === null) return null;
+  const until = new Date(untilMs);
+  const start = addMonthsClampedUtc(until, -1);
+  return start.getTime() < untilMs ? start.toISOString() : null;
 };
 
 export function calculateCodexSubscriptionActiveDays(
@@ -229,6 +324,22 @@ export function resolveCodexSubscriptionActiveUntil(file: AuthFileItem): string 
     if (value !== null) return value;
   }
 
+  const aliasedValue = resolveDateLikeFromRecords(
+    [
+      file as unknown as Record<string, unknown>,
+      idToken,
+      authClaim,
+      metadata,
+      metadataIdToken,
+      metadataAuthClaim,
+      attributes,
+      attributesIdToken,
+      attributesAuthClaim,
+    ],
+    CODEX_SUBSCRIPTION_UNTIL_KEYS
+  );
+  if (aliasedValue !== null) return aliasedValue;
+
   return null;
 }
 
@@ -308,6 +419,27 @@ export function resolveCodexSubscriptionActiveStart(file: AuthFileItem): string 
     const value = normalizeDateLikeValue(candidate);
     if (value !== null) return value;
   }
+
+  const aliasedValue = resolveDateLikeFromRecords(
+    [
+      file as unknown as Record<string, unknown>,
+      idToken,
+      authClaim,
+      metadata,
+      metadataIdToken,
+      metadataAuthClaim,
+      attributes,
+      attributesIdToken,
+      attributesAuthClaim,
+    ],
+    CODEX_SUBSCRIPTION_ACTIVE_START_KEYS
+  );
+  if (aliasedValue !== null) return aliasedValue;
+
+  const derivedFromUntil = deriveCodexSubscriptionActiveStartFromUntil(
+    resolveCodexSubscriptionActiveUntil(file)
+  );
+  if (derivedFromUntil !== null) return derivedFromUntil;
 
   return null;
 }

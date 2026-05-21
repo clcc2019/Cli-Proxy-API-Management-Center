@@ -29,6 +29,7 @@ export type AuthFileQuotaSectionProps = {
   file: AuthFileItem;
   quotaType: QuotaProviderType;
   disableControls: boolean;
+  onAuthFileUpdated?: (file: AuthFileItem) => void;
 };
 
 type AuthFileQuotaRefreshButtonProps = AuthFileQuotaSectionProps & {
@@ -57,6 +58,7 @@ function useAuthFileQuotaRefresh(props: AuthFileQuotaSectionProps) {
       quotaType,
       disableControls,
       t,
+      onAuthFileUpdated: props.onAuthFileUpdated,
     });
 
     if (result.status === 'success') {
@@ -67,7 +69,7 @@ function useAuthFileQuotaRefresh(props: AuthFileQuotaSectionProps) {
         'error'
       );
     }
-  }, [disableControls, file, quotaType, showNotification, t]);
+  }, [disableControls, file, props.onAuthFileUpdated, quotaType, showNotification, t]);
 
   const quotaStatus = quota?.status ?? 'idle';
   const isQuotaRefreshing = quotaStatus === 'loading';

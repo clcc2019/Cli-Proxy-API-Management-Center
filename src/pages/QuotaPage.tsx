@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useAuthStore } from '@/stores';
 import { authFilesApi, configFileApi } from '@/services/api';
+import type { AuthFilesListCodexSubscriptionMode } from '@/services/api/authFiles';
 import {
   QuotaSection,
   ANTIGRAVITY_CONFIG,
@@ -14,7 +15,7 @@ import {
   CODEX_CONFIG,
   GEMINI_CLI_CONFIG,
   KIRO_CONFIG,
-  KIMI_CONFIG
+  KIMI_CONFIG,
 } from '@/components/quota';
 import type { AuthFileItem } from '@/types';
 import styles from './QuotaPage.module.scss';
@@ -29,6 +30,22 @@ export function QuotaPage() {
 
   const disableControls = connectionStatus !== 'connected';
 
+  const applyAuthFileUpdates = useCallback((updates: AuthFileItem[]) => {
+    if (updates.length === 0) return;
+    const updatesByName = updates.reduce<Map<string, AuthFileItem>>((map, file) => {
+      const name = String(file.name ?? '').trim();
+      if (name) map.set(name, file);
+      return map;
+    }, new Map());
+    if (updatesByName.size === 0) return;
+    setFiles((prev) =>
+      prev.map((file) => {
+        const updated = updatesByName.get(file.name);
+        return updated ? { ...file, ...updated, name: file.name } : file;
+      })
+    );
+  }, []);
+
   const loadConfig = useCallback(async () => {
     try {
       await configFileApi.fetchConfigYaml();
@@ -38,22 +55,25 @@ export function QuotaPage() {
     }
   }, [t]);
 
-  const loadFiles = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await authFilesApi.list({ codexSubscription: 'cache' });
-      setFiles(data?.files || []);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+  const loadFiles = useCallback(
+    async (codexSubscription: AuthFilesListCodexSubscriptionMode = 'cache') => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await authFilesApi.list({ codexSubscription });
+        setFiles(data?.files || []);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t]
+  );
 
   const handleHeaderRefresh = useCallback(async () => {
-    await Promise.all([loadConfig(), loadFiles()]);
+    await Promise.all([loadConfig(), loadFiles('cache')]);
   }, [loadConfig, loadFiles]);
 
   useHeaderRefresh(handleHeaderRefresh);
@@ -77,36 +97,42 @@ export function QuotaPage() {
         files={files}
         loading={loading}
         disabled={disableControls}
+        onAuthFilesUpdated={applyAuthFileUpdates}
       />
       <QuotaSection
         config={ANTIGRAVITY_CONFIG}
         files={files}
         loading={loading}
         disabled={disableControls}
+        onAuthFilesUpdated={applyAuthFileUpdates}
       />
       <QuotaSection
         config={CODEX_CONFIG}
         files={files}
         loading={loading}
         disabled={disableControls}
+        onAuthFilesUpdated={applyAuthFileUpdates}
       />
       <QuotaSection
         config={GEMINI_CLI_CONFIG}
         files={files}
         loading={loading}
         disabled={disableControls}
+        onAuthFilesUpdated={applyAuthFileUpdates}
       />
       <QuotaSection
         config={KIRO_CONFIG}
         files={files}
         loading={loading}
         disabled={disableControls}
+        onAuthFilesUpdated={applyAuthFileUpdates}
       />
       <QuotaSection
         config={KIMI_CONFIG}
         files={files}
         loading={loading}
         disabled={disableControls}
+        onAuthFilesUpdated={applyAuthFileUpdates}
       />
     </div>
   );

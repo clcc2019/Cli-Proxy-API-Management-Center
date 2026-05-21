@@ -37,7 +37,8 @@ export function useQuotaLoader<TState, TData>(config: QuotaConfig<TState, TData>
     async (
       targets: AuthFileItem[],
       scope: QuotaScope,
-      setLoading: (loading: boolean, scope?: QuotaScope | null) => void
+      setLoading: (loading: boolean, scope?: QuotaScope | null) => void,
+      onAuthFilesUpdated?: (files: AuthFileItem[]) => void
     ) => {
       if (loadingRef.current) return;
       loadingRef.current = true;
@@ -69,6 +70,16 @@ export function useQuotaLoader<TState, TData>(config: QuotaConfig<TState, TData>
         );
 
         if (requestId !== requestIdRef.current) return;
+
+        const authFileUpdates = results.reduce<AuthFileItem[]>((updates, result) => {
+          if (result.status !== 'success') return updates;
+          const updated = config.extractAuthFileUpdate?.(result.data as TData);
+          if (updated) updates.push(updated);
+          return updates;
+        }, []);
+        if (authFileUpdates.length > 0) {
+          onAuthFilesUpdated?.(authFileUpdates);
+        }
 
         setQuota((prev) => {
           const nextState = { ...prev };

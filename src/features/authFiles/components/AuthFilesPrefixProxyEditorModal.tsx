@@ -180,17 +180,6 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                 )}
               </div>
               <div className={styles.prefixProxyJsonWrapper}>
-                <label className={styles.prefixProxyLabel}>
-                  {t('auth_files.prefix_proxy_info_label')}
-                </label>
-                <textarea
-                  className={styles.prefixProxyTextarea}
-                  rows={8}
-                  readOnly
-                  value={editor.fileInfoText}
-                />
-              </div>
-              <div className={styles.prefixProxyJsonWrapper}>
                 <div className={styles.prefixProxyLabelRow}>
                   <label className={styles.prefixProxyLabel}>
                     {t('auth_files.prefix_proxy_source_label')}

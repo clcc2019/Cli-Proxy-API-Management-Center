@@ -12,16 +12,23 @@
 }
 
 .hero {
+  --usage-hero-border: color-mix(in srgb, var(--border-color) 72%, transparent);
+  --usage-hero-sheen: color-mix(in srgb, #ffffff 48%, transparent);
+  --usage-hero-tint: color-mix(in srgb, var(--success-color) 5%, transparent);
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.52fr);
   gap: 20px;
   padding: clamp(18px, 1.8vw + 10px, 26px);
   border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: var(--surface-raised);
+  border: 1px solid var(--usage-hero-border);
+  background:
+    linear-gradient(180deg, var(--usage-hero-sheen), transparent 38%),
+    linear-gradient(135deg, var(--usage-hero-tint), transparent 48%),
+    var(--surface-raised);
   box-shadow:
     var(--shadow-card),
+    0 18px 42px -34px color-mix(in srgb, var(--success-color) 42%, transparent),
     0 0 0 1px color-mix(in srgb, var(--primary-color) 4%, transparent);
   overflow: hidden;
 
@@ -33,12 +40,12 @@
     background: linear-gradient(
       90deg,
       transparent 5%,
-      color-mix(in srgb, var(--primary-color) 36%, transparent) 30%,
-      color-mix(in srgb, #7c5cff 28%, transparent) 55%,
-      color-mix(in srgb, var(--primary-color) 20%, transparent) 80%,
+      color-mix(in srgb, var(--success-color) 42%, transparent) 30%,
+      color-mix(in srgb, var(--info-color) 36%, transparent) 55%,
+      color-mix(in srgb, var(--quota-medium-color) 30%, transparent) 80%,
       transparent 95%
     );
-    opacity: 0.7;
+    opacity: 0.82;
     pointer-events: none;
     border-radius: 16px 16px 0 0;
   }
@@ -46,18 +53,15 @@
   &::after {
     content: '';
     position: absolute;
-    top: -60px;
-    right: -60px;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, #7c5cff 8%, transparent),
-      transparent 70%
+    inset: 3px 0 auto;
+    height: 56px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--success-color) 5%, transparent),
+      transparent
     );
     pointer-events: none;
-    opacity: 0.5;
+    opacity: 0.72;
   }
 
   @include tablet {
@@ -68,6 +72,7 @@
     grid-template-columns: 1fr;
     padding: 16px;
     gap: 14px;
+    border-radius: 12px;
 
     &::after {
       display: none;
@@ -111,15 +116,15 @@
   gap: 4px;
   padding: 10px 14px;
   border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--bg-primary) 96%, var(--bg-secondary) 4%),
-    color-mix(in srgb, var(--bg-primary) 90%, var(--bg-secondary) 10%)
+    color-mix(in srgb, var(--surface-raised-strong) 84%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 74%, transparent)
   );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    0 2px 6px rgba(0, 0, 0, 0.04);
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 8px 18px -16px rgba(15, 23, 42, 0.2);
   transition:
     border-color $transition-fast,
     box-shadow $transition-fast;
@@ -148,17 +153,24 @@
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 18px;
+  padding: 16px;
   border-radius: $radius-lg;
-  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--bg-primary) 94%, var(--bg-secondary) 6%),
-    color-mix(in srgb, var(--bg-primary) 88%, var(--bg-secondary) 12%)
+    color-mix(in srgb, var(--surface-raised-strong) 78%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 54%, transparent)
   );
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 12px 28px -24px rgba(15, 23, 42, 0.24);
   position: relative;
   z-index: 1;
+
+  @include mobile {
+    padding: 12px;
+    border-radius: 10px;
+  }
 }
 
 .actionGrid {
@@ -170,6 +182,10 @@
     width: 100%;
     min-width: 0;
     justify-content: center;
+    min-height: 38px;
+    padding-inline: 10px;
+    white-space: normal;
+    line-height: 1.2;
 
     > span {
       display: inline-flex;
@@ -186,7 +202,9 @@
 }
 
 .heroActionPrimary {
-  box-shadow: 0 12px 24px rgba(109, 93, 252, 0.2);
+  box-shadow:
+    0 12px 24px -18px color-mix(in srgb, var(--primary-color) 70%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .pageTitleIcon,
@@ -200,13 +218,14 @@
   width: 38px;
   height: 38px;
   border-radius: $radius-lg;
-  color: #7c5cff;
+  color: var(--success-color);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, #7c5cff 14%, transparent),
-    color-mix(in srgb, #7c5cff 8%, transparent)
+    color-mix(in srgb, var(--success-color) 16%, transparent),
+    color-mix(in srgb, var(--info-color) 8%, transparent)
   );
-  box-shadow: 0 2px 8px color-mix(in srgb, #7c5cff 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success-color) 18%, transparent);
+  box-shadow: 0 8px 18px -14px color-mix(in srgb, var(--success-color) 46%, transparent);
 }
 
 .section {
@@ -224,14 +243,14 @@
 .overviewPanel {
   padding: clamp(16px, 1.4vw + 8px, 24px);
   border-radius: $radius-lg;
-  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 98%, white 2%),
-    var(--bg-primary)
-  );
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 38%, transparent), transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--success-color) 3.5%, transparent), transparent 52%),
+    var(--surface-raised);
   box-shadow:
-    0 18px 42px rgba(15, 23, 42, 0.07),
+    var(--shadow-card),
+    0 18px 42px -34px rgba(15, 23, 42, 0.18),
     0 0 0 1px color-mix(in srgb, var(--primary-color) 3%, transparent);
 }
 
@@ -283,7 +302,7 @@
   font-size: 21px;
   font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .sectionDescription {
@@ -544,7 +563,7 @@
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 
   @include mobile {
     font-size: 26px;
@@ -685,7 +704,7 @@
 // Stats Grid
 .statsGrid {
   display: grid;
-  gap: 14px;
+  gap: clamp(10px, 0.5vw + 8px, 16px);
   grid-template-columns: repeat(12, minmax(0, 1fr));
 
   @include mobile {
@@ -695,39 +714,51 @@
 }
 
 .statCard {
-  --accent: #10b981;
-  --accent-soft: rgba(16, 185, 129, 0.16);
-  --accent-border: rgba(16, 185, 129, 0.32);
+  --accent: var(--success-color);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-border: color-mix(in srgb, var(--accent) 32%, transparent);
+  --stat-card-sheen: color-mix(in srgb, #ffffff 46%, transparent);
 
   grid-column: span 4;
   position: relative;
-  padding: 18px;
-  background: linear-gradient(
-    180deg,
-    var(--surface-raised),
-    color-mix(in srgb, var(--surface-raised) 96%, var(--accent) 4%)
-  );
+  padding: 16px;
+  background:
+    linear-gradient(180deg, var(--stat-card-sheen), transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 54%),
+    var(--surface-raised);
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-color));
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 200px;
+  min-height: 184px;
   box-shadow:
     var(--shadow-card),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 14px 30px -26px color-mix(in srgb, var(--accent) 42%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transition:
     transform $transition-fast,
     box-shadow $transition-fast,
     border-color $transition-fast;
   overflow: hidden;
 
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
   &:hover {
     transform: translateY(-2px);
     border-color: var(--accent-border);
     box-shadow:
       var(--shadow-card-hover),
-      0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
+      0 14px 32px -24px color-mix(in srgb, var(--accent) 48%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--accent) 9%, transparent);
   }
 
   @include tablet {
@@ -736,8 +767,9 @@
 
   @include mobile {
     grid-column: auto;
-    min-height: 160px;
+    min-height: 148px;
     padding: 14px;
+    border-radius: 12px;
   }
 }
 
@@ -745,7 +777,7 @@
   grid-column: span 6;
 
   .statValue {
-    font-size: clamp(28px, 2.4vw + 12px, 34px);
+    font-size: 32px;
   }
 
   .statTrend {
@@ -759,6 +791,10 @@
 
     .statValue {
       font-size: 26px;
+    }
+
+    .statTrend {
+      height: 76px;
     }
   }
 }
@@ -777,8 +813,8 @@
 }
 
 .statIconBadge {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: $radius-lg;
   display: grid;
   place-items: center;
@@ -786,10 +822,10 @@
   font-size: 13px;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 15%, transparent),
-    color-mix(in srgb, var(--accent) 8%, transparent)
+    color-mix(in srgb, var(--accent) 16%, transparent),
+    color-mix(in srgb, var(--accent) 7%, transparent)
   );
-  border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.15),
     0 2px 6px color-mix(in srgb, var(--accent) 10%, transparent);
@@ -820,6 +856,7 @@
   color: var(--accent);
   font-weight: 700;
   letter-spacing: 0;
+  line-height: 1.25;
 }
 
 .statValue {
@@ -828,7 +865,8 @@
   color: var(--text-primary);
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 .statValueRow {
@@ -875,7 +913,7 @@
 .statMetaRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 18px;
+  gap: 6px;
   font-size: 12px;
   color: var(--text-secondary);
 }
@@ -884,6 +922,15 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 54%, transparent);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .statMetaDot {
@@ -913,12 +960,15 @@
   padding: 6px 0 0;
   height: 92px;
   border: 0;
+  overflow: hidden;
 }
 
 .statTrendPlaceholder {
   width: 100%;
   height: 100%;
-  background: var(--bg-secondary);
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 10%, transparent), transparent),
+    color-mix(in srgb, var(--bg-secondary) 72%, transparent);
   border-radius: $radius-md;
 }
 
@@ -941,10 +991,10 @@
 }
 
 .apiSortBtn {
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: $radius-full;
-  border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
   color: var(--text-secondary);
   font-size: 11px;
   font-weight: 500;
@@ -966,9 +1016,9 @@
 }
 
 .apiSortBtnActive {
-  border-color: rgba($primary-color, 0.5);
-  background: rgba($primary-color, 0.1);
-  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--primary-color) 48%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-secondary));
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -979,7 +1029,11 @@
 }
 
 .apiItem {
-  background-color: var(--bg-secondary);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-secondary) 88%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 70%, transparent)
+  );
   border-radius: $radius-md;
   border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   overflow: hidden;
@@ -995,7 +1049,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 11px 12px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -1038,8 +1092,8 @@
 .apiBadge {
   font-size: 11px;
   color: var(--text-secondary);
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background-color: color-mix(in srgb, var(--surface-raised) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
   padding: 2px 8px;
   border-radius: $radius-full;
 }
@@ -1104,9 +1158,14 @@
   height: 520px;
   overflow: hidden;
   border-radius: $radius-lg;
+  border-color: color-mix(in srgb, var(--border-color) 74%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 38%),
+    var(--surface-raised);
   box-shadow:
-    0 14px 32px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    var(--shadow-card),
+    0 14px 32px -26px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 
   @include mobile {
     height: auto;
@@ -1120,6 +1179,19 @@
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding-right: 2px;
+
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 38%, transparent) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-tertiary) 34%, transparent);
+  }
 
   @include mobile {
     overflow: visible;
@@ -1140,8 +1212,22 @@
   overflow: auto;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   border-radius: $radius-md;
+  background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
+
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 38%, transparent) transparent;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-tertiary) 34%, transparent);
+  }
 }
 
 .table {
@@ -1160,7 +1246,7 @@
   th {
     font-weight: 600;
     color: var(--text-tertiary);
-    background-color: var(--bg-secondary);
+    background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
     white-space: nowrap;
   }
 
@@ -1178,7 +1264,7 @@
   }
 
   tbody tr:hover {
-    background-color: var(--bg-tertiary);
+    background-color: color-mix(in srgb, var(--bg-tertiary) 82%, transparent);
   }
 
   @include mobile {
@@ -1255,10 +1341,10 @@
 }
 
 .priceForm {
-  padding: 10px;
-  background-color: var(--bg-secondary);
-  border-radius: $radius-sm;
-  border: 1px solid var(--border-color);
+  padding: 12px;
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  border-radius: $radius-md;
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
 }
 
 .formRow {
@@ -1325,7 +1411,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background-color: var(--bg-secondary);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-secondary) 88%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 72%, transparent)
+  );
   border-radius: $radius-md;
   border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
   gap: 10px;
@@ -1404,13 +1494,11 @@
 
 .chartWrapper {
   padding: 18px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 98%, white 2%),
-    var(--bg-primary)
-  );
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 42%),
+    var(--surface-raised);
   border-radius: $radius-lg;
-  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1430,11 +1518,10 @@
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  padding: 0;
-  border-radius: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  padding: 5px 8px;
+  border-radius: $radius-full;
+  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 56%, transparent);
 }
 
 .chartSummaryLabel {
@@ -1502,15 +1589,22 @@
 .chartArea {
   position: relative;
   height: 300px;
-  padding: 0;
-  border-radius: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  padding: 10px 8px 4px;
+  border-radius: $radius-md;
+  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--border-color) 36%, transparent) 1px,
+      transparent 1px
+    ),
+    color-mix(in srgb, var(--bg-secondary) 38%, transparent);
+  background-size: 100% 25%, 100% 100%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   @include mobile {
-    height: 280px;
-    padding: 0;
+    height: 260px;
+    padding: 8px 6px 4px;
   }
 }
 
@@ -1589,11 +1683,9 @@
 
 .chartCard {
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 96%, white 4%),
-    var(--bg-primary)
-  );
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 40%),
+    var(--surface-raised);
   border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
   border-radius: $radius-lg;
   box-shadow:
@@ -1613,7 +1705,7 @@
   :global(.title) {
     font-size: 17px;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 }
 
@@ -1766,9 +1858,22 @@
   // 自适应高度：随视口扩展，预留 ~280px 给页头/卡头/计数行/页边距
   // 同时设置 min/max 边界，避免在超小或超大屏上变形
   max-height: clamp(360px, calc(100vh - 280px), 1200px);
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   border-radius: $radius-md;
+  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 38%, transparent) transparent;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-tertiary) 34%, transparent);
+  }
 
   .table {
     min-width: 760px;
@@ -2189,20 +2294,19 @@
 
 // Service Health Card
 .healthCard {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 98%, white 2%),
-    var(--bg-primary)
-  );
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 40%),
+    var(--surface-raised);
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
   border-radius: $radius-lg;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   box-shadow:
-    var(--shadow-lg),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    var(--shadow-card),
+    0 16px 34px -28px rgba(15, 23, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .healthHeader {
@@ -2218,7 +2322,7 @@
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .healthMeta {
@@ -2459,5 +2563,74 @@
   .healthLegendBlock {
     width: 8px;
     height: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .heroMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .actionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statMetaRow {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .statMetaItem {
+    justify-content: space-between;
+  }
+}
+
+:global([data-theme='dark']) {
+  .hero {
+    --usage-hero-border: color-mix(in srgb, var(--border-color) 84%, transparent);
+    --usage-hero-sheen: color-mix(in srgb, #ffffff 6%, transparent);
+    --usage-hero-tint: color-mix(in srgb, var(--success-color) 7%, transparent);
+  }
+
+  .overviewPanel,
+  .detailsFixedCard,
+  .chartWrapper,
+  .chartCard,
+  .healthCard {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, #ffffff 5%, transparent), transparent 42%),
+      var(--surface-raised);
+    box-shadow:
+      var(--shadow-card),
+      0 16px 34px -26px rgba(0, 0, 0, 0.62),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .statCard {
+    --stat-card-sheen: color-mix(in srgb, #ffffff 5%, transparent);
+    background:
+      linear-gradient(180deg, var(--stat-card-sheen), transparent 42%),
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 54%),
+      var(--surface-raised);
+    box-shadow:
+      var(--shadow-card),
+      0 14px 30px -24px rgba(0, 0, 0, 0.64),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .heroChip,
+  .heroActions,
+  .statMetaItem,
+  .priceForm,
+  .priceItem,
+  .apiItem {
+    background-color: color-mix(in srgb, var(--bg-secondary) 62%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .chartArea,
+  .tableWrapper,
+  .requestEventsTableWrapper {
+    background-color: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
   }
 }

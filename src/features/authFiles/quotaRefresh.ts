@@ -23,11 +23,12 @@ type AuthFileQuotaConfig = {
   buildLoadingState: () => unknown;
   buildSuccessState: (data: unknown) => unknown;
   buildErrorState: (message: string, status?: number) => unknown;
+  extractAuthFileUpdate?: (data: unknown) => AuthFileItem | null;
   renderQuotaItems: (quota: unknown, t: TFunction, helpers: unknown) => unknown;
 };
 
 export type AuthFileQuotaRefreshResult =
-  | { status: 'success'; fileName: string }
+  | { status: 'success'; fileName: string; authFile?: AuthFileItem }
   | { status: 'skipped'; fileName: string }
   | { status: 'error'; fileName: string; message: string; errorStatus?: number };
 
@@ -78,8 +79,9 @@ export async function refreshAuthFileQuota(options: {
   quotaType: QuotaProviderType;
   disableControls: boolean;
   t: TFunction;
+  onAuthFileUpdated?: (file: AuthFileItem) => void;
 }): Promise<AuthFileQuotaRefreshResult> {
-  const { file, quotaType, disableControls, t } = options;
+  const { file, quotaType, disableControls, t, onAuthFileUpdated } = options;
   const fileName = file.name;
 
   if (disableControls) return { status: 'skipped', fileName };
@@ -112,11 +114,15 @@ export async function refreshAuthFileQuota(options: {
 
   try {
     const data = await config.fetchQuota(file, t);
+    const authFile = config.extractAuthFileUpdate?.(data) ?? null;
+    if (authFile) {
+      onAuthFileUpdated?.(authFile);
+    }
     updateQuotaState((prev: Record<string, unknown>) => ({
       ...prev,
       [fileName]: config.buildSuccessState(data),
     }));
-    return { status: 'success', fileName };
+    return authFile ? { status: 'success', fileName, authFile } : { status: 'success', fileName };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : t('common.unknown_error');
     const errorStatus = getStatusFromError(err);
