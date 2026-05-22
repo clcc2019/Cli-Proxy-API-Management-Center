@@ -21,7 +21,7 @@ interface ModalProps {
   closeDisabled?: boolean;
 }
 
-const CLOSE_ANIMATION_DURATION = 350;
+const CLOSE_ANIMATION_DURATION = 180;
 const MODAL_LOCK_CLASS = 'modal-open';
 const FOCUSABLE_SELECTOR = [
   'a[href]',

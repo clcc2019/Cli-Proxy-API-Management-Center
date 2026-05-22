@@ -498,7 +498,10 @@ textarea {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  // 深色遮罩 + 模糊，让背景的视觉噪音消减，更聚焦弹窗内容
+  background: rgba(8, 12, 24, 0.42);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -506,11 +509,11 @@ textarea {
   padding: $spacing-lg;
 
   &.modal-overlay-entering {
-    animation: modal-overlay-fade-in 0.25s ease-out forwards;
+    animation: modal-overlay-fade-in 0.18s ease-out forwards;
   }
 
   &.modal-overlay-closing {
-    animation: modal-overlay-fade-out 0.35s ease-in forwards;
+    animation: modal-overlay-fade-out 0.18s ease-in forwards;
   }
 }
 
@@ -543,37 +546,38 @@ textarea {
   display: flex;
   flex-direction: column;
   position: relative;
-  // 关闭按钮中心位置: right 12px + 16px = 28px, top 12px + 16px = 28px
-  transform-origin: calc(100% - 28px) 28px;
+  // 从屏幕中央以柔和的缩放展开
+  transform-origin: 50% 40%;
+  will-change: transform, opacity;
 
   &.modal-entering {
-    animation: modal-scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: modal-scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   &.modal-closing {
-    animation: modal-collapse-to-close 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: modal-scale-out 0.16s cubic-bezier(0.4, 0, 1, 1) forwards;
   }
 }
 
 @keyframes modal-scale-in {
   from {
     opacity: 0;
-    transform: scale(0.85) translateY(20px);
+    transform: translate3d(0, 12px, 0) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
-@keyframes modal-collapse-to-close {
-  0% {
+@keyframes modal-scale-out {
+  from {
     opacity: 1;
-    transform: scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  100% {
+  to {
     opacity: 0;
-    transform: scale(0);
+    transform: translate3d(0, 6px, 0) scale(0.97);
   }
 }
 
@@ -581,18 +585,22 @@ textarea {
   position: absolute;
   top: 12px;
   right: 12px;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   padding: 0;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-secondary) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: $radius-full;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+  // 仅过渡合成器友好属性
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    transform 120ms cubic-bezier(0.2, 0, 0.18, 1);
   z-index: 10;
 
   svg {
@@ -600,18 +608,24 @@ textarea {
   }
 
   &:hover {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
-    transform: scale(1.1);
+    color: var(--danger-color);
+    border-color: color-mix(in srgb, var(--danger-color) 38%, var(--border-color));
+    transform: rotate(90deg);
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: rotate(90deg) scale(0.92);
+    transition-duration: 80ms;
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
+    outline-offset: 2px;
   }
 
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
     transform: none;
   }
 
@@ -619,6 +633,7 @@ textarea {
     color: var(--text-secondary);
     background: var(--bg-secondary);
     transform: none;
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
   }
 }
 

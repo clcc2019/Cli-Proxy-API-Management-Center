@@ -196,6 +196,15 @@ const resolveQuotaRefreshTargets = (files: AuthFileItem[]) =>
     return items;
   }, []);
 
+const countAuthFilesByType = (files: AuthFileItem[]): Record<string, number> => {
+  const counts: Record<string, number> = { all: files.length };
+  files.forEach((file) => {
+    if (!file.type) return;
+    counts[file.type] = (counts[file.type] || 0) + 1;
+  });
+  return counts;
+};
+
 type AuthFileSortSnapshot = {
   disabled: boolean;
   provider: string;
@@ -322,6 +331,10 @@ export function AuthFilesPage() {
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
+  const [scopedTypeCounts, setScopedTypeCounts] = useState<{
+    key: string;
+    counts: Record<string, number>;
+  } | null>(null);
   const [displayFilterRefreshVersion, setDisplayFilterRefreshVersion] = useState(0);
   const [displayFilterSnapshot, setDisplayFilterSnapshot] = useState<{
     key: string;
@@ -733,18 +746,74 @@ export function AuthFilesPage() {
     [t]
   );
 
-  const localTypeCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: filesMatchingDisplayFilters.length };
-    filesMatchingDisplayFilters.forEach((file) => {
-      if (!file.type) return;
-      counts[file.type] = (counts[file.type] || 0) + 1;
-    });
-    return counts;
-  }, [filesMatchingDisplayFilters]);
-  const typeCounts = listMeta.typeCounts ?? localTypeCounts;
-
   const displaySearch = serverPaginationEnabled ? debouncedSearch : deferredNormalizedSearch;
   const wildcardSearch = useMemo(() => buildWildcardSearch(displaySearch), [displaySearch]);
+  const scopedTypeCountsKey = useMemo(() => {
+    if (!serverPaginationEnabled || !isCurrentLayer || !uiStateHydrated) return null;
+    if (!displayOptionsActive && displaySearch.length === 0) return null;
+
+    return JSON.stringify({
+      search: displaySearch,
+      problemOnly,
+      disabledOnly,
+      premiumOnly,
+    });
+  }, [
+    disabledOnly,
+    displayOptionsActive,
+    displaySearch,
+    isCurrentLayer,
+    premiumOnly,
+    problemOnly,
+    serverPaginationEnabled,
+    uiStateHydrated,
+  ]);
+
+  useEffect(() => {
+    if (!scopedTypeCountsKey) {
+      setScopedTypeCounts(null);
+      return undefined;
+    }
+
+    const abortController = new AbortController();
+    const requestKey = scopedTypeCountsKey;
+
+    void authFilesApi
+      .list(
+        {
+          codexSubscription: 'cache',
+          summary: true,
+          search: displaySearch,
+          problemOnly,
+          disabledOnly,
+          premiumOnly,
+        },
+        { signal: abortController.signal }
+      )
+      .then((data) => {
+        if (abortController.signal.aborted) return;
+        setScopedTypeCounts({
+          key: requestKey,
+          counts: countAuthFilesByType(data?.files ?? []),
+        });
+      })
+      .catch(() => {
+        if (abortController.signal.aborted) return;
+        setScopedTypeCounts((current) => (current?.key === requestKey ? null : current));
+      });
+
+    return () => abortController.abort();
+  }, [disabledOnly, displaySearch, premiumOnly, problemOnly, scopedTypeCountsKey]);
+
+  const localTypeCounts = useMemo(
+    () => countAuthFilesByType(filesMatchingDisplayFilters),
+    [filesMatchingDisplayFilters]
+  );
+  const typeCounts = scopedTypeCountsKey
+    ? scopedTypeCounts?.key === scopedTypeCountsKey
+      ? scopedTypeCounts.counts
+      : localTypeCounts
+    : (listMeta.typeCounts ?? localTypeCounts);
 
   const filtered = useMemo(() => {
     const normalizedTerm = displaySearch.toLowerCase();
@@ -785,6 +854,13 @@ export function AuthFilesPage() {
 
   const serverPaginated = listMeta.paginated;
   const listTotal = serverPaginated ? listMeta.total : sorted.length;
+  const filterTagTypeCounts = useMemo(() => {
+    if (!scopedTypeCountsKey) return typeCounts;
+
+    const counts = { ...typeCounts };
+    counts[filter] = listTotal;
+    return counts;
+  }, [filter, listTotal, scopedTypeCountsKey, typeCounts]);
   const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * pageSize;
@@ -1125,10 +1201,13 @@ export function AuthFilesPage() {
     []
   );
 
+  const showTitleCountBadge =
+    listTotal > 0 || displayOptionsActive || filter !== 'all' || displaySearch.length > 0;
+
   const titleNode = (
     <div className={styles.titleWrapper}>
       <span>{t('auth_files.title_section')}</span>
-      {files.length > 0 && <span className={styles.countBadge}>{files.length}</span>}
+      {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
     </div>
   );
 
@@ -1206,7 +1285,7 @@ export function AuthFilesPage() {
           <FilterTagsRail
             types={existingTypes}
             activeFilter={filter}
-            typeCounts={typeCounts}
+            typeCounts={filterTagTypeCounts}
             resolvedTheme={resolvedTheme}
             onSelect={handleFilterTagSelect}
           />

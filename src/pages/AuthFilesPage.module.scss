@@ -3228,10 +3228,14 @@
   }
 }
 
+// =============================================================================
+// 认证文件详情 / 编辑弹窗
+// =============================================================================
+
 .prefixProxyEditor {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   max-height: none;
   overflow: visible;
 }
@@ -3243,7 +3247,9 @@
     color-mix(in srgb, var(--bg-primary) 97%, transparent),
     color-mix(in srgb, var(--bg-secondary) 32%, var(--bg-primary))
   );
-  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.16);
+  box-shadow:
+    0 24px 56px rgba(15, 23, 42, 0.16),
+    0 2px 6px rgba(15, 23, 42, 0.04);
 
   :global(.modal-header) {
     padding-right: 56px;
@@ -3268,6 +3274,7 @@
     border-top-color: color-mix(in srgb, var(--border-color) 42%, transparent);
     background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   @supports (height: 100dvh) {
@@ -3297,6 +3304,92 @@
   }
 }
 
+// -----------------------------------------------------------------------------
+// 标题区（多段式：主标题 + 文件名 + 未保存 badge）
+// -----------------------------------------------------------------------------
+
+.prefixProxyTitleGroup {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.prefixProxyTitleMain {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.prefixProxyTitleName {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-secondary));
+  color: color-mix(in srgb, var(--primary-color) 76%, var(--text-primary));
+  font-family: $font-mono;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prefixProxyDirtyBadge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--quota-medium-color) 42%, transparent);
+  background: color-mix(in srgb, var(--quota-medium-color) 16%, var(--surface-raised));
+  color: color-mix(in srgb, var(--quota-medium-color) 86%, var(--text-primary));
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--quota-medium-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--quota-medium-color) 24%, transparent);
+    animation: prefixProxyDirtyPulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes prefixProxyDirtyPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prefixProxyDirtyBadge::before {
+    animation: none;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 加载 / 错误状态
+// -----------------------------------------------------------------------------
+
 .prefixProxyLoading {
   display: flex;
   align-items: center;
@@ -3304,18 +3397,24 @@
   gap: $spacing-sm;
   font-size: 12px;
   color: var(--text-secondary);
-  padding: $spacing-sm 0;
+  padding: 24px 0;
+  min-height: 200px;
 }
 
 .prefixProxyError {
-  padding: $spacing-sm $spacing-md;
+  padding: 10px 14px;
   border-radius: $radius-md;
-  border: 0;
-  border-left: 3px solid var(--danger-color);
-  background-color: rgba($error-color, 0.08);
+  border: 1px solid color-mix(in srgb, var(--danger-color) 32%, transparent);
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--danger-color) 8%, var(--surface-raised));
   color: var(--danger-color);
   font-size: 12px;
+  line-height: 1.5;
 }
+
+// -----------------------------------------------------------------------------
+// 主体布局：左侧表单（多分区）+ 右侧 JSON 预览
+// -----------------------------------------------------------------------------
 
 .prefixProxyLayout {
   display: grid;
@@ -3324,6 +3423,77 @@
   align-items: start;
   min-width: 0;
 }
+
+.prefixProxyForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+// -----------------------------------------------------------------------------
+// 分区卡片
+// -----------------------------------------------------------------------------
+
+.prefixProxySection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 40%, transparent);
+  border-radius: $radius-md;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #ffffff 18%, transparent),
+      transparent 56%
+    ),
+    color-mix(in srgb, var(--bg-secondary) 32%, var(--surface-raised));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(15, 23, 42, 0.02);
+}
+
+.prefixProxySectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--border-color) 42%, transparent);
+}
+
+.prefixProxySectionTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--primary-color) 56%, var(--text-tertiary));
+  line-height: 1;
+  position: relative;
+  padding-left: 10px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 12px;
+    border-radius: 2px;
+    background: linear-gradient(
+      180deg,
+      var(--primary-color),
+      color-mix(in srgb, var(--primary-color) 60%, transparent)
+    );
+    transform: translateY(-50%);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 右侧 JSON 预览面板
+// -----------------------------------------------------------------------------
 
 .prefixProxyPreviewPane {
   position: sticky;
@@ -3336,18 +3506,46 @@
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid color-mix(in srgb, var(--border-color) 46%, transparent);
   border-radius: $radius-md;
-  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #ffffff 18%, transparent),
+      transparent 50%
+    ),
+    color-mix(in srgb, var(--bg-secondary) 42%, transparent);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .prefixProxyLabel {
   font-size: 12px;
   color: var(--text-secondary);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.prefixProxyLabelGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.prefixProxyPreviewBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--quota-medium-color) 42%, transparent);
+  background: color-mix(in srgb, var(--quota-medium-color) 14%, var(--surface-raised));
+  color: color-mix(in srgb, var(--quota-medium-color) 88%, var(--text-primary));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .prefixProxyLabelRow {
@@ -3370,18 +3568,23 @@
 
 .prefixProxyTextarea {
   width: 100%;
-  padding: 9px 10px;
+  padding: 10px 12px;
   border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
   border-radius: $radius-sm;
-  background-color: color-mix(in srgb, var(--bg-primary) 78%, transparent);
+  background-color: color-mix(in srgb, var(--bg-primary) 88%, transparent);
   color: var(--text-primary);
   font-size: 12px;
-  line-height: 1.45;
-  font-family: monospace;
+  line-height: 1.55;
+  font-family: $font-mono;
+  font-variant-ligatures: none;
+  tab-size: 2;
   resize: none;
   min-height: min(440px, calc(78vh - 238px));
   box-sizing: border-box;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 
   &:focus {
     outline: none;
@@ -3389,8 +3592,27 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 12%, transparent);
   }
 
+  // 自定义滚动条（细且不打扰）
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--border-color) 70%, transparent);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--text-tertiary) 50%, var(--border-color));
+  }
+
   @include mobile {
-    min-height: 116px;
+    min-height: 132px;
     font-size: 11px;
     resize: vertical;
   }
@@ -3401,6 +3623,10 @@
     align-items: center;
   }
 }
+
+// -----------------------------------------------------------------------------
+// 表单字段网格
+// -----------------------------------------------------------------------------
 
 .prefixProxyFields {
   display: grid;
@@ -3433,8 +3659,11 @@
   :global(.input),
   :global(textarea.input) {
     border-color: color-mix(in srgb, var(--border-color) 38%, transparent);
-    background-color: color-mix(in srgb, var(--bg-secondary) 68%, transparent);
+    background-color: color-mix(in srgb, var(--bg-primary) 86%, transparent);
     font-size: 12px;
+    transition:
+      border-color 140ms ease,
+      box-shadow 140ms ease;
   }
 
   :global(.input-control-sm .input) {
@@ -3446,7 +3675,12 @@
   :global(textarea.input) {
     min-height: 68px;
     resize: vertical;
-    line-height: 1.4;
+    line-height: 1.5;
+  }
+
+  :global(.input:hover:not(:disabled):not(:focus)),
+  :global(textarea.input:hover:not(:disabled):not(:focus)) {
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
   }
 
   :global(.input:focus),
@@ -3480,28 +3714,98 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+
+  > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+// 校验失败的内联状态徽章
+.prefixProxyFieldStatusError {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--danger-color) 38%, transparent);
+  background: color-mix(in srgb, var(--danger-color) 12%, var(--surface-raised));
+  color: var(--danger-color);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+// Headers / 排除模型 等多行文本使用等宽字体提升可读性
+.prefixProxyMonoTextarea {
+  font-family: $font-mono !important;
+  font-variant-ligatures: none;
+  tab-size: 2;
 }
 
 .prefixProxyHeadersTextarea {
   min-height: 82px !important;
 }
 
+// Toggle 字段（带主标题 + 描述）
 .prefixProxySwitchField {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 9px;
-  min-height: 58px;
-  padding: 9px 10px;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 12px;
   border: 1px solid color-mix(in srgb, var(--border-color) 38%, transparent);
   border-radius: $radius-md;
-  background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 70%, transparent);
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
+    background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+  }
 }
 
-.prefixProxyTextareaInvalid {
-  border-color: var(--danger-color);
-  box-shadow: 0 0 0 3px rgba($error-color, 0.12);
+.prefixProxySwitchFieldLabelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
+
+.prefixProxySwitchFieldLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.prefixProxySwitchFieldHint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+// 错误态加强
+.prefixProxyTextareaInvalid {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 3px rgba($error-color, 0.12) !important;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($error-color, 0.18) !important;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 响应式
+// -----------------------------------------------------------------------------
 
 @media (max-width: 840px) {
   .prefixProxyLayout {
@@ -3513,7 +3817,42 @@
   }
 
   .prefixProxyTextarea {
-    min-height: 132px;
+    min-height: 160px;
+  }
+
+  .prefixProxySection {
+    padding: 11px 11px 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .prefixProxyFields {
+    grid-template-columns: 1fr;
+  }
+
+  .prefixProxyField,
+  .prefixProxyFieldWide,
+  .prefixProxyTextareaGroup,
+  .prefixProxySwitchField {
+    grid-column: 1 / -1;
+  }
+
+  .prefixProxySwitchField {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .prefixProxySectionTitle {
+    font-size: 11px;
+  }
+
+  .prefixProxyTitleGroup {
+    gap: 6px;
+  }
+
+  .prefixProxyTitleName {
+    font-size: 11px;
+    padding: 1px 7px;
   }
 }
 
