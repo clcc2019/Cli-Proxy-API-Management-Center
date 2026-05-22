@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
 import defaultStyles from '@/pages/AiProvidersPage.module.scss';
@@ -45,7 +45,7 @@ interface ProviderStatusBarProps {
   showRateLabel?: boolean;
 }
 
-export function ProviderStatusBar({
+function ProviderStatusBarImpl({
   statusData,
   styles: stylesProp,
   showRateLabel = false,
@@ -162,3 +162,6 @@ export function ProviderStatusBar({
     </div>
   );
 }
+
+// 列表场景下大量卡片复用，memo 避免父组件重渲染时无谓重算 status blocks
+export const ProviderStatusBar = memo(ProviderStatusBarImpl);

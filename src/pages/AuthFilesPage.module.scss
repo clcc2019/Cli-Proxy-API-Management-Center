@@ -48,14 +48,45 @@
 
   @include mobile {
     width: 100%;
+    flex-wrap: nowrap;
+    gap: 6px;
 
     :global(.btn) {
-      flex: 1 1 calc(50% - #{$spacing-sm});
-      min-height: 42px;
-      padding-inline: 10px;
-      white-space: normal;
+      min-height: 38px;
+      height: 38px;
+      padding-inline: 9px;
+      white-space: nowrap;
+    }
+
+    .headerActionMain:global(.btn.btn-sm) {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .headerActionUpload:global(.btn.btn-sm) {
+      flex-grow: 1.18;
+    }
+
+    .headerActionDanger:global(.btn.btn-sm) {
+      flex: 0 1 82px;
+      width: 82px;
+      min-width: 64px;
+      max-width: 88px;
+      padding-inline: 7px;
+      font-size: 12.5px;
+
+      > span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
+}
+
+.headerActionButton:global(.btn.btn-sm) {
+  min-width: 0;
 }
 
 .titleWrapper {
@@ -168,7 +199,7 @@
     border-color: color-mix(in srgb, var(--filter-color) 38%, var(--border-color));
     background: color-mix(in srgb, var(--filter-surface) 14%, var(--bg-secondary));
     color: var(--text-primary);
-    transform: translateY(-1px);
+    transform: translateY(-1px) scale(1.015);
     box-shadow: 0 4px 10px -8px color-mix(in srgb, var(--filter-color) 50%, transparent);
   }
 
@@ -218,7 +249,7 @@
 .filterTagLabel {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
 }
 
@@ -341,7 +372,7 @@
   align-items: center;
   height: 38px;
   padding: 0 10px 0 36px;
-  border-radius: 10px;
+  border-radius: 9px;
   border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
   background: var(--bg-primary);
   transition:
@@ -455,7 +486,7 @@
   }
 
   &:active {
-    transform: scale(0.96);
+    transform: translateY(0) scale(0.96);
   }
 
   &:focus-visible {
@@ -845,6 +876,110 @@
   }
 }
 
+.listSurface {
+  position: relative;
+  min-height: 120px;
+  contain: layout style;
+}
+
+.fileGrid {
+  // 仅过渡 opacity（合成器属性），保证刷新时切换平滑
+  transition: opacity 180ms ease;
+}
+
+.listSurfaceRefreshing .fileGrid {
+  opacity: 0.82;
+}
+
+.listProgressBar {
+  position: absolute;
+  z-index: 2;
+  top: -7px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  overflow: hidden;
+  border-radius: $radius-full;
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  pointer-events: none;
+  box-shadow: 0 4px 14px -10px color-mix(in srgb, var(--primary-color) 70%, transparent);
+  opacity: 0;
+  transform: translateY(-1px);
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease;
+  will-change: opacity, transform;
+
+  &.listProgressBarActive {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: -36%;
+    width: 36%;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--primary-color) 74%, transparent),
+      transparent
+    );
+    animation: authFilesListProgress 1.12s cubic-bezier(0.35, 0, 0.2, 1) infinite;
+    animation-play-state: paused;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: -24%;
+    width: 24%;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--primary-color) 56%, transparent),
+      transparent
+    );
+    animation: authFilesListProgress 1.42s cubic-bezier(0.32, 0, 0.2, 1) infinite;
+    animation-delay: -0.56s;
+    animation-play-state: paused;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  &.listProgressBarActive::before,
+  &.listProgressBarActive::after {
+    animation-play-state: running;
+  }
+}
+
+@keyframes authFilesListProgress {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(430%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listProgressBar::before,
+  .listProgressBar::after {
+    animation: none;
+    transform: translate3d(180%, 0, 0);
+  }
+}
+
 // 卡片网格
 // gap 使用 clamp 在 1280–1920px 区间平滑过渡，避免大屏间距过窄、小屏过宽
 .fileGrid {
@@ -869,12 +1004,154 @@
   }
 }
 
-.fileGridCompact {
-  gap: clamp(8px, 0.4vw + 6px, 12px);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+.skeletonGrid {
+  pointer-events: none;
+}
 
-  @include mobile {
-    grid-template-columns: 1fr;
+.fileCardSkeleton {
+  position: relative;
+  overflow: hidden;
+  min-height: 252px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #ffffff 38%, transparent),
+      transparent 44%
+    ),
+    var(--surface-raised);
+  box-shadow: var(--shadow-card);
+  animation: authFileCardEnter 280ms cubic-bezier(0.2, 0, 0.18, 1) both;
+  animation-delay: var(--auth-file-card-enter-delay, 0ms);
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 36%,
+      color-mix(in srgb, #ffffff 32%, transparent) 50%,
+      transparent 64%,
+      transparent 100%
+    );
+    transform: translate3d(-120%, 0, 0);
+    animation: authFileSkeletonSheen 1.35s linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.skeletonHeader,
+.skeletonMeta,
+.skeletonStats,
+.skeletonActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skeletonHeader {
+  margin-bottom: 14px;
+}
+
+.skeletonMeta {
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+
+.skeletonStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.skeletonActions {
+  margin-top: auto;
+  justify-content: flex-end;
+}
+
+.skeletonBlock {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+
+.skeletonAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex: 0 0 auto;
+}
+
+.skeletonTitle {
+  width: min(42%, 180px);
+  height: 18px;
+}
+
+.skeletonBadge {
+  width: 54px;
+  height: 22px;
+  margin-left: auto;
+  border-radius: 999px;
+}
+
+.skeletonMeta .skeletonBlock:nth-child(1) {
+  width: 82%;
+}
+
+.skeletonMeta .skeletonBlock:nth-child(2) {
+  width: 64%;
+}
+
+.skeletonMeta .skeletonBlock:nth-child(3) {
+  width: 72%;
+}
+
+.skeletonStats .skeletonBlock {
+  height: 34px;
+  border-radius: 10px;
+}
+
+.skeletonActions .skeletonBlock {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+@keyframes authFileSkeletonSheen {
+  from {
+    transform: translate3d(-120%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(120%, 0, 0);
+  }
+}
+
+:global([data-theme='dark']) .fileCardSkeleton {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 5%, transparent), transparent 44%),
+    var(--surface-raised);
+
+  &::after {
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 36%,
+      color-mix(in srgb, #ffffff 10%, transparent) 50%,
+      transparent 64%,
+      transparent 100%
+    );
   }
 }
 
@@ -928,46 +1205,47 @@
 .geminiCliCard,
 .kiroCard,
 .kimiCard {
-  --auth-card-border: color-mix(in srgb, var(--provider-accent) 34%, var(--border-color));
-  --auth-card-border-hover: color-mix(in srgb, var(--provider-accent) 54%, var(--border-color));
-  --auth-card-tint: color-mix(in srgb, var(--provider-accent) 9%, transparent);
-  --auth-card-hover-tint: color-mix(in srgb, var(--provider-accent) 14%, transparent);
+  --auth-card-border: color-mix(in srgb, var(--provider-accent) 46%, var(--border-color));
+  --auth-card-border-hover: color-mix(in srgb, var(--provider-accent) 68%, var(--border-color));
+  --auth-card-tint: color-mix(in srgb, var(--provider-accent) 14%, transparent);
+  --auth-card-hover-tint: color-mix(in srgb, var(--provider-accent) 22%, transparent);
+  --auth-card-glow: color-mix(in srgb, var(--provider-accent) 20%, transparent);
 
   &::before {
     background: linear-gradient(
       90deg,
       transparent,
-      var(--provider-accent) 18%,
-      var(--provider-accent) 82%,
+      var(--provider-accent) 12%,
+      var(--provider-accent) 88%,
       transparent
     );
-    height: 2px;
-    opacity: 0.85;
+    height: 4px;
+    opacity: 0.86;
   }
 }
 
 .antigravityCard {
-  --provider-accent: rgba(8, 145, 178, 0.58);
+  --provider-accent: rgba(11, 141, 171, 0.7);
 }
 
 .claudeCard {
-  --provider-accent: rgba(198, 87, 70, 0.58);
+  --provider-accent: rgba(211, 93, 52, 0.7);
 }
 
 .codexCard {
-  --provider-accent: rgba(99, 102, 241, 0.58);
+  --provider-accent: rgba(118, 104, 88, 0.78);
 }
 
 .geminiCliCard {
-  --provider-accent: rgba(66, 133, 244, 0.58);
+  --provider-accent: rgba(55, 132, 164, 0.72);
 }
 
 .kiroCard {
-  --provider-accent: rgba(217, 119, 6, 0.58);
+  --provider-accent: rgba(216, 124, 10, 0.7);
 }
 
 .kimiCard {
-  --provider-accent: rgba(59, 130, 246, 0.58);
+  --provider-accent: rgba(64, 132, 170, 0.72);
 }
 
 .quotaSection {
@@ -1002,6 +1280,7 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+  min-height: 58px;
 }
 
 .quotaRefreshIcon {
@@ -1012,6 +1291,9 @@
   height: 18px;
   line-height: 0;
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
 
   svg {
     display: block;
@@ -1023,16 +1305,44 @@
   }
 }
 
-.quotaRefreshIconSvgSpinning {
-  animation: quotaRefreshSpin 0.72s linear infinite !important;
+.quotaRefreshIconSvg {
   transform-box: fill-box;
   transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+
+.quotaButtonSpinner {
+  display: block;
+  flex: 0 0 auto;
+  border: 2.5px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-top-color: currentColor;
+  border-right-color: color-mix(in srgb, currentColor 58%, transparent);
+  border-radius: 50%;
+  box-sizing: border-box;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+
+.quotaButtonSpinnerSpinning {
+  animation: quotaRefreshSpin 0.78s cubic-bezier(0.42, 0, 0.2, 1) infinite !important;
+  will-change: transform;
+}
+
+.pageQuotaRefreshButton .quotaButtonSpinner,
+.refreshActionButton .quotaButtonSpinner {
+  color: color-mix(in srgb, #b8752a 78%, var(--text-secondary));
+}
+
+.quotaRefreshIconSpinning .quotaRefreshIconSvg,
+.quotaRefreshIconSvgSpinning {
+  animation: quotaRefreshSpin 0.78s cubic-bezier(0.42, 0, 0.2, 1) infinite !important;
   will-change: transform;
 }
 
 .quotaRefreshButtonSpinning {
-  border-color: #cfd8e6;
-  color: #202a3a;
+  border-color: color-mix(in srgb, #b8752a 44%, var(--border-color));
+  color: color-mix(in srgb, #b8752a 82%, var(--text-secondary));
+  animation: quotaRefreshButtonPulse 1.1s ease-in-out infinite;
 }
 
 @keyframes quotaRefreshSpin {
@@ -1045,10 +1355,26 @@
   }
 }
 
+@keyframes quotaRefreshButtonPulse {
+  0%,
+  100% {
+    filter: saturate(1);
+  }
+
+  50% {
+    filter: saturate(1.14) brightness(1.04);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .quotaButtonSpinnerSpinning,
+  .quotaRefreshIconSpinning .quotaRefreshIconSvg,
   .quotaRefreshIconSvgSpinning {
-    animation-duration: 0.72s !important;
-    animation-iteration-count: infinite !important;
+    animation-duration: 1.7s !important;
+  }
+
+  .quotaRefreshButtonSpinning {
+    animation: none;
   }
 }
 
@@ -1088,16 +1414,21 @@
 
 .quotaBar {
   position: relative;
-  height: 11px;
+  height: 12px;
   padding: 2px;
   box-sizing: border-box;
-  background: color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary));
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 46%, var(--bg-secondary)) 0%,
+      color-mix(in srgb, var(--bg-tertiary) 70%, var(--bg-secondary)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   border-radius: 999px;
   overflow: hidden;
   box-shadow:
-    inset 0 1px 2px rgba(15, 23, 42, 0.12),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 1px 2px rgba(15, 23, 42, 0.11),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
     0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
@@ -1108,9 +1439,9 @@
   overflow: hidden;
   // 通过 --quota-fill-start/mid/end 变量驱动渐变色，3 种变体共用同一组规则
   --quota-fill-start: #22c55e;
-  --quota-fill-mid: #38d66f;
-  --quota-fill-end: #7be35c;
-  --quota-fill-glow: rgba(34, 197, 94, 0.3);
+  --quota-fill-mid: #34d86d;
+  --quota-fill-end: #86efac;
+  --quota-fill-glow: rgba(34, 197, 94, 0.24);
   background: linear-gradient(
     90deg,
     var(--quota-fill-start),
@@ -1118,42 +1449,80 @@
     var(--quota-fill-end)
   );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.44),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
-    0 0 12px var(--quota-fill-glow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.09),
+    0 0 10px var(--quota-fill-glow);
   transition:
-    width 0.28s ease,
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
+    width 0.36s cubic-bezier(0.32, 0.72, 0.2, 1),
+    background-color 0.22s ease,
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
 
+  &::before,
   &::after {
     content: '';
     position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 58%);
+    inset-block: 0;
     pointer-events: none;
+  }
+
+  &::before {
+    left: 0;
+    width: 34%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+    transform: translate3d(-125%, 0, 0) skewX(-18deg);
+    animation: quotaBarGlint 2.8s cubic-bezier(0.32, 0, 0.24, 1) infinite;
+  }
+
+  &::after {
+    inset-inline: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 62%);
   }
 }
 
 .quotaBarFillHigh {
   --quota-fill-start: #22c55e;
-  --quota-fill-mid: #38d66f;
-  --quota-fill-end: #7be35c;
-  --quota-fill-glow: rgba(34, 197, 94, 0.34);
+  --quota-fill-mid: #34d86d;
+  --quota-fill-end: #86efac;
+  --quota-fill-glow: rgba(34, 197, 94, 0.26);
 }
 
 .quotaBarFillMedium {
   --quota-fill-start: #f59e0b;
   --quota-fill-mid: #fbbf24;
-  --quota-fill-end: #facc15;
-  --quota-fill-glow: rgba(255, 202, 40, 0.36);
+  --quota-fill-end: #fde047;
+  --quota-fill-glow: rgba(245, 158, 11, 0.26);
 }
 
 .quotaBarFillLow {
   --quota-fill-start: #ef4444;
-  --quota-fill-mid: #f43f5e;
+  --quota-fill-mid: #f87171;
   --quota-fill-end: #fb7185;
-  --quota-fill-glow: rgba(255, 23, 68, 0.38);
+  --quota-fill-glow: rgba(239, 68, 68, 0.28);
+}
+
+@keyframes quotaBarGlint {
+  0%,
+  54% {
+    transform: translate3d(-125%, 0, 0) skewX(-18deg);
+    opacity: 0;
+  }
+
+  66% {
+    opacity: 0.82;
+  }
+
+  100% {
+    transform: translate3d(330%, 0, 0) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quotaBarFill::before {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .quotaMeta {
@@ -1181,6 +1550,7 @@
 
   .quotaContent {
     gap: 14px;
+    min-height: 66px;
   }
 
   .quotaRow {
@@ -1205,6 +1575,19 @@
   font-weight: 800;
   color: #16a34a;
   font-variant-numeric: tabular-nums;
+  transition: color 0.22s ease;
+}
+
+.quotaRow:has(.quotaBarFillHigh) .quotaPercent {
+  color: #16a34a;
+}
+
+.quotaRow:has(.quotaBarFillMedium) .quotaPercent {
+  color: #d97706;
+}
+
+.quotaRow:has(.quotaBarFillLow) .quotaPercent {
+  color: #dc2626;
 }
 
 .quotaReset {
@@ -1213,6 +1596,27 @@
 
 .quotaAmount {
   color: var(--text-secondary);
+}
+
+.quotaLoadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 12px 0;
+  color: color-mix(in srgb, #b8752a 72%, var(--text-secondary));
+  font-size: 12px;
+  font-weight: 700;
+
+  :global(.loading-spinner) {
+    border-color: color-mix(in srgb, currentColor 24%, transparent);
+    border-top-color: currentColor;
+    border-right-color: color-mix(in srgb, currentColor 58%, transparent);
+    animation: quotaRefreshSpin 0.78s cubic-bezier(0.42, 0, 0.2, 1) infinite !important;
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
 }
 
 .quotaMessage {
@@ -1321,26 +1725,100 @@
   color: #ffd862;
 }
 
-// 单个认证文件卡片
+// 单个认证文件卡片：只做淡入，不改变位置，避免刷新/翻页时产生卡片跳动。
 @keyframes authFileCardEnter {
   from {
     opacity: 0;
-    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .fileCard {
   --auth-card-border: color-mix(in srgb, var(--border-color) 72%, transparent);
-  --auth-card-border-hover: color-mix(in srgb, var(--primary-color) 30%, var(--border-color));
+  --auth-card-border-hover: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
   --auth-card-sheen: color-mix(in srgb, #ffffff 50%, transparent);
-  --auth-card-tint: color-mix(in srgb, var(--primary-color) 3%, transparent);
-  --auth-card-hover-tint: color-mix(in srgb, var(--primary-color) 6%, transparent);
+  --auth-card-tint: color-mix(in srgb, var(--primary-color) 6%, transparent);
+  --auth-card-hover-tint: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  --auth-card-glow: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  // Plus 套餐：与 cost 同色系（琥珀金）但略浅
+  --auth-plan-plus-text: #8c660d;
+  --auth-plan-plus-bg: color-mix(in srgb, var(--quota-medium-color) 18%, var(--surface-raised));
+  --auth-plan-plus-border: color-mix(in srgb, var(--quota-medium-color) 44%, transparent);
+  --auth-plan-pro-text: color-mix(in srgb, var(--primary-active) 95%, var(--text-primary));
+  --auth-plan-pro-bg: color-mix(in srgb, var(--primary-color) 16%, var(--surface-raised));
+  --auth-plan-pro-border: color-mix(in srgb, var(--primary-color) 42%, transparent);
+  // featureBadge (websockets) 改为青蓝色，避免与"成功"绿撞色，又跟 token 蓝形成层次
+  --auth-feature-text: #2a6b78;
+  --auth-feature-bg: color-mix(in srgb, #3996a8 12%, var(--surface-raised));
+  --auth-feature-border: color-mix(in srgb, #3996a8 34%, transparent);
+  --auth-warning-text: color-mix(in srgb, var(--warning-text) 92%, var(--text-primary));
+  --auth-warning-bg: color-mix(in srgb, var(--warning-bg) 92%, var(--surface-raised));
+  --auth-warning-border: color-mix(in srgb, var(--warning-border) 86%, transparent);
+  // R 徽章使用靛蓝调，避免与 token (石板蓝) 撞色，又能与冷色族协调
+  --auth-refresh-text: #3855a1;
+  --auth-refresh-bg: color-mix(in srgb, #4f6ec0 12%, var(--surface-raised));
+  --auth-refresh-border: color-mix(in srgb, #4f6ec0 34%, transparent);
+  // 4 个统计 pill 与全局主题色对齐：成功(#4a9b6c)、失败(#b84a3d)、cost(#d4a030)
+  // 成功：贴合 --success-color (#4a9b6c)
+  --auth-stat-success-text: #1f7448;
+  --auth-stat-success-bg: color-mix(in srgb, var(--success-color) 14%, var(--surface-raised));
+  --auth-stat-success-border: color-mix(in srgb, var(--success-color) 38%, transparent);
+  --auth-stat-success-icon-bg: var(--success-color);
+  --auth-stat-success-icon-text: #fff;
+  // 失败：贴合 --error-color (#b84a3d)
+  --auth-stat-failure-text: #9c3a30;
+  --auth-stat-failure-bg: color-mix(in srgb, var(--error-color) 12%, var(--surface-raised));
+  --auth-stat-failure-border: color-mix(in srgb, var(--error-color) 32%, transparent);
+  --auth-stat-failure-icon-bg: var(--error-color);
+  --auth-stat-failure-icon-text: #fff;
+  // Token：石板蓝（中性偏冷，作为"数据量"语义）
+  --auth-stat-token-text: #3a5a82;
+  --auth-stat-token-bg: color-mix(in srgb, #5577a3 11%, var(--surface-raised));
+  --auth-stat-token-border: color-mix(in srgb, #5577a3 30%, transparent);
+  --auth-stat-token-icon: #4c6f99;
+  // 花费：贴合 --quota-medium-color (#d4a030)
+  --auth-stat-cost-text: #8c660d;
+  --auth-stat-cost-bg: color-mix(in srgb, var(--quota-medium-color) 16%, var(--surface-raised));
+  --auth-stat-cost-border: color-mix(in srgb, var(--quota-medium-color) 38%, transparent);
+  --auth-stat-cost-icon: #a17710;
+  --auth-action-border: color-mix(in srgb, var(--provider-accent, var(--border-color)) 18%, var(--border-color));
+  --auth-action-bg: transparent;
+  --auth-action-text: color-mix(in srgb, var(--text-primary) 88%, var(--provider-accent, var(--text-primary)));
+  --auth-action-shadow: none;
+  --auth-action-hover-border: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 42%, var(--border-color));
+  --auth-action-hover-bg: transparent;
+  --auth-action-hover-text: color-mix(in srgb, var(--provider-accent, var(--text-primary)) 34%, var(--text-primary));
+  --auth-action-hover-shadow: none;
+  --auth-action-group-bg: transparent;
+  --auth-action-group-border: transparent;
+  --auth-danger-text: color-mix(in srgb, var(--danger-color) 88%, var(--text-primary));
+  --auth-danger-bg: var(--auth-action-bg);
+  --auth-danger-border: color-mix(in srgb, var(--danger-color) 36%, var(--border-color));
+  --auth-danger-shadow: var(--auth-action-shadow);
+  --auth-danger-hover-bg: transparent;
+  --auth-danger-hover-border: color-mix(in srgb, var(--danger-color) 62%, var(--border-color));
+  --auth-toggle-off-border: color-mix(in srgb, var(--border-color) 80%, transparent);
+  --auth-toggle-off-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-secondary) 88%, var(--bg-primary)) 0%,
+    color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 100%
+  );
+  --auth-toggle-off-label: var(--text-tertiary);
+  --auth-toggle-on-border: color-mix(in srgb, var(--primary-color) 70%, transparent);
+  --auth-toggle-on-bg: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary-color) 88%, white),
+    var(--primary-color) 54%,
+    color-mix(in srgb, var(--primary-color) 78%, black)
+  );
+  --auth-toggle-on-label: #fff;
+  --auth-toggle-thumb-bg: #fff;
+  --auth-toggle-thumb-border: color-mix(in srgb, var(--border-color) 60%, transparent);
   position: relative;
   overflow: hidden;
+  // 静态背景一次绘制，hover 时仅切换 ::after 的 opacity，不再过渡 background
   background:
     linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
     linear-gradient(135deg, var(--auth-card-tint), transparent 48%), var(--surface-raised);
@@ -1352,24 +1830,18 @@
   min-height: 100%;
   isolation: isolate;
   box-shadow: var(--shadow-card);
+  // 卡片本体不再过渡 transform，避免 hover/刷新时产生位移感。
   transition:
-    transform $transition-fast,
-    box-shadow $transition-fast,
-    border-color $transition-fast,
-    background-color $transition-fast;
-  // 长列表里跳过屏外卡片的布局/绘制开销
-  content-visibility: auto;
-  contain-intrinsic-size: 320px;
-  animation: authFileCardEnter 220ms ease-out both;
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+  animation: authFileCardEnter 180ms ease-out both;
+  animation-delay: var(--auth-file-card-enter-delay, 0ms);
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-card-hover);
+    box-shadow:
+      var(--shadow-card-hover),
+      0 12px 28px -24px var(--auth-card-glow);
     border-color: var(--auth-card-border-hover);
-    background:
-      linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
-      linear-gradient(135deg, var(--auth-card-hover-tint), transparent 52%),
-      var(--surface-raised-strong);
 
     &::before {
       opacity: 1;
@@ -1402,9 +1874,11 @@
     opacity: 0.6;
     pointer-events: none;
     transition: opacity $transition-fast;
+    will-change: opacity;
   }
 
-  // 悬停时叠加柔和的顶部光晕，硬件友好（仅 opacity 切换）
+  // hover 渐显的"色调增强层"——替代 background 过渡的廉价方案
+  // 静态预渲染好两层渐变，hover 时仅切换 opacity（合成器属性）
   &::after {
     content: '';
     position: absolute;
@@ -1412,12 +1886,15 @@
     border-radius: inherit;
     pointer-events: none;
     opacity: 0;
-    background: radial-gradient(
-      120% 80% at 50% -10%,
-      color-mix(in srgb, var(--primary-color) 12%, transparent),
-      transparent 60%
-    );
-    transition: opacity $transition-fast;
+    background:
+      radial-gradient(
+        120% 80% at 50% -10%,
+        var(--auth-card-glow),
+        transparent 60%
+      ),
+      linear-gradient(135deg, var(--auth-card-hover-tint), transparent 52%);
+    transition: opacity 160ms ease;
+    will-change: opacity;
     z-index: 0;
   }
 
@@ -1430,12 +1907,13 @@
     width: 100%;
     padding: 14px 12px;
     border-radius: 12px;
-    contain-intrinsic-size: 360px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fileCard {
+  .fileCard,
+  .fileCardSkeleton,
+  .fileCardSkeleton::after {
     animation: none;
     transition: none;
 
@@ -1456,186 +1934,55 @@
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--primary-color) 26%, transparent),
     var(--shadow-card);
-  background:
-    linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--primary-color) 8%, transparent),
-      transparent 54%
-    ),
-    color-mix(in srgb, var(--primary-color) 4%, var(--surface-raised));
+
+  // 通过 ::before 顶部高光的色相覆盖 + ::after 主色提亮叠加，避免重绘 background
+  &::before {
+    opacity: 1;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--primary-color) 56%, transparent),
+      transparent
+    );
+  }
+
+  &::after {
+    opacity: 0.55;
+    background:
+      radial-gradient(
+        120% 80% at 50% -10%,
+        color-mix(in srgb, var(--primary-color) 18%, transparent),
+        transparent 60%
+      ),
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--primary-color) 10%, transparent),
+        transparent 54%
+      );
+  }
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
     box-shadow:
       0 0 0 1px color-mix(in srgb, var(--primary-color) 32%, transparent),
       var(--shadow-card-hover);
+
+    &::after {
+      opacity: 1;
+    }
   }
 }
 
 .fileCardDisabled {
   opacity: 0.72;
-  transition:
-    opacity $transition-fast,
-    transform $transition-fast,
-    box-shadow $transition-fast,
-    border-color $transition-fast;
+  // 仅过渡 opacity（合成器属性），其他切换继承自 .fileCard 的现有 transition
+  transition: opacity $transition-fast;
 
   &:hover {
     transform: none;
     box-shadow: var(--shadow-card);
     border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
     opacity: 0.85;
-  }
-}
-
-.fileCardCompact {
-  padding: 10px 12px;
-  border-radius: 10px;
-  box-shadow: var(--shadow-card);
-
-  .fileCardMain {
-    gap: 8px;
-  }
-
-  .cardHeader {
-    gap: 8px;
-  }
-
-  .cardSelection {
-    margin-top: 6px;
-  }
-
-  .providerAvatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-  }
-
-  .providerAvatarImage {
-    width: 16px;
-    height: 16px;
-  }
-
-  .providerAvatarFallback {
-    font-size: 14px;
-  }
-
-  .cardHeaderContent {
-    gap: 3px;
-  }
-
-  .cardBadgeRow {
-    gap: 4px;
-  }
-
-  .typeBadge,
-  .stateBadge,
-  .planBadge,
-  .featureBadge {
-    padding: 3px 7px;
-    font-size: 10px;
-  }
-
-  .fileName {
-    font-size: 13px;
-    line-height: 1.3;
-    -webkit-line-clamp: 1;
-  }
-
-  .refreshTokenBadge {
-    width: 20px;
-    height: 20px;
-    flex-basis: 20px;
-    font-size: 10px;
-  }
-
-  .priorityStepper {
-    height: 26px;
-    border-radius: 7px;
-  }
-
-  .priorityStepButton {
-    width: 24px;
-    height: 24px;
-    font-size: 13px;
-  }
-
-  .priorityInput {
-    width: 36px;
-    height: 24px;
-    font-size: 10px;
-  }
-
-  .quotaSection {
-    display: none;
-  }
-
-  .cardActions {
-    gap: 6px;
-    padding-top: 6px;
-  }
-
-  .cardActionsMain {
-    gap: 3px;
-  }
-
-  .cardActionCluster {
-    gap: 3px;
-  }
-
-  .cardStatusActions {
-    gap: 3px;
-  }
-
-  .cardUtilityActions {
-    gap: 2px;
-    padding: 2px;
-    border-radius: 6px;
-  }
-
-  .iconButton:global(.btn.btn-sm) {
-    width: 30px;
-    height: 30px;
-    min-height: 30px;
-    min-width: 30px;
-    border-radius: 9px;
-  }
-
-  .actionIcon {
-    width: 16px;
-    height: 16px;
-  }
-
-  .cardToggleSwitch {
-    height: 26px;
-  }
-
-  .cardToggleSwitch > span:first-of-type {
-    width: 50px;
-    min-width: 50px;
-    height: 26px;
-    min-height: 26px;
-    padding: 0 7px 0 26px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type {
-    padding: 0 26px 0 7px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:first-child {
-    font-size: 9px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:last-child {
-    top: 4px;
-    left: 4px;
-    width: 18px;
-    height: 18px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    right: 4px;
   }
 }
 
@@ -1743,7 +2090,7 @@
   right: 0;
   width: min(280px, calc(100vw - 52px));
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 9px;
   font-size: 12px;
   line-height: 1.5;
   color: var(--danger-color);
@@ -1796,20 +2143,35 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, currentColor 18%, var(--border-color));
-  background: color-mix(in srgb, var(--bg-tertiary) 40%, var(--bg-primary));
+  // 边框跟随 typeBadge 文字色 (currentColor)，让头像与徽章形成视觉关联
+  // background 由 inline style (typeColor.bg) 控制
+  border: 1px solid color-mix(in srgb, currentColor 24%, var(--border-color));
   box-shadow:
-    0 8px 18px -14px color-mix(in srgb, var(--primary-color) 60%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  transition:
-    border-color $transition-fast,
-    box-shadow $transition-fast;
+    0 4px 12px -10px color-mix(in srgb, currentColor 45%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  // 仅过渡 border-color（廉价），其他效果由静态 ::before 提供
+  transition: border-color $transition-fast;
+  // 头像内部用一层柔和白色高光增加立体感（不影响 inline bg）
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 62%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 
   .fileCard:hover & {
-    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
-    box-shadow:
-      0 10px 22px -14px color-mix(in srgb, var(--primary-color) 70%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    border-color: color-mix(in srgb, currentColor 42%, var(--border-color));
   }
 
   @include mobile {
@@ -1847,13 +2209,47 @@
 .cardHeaderContent {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   flex: 1;
   min-width: 0;
 
   @include mobile {
-    gap: 5px;
+    gap: 4px;
   }
+}
+
+.cardIdentityRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px 7px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cardIdentityRowWithWarning {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.cardIdentityWarning {
+  justify-self: end;
+  align-self: start;
+  display: inline-flex;
+  min-width: 22px;
+  line-height: 0;
+}
+
+.cardIdentityWarning .cardWarningIndicator {
+  margin-left: 0;
+}
+
+.cardTypeGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .cardBadgeRow {
@@ -1876,21 +2272,58 @@
   align-items: center;
   max-width: 100%;
   min-height: 22px;
-  padding: 0 9px;
+  padding: 0 10px;
   border-radius: 999px;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  // 极轻的高光，让标签有"质感"但不浮夸
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 1px 1px -1px color-mix(in srgb, currentColor 18%, transparent);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 @media (max-width: 640px) {
+  .cardIdentityRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'type priority'
+      'name name';
+    column-gap: 6px;
+    row-gap: 3px;
+  }
+
+  .cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'type priority warning'
+      'name name name';
+  }
+
+  .cardTypeGroup {
+    grid-area: type;
+  }
+
+  .cardIdentityRow .fileNameRow {
+    grid-area: name;
+  }
+
+  .cardIdentityRow .priorityInlineRow {
+    grid-area: priority;
+    justify-self: end;
+    width: auto;
+  }
+
+  .cardIdentityWarning {
+    grid-area: warning;
+  }
+
   .typeBadge,
   .stateBadge,
   .planBadge,
@@ -1931,7 +2364,9 @@
   letter-spacing: 0.02em;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 1px 0 rgba(15, 23, 42, 0.04);
   transition:
     background-color $transition-fast,
     border-color $transition-fast,
@@ -1939,9 +2374,9 @@
 }
 
 .stateBadgeActive {
-  color: color-mix(in srgb, var(--success-badge-text, #065f46) 92%, var(--text-primary));
-  background: color-mix(in srgb, var(--success-badge-bg, #d1fae5) 86%, var(--surface-raised));
-  border: 1px solid color-mix(in srgb, var(--success-badge-border, #6ee7b7) 72%, transparent);
+  color: color-mix(in srgb, var(--success-badge-text, #065f46) 98%, var(--text-primary));
+  background: color-mix(in srgb, var(--success-badge-bg, #d1fae5) 94%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--success-badge-border, #6ee7b7) 88%, transparent);
 }
 
 .stateBadgeWarning {
@@ -2002,15 +2437,15 @@
 }
 
 .planBadgePlus {
-  color: #7c2d12;
-  background: color-mix(in srgb, #fb923c 18%, transparent);
-  border-color: color-mix(in srgb, #fb923c 40%, transparent);
+  color: var(--auth-plan-plus-text);
+  background: var(--auth-plan-plus-bg);
+  border-color: var(--auth-plan-plus-border);
 }
 
 .planBadgePro {
-  color: #1d4ed8;
-  background: color-mix(in srgb, #60a5fa 16%, transparent);
-  border-color: color-mix(in srgb, #60a5fa 34%, transparent);
+  color: var(--auth-plan-pro-text);
+  background: var(--auth-plan-pro-bg);
+  border-color: var(--auth-plan-pro-border);
 }
 
 .planBadgeIcon {
@@ -2043,15 +2478,15 @@
 }
 
 .featureBadgeEnabled {
-  color: color-mix(in srgb, #0f5f42 88%, var(--text-primary));
-  background: color-mix(in srgb, #22c55e 14%, var(--surface-raised));
-  border-color: color-mix(in srgb, #22c55e 34%, transparent);
+  color: var(--auth-feature-text);
+  background: var(--auth-feature-bg);
+  border-color: var(--auth-feature-border);
 }
 
 .featureBadgeWarning {
-  color: #8a3a06;
-  background: color-mix(in srgb, #f97316 16%, transparent);
-  border-color: color-mix(in srgb, #f97316 40%, transparent);
+  color: var(--auth-warning-text);
+  background: var(--auth-warning-bg);
+  border-color: var(--auth-warning-border);
 }
 
 .refreshTokenBadge {
@@ -2062,20 +2497,22 @@
   height: 22px;
   flex: 0 0 22px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, #14b8a6 38%, transparent);
-  background: color-mix(in srgb, #14b8a6 14%, var(--surface-raised));
-  color: color-mix(in srgb, #0f766e 88%, var(--text-primary));
-  font-size: 10.5px;
+  border: 1px solid var(--auth-refresh-border);
+  background: var(--auth-refresh-bg);
+  color: var(--auth-refresh-text);
+  font-size: 11px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    0 1px 1px -1px color-mix(in srgb, currentColor 24%, transparent);
 }
 
 .fileNameRow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
   max-width: 100%;
 }
@@ -2083,16 +2520,26 @@
 .fileName {
   min-width: 0;
   max-width: 100%;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
   font-size: 14px;
   font-weight: 700;
+  font-family: inherit;
   color: var(--text-primary);
   line-height: 1.3;
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
   white-space: nowrap;
   overflow-wrap: anywhere;
   letter-spacing: 0;
+  cursor: copy;
+  transition:
+    color 0.18s ease,
+    text-shadow 0.18s ease;
 
   @include mobile {
     font-size: 14px;
@@ -2100,56 +2547,27 @@
   }
 }
 
-.fileNameCopyButton {
-  flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
+.fileName:hover {
+  color: color-mix(in srgb, var(--primary-color) 72%, var(--text-primary));
 }
 
-.fileNameCopyButton:hover {
-  color: var(--text-primary);
-  border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 10%, var(--bg-secondary));
-  transform: translateY(-1px);
-}
-
-.fileNameCopyButton:focus-visible {
+.fileName:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--primary-color) 60%, transparent);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @media (max-width: 640px) {
   .fileNameRow {
-    align-items: flex-start;
-    gap: 8px;
+    align-items: center;
+    gap: 5px;
   }
 
   .fileName {
-    display: -webkit-box;
+    display: block;
     font-size: 13px;
-    line-height: 1.35;
-    white-space: normal;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-
-  .fileNameCopyButton {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
+    line-height: 1.25;
+    white-space: nowrap;
   }
 
   .metaLabel {
@@ -2161,19 +2579,19 @@
   }
 
   .priorityStepper {
-    height: 28px;
+    height: 26px;
     border-radius: 8px;
   }
 
   .priorityStepButton {
-    width: 28px;
-    height: 26px;
+    width: 26px;
+    height: 24px;
     font-size: 14px;
   }
 
   .priorityInput {
-    width: 40px;
-    height: 26px;
+    width: 38px;
+    height: 24px;
     font-size: 12px;
   }
 }
@@ -2189,18 +2607,6 @@
     gap: 4px 10px;
     padding: 0;
   }
-}
-
-.cardMetaCompact {
-  gap: 3px 12px;
-}
-
-.cardMetaCompact .metaLabel {
-  font-size: 10px;
-}
-
-.cardMetaCompact .metaValue {
-  font-size: 11px;
 }
 
 .metaItem {
@@ -2230,12 +2636,15 @@
 
 .metaValue {
   min-width: 0;
+  max-width: 100%;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 520px) {
@@ -2285,10 +2694,43 @@
   gap: 6px;
 }
 
+.priorityInlineRow {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 5px;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.priorityInlineLabel {
+  flex: 0 0 auto;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+
+  &::after {
+    content: ':';
+    margin-left: 1px;
+    opacity: 0.7;
+  }
+}
+
+.priorityInlineReadOnly {
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-secondary) 58%, transparent);
+}
+
 .priorityStepper {
   display: inline-flex;
   align-items: center;
-  height: 28px;
+  height: 26px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
   border-radius: 8px;
@@ -2297,8 +2739,8 @@
 }
 
 .priorityStepButton {
-  width: 28px;
-  height: 26px;
+  width: 26px;
+  height: 24px;
   border: 0;
   padding: 0;
   display: inline-flex;
@@ -2332,8 +2774,8 @@
 }
 
 .priorityInput {
-  width: 42px;
-  height: 26px;
+  width: 38px;
+  height: 24px;
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
   border-right: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
@@ -2408,10 +2850,6 @@
   }
 }
 
-.cardInsightsCompact {
-  gap: 6px;
-}
-
 .cardStats {
   display: flex;
   align-items: center;
@@ -2425,27 +2863,6 @@
   }
 }
 
-.cardStatsCompact {
-  gap: 6px;
-}
-
-.cardStatsCompact .statPill {
-  padding: 0 5px;
-}
-
-.cardStatsCompact .statIcon {
-  width: 12px;
-  height: 12px;
-}
-
-.cardStatsCompact .statLabel {
-  font-size: 9px;
-}
-
-.cardStatsCompact .statValue {
-  font-size: 10px;
-}
-
 .statPill {
   display: inline-flex;
   align-items: center;
@@ -2455,22 +2872,18 @@
   min-width: 0;
   height: 26px;
   min-height: 26px;
-  padding: 0 9px;
+  padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid transparent;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
   box-sizing: border-box;
   line-height: 1;
   overflow: visible;
   white-space: nowrap;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
-  transition:
-    transform 0.15s ease,
-    filter 0.15s ease,
-    box-shadow 0.15s ease;
-
-  .fileCard:hover & {
-    filter: saturate(1.06);
-  }
+  // 极轻的高光，与 typeBadge 保持视觉一致
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    0 1px 1px -1px color-mix(in srgb, currentColor 18%, transparent);
+  transition: color 140ms ease;
 }
 
 @media (max-width: 640px) {
@@ -2548,38 +2961,38 @@
 }
 
 .statSuccess {
-  background: var(--success-badge-bg, #dcfce7);
-  color: var(--success-badge-text, #15803d);
-  border-color: color-mix(in srgb, var(--success-color, #16a34a) 22%, transparent);
+  background: var(--auth-stat-success-bg);
+  color: var(--auth-stat-success-text);
+  border-color: var(--auth-stat-success-border);
 }
 
 .statSuccess .statIcon {
-  background: var(--success-color, #16a34a);
-  color: #fff;
+  background: var(--auth-stat-success-icon-bg);
+  color: var(--auth-stat-success-icon-text);
 }
 
 .statFailure {
-  background: var(--failure-badge-bg, #fee2e2);
-  color: var(--failure-badge-text, #b91c1c);
-  border-color: color-mix(in srgb, var(--error-color, #dc2626) 22%, transparent);
+  background: var(--auth-stat-failure-bg);
+  color: var(--auth-stat-failure-text);
+  border-color: var(--auth-stat-failure-border);
 }
 
 .statFailure .statIcon {
-  background: var(--error-color, #dc2626);
-  color: #fff;
+  background: var(--auth-stat-failure-icon-bg);
+  color: var(--auth-stat-failure-icon-text);
 }
 
 .statToken {
   flex: 0 1 auto;
-  background: color-mix(in srgb, #60a5fa 14%, transparent);
-  color: color-mix(in srgb, #1d4ed8 70%, var(--text-primary));
-  border-color: color-mix(in srgb, #60a5fa 26%, transparent);
+  background: var(--auth-stat-token-bg);
+  color: var(--auth-stat-token-text);
+  border-color: var(--auth-stat-token-border);
 }
 
 .statToken .statIcon {
   width: 13px;
   height: 13px;
-  color: inherit;
+  color: var(--auth-stat-token-icon);
 
   svg {
     width: 12px;
@@ -2590,15 +3003,15 @@
 
 .statCost {
   flex: 0 1 auto;
-  background: color-mix(in srgb, #f59e0b 16%, transparent);
-  color: color-mix(in srgb, #b45309 70%, var(--text-primary));
-  border-color: color-mix(in srgb, #f59e0b 28%, transparent);
+  background: var(--auth-stat-cost-bg);
+  color: var(--auth-stat-cost-text);
+  border-color: var(--auth-stat-cost-border);
 }
 
 .statCost .statIcon {
   width: 13px;
   height: 13px;
-  color: #c76a00;
+  color: var(--auth-stat-cost-icon);
 
   svg {
     width: 11px;
@@ -2615,34 +3028,6 @@
   @include mobile {
     gap: 3px;
   }
-}
-
-.statusPanelCompact {
-  gap: 3px;
-}
-
-.statusPanelCompact .statusPanelLabel {
-  display: none;
-}
-
-.statusPanelCompact .statusBar {
-  flex-wrap: wrap;
-  gap: 8px;
-  row-gap: 6px;
-}
-
-.statusPanelCompact .statusBlocks {
-  gap: 2px;
-}
-
-.statusPanelCompact .statusBlockWrapper {
-  min-width: 5px;
-}
-
-.statusPanelCompact .statusRate {
-  margin-left: auto;
-  padding: 5px 7px;
-  font-size: 11px;
 }
 
 .statusPanelLabel {
@@ -2700,14 +3085,12 @@
   width: 100%;
   height: 7px;
   border-radius: 999px;
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease;
+  transform-origin: center center;
+  transition: transform 140ms ease;
 
   .statusBlockWrapper:hover &,
   .statusBlockWrapper.statusBlockActive & {
     transform: scaleY(1.4);
-    opacity: 0.95;
   }
 }
 
@@ -2848,7 +3231,7 @@
 .prefixProxyEditor {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 12px;
   max-height: none;
   overflow: visible;
 }
@@ -2869,8 +3252,8 @@
   }
 
   :global(.modal-body) {
-    padding: $spacing-lg;
-    max-height: min(72vh, calc(100vh - 176px));
+    padding: 16px;
+    max-height: min(78vh, calc(100vh - 156px));
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--bg-primary) 96%, transparent),
@@ -2889,7 +3272,7 @@
 
   @supports (height: 100dvh) {
     :global(.modal-body) {
-      max-height: min(72dvh, calc(100dvh - 176px));
+      max-height: min(78dvh, calc(100dvh - 156px));
     }
   }
 
@@ -2934,15 +3317,30 @@
   font-size: 12px;
 }
 
+.prefixProxyLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+  gap: 14px;
+  align-items: start;
+  min-width: 0;
+}
+
+.prefixProxyPreviewPane {
+  position: sticky;
+  top: 0;
+  min-width: 0;
+}
+
 .prefixProxyJsonWrapper {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 46%, transparent);
+  border-radius: $radius-md;
+  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .prefixProxyLabel {
@@ -2972,15 +3370,16 @@
 
 .prefixProxyTextarea {
   width: 100%;
-  padding: $spacing-sm $spacing-md;
+  padding: 9px 10px;
   border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
-  border-radius: $radius-md;
-  background-color: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  border-radius: $radius-sm;
+  background-color: color-mix(in srgb, var(--bg-primary) 78%, transparent);
   color: var(--text-primary);
   font-size: 12px;
+  line-height: 1.45;
   font-family: monospace;
-  resize: vertical;
-  min-height: 120px;
+  resize: none;
+  min-height: min(440px, calc(78vh - 238px));
   box-sizing: border-box;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
@@ -2991,34 +3390,63 @@
   }
 
   @include mobile {
-    min-height: 96px;
+    min-height: 116px;
     font-size: 11px;
+    resize: vertical;
   }
 }
 
 @include mobile {
   .prefixProxyLabelRow {
-    align-items: flex-start;
+    align-items: center;
   }
 }
 
 .prefixProxyFields {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: $spacing-md;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
 
-  :global(.form-group) {
+  :global(.form-group),
+  .prefixProxyTextareaGroup,
+  .prefixProxySwitchField {
     margin: 0;
+  }
+
+  :global(.form-group) {
+    gap: 5px;
+  }
+
+  :global(label),
+  .prefixProxyTextareaGroup label,
+  .prefixProxySwitchField label {
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--text-secondary);
+    font-weight: 600;
   }
 
   :global(.input),
   :global(textarea.input) {
     border-color: color-mix(in srgb, var(--border-color) 38%, transparent);
     background-color: color-mix(in srgb, var(--bg-secondary) 68%, transparent);
+    font-size: 12px;
+  }
+
+  :global(.input-control-sm .input) {
+    min-height: 34px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  :global(textarea.input) {
+    min-height: 68px;
+    resize: vertical;
+    line-height: 1.4;
   }
 
   :global(.input:focus),
@@ -3031,8 +3459,43 @@
   }
 
   @include mobile {
-    gap: $spacing-sm;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
   }
+}
+
+.prefixProxyField,
+.prefixProxyFieldWide,
+.prefixProxyTextareaGroup,
+.prefixProxySwitchField {
+  min-width: 0;
+}
+
+.prefixProxyFieldWide,
+.prefixProxyTextareaGroup {
+  grid-column: 1 / -1;
+}
+
+.prefixProxyTextareaGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.prefixProxyHeadersTextarea {
+  min-height: 82px !important;
+}
+
+.prefixProxySwitchField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  min-height: 58px;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 38%, transparent);
+  border-radius: $radius-md;
+  background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
 }
 
 .prefixProxyTextareaInvalid {
@@ -3040,14 +3503,17 @@
   box-shadow: 0 0 0 3px rgba($error-color, 0.12);
 }
 
-.prefixProxyFields + .prefixProxyJsonWrapper,
-.prefixProxyJsonWrapper + .prefixProxyJsonWrapper,
-.prefixProxyJsonWrapper + .prefixProxyFields {
-  padding-top: $spacing-md;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 48%, transparent);
+@media (max-width: 840px) {
+  .prefixProxyLayout {
+    grid-template-columns: 1fr;
+  }
 
-  @include mobile {
-    padding-top: $spacing-sm;
+  .prefixProxyPreviewPane {
+    position: static;
+  }
+
+  .prefixProxyTextarea {
+    min-height: 132px;
   }
 }
 
@@ -3055,10 +3521,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 9px;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
   min-width: 0;
   width: 100%;
 }
@@ -3066,41 +3532,43 @@
 .cardActionsMain {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
   flex: 1;
-  justify-content: flex-start;
+  justify-content: space-between;
   width: 100%;
 }
 
 .cardActionCluster {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
   flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .modelsActionButton:global(.btn.btn-sm) {
-  background: linear-gradient(
-    180deg,
-    var(--bg-primary),
-    color-mix(in srgb, var(--bg-secondary) 80%, var(--bg-primary))
-  );
-  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
-  color: var(--text-primary);
+  background: var(--auth-action-bg);
+  border-color: var(--auth-action-border);
+  color: var(--auth-action-text);
 }
 
-.modelsActionButton:global(.btn.btn-sm):hover {
-  border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
-  background: var(--bg-primary);
+.modelsActionButton:global(.btn.btn-sm):hover:not(:disabled) {
+  border-color: var(--auth-action-hover-border);
+  background: var(--auth-action-hover-bg);
+  color: var(--auth-action-hover-text);
 }
 
 .cardUtilityActions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 0;
+  border: 0;
   border-radius: 0;
   background: transparent;
   flex: 0 0 auto;
@@ -3111,11 +3579,24 @@
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
-  justify-content: flex-end;
+  justify-content: flex-start;
   min-width: 0;
-  margin-left: auto;
+  margin-left: 0;
   padding-top: 0;
   flex-wrap: nowrap;
+}
+
+.cardRefreshActions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .statusToggle {
@@ -3131,12 +3612,8 @@
   height: 32px;
   min-height: 32px;
   padding: 0 8px 0 31px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-secondary) 88%, var(--bg-primary)) 0%,
-    color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 100%
-  );
+  border: 1px solid var(--auth-toggle-off-border);
+  background: var(--auth-toggle-off-bg);
   box-shadow:
     0 8px 18px -16px rgba(15, 23, 42, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.7),
@@ -3145,13 +3622,8 @@
 
 .cardToggleSwitch > input:checked + span:first-of-type {
   padding: 0 31px 0 8px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--primary-color) 88%, white),
-    var(--primary-color) 54%,
-    color-mix(in srgb, var(--primary-color) 78%, black)
-  );
-  border-color: color-mix(in srgb, var(--primary-color) 70%, transparent);
+  background: var(--auth-toggle-on-bg);
+  border-color: var(--auth-toggle-on-border);
   box-shadow:
     0 10px 22px -16px color-mix(in srgb, var(--primary-color) 60%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -3168,61 +3640,63 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
-  color: var(--text-tertiary);
+  color: var(--auth-toggle-off-label);
   text-shadow: none;
 }
 
 .cardToggleSwitch > input:checked + span:first-of-type > span:first-child {
-  color: #fff;
+  color: var(--auth-toggle-on-label);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
 }
 
 .cardToggleSwitch > span:first-of-type > span:last-child {
   top: 3px;
   left: 3px;
+  right: auto;
   width: 26px;
   height: 26px;
-  background: #fff;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  background: var(--auth-toggle-thumb-bg);
+  border: 1px solid var(--auth-toggle-thumb-border);
   box-shadow:
     0 6px 12px -8px rgba(15, 23, 42, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  // 显式过渡 transform 让 thumb 切换平滑（继承自 ToggleSwitch 基础组件）
+  transition: transform $transition-fast;
 }
 
+// 62px - 26px - 3px*2 = 30px
 .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-  right: 3px;
+  transform: translate3d(30px, 0, 0);
 }
 
 .cardToggleSwitch:hover > span:first-of-type {
-  filter: brightness(1.04);
+  // 用 border-color 透明度增强代替 filter，避免合成层重绘
+  border-color: color-mix(in srgb, var(--auth-toggle-off-border) 80%, var(--primary-color));
+}
+
+.cardToggleSwitch:hover > input:checked + span:first-of-type {
+  border-color: color-mix(in srgb, var(--auth-toggle-on-border) 76%, white);
 }
 
 .iconButton:global(.btn.btn-sm) {
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  min-width: 32px;
+  width: 31px;
+  height: 31px;
+  min-height: 31px;
+  min-width: 31px;
   padding: 0;
   box-sizing: border-box;
-  border-radius: 10px;
+  border-radius: 9px;
   gap: 0;
-  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+  border-color: var(--auth-action-border);
   border-width: 1px;
-  background: linear-gradient(
-    180deg,
-    var(--bg-primary),
-    color-mix(in srgb, var(--bg-secondary) 80%, var(--bg-primary))
-  );
-  color: var(--text-primary);
-  box-shadow:
-    0 8px 18px -16px rgba(15, 23, 42, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: var(--auth-action-bg);
+  color: var(--auth-action-text);
+  box-shadow: var(--auth-action-shadow);
+  // 仅过渡跟手的属性；transform 140ms 给点击的紧凑感
   transition:
-    color $transition-fast,
-    background-color $transition-fast,
-    border-color $transition-fast,
-    box-shadow $transition-fast,
-    transform 0.12s ease;
+    color 140ms ease,
+    border-color 140ms ease,
+    transform 120ms cubic-bezier(0.2, 0, 0.18, 1);
 
   > span {
     display: flex;
@@ -3235,58 +3709,48 @@
   }
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
-    box-shadow:
-      0 10px 22px -16px rgba(15, 23, 42, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translate3d(0, -1px, 0);
+    border-color: var(--auth-action-hover-border);
+    color: var(--auth-action-hover-text);
   }
 
   &:active:not(:disabled) {
-    transform: scale(0.96);
+    transform: translate3d(0, 0, 0) scale(0.94);
+    transition-duration: 80ms;
   }
 }
 
 .iconButton:global(.btn.btn-danger.btn-sm) {
-  background: linear-gradient(135deg, #f05252, #dc2626 62%, #d52b2b);
-  border-color: #df3f3f;
-  color: #fff;
-  box-shadow:
-    0 14px 26px -17px rgba(220, 38, 38, 0.72),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  background: var(--auth-danger-bg);
+  border-color: var(--auth-danger-border);
+  color: var(--auth-danger-text);
+  box-shadow: var(--auth-danger-shadow);
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #f05252, #b91c1c);
-    border-color: color-mix(in srgb, #b91c1c 82%, transparent);
+    background: var(--auth-danger-hover-bg);
+    border-color: var(--auth-danger-hover-border);
   }
 }
 
 .refreshActionButton:global(.btn.btn-sm) {
-  background: linear-gradient(
-    180deg,
-    var(--bg-primary),
-    color-mix(in srgb, var(--bg-secondary) 78%, var(--bg-primary))
-  );
-  border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
-  color: var(--text-primary);
-  box-shadow:
-    0 8px 18px -16px rgba(15, 23, 42, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  background: var(--auth-action-bg);
+  border-color: var(--auth-action-border);
+  color: var(--auth-action-text);
+  box-shadow: var(--auth-action-shadow);
 }
 
 .refreshActionButton:global(.btn.btn-sm):hover:not(:disabled) {
-  background: var(--bg-primary);
-  border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
-  color: var(--text-primary);
-  box-shadow:
-    0 10px 22px -16px rgba(15, 23, 42, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: var(--auth-action-hover-bg);
+  border-color: var(--auth-action-hover-border);
+  color: var(--auth-action-hover-text);
+  box-shadow: var(--auth-action-hover-shadow);
 }
 
 .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
-  border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  border-color: color-mix(in srgb, #b8752a 48%, var(--border-color));
+  background: transparent;
+  color: color-mix(in srgb, #b8752a 78%, var(--text-secondary));
+  box-shadow: none;
 }
 
 .refreshActionButton .quotaRefreshIcon {
@@ -3352,12 +3816,17 @@
 
   .cardStatusActions {
     gap: 6px;
-    margin-left: auto;
+    margin-left: 0;
     flex: 0 0 auto;
-    justify-content: flex-end;
+    justify-content: flex-start;
     padding-top: 0;
     border-top: none;
     flex-wrap: nowrap;
+  }
+
+  .cardRefreshActions {
+    margin-left: auto;
+    flex: 0 0 auto;
   }
 
   .statusToggle {
@@ -3422,12 +3891,14 @@
   .cardToggleSwitch > span:first-of-type > span:last-child {
     top: 3px;
     left: 3px;
+    right: auto;
     width: 28px;
     height: 28px;
   }
 
+  // 60px - 28px - 3px*2 = 26px
   .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    right: 3px;
+    transform: translate3d(26px, 0, 0);
   }
 }
 
@@ -3462,11 +3933,15 @@
   }
 
   .cardStatusActions {
-    width: 100%;
+    width: auto;
     margin-left: 0;
-    padding-top: 8px;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
-    justify-content: space-between;
+    padding-top: 0;
+    border-top: 0;
+    justify-content: flex-start;
+  }
+
+  .cardRefreshActions {
+    margin-left: auto;
   }
 
   .refreshActionButton:global(.btn.btn-sm) {
@@ -3476,7 +3951,7 @@
   }
 
   .statusToggle {
-    margin-left: auto;
+    margin-left: 0;
   }
 }
 
@@ -3491,7 +3966,11 @@
 
   .cardStatusActions {
     gap: 4px;
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+
+  .cardRefreshActions {
+    margin-left: auto;
   }
 
   .cardUtilityActions {
@@ -3536,12 +4015,14 @@
   .cardToggleSwitch > span:first-of-type > span:last-child {
     top: 3px;
     left: 3px;
+    right: auto;
     width: 24px;
     height: 24px;
   }
 
+  // 52px - 24px - 3px*2 = 22px
   .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    right: 3px;
+    transform: translate3d(22px, 0, 0);
   }
 }
 
@@ -3549,7 +4030,8 @@
   .cardActionsMain,
   .cardActionCluster,
   .cardUtilityActions,
-  .cardStatusActions {
+  .cardStatusActions,
+  .cardRefreshActions {
     gap: 3px;
   }
 
@@ -3591,22 +4073,100 @@
   .cardToggleSwitch > span:first-of-type > span:last-child {
     top: 2px;
     left: 2px;
+    right: auto;
     width: 22px;
     height: 22px;
   }
 
+  // 48px - 22px - 2px*2 = 22px
   .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    right: 2px;
+    transform: translate3d(22px, 0, 0);
   }
 }
 
 :global([data-theme='dark']) {
   .fileCard {
-    --auth-card-border: color-mix(in srgb, var(--border-color) 84%, transparent);
-    --auth-card-border-hover: color-mix(in srgb, var(--primary-active) 44%, var(--border-color));
+    --auth-card-border: color-mix(in srgb, var(--border-color) 78%, transparent);
+    --auth-card-border-hover: color-mix(in srgb, var(--primary-active) 54%, var(--border-color));
     --auth-card-sheen: color-mix(in srgb, #ffffff 6%, transparent);
-    --auth-card-tint: color-mix(in srgb, var(--primary-active) 5%, transparent);
-    --auth-card-hover-tint: color-mix(in srgb, var(--primary-active) 8%, transparent);
+    --auth-card-tint: color-mix(in srgb, var(--primary-active) 10%, transparent);
+    --auth-card-hover-tint: color-mix(in srgb, var(--primary-active) 16%, transparent);
+    --auth-card-glow: color-mix(in srgb, var(--primary-active) 18%, transparent);
+    // Plus 琥珀金（与 --quota-medium-color #eac45a 协调）
+    --auth-plan-plus-text: #eac45a;
+    --auth-plan-plus-bg: color-mix(in srgb, var(--quota-medium-color) 22%, transparent);
+    --auth-plan-plus-border: color-mix(in srgb, var(--quota-medium-color) 50%, transparent);
+    --auth-plan-pro-text: #cfd6e3;
+    --auth-plan-pro-bg: rgba(120, 132, 150, 0.22);
+    --auth-plan-pro-border: rgba(120, 132, 150, 0.5);
+    // websockets 青蓝色
+    --auth-feature-text: #76c8d4;
+    --auth-feature-bg: rgba(57, 150, 168, 0.22);
+    --auth-feature-border: rgba(57, 150, 168, 0.46);
+    --auth-warning-text: #f0c896;
+    --auth-warning-bg: rgba(217, 160, 90, 0.2);
+    --auth-warning-border: rgba(217, 160, 90, 0.45);
+    // R 徽章靛蓝
+    --auth-refresh-text: #9aafe6;
+    --auth-refresh-bg: rgba(79, 110, 192, 0.22);
+    --auth-refresh-border: rgba(79, 110, 192, 0.48);
+    // 成功：贴合 dark --success-color (#5cb88a)
+    --auth-stat-success-text: #6dc89b;
+    --auth-stat-success-bg: color-mix(in srgb, var(--success-color) 22%, transparent);
+    --auth-stat-success-border: color-mix(in srgb, var(--success-color) 48%, transparent);
+    --auth-stat-success-icon-bg: var(--success-color);
+    --auth-stat-success-icon-text: #11281f;
+    // 失败：贴合 dark --error-color (#d46555)
+    --auth-stat-failure-text: #e89a92;
+    --auth-stat-failure-bg: color-mix(in srgb, var(--error-color) 22%, transparent);
+    --auth-stat-failure-border: color-mix(in srgb, var(--error-color) 48%, transparent);
+    --auth-stat-failure-icon-bg: var(--error-color);
+    --auth-stat-failure-icon-text: #fff5f3;
+    --auth-stat-token-text: #93b0d6;
+    --auth-stat-token-bg: rgba(85, 119, 163, 0.22);
+    --auth-stat-token-border: rgba(85, 119, 163, 0.46);
+    --auth-stat-token-icon: #a8c0de;
+    --auth-stat-cost-text: #eac45a;
+    --auth-stat-cost-bg: color-mix(in srgb, var(--quota-medium-color) 22%, transparent);
+    --auth-stat-cost-border: color-mix(in srgb, var(--quota-medium-color) 46%, transparent);
+    --auth-stat-cost-icon: #eac45a;
+    --auth-action-border: color-mix(in srgb, var(--provider-accent, var(--border-color)) 20%, var(--border-color));
+    --auth-action-bg: transparent;
+    --auth-action-text: color-mix(in srgb, var(--text-primary) 88%, var(--provider-accent, var(--text-primary)));
+    --auth-action-shadow: none;
+    --auth-action-hover-border: color-mix(in srgb, var(--provider-accent, var(--primary-active)) 44%, var(--border-color));
+    --auth-action-hover-bg: transparent;
+    --auth-action-hover-text: color-mix(in srgb, var(--provider-accent, var(--text-primary)) 30%, var(--text-primary));
+    --auth-action-hover-shadow: none;
+    --auth-action-group-bg: transparent;
+    --auth-action-group-border: transparent;
+    --auth-danger-text: #f1b0a6;
+    --auth-danger-bg: var(--auth-action-bg);
+    --auth-danger-border: rgba(198, 87, 70, 0.58);
+    --auth-danger-shadow: var(--auth-action-shadow);
+    --auth-danger-hover-bg: transparent;
+    --auth-danger-hover-border: rgba(241, 176, 166, 0.68);
+    --auth-toggle-off-border: color-mix(in srgb, var(--border-color) 90%, transparent);
+    --auth-toggle-off-bg: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
+      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
+    );
+    --auth-toggle-off-label: var(--text-tertiary);
+    --auth-toggle-on-border: color-mix(in srgb, var(--primary-active) 70%, transparent);
+    --auth-toggle-on-bg: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary-active) 92%, white),
+      var(--primary-active) 54%,
+      color-mix(in srgb, var(--primary-active) 80%, black)
+    );
+    --auth-toggle-on-label: #fff;
+    --auth-toggle-thumb-bg: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--text-primary) 92%, transparent),
+      color-mix(in srgb, var(--text-secondary) 88%, transparent)
+    );
+    --auth-toggle-thumb-border: rgba(255, 255, 255, 0.18);
     background:
       linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
       linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--surface-raised);
@@ -3642,27 +4202,27 @@
   }
 
   .fileCard.antigravityCard {
-    --provider-accent: rgba(34, 211, 238, 0.62);
+    --provider-accent: rgba(88, 206, 232, 0.82);
   }
 
   .fileCard.claudeCard {
-    --provider-accent: rgba(248, 113, 113, 0.6);
+    --provider-accent: rgba(244, 140, 116, 0.82);
   }
 
   .fileCard.codexCard {
-    --provider-accent: rgba(129, 140, 248, 0.62);
+    --provider-accent: rgba(190, 170, 140, 0.82);
   }
 
   .fileCard.geminiCliCard {
-    --provider-accent: rgba(96, 165, 250, 0.62);
+    --provider-accent: rgba(112, 184, 196, 0.78);
   }
 
   .fileCard.kiroCard {
-    --provider-accent: rgba(251, 191, 36, 0.62);
+    --provider-accent: rgba(249, 198, 100, 0.82);
   }
 
   .fileCard.kimiCard {
-    --provider-accent: rgba(96, 165, 250, 0.62);
+    --provider-accent: rgba(112, 184, 196, 0.78);
   }
 
   .fileCardSelected {
@@ -3693,11 +4253,15 @@
   }
 
   .providerAvatar {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary));
+    // 深色下边框降低强度，避免过亮；底色由 inline typeColor.bg (dark) 控制
+    border-color: color-mix(in srgb, currentColor 28%, rgba(255, 255, 255, 0.06));
     box-shadow:
-      0 10px 22px -16px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 6px 16px -10px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    &::before {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 65%);
+    }
   }
 
   .typeBadge,
@@ -3711,15 +4275,15 @@
   }
 
   .stateBadgeActive {
-    color: #86efac;
-    background: rgba(16, 185, 129, 0.17);
-    border-color: rgba(52, 211, 153, 0.38);
+    color: var(--auth-stat-success-text);
+    background: var(--auth-stat-success-bg);
+    border-color: var(--auth-stat-success-border);
   }
 
   .stateBadgeWarning {
-    color: #f0c896;
-    background: rgba(217, 160, 90, 0.18);
-    border-color: rgba(217, 160, 90, 0.42);
+    color: var(--auth-warning-text);
+    background: var(--auth-warning-bg);
+    border-color: var(--auth-warning-border);
   }
 
   .stateBadgeDisabled,
@@ -3730,33 +4294,33 @@
   }
 
   .featureBadgeEnabled {
-    color: #7ee6b0;
-    background: rgba(34, 197, 94, 0.15);
-    border-color: rgba(52, 211, 153, 0.36);
+    color: var(--auth-feature-text);
+    background: var(--auth-feature-bg);
+    border-color: var(--auth-feature-border);
   }
 
   .featureBadgeWarning {
-    color: #fdba74;
-    background: rgba(249, 115, 22, 0.15);
-    border-color: rgba(251, 146, 60, 0.34);
+    color: var(--auth-warning-text);
+    background: var(--auth-warning-bg);
+    border-color: var(--auth-warning-border);
   }
 
   .refreshTokenBadge {
-    color: #5eead4;
-    background: rgba(20, 184, 166, 0.15);
-    border-color: rgba(45, 212, 191, 0.36);
+    color: var(--auth-refresh-text);
+    background: var(--auth-refresh-bg);
+    border-color: var(--auth-refresh-border);
   }
 
   .planBadgePlus {
-    color: #fdba74;
-    background: rgba(251, 146, 60, 0.14);
-    border-color: rgba(251, 146, 60, 0.34);
+    color: var(--auth-plan-plus-text);
+    background: var(--auth-plan-plus-bg);
+    border-color: var(--auth-plan-plus-border);
   }
 
   .planBadgePro {
-    color: #93c5fd;
-    background: rgba(96, 165, 250, 0.14);
-    border-color: rgba(96, 165, 250, 0.34);
+    color: var(--auth-plan-pro-text);
+    background: var(--auth-plan-pro-bg);
+    border-color: var(--auth-plan-pro-border);
   }
 
   .fileName {
@@ -3796,10 +4360,10 @@
   .quotaBar {
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-primary)),
-      color-mix(in srgb, var(--bg-tertiary) 40%, var(--bg-secondary))
+      color-mix(in srgb, var(--bg-tertiary) 64%, var(--bg-primary)),
+      color-mix(in srgb, var(--bg-tertiary) 42%, var(--bg-secondary))
     );
-    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+    border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
     box-shadow:
       inset 0 1px 2px rgba(0, 0, 0, 0.5),
       inset 0 -1px 0 rgba(255, 255, 255, 0.04),
@@ -3807,35 +4371,63 @@
   }
 
   .quotaBarFillHigh {
-    background: linear-gradient(90deg, #10b981, #34d399 52%, #a3e635);
+    --quota-fill-start: #10b981;
+    --quota-fill-mid: #34d399;
+    --quota-fill-end: #86efac;
+    --quota-fill-glow: rgba(52, 211, 153, 0.3);
+    background: linear-gradient(90deg, var(--quota-fill-start), var(--quota-fill-mid) 52%, var(--quota-fill-end));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.24),
       inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-      0 0 14px rgba(52, 211, 153, 0.34);
+      0 0 14px var(--quota-fill-glow);
   }
 
   .quotaBarFillMedium {
-    background: linear-gradient(90deg, #f59e0b, #fbbf24 52%, #fde047);
+    --quota-fill-start: #f59e0b;
+    --quota-fill-mid: #fbbf24;
+    --quota-fill-end: #fde047;
+    --quota-fill-glow: rgba(251, 191, 36, 0.3);
+    background: linear-gradient(90deg, var(--quota-fill-start), var(--quota-fill-mid) 52%, var(--quota-fill-end));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.22),
       inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-      0 0 14px rgba(251, 191, 36, 0.32);
+      0 0 14px var(--quota-fill-glow);
   }
 
   .quotaBarFillLow {
-    background: linear-gradient(90deg, #ef4444, #f43f5e 52%, #fb7185);
+    --quota-fill-start: #ef4444;
+    --quota-fill-mid: #f87171;
+    --quota-fill-end: #fb7185;
+    --quota-fill-glow: rgba(248, 113, 113, 0.32);
+    background: linear-gradient(90deg, var(--quota-fill-start), var(--quota-fill-mid) 52%, var(--quota-fill-end));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.2),
       inset 0 -1px 0 rgba(0, 0, 0, 0.2),
-      0 0 14px rgba(244, 63, 94, 0.34);
+      0 0 14px var(--quota-fill-glow);
   }
 
   .quotaPercent {
-    color: #6ee7b7;
+    color: #86efac;
+  }
+
+  .quotaRow:has(.quotaBarFillHigh) .quotaPercent {
+    color: #86efac;
+  }
+
+  .quotaRow:has(.quotaBarFillMedium) .quotaPercent {
+    color: #fbbf24;
+  }
+
+  .quotaRow:has(.quotaBarFillLow) .quotaPercent {
+    color: #fca5a5;
   }
 
   .quotaReset {
     color: var(--text-tertiary);
+  }
+
+  .quotaLoadingState {
+    color: color-mix(in srgb, #d8ad6b 84%, var(--text-secondary));
   }
 
   .quotaMessageAction {
@@ -3865,45 +4457,45 @@
   }
 
   .statSuccess {
-    color: #86efac;
-    background: rgba(16, 185, 129, 0.16);
-    border-color: rgba(52, 211, 153, 0.28);
+    color: var(--auth-stat-success-text);
+    background: var(--auth-stat-success-bg);
+    border-color: var(--auth-stat-success-border);
   }
 
   .statSuccess .statIcon {
-    background: #10b981;
-    color: #062f22;
+    background: var(--auth-stat-success-icon-bg);
+    color: var(--auth-stat-success-icon-text);
   }
 
   .statFailure {
-    color: #fca5a5;
-    background: rgba(239, 68, 68, 0.16);
-    border-color: rgba(248, 113, 113, 0.3);
+    color: var(--auth-stat-failure-text);
+    background: var(--auth-stat-failure-bg);
+    border-color: var(--auth-stat-failure-border);
   }
 
   .statFailure .statIcon {
-    background: #ef4444;
-    color: #fff;
+    background: var(--auth-stat-failure-icon-bg);
+    color: var(--auth-stat-failure-icon-text);
   }
 
   .statToken {
-    color: #c8d5ef;
-    background: rgba(96, 165, 250, 0.13);
-    border-color: rgba(147, 197, 253, 0.24);
+    color: var(--auth-stat-token-text);
+    background: var(--auth-stat-token-bg);
+    border-color: var(--auth-stat-token-border);
   }
 
   .statToken .statIcon {
-    color: #9fc4ff;
+    color: var(--auth-stat-token-icon);
   }
 
   .statCost {
-    color: #f7c76a;
-    background: rgba(245, 158, 11, 0.14);
-    border-color: rgba(251, 191, 36, 0.28);
+    color: var(--auth-stat-cost-text);
+    background: var(--auth-stat-cost-bg);
+    border-color: var(--auth-stat-cost-border);
   }
 
   .statCost .statIcon {
-    color: #f7c76a;
+    color: var(--auth-stat-cost-icon);
   }
 
   .statusPanelIcon {
@@ -3924,18 +4516,18 @@
   }
 
   .statusRateHigh {
-    color: #86efac;
-    background: rgba(16, 185, 129, 0.16);
+    color: var(--auth-stat-success-text);
+    background: var(--auth-stat-success-bg);
   }
 
   .statusRateMedium {
-    color: #facc15;
-    background: rgba(245, 158, 11, 0.15);
+    color: var(--auth-warning-text);
+    background: var(--auth-warning-bg);
   }
 
   .statusRateLow {
-    color: #fca5a5;
-    background: rgba(239, 68, 68, 0.16);
+    color: var(--auth-stat-failure-text);
+    background: var(--auth-stat-failure-bg);
   }
 
   .statusTooltip {
@@ -3956,63 +4548,51 @@
   .modelsActionButton:global(.btn.btn-sm),
   .iconButton:global(.btn.btn-sm),
   .refreshActionButton:global(.btn.btn-sm) {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
-      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
-    );
-    border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
-    color: var(--text-primary);
-    box-shadow:
-      0 8px 18px -16px rgba(0, 0, 0, 0.6),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    background: var(--auth-action-bg);
+    border-color: var(--auth-action-border);
+    color: var(--auth-action-text);
+    box-shadow: var(--auth-action-shadow);
 
     &:hover:not(:disabled) {
-      background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--bg-tertiary) 92%, var(--bg-primary)) 0%,
-        color-mix(in srgb, var(--bg-tertiary) 70%, var(--bg-secondary)) 100%
-      );
-      border-color: color-mix(in srgb, var(--primary-active) 36%, var(--border-color));
-      color: var(--text-primary);
-      box-shadow:
-        0 10px 22px -16px rgba(0, 0, 0, 0.7),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      background: var(--auth-action-hover-bg);
+      border-color: var(--auth-action-hover-border);
+      color: var(--auth-action-hover-text);
+      box-shadow: var(--auth-action-hover-shadow);
     }
   }
 
   .iconButton:global(.btn.btn-danger.btn-sm) {
-    background: linear-gradient(135deg, #b9473b, #8f2f28 64%, #74231e);
-    border-color: rgba(198, 87, 70, 0.72);
-    color: #fff4f1;
-    box-shadow:
-      0 16px 32px -20px rgba(198, 87, 70, 0.72),
-      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    background: var(--auth-danger-bg);
+    border-color: var(--auth-danger-border);
+    color: var(--auth-danger-text);
+    box-shadow: var(--auth-danger-shadow);
 
     &:hover:not(:disabled) {
-      background: linear-gradient(135deg, #c65746, #9b352d);
-      border-color: rgba(241, 176, 166, 0.54);
+      background: var(--auth-danger-hover-bg);
+      border-color: var(--auth-danger-hover-border);
     }
   }
 
   .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
-    background: linear-gradient(180deg, #37312b 0%, #29241f 100%);
-    border-color: rgba(166, 160, 153, 0.58);
-    color: #fff4e8;
+    background: transparent;
+    border-color: color-mix(in srgb, #d8ad6b 44%, var(--border-color));
+    color: color-mix(in srgb, #d8ad6b 86%, var(--text-secondary));
+    box-shadow: none;
+  }
+
+  .pageQuotaRefreshButton .quotaButtonSpinner,
+  .refreshActionButton .quotaButtonSpinner {
+    color: color-mix(in srgb, #d8ad6b 84%, var(--text-secondary));
   }
 
   .quotaRefreshButtonSpinning {
-    border-color: rgba(166, 160, 153, 0.58);
-    color: #fff4e8;
+    border-color: color-mix(in srgb, #d8ad6b 44%, var(--border-color));
+    color: color-mix(in srgb, #d8ad6b 86%, var(--text-secondary));
   }
 
   .cardToggleSwitch > span:first-of-type {
-    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
-      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
-    );
+    border-color: var(--auth-toggle-off-border);
+    background: var(--auth-toggle-off-bg);
     box-shadow:
       0 10px 22px -18px rgba(0, 0, 0, 0.7),
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -4020,29 +4600,20 @@
   }
 
   .cardToggleSwitch > span:first-of-type > span:first-child {
-    color: var(--text-tertiary);
+    color: var(--auth-toggle-off-label);
   }
 
   .cardToggleSwitch > span:first-of-type > span:last-child {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--text-primary) 92%, transparent),
-      color-mix(in srgb, var(--text-secondary) 88%, transparent)
-    );
-    border-color: rgba(255, 255, 255, 0.18);
+    background: var(--auth-toggle-thumb-bg);
+    border-color: var(--auth-toggle-thumb-border);
     box-shadow:
       0 6px 12px -8px rgba(0, 0, 0, 0.7),
       inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
   .cardToggleSwitch > input:checked + span:first-of-type {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--primary-active) 92%, white),
-      var(--primary-active) 54%,
-      color-mix(in srgb, var(--primary-active) 80%, black)
-    );
-    border-color: color-mix(in srgb, var(--primary-active) 70%, transparent);
+    background: var(--auth-toggle-on-bg);
+    border-color: var(--auth-toggle-on-border);
     box-shadow:
       0 12px 26px -18px color-mix(in srgb, var(--primary-active) 70%, transparent),
       inset 0 1px 0 rgba(255, 255, 255, 0.22);
@@ -4120,24 +4691,6 @@
 
 .batchActionRight {
   justify-content: flex-end;
-}
-
-.batchQuotaRefreshContent {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  line-height: 1;
-}
-
-.batchQuotaRefreshIcon {
-  display: block;
-  width: 14px;
-  height: 14px;
-  flex: 0 0 auto;
-  stroke-width: 2.35;
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
 }
 
 .batchSelectionText {
@@ -4622,21 +5175,20 @@
     grid-column: 1 / -1; // 优先级单独占整行，避免被压窄
   }
 
-  // 优先级 stepper 触控更宽松
   .priorityStepper {
-    height: 32px;
+    height: 26px;
   }
 
   .priorityStepButton {
-    width: 36px;
-    height: 30px;
-    font-size: 17px;
+    width: 26px;
+    height: 24px;
+    font-size: 14px;
   }
 
   .priorityInput {
-    width: 56px;
-    height: 30px;
-    font-size: 13px;
+    width: 38px;
+    height: 24px;
+    font-size: 12px;
   }
 
   // 卡片操作区相关样式集中在上方 `@include mobile` / `@media (max-width: 640px)` /
@@ -4694,7 +5246,54 @@
   }
 
   .filterChipRow {
+    flex: 1 0 100%;
     gap: 8px;
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  .filterControlsPanel {
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .searchToolbar {
+    flex: 1 1 0;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .searchToolbarField {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 36px;
+    padding-left: 32px;
+    padding-right: 8px;
+  }
+
+  .searchToolbarFieldIcon {
+    left: 10px;
+  }
+
+  .searchToolbarInput {
+    min-width: 0;
+    font-size: 12.5px;
+  }
+
+  .searchToolbarIconButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    flex: 0 0 36px;
+  }
+
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    flex: 0 0 36px;
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    height: 36px;
   }
 
   .filterChipGroup {
@@ -4816,5 +5415,155 @@
   // 卡片头部允许换行：avatar + content + warning 流式排
   .cardHeaderContent {
     flex-basis: 100%;
+  }
+}
+
+// 移动端认证卡片收敛：保持图标视觉与桌面一致，避免多层移动端覆盖造成错位。
+@include mobile {
+  .cardHeader {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .cardSelection {
+    margin-top: 7px;
+  }
+
+  .cardHeaderContent {
+    flex: 1 1 auto;
+    flex-basis: auto;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .cardIdentityRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'type priority'
+      'name name';
+    column-gap: 6px;
+    row-gap: 3px;
+  }
+
+  .cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'type priority warning'
+      'name name name';
+  }
+
+  .cardTypeGroup {
+    grid-area: type;
+  }
+
+  .cardIdentityRow .fileNameRow {
+    grid-area: name;
+  }
+
+  .cardIdentityRow .priorityInlineRow {
+    grid-area: priority;
+    justify-self: end;
+    width: auto;
+  }
+
+  .cardIdentityWarning {
+    grid-area: warning;
+  }
+
+  .cardBadgeRow {
+    gap: 5px;
+    row-gap: 4px;
+  }
+
+  .typeBadge,
+  .featureBadge {
+    min-height: 20px;
+    padding: 0 7px;
+    border-radius: 7px;
+    font-size: 10px;
+  }
+
+  .refreshTokenBadge {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    font-size: 10px;
+  }
+
+  .fileNameRow {
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cardActionsMain {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cardActionCluster {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 6px;
+    overflow: visible;
+  }
+
+  .cardUtilityActions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .cardStatusActions {
+    width: auto;
+    margin-left: 0;
+    padding-top: 0;
+    border-top: 0;
+    justify-content: flex-start;
+  }
+
+  .cardRefreshActions {
+    margin-left: auto;
+    flex: 0 0 auto;
+  }
+
+}
+
+@media (max-width: 420px) {
+  .cardHeader {
+    gap: 7px;
+  }
+
+  .cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'type warning'
+      'priority priority'
+      'name name';
+  }
+
+  .cardIdentityRowWithWarning .priorityInlineRow {
+    justify-self: start;
+  }
+
+  .priorityInlineRow {
+    width: 100%;
+  }
+
+  .cardIdentityRow .priorityInlineRow {
+    width: auto;
+  }
+
+  .cardStatusActions {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+  }
+
+  .cardRefreshActions {
+    margin-left: auto;
   }
 }

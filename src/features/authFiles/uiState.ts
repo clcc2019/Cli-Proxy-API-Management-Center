@@ -7,17 +7,13 @@ export type AuthFilesUiState = {
   problemOnly?: boolean;
   disabledOnly?: boolean;
   premiumOnly?: boolean;
-  compactMode?: boolean;
   search?: string;
   page?: number;
   pageSize?: number;
-  regularPageSize?: number;
-  compactPageSize?: number;
   sortMode?: AuthFilesSortMode;
 };
 
 const AUTH_FILES_UI_STATE_KEY = 'authFilesPage.uiState';
-const AUTH_FILES_COMPACT_MODE_KEY = 'authFilesPage.compactMode';
 const AUTH_FILES_SORT_MODE_SET = new Set<AuthFilesSortMode>(AUTH_FILES_SORT_MODES);
 
 export const isAuthFilesSortMode = (value: unknown): value is AuthFilesSortMode =>
@@ -54,26 +50,6 @@ export const writeAuthFilesUiState = (state: AuthFilesUiState) => {
   }
   try {
     window.sessionStorage.removeItem(AUTH_FILES_UI_STATE_KEY);
-  } catch {
-    // ignore
-  }
-};
-
-export const readPersistedAuthFilesCompactMode = (): boolean | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(AUTH_FILES_COMPACT_MODE_KEY);
-    if (raw === null) return null;
-    return JSON.parse(raw) === true;
-  } catch {
-    return null;
-  }
-};
-
-export const writePersistedAuthFilesCompactMode = (compactMode: boolean) => {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(AUTH_FILES_COMPACT_MODE_KEY, JSON.stringify(compactMode));
   } catch {
     // ignore
   }

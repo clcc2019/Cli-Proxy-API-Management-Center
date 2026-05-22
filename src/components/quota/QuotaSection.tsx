@@ -2,21 +2,18 @@
  * Generic quota section component.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { triggerHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
 import type { AuthFileItem, ResolvedTheme } from '@/types';
 import { getStatusFromError } from '@/utils/quota';
 import { QuotaCard } from './QuotaCard';
 import type { QuotaStatusState } from './QuotaCard';
-import { useQuotaLoader } from './useQuotaLoader';
 import type { QuotaConfig } from './quotaConfigs';
 import { useGridColumns } from './useGridColumns';
-import { IconRefreshCw } from '@/components/ui/icons';
 import styles from '@/pages/QuotaPage.module.scss';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
@@ -132,9 +129,7 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
     pageItems,
     setPageSize,
     goToPrev,
-    goToNext,
-    loading: sectionLoading,
-    setLoading
+    goToNext
   } = useQuotaPagination(filteredFiles);
 
   useEffect(() => {
@@ -163,30 +158,7 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
     }
   }, [effectiveViewMode, columns, filteredFiles.length, setPageSize]);
 
-  const { quota, loadQuota } = useQuotaLoader(config);
-
-  const pendingQuotaRefreshRef = useRef(false);
-  const prevFilesLoadingRef = useRef(loading);
-
-  const handleRefresh = useCallback(() => {
-    pendingQuotaRefreshRef.current = true;
-    void triggerHeaderRefresh();
-  }, []);
-
-  useEffect(() => {
-    const wasLoading = prevFilesLoadingRef.current;
-    prevFilesLoadingRef.current = loading;
-
-    if (!pendingQuotaRefreshRef.current) return;
-    if (loading) return;
-    if (!wasLoading) return;
-
-    pendingQuotaRefreshRef.current = false;
-    const scope = effectiveViewMode === 'all' ? 'all' : 'page';
-    const targets = effectiveViewMode === 'all' ? filteredFiles : pageItems;
-    if (targets.length === 0) return;
-    loadQuota(targets, scope, setLoading, onAuthFilesUpdated);
-  }, [loading, effectiveViewMode, filteredFiles, pageItems, loadQuota, setLoading, onAuthFilesUpdated]);
+  const quota = useQuotaStore(config.storeSelector);
 
   useEffect(() => {
     if (loading) return;
@@ -254,8 +226,6 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
     </div>
   );
 
-  const isRefreshing = sectionLoading || loading;
-
   return (
     <Card
       title={titleNode}
@@ -289,19 +259,6 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
               {t('auth_files.view_mode_all')}
             </Button>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            className={styles.refreshAllButton}
-            onClick={handleRefresh}
-            disabled={disabled || isRefreshing}
-            loading={isRefreshing}
-            title={t('quota_management.refresh_all_credentials')}
-            aria-label={t('quota_management.refresh_all_credentials')}
-          >
-            {!isRefreshing && <IconRefreshCw size={16} />}
-            {t('quota_management.refresh_all_credentials')}
-          </Button>
         </div>
       }
     >

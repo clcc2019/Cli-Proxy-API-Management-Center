@@ -130,7 +130,9 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
           force: forceUsage,
           staleTimeMs: USAGE_STATS_STALE_TIME_MS
         }),
-        authFresh ? Promise.resolve(null) : authFilesApi.list().catch(() => null)
+        authFresh
+          ? Promise.resolve(null)
+          : authFilesApi.list({ codexSubscription: 'skip', summary: true }).catch(() => null)
       ]);
 
       if (authFilesResponse !== null) {

@@ -60,7 +60,7 @@ export function QuotaPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await authFilesApi.list({ codexSubscription });
+        const data = await authFilesApi.list({ codexSubscription, summary: true });
         setFiles(data?.files || []);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');

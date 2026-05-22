@@ -104,7 +104,7 @@ export function useRequestEventRows({
   useEffect(() => {
     let cancelled = false;
     authFilesApi
-      .list()
+      .list({ codexSubscription: 'skip', summary: true })
       .then((res) => {
         if (cancelled) return;
         const files = Array.isArray(res)

@@ -9,6 +9,7 @@ export const USAGE_STATS_STALE_TIME_MS = 240_000;
 export type LoadUsageStatsOptions = {
   force?: boolean;
   staleTimeMs?: number;
+  summaryOnly?: boolean;
 };
 
 type UsageStatsSnapshot = Record<string, unknown>;
@@ -35,6 +36,7 @@ type UsageStatsState = {
   usage: UsageStatsSnapshot | null;
   keyStats: KeyStats;
   usageDetails: UsageDetail[];
+  usageMode: 'summary' | 'details';
   loading: boolean;
   error: string | null;
   lastRefreshedAt: number | null;
@@ -46,7 +48,12 @@ type UsageStatsState = {
 const createEmptyKeyStats = (): KeyStats => ({ bySource: {}, byAuthIndex: {} });
 
 let usageRequestToken = 0;
-let inFlightUsageRequest: { id: number; scopeKey: string; promise: Promise<void> } | null = null;
+let inFlightUsageRequest: {
+  id: number;
+  scopeKey: string;
+  mode: 'summary' | 'details';
+  promise: Promise<void>;
+} | null = null;
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error
@@ -59,6 +66,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
   usage: null,
   keyStats: createEmptyKeyStats(),
   usageDetails: [],
+  usageMode: 'summary',
   loading: false,
   error: null,
   lastRefreshedAt: null,
@@ -67,13 +75,19 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
   loadUsageStats: async (options = {}) => {
     const force = options.force === true;
     const staleTimeMs = options.staleTimeMs ?? USAGE_STATS_STALE_TIME_MS;
+    const requestMode = options.summaryOnly === true ? 'summary' : 'details';
     const { apiBase = '', managementKey = '' } = useAuthStore.getState();
     const scopeKey = `${apiBase}::${managementKey}`;
     const state = get();
     const scopeChanged = state.scopeKey !== scopeKey;
 
     // 先复用同源 in-flight 请求，避免多个页面同时发起重复 usage/details。
-    if (inFlightUsageRequest && inFlightUsageRequest.scopeKey === scopeKey) {
+    if (
+      inFlightUsageRequest &&
+      inFlightUsageRequest.scopeKey === scopeKey &&
+      (inFlightUsageRequest.mode === requestMode ||
+        (requestMode === 'summary' && inFlightUsageRequest.mode === 'details'))
+    ) {
       await inFlightUsageRequest.promise;
       return;
     }
@@ -86,6 +100,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
 
     const fresh =
       !scopeChanged &&
+      (requestMode === 'summary' || state.usageMode === 'details') &&
       state.lastRefreshedAt !== null &&
       Date.now() - state.lastRefreshedAt < staleTimeMs;
 
@@ -98,6 +113,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
         usage: null,
         keyStats: createEmptyKeyStats(),
         usageDetails: [],
+        usageMode: 'summary',
         error: null,
         lastRefreshedAt: null,
         scopeKey
@@ -110,7 +126,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
     const requestPromise = (async () => {
       try {
         const [usageResponse, aggregatedResponse] = await Promise.all([
-          usageApi.getUsageDetails(),
+          requestMode === 'summary' ? usageApi.getUsage() : usageApi.getUsageDetails(),
           usageApi.getAggregatedUsage().catch(() => null)
         ]);
         const rawUsage = usageResponse?.usage ?? usageResponse;
@@ -127,11 +143,12 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
 
         if (requestId !== usageRequestToken) return;
 
-        const usageDetails = collectUsageDetails(usage);
+        const usageDetails = requestMode === 'summary' ? [] : collectUsageDetails(usage);
         set({
           usage,
           keyStats: computeKeyStats(usage),
           usageDetails,
+          usageMode: requestMode,
           loading: false,
           error: null,
           lastRefreshedAt: Date.now(),
@@ -153,7 +170,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
       }
     })();
 
-    inFlightUsageRequest = { id: requestId, scopeKey, promise: requestPromise };
+    inFlightUsageRequest = { id: requestId, scopeKey, mode: requestMode, promise: requestPromise };
     await requestPromise;
   },
 
@@ -164,6 +181,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
       usage: null,
       keyStats: createEmptyKeyStats(),
       usageDetails: [],
+      usageMode: 'summary',
       loading: false,
       error: null,
       lastRefreshedAt: null,

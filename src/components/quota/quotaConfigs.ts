@@ -482,7 +482,7 @@ const fetchCodexQuota = async (
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   const planTypeFromFile = resolveCodexPlanType(file);
-  const payload = await authFilesApi.getCodexUsage(file.name, authIndex ?? undefined);
+  const payload = await authFilesApi.getCodexUsage(file.name, authIndex ?? undefined, 'refresh');
   if (!payload) {
     throw new Error(t('codex_quota.empty_windows'));
   }

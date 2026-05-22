@@ -218,6 +218,11 @@ export default defineConfig(({ mode }) => {
         ? {
             assetsInlineLimit: 100000000,
             chunkSizeWarningLimit: 100000000,
+            rolldownOptions: {
+              output: {
+                codeSplitting: false,
+              },
+            },
           }
         : {
             chunkSizeWarningLimit: 900,

@@ -77,6 +77,27 @@ export interface AuthFileItem {
   chatgptPlanType?: string;
   has_refresh_token?: boolean;
   hasRefreshToken?: boolean;
+  success?: number | string;
+  failed?: number | string;
+  failure?: number | string;
+  success_count?: number | string;
+  successCount?: number | string;
+  failed_count?: number | string;
+  failedCount?: number | string;
+  failure_count?: number | string;
+  failureCount?: number | string;
+  recent_requests?: Array<{
+    time?: string;
+    success?: number | string;
+    failed?: number | string;
+    failure?: number | string;
+  }>;
+  recentRequests?: Array<{
+    time?: string;
+    success?: number | string;
+    failed?: number | string;
+    failure?: number | string;
+  }>;
   [key: string]: unknown;
 }
 

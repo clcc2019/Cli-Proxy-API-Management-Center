@@ -1,38 +1,36 @@
 import { Suspense, lazy, useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DeferredRender } from '@/components/common/DeferredRender';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { IconChartLine } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useConfigStore, useThemeStore } from '@/stores';
-import {
-  ApiDetailsCard,
-  UsageAnalysisSection,
-  ChartLineSelector,
-  CredentialStatsCard,
-  DeferredUsageCard,
-  ModelStatsCard,
-  PriceSettingsCard,
-  StatCards,
-  UsagePageHero,
-  UsageSectionIntro,
-  useUsageAggregateChartData,
-  useUsageAggregateData,
-  useUsageAggregateSparklines,
-  useUsageViewState,
-} from '@/components/usage';
-import {
-  getAggregateApiStats,
-  getAggregateModelNames,
-  getAggregateModelStats,
-  getAggregateWindowModelNames,
-} from '@/utils/usageAggregate';
+import { ChartLineSelector } from '@/components/usage/ChartLineSelector';
+import { DeferredUsageCard } from '@/components/usage/DeferredUsageCard';
+import { StatCards } from '@/components/usage/StatCards';
+import { UsageAnalysisSection } from '@/components/usage/UsageAnalysisSection';
+import { UsagePageHero } from '@/components/usage/UsagePageHero';
+import { UsageSectionIntro } from '@/components/usage/UsageSectionIntro';
+import { useUsageAggregateChartData } from '@/components/usage/hooks/useUsageAggregateChartData';
+import { useUsageAggregateData } from '@/components/usage/hooks/useUsageAggregateData';
+import { useUsageAggregateSparklines } from '@/components/usage/hooks/useUsageAggregateSparklines';
+import { useUsageViewState } from '@/components/usage/hooks/useUsageViewState';
+import { getAggregateWindowModelNames } from '@/utils/usageAggregate';
 import styles from './UsagePage.module.scss';
 
-const EMPTY_LIST: readonly never[] = Object.freeze([]);
+const EMPTY_CHART_LINES: string[] = [];
 
 const LazyUsageChart = lazy(async () => ({
   default: (await import('@/components/usage/UsageChart')).UsageChart,
+}));
+
+const LazyUsageDetailsSection = lazy(async () => ({
+  default: (await import('@/components/usage/UsageDetailsSection')).UsageDetailsSection,
+}));
+
+const LazyUsageSupportSection = lazy(async () => ({
+  default: (await import('@/components/usage/UsageSupportSection')).UsageSupportSection,
 }));
 
 const buildTrendChartFallback = (requestTitle: string, tokenTitle: string, caption: string) => (
@@ -40,6 +38,22 @@ const buildTrendChartFallback = (requestTitle: string, tokenTitle: string, capti
     <DeferredUsageCard title={requestTitle} caption={caption} />
     <DeferredUsageCard title={tokenTitle} caption={caption} />
   </>
+);
+
+const buildDetailsFallback = (apiTitle: string, modelTitle: string, caption: string) => (
+  <section className={styles.section}>
+    <div className={styles.detailsGrid}>
+      <DeferredUsageCard title={apiTitle} caption={caption} />
+      <DeferredUsageCard title={modelTitle} caption={caption} />
+    </div>
+  </section>
+);
+
+const buildSupportFallback = (credentialTitle: string, pricingTitle: string, caption: string) => (
+  <div className={styles.supportStack}>
+    <DeferredUsageCard title={credentialTitle} caption={caption} />
+    <DeferredUsageCard title={pricingTitle} caption={caption} />
+  </div>
 );
 
 export function UsagePage() {
@@ -89,11 +103,12 @@ export function UsagePage() {
   );
   const deferredWindow = useDeferredValue(selectedWindow);
 
-  const allModelNames = useMemo(() => getAggregateModelNames(usage), [usage]);
   const visibleModelNames = useMemo(
     () => getAggregateWindowModelNames(deferredWindow),
     [deferredWindow]
   );
+  const trendWindow = trendsCollapsed ? null : deferredWindow;
+  const trendChartLines = trendsCollapsed ? EMPTY_CHART_LINES : deferredChartLines;
 
   const { requestsSparkline, tokensSparkline, rpmSparkline, tpmSparkline, costSparkline } =
     useUsageAggregateSparklines({ window: deferredWindow, loading });
@@ -108,24 +123,14 @@ export function UsagePage() {
     tokensChartOptions,
     tokensPeriod,
   } = useUsageAggregateChartData({
-    window: deferredWindow,
-    chartLines: deferredChartLines,
+    window: trendWindow,
+    chartLines: trendChartLines,
     isDark,
     isMobile,
     preferredPeriod: preferredChartPeriod,
     allModelsLabel: t('usage_stats.chart_line_all'),
   });
 
-  const apiStats = useMemo(
-    () => getAggregateApiStats(deferredWindow, modelPrices),
-    [deferredWindow, modelPrices]
-  );
-  const modelStats = useMemo(
-    () => getAggregateModelStats(deferredWindow, modelPrices),
-    [deferredWindow, modelPrices]
-  );
-
-  const hasPrices = Object.keys(modelPrices).length > 0;
   const showComparePanel = visibleModelNames.length > 1;
   const trendRequestsTitle = t('usage_stats.requests_trend');
   const trendTokensTitle = t('usage_stats.tokens_trend');
@@ -273,38 +278,56 @@ export function UsagePage() {
         />
       </div>
 
-      <section id="usage-models" className={styles.section}>
-        <UsageSectionIntro
-          title={t('usage_stats.details_title')}
-          description={t('usage_stats.details_desc')}
-        />
-        <div className={styles.detailsGrid}>
-          <ApiDetailsCard apiStats={apiStats} loading={loading} hasPrices={hasPrices} />
-          <ModelStatsCard modelStats={modelStats} loading={loading} hasPrices={hasPrices} />
-        </div>
-      </section>
-
-      <div className={styles.supportStack}>
-        <div id="usage-health" className={styles.anchorBlock}>
-          <CredentialStatsCard
-            credentials={deferredWindow?.credentials ?? (EMPTY_LIST as never[])}
+      <DeferredRender
+        minHeight={420}
+        rootMargin="160px 0px"
+        placeholder={buildDetailsFallback(
+          t('usage_stats.api_details'),
+          t('usage_stats.models'),
+          deferredChartCaption
+        )}
+      >
+        <Suspense
+          fallback={buildDetailsFallback(
+            t('usage_stats.api_details'),
+            t('usage_stats.models'),
+            deferredChartCaption
+          )}
+        >
+          <LazyUsageDetailsSection
+            window={deferredWindow}
             loading={loading}
-            geminiKeys={config?.geminiApiKeys ?? (EMPTY_LIST as never[])}
-            claudeConfigs={config?.claudeApiKeys ?? (EMPTY_LIST as never[])}
-            codexConfigs={config?.codexApiKeys ?? (EMPTY_LIST as never[])}
-            vertexConfigs={config?.vertexApiKeys ?? (EMPTY_LIST as never[])}
-            openaiProviders={config?.openaiCompatibility ?? (EMPTY_LIST as never[])}
+            modelPrices={modelPrices}
           />
-        </div>
+        </Suspense>
+      </DeferredRender>
 
-        <div id="usage-pricing" className={styles.anchorBlock}>
-          <PriceSettingsCard
-            modelNames={allModelNames}
+      <DeferredRender
+        minHeight={420}
+        rootMargin="160px 0px"
+        placeholder={buildSupportFallback(
+          t('usage_stats.credential_stats'),
+          t('usage_stats.model_price_settings'),
+          deferredChartCaption
+        )}
+      >
+        <Suspense
+          fallback={buildSupportFallback(
+            t('usage_stats.credential_stats'),
+            t('usage_stats.model_price_settings'),
+            deferredChartCaption
+          )}
+        >
+          <LazyUsageSupportSection
+            usage={usage}
+            window={deferredWindow}
+            loading={loading}
+            config={config}
             modelPrices={modelPrices}
             onPricesChange={setModelPrices}
           />
-        </div>
-      </div>
+        </Suspense>
+      </DeferredRender>
     </main>
   );
 }

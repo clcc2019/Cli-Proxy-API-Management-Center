@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/Card';
 import {
   buildCandidateUsageSourceIds,
   formatCompactNumber,
-  normalizeAuthIndex
+  normalizeAuthIndex,
 } from '@/utils/usage';
 import { normalizeAggregateCredentialKey } from '@/utils/usageAggregate';
 import { authFilesApi } from '@/services/api/authFiles';
@@ -55,9 +55,14 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
 
   // Fetch auth files for auth_index-based matching
   useEffect(() => {
+    if (loading || credentials.length === 0) {
+      setAuthFileMap((current) => (current.size > 0 ? new Map() : current));
+      return;
+    }
+
     let cancelled = false;
     authFilesApi
-      .list()
+      .list({ codexSubscription: 'skip', summary: true })
       .then((res) => {
         if (cancelled) return;
         const files = Array.isArray(res) ? res : (res as { files?: AuthFileItem[] })?.files;
@@ -79,7 +84,7 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [credentials.length, loading]);
 
   // Aggregate rows: all from bySource only (no separate byAuthIndex rows to avoid duplicates).
   // Auth files are used purely for name resolution of unmatched source IDs.
@@ -105,7 +110,7 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
         const fallback = fallbackByAuthIndex.get(authIdx) ?? {
           success: 0,
           failure: 0,
-          totalTokens: 0
+          totalTokens: 0,
         };
         fallback.success += successCount;
         fallback.failure += failureCount;
@@ -304,7 +309,15 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     });
 
     return result.sort((a, b) => b.totalTokens - a.totalTokens || b.total - a.total);
-  }, [credentials, geminiKeys, claudeConfigs, codexConfigs, vertexConfigs, openaiProviders, authFileMap]);
+  }, [
+    credentials,
+    geminiKeys,
+    claudeConfigs,
+    codexConfigs,
+    vertexConfigs,
+    openaiProviders,
+    authFileMap,
+  ]);
 
   return (
     <Card title={t('usage_stats.credential_stats')} className={styles.detailsFixedCard}>

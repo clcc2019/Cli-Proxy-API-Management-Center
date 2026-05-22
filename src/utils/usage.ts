@@ -2641,6 +2641,71 @@ export function computeKeyStatsFromDetails(usageDetails: UsageDetail[]): KeyStat
   return { bySource, byAuthIndex };
 }
 
+export function computeKeyUsageStats(
+  usageData: unknown,
+  usageDetails: UsageDetail[],
+  modelPrices: Record<string, ModelPrice>
+): KeyUsageStats {
+  if (usageDetails.length > 0) {
+    return computeKeyUsageStatsFromDetails(usageDetails, modelPrices);
+  }
+
+  const aggregatedWindow = getSelectedAggregatedWindow(usageData);
+  if (!aggregatedWindow || !Array.isArray(aggregatedWindow.credentials)) {
+    return computeKeyUsageStatsFromDetails([], modelPrices);
+  }
+
+  const bySource: Record<string, KeyUsageBucket> = {};
+  const byAuthIndex: Record<string, KeyUsageBucket> = {};
+
+  const ensureBucket = (bucket: Record<string, KeyUsageBucket>, key: string) => {
+    if (!bucket[key]) {
+      bucket[key] = {
+        success: 0,
+        failure: 0,
+        totalTokens: 0,
+        totalCost: 0,
+        pricedRequests: 0,
+      };
+    }
+    return bucket[key];
+  };
+
+  aggregatedWindow.credentials.forEach((item) => {
+    if (!isRecord(item)) return;
+
+    const source = normalizeUsageSourceId(item.source);
+    const authIndexKey = normalizeAuthIndex(item.auth_index);
+    const success =
+      typeof item.success_count === 'number' && Number.isFinite(item.success_count)
+        ? item.success_count
+        : 0;
+    const failure =
+      typeof item.failure_count === 'number' && Number.isFinite(item.failure_count)
+        ? item.failure_count
+        : 0;
+    const totalTokens =
+      typeof item.total_tokens === 'number' && Number.isFinite(item.total_tokens)
+        ? item.total_tokens
+        : 0;
+
+    const apply = (bucket: KeyUsageBucket) => {
+      bucket.success += success;
+      bucket.failure += failure;
+      bucket.totalTokens += totalTokens;
+    };
+
+    if (source) {
+      apply(ensureBucket(bySource, source));
+    }
+    if (authIndexKey) {
+      apply(ensureBucket(byAuthIndex, authIndexKey));
+    }
+  });
+
+  return { bySource, byAuthIndex };
+}
+
 export function computeKeyUsageStatsFromDetails(
   usageDetails: UsageDetail[],
   modelPrices: Record<string, ModelPrice>

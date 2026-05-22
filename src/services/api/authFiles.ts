@@ -2,7 +2,7 @@
  * 认证文件与 OAuth 排除模型相关 API
  */
 
-import { apiClient } from './client';
+import { apiClient, type ApiRequestConfig } from './client';
 import type { AuthFilesResponse } from '@/types/authFile';
 import type { CodexUsagePayload, KiroUsageResponse, OAuthModelAliasEntry } from '@/types';
 
@@ -61,6 +61,7 @@ type PatchAuthFileFieldsResponse = {
 export type AuthFilesListCodexSubscriptionMode = 'cache' | 'refresh' | 'skip';
 export type AuthFilesListOptions = {
   codexSubscription?: AuthFilesListCodexSubscriptionMode;
+  summary?: boolean;
   page?: number;
   pageSize?: number;
   search?: string;
@@ -68,9 +69,14 @@ export type AuthFilesListOptions = {
   sort?: string;
   problemOnly?: boolean;
   disabledOnly?: boolean;
+  premiumOnly?: boolean;
 };
 
 export const AUTH_FILE_INVALID_JSON_OBJECT_ERROR = 'AUTH_FILE_INVALID_JSON_OBJECT';
+
+const AUTH_FILE_CREDENTIAL_REQUEST_CONFIG: ApiRequestConfig = {
+  skipUnauthorizedLogout: true,
+};
 
 const getStatusCode = (err: unknown): number | undefined => {
   if (!err || typeof err !== 'object') return undefined;
@@ -78,6 +84,64 @@ const getStatusCode = (err: unknown): number | undefined => {
   return undefined;
 };
 
+const readErrorResponseData = (err: unknown): unknown => {
+  if (!err || typeof err !== 'object') return undefined;
+  const record = err as { data?: unknown; details?: unknown };
+  return record.data ?? record.details;
+};
+
+const isRecordValue = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+const readNestedUsageErrorMessage = (value: unknown): string | null => {
+  if (typeof value === 'string') {
+    const jsonStart = value.indexOf('{');
+    if (jsonStart >= 0) {
+      try {
+        const parsed = JSON.parse(value.slice(jsonStart));
+        return readNestedUsageErrorMessage(parsed) ?? value;
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  if (!isRecordValue(value)) return null;
+
+  const errorValue = value.error;
+  if (isRecordValue(errorValue) && typeof errorValue.message === 'string') {
+    return errorValue.message;
+  }
+  if (typeof errorValue === 'string') {
+    return readNestedUsageErrorMessage(errorValue);
+  }
+  if (typeof value.message === 'string') {
+    return value.message;
+  }
+
+  return null;
+};
+
+const readErrorMessage = (err: unknown): string | null => {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === 'string' && err) return err;
+  return null;
+};
+
+const createUsageRequestError = (err: unknown): Error => {
+  const status = getStatusCode(err);
+  if (!status) return err instanceof Error ? err : new Error(String(err));
+
+  const responseData = readErrorResponseData(err);
+  const message =
+    readNestedUsageErrorMessage(responseData) ?? readErrorMessage(err) ?? 'Request failed';
+  const wrapped = new Error(message) as Error & StatusError & { data?: unknown; details?: unknown };
+  wrapped.status = status;
+  wrapped.data = responseData;
+  wrapped.details = responseData;
+  return wrapped;
+};
 const normalizeRequestedAuthFileNames = (names: string[]): string[] => {
   const seen = new Set<string>();
   const normalized: string[] = [];
@@ -102,13 +166,7 @@ const basenameFromPath = (value: string): string => {
 };
 
 const deleteTargetAliases = (target: AuthFileDeleteTarget): string[] => {
-  const candidates = [
-    target.authIndex,
-    target.id,
-    target.path,
-    target.fileName,
-    target.name,
-  ];
+  const candidates = [target.authIndex, target.id, target.path, target.fileName, target.name];
   const pathBase = basenameFromPath(normalizeDeleteIdentifier(target.path));
   if (pathBase) {
     candidates.push(pathBase);
@@ -301,6 +359,24 @@ const hasMeaningfulValue = (value: unknown): boolean => {
   return true;
 };
 
+const readNumericCount = (value: unknown): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, value);
+  if (typeof value === 'string') {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed)) return Math.max(0, parsed);
+  }
+  return 0;
+};
+
+const recentRequestsTotal = (value: unknown): number => {
+  if (!Array.isArray(value)) return 0;
+  return value.reduce((total, item) => {
+    if (!item || typeof item !== 'object') return total;
+    const bucket = item as Record<string, unknown>;
+    return total + readNumericCount(bucket.success) + readNumericCount(bucket.failed ?? bucket.failure);
+  }, 0);
+};
+
 const countMeaningfulFields = (entry: AuthFileEntry): number =>
   Object.values(entry).reduce<number>(
     (count, value) => count + (hasMeaningfulValue(value) ? 1 : 0),
@@ -333,11 +409,22 @@ const compareAuthFileEntries = (left: AuthFileEntry, right: AuthFileEntry): numb
 const mergeAuthFileEntries = (entries: AuthFileEntry[]): AuthFileEntry => {
   const [primary, ...rest] = [...entries].sort(compareAuthFileEntries);
   const merged: AuthFileEntry = { ...primary };
+  const mergedRecord = merged as Record<string, unknown>;
 
   rest.forEach((entry) => {
     Object.entries(entry).forEach(([key, value]) => {
-      if (!hasMeaningfulValue(merged[key]) && hasMeaningfulValue(value)) {
-        merged[key] = value;
+      if (key === 'recent_requests' || key === 'recentRequests') {
+        const currentTotal = recentRequestsTotal(mergedRecord[key]);
+        const nextTotal = recentRequestsTotal(value);
+        if (nextTotal > currentTotal) {
+          mergedRecord[key] = value;
+          if (key === 'recent_requests') delete merged.recentRequests;
+          if (key === 'recentRequests') delete merged.recent_requests;
+        }
+        return;
+      }
+      if (!hasMeaningfulValue(mergedRecord[key]) && hasMeaningfulValue(value)) {
+        mergedRecord[key] = value;
       }
     });
   });
@@ -361,11 +448,13 @@ const dedupeAuthFilesResponse = (payload: AuthFilesResponse): AuthFilesResponse 
   });
 
   const normalizedFiles = Array.from(grouped.values()).map(mergeAuthFileEntries);
-  normalizedFiles.sort((left, right) =>
-    readTextField(left, 'name').localeCompare(readTextField(right, 'name'), undefined, {
-      sensitivity: 'accent',
-    })
-  );
+  if (typeof payload?.page_size !== 'number') {
+    normalizedFiles.sort((left, right) =>
+      readTextField(left, 'name').localeCompare(readTextField(right, 'name'), undefined, {
+        sensitivity: 'accent',
+      })
+    );
+  }
 
   return {
     ...payload,
@@ -378,6 +467,10 @@ const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
   const params: Record<string, string | number | boolean> = {
     codex_subscription: options.codexSubscription ?? 'cache',
   };
+
+  if (options.summary) {
+    params.summary = true;
+  }
 
   if (typeof options.page === 'number' && Number.isFinite(options.page) && options.page > 0) {
     params.page = Math.round(options.page);
@@ -397,6 +490,7 @@ const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
   if (sort) params.sort = sort;
   if (options.problemOnly) params.problem_only = true;
   if (options.disabledOnly) params.disabled_only = true;
+  if (options.premiumOnly) params.premium_only = true;
   return params;
 };
 
@@ -510,9 +604,10 @@ const normalizeOauthModelAlias = (payload: unknown): Record<string, OAuthModelAl
 const OAUTH_MODEL_ALIAS_ENDPOINT = '/oauth-model-alias';
 
 export const authFilesApi = {
-  list: async (options: AuthFilesListOptions = {}) =>
+  list: async (options: AuthFilesListOptions = {}, config?: ApiRequestConfig) =>
     dedupeAuthFilesResponse(
       await apiClient.get<AuthFilesResponse>('/auth-files', {
+        ...config,
         params: buildAuthFilesListParams(options),
       })
     ),
@@ -682,13 +777,16 @@ export const authFilesApi = {
     if (authIndex) {
       params.set('auth_index', authIndex);
     }
-    return apiClient.get<KiroUsageResponse>(`/auth-files/kiro-usage?${params.toString()}`);
+    return apiClient.get<KiroUsageResponse>(
+      `/auth-files/kiro-usage?${params.toString()}`,
+      AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
+    );
   },
 
-  getCodexUsage: (
+  getCodexUsage: async (
     name: string,
     authIndex?: string,
-    codexSubscription: AuthFilesListCodexSubscriptionMode = 'refresh'
+    codexSubscription: AuthFilesListCodexSubscriptionMode = 'cache'
   ) => {
     const params = new URLSearchParams();
     params.set('name', name);
@@ -696,7 +794,14 @@ export const authFilesApi = {
     if (authIndex) {
       params.set('auth_index', authIndex);
     }
-    return apiClient.get<CodexUsagePayload>(`/auth-files/codex-usage?${params.toString()}`);
+    try {
+      return await apiClient.get<CodexUsagePayload>(
+        `/auth-files/codex-usage?${params.toString()}`,
+        AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
+      );
+    } catch (err: unknown) {
+      throw createUsageRequestError(err);
+    }
   },
 
   // 获取指定 channel 的模型定义

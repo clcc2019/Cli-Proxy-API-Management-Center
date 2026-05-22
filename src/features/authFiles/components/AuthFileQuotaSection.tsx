@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Button } from '@/components/ui/Button';
-import { IconRefreshCw } from '@/components/ui/icons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useNotificationStore, useQuotaStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import {
@@ -14,16 +14,6 @@ import { getAuthFileQuotaConfig, refreshAuthFileQuota } from '@/features/authFil
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 type QuotaState = { status?: string; error?: string; errorStatus?: number } | undefined;
-type QuotaRecord = Record<string, unknown> & { status?: string };
-
-const hasRenderableQuotaItems = (quota: QuotaState): quota is QuotaRecord => {
-  if (!quota || typeof quota !== 'object') return false;
-
-  return ['windows', 'groups', 'buckets', 'rows'].some((key) => {
-    const value = (quota as Record<string, unknown>)[key];
-    return Array.isArray(value) && value.length > 0;
-  });
-};
 
 export type AuthFileQuotaSectionProps = {
   file: AuthFileItem;
@@ -90,30 +80,24 @@ export function AuthFileQuotaRefreshButton(props: AuthFileQuotaRefreshButtonProp
   const { className, iconClassName, iconSize = 14 } = props;
   const { canRefreshQuota, isQuotaRefreshing, refreshQuotaForFile, refreshLabel } =
     useAuthFileQuotaRefresh(props);
-  const [isClickSpinning, setIsClickSpinning] = useState(false);
-  const isSpinning = isQuotaRefreshing || isClickSpinning;
-  const buttonClassName = [className, isSpinning ? styles.quotaRefreshButtonSpinning : '']
+  const buttonClassName = [className, isQuotaRefreshing ? styles.quotaRefreshButtonSpinning : '']
     .filter(Boolean)
     .join(' ');
-  const refreshIconClassName = [
+  const refreshIconWrapperClassName = [
+    styles.quotaRefreshIcon,
+    isQuotaRefreshing ? styles.quotaRefreshIconSpinning : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const refreshSpinnerClassName = [
+    styles.quotaButtonSpinner,
+    isQuotaRefreshing ? styles.quotaButtonSpinnerSpinning : '',
     iconClassName,
-    isSpinning ? styles.quotaRefreshIconSvgSpinning : '',
   ]
     .filter(Boolean)
     .join(' ');
 
-  useEffect(() => {
-    if (!isClickSpinning || isQuotaRefreshing) return undefined;
-
-    const timer = window.setTimeout(() => {
-      setIsClickSpinning(false);
-    }, 700);
-
-    return () => window.clearTimeout(timer);
-  }, [isClickSpinning, isQuotaRefreshing]);
-
   const handleRefreshClick = useCallback(() => {
-    setIsClickSpinning(true);
     void refreshQuotaForFile();
   }, [refreshQuotaForFile]);
 
@@ -122,14 +106,14 @@ export function AuthFileQuotaRefreshButton(props: AuthFileQuotaRefreshButtonProp
       variant="secondary"
       size="sm"
       onClick={handleRefreshClick}
-      disabled={!canRefreshQuota}
+      disabled={!canRefreshQuota || isQuotaRefreshing}
       className={buttonClassName}
       title={refreshLabel}
       aria-label={refreshLabel}
-      aria-busy={isSpinning}
+      aria-busy={isQuotaRefreshing}
     >
-      <span className={styles.quotaRefreshIcon}>
-        <IconRefreshCw className={refreshIconClassName} size={iconSize} />
+      <span className={refreshIconWrapperClassName}>
+        <span className={refreshSpinnerClassName} style={{ width: iconSize, height: iconSize }} aria-hidden="true" />
       </span>
     </Button>
   );
@@ -149,18 +133,17 @@ export function AuthFileQuotaSection(props: AuthFileQuotaSectionProps) {
     quota?.errorStatus,
     quota?.error || t('common.unknown_error')
   );
-  const showCachedQuotaWhileLoading = quotaStatus === 'loading' && hasRenderableQuotaItems(quota);
-
   return (
     <div className={styles.quotaSection}>
       <div className={styles.quotaSectionHeader}>
         <span className={styles.quotaSectionTitle}>{t(`${config.i18nPrefix}.title`)}</span>
       </div>
       <div className={styles.quotaContent}>
-        {showCachedQuotaWhileLoading ? (
-          (config.renderQuotaItems(quota, t, { styles, QuotaProgressBar, item: file }) as ReactNode)
-        ) : quotaStatus === 'loading' ? (
-          null
+        {quotaStatus === 'loading' ? (
+          <div className={styles.quotaLoadingState} aria-live="polite">
+            <LoadingSpinner size={16} />
+            <span>{t(`${config.i18nPrefix}.loading`)}</span>
+          </div>
         ) : quotaStatus === 'idle' ? (
           <button
             type="button"

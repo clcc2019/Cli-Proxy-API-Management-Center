@@ -139,7 +139,7 @@ export const SearchToolbar = memo(function SearchToolbar({
   const [pageSizeOpen, setPageSizeOpen] = useState(false);
   const [pageSizeDraft, setPageSizeDraft] = useState(String(pageSize));
 
-  // Keep the draft in sync if pageSize is updated externally (e.g. compact toggle)
+  // Keep the draft in sync if pageSize is updated externally.
   useEffect(() => {
     setPageSizeDraft(String(pageSize));
   }, [pageSize]);

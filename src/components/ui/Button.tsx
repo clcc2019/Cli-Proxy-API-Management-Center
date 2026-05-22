@@ -12,6 +12,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({
   children,
+  type = 'button',
   variant = 'primary',
   size = 'md',
   fullWidth = false,
@@ -26,13 +27,13 @@ export function Button({
     `btn-${variant}`,
     size === 'sm' ? 'btn-sm' : '',
     fullWidth ? 'btn-full' : '',
-    className
+    className,
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <button className={classes} disabled={disabled || loading} {...rest}>
+    <button type={type} className={classes} disabled={disabled || loading} {...rest}>
       {loading && <span className="loading-spinner" aria-hidden="true" />}
       {hasChildren && <span>{children}</span>}
     </button>

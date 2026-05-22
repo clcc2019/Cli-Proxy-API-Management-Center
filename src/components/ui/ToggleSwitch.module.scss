@@ -70,11 +70,13 @@
     padding: 0 8px 0 25px;
   }
 
+  // labelInside 模式下，thumb 改用 transform 切换（保留 left 锚定，关闭 right 控制）
+  // 避免 left/right 触发布局变更，纯走合成器
   .thumb {
-    transition:
-      left $transition-fast,
-      right $transition-fast,
-      transform $transition-fast;
+    left: 3px;
+    right: auto;
+    transition: transform $transition-fast;
+    will-change: transform;
   }
 
   input:checked + .track {
@@ -83,9 +85,9 @@
   }
 
   input:checked + .track .thumb {
-    left: auto;
-    right: 3px;
-    transform: none;
+    // 子组件不知道 track 实际宽度，由外层 (cardToggleSwitch 等) 用变量驱动；
+    // 这里给一个合理默认：在 50px 内的 track 中位移 22px
+    transform: translate3d(var(--toggle-thumb-shift, 22px), 0, 0);
   }
 }
 

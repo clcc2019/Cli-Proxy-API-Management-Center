@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { USAGE_STATS_STALE_TIME_MS, useUsageStatsStore } from '@/stores';
 import {
-  computeKeyUsageStatsFromDetails,
+  computeKeyUsageStats,
   loadModelPrices,
   type KeyStats,
   type KeyUsageStats,
@@ -21,6 +21,7 @@ const createEmptyKeyUsageStats = (): KeyUsageStats => ({ bySource: {}, byAuthInd
 
 export function useAuthFilesStats(): UseAuthFilesStatsResult {
   const keyStats = useUsageStatsStore((state) => state.keyStats);
+  const usage = useUsageStatsStore((state) => state.usage);
   const usageDetails = useUsageStatsStore((state) => state.usageDetails);
   const loadUsageStats = useUsageStatsStore((state) => state.loadUsageStats);
   const [modelPrices, setModelPrices] = useState<Record<string, ModelPrice>>(() => loadModelPrices());
@@ -39,18 +40,18 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
   }, []);
 
   const keyUsageStats = useMemo(() => {
-    if (!usageDetails.length) {
+    if (!usage && !usageDetails.length) {
       return createEmptyKeyUsageStats();
     }
-    return computeKeyUsageStatsFromDetails(usageDetails, modelPrices);
-  }, [modelPrices, usageDetails]);
+    return computeKeyUsageStats(usage, usageDetails, modelPrices);
+  }, [modelPrices, usage, usageDetails]);
 
   const loadKeyStats = useCallback(async () => {
-    await loadUsageStats({ staleTimeMs: USAGE_STATS_STALE_TIME_MS });
+    await loadUsageStats({ summaryOnly: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS });
   }, [loadUsageStats]);
 
   const refreshKeyStats = useCallback(async () => {
-    await loadUsageStats({ force: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS });
+    await loadUsageStats({ force: true, summaryOnly: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS });
   }, [loadUsageStats]);
 
   return { keyStats, keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats };

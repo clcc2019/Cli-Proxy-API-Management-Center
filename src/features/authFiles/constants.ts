@@ -12,6 +12,10 @@ import iconQwen from '@/assets/icons/qwen.svg';
 import iconVertex from '@/assets/icons/vertex.svg';
 import type { AuthFileItem } from '@/types';
 import {
+  hasAuthFileRequestStats,
+  readAuthFileRequestStats,
+} from '@/features/authFiles/stats';
+import {
   normalizeAuthIndex,
   normalizeUsageSourceId,
   type KeyStatBucket,
@@ -51,74 +55,75 @@ export const TRUTHY_TEXT_VALUES = new Set(['true', '1', 'yes', 'y', 'on']);
 export const FALSY_TEXT_VALUES = new Set(['false', '0', 'no', 'n', 'off']);
 
 // 标签类型颜色配置 — 基于各提供商 Logo 品牌色调配，确保彼此不重复
+// 优化策略：light 用更柔的"奶油色"底 + 高对比文字；dark 用低饱和度深色底 + 明亮品牌色文字
 export const TYPE_COLORS: Record<string, TypeColorSet> = {
   // Qwen logo: 紫罗兰渐变 #6336E7 → #6F69F7
   qwen: {
-    light: { bg: '#ede5fd', text: '#5530c7' },
-    dark: { bg: '#36208a', text: '#b5a3f0' },
+    light: { bg: '#f1ebfe', text: '#5b2bd6' },
+    dark: { bg: '#2c1c6e', text: '#c4b0ff' },
   },
   // Kimi logo: 亮蓝 #027AFF（K字 + 蓝色圆点）
   kimi: {
-    light: { bg: '#dce8ff', text: '#0560cf' },
-    dark: { bg: '#003880', text: '#70b5ff' },
+    light: { bg: '#e2ecff', text: '#1057c9' },
+    dark: { bg: '#0d2f6b', text: '#85c0ff' },
   },
   // Gemini logo: 多色蓝 #3186FF（偏柔和的蓝）
   gemini: {
-    light: { bg: '#e3f2fd', text: '#1565c0' },
-    dark: { bg: '#0d47a1', text: '#64b5f6' },
+    light: { bg: '#e7f1fc', text: '#1769b0' },
+    dark: { bg: '#0e3d7a', text: '#7cc1f7' },
   },
   // Gemini-CLI: 同 Gemini 图标，用更深的海军蓝区分
   'gemini-cli': {
-    light: { bg: '#e0e8ff', text: '#1e4fa3' },
-    dark: { bg: '#1c3f73', text: '#a8c7ff' },
+    light: { bg: '#e6edff', text: '#1f4b97' },
+    dark: { bg: '#1a3a66', text: '#b4c8ff' },
   },
   // AI Studio: 使用 Gemini 图标，中性灰标签
   aistudio: {
-    light: { bg: '#f0f2f5', text: '#2f343c' },
-    dark: { bg: '#373c42', text: '#cfd3db' },
+    light: { bg: '#eef0f3', text: '#3a4049' },
+    dark: { bg: '#363b42', text: '#d6dae0' },
   },
   // Claude logo: 陶土橙 #D97757
   claude: {
-    light: { bg: '#fbece4', text: '#c05621' },
-    dark: { bg: '#5e2c14', text: '#e8a882' },
+    light: { bg: '#fbeadf', text: '#b8521e' },
+    dark: { bg: '#522411', text: '#f0b48f' },
   },
   // Codex logo: 靛蓝渐变 #B1A7FF → #3941FF
   codex: {
-    light: { bg: '#eae7ff', text: '#3538d4' },
-    dark: { bg: '#262395', text: '#b5b0ff' },
+    light: { bg: '#ece9ff', text: '#3c3fcc' },
+    dark: { bg: '#231f7c', text: '#beb8ff' },
   },
   // Antigravity logo: 多色（主色 #3789F9 蓝 + #53A89A 青绿），用青色区分
   antigravity: {
-    light: { bg: '#e0f7fa', text: '#006064' },
-    dark: { bg: '#004d40', text: '#80deea' },
+    light: { bg: '#dff4f7', text: '#0a6a72' },
+    dark: { bg: '#0d3f44', text: '#8de2eb' },
   },
-  // iFlow logo: 品红紫渐变 #5C5CFF → #AE5CFF，偏品红以区别于 Qwen 的紫罗兰
+  // iFlow logo: 品红紫渐变 #5C5CFF → #AE5CFF
   iflow: {
-    light: { bg: '#f5e3fc', text: '#9025c8' },
-    dark: { bg: '#521490', text: '#d49cf5' },
+    light: { bg: '#f6e6fc', text: '#8a23c0' },
+    dark: { bg: '#451176', text: '#dca8f5' },
   },
   // Kiro / Amazon Q: AWS 深蓝底 + 橙色强调
   kiro: {
-    light: { bg: '#fff3dc', text: '#9a5a00' },
-    dark: { bg: '#3a2a12', text: '#ffbd5a' },
+    light: { bg: '#fff0d6', text: '#915400' },
+    dark: { bg: '#352510', text: '#ffc26a' },
   },
-  // xAI / Grok: 黑白品牌，使用偏中性的石墨色标签
+  // xAI / Grok: 黑白品牌
   xai: {
-    light: { bg: '#e7edf3', text: '#27313d' },
-    dark: { bg: '#222a34', text: '#cbd5e1' },
+    light: { bg: '#e9edf2', text: '#2b3540' },
+    dark: { bg: '#252d38', text: '#d2dae3' },
   },
   // Vertex logo: Google 蓝 #4285F4
   vertex: {
-    light: { bg: '#e4edfd', text: '#2b5fbc' },
-    dark: { bg: '#1a3d80', text: '#89b3f7' },
+    light: { bg: '#e4edfc', text: '#2c5db5' },
+    dark: { bg: '#173873', text: '#92b8f9' },
   },
   empty: {
-    light: { bg: '#f5f5f5', text: '#616161' },
-    dark: { bg: '#424242', text: '#bdbdbd' },
+    light: { bg: '#f3f4f6', text: '#5b6573' },
+    dark: { bg: '#3a3f47', text: '#c2c8d1' },
   },
   unknown: {
-    light: { bg: '#f0f0f0', text: '#666666', border: '1px dashed #999999' },
-    dark: { bg: '#3a3a3a', text: '#aaaaaa', border: '1px dashed #666666' },
+    light: { bg: '#f3f4f6', text: '#646b76', border: '1px dashed #b4bac3' },
+    dark: { bg: '#363a42', text: '#a8aeb8', border: '1px dashed #5e6470' },
   },
 };
 
@@ -276,7 +281,10 @@ const resolveAuthFileBucket = <T extends AuthFileMatchedBucket>(
 
   // 尝试根据 authIndex 匹配
   if (authIndexKey && stats.byAuthIndex?.[authIndexKey]) {
-    return stats.byAuthIndex[authIndexKey];
+    const fromAuthIndex = stats.byAuthIndex[authIndexKey];
+    if (hasMatchData(fromAuthIndex)) {
+      return fromAuthIndex;
+    }
   }
 
   // 尝试根据 source (文件名) 匹配
@@ -304,14 +312,20 @@ const resolveAuthFileBucket = <T extends AuthFileMatchedBucket>(
 };
 
 export function resolveAuthFileStats(file: AuthFileItem, stats: KeyStats): KeyStatBucket {
-  return resolveAuthFileBucket(file, stats, { success: 0, failure: 0 });
+  const matched = resolveAuthFileBucket(file, stats, { success: 0, failure: 0 });
+  if (hasAuthFileMatchData(matched)) {
+    return matched;
+  }
+
+  const listStats = readAuthFileRequestStats(file);
+  return hasAuthFileRequestStats(listStats) ? listStats : matched;
 }
 
 export function resolveAuthFileUsageStats(
   file: AuthFileItem,
   stats: KeyUsageStats
 ): KeyUsageBucket {
-  return resolveAuthFileBucket(
+  const matched = resolveAuthFileBucket(
     file,
     stats,
     {
@@ -328,6 +342,21 @@ export function resolveAuthFileUsageStats(
       bucket.totalCost > 0 ||
       bucket.pricedRequests > 0
   );
+
+  if (
+    matched.success > 0 ||
+    matched.failure > 0 ||
+    matched.totalTokens > 0 ||
+    matched.totalCost > 0 ||
+    matched.pricedRequests > 0
+  ) {
+    return matched;
+  }
+
+  const listStats = readAuthFileRequestStats(file);
+  return hasAuthFileRequestStats(listStats)
+    ? { ...matched, success: listStats.success, failure: listStats.failure }
+    : matched;
 }
 
 export const formatAuthFileDate = (raw: unknown): string => {

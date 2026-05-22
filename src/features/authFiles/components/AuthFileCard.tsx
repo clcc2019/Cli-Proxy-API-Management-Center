@@ -15,7 +15,6 @@ import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconCheck,
-  IconCopy,
   IconDatabase,
   IconDownload,
   IconDollarSign,
@@ -30,16 +29,13 @@ import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
 import { resolveAuthProvider } from '@/utils/quota';
 import {
-  calculateStatusBarData,
   formatMillionTokens,
   formatUsd,
-  normalizeAuthIndex,
-  type KeyStats,
-  type KeyUsageStats,
+  type KeyStatBucket,
+  type KeyUsageBucket,
 } from '@/utils/usage';
 import {
   QUOTA_PROVIDER_TYPES,
-  formatLastRefresh,
   getAuthFileIcon,
   getAuthFileStatusMessage,
   getTypeColor,
@@ -47,8 +43,6 @@ import {
   isRuntimeOnlyAuthFile,
   parsePriorityValue,
   readAuthFileWebsockets,
-  resolveAuthFileStats,
-  resolveAuthFileUsageStats,
   type QuotaProviderType,
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
@@ -94,7 +88,6 @@ const maskAuthFileDisplayName = (value: string): string => {
 
 export type AuthFileCardProps = {
   file: AuthFileItem;
-  compact: boolean;
   selected: boolean;
   resolvedTheme: ResolvedTheme;
   disableControls: boolean;
@@ -103,9 +96,11 @@ export type AuthFileCardProps = {
   accessTokenCopying: boolean;
   priorityUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
-  keyStats: KeyStats;
-  keyUsageStats: KeyUsageStats;
-  statusBarCache: Map<string, AuthFileStatusBarData>;
+  // 由父组件预计算并按文件名缓存，stats 不变时引用稳定，避免列表大规模重渲染
+  fileStats: KeyStatBucket;
+  fileUsageStats: KeyUsageBucket;
+  statusData: AuthFileStatusBarData;
+  enterDelayMs?: number;
   onShowModels: (file: AuthFileItem) => void;
   onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
@@ -155,7 +150,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const { t } = useTranslation();
   const {
     file,
-    compact,
     selected,
     resolvedTheme,
     disableControls,
@@ -164,9 +158,10 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     accessTokenCopying,
     priorityUpdating,
     quotaFilterType,
-    keyStats,
-    keyUsageStats,
-    statusBarCache,
+    fileStats,
+    fileUsageStats,
+    statusData,
+    enterDelayMs,
     onShowModels,
     onCopyName,
     onDownload,
@@ -179,12 +174,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onToggleSelect,
   } = props;
 
-  // 缓存与 file/keyStats 相关的派生值，避免每次渲染重算
-  const fileStats = useMemo(() => resolveAuthFileStats(file, keyStats), [file, keyStats]);
-  const fileUsageStats = useMemo(
-    () => resolveAuthFileUsageStats(file, keyUsageStats),
-    [file, keyUsageStats]
-  );
+  // fileStats / fileUsageStats 已由父组件预计算（按文件名稳定引用）
   const isRuntimeOnly = useMemo(() => isRuntimeOnlyAuthFile(file), [file]);
   const fileType = (file.type || 'unknown').toLowerCase();
   const isAistudio = fileType === 'aistudio';
@@ -209,7 +199,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     return resolveQuotaType(file) === quotaFilterType ? quotaFilterType : null;
   }, [file, quotaFilterType]);
 
-  const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly && !compact;
+  const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly;
 
   const providerCardClass =
     quotaType === 'antigravity'
@@ -226,12 +216,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 ? styles.kimiCard
                 : '';
 
-  const rawAuthIndex = file['auth_index'] ?? file.authIndex;
-  const authIndexKey = useMemo(() => normalizeAuthIndex(rawAuthIndex), [rawAuthIndex]);
-  const statusData = useMemo(
-    () => (authIndexKey && statusBarCache.get(authIndexKey)) || calculateStatusBarData([]),
-    [authIndexKey, statusBarCache]
-  );
   const rawStatusMessage = getAuthFileStatusMessage(file);
   const hasStatusWarning =
     Boolean(rawStatusMessage) && !HEALTHY_STATUS_MESSAGES.has(rawStatusMessage.toLowerCase());
@@ -327,22 +311,25 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   );
   // typeBadge 与 avatar 视觉相同，复用同一个对象引用
   const typeBadgeStyle = avatarStyle;
+  const cardStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!enterDelayMs) return undefined;
+    return { '--auth-file-card-enter-delay': `${enterDelayMs}ms` } as CSSProperties;
+  }, [enterDelayMs]);
 
   const cardClassName = useMemo(() => {
     const cls = [styles.fileCard];
-    if (compact) cls.push(styles.fileCardCompact);
     if (providerCardClass) cls.push(providerCardClass);
     if (selected) cls.push(styles.fileCardSelected);
     if (file.disabled) cls.push(styles.fileCardDisabled);
     return cls.join(' ');
-  }, [compact, providerCardClass, selected, file.disabled]);
+  }, [providerCardClass, selected, file.disabled]);
 
   const checkboxLabel = selected
     ? t('auth_files.batch_deselect')
     : t('auth_files.batch_select_all');
 
   return (
-    <div className={cardClassName}>
+    <div className={cardClassName} style={cardStyle}>
       <div className={styles.fileCardLayout}>
         <div className={styles.fileCardMain}>
           <div className={styles.cardHeader}>
@@ -365,112 +352,111 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               )}
             </div>
             <div className={styles.cardHeaderContent}>
-              <div className={styles.cardBadgeRow}>
-                <span className={styles.typeBadge} style={typeBadgeStyle}>
-                  {typeLabel}
-                </span>
-                {hasRefreshToken && (
-                  <span
-                    className={styles.refreshTokenBadge}
-                    title={t('auth_files.refresh_token_badge')}
-                    role="img"
-                    aria-label={t('auth_files.refresh_token_badge')}
-                  >
-                    R
+              <div
+                className={`${styles.cardIdentityRow} ${hasStatusWarning ? styles.cardIdentityRowWithWarning : ''}`}
+              >
+                <div className={styles.cardTypeGroup}>
+                  <span className={styles.typeBadge} style={typeBadgeStyle}>
+                    {typeLabel}
                   </span>
-                )}
-                {websocketsBadgeLabel && (
-                  <span
-                    className={`${styles.featureBadge} ${styles.featureBadgeEnabled}`}
-                    title={t('ai_providers.codex_websockets_hint')}
+                  {hasRefreshToken && (
+                    <span
+                      className={styles.refreshTokenBadge}
+                      title={t('auth_files.refresh_token_badge')}
+                      role="img"
+                      aria-label={t('auth_files.refresh_token_badge')}
+                    >
+                      R
+                    </span>
+                  )}
+                  {websocketsBadgeLabel && (
+                    <span
+                      className={`${styles.featureBadge} ${styles.featureBadgeEnabled}`}
+                      title={t('ai_providers.codex_websockets_hint')}
+                    >
+                      {websocketsBadgeLabel}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.fileNameRow}>
+                  <button
+                    type="button"
+                    className={styles.fileName}
+                    onClick={handleCopyName}
+                    title={`${maskedAuthFileDisplayName} - ${t('common.copy')}`}
+                    aria-label={t('common.copy')}
                   >
-                    {websocketsBadgeLabel}
-                  </span>
+                    {maskedAuthFileDisplayName}
+                  </button>
+                </div>
+
+                {!isRuntimeOnly ? (
+                  <div className={styles.priorityInlineRow}>
+                    <span className={styles.priorityInlineLabel}>{t('auth_files.priority_display')}</span>
+                    <div className={styles.priorityStepper}>
+                      <button
+                        type="button"
+                        className={styles.priorityStepButton}
+                        onMouseDown={preventBlur}
+                        onClick={handleStepDecrement}
+                        disabled={disableControls || priorityUpdating}
+                        title={t('auth_files.priority_decrement')}
+                        aria-label={t('auth_files.priority_decrement')}
+                      >
+                        -
+                      </button>
+                      <input
+                        className={styles.priorityInput}
+                        type="number"
+                        step={1}
+                        inputMode="numeric"
+                        value={priorityDraft}
+                        disabled={disableControls || priorityUpdating}
+                        aria-label={t('auth_files.priority_display')}
+                        onChange={handlePriorityInputChange}
+                        onBlur={commitPriorityDraft}
+                        onKeyDown={handlePriorityKeyDown}
+                      />
+                      <button
+                        type="button"
+                        className={styles.priorityStepButton}
+                        onMouseDown={preventBlur}
+                        onClick={handleStepIncrement}
+                        disabled={disableControls || priorityUpdating}
+                        title={t('auth_files.priority_increment')}
+                        aria-label={t('auth_files.priority_increment')}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ) : priorityValue !== undefined ? (
+                  <div className={`${styles.priorityInlineRow} ${styles.priorityInlineReadOnly}`}>
+                    <span className={styles.priorityInlineLabel}>{t('auth_files.priority_display')}</span>
+                    <span className={`${styles.metaValue} ${styles.priorityValue}`}>
+                      {priorityValue}
+                    </span>
+                  </div>
+                ) : null}
+
+                {rawStatusMessage && hasStatusWarning && (
+                  <div className={styles.cardIdentityWarning}>
+                    <AuthFileWarningIndicator message={rawStatusMessage} />
+                  </div>
                 )}
               </div>
-              <div className={styles.fileNameRow}>
-                <span className={styles.fileName} title={maskedAuthFileDisplayName}>
-                  {maskedAuthFileDisplayName}
-                </span>
-                <button
-                  type="button"
-                  className={styles.fileNameCopyButton}
-                  onClick={handleCopyName}
-                  title={t('common.copy')}
-                  aria-label={t('common.copy')}
-                >
-                  <IconCopy size={13} />
-                </button>
-              </div>
-              {!compact && noteValue && (
+              {noteValue && (
                 <div className={styles.noteText} title={noteValue}>
                   <span className={styles.noteLabel}>{t('auth_files.note_display')}</span>
                   <span className={styles.noteValue}>{noteValue}</span>
                 </div>
               )}
             </div>
-            {rawStatusMessage && hasStatusWarning && (
-              <AuthFileWarningIndicator message={rawStatusMessage} />
-            )}
           </div>
 
-          <div className={`${styles.cardMeta} ${compact ? styles.cardMetaCompact : ''}`}>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>{t('auth_files.last_refresh_label')}</span>
-              <span className={styles.metaValue}>{formatLastRefresh(file)}</span>
-            </div>
-            {!isRuntimeOnly ? (
-              <div className={`${styles.metaItem} ${styles.priorityControlItem}`}>
-                <span className={styles.metaLabel}>{t('auth_files.priority_display')}</span>
-                <div className={styles.priorityStepper}>
-                  <button
-                    type="button"
-                    className={styles.priorityStepButton}
-                    onMouseDown={preventBlur}
-                    onClick={handleStepDecrement}
-                    disabled={disableControls || priorityUpdating}
-                    title={t('auth_files.priority_decrement')}
-                    aria-label={t('auth_files.priority_decrement')}
-                  >
-                    -
-                  </button>
-                  <input
-                    className={styles.priorityInput}
-                    type="number"
-                    step={1}
-                    inputMode="numeric"
-                    value={priorityDraft}
-                    disabled={disableControls || priorityUpdating}
-                    aria-label={t('auth_files.priority_display')}
-                    onChange={handlePriorityInputChange}
-                    onBlur={commitPriorityDraft}
-                    onKeyDown={handlePriorityKeyDown}
-                  />
-                  <button
-                    type="button"
-                    className={styles.priorityStepButton}
-                    onMouseDown={preventBlur}
-                    onClick={handleStepIncrement}
-                    disabled={disableControls || priorityUpdating}
-                    title={t('auth_files.priority_increment')}
-                    aria-label={t('auth_files.priority_increment')}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            ) : priorityValue !== undefined ? (
-              <div className={`${styles.metaItem} ${styles.priorityBadge}`}>
-                <span className={styles.metaLabel}>{t('auth_files.priority_display')}</span>
-                <span className={`${styles.metaValue} ${styles.priorityValue}`}>
-                  {priorityValue}
-                </span>
-              </div>
-            ) : null}
-          </div>
-
-          <div className={`${styles.cardInsights} ${compact ? styles.cardInsightsCompact : ''}`}>
-            <div className={`${styles.cardStats} ${compact ? styles.cardStatsCompact : ''}`}>
+          <div className={styles.cardInsights}>
+            <div className={styles.cardStats}>
               <div className={`${styles.statPill} ${styles.statSuccess}`}>
                 <span className={styles.statIcon}>
                   <IconCheck size={10} />
@@ -504,7 +490,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               </div>
             </div>
 
-            <div className={`${styles.statusPanel} ${compact ? styles.statusPanelCompact : ''}`}>
+            <div className={styles.statusPanel}>
               <div className={styles.statusPanelLabel}>
                 <span>{t('auth_files.health_status_label')}</span>
                 <IconInfo className={styles.statusPanelIcon} size={12} />
@@ -524,6 +510,21 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
           <div className={styles.cardActions}>
             <div className={styles.cardActionsMain}>
+              {!isRuntimeOnly && (
+                <div className={styles.cardStatusActions}>
+                  <div className={styles.statusToggle}>
+                    <ToggleSwitch
+                      ariaLabel={t('auth_files.status_toggle_label')}
+                      checked={!file.disabled}
+                      className={styles.cardToggleSwitch}
+                      disabled={disableControls || statusUpdating}
+                      label={t('auth_files.status_toggle_label')}
+                      labelInside
+                      onChange={handleToggleStatus}
+                    />
+                  </div>
+                </div>
+              )}
               <div className={styles.cardActionCluster}>
                 {!isRuntimeOnly && (
                   <Button
@@ -594,30 +595,17 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </div>
                 )}
               </div>
-              {!isRuntimeOnly && (
-                <div className={styles.cardStatusActions}>
-                  {showQuotaLayout && quotaType && (
-                    <AuthFileQuotaRefreshButton
-                      file={file}
-                      quotaType={quotaType}
-                      disableControls={disableControls}
-                      onAuthFileUpdated={onAuthFileUpdated}
-                      className={`${styles.iconButton} ${styles.refreshActionButton}`}
-                      iconClassName={styles.actionIcon}
-                      iconSize={18}
-                    />
-                  )}
-                  <div className={styles.statusToggle}>
-                    <ToggleSwitch
-                      ariaLabel={t('auth_files.status_toggle_label')}
-                      checked={!file.disabled}
-                      className={styles.cardToggleSwitch}
-                      disabled={disableControls || statusUpdating}
-                      label={t('auth_files.status_toggle_label')}
-                      labelInside
-                      onChange={handleToggleStatus}
-                    />
-                  </div>
+              {!isRuntimeOnly && showQuotaLayout && quotaType && (
+                <div className={styles.cardRefreshActions}>
+                  <AuthFileQuotaRefreshButton
+                    file={file}
+                    quotaType={quotaType}
+                    disableControls={disableControls}
+                    onAuthFileUpdated={onAuthFileUpdated}
+                    className={`${styles.iconButton} ${styles.refreshActionButton}`}
+                    iconClassName={styles.actionIcon}
+                    iconSize={18}
+                  />
                 </div>
               )}
             </div>

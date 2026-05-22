@@ -228,7 +228,7 @@ export function DashboardPage() {
         const [keysRes, filesRes, geminiRes, codexRes, claudeRes, openaiRes] =
           await Promise.allSettled([
             apiKeysApi.list(),
-            authFilesApi.list(),
+            authFilesApi.list({ codexSubscription: 'skip', summary: true, page: 1, pageSize: 1 }),
             providersApi.getGeminiKeys(),
             providersApi.getCodexConfigs(),
             providersApi.getClaudeConfigs(),
@@ -237,7 +237,10 @@ export function DashboardPage() {
 
         setStats({
           apiKeys: keysRes.status === 'fulfilled' ? keysRes.value.length : null,
-          authFiles: filesRes.status === 'fulfilled' ? filesRes.value.files.length : null
+          authFiles:
+            filesRes.status === 'fulfilled'
+              ? (filesRes.value.total ?? filesRes.value.files.length)
+              : null
         });
 
         setProviderStats({

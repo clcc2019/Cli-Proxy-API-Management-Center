@@ -91,7 +91,7 @@
   }
 }
 
-:global([data-theme='dark']) {
+[data-theme='dark'] {
   .btn {
     color: #fff;
   }
@@ -469,16 +469,20 @@ textarea {
   // Fallback: legacy white spinner (in case color-mix is unsupported)
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-top-color: #fff;
+  border-right-color: rgba(255, 255, 255, 0.45);
   border-radius: 50%;
+  flex: 0 0 auto;
   width: 16px;
   height: 16px;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.72s linear infinite;
+  will-change: transform;
 }
 
 @supports (color: color-mix(in srgb, currentColor 22%, transparent)) {
   .loading-spinner {
     border-color: color-mix(in srgb, currentColor 22%, transparent);
     border-top-color: currentColor;
+    border-right-color: color-mix(in srgb, currentColor 54%, transparent);
   }
 }
 
