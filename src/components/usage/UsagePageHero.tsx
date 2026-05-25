@@ -21,7 +21,6 @@ export interface UsagePageHeroProps {
   timeRangeOptions: ReadonlyArray<TimeRangeOption>;
   selectedRangeLabel: string;
   visibleModelCount: number;
-  selectedSeriesCount: number;
   lastRefreshedAt: Date | null;
   loading: boolean;
   exporting: boolean;
@@ -41,7 +40,6 @@ export const UsagePageHero = memo(function UsagePageHero({
   timeRangeOptions,
   selectedRangeLabel,
   visibleModelCount,
-  selectedSeriesCount,
   lastRefreshedAt,
   loading,
   exporting,
@@ -67,24 +65,15 @@ export const UsagePageHero = memo(function UsagePageHero({
           <span>{t('usage_stats.title')}</span>
         </h1>
         <p className={styles.pageSubtitle}>{t('usage_stats.subtitle')}</p>
-        <div className={styles.heroMeta}>
-          <div className={styles.heroChip}>
-            <span className={styles.heroChipLabel}>{t('usage_stats.range_filter')}</span>
-            <span className={styles.heroChipValue}>{selectedRangeLabel}</span>
-          </div>
-          <div className={styles.heroChip}>
-            <span className={styles.heroChipLabel}>{t('usage_stats.model_price_model')}</span>
-            <span className={styles.heroChipValue}>{visibleModelCount}</span>
-          </div>
-          <div className={styles.heroChip}>
-            <span className={styles.heroChipLabel}>{t('usage_stats.chart_series')}</span>
-            <span className={styles.heroChipValue}>{selectedSeriesCount}</span>
-          </div>
+        <div className={styles.heroSummary}>
+          <span>{selectedRangeLabel}</span>
+          <span>
+            {t('usage_stats.model_price_model')}: {visibleModelCount}
+          </span>
           {lastRefreshedAt && (
-            <div className={styles.heroChip}>
-              <span className={styles.heroChipLabel}>{t('usage_stats.last_updated')}</span>
-              <span className={styles.heroChipValue}>{lastRefreshedAt.toLocaleString()}</span>
-            </div>
+            <span>
+              {t('usage_stats.last_updated')}: {lastRefreshedAt.toLocaleString()}
+            </span>
           )}
         </div>
       </div>

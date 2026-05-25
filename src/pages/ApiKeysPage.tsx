@@ -166,11 +166,7 @@ export function ApiKeysPage() {
   return (
     <div className={styles.container}>
       <div className={styles.pageHeader}>
-        <div className={styles.pageHeaderCopy}>
-          <span className={styles.pageEyebrow}>{t('api_keys.page_eyebrow')}</span>
-          <h1 className={styles.pageTitle}>{t('api_keys.title')}</h1>
-          <p className={styles.description}>{t('api_keys.page_description')}</p>
-        </div>
+        <h1 className={styles.pageTitle}>{t('api_keys.title')}</h1>
 
         <div className={styles.pageMeta}>
           <div className={`${styles.statusBadge} ${statusClassName}`}>{statusText}</div>

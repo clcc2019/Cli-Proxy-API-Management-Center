@@ -15,6 +15,8 @@ import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconCheck,
+  IconChevronDown,
+  IconChevronUp,
   IconDatabase,
   IconDownload,
   IconDollarSign,
@@ -24,6 +26,7 @@ import {
   IconSettings,
   IconTrash2,
   IconX,
+  IconZap,
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
@@ -42,6 +45,7 @@ import {
   getTypeLabel,
   isRuntimeOnlyAuthFile,
   parsePriorityValue,
+  readAuthFileServiceTierPassthrough,
   readAuthFileWebsockets,
   type QuotaProviderType,
   type ResolvedTheme,
@@ -95,6 +99,7 @@ export type AuthFileCardProps = {
   statusUpdating: boolean;
   accessTokenCopying: boolean;
   priorityUpdating: boolean;
+  serviceTierPassthroughUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
   // 由父组件预计算并按文件名缓存，stats 不变时引用稳定，避免列表大规模重渲染
   fileStats: KeyStatBucket;
@@ -106,6 +111,7 @@ export type AuthFileCardProps = {
   onDownload: (name: string) => void;
   onCopyAccessToken: (file: AuthFileItem) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
+  onServiceTierPassthroughChange: (file: AuthFileItem, enabled: boolean) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
@@ -157,6 +163,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     statusUpdating,
     accessTokenCopying,
     priorityUpdating,
+    serviceTierPassthroughUpdating,
     quotaFilterType,
     fileStats,
     fileUsageStats,
@@ -167,6 +174,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onDownload,
     onCopyAccessToken,
     onPriorityChange,
+    onServiceTierPassthroughChange,
     onOpenPrefixProxyEditor,
     onAuthFileUpdated,
     onDelete,
@@ -177,6 +185,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   // fileStats / fileUsageStats 已由父组件预计算（按文件名稳定引用）
   const isRuntimeOnly = useMemo(() => isRuntimeOnlyAuthFile(file), [file]);
   const fileType = (file.type || 'unknown').toLowerCase();
+  const isCodexFile = fileType === 'codex' || String(file.provider ?? '').toLowerCase() === 'codex';
   const isAistudio = fileType === 'aistudio';
   const showModelsButton = !isRuntimeOnly || isAistudio;
 
@@ -189,9 +198,14 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   );
 
   const websocketsEnabled = useMemo(() => readAuthFileWebsockets(file), [file]);
+  const serviceTierPassthroughEnabled = useMemo(
+    () => readAuthFileServiceTierPassthrough(file),
+    [file]
+  );
   const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
-  const websocketsBadgeLabel = websocketsEnabled
-    ? t('auth_files.websockets_enabled_badge')
+  const websocketsBadgeLabel = websocketsEnabled ? t('auth_files.websockets_enabled_badge') : null;
+  const serviceTierPassthroughBadgeLabel = serviceTierPassthroughEnabled
+    ? t('auth_files.service_tier_passthrough_badge')
     : null;
 
   const quotaType = useMemo(() => {
@@ -226,6 +240,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   );
   const currentPriority = priorityValue ?? 0;
   const [priorityDraft, setPriorityDraft] = useState(String(currentPriority));
+  const [actionsExpanded, setActionsExpanded] = useState(false);
 
   useEffect(() => {
     setPriorityDraft(String(currentPriority));
@@ -254,6 +269,9 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
   const handleStepDecrement = useCallback(() => stepPriority(-1), [stepPriority]);
   const handleStepIncrement = useCallback(() => stepPriority(1), [stepPriority]);
+  const handleToggleActionsExpanded = useCallback(() => {
+    setActionsExpanded((expanded) => !expanded);
+  }, []);
   const preventBlur = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
   }, []);
@@ -279,6 +297,9 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
   const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
+  const handleToggleServiceTierPassthrough = useEventCallback(() => {
+    onServiceTierPassthroughChange(file, !serviceTierPassthroughEnabled);
+  });
   const handleDelete = useEventCallback(() => onDelete(file.name));
   const handleToggleStatus = useEventCallback((value: boolean) => onToggleStatus(file, value));
 
@@ -327,6 +348,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const checkboxLabel = selected
     ? t('auth_files.batch_deselect')
     : t('auth_files.batch_select_all');
+  const actionsToggleLabel = actionsExpanded ? t('common.collapse') : t('common.expand');
 
   return (
     <div className={cardClassName} style={cardStyle}>
@@ -377,6 +399,14 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       {websocketsBadgeLabel}
                     </span>
                   )}
+                  {serviceTierPassthroughBadgeLabel && (
+                    <span
+                      className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
+                      title={t('auth_files.service_tier_passthrough_hint')}
+                    >
+                      {serviceTierPassthroughBadgeLabel}
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles.fileNameRow}>
@@ -393,7 +423,9 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
                 {!isRuntimeOnly ? (
                   <div className={styles.priorityInlineRow}>
-                    <span className={styles.priorityInlineLabel}>{t('auth_files.priority_display')}</span>
+                    <span className={styles.priorityInlineLabel}>
+                      {t('auth_files.priority_display')}
+                    </span>
                     <div className={styles.priorityStepper}>
                       <button
                         type="button"
@@ -433,7 +465,9 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </div>
                 ) : priorityValue !== undefined ? (
                   <div className={`${styles.priorityInlineRow} ${styles.priorityInlineReadOnly}`}>
-                    <span className={styles.priorityInlineLabel}>{t('auth_files.priority_display')}</span>
+                    <span className={styles.priorityInlineLabel}>
+                      {t('auth_files.priority_display')}
+                    </span>
                     <span className={`${styles.metaValue} ${styles.priorityValue}`}>
                       {priorityValue}
                     </span>
@@ -509,92 +543,131 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           </div>
 
           <div className={styles.cardActions}>
-            <div className={styles.cardActionsMain}>
-              {!isRuntimeOnly && (
-                <div className={styles.cardStatusActions}>
-                  <div className={styles.statusToggle}>
-                    <ToggleSwitch
-                      ariaLabel={t('auth_files.status_toggle_label')}
-                      checked={!file.disabled}
-                      className={styles.cardToggleSwitch}
-                      disabled={disableControls || statusUpdating}
-                      label={t('auth_files.status_toggle_label')}
-                      labelInside
-                      onChange={handleToggleStatus}
-                    />
+            <div
+              className={`${styles.cardActionsMain} ${actionsExpanded ? styles.cardActionsMainExpanded : ''}`}
+            >
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleToggleActionsExpanded}
+                className={`${styles.iconButton} ${styles.mobileActionsToggle}`}
+                title={actionsToggleLabel}
+                aria-label={actionsToggleLabel}
+                aria-expanded={actionsExpanded}
+              >
+                {actionsExpanded ? (
+                  <IconChevronUp className={styles.actionIcon} size={18} />
+                ) : (
+                  <IconChevronDown className={styles.actionIcon} size={18} />
+                )}
+              </Button>
+
+              <div className={styles.cardActionsContent}>
+                {!isRuntimeOnly && (
+                  <div className={styles.cardStatusActions}>
+                    <div className={styles.statusToggle}>
+                      <ToggleSwitch
+                        ariaLabel={t('auth_files.status_toggle_label')}
+                        checked={!file.disabled}
+                        className={styles.cardToggleSwitch}
+                        disabled={disableControls || statusUpdating}
+                        label={t('auth_files.status_toggle_label')}
+                        labelInside
+                        onChange={handleToggleStatus}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
-              <div className={styles.cardActionCluster}>
-                {!isRuntimeOnly && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleOpenPrefixProxy}
-                    className={styles.iconButton}
-                    title={t('auth_files.prefix_proxy_button')}
-                    disabled={disableControls}
-                  >
-                    <IconSettings className={styles.actionIcon} size={18} />
-                  </Button>
                 )}
-                {!isRuntimeOnly && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleCopyAccessToken}
-                    className={styles.iconButton}
-                    title={t('auth_files.access_token_copy')}
-                    disabled={disableControls || accessTokenCopying}
-                  >
-                    {accessTokenCopying ? (
-                      <LoadingSpinner size={17} />
-                    ) : (
-                      <IconKey className={styles.actionIcon} size={18} />
-                    )}
-                  </Button>
-                )}
-                {showModelsButton && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleShowModels}
-                    className={`${styles.iconButton} ${styles.modelsActionButton}`}
-                    title={t('auth_files.models_button', { defaultValue: '模型' })}
-                    disabled={disableControls}
-                  >
-                    <IconModelCluster className={styles.actionIcon} size={18} />
-                  </Button>
-                )}
-                {!isRuntimeOnly && (
-                  <div className={styles.cardUtilityActions}>
+
+                <div className={styles.cardActionCluster}>
+                  {!isRuntimeOnly && (
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={handleDownload}
+                      onClick={handleOpenPrefixProxy}
                       className={styles.iconButton}
-                      title={t('auth_files.download_button')}
+                      title={t('auth_files.prefix_proxy_button')}
                       disabled={disableControls}
                     >
-                      <IconDownload className={styles.actionIcon} size={18} />
+                      <IconSettings className={styles.actionIcon} size={18} />
                     </Button>
+                  )}
+                  {!isRuntimeOnly && isCodexFile && (
                     <Button
-                      variant="danger"
+                      variant="secondary"
                       size="sm"
-                      onClick={handleDelete}
-                      className={styles.iconButton}
-                      title={t('auth_files.delete_button')}
-                      disabled={disableControls || deleting}
+                      onClick={handleToggleServiceTierPassthrough}
+                      className={`${styles.iconButton} ${serviceTierPassthroughEnabled ? styles.fastActionButtonActive : styles.fastActionButton}`}
+                      title={t('auth_files.service_tier_passthrough_hint')}
+                      aria-pressed={Boolean(serviceTierPassthroughEnabled)}
+                      disabled={disableControls || serviceTierPassthroughUpdating}
                     >
-                      {deleting ? (
-                        <LoadingSpinner size={17} />
+                      {serviceTierPassthroughUpdating ? (
+                        <LoadingSpinner size={18} />
                       ) : (
-                        <IconTrash2 className={styles.actionIcon} size={18} />
+                        <IconZap className={styles.actionIcon} size={18} />
                       )}
                     </Button>
-                  </div>
-                )}
+                  )}
+                  {!isRuntimeOnly && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleCopyAccessToken}
+                      className={styles.iconButton}
+                      title={t('auth_files.access_token_copy')}
+                      disabled={disableControls || accessTokenCopying}
+                    >
+                      {accessTokenCopying ? (
+                        <LoadingSpinner size={18} />
+                      ) : (
+                        <IconKey className={styles.actionIcon} size={18} />
+                      )}
+                    </Button>
+                  )}
+                  {showModelsButton && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleShowModels}
+                      className={`${styles.iconButton} ${styles.modelsActionButton}`}
+                      title={t('auth_files.models_button', { defaultValue: '模型' })}
+                      disabled={disableControls}
+                    >
+                      <IconModelCluster className={styles.actionIcon} size={18} />
+                    </Button>
+                  )}
+                  {!isRuntimeOnly && (
+                    <div className={styles.cardUtilityActions}>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleDownload}
+                        className={styles.iconButton}
+                        title={t('auth_files.download_button')}
+                        disabled={disableControls}
+                      >
+                        <IconDownload className={styles.actionIcon} size={18} />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={handleDelete}
+                        className={styles.iconButton}
+                        title={t('auth_files.delete_button')}
+                        disabled={disableControls || deleting}
+                      >
+                        {deleting ? (
+                          <LoadingSpinner size={18} />
+                        ) : (
+                          <IconTrash2 className={styles.actionIcon} size={18} />
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
+
               {!isRuntimeOnly && showQuotaLayout && quotaType && (
                 <div className={styles.cardRefreshActions}>
                   <AuthFileQuotaRefreshButton

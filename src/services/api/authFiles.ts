@@ -52,7 +52,7 @@ export type PatchAuthFileFieldsPayload = {
   excluded_models?: string[];
   disable_cooling?: string | boolean | null;
   websockets?: boolean;
-  websocket_handshake_debug?: boolean;
+  service_tier_passthrough?: boolean;
 };
 type PatchAuthFileFieldsResponse = {
   status?: string;
@@ -373,7 +373,9 @@ const recentRequestsTotal = (value: unknown): number => {
   return value.reduce((total, item) => {
     if (!item || typeof item !== 'object') return total;
     const bucket = item as Record<string, unknown>;
-    return total + readNumericCount(bucket.success) + readNumericCount(bucket.failed ?? bucket.failure);
+    return (
+      total + readNumericCount(bucket.success) + readNumericCount(bucket.failed ?? bucket.failure)
+    );
   }, 0);
 };
 

@@ -1,7 +1,6 @@
 import { ReactNode, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, type Location } from 'react-router-dom';
-import { animate } from 'motion/mini';
-import type { AnimationPlaybackControlsWithThen } from 'motion-dom';
+import gsap from 'gsap';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   PAGE_TRANSITION_LAYER_CONTEXT_VALUES,
@@ -27,17 +26,9 @@ const IOS_ENTER_FROM_X_PERCENT_BACKWARD = -30;
 const IOS_EXIT_DIM_OPACITY = 0.72;
 const IOS_SHADOW_VALUE = '-14px 0 24px rgba(0, 0, 0, 0.16)';
 
-const easePower2Out = (progress: number) => 1 - (1 - progress) ** 3;
-const easeCircOut = (progress: number) => Math.sqrt(1 - (progress - 1) ** 2);
-
-const buildVerticalTransform = (y: number) => `translate3d(0px, ${y}px, 0px)`;
-const buildIosTransform = (xPercent: number, y: number) => `translate3d(${xPercent}%, ${y}px, 0px)`;
-
 const clearLayerStyles = (element: HTMLElement | null) => {
   if (!element) return;
-  element.style.removeProperty('transform');
-  element.style.removeProperty('opacity');
-  element.style.removeProperty('box-shadow');
+  gsap.set(element, { clearProps: 'transform,opacity,visibility,boxShadow' });
 };
 
 type Layer = {
@@ -232,7 +223,7 @@ export function PageTransition({
     const enterFromY = isForward ? VERTICAL_TRAVEL_DISTANCE : -VERTICAL_TRAVEL_DISTANCE;
     const exitToY = isForward ? -VERTICAL_TRAVEL_DISTANCE : VERTICAL_TRAVEL_DISTANCE;
     const exitBaseY = enterScrollOffset - exitScrollOffset;
-    const activeAnimations: AnimationPlaybackControlsWithThen[] = [];
+    const activeAnimations: gsap.core.Tween[] = [];
     let cancelled = false;
     let completed = false;
     const completeTransition = () => {
@@ -262,12 +253,10 @@ export function PageTransition({
         : IOS_ENTER_FROM_X_PERCENT_BACKWARD;
 
       if (exitingLayerEl) {
-        exitingLayerEl.style.transform = buildIosTransform(0, exitBaseY);
-        exitingLayerEl.style.opacity = '1';
+        gsap.set(exitingLayerEl, { xPercent: 0, y: exitBaseY, autoAlpha: 1 });
       }
 
-      currentLayerEl.style.transform = buildIosTransform(enterFromXPercent, 0);
-      currentLayerEl.style.opacity = '1';
+      gsap.set(currentLayerEl, { xPercent: enterFromXPercent, y: 0, autoAlpha: 1 });
 
       const topLayerEl = isForward ? currentLayerEl : exitingLayerEl;
       if (topLayerEl) {
@@ -276,73 +265,52 @@ export function PageTransition({
 
       if (exitingLayerEl) {
         activeAnimations.push(
-          animate(
-            exitingLayerEl,
-            {
-              transform: [
-                buildIosTransform(0, exitBaseY),
-                buildIosTransform(exitToXPercent, exitBaseY),
-              ],
-              opacity: [1, isForward ? IOS_EXIT_DIM_OPACITY : 1],
-            },
-            {
-              duration: IOS_TRANSITION_DURATION,
-              ease: easePower2Out,
-            }
-          )
+          gsap.to(exitingLayerEl, {
+            xPercent: exitToXPercent,
+            y: exitBaseY,
+            autoAlpha: isForward ? IOS_EXIT_DIM_OPACITY : 1,
+            duration: IOS_TRANSITION_DURATION,
+            ease: 'power2.out',
+            overwrite: 'auto',
+          })
         );
       }
 
       activeAnimations.push(
-        animate(
-          currentLayerEl,
-          {
-            transform: [buildIosTransform(enterFromXPercent, 0), buildIosTransform(0, 0)],
-            opacity: [1, 1],
-          },
-          {
-            duration: IOS_TRANSITION_DURATION,
-            ease: easePower2Out,
-          }
-        )
+        gsap.to(currentLayerEl, {
+          xPercent: 0,
+          y: 0,
+          autoAlpha: 1,
+          duration: IOS_TRANSITION_DURATION,
+          ease: 'power2.out',
+          overwrite: 'auto',
+        })
       );
     } else {
       // Exit animation: fade out with slight movement (runs simultaneously)
       if (exitingLayerEl) {
-        exitingLayerEl.style.transform = buildVerticalTransform(exitBaseY);
+        gsap.set(exitingLayerEl, { xPercent: 0, y: exitBaseY, autoAlpha: 1 });
         activeAnimations.push(
-          animate(
-            exitingLayerEl,
-            {
-              transform: [
-                buildVerticalTransform(exitBaseY),
-                buildVerticalTransform(exitBaseY + exitToY),
-              ],
-              opacity: [1, 0],
-            },
-            {
-              duration: VERTICAL_TRANSITION_DURATION,
-              ease: easeCircOut,
-            }
-          )
+          gsap.to(exitingLayerEl, {
+            y: exitBaseY + exitToY,
+            autoAlpha: 0,
+            duration: VERTICAL_TRANSITION_DURATION,
+            ease: 'circ.out',
+            overwrite: 'auto',
+          })
         );
       }
 
       // Enter animation: fade in with slight movement (runs simultaneously)
-      currentLayerEl.style.transform = buildVerticalTransform(enterFromY);
-      currentLayerEl.style.opacity = '0';
+      gsap.set(currentLayerEl, { xPercent: 0, y: enterFromY, autoAlpha: 0 });
       activeAnimations.push(
-        animate(
-          currentLayerEl,
-          {
-            transform: [buildVerticalTransform(enterFromY), buildVerticalTransform(0)],
-            opacity: [0, 1],
-          },
-          {
-            duration: VERTICAL_TRANSITION_DURATION,
-            ease: easeCircOut,
-          }
-        )
+        gsap.to(currentLayerEl, {
+          y: 0,
+          autoAlpha: 1,
+          duration: VERTICAL_TRANSITION_DURATION,
+          ease: 'circ.out',
+          overwrite: 'auto',
+        })
       );
     }
 
@@ -350,7 +318,12 @@ export function PageTransition({
       completeTransition();
     } else {
       void Promise.all(
-        activeAnimations.map((animation) => animation.finished.catch(() => undefined))
+        activeAnimations.map(
+          (animation) =>
+            new Promise<void>((resolve) => {
+              animation.eventCallback('onComplete', resolve);
+            })
+        )
       ).then(() => {
         if (cancelled) return;
         completeTransition();
@@ -359,7 +332,7 @@ export function PageTransition({
 
     return () => {
       cancelled = true;
-      activeAnimations.forEach((animation) => animation.stop());
+      activeAnimations.forEach((animation) => animation.kill());
     };
   }, [isAnimating, prefersReducedMotion, resolveScrollContainer]);
 

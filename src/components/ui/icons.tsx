@@ -200,6 +200,16 @@ export function IconDownload({ size = 20, ...props }: IconProps) {
   );
 }
 
+export function IconUpload({ size = 20, ...props }: IconProps) {
+  return (
+    <svg {...baseSvgProps} width={size} height={size} {...props}>
+      <path d="M12 3v12" />
+      <path d="m17 8-5-5-5 5" />
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    </svg>
+  );
+}
+
 export function IconTrash2({ size = 20, ...props }: IconProps) {
   return (
     <svg {...baseSvgProps} width={size} height={size} {...props}>
@@ -317,6 +327,14 @@ export function IconTimer({ size = 20, ...props }: IconProps) {
       <line x1="10" x2="14" y1="2" y2="2" />
       <line x1="12" x2="15" y1="14" y2="11" />
       <circle cx="12" cy="14" r="8" />
+    </svg>
+  );
+}
+
+export function IconZap({ size = 20, ...props }: IconProps) {
+  return (
+    <svg {...baseSvgProps} width={size} height={size} {...props}>
+      <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
     </svg>
   );
 }

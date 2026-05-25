@@ -1,12 +1,6 @@
 import { memo, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  IconDiamond,
-  IconDollarSign,
-  IconSatellite,
-  IconTimer,
-  IconTrendingUp,
-} from '@/components/ui/icons';
+import { IconDiamond, IconDollarSign, IconSatellite, IconTimer } from '@/components/ui/icons';
 import {
   LATENCY_SOURCE_FIELD,
   formatCompactNumber,
@@ -23,8 +17,6 @@ import {
   getAggregateTokenBreakdown,
 } from '@/utils/usageAggregate';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
-import { SvgSparkline } from './SvgSparkline';
-import type { SparklineBundle } from './hooks/useSparklines';
 import styles from '@/pages/UsagePage.module.scss';
 
 interface StatCardData {
@@ -34,30 +26,17 @@ interface StatCardData {
   accent: string;
   accentSoft: string;
   accentBorder: string;
-  value: string;
+  value: ReactNode;
   meta?: ReactNode;
-  trend: SparklineBundle | null;
 }
 
 export interface StatCardsProps {
   window: UsageAggregateWindow | null;
   loading: boolean;
   modelPrices: Record<string, ModelPrice>;
-  sparklines: {
-    requests: SparklineBundle | null;
-    tokens: SparklineBundle | null;
-    rpm: SparklineBundle | null;
-    tpm: SparklineBundle | null;
-    cost: SparklineBundle | null;
-  };
 }
 
-export const StatCards = memo(function StatCards({
-  window,
-  loading,
-  modelPrices,
-  sparklines,
-}: StatCardsProps) {
+export const StatCards = memo(function StatCards({ window, loading, modelPrices }: StatCardsProps) {
   const { t } = useTranslation();
   const latencyHint = t('usage_stats.latency_unit_hint', {
     field: LATENCY_SOURCE_FIELD,
@@ -100,17 +79,9 @@ export const StatCards = memo(function StatCards({
       meta: (
         <>
           <span className={styles.statMetaItem}>
-            <span
-              className={styles.statMetaDot}
-              style={{ backgroundColor: USAGE_CHART_COLORS.success }}
-            />
             {t('usage_stats.success_requests')}: {loading ? '-' : (window?.success_count ?? 0)}
           </span>
           <span className={styles.statMetaItem}>
-            <span
-              className={styles.statMetaDot}
-              style={{ backgroundColor: USAGE_CHART_COLORS.failure }}
-            />
             {t('usage_stats.failed_requests')}: {loading ? '-' : (window?.failure_count ?? 0)}
           </span>
           {latencyStats.sampleCount > 0 && (
@@ -121,7 +92,6 @@ export const StatCards = memo(function StatCards({
           )}
         </>
       ),
-      trend: sparklines.requests,
     },
     {
       key: 'tokens',
@@ -143,39 +113,33 @@ export const StatCards = memo(function StatCards({
           </span>
         </>
       ),
-      trend: sparklines.tokens,
     },
     {
-      key: 'rpm',
-      label: t('usage_stats.rpm_30m'),
+      key: 'rate',
+      label: t('usage_stats.rate_30m'),
       icon: <IconTimer size={16} />,
       accent: USAGE_CHART_COLORS.rpm,
       accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.16),
       accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.32),
-      value: loading ? '-' : formatPerMinuteValue(rateStats.rpm),
+      value: (
+        <span className={styles.statSplitValue}>
+          <span className={styles.statSplitItem}>
+            <strong>{loading ? '-' : formatPerMinuteValue(rateStats.rpm)}</strong>
+            <span>{t('usage_stats.rpm_30m')}</span>
+          </span>
+          <span className={styles.statSplitDivider} aria-hidden="true" />
+          <span className={styles.statSplitItem}>
+            <strong>{loading ? '-' : formatPerMinuteValue(rateStats.tpm)}</strong>
+            <span>{t('usage_stats.tpm_30m')}</span>
+          </span>
+        </span>
+      ),
       meta: (
         <span className={styles.statMetaItem}>
           {t('usage_stats.total_requests')}:{' '}
           {loading ? '-' : rateStats.requestCount.toLocaleString()}
         </span>
       ),
-      trend: sparklines.rpm,
-    },
-    {
-      key: 'tpm',
-      label: t('usage_stats.tpm_30m'),
-      icon: <IconTrendingUp size={16} />,
-      accent: USAGE_CHART_COLORS.tpm,
-      accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.tpm, 0.16),
-      accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.tpm, 0.32),
-      value: loading ? '-' : formatPerMinuteValue(rateStats.tpm),
-      meta: (
-        <span className={styles.statMetaItem}>
-          {t('usage_stats.total_tokens')}:{' '}
-          {loading ? '-' : formatCompactNumber(rateStats.tokenCount)}
-        </span>
-      ),
-      trend: sparklines.tpm,
     },
     {
       key: 'cost',
@@ -198,7 +162,6 @@ export const StatCards = memo(function StatCards({
           )}
         </>
       ),
-      trend: hasPrices ? sparklines.cost : null,
     },
   ];
 
@@ -224,13 +187,6 @@ export const StatCards = memo(function StatCards({
           </div>
           <div className={styles.statValue}>{card.value}</div>
           {card.meta && <div className={styles.statMetaRow}>{card.meta}</div>}
-          <div className={styles.statTrend}>
-            {card.trend ? (
-              <SvgSparkline className={styles.sparkline} sparkline={card.trend} />
-            ) : (
-              <div className={styles.statTrendPlaceholder}></div>
-            )}
-          </div>
         </div>
       ))}
     </div>

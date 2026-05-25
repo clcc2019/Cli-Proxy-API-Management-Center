@@ -183,31 +183,6 @@ export function AiProvidersPage() {
     return { codex, gemini, claude, vertex, openai };
   }, [switchingKeys]);
 
-  const totalConfiguredEntries = useMemo(
-    () =>
-      geminiKeys.length +
-      codexConfigs.length +
-      claudeConfigs.length +
-      vertexConfigs.length +
-      openaiProviders.length,
-    [
-      claudeConfigs.length,
-      codexConfigs.length,
-      geminiKeys.length,
-      openaiProviders.length,
-      vertexConfigs.length,
-    ]
-  );
-  const enabledConfiguredEntries = useMemo(() => {
-    let count = 0;
-    for (const item of geminiKeys) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
-    for (const item of codexConfigs) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
-    for (const item of claudeConfigs) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
-    for (const item of vertexConfigs) if (!hasDisableAllModelsRule(item.excludedModels)) count += 1;
-    for (const item of openaiProviders) if (item.disabled !== true) count += 1;
-    return count;
-  }, [claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]);
-
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
 
@@ -649,35 +624,15 @@ export function AiProvidersPage() {
   return (
     <div className={styles.container}>
       <section className={styles.pageHeader}>
-        <div className={styles.pageHeaderCopy}>
-          <span className={styles.pageEyebrow}>{t('ai_providers.page_eyebrow')}</span>
-          <div className={styles.pageTitleBlock}>
-            <h1 className={styles.pageTitle}>{t('ai_providers.title')}</h1>
-            <p className={styles.pageDescription}>{t('ai_providers.page_description')}</p>
-          </div>
-        </div>
-        <div className={styles.pageMeta}>
-          <div className={styles.statusBadge}>
-            {t(
-              connectionStatus === 'connected'
-                ? 'common.connected_status'
-                : connectionStatus === 'connecting'
-                  ? 'common.connecting_status'
-                  : 'common.disconnected_status'
-            )}
-          </div>
-          <div className={styles.metaCard}>
-            <span className={styles.metaValue}>{totalConfiguredEntries}</span>
-            <span className={styles.metaLabel}>
-              {t('ai_providers.page_meta_configured', { count: totalConfiguredEntries })}
-            </span>
-          </div>
-          <div className={styles.metaCard}>
-            <span className={styles.metaValue}>{enabledConfiguredEntries}</span>
-            <span className={styles.metaLabel}>
-              {t('ai_providers.page_meta_enabled', { count: enabledConfiguredEntries })}
-            </span>
-          </div>
+        <h1 className={styles.pageTitle}>{t('ai_providers.title')}</h1>
+        <div className={styles.statusBadge}>
+          {t(
+            connectionStatus === 'connected'
+              ? 'common.connected_status'
+              : connectionStatus === 'connecting'
+                ? 'common.connecting_status'
+                : 'common.disconnected_status'
+          )}
         </div>
       </section>
 

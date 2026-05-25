@@ -5,11 +5,13 @@ import { authFilesApi } from '@/services/api';
 import { useNotificationStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import {
+  applyCodexAuthFileServiceTierPassthrough,
   applyCodexAuthFileWebsockets,
   normalizeExcludedModels,
   parseDisableCoolingValue,
   parseExcludedModelsText,
   parsePriorityValue,
+  readCodexAuthFileServiceTierPassthrough,
   readCodexAuthFileWebsockets,
 } from '@/features/authFiles/constants';
 
@@ -23,6 +25,13 @@ const PROXY_URL_KEYS = ['proxy_url', 'proxy-url', 'proxyUrl'] as const;
 const EXCLUDED_MODELS_KEYS = ['excluded_models', 'excluded-models', 'excludedModels'] as const;
 const DISABLE_COOLING_KEYS = ['disable_cooling', 'disable-cooling', 'disableCooling'] as const;
 const USER_AGENT_KEYS = ['user_agent', 'user-agent', 'userAgent'] as const;
+const WEBSOCKETS_KEYS = ['websockets', 'websocket'] as const;
+const SERVICE_TIER_PASSTHROUGH_KEYS = [
+  'service_tier_passthrough',
+  'service-tier-passthrough',
+  'serviceTierPassthrough',
+  'fast',
+] as const;
 
 export type PrefixProxyEditorField =
   | 'prefix'
@@ -32,6 +41,7 @@ export type PrefixProxyEditorField =
   | 'disableCooling'
   | 'userAgent'
   | 'websockets'
+  | 'serviceTierPassthrough'
   | 'note'
   | 'headersText';
 
@@ -54,6 +64,7 @@ export type PrefixProxyEditorState = {
   disableCooling: string;
   userAgent: string;
   websockets: boolean;
+  serviceTierPassthrough: boolean;
   note: string;
   noteTouched: boolean;
   headersText: string;
@@ -126,6 +137,12 @@ const readStringField = (
 const readProxyUrlFromJson = (value: Record<string, unknown>): string =>
   readStringField(value, PROXY_URL_KEYS);
 
+const readPrefixFromJson = (value: Record<string, unknown>): string =>
+  readStringField(value, ['prefix'], true);
+
+const readNoteFromJson = (value: Record<string, unknown>): string =>
+  readStringField(value, ['note']);
+
 const readExcludedModelsFromJson = (value: Record<string, unknown>): string[] => {
   const raw = readFirstDefinedField(value, EXCLUDED_MODELS_KEYS);
   if (typeof raw === 'string') return parseExcludedModelsText(raw);
@@ -137,6 +154,71 @@ const readDisableCoolingFromJson = (value: Record<string, unknown>): boolean | u
 
 const readUserAgentFromJson = (value: Record<string, unknown>): string =>
   readStringField(value, USER_AGENT_KEYS, true);
+
+const readWebsocketsFromJson = (value: Record<string, unknown>): boolean | undefined =>
+  parseDisableCoolingValue(readFirstDefinedField(value, WEBSOCKETS_KEYS));
+
+const readServiceTierPassthroughFromJson = (value: Record<string, unknown>): boolean | undefined =>
+  parseDisableCoolingValue(readFirstDefinedField(value, SERVICE_TIER_PASSTHROUGH_KEYS));
+
+const applyBackendFieldFallbacks = (
+  json: Record<string, unknown>,
+  fileRecord: Record<string, unknown>,
+  isCodexFile: boolean
+): Record<string, unknown> => {
+  const next = { ...json };
+
+  const prefix = readPrefixFromJson(fileRecord);
+  if (!hasOwnField(next, 'prefix') && prefix) {
+    next.prefix = prefix;
+  }
+
+  const proxyUrl = readProxyUrlFromJson(fileRecord);
+  if (!hasAnyOwnField(next, PROXY_URL_KEYS) && proxyUrl) {
+    next.proxy_url = proxyUrl;
+  }
+
+  const priority = parsePriorityValue(fileRecord.priority);
+  if (!hasOwnField(next, 'priority') && priority !== undefined) {
+    next.priority = priority;
+  }
+
+  const excludedModels = readExcludedModelsFromJson(fileRecord);
+  if (!hasAnyOwnField(next, EXCLUDED_MODELS_KEYS) && excludedModels.length > 0) {
+    next.excluded_models = excludedModels;
+  }
+
+  const disableCooling = readDisableCoolingFromJson(fileRecord);
+  if (!hasAnyOwnField(next, DISABLE_COOLING_KEYS) && disableCooling !== undefined) {
+    next.disable_cooling = disableCooling;
+  }
+
+  const userAgent = readUserAgentFromJson(fileRecord);
+  if (!hasAnyOwnField(next, USER_AGENT_KEYS) && userAgent) {
+    next.user_agent = userAgent;
+  }
+
+  const note = readNoteFromJson(fileRecord);
+  if (!hasOwnField(next, 'note') && note) {
+    next.note = note;
+  }
+
+  if (isCodexFile) {
+    const websockets = readWebsocketsFromJson(next) ?? readWebsocketsFromJson(fileRecord) ?? false;
+    delete next.websocket;
+    next.websockets = websockets;
+    const serviceTierPassthrough =
+      readServiceTierPassthroughFromJson(next) ??
+      readServiceTierPassthroughFromJson(fileRecord) ??
+      false;
+    delete next['service-tier-passthrough'];
+    delete next.serviceTierPassthrough;
+    delete next.fast;
+    next.service_tier_passthrough = serviceTierPassthrough;
+  }
+
+  return next;
+};
 
 const normalizeAuthFileKind = (value: unknown) =>
   String(value ?? '')
@@ -166,6 +248,7 @@ const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => ({
   disableCooling: '',
   userAgent: '',
   websockets: false,
+  serviceTierPassthrough: false,
   note: '',
   noteTouched: false,
   headersText: '',
@@ -338,8 +421,15 @@ const buildPrefixProxyUpdatedText = (
     }
   }
 
+  if (!editor.isCodexFile) {
+    return JSON.stringify(next);
+  }
+
   return JSON.stringify(
-    editor.isCodexFile ? applyCodexAuthFileWebsockets(next, editor.websockets) : next
+    applyCodexAuthFileServiceTierPassthrough(
+      applyCodexAuthFileWebsockets(next, editor.websockets),
+      editor.serviceTierPassthrough
+    )
   );
 };
 
@@ -376,13 +466,9 @@ const buildLoadedPrefixProxyEditorState = (
     };
   }
 
-  const json = { ...(parsed as Record<string, unknown>) };
+  let json = { ...(parsed as Record<string, unknown>) };
   const fileRecord = file as Record<string, unknown>;
-  if (base.isCodexFile) {
-    const normalizedWebsockets = readCodexAuthFileWebsockets(json);
-    delete json.websocket;
-    json.websockets = normalizedWebsockets;
-  }
+  json = applyBackendFieldFallbacks(json, fileRecord, base.isCodexFile);
 
   const originalText = JSON.stringify(json);
   const derivedPriority = parsePriorityValue(json.priority ?? fileRecord.priority);
@@ -397,7 +483,7 @@ const buildLoadedPrefixProxyEditorState = (
       })()
     : null;
   const derivedState = {
-    prefix: typeof json.prefix === 'string' ? json.prefix : '',
+    prefix: readPrefixFromJson(json),
     proxyUrl: derivedProxyUrl,
     priority: derivedPriority !== undefined ? String(derivedPriority) : '',
     excludedModelsText: readExcludedModelsFromJson(json).join('\n'),
@@ -405,7 +491,8 @@ const buildLoadedPrefixProxyEditorState = (
       derivedDisableCooling === undefined ? '' : derivedDisableCooling ? 'true' : 'false',
     userAgent: readUserAgentFromJson(json),
     websockets: readCodexAuthFileWebsockets(json),
-    note: typeof json.note === 'string' ? json.note : '',
+    serviceTierPassthrough: readCodexAuthFileServiceTierPassthrough(json),
+    note: readNoteFromJson(json),
     noteTouched: false,
     headersText: derivedHeaders,
     headersTouched: false,
@@ -434,6 +521,7 @@ const buildLoadedPrefixProxyEditorState = (
     disableCooling: previous.disableCooling,
     userAgent: previous.userAgent,
     websockets: previous.websockets,
+    serviceTierPassthrough: previous.serviceTierPassthrough,
     note: previous.note,
     noteTouched: previous.noteTouched,
     headersText: previous.headersText,
@@ -498,6 +586,13 @@ const buildPrefixProxyPatchPayload = (
     if (editor.websockets !== sourceWebsockets) {
       payload.websockets = editor.websockets;
     }
+    const sourceServiceTierPassthrough = readCodexAuthFileServiceTierPassthrough(source);
+    if (
+      editor.serviceTierPassthrough !== sourceServiceTierPassthrough ||
+      hasNonCanonicalOwnField(source, SERVICE_TIER_PASSTHROUGH_KEYS, 'service_tier_passthrough')
+    ) {
+      payload.service_tier_passthrough = editor.serviceTierPassthrough;
+    }
   }
 
   if (editor.noteTouched) {
@@ -558,6 +653,9 @@ const buildLocalPatchedAuthFile = (
     excluded_models: parseExcludedModelsText(editor.excludedModelsText),
     disable_cooling: parseDisableCoolingValue(editor.disableCooling),
     websockets: editor.isCodexFile ? editor.websockets : remoteFile?.websockets,
+    service_tier_passthrough: editor.isCodexFile
+      ? editor.serviceTierPassthrough
+      : remoteFile?.service_tier_passthrough,
     modtime: nextTimestamp,
     updated_at: remoteFile?.updated_at ?? nextTimestamp,
     modified:
@@ -646,6 +744,9 @@ export function useAuthFilesPrefixProxyEditor(
         }
         if (field === 'disableCooling') return { ...prev, disableCooling: String(value) };
         if (field === 'userAgent') return { ...prev, userAgent: String(value) };
+        if (field === 'serviceTierPassthrough') {
+          return { ...prev, serviceTierPassthrough: Boolean(value) };
+        }
         if (field === 'note') return { ...prev, note: String(value), noteTouched: true };
         if (field === 'headersText') {
           const headersText = String(value);

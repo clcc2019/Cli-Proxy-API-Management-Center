@@ -11,10 +11,7 @@ import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
 import iconVertex from '@/assets/icons/vertex.svg';
 import type { AuthFileItem } from '@/types';
-import {
-  hasAuthFileRequestStats,
-  readAuthFileRequestStats,
-} from '@/features/authFiles/stats';
+import { hasAuthFileRequestStats, readAuthFileRequestStats } from '@/features/authFiles/stats';
 import {
   normalizeAuthIndex,
   normalizeUsageSourceId,
@@ -237,11 +234,31 @@ export const parseDisableCoolingValue = (value: unknown): boolean | undefined =>
 export const readCodexAuthFileWebsockets = (value: Record<string, unknown>): boolean =>
   parseDisableCoolingValue(value.websockets ?? value.websocket) ?? false;
 
+export const readCodexAuthFileServiceTierPassthrough = (value: Record<string, unknown>): boolean =>
+  parseDisableCoolingValue(
+    value.service_tier_passthrough ??
+      value['service-tier-passthrough'] ??
+      value.serviceTierPassthrough ??
+      value.fast
+  ) ?? false;
+
 export const readAuthFileWebsockets = (file: AuthFileItem): boolean | null => {
   const providerKey = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
   if (providerKey !== 'codex') return null;
 
   const rawValue = file.websockets ?? file['websockets'] ?? file.websocket ?? file['websocket'];
+  return parseDisableCoolingValue(rawValue) ?? false;
+};
+
+export const readAuthFileServiceTierPassthrough = (file: AuthFileItem): boolean | null => {
+  const providerKey = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
+  if (providerKey !== 'codex') return null;
+
+  const rawValue =
+    file.service_tier_passthrough ??
+    file['service-tier-passthrough'] ??
+    file.serviceTierPassthrough ??
+    file.fast;
   return parseDisableCoolingValue(rawValue) ?? false;
 };
 
@@ -252,6 +269,18 @@ export const applyCodexAuthFileWebsockets = (
   const next = { ...value };
   delete next.websocket;
   next.websockets = websockets;
+  return next;
+};
+
+export const applyCodexAuthFileServiceTierPassthrough = (
+  value: Record<string, unknown>,
+  serviceTierPassthrough: boolean
+): Record<string, unknown> => {
+  const next = { ...value };
+  delete next['service-tier-passthrough'];
+  delete next.serviceTierPassthrough;
+  delete next.fast;
+  next.service_tier_passthrough = serviceTierPassthrough;
   return next;
 };
 

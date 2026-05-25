@@ -10,59 +10,21 @@
 
 .pageHeader {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) auto;
-  gap: 16px;
-  align-items: end;
-  padding: clamp(14px, 1.4vw + 8px, 20px);
-  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   background: var(--surface-raised);
   box-shadow: var(--shadow-card);
 
-  // 顶部的 1px 主色线条取代之前的 radial-gradient 背景
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--primary-color) 36%, transparent),
-      transparent
-    );
-    opacity: 0.7;
-    pointer-events: none;
-  }
-
   @include mobile {
-    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
   }
-}
-
-.pageHeaderCopy {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
-
-.pageEyebrow {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.pageTitleBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .cardTitle,
@@ -74,85 +36,35 @@
 
 .pageTitle {
   margin: 0;
-  font-size: clamp(30px, 4vw, 48px);
-  font-weight: 800;
-  line-height: 0.96;
-  letter-spacing: -0.04em;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
   color: var(--text-primary);
-}
-
-.pageDescription {
-  margin: 0;
-  max-width: 48rem;
-  color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.pageMeta {
-  position: relative;
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-
-  @include mobile {
-    justify-content: stretch;
-  }
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .statusBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
+  min-height: 30px;
+  padding: 0 10px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
   background: color-mix(in srgb, var(--bg-primary) 86%, transparent);
   color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   text-align: center;
+  white-space: nowrap;
 
   @include mobile {
     width: 100%;
   }
-}
-
-.metaCard {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 140px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--surface-raised) 90%, transparent);
-  box-shadow: var(--shadow);
-
-  @include mobile {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
-.metaValue {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.metaLabel {
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--text-secondary);
 }
 
 .cardTitleIcon {
@@ -205,7 +117,7 @@
   :global(.card-header .title) {
     font-size: 15px;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 
   :global(.card-header .btn.btn-sm) {
@@ -1216,7 +1128,7 @@
     color: currentColor;
     font-size: 17px;
     line-height: 1;
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     font-variant-numeric: tabular-nums;
   }
 

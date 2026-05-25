@@ -11,6 +11,10 @@
   --request-info-bg: color-mix(in srgb, var(--info-color) 12%, transparent);
   --request-info-border: color-mix(in srgb, var(--info-color) 28%, transparent);
   --request-info-text: color-mix(in srgb, var(--info-color) 78%, var(--text-primary));
+  --request-panel-border: color-mix(in srgb, var(--border-color) 72%, transparent);
+  --request-panel-bg: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+  --request-panel-gloss: color-mix(in srgb, var(--surface-raised-strong) 72%, transparent);
+  --request-row-grid: 4px minmax(120px, 150px) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 200px) minmax(0, 1fr) minmax(80px, 110px);
   width: 100%;
   min-height: 100%;
   display: flex;
@@ -25,162 +29,14 @@
 }
 
 // =============================================================================
-// Hero header
+// Toolbar refresh
 // =============================================================================
-.hero {
-  --request-hero-border: color-mix(in srgb, var(--border-color) 72%, transparent);
-  --request-hero-sheen: color-mix(in srgb, #ffffff 46%, transparent);
-  --request-hero-tint: color-mix(in srgb, var(--info-color) 7%, transparent);
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px 24px;
-  padding: clamp(18px, 1.6vw + 10px, 26px);
-  border-radius: 16px;
-  border: 1px solid var(--request-hero-border);
-  background:
-    linear-gradient(180deg, var(--request-hero-sheen), transparent 40%),
-    linear-gradient(135deg, var(--request-hero-tint), transparent 48%),
-    var(--surface-raised);
-  box-shadow:
-    var(--shadow-card),
-    0 18px 42px -34px color-mix(in srgb, var(--info-color) 44%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--primary-color) 4%, transparent);
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 3px;
-    background: linear-gradient(
-      90deg,
-      transparent 5%,
-      color-mix(in srgb, var(--info-color) 38%, transparent) 34%,
-      color-mix(in srgb, var(--success-color) 32%, transparent) 64%,
-      transparent 95%
-    );
-    opacity: 0.82;
-    pointer-events: none;
-    border-radius: 16px 16px 0 0;
-  }
-
-  @include tablet {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-  }
-
-  @include mobile {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    gap: 14px;
-    padding: 16px;
-    border-radius: 12px;
-  }
-}
-
-.heroCopy {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  position: relative;
-  z-index: 1;
-}
-
-.heroEyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--primary-active);
-  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 24%, transparent);
-  border-radius: 999px;
-
-  svg {
-    flex-shrink: 0;
-  }
-}
-
-.heroTitle {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: var(--text-primary);
-  line-height: 1.2;
-
-  @include mobile {
-    font-size: 21px;
-  }
-}
-
-.heroSubtitle {
-  margin: 0;
-  max-width: 64ch;
-  color: var(--text-secondary);
-  font-size: 13.5px;
-  line-height: 1.6;
-}
-
-.heroActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-  position: relative;
-  z-index: 1;
-
-  @include tablet {
-    justify-content: space-between;
-  }
-
-  @include mobile {
-    justify-content: flex-start;
-    gap: 8px;
-  }
-}
-
-.lastUpdatedPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  background: color-mix(in srgb, var(--surface-raised-strong) 85%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-
-  @include mobile {
-    max-width: 100%;
-    white-space: normal;
-  }
-}
-
-.lastUpdatedDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--success-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-color) 22%, transparent);
-}
-
 .refreshButton:global(.btn.btn-sm) {
-  min-height: 36px;
+  min-height: 34px;
   border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
   background: color-mix(in srgb, var(--surface-raised-strong) 82%, transparent);
   box-shadow: 0 10px 22px -18px color-mix(in srgb, var(--primary-color) 42%, transparent);
+  flex: 0 0 auto;
 
   > span {
     display: inline-flex;
@@ -191,7 +47,7 @@
   }
 
   @include mobile {
-    width: 100%;
+    width: auto;
   }
 }
 
@@ -222,15 +78,16 @@
 // =============================================================================
 .toolbar {
   display: grid;
-  grid-template-columns: max-content minmax(220px, 1fr) max-content;
+  grid-template-columns: max-content minmax(220px, 1fr) minmax(170px, auto);
   align-items: center;
   gap: 10px 12px;
   padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px solid var(--request-panel-border);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised-strong) 76%, transparent), transparent 70%),
-    var(--surface-raised);
+    linear-gradient(180deg, var(--request-panel-gloss), transparent 70%),
+    var(--request-panel-bg);
   box-shadow:
     var(--shadow-card),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -248,7 +105,29 @@
     grid-template-columns: 1fr;
     gap: 10px;
     padding: 10px;
-    border-radius: 12px;
+    border-radius: 8px;
+  }
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  justify-self: end;
+
+  @include tablet {
+    width: 100%;
+    justify-content: space-between;
+    justify-self: stretch;
+  }
+
+  @include mobile {
+    width: 100%;
+    justify-content: space-between;
+    justify-self: stretch;
+    gap: 8px;
   }
 }
 
@@ -256,7 +135,9 @@
   display: inline-flex;
   align-items: center;
   padding: 3px;
-  border-radius: 10px;
+  max-width: 100%;
+  min-width: 0;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
   gap: 0;
@@ -281,8 +162,9 @@
   appearance: none;
   border: none;
   background: transparent;
+  min-height: 30px;
   padding: 6px 12px;
-  border-radius: 7px;
+  border-radius: 6px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -295,6 +177,7 @@
   white-space: nowrap;
   min-width: 0;
   position: relative;
+  overflow: hidden;
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
@@ -316,6 +199,7 @@
   }
 
   svg {
+    flex-shrink: 0;
     transition: transform $transition-fast;
   }
 
@@ -338,10 +222,19 @@
   }
 }
 
+.statusFilterText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .statusFilterButtonActive {
   background: var(--surface-raised);
   color: var(--text-primary);
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent);
   animation: requestLogsFilterPop 240ms cubic-bezier(0.34, 1.3, 0.64, 1) both;
 }
 
@@ -367,6 +260,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   min-width: 22px;
   height: 18px;
   padding: 0 6px;
@@ -403,12 +297,12 @@
 .searchBox {
   min-width: 0;
   width: 100%;
-  height: 36px;
+  height: 38px;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0 9px 0 11px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
   background: color-mix(in srgb, var(--bg-secondary) 58%, transparent);
   color: var(--text-tertiary);
@@ -448,7 +342,7 @@
   width: 24px;
   height: 24px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -475,12 +369,16 @@
 }
 
 .resultMeta {
+  flex: 1 1 auto;
   font-size: 12.5px;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-align: right;
   justify-self: end;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   @include tablet {
     text-align: left;
@@ -488,7 +386,6 @@
   }
 
   @include mobile {
-    white-space: normal;
     text-align: left;
     justify-self: start;
   }
@@ -497,35 +394,47 @@
 // =============================================================================
 // Event list
 // =============================================================================
+.eventTableShell {
+  border: 1px solid var(--request-panel-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, var(--request-panel-gloss), transparent 58px),
+    var(--request-panel-bg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  min-width: 0;
+  contain: layout style;
+
+  @include mobile {
+    border-radius: 8px;
+  }
+}
+
 .eventList {
   display: flex;
   flex-direction: column;
   gap: 0;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  border-radius: 12px;
-  background: var(--surface-raised);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   overflow: hidden;
   contain: layout style;
-
-  @include mobile {
-    border-radius: 10px;
-  }
 }
 
 .eventListHeader {
   display: grid;
-  grid-template-columns: 4px minmax(120px, 150px) minmax(0, 1.3fr) minmax(
-      0,
-      1.4fr
-    ) minmax(0, 200px) minmax(0, 1fr) minmax(80px, 110px);
+  grid-template-columns: var(--request-row-grid);
   gap: 16px;
   align-items: center;
-  padding: 8px 16px;
+  min-height: 38px;
+  padding: 9px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 46%, transparent);
   font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--text-tertiary);
 
   @include tablet {
@@ -540,10 +449,7 @@
 .eventRow {
   position: relative;
   display: grid;
-  grid-template-columns: 4px minmax(120px, 150px) minmax(0, 1.3fr) minmax(
-      0,
-      1.4fr
-    ) minmax(0, 200px) minmax(0, 1fr) minmax(80px, 110px);
+  grid-template-columns: var(--request-row-grid);
   gap: 16px;
   align-items: center;
   padding: 12px 16px;
@@ -552,7 +458,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  transition: background-color $transition-fast;
+  transition: background-color $transition-fast, box-shadow $transition-fast;
   content-visibility: auto;
   contain-intrinsic-size: 64px;
 
@@ -565,7 +471,8 @@
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--bg-secondary) 64%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 58%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
   }
 
   &:focus-within {
@@ -596,7 +503,7 @@
       'stripe cost';
     align-items: start;
     gap: 7px 9px;
-    padding: 10px 11px;
+    padding: 11px;
     overflow: visible;
     contain-intrinsic-size: 168px;
 
@@ -626,7 +533,6 @@
   @include mobile {
     grid-area: stripe;
     width: 3px;
-
   }
 }
 
@@ -643,7 +549,7 @@
 }
 
 .eventRowFailed {
-  background: color-mix(in srgb, var(--warning-color) 4%, transparent);
+  background: color-mix(in srgb, var(--warning-color) 5%, transparent);
 }
 
 .eventTime {
@@ -742,8 +648,9 @@
   font-weight: 500;
   color: var(--primary-active);
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -799,11 +706,15 @@
   align-items: center;
   font-size: 10.5px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   padding: 2px 7px;
-  border-radius: 999px;
+  border-radius: 6px;
   border: 1px solid transparent;
   text-transform: lowercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   @include mobile {
     font-size: 10px;
@@ -867,8 +778,9 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  min-height: 24px;
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: 11.5px;
   font-weight: 600;
   border: 1px solid transparent;
@@ -914,11 +826,12 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  min-height: 24px;
   font-size: 11.5px;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 6px;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
   white-space: nowrap;
@@ -971,6 +884,10 @@
 
   @include mobile {
     grid-area: tokens;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
   }
 }
 
@@ -1004,6 +921,11 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  min-height: 18px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 54%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
 }
 
 .eventTokensPartLabel {
@@ -1018,16 +940,24 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  justify-self: end;
 
   @include mobile {
     font-size: 12.5px;
     grid-area: cost;
     align-self: start;
+    justify-self: start;
     text-align: left;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 54%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
   }
 
   @include tablet {
     grid-area: cost;
+    justify-self: start;
     text-align: left;
   }
 }
@@ -1044,19 +974,23 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  border-radius: 12px;
-  background: var(--surface-raised);
+  border: 1px solid var(--request-panel-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, var(--request-panel-gloss), transparent 58px),
+    var(--request-panel-bg);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
+
+  @include mobile {
+    border-radius: 8px;
+  }
 }
 
 .skeletonRow {
   display: grid;
-  grid-template-columns: 14px 168px minmax(0, 1.3fr) minmax(0, 1.4fr) auto minmax(
-      0,
-      1fr
-    ) 100px;
-  gap: 14px;
+  grid-template-columns: var(--request-row-grid);
+  gap: 16px;
   align-items: center;
   padding: 12px 16px;
   border-bottom: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
@@ -1067,15 +1001,16 @@
   }
 
   @include tablet {
-    grid-template-columns: 14px 1fr;
+    grid-template-columns: 4px 1fr;
     grid-auto-rows: minmax(14px, auto);
+    gap: 8px 14px;
   }
 
   @include mobile {
-    grid-template-columns: 14px minmax(0, 1fr);
+    grid-template-columns: 3px minmax(0, 1fr);
     grid-auto-rows: minmax(14px, auto);
-    gap: 8px 12px;
-    padding: 12px;
+    gap: 7px 9px;
+    padding: 11px;
   }
 
   > * {
@@ -1106,9 +1041,14 @@
 
 .skeletonStripe {
   width: 4px;
-  height: 32px;
+  height: 36px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
+
+  @include mobile {
+    width: 3px;
+    height: 100%;
+  }
 }
 
 @keyframes requestLogsShimmer {
@@ -1142,17 +1082,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 220px;
   padding: 48px 24px;
-  border-radius: 14px;
-  border: 1px dashed color-mix(in srgb, var(--border-color) 80%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+  border-radius: 8px;
+  border: 1px dashed color-mix(in srgb, var(--border-color) 82%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised-strong) 50%, transparent), transparent 72%),
+    color-mix(in srgb, var(--bg-secondary) 60%, transparent);
   text-align: center;
   gap: 10px;
   animation: requestLogsEmptyEnter 320ms ease-out both;
 
   @include mobile {
     padding: 36px 16px;
-    border-radius: 12px;
+    border-radius: 8px;
   }
 }
 
@@ -1165,7 +1108,7 @@
 .emptyStateIcon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1196,7 +1139,7 @@
 
 .errorBanner {
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--warning-bg);
   color: var(--warning-text);
   border: 1px solid var(--warning-border);
@@ -1254,7 +1197,7 @@
   align-items: center;
   justify-content: center;
   background: color-mix(in srgb, var(--bg-secondary) 84%, transparent);
-  border-radius: 16px;
+  border-radius: 8px;
   backdrop-filter: blur(2px);
   z-index: 5;
   animation: requestLogsOverlayEnter 200ms ease-out both;
@@ -1287,4 +1230,40 @@
   font-size: 13px;
   color: var(--text-secondary);
   font-weight: 600;
+}
+
+:global([data-theme='dark']) {
+  .page {
+    --request-success-bg: color-mix(in srgb, var(--success-color) 16%, transparent);
+    --request-success-border: color-mix(in srgb, var(--success-color) 34%, transparent);
+    --request-success-text: color-mix(in srgb, var(--success-color) 86%, var(--text-primary));
+    --request-info-bg: color-mix(in srgb, var(--info-color) 14%, transparent);
+    --request-info-border: color-mix(in srgb, var(--info-color) 32%, transparent);
+    --request-panel-border: color-mix(in srgb, var(--border-color) 82%, transparent);
+    --request-panel-bg: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+    --request-panel-gloss: color-mix(in srgb, var(--surface-raised-strong) 42%, transparent);
+  }
+
+  .eventListHeader,
+  .statusFilter,
+  .searchBox,
+  .eventLatency,
+  .eventTokensPart,
+  .eventCost {
+    border-color: color-mix(in srgb, var(--border-color) 72%, transparent);
+  }
+
+  .eventRow:hover {
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
+  }
+
+  .eventStatusBadgeSuccess {
+    color: var(--success-badge-text);
+    background: color-mix(in srgb, var(--success-badge-bg) 92%, transparent);
+    border-color: color-mix(in srgb, var(--success-badge-border) 70%, transparent);
+  }
+
+  .loadingOverlay {
+    background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+  }
 }

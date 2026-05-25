@@ -14,7 +14,6 @@ import { UsagePageHero } from '@/components/usage/UsagePageHero';
 import { UsageSectionIntro } from '@/components/usage/UsageSectionIntro';
 import { useUsageAggregateChartData } from '@/components/usage/hooks/useUsageAggregateChartData';
 import { useUsageAggregateData } from '@/components/usage/hooks/useUsageAggregateData';
-import { useUsageAggregateSparklines } from '@/components/usage/hooks/useUsageAggregateSparklines';
 import { useUsageViewState } from '@/components/usage/hooks/useUsageViewState';
 import { getAggregateWindowModelNames } from '@/utils/usageAggregate';
 import styles from './UsagePage.module.scss';
@@ -110,9 +109,6 @@ export function UsagePage() {
   const trendWindow = trendsCollapsed ? null : deferredWindow;
   const trendChartLines = trendsCollapsed ? EMPTY_CHART_LINES : deferredChartLines;
 
-  const { requestsSparkline, tokensSparkline, rpmSparkline, tpmSparkline, costSparkline } =
-    useUsageAggregateSparklines({ window: deferredWindow, loading });
-
   const {
     requestsPeriod,
     requestsChartData,
@@ -152,7 +148,6 @@ export function UsagePage() {
           timeRangeOptions={timeRangeOptions}
           selectedRangeLabel={selectedRangeLabel}
           visibleModelCount={visibleModelNames.length}
-          selectedSeriesCount={chartLines.length}
           lastRefreshedAt={lastRefreshedAt}
           loading={loading}
           exporting={exporting}
@@ -181,18 +176,7 @@ export function UsagePage() {
             </>
           }
         />
-        <StatCards
-          window={deferredWindow}
-          loading={loading}
-          modelPrices={modelPrices}
-          sparklines={{
-            requests: requestsSparkline,
-            tokens: tokensSparkline,
-            rpm: rpmSparkline,
-            tpm: tpmSparkline,
-            cost: costSparkline,
-          }}
-        />
+        <StatCards window={deferredWindow} loading={loading} modelPrices={modelPrices} />
       </section>
 
       <section id="usage-trends" className={styles.section}>

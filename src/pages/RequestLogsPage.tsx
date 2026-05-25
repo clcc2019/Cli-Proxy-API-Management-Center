@@ -15,7 +15,6 @@ import {
   IconFilterAll,
   IconInbox,
   IconRefreshCw,
-  IconSatellite,
   IconSearch,
   IconX,
 } from '@/components/ui/icons';
@@ -23,7 +22,6 @@ import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useAuthStore, useNotificationStore, useConfigStore, useThemeStore } from '@/stores';
 import { useUsageData } from '@/components/usage';
 import {
-  REQUEST_EVENT_ROWS_LIMIT,
   useRequestEventRows,
   type RequestEventRow,
 } from '@/components/usage/hooks/useRequestEventRows';
@@ -433,8 +431,7 @@ export function RequestLogsPage() {
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
 
-  const { usage, loading, error, lastRefreshedAt, modelPrices, loadUsage } =
-    useUsageData();
+  const { usage, loading, error, modelPrices, loadUsage } = useUsageData();
 
   useHeaderRefresh(loadUsage);
 
@@ -624,9 +621,6 @@ export function RequestLogsPage() {
     void loadUsage();
   }, [loadUsage]);
 
-  const lastUpdatedText = lastRefreshedAt
-    ? lastRefreshedAt.toLocaleString(i18n.language)
-    : null;
   const searchPlaceholder = t('usage_stats.request_events_search_placeholder');
 
   return (
@@ -647,50 +641,6 @@ export function RequestLogsPage() {
 
       {error && <div className={styles.errorBanner}>{error}</div>}
 
-      <section className={styles.hero}>
-        <div className={styles.heroCopy}>
-          <span className={styles.heroEyebrow}>
-            <IconSatellite size={13} aria-hidden="true" />
-            {t('usage_stats.request_events_eyebrow')}
-          </span>
-          <h1 className={styles.heroTitle}>
-            {t('usage_stats.request_events_title')}
-          </h1>
-          <p className={styles.heroSubtitle}>
-            {t('usage_stats.request_events_page_subtitle', {
-              limit: REQUEST_EVENT_ROWS_LIMIT,
-            })}
-          </p>
-        </div>
-
-        <div className={styles.heroActions}>
-          {lastUpdatedText && (
-            <span className={styles.lastUpdatedPill}>
-              <span className={styles.lastUpdatedDot} aria-hidden="true" />
-              <span>
-                {t('usage_stats.last_updated')}: {lastUpdatedText}
-              </span>
-            </span>
-          )}
-          <Button
-            variant="secondary"
-            size="sm"
-            className={styles.refreshButton}
-            onClick={handleRefresh}
-            disabled={loading}
-          >
-            <IconRefreshCw
-              size={14}
-              className={loading ? styles.refreshIconSpinning : undefined}
-              aria-hidden="true"
-            />
-            {loading
-              ? t('common.refreshing', { defaultValue: 'Refreshing...' })
-              : t('common.refresh', { defaultValue: 'Refresh' })}
-          </Button>
-        </div>
-      </section>
-
       {/* Filters */}
       <div className={styles.toolbar}>
         <div
@@ -710,9 +660,11 @@ export function RequestLogsPage() {
             onClick={handleSelectAll}
           >
             <IconFilterAll size={12} aria-hidden="true" />
-            {t('usage_stats.request_events_filter_all', {
-              defaultValue: 'All',
-            })}
+            <span className={styles.statusFilterText}>
+              {t('usage_stats.request_events_filter_all', {
+                defaultValue: 'All',
+              })}
+            </span>
             <span className={styles.statusFilterCount}>{counts.total}</span>
           </button>
           <button
@@ -728,7 +680,7 @@ export function RequestLogsPage() {
             disabled={counts.success === 0}
           >
             <IconCheck size={12} aria-hidden="true" />
-            {successLabel}
+            <span className={styles.statusFilterText}>{successLabel}</span>
             <span className={styles.statusFilterCount}>{counts.success}</span>
           </button>
           <button
@@ -744,7 +696,7 @@ export function RequestLogsPage() {
             disabled={counts.failed === 0}
           >
             <IconX size={12} aria-hidden="true" />
-            {failureLabel}
+            <span className={styles.statusFilterText}>{failureLabel}</span>
             <span className={styles.statusFilterCount}>{counts.failed}</span>
           </button>
         </div>
@@ -771,13 +723,31 @@ export function RequestLogsPage() {
           )}
         </label>
 
-        <span className={styles.resultMeta}>
-          {t('usage_stats.request_events_result_count', {
-            defaultValue: '{{shown}} / {{total}} events',
-            shown: filteredRows.length,
-            total: counts.total,
-          })}
-        </span>
+        <div className={styles.toolbarActions}>
+          <span className={styles.resultMeta}>
+            {t('usage_stats.request_events_result_count', {
+              defaultValue: '{{shown}} / {{total}} events',
+              shown: filteredRows.length,
+              total: counts.total,
+            })}
+          </span>
+          <Button
+            variant="secondary"
+            size="sm"
+            className={styles.refreshButton}
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <IconRefreshCw
+              size={14}
+              className={loading ? styles.refreshIconSpinning : undefined}
+              aria-hidden="true"
+            />
+            {loading
+              ? t('common.refreshing', { defaultValue: 'Refreshing...' })
+              : t('common.refresh', { defaultValue: 'Refresh' })}
+          </Button>
+        </div>
       </div>
 
       {/* List / states */}
@@ -811,7 +781,7 @@ export function RequestLogsPage() {
           </Button>
         </div>
       ) : (
-        <div>
+        <div className={styles.eventTableShell}>
           <div className={styles.eventListHeader} aria-hidden="true">
             <span />
             <span>{t('usage_stats.request_events_col_time')}</span>

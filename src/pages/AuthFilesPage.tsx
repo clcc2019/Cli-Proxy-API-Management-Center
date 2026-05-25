@@ -11,8 +11,7 @@ import {
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { animate } from 'motion/mini';
-import type { AnimationPlaybackControlsWithThen } from 'motion-dom';
+import gsap from 'gsap';
 import { useInterval } from '@/hooks/useInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useDebounce, useEventCallback } from '@/hooks';
@@ -20,12 +19,9 @@ import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer'
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
-import {
-  normalizeAuthIndex,
-  type KeyStatBucket,
-  type KeyUsageBucket,
-} from '@/utils/usage';
+import { normalizeAuthIndex, type KeyStatBucket, type KeyUsageBucket } from '@/utils/usage';
 import {
   normalizePlanType,
   resolveAuthProvider,
@@ -83,10 +79,6 @@ import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from
 import type { AuthFileItem } from '@/types';
 import styles from './AuthFilesPage.module.scss';
 
-const easePower3Out = (progress: number) => 1 - (1 - progress) ** 4;
-const easePower2In = (progress: number) => progress ** 3;
-const BATCH_BAR_BASE_TRANSFORM = 'translateX(-50%)';
-const BATCH_BAR_HIDDEN_TRANSFORM = 'translateX(-50%) translateY(56px)';
 const DEFAULT_REGULAR_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [3, 6, 9, 12, 15, 18];
 const AUTH_FILE_SKELETON_MAX = 12;
@@ -129,13 +121,7 @@ const buildWildcardSearch = (value: string): RegExp | null => {
   return new RegExp(pattern, 'i');
 };
 
-function AuthFilesSkeletonGrid({
-  count,
-  quotaManaged,
-}: {
-  count: number;
-  quotaManaged: boolean;
-}) {
+function AuthFilesSkeletonGrid({ count, quotaManaged }: { count: number; quotaManaged: boolean }) {
   const items = Array.from({ length: Math.min(Math.max(count, 3), AUTH_FILE_SKELETON_MAX) });
 
   return (
@@ -329,6 +315,9 @@ export function AuthFilesPage() {
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
+  const [serviceTierPassthroughUpdating, setServiceTierPassthroughUpdating] = useState<
+    Record<string, boolean>
+  >({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
   const [scopedTypeCounts, setScopedTypeCounts] = useState<{
@@ -342,8 +331,8 @@ export function AuthFilesPage() {
     sortSnapshot: Record<string, AuthFileSortSnapshot>;
   } | null>(null);
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
-  const batchActionAnimationRef = useRef<AnimationPlaybackControlsWithThen | null>(null);
-  const previousSelectionCountRef = useRef(0);
+  const batchActionAnimationRef = useRef<gsap.core.Tween | null>(null);
+  const previousSelectionActiveRef = useRef(false);
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
   const deferredSearch = useDeferredValue(search);
@@ -592,18 +581,23 @@ export function AuthFilesPage() {
     setSearch(value);
     setPage(1);
   }, []);
+  const handleClearFilters = useCallback(() => {
+    setFilter('all');
+    setProblemOnly(false);
+    setDisabledOnly(false);
+    setPremiumOnly(false);
+    setSearch('');
+    setPage(1);
+  }, []);
   const handleFilterTagSelect = useCallback((value: string) => {
     setFilter(value);
     setPage(1);
   }, []);
-  const handlePageSizeCommit = useCallback(
-    (next: number) => {
-      const clamped = clampCardPageSize(next);
-      setPageSize(clamped);
-      setPage(1);
-    },
-    []
-  );
+  const handlePageSizeCommit = useCallback((next: number) => {
+    const clamped = clampCardPageSize(next);
+    setPageSize(clamped);
+    setPage(1);
+  }, []);
 
   useHeaderRefresh(handleHeaderRefresh);
 
@@ -915,7 +909,8 @@ export function AuthFilesPage() {
   const pageQuotaRefreshDisabled =
     disableControls || loading || listUpdating || pageQuotaRefreshing || pageItems.length === 0;
   const [showListProgressVisual, setShowListProgressVisual] = useState(false);
-
+  const hasActiveFilters =
+    filter !== 'all' || normalizedSearch.length > 0 || problemOnly || disabledOnly || premiumOnly;
   useEffect(() => {
     if (showListProgress) {
       setShowListProgressVisual(true);
@@ -991,6 +986,43 @@ export function AuthFilesPage() {
     }
   });
 
+  const handleServiceTierPassthroughChange = useEventCallback(
+    async (file: AuthFileItem, enabled: boolean) => {
+      const fileName = file.name;
+      if (disableControls || serviceTierPassthroughUpdating[fileName]) return;
+
+      setServiceTierPassthroughUpdating((prev) => ({ ...prev, [fileName]: true }));
+      try {
+        const response = await authFilesApi.patchFields({
+          name: fileName,
+          service_tier_passthrough: enabled,
+        });
+        applyLocalFilePatch(fileName, {
+          ...response.file,
+          service_tier_passthrough:
+            response.file?.service_tier_passthrough ??
+            response.file?.serviceTierPassthrough ??
+            enabled,
+        });
+        showNotification(
+          enabled
+            ? t('auth_files.service_tier_passthrough_enabled_success', { name: fileName })
+            : t('auth_files.service_tier_passthrough_disabled_success', { name: fileName }),
+          'success'
+        );
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
+      } finally {
+        setServiceTierPassthroughUpdating((prev) => {
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
+    }
+  );
+
   const handleAuthFileUpdated = useCallback(
     (updated: AuthFileItem) => {
       applyLocalFileUpdates([updated]);
@@ -999,7 +1031,13 @@ export function AuthFilesPage() {
   );
 
   const handlePageRefreshQuota = useCallback(async () => {
-    if (disableControls || loading || listUpdating || pageQuotaRefreshing || pageItems.length === 0) {
+    if (
+      disableControls ||
+      loading ||
+      listUpdating ||
+      pageQuotaRefreshing ||
+      pageItems.length === 0
+    ) {
       return;
     }
 
@@ -1012,22 +1050,24 @@ export function AuthFilesPage() {
     try {
       const skippedBeforeRefresh = Math.max(0, pageItems.length - pageQuotaRefreshItems.length);
       const results: AuthFileQuotaRefreshResult[] = await Promise.all(
-        pageQuotaRefreshItems.map(async ({ file, quotaType }): Promise<AuthFileQuotaRefreshResult> => {
-          try {
-            return await refreshAuthFileQuota({
-              file,
-              quotaType,
-              disableControls,
-              t,
-            });
-          } catch (err: unknown) {
-            return {
-              status: 'error',
-              fileName: file.name,
-              message: err instanceof Error ? err.message : t('common.unknown_error'),
-            };
+        pageQuotaRefreshItems.map(
+          async ({ file, quotaType }): Promise<AuthFileQuotaRefreshResult> => {
+            try {
+              return await refreshAuthFileQuota({
+                file,
+                quotaType,
+                disableControls,
+                t,
+              });
+            } catch (err: unknown) {
+              return {
+                status: 'error',
+                fileName: file.name,
+                message: err instanceof Error ? err.message : t('common.unknown_error'),
+              };
+            }
           }
-        })
+        )
       );
       const authFileUpdates = results.flatMap((result) =>
         result.status === 'success' && result.authFile ? [result.authFile] : []
@@ -1136,7 +1176,7 @@ export function AuthFilesPage() {
       window.removeEventListener('resize', scheduleUpdate);
       document.documentElement.style.removeProperty('--auth-files-action-bar-height');
     };
-  }, [batchActionBarVisible, selectionCount]);
+  }, [batchActionBarVisible]);
 
   useEffect(() => {
     selectionCountRef.current = selectionCount;
@@ -1147,55 +1187,46 @@ export function AuthFilesPage() {
 
   useLayoutEffect(() => {
     if (!batchActionBarVisible) return;
-    const currentCount = selectionCount;
-    const previousCount = previousSelectionCountRef.current;
+    const selectionActive = selectionCount > 0;
+    const previousSelectionActive = previousSelectionActiveRef.current;
     const actionsEl = floatingBatchActionsRef.current;
     if (!actionsEl) return;
 
-    batchActionAnimationRef.current?.stop();
+    if (selectionActive === previousSelectionActive) return;
+
+    batchActionAnimationRef.current?.kill();
     batchActionAnimationRef.current = null;
+    previousSelectionActiveRef.current = selectionActive;
 
-    if (currentCount > 0 && previousCount === 0) {
-      batchActionAnimationRef.current = animate(
-        actionsEl,
-        {
-          transform: [BATCH_BAR_HIDDEN_TRANSFORM, BATCH_BAR_BASE_TRANSFORM],
-          opacity: [0, 1],
+    if (selectionActive) {
+      gsap.set(actionsEl, { xPercent: -50, y: 56, autoAlpha: 0 });
+      batchActionAnimationRef.current = gsap.to(actionsEl, {
+        y: 0,
+        autoAlpha: 1,
+        duration: 0.28,
+        ease: 'power3.out',
+        overwrite: 'auto',
+      });
+    } else {
+      gsap.set(actionsEl, { xPercent: -50, y: 0, autoAlpha: 1 });
+      batchActionAnimationRef.current = gsap.to(actionsEl, {
+        y: 56,
+        autoAlpha: 0,
+        duration: 0.22,
+        ease: 'power2.in',
+        overwrite: 'auto',
+        onComplete: () => {
+          if (selectionCountRef.current === 0) {
+            setBatchActionBarVisible(false);
+          }
         },
-        {
-          duration: 0.28,
-          ease: easePower3Out,
-          onComplete: () => {
-            actionsEl.style.transform = BATCH_BAR_BASE_TRANSFORM;
-            actionsEl.style.opacity = '1';
-          },
-        }
-      );
-    } else if (currentCount === 0 && previousCount > 0) {
-      batchActionAnimationRef.current = animate(
-        actionsEl,
-        {
-          transform: [BATCH_BAR_BASE_TRANSFORM, BATCH_BAR_HIDDEN_TRANSFORM],
-          opacity: [1, 0],
-        },
-        {
-          duration: 0.22,
-          ease: easePower2In,
-          onComplete: () => {
-            if (selectionCountRef.current === 0) {
-              setBatchActionBarVisible(false);
-            }
-          },
-        }
-      );
+      });
     }
-
-    previousSelectionCountRef.current = currentCount;
   }, [batchActionBarVisible, selectionCount]);
 
   useEffect(
     () => () => {
-      batchActionAnimationRef.current?.stop();
+      batchActionAnimationRef.current?.kill();
       batchActionAnimationRef.current = null;
     },
     []
@@ -1221,12 +1252,8 @@ export function AuthFilesPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('auth_files.title')}</h1>
-        <p className={styles.description}>{t('auth_files.description')}</p>
-      </div>
-
       <Card
+        className={styles.authFilesCard}
         title={titleNode}
         extra={
           <div className={styles.headerActions}>
@@ -1238,7 +1265,8 @@ export function AuthFilesPage() {
               disabled={loading || refreshing}
               loading={refreshing}
             >
-              {t('common.refresh')}
+              <IconRefreshCw className={styles.headerActionIcon} size={15} />
+              <span className={styles.headerActionText}>{t('common.refresh')}</span>
             </Button>
             <Button
               size="sm"
@@ -1247,7 +1275,8 @@ export function AuthFilesPage() {
               disabled={disableControls || uploading}
               loading={uploading}
             >
-              {t('auth_files.upload_button')}
+              <IconUpload className={styles.headerActionIcon} size={15} />
+              <span className={styles.headerActionText}>{t('auth_files.upload_button')}</span>
             </Button>
             <Button
               variant="danger"
@@ -1266,7 +1295,8 @@ export function AuthFilesPage() {
               disabled={disableControls || loading || refreshing || deletingAll}
               loading={deletingAll}
             >
-              {deleteAllButtonLabel}
+              <IconTrash2 className={styles.headerActionIcon} size={15} />
+              <span className={styles.headerActionText}>{deleteAllButtonLabel}</span>
             </Button>
             <input
               ref={fileInputRef}
@@ -1357,6 +1387,15 @@ export function AuthFilesPage() {
                     {t('auth_files.premium_filter_only')}
                   </button>
                 </div>
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    className={styles.filterResetButton}
+                    onClick={handleClearFilters}
+                  >
+                    {t('auth_files.clear_filters')}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1369,10 +1408,7 @@ export function AuthFilesPage() {
                 aria-hidden="true"
               />
               {showInitialLoading ? (
-                <AuthFilesSkeletonGrid
-                  count={pageSize}
-                  quotaManaged={Boolean(quotaFilterType)}
-                />
+                <AuthFilesSkeletonGrid count={pageSize} quotaManaged={Boolean(quotaFilterType)} />
               ) : pageItems.length === 0 ? (
                 <EmptyState
                   title={t('auth_files.search_empty_title')}
@@ -1389,8 +1425,7 @@ export function AuthFilesPage() {
                       statusBarCache.get(file.name) ??
                       EMPTY_AUTH_FILE_STATUS_BAR_DATA;
                     // 预计算的 buckets，引用稳定时 React.memo 命中
-                    const fileStats =
-                      fileStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_KEY_STATS;
+                    const fileStats = fileStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_KEY_STATS;
                     const fileUsageStats =
                       fileUsageStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_USAGE_STATS;
 
@@ -1405,6 +1440,9 @@ export function AuthFilesPage() {
                         statusUpdating={statusUpdating[file.name] === true}
                         accessTokenCopying={accessTokenCopying[file.name] === true}
                         priorityUpdating={priorityUpdating[file.name] === true}
+                        serviceTierPassthroughUpdating={
+                          serviceTierPassthroughUpdating[file.name] === true
+                        }
                         quotaFilterType={quotaFilterType}
                         fileStats={fileStats}
                         fileUsageStats={fileUsageStats}
@@ -1415,6 +1453,7 @@ export function AuthFilesPage() {
                         onDownload={handleDownload}
                         onCopyAccessToken={handleCopyAccessToken}
                         onPriorityChange={handlePriorityChange}
+                        onServiceTierPassthroughChange={handleServiceTierPassthroughChange}
                         onOpenPrefixProxyEditor={openPrefixProxyEditor}
                         onAuthFileUpdated={handleAuthFileUpdated}
                         onDelete={handleDelete}

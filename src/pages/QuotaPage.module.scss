@@ -10,23 +10,16 @@
 .pageHeader {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: -4px;
+  margin-bottom: -2px;
 }
 
 .pageTitle {
-  font-size: clamp(20px, 1.2vw + 14px, 24px);
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--text-primary);
   margin: 0;
   line-height: 1.2;
-}
-
-.description {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
 }
 
 .headerActions {
