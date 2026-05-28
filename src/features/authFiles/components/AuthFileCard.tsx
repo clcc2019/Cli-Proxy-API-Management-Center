@@ -14,27 +14,20 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
-  IconCheck,
   IconChevronDown,
   IconChevronUp,
-  IconDatabase,
   IconDownload,
-  IconDollarSign,
-  IconInfo,
   IconKey,
   IconModelCluster,
+  IconSatellite,
   IconSettings,
   IconTrash2,
-  IconX,
-  IconZap,
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem } from '@/types';
 import { resolveAuthProvider } from '@/utils/quota';
 import {
   formatMillionTokens,
-  formatUsd,
-  type KeyStatBucket,
   type KeyUsageBucket,
 } from '@/utils/usage';
 import {
@@ -99,10 +92,9 @@ export type AuthFileCardProps = {
   statusUpdating: boolean;
   accessTokenCopying: boolean;
   priorityUpdating: boolean;
-  serviceTierPassthroughUpdating: boolean;
+  websocketsUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
-  // 由父组件预计算并按文件名缓存，stats 不变时引用稳定，避免列表大规模重渲染
-  fileStats: KeyStatBucket;
+  // 由父组件预计算并按文件名缓存，usage stats 不变时引用稳定，避免列表大规模重渲染
   fileUsageStats: KeyUsageBucket;
   statusData: AuthFileStatusBarData;
   enterDelayMs?: number;
@@ -111,7 +103,7 @@ export type AuthFileCardProps = {
   onDownload: (name: string) => void;
   onCopyAccessToken: (file: AuthFileItem) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
-  onServiceTierPassthroughChange: (file: AuthFileItem, enabled: boolean) => void;
+  onWebsocketsChange: (file: AuthFileItem, enabled: boolean) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
@@ -163,9 +155,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     statusUpdating,
     accessTokenCopying,
     priorityUpdating,
-    serviceTierPassthroughUpdating,
+    websocketsUpdating,
     quotaFilterType,
-    fileStats,
     fileUsageStats,
     statusData,
     enterDelayMs,
@@ -174,7 +165,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onDownload,
     onCopyAccessToken,
     onPriorityChange,
-    onServiceTierPassthroughChange,
+    onWebsocketsChange,
     onOpenPrefixProxyEditor,
     onAuthFileUpdated,
     onDelete,
@@ -182,7 +173,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onToggleSelect,
   } = props;
 
-  // fileStats / fileUsageStats 已由父组件预计算（按文件名稳定引用）
+  // fileUsageStats 已由父组件预计算（按文件名稳定引用）
   const isRuntimeOnly = useMemo(() => isRuntimeOnlyAuthFile(file), [file]);
   const fileType = (file.type || 'unknown').toLowerCase();
   const isCodexFile = fileType === 'codex' || String(file.provider ?? '').toLowerCase() === 'codex';
@@ -203,10 +194,11 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     [file]
   );
   const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
-  const websocketsBadgeLabel = websocketsEnabled ? t('auth_files.websockets_enabled_badge') : null;
   const serviceTierPassthroughBadgeLabel = serviceTierPassthroughEnabled
     ? t('auth_files.service_tier_passthrough_badge')
     : null;
+  const hasHeaderBadges =
+    hasRefreshToken || websocketsEnabled || Boolean(serviceTierPassthroughBadgeLabel);
 
   const quotaType = useMemo(() => {
     if (!quotaFilterType) return null;
@@ -297,14 +289,13 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
   const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
-  const handleToggleServiceTierPassthrough = useEventCallback(() => {
-    onServiceTierPassthroughChange(file, !serviceTierPassthroughEnabled);
+  const handleToggleWebsockets = useEventCallback(() => {
+    onWebsocketsChange(file, !websocketsEnabled);
   });
   const handleDelete = useEventCallback(() => onDelete(file.name));
   const handleToggleStatus = useEventCallback((value: boolean) => onToggleStatus(file, value));
 
   const noteValue = typeof file.note === 'string' ? file.note.trim() : '';
-  const totalRequests = fileUsageStats.success + fileUsageStats.failure;
   const tokenDisplay = formatMillionTokens(fileUsageStats.totalTokens);
   const authFileDisplayName = useMemo(() => file.name.replace(/\.json$/i, ''), [file.name]);
   const maskedAuthFileDisplayName = useMemo(
@@ -317,11 +308,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     void onCopyName(authFileDisplayName);
   });
 
-  const canDisplayCost = totalRequests === 0 || fileUsageStats.pricedRequests > 0;
-  const costDisplay = canDisplayCost ? formatUsd(fileUsageStats.totalCost) : '--';
-  const costTitle = canDisplayCost
-    ? t('usage_stats.total_cost_hint')
-    : t('usage_stats.cost_need_price');
   const avatarStyle = useMemo<CSSProperties>(
     () => ({
       backgroundColor: typeColor.bg,
@@ -330,8 +316,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     }),
     [typeColor]
   );
-  // typeBadge 与 avatar 视觉相同，复用同一个对象引用
-  const typeBadgeStyle = avatarStyle;
   const cardStyle = useMemo<CSSProperties | undefined>(() => {
     if (!enterDelayMs) return undefined;
     return { '--auth-file-card-enter-delay': `${enterDelayMs}ms` } as CSSProperties;
@@ -375,39 +359,46 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
             </div>
             <div className={styles.cardHeaderContent}>
               <div
-                className={`${styles.cardIdentityRow} ${hasStatusWarning ? styles.cardIdentityRowWithWarning : ''}`}
+                className={[
+                  styles.cardIdentityRow,
+                  hasStatusWarning ? styles.cardIdentityRowWithWarning : '',
+                  hasHeaderBadges ? '' : styles.cardIdentityRowNoBadges,
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
               >
-                <div className={styles.cardTypeGroup}>
-                  <span className={styles.typeBadge} style={typeBadgeStyle}>
-                    {typeLabel}
-                  </span>
-                  {hasRefreshToken && (
-                    <span
-                      className={styles.refreshTokenBadge}
-                      title={t('auth_files.refresh_token_badge')}
-                      role="img"
-                      aria-label={t('auth_files.refresh_token_badge')}
-                    >
-                      R
-                    </span>
-                  )}
-                  {websocketsBadgeLabel && (
-                    <span
-                      className={`${styles.featureBadge} ${styles.featureBadgeEnabled}`}
-                      title={t('ai_providers.codex_websockets_hint')}
-                    >
-                      {websocketsBadgeLabel}
-                    </span>
-                  )}
-                  {serviceTierPassthroughBadgeLabel && (
-                    <span
-                      className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
-                      title={t('auth_files.service_tier_passthrough_hint')}
-                    >
-                      {serviceTierPassthroughBadgeLabel}
-                    </span>
-                  )}
-                </div>
+                {hasHeaderBadges && (
+                  <div className={styles.cardTypeGroup}>
+                    {hasRefreshToken && (
+                      <span
+                        className={styles.refreshTokenBadge}
+                        title={t('auth_files.refresh_token_badge')}
+                        role="img"
+                        aria-label={t('auth_files.refresh_token_badge')}
+                      >
+                        R
+                      </span>
+                    )}
+                    {websocketsEnabled && (
+                      <span
+                        className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
+                        title={t('ai_providers.codex_websockets_hint')}
+                        role="img"
+                        aria-label={t('auth_files.websockets_enabled_badge')}
+                      >
+                        <IconSatellite size={13} aria-hidden="true" />
+                      </span>
+                    )}
+                    {serviceTierPassthroughBadgeLabel && (
+                      <span
+                        className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
+                        title={t('auth_files.service_tier_passthrough_hint')}
+                      >
+                        {serviceTierPassthroughBadgeLabel}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <div className={styles.fileNameRow}>
                   <button
@@ -490,44 +481,15 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           </div>
 
           <div className={styles.cardInsights}>
-            <div className={styles.cardStats}>
-              <div className={`${styles.statPill} ${styles.statSuccess}`}>
-                <span className={styles.statIcon}>
-                  <IconCheck size={10} />
-                </span>
-                <span className={styles.statLabel}>{t('stats.success')}</span>
-                <span className={styles.statValue}>{fileStats.success}</span>
-              </div>
-              <div className={`${styles.statPill} ${styles.statFailure}`}>
-                <span className={styles.statIcon}>
-                  <IconX size={10} />
-                </span>
-                <span className={styles.statLabel}>{t('stats.failure')}</span>
-                <span className={styles.statValue}>{fileStats.failure}</span>
-              </div>
-              <div
-                className={`${styles.statPill} ${styles.statToken}`}
-                title={fileUsageStats.totalTokens.toLocaleString()}
-              >
-                <span className={styles.statIcon}>
-                  <IconDatabase size={11} />
-                </span>
-                <span className={styles.statLabel}>{t('auth_files.tokens_stat_label')}</span>
-                <span className={styles.statValue}>{tokenDisplay}</span>
-              </div>
-              <div className={`${styles.statPill} ${styles.statCost}`} title={costTitle}>
-                <span className={styles.statIcon}>
-                  <IconDollarSign size={10} />
-                </span>
-                <span className={styles.statLabel}>{t('auth_files.cost_stat_label')}</span>
-                <span className={styles.statValue}>{costDisplay}</span>
-              </div>
-            </div>
-
             <div className={styles.statusPanel}>
               <div className={styles.statusPanelLabel}>
                 <span>{t('auth_files.health_status_label')}</span>
-                <IconInfo className={styles.statusPanelIcon} size={12} />
+                <span
+                  className={styles.statusTokens}
+                  title={fileUsageStats.totalTokens.toLocaleString()}
+                >
+                  {t('auth_files.tokens_stat_label')} {tokenDisplay}
+                </span>
               </div>
               <ProviderStatusBar statusData={statusData} styles={styles} />
             </div>
@@ -596,16 +558,17 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={handleToggleServiceTierPassthrough}
-                      className={`${styles.iconButton} ${serviceTierPassthroughEnabled ? styles.fastActionButtonActive : styles.fastActionButton}`}
-                      title={t('auth_files.service_tier_passthrough_hint')}
-                      aria-pressed={Boolean(serviceTierPassthroughEnabled)}
-                      disabled={disableControls || serviceTierPassthroughUpdating}
+                      onClick={handleToggleWebsockets}
+                      className={`${styles.iconButton} ${websocketsEnabled ? styles.websocketActionButtonActive : styles.websocketActionButton}`}
+                      title={t('ai_providers.codex_websockets_hint')}
+                      aria-label={t('ai_providers.codex_websockets_label')}
+                      aria-pressed={Boolean(websocketsEnabled)}
+                      disabled={disableControls || websocketsUpdating}
                     >
-                      {serviceTierPassthroughUpdating ? (
+                      {websocketsUpdating ? (
                         <LoadingSpinner size={18} />
                       ) : (
-                        <IconZap className={styles.actionIcon} size={18} />
+                        <IconSatellite className={styles.actionIcon} size={18} />
                       )}
                     </Button>
                   )}

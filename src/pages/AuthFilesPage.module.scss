@@ -210,19 +210,17 @@
     border-color 0.18s ease,
     background-color 0.18s ease,
     color 0.18s ease,
-    transform 0.12s ease,
     box-shadow 0.18s ease;
 
   &:hover {
     border-color: color-mix(in srgb, var(--filter-color) 38%, var(--border-color));
     background: color-mix(in srgb, var(--filter-surface) 14%, var(--bg-secondary));
     color: var(--text-primary);
-    transform: translateY(-1px) scale(1.015);
     box-shadow: 0 4px 10px -8px color-mix(in srgb, var(--filter-color) 50%, transparent);
   }
 
   &:active {
-    transform: scale(0.97);
+    border-color: color-mix(in srgb, var(--filter-color) 48%, var(--border-color));
   }
 
   &:focus-visible {
@@ -233,12 +231,7 @@
   .filterTagIconWrap {
     transition:
       border-color 0.18s ease,
-      transform 0.18s ease,
       background-color 0.18s ease;
-  }
-
-  &:hover .filterTagIconWrap {
-    transform: scale(1.04);
   }
 }
 
@@ -387,7 +380,6 @@
   &:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--quota-medium-color) 42%, var(--border-color));
     background: color-mix(in srgb, var(--quota-medium-color) 10%, var(--surface-raised-strong));
-    transform: translateY(-1px);
   }
 
   > span {
@@ -515,17 +507,15 @@
     border-color 0.18s ease,
     background-color 0.18s ease,
     color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.12s ease;
+    box-shadow 0.18s ease;
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
     color: var(--text-primary);
-    transform: translateY(-1px);
   }
 
   &:active {
-    transform: translateY(0) scale(0.96);
+    background: color-mix(in srgb, var(--text-tertiary) 10%, var(--bg-primary));
   }
 
   &:focus-visible {
@@ -854,19 +844,17 @@
     border-color 0.18s ease,
     background-color 0.18s ease,
     color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.12s ease;
+    box-shadow 0.18s ease;
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
     color: var(--text-primary);
     background: color-mix(in srgb, var(--bg-primary) 84%, transparent);
-    transform: translateY(-1px);
     box-shadow: 0 4px 10px -8px color-mix(in srgb, var(--primary-color) 36%, transparent);
   }
 
   &:active {
-    transform: scale(0.96);
+    border-color: color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
   }
 
   &:focus-visible {
@@ -898,14 +886,12 @@
   transition:
     border-color 0.18s ease,
     background-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.12s ease;
+    color 0.18s ease;
 
   &:hover {
     border-color: color-mix(in srgb, var(--danger-color) 48%, var(--border-color));
     background: color-mix(in srgb, var(--danger-color) 10%, transparent);
     color: var(--danger-color);
-    transform: translateY(-1px);
   }
 
   &:focus-visible {
@@ -921,29 +907,10 @@
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--primary-color) 18%, transparent),
     0 6px 14px -10px color-mix(in srgb, var(--primary-color) 40%, transparent);
-  animation: authFileChipPop 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 
   &:hover {
     color: var(--primary-color);
     background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-primary));
-  }
-}
-
-@keyframes authFileChipPop {
-  0% {
-    transform: scale(0.96);
-  }
-  60% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .filterChipActive {
-    animation: none;
   }
 }
 
@@ -998,7 +965,7 @@
 }
 
 .listSurfaceRefreshing .fileGrid {
-  opacity: 0.82;
+  opacity: 0.94;
 }
 
 .listProgressBar {
@@ -1014,15 +981,10 @@
   pointer-events: none;
   box-shadow: 0 4px 14px -10px color-mix(in srgb, var(--primary-color) 70%, transparent);
   opacity: 0;
-  transform: translateY(-1px);
-  transition:
-    opacity 180ms ease,
-    transform 220ms ease;
+  transition: opacity 180ms ease;
 
   &.listProgressBarActive {
     opacity: 1;
-    transform: translateY(0);
-    will-change: opacity, transform;
   }
 
   &::before {
@@ -1128,7 +1090,7 @@
     linear-gradient(180deg, color-mix(in srgb, #ffffff 38%, transparent), transparent 44%),
     var(--surface-raised);
   box-shadow: var(--shadow-card);
-  animation: authFileCardEnter 280ms cubic-bezier(0.2, 0, 0.18, 1) both;
+  animation: authFileCardEnter 180ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
   &::after {
     content: '';
@@ -1143,7 +1105,7 @@
       transparent 100%
     );
     transform: translate3d(-120%, 0, 0);
-    animation: authFileSkeletonSheen 1.35s linear infinite;
+    animation: authFileSkeletonSheen 1.9s linear infinite;
     will-change: transform;
     backface-visibility: hidden;
   }
@@ -1575,7 +1537,7 @@
     width: 34%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
     transform: translate3d(-125%, 0, 0) skewX(-18deg);
-    animation: quotaBarGlint 2.8s cubic-bezier(0.32, 0, 0.24, 1) infinite;
+    opacity: 0;
   }
 
   &::after {
@@ -1603,23 +1565,6 @@
   --quota-fill-mid: #f87171;
   --quota-fill-end: #fb7185;
   --quota-fill-glow: rgba(239, 68, 68, 0.28);
-}
-
-@keyframes quotaBarGlint {
-  0%,
-  54% {
-    transform: translate3d(-125%, 0, 0) skewX(-18deg);
-    opacity: 0;
-  }
-
-  66% {
-    opacity: 0.82;
-  }
-
-  100% {
-    transform: translate3d(330%, 0, 0) skewX(-18deg);
-    opacity: 0;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1867,29 +1812,11 @@
   --auth-refresh-text: #3855a1;
   --auth-refresh-bg: color-mix(in srgb, #4f6ec0 12%, var(--surface-raised));
   --auth-refresh-border: color-mix(in srgb, #4f6ec0 34%, transparent);
-  // 4 个统计 pill 与全局主题色对齐：成功(#4a9b6c)、失败(#b84a3d)、cost(#d4a030)
-  // 成功：贴合 --success-color (#4a9b6c)
-  --auth-stat-success-text: #1f7448;
-  --auth-stat-success-bg: color-mix(in srgb, var(--success-color) 14%, var(--surface-raised));
-  --auth-stat-success-border: color-mix(in srgb, var(--success-color) 38%, transparent);
-  --auth-stat-success-icon-bg: var(--success-color);
-  --auth-stat-success-icon-text: #fff;
-  // 失败：贴合 --error-color (#b84a3d)
-  --auth-stat-failure-text: #9c3a30;
-  --auth-stat-failure-bg: color-mix(in srgb, var(--error-color) 12%, var(--surface-raised));
-  --auth-stat-failure-border: color-mix(in srgb, var(--error-color) 32%, transparent);
-  --auth-stat-failure-icon-bg: var(--error-color);
-  --auth-stat-failure-icon-text: #fff;
   // Token：石板蓝（中性偏冷，作为"数据量"语义）
   --auth-stat-token-text: #3a5a82;
   --auth-stat-token-bg: color-mix(in srgb, #5577a3 11%, var(--surface-raised));
   --auth-stat-token-border: color-mix(in srgb, #5577a3 30%, transparent);
   --auth-stat-token-icon: #4c6f99;
-  // 花费：贴合 --quota-medium-color (#d4a030)
-  --auth-stat-cost-text: #8c660d;
-  --auth-stat-cost-bg: color-mix(in srgb, var(--quota-medium-color) 16%, var(--surface-raised));
-  --auth-stat-cost-border: color-mix(in srgb, var(--quota-medium-color) 38%, transparent);
-  --auth-stat-cost-icon: #a17710;
   --auth-action-border: color-mix(
     in srgb,
     var(--provider-accent, var(--border-color)) 18%,
@@ -2269,7 +2196,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  // 边框跟随 typeBadge 文字色 (currentColor)，让头像与徽章形成视觉关联
+  // 边框跟随 provider 色 (currentColor)，让头像与服务类型形成视觉关联
   // background 由 inline style (typeColor.bg) 控制
   border: 1px solid color-mix(in srgb, currentColor 24%, var(--border-color));
   box-shadow:
@@ -2357,6 +2284,14 @@
   grid-template-columns: auto minmax(0, 1fr) auto auto;
 }
 
+.cardIdentityRowNoBadges {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.cardIdentityRowNoBadges.cardIdentityRowWithWarning {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
 .cardIdentityWarning {
   justify-self: end;
   align-self: start;
@@ -2393,28 +2328,6 @@
   }
 }
 
-.typeBadge {
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  min-height: 22px;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1;
-  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
-  white-space: nowrap;
-  flex-shrink: 0;
-  // 极轻的高光，让标签有"质感"但不浮夸
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
-    0 1px 1px -1px color-mix(in srgb, currentColor 18%, transparent);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 @media (max-width: 640px) {
   .cardIdentityRow {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -2430,6 +2343,16 @@
     grid-template-areas:
       'type priority warning'
       'name name name';
+  }
+
+  .cardIdentityRowNoBadges {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'name priority';
+  }
+
+  .cardIdentityRowNoBadges.cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: 'name priority warning';
   }
 
   .cardTypeGroup {
@@ -2453,7 +2376,6 @@
     grid-area: warning;
   }
 
-  .typeBadge,
   .stateBadge,
   .planBadge,
   .featureBadge {
@@ -2512,28 +2434,6 @@
   color: var(--warning-text);
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
-  // 让"警告"状态保持轻微视觉脉冲，引起注意但不喧宾夺主
-  animation: authFileBadgeWarn 3.2s ease-in-out infinite;
-}
-
-@keyframes authFileBadgeWarn {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.32),
-      0 0 0 0 color-mix(in srgb, var(--warning-color) 0%, transparent);
-  }
-  50% {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.32),
-      0 0 0 2px color-mix(in srgb, var(--warning-color) 14%, transparent);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stateBadgeWarning {
-    animation: none;
-  }
 }
 
 .stateBadgeDisabled {
@@ -2610,6 +2510,20 @@
   color: var(--auth-feature-text);
   background: var(--auth-feature-bg);
   border-color: var(--auth-feature-border);
+}
+
+.featureBadgeIconOnly {
+  width: 22px;
+  min-width: 22px;
+  max-width: 22px;
+  padding: 0;
+  flex: 0 0 22px;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    stroke-width: 2.4;
+  }
 }
 
 .featureBadgeFast {
@@ -2720,20 +2634,20 @@
   }
 
   .priorityStepper {
-    height: 26px;
-    border-radius: 8px;
+    height: 24px;
+    border-radius: 0;
   }
 
   .priorityStepButton {
-    width: 26px;
+    width: 21px;
     height: 24px;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .priorityInput {
-    width: 38px;
+    width: 30px;
     height: 24px;
-    font-size: 12px;
+    font-size: 11px;
   }
 }
 
@@ -2839,32 +2753,29 @@
   display: inline-flex;
   align-items: center;
   justify-self: end;
-  gap: 5px;
+  gap: 0;
   width: fit-content;
   max-width: 100%;
-  min-height: 30px;
+  min-height: 24px;
   min-width: 0;
-  padding: 2px 3px 2px 8px;
+  padding: 0;
   border: 1px solid var(--auth-card-inner-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
   box-shadow: var(--auth-card-inner-shadow);
+  overflow: hidden;
 }
 
 .priorityInlineLabel {
-  flex: 0 0 auto;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--text-tertiary);
-  letter-spacing: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-
-  &::after {
-    content: ':';
-    margin-left: 1px;
-    opacity: 0.7;
-  }
+  border: 0;
 }
 
 .priorityInlineReadOnly {
@@ -2874,16 +2785,16 @@
 .priorityStepper {
   display: inline-flex;
   align-items: center;
-  height: 26px;
+  height: 24px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  box-shadow: none;
 }
 
 .priorityStepButton {
-  width: 26px;
+  width: 21px;
   height: 24px;
   border: 0;
   padding: 0;
@@ -2892,7 +2803,7 @@
   justify-content: center;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -2918,7 +2829,7 @@
 }
 
 .priorityInput {
-  width: 38px;
+  width: 30px;
   height: 24px;
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
@@ -2927,7 +2838,7 @@
   text-align: center;
   background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -2999,202 +2910,6 @@
   }
 }
 
-.cardStats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 5px;
-  min-width: 0;
-  overflow: hidden;
-
-  @include mobile {
-    gap: 6px;
-  }
-}
-
-.statPill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 5px;
-  width: 100%;
-  min-width: 0;
-  height: 26px;
-  min-height: 26px;
-  padding: 0 7px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
-  box-sizing: border-box;
-  line-height: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  // 极轻的高光，与 typeBadge 保持视觉一致
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.36),
-    0 1px 1px -1px color-mix(in srgb, currentColor 18%, transparent);
-  transition: color 140ms ease;
-}
-
-@media (max-width: 640px) {
-  .cardStats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px;
-    width: 100%;
-  }
-
-  .statPill {
-    justify-content: center;
-    gap: 3px;
-    height: 24px;
-    min-height: 24px;
-    width: 100%;
-    padding: 0 4px;
-    overflow: hidden;
-  }
-
-  .statIcon {
-    width: 12px;
-    height: 12px;
-  }
-
-  .statIcon svg,
-  .statToken .statIcon svg,
-  .statCost .statIcon svg {
-    width: 9px;
-    height: 9px;
-  }
-
-  .statLabel {
-    flex: 1 1 auto;
-    font-size: 8.5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .statValue {
-    flex: 0 0 auto;
-    margin-left: 0;
-    font-size: 9.5px;
-  }
-}
-
-.statLabel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  opacity: 0.86;
-}
-
-.statValue {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 1 auto;
-  max-width: 6ch;
-  margin-left: auto;
-  min-width: 0;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.statToken .statValue,
-.statCost .statValue {
-  max-width: 7ch;
-}
-
-.statIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  line-height: 0;
-
-  svg {
-    display: block;
-    width: 10px;
-    height: 10px;
-    stroke-width: 3;
-  }
-}
-
-.statSuccess {
-  background: var(--auth-stat-success-bg);
-  color: var(--auth-stat-success-text);
-  border-color: var(--auth-stat-success-border);
-}
-
-.statSuccess .statIcon {
-  background: var(--auth-stat-success-icon-bg);
-  color: var(--auth-stat-success-icon-text);
-}
-
-.statFailure {
-  background: var(--auth-stat-failure-bg);
-  color: var(--auth-stat-failure-text);
-  border-color: var(--auth-stat-failure-border);
-}
-
-.statFailure .statIcon {
-  background: var(--auth-stat-failure-icon-bg);
-  color: var(--auth-stat-failure-icon-text);
-}
-
-.statToken {
-  flex: 0 1 auto;
-  background: var(--auth-stat-token-bg);
-  color: var(--auth-stat-token-text);
-  border-color: var(--auth-stat-token-border);
-}
-
-.statToken .statIcon {
-  width: 13px;
-  height: 13px;
-  color: var(--auth-stat-token-icon);
-
-  svg {
-    width: 12px;
-    height: 12px;
-    stroke-width: 2.45;
-  }
-}
-
-.statCost {
-  flex: 0 1 auto;
-  background: var(--auth-stat-cost-bg);
-  color: var(--auth-stat-cost-text);
-  border-color: var(--auth-stat-cost-border);
-}
-
-.statCost .statIcon {
-  width: 13px;
-  height: 13px;
-  color: var(--auth-stat-cost-icon);
-
-  svg {
-    width: 11px;
-    height: 11px;
-    stroke-width: 2.8;
-  }
-}
-
 .statusPanel {
   display: flex;
   flex-direction: column;
@@ -3211,6 +2926,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
   font-size: 11px;
   font-weight: 800;
   color: var(--text-tertiary);
@@ -3218,11 +2934,18 @@
   letter-spacing: 0;
 }
 
-.statusPanelIcon {
-  width: 12px;
-  height: 12px;
-  color: color-mix(in srgb, var(--text-tertiary) 88%, #94a3b8);
-  stroke-width: 2.35;
+.statusTokens {
+  margin-left: 2px;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 // 状态监测栏
@@ -4113,6 +3836,8 @@
   gap: 8px;
   min-width: 0;
   flex: 1 1 auto;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
 }
 
 .mobileActionsToggle:global(.btn.btn-sm) {
@@ -4124,7 +3849,9 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -4143,23 +3870,23 @@
   color: var(--auth-action-hover-text);
 }
 
-.fastActionButton:global(.btn.btn-sm) {
+.websocketActionButton:global(.btn.btn-sm) {
   background: var(--auth-action-bg);
   border-color: var(--auth-action-border);
   color: var(--auth-action-text);
 }
 
-.fastActionButtonActive:global(.btn.btn-sm) {
-  background: color-mix(in srgb, var(--warning-bg) 76%, var(--surface-raised));
-  border-color: color-mix(in srgb, var(--warning-border) 82%, transparent);
-  color: color-mix(in srgb, var(--warning-text) 94%, var(--text-primary));
+.websocketActionButtonActive:global(.btn.btn-sm) {
+  background: color-mix(in srgb, var(--info-color) 14%, var(--surface-raised));
+  border-color: color-mix(in srgb, var(--info-color) 46%, var(--border-color));
+  color: color-mix(in srgb, var(--info-color) 88%, var(--text-primary));
 }
 
-.fastActionButton:global(.btn.btn-sm):hover:not(:disabled),
-.fastActionButtonActive:global(.btn.btn-sm):hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--warning-border) 70%, var(--auth-action-hover-border));
-  background: color-mix(in srgb, var(--warning-bg) 70%, var(--auth-action-hover-bg));
-  color: color-mix(in srgb, var(--warning-text) 92%, var(--auth-action-hover-text));
+.websocketActionButton:global(.btn.btn-sm):hover:not(:disabled),
+.websocketActionButtonActive:global(.btn.btn-sm):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--info-color) 54%, var(--auth-action-hover-border));
+  background: color-mix(in srgb, var(--info-color) 12%, var(--auth-action-hover-bg));
+  color: color-mix(in srgb, var(--info-color) 82%, var(--auth-action-hover-text));
 }
 
 .cardUtilityActions {
@@ -4177,9 +3904,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  flex: 0 0 auto;
+  flex: 0 0 62px;
   justify-content: flex-start;
-  min-width: 0;
+  min-width: 62px;
+  max-width: 62px;
   margin-left: 0;
   padding-top: 0;
   flex-wrap: nowrap;
@@ -4201,8 +3929,8 @@
 .statusToggle {
   display: inline-flex;
   align-items: center;
-  flex: 0 1 auto;
-  min-width: 0;
+  flex: 0 0 62px;
+  min-width: 62px;
 }
 
 .cardToggleSwitch > span:first-of-type {
@@ -4291,11 +4019,12 @@
   background: var(--auth-action-bg);
   color: var(--auth-action-text);
   box-shadow: var(--auth-action-shadow);
-  // 仅过渡跟手的属性；transform 140ms 给点击的紧凑感
+  // 仅过渡颜色与阴影，避免 hover/active 造成卡片区域位移感。
   transition:
     color 140ms ease,
     border-color 140ms ease,
-    transform 120ms cubic-bezier(0.2, 0, 0.18, 1);
+    background-color 140ms ease,
+    box-shadow 140ms ease;
 
   > span {
     display: flex;
@@ -4308,7 +4037,6 @@
   }
 
   &:hover:not(:disabled) {
-    transform: translate3d(0, -1px, 0);
     border-color: var(--auth-action-hover-border);
     background: var(--auth-action-hover-bg);
     color: var(--auth-action-hover-text);
@@ -4316,7 +4044,11 @@
   }
 
   &:active:not(:disabled) {
-    transform: translate3d(0, 0, 0) scale(0.94);
+    border-color: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-color)) 52%,
+      var(--border-color)
+    );
     transition-duration: 80ms;
   }
 }
@@ -4388,7 +4120,7 @@
     padding-top: 10px;
   }
 
-  // 中等宽度移动端保持单行；更窄时在 520px 断点切换为稳定网格。
+  // 中等宽度移动端保持底部按钮单行，避免操作区散成多排。
   .cardActionsMain {
     gap: 8px;
     flex-direction: row;
@@ -4404,13 +4136,7 @@
     flex-wrap: nowrap;
     flex: 1 1 auto;
     min-width: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    overflow: visible;
 
     > * {
       flex: 0 0 auto;
@@ -4706,23 +4432,10 @@
     // 成功：贴合 dark --success-color (#5cb88a)
     --auth-stat-success-text: #6dc89b;
     --auth-stat-success-bg: color-mix(in srgb, var(--success-color) 22%, transparent);
-    --auth-stat-success-border: color-mix(in srgb, var(--success-color) 48%, transparent);
-    --auth-stat-success-icon-bg: var(--success-color);
-    --auth-stat-success-icon-text: #11281f;
-    // 失败：贴合 dark --error-color (#d46555)
-    --auth-stat-failure-text: #e89a92;
-    --auth-stat-failure-bg: color-mix(in srgb, var(--error-color) 22%, transparent);
-    --auth-stat-failure-border: color-mix(in srgb, var(--error-color) 48%, transparent);
-    --auth-stat-failure-icon-bg: var(--error-color);
-    --auth-stat-failure-icon-text: #fff5f3;
     --auth-stat-token-text: #93b0d6;
     --auth-stat-token-bg: rgba(85, 119, 163, 0.22);
     --auth-stat-token-border: rgba(85, 119, 163, 0.46);
     --auth-stat-token-icon: #a8c0de;
-    --auth-stat-cost-text: #eac45a;
-    --auth-stat-cost-bg: color-mix(in srgb, var(--quota-medium-color) 22%, transparent);
-    --auth-stat-cost-border: color-mix(in srgb, var(--quota-medium-color) 46%, transparent);
-    --auth-stat-cost-icon: #eac45a;
     --auth-action-border: color-mix(
       in srgb,
       var(--provider-accent, var(--border-color)) 20%,
@@ -4880,7 +4593,6 @@
     }
   }
 
-  .typeBadge,
   .stateBadge,
   .planBadge,
   .refreshTokenBadge,
@@ -5080,59 +4792,6 @@
     border-color: rgba(198, 87, 70, 0.42);
   }
 
-  .statPill {
-    border: 1px solid transparent;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 1px 0 rgba(0, 0, 0, 0.16);
-  }
-
-  .statSuccess {
-    color: var(--auth-stat-success-text);
-    background: var(--auth-stat-success-bg);
-    border-color: var(--auth-stat-success-border);
-  }
-
-  .statSuccess .statIcon {
-    background: var(--auth-stat-success-icon-bg);
-    color: var(--auth-stat-success-icon-text);
-  }
-
-  .statFailure {
-    color: var(--auth-stat-failure-text);
-    background: var(--auth-stat-failure-bg);
-    border-color: var(--auth-stat-failure-border);
-  }
-
-  .statFailure .statIcon {
-    background: var(--auth-stat-failure-icon-bg);
-    color: var(--auth-stat-failure-icon-text);
-  }
-
-  .statToken {
-    color: var(--auth-stat-token-text);
-    background: var(--auth-stat-token-bg);
-    border-color: var(--auth-stat-token-border);
-  }
-
-  .statToken .statIcon {
-    color: var(--auth-stat-token-icon);
-  }
-
-  .statCost {
-    color: var(--auth-stat-cost-text);
-    background: var(--auth-stat-cost-bg);
-    border-color: var(--auth-stat-cost-border);
-  }
-
-  .statCost .statIcon {
-    color: var(--auth-stat-cost-icon);
-  }
-
-  .statusPanelIcon {
-    color: var(--text-tertiary);
-  }
-
   .statusBlockIdle {
     background: linear-gradient(
       180deg,
@@ -5270,7 +4929,7 @@
   border-radius: 12px;
   background: color-mix(in srgb, var(--bg-secondary) 34%, transparent);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  animation: authFilePaginationEnter 240ms ease-out both;
+  animation: authFilePaginationEnter 160ms ease-out both;
 
   > :global(.btn.btn-sm) {
     min-width: 74px;
@@ -5280,11 +4939,9 @@
 @keyframes authFilePaginationEnter {
   from {
     opacity: 0;
-    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -5303,7 +4960,6 @@
   width: min(960px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
   box-sizing: border-box;
-  will-change: transform, opacity;
 }
 
 .batchActionBar {
@@ -5688,8 +5344,7 @@
   cursor: pointer;
   transition:
     background-color $transition-fast,
-    border-color $transition-fast,
-    transform 120ms ease;
+    border-color $transition-fast;
 
   &:hover {
     background-color: var(--bg-hover);
@@ -5697,7 +5352,7 @@
   }
 
   &:active {
-    transform: scale(0.98);
+    border-color: color-mix(in srgb, var(--primary-color) 72%, var(--border-color));
   }
 }
 
@@ -5851,19 +5506,19 @@
   }
 
   .priorityStepper {
-    height: 26px;
+    height: 24px;
   }
 
   .priorityStepButton {
-    width: 26px;
+    width: 21px;
     height: 24px;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .priorityInput {
-    width: 38px;
+    width: 30px;
     height: 24px;
-    font-size: 12px;
+    font-size: 11px;
   }
 
   // 卡片操作区相关样式集中在上方 `@include mobile` / `@media (max-width: 640px)` /
@@ -5872,11 +5527,6 @@
   // Insights 区域：更紧凑的纵向间距
   .cardInsights {
     gap: 10px;
-  }
-
-  // Stat pills：移动端保持 4 个胶囊单行显示。
-  .statPill {
-    padding: 0 4px;
   }
 
   // -------- 筛选 / 工具条 ---------------------------------------------------
@@ -6159,6 +5809,16 @@
       'name name name';
   }
 
+  .cardIdentityRowNoBadges {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'name priority';
+  }
+
+  .cardIdentityRowNoBadges.cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: 'name priority warning';
+  }
+
   .cardTypeGroup {
     grid-area: type;
   }
@@ -6182,7 +5842,6 @@
     row-gap: 4px;
   }
 
-  .typeBadge,
   .featureBadge {
     min-height: 20px;
     padding: 0 7px;
@@ -6265,16 +5924,20 @@
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
       'type warning'
-      'priority priority'
-      'name name';
+      'name priority';
+  }
+
+  .cardIdentityRowNoBadges.cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: 'name priority warning';
   }
 
   .cardIdentityRowWithWarning .priorityInlineRow {
-    justify-self: start;
+    justify-self: end;
   }
 
   .priorityInlineRow {
-    width: 100%;
+    width: fit-content;
   }
 
   .cardIdentityRow .priorityInlineRow {
@@ -6295,10 +5958,10 @@
 @include mobile {
   .cardActionsMain {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto 1fr auto;
     grid-template-areas:
-      'toggle refresh'
-      'content content';
+      'toggle spacer refresh'
+      'content content content';
     justify-content: space-between;
     align-items: center;
     gap: 8px 6px;
@@ -6314,10 +5977,19 @@
     grid-area: content;
     display: none;
     align-items: center;
-    flex-wrap: wrap;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
     gap: 6px;
     width: 100%;
     min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .cardActionsMainExpanded .cardActionsContent {
@@ -6326,10 +5998,10 @@
 
   .cardActionCluster {
     display: flex;
-    flex: 1 1 auto;
-    flex-wrap: wrap;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     gap: 6px;
-    min-width: 0;
+    min-width: max-content;
     overflow: visible;
   }
 
@@ -6340,7 +6012,9 @@
   }
 
   .cardStatusActions {
-    flex: 0 0 auto;
+    flex: 0 0 62px;
+    min-width: 62px;
+    max-width: 62px;
   }
 
   .cardRefreshActions {
@@ -6401,7 +6075,6 @@
     overflow: visible;
   }
 
-  .typeBadge,
   .stateBadge,
   .planBadge,
   .featureBadge {
@@ -6420,6 +6093,14 @@
 
   .featureBadge {
     max-width: 78px;
+  }
+
+  .featureBadgeIconOnly {
+    width: 20px;
+    min-width: 20px;
+    max-width: 20px;
+    flex-basis: 20px;
+    padding: 0;
   }
 
   .stateBadge,
@@ -6464,16 +6145,8 @@
   .priorityInlineRow {
     min-width: 0;
     max-width: 100%;
-    gap: 4px;
+    gap: 0;
     overflow: hidden;
-  }
-
-  .priorityInlineLabel {
-    min-width: 0;
-    max-width: 3.8em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .priorityStepper {
@@ -6502,83 +6175,27 @@
     word-break: break-word;
   }
 
-  .cardStats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    align-items: stretch;
-    gap: 4px;
-    overflow: hidden;
-  }
-
-  .statPill {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    height: 24px;
-    min-height: 24px;
-    padding: 0 4px;
-    gap: 2px;
-    overflow: hidden;
-  }
-
-  .statIcon,
-  .statToken .statIcon,
-  .statCost .statIcon {
-    flex: 0 0 12px;
-    width: 12px;
-    height: 12px;
-  }
-
-  .statIcon svg,
-  .statToken .statIcon svg,
-  .statCost .statIcon svg {
-    width: 9px;
-    height: 9px;
-  }
-
-  .statLabel,
-  .statValue {
-    display: block;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    line-height: 1;
-  }
-
-  .statLabel {
-    flex: 1 1 auto;
-    font-size: 8.5px;
-    text-align: left;
-  }
-
-  .statValue {
-    flex: 0 1 auto;
-    max-width: 4.8ch;
-    margin-left: 0;
-    font-size: 9.5px;
-    text-align: right;
-  }
-
-  .statToken .statValue,
-  .statCost .statValue {
-    max-width: 5.4ch;
-  }
-
   .statusPanelLabel {
     min-width: 0;
     max-width: 100%;
-    overflow: hidden;
+    flex-wrap: wrap;
+    row-gap: 2px;
+    overflow: visible;
   }
 
-  .statusPanelLabel > span {
+  .statusPanelLabel > span:first-child {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .statusPanelIcon {
-    flex: 0 0 12px;
+  .statusTokens {
+    flex: 0 0 auto;
+    margin-left: 0;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
   }
 
   .statusBar {
@@ -6641,33 +6258,38 @@
   }
 
   .cardActionsContent {
-    overflow: visible;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .cardActionCluster,
+  .cardUtilityActions,
+  .cardStatusActions,
+  .cardRefreshActions {
+    flex-wrap: nowrap;
+  }
+
+  .cardActionCluster {
+    justify-content: flex-start;
+  }
+
+  .cardRefreshActions {
+    margin-left: auto;
   }
 }
 
 @media (max-width: 380px) {
-  .typeBadge {
-    max-width: 94px;
-  }
-
   .featureBadge,
   .stateBadge,
   .planBadge {
     max-width: 64px;
-  }
-
-  .statPill {
-    padding: 0 3px;
-    gap: 1px;
-  }
-
-  .statLabel {
-    font-size: 8px;
-  }
-
-  .statValue {
-    max-width: 4.4ch;
-    font-size: 9px;
   }
 
   .statusRate {

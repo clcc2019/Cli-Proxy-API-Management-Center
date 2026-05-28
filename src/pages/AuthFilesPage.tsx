@@ -14,14 +14,14 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useInterval } from '@/hooks/useInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
-import { useDebounce, useEventCallback } from '@/hooks';
+import { useDebounce, useEventCallback, useReducedMotion } from '@/hooks';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
-import { normalizeAuthIndex, type KeyStatBucket, type KeyUsageBucket } from '@/utils/usage';
+import { normalizeAuthIndex, type KeyUsageBucket } from '@/utils/usage';
 import {
   normalizePlanType,
   resolveAuthProvider,
@@ -39,7 +39,6 @@ import {
   isRuntimeOnlyAuthFile,
   normalizeProviderKey,
   parsePriorityValue,
-  resolveAuthFileStats,
   resolveAuthFileUsageStats,
   type QuotaProviderType,
   type ResolvedTheme,
@@ -88,8 +87,6 @@ const getAuthFileCardEnterStyle = (index: number): CSSProperties =>
     '--auth-file-card-enter-delay': `${Math.min(index, 7) * 12}ms`,
   }) as CSSProperties;
 
-// 空 buckets 常量，作为 Map 查询 fallback；保证空数据时 props 引用也稳定
-const EMPTY_AUTH_FILE_KEY_STATS: KeyStatBucket = { success: 0, failure: 0 };
 const EMPTY_AUTH_FILE_USAGE_STATS: KeyUsageBucket = {
   success: 0,
   failure: 0,
@@ -302,6 +299,7 @@ export function AuthFilesPage() {
   const resolvedTheme: ResolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
+  const prefersReducedMotion = useReducedMotion();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | string>('all');
   const [problemOnly, setProblemOnly] = useState(false);
@@ -315,9 +313,7 @@ export function AuthFilesPage() {
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
-  const [serviceTierPassthroughUpdating, setServiceTierPassthroughUpdating] = useState<
-    Record<string, boolean>
-  >({});
+  const [websocketsUpdating, setWebsocketsUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
   const [scopedTypeCounts, setScopedTypeCounts] = useState<{
@@ -377,8 +373,7 @@ export function AuthFilesPage() {
     serverPaginationEnabled,
   ]);
 
-  const { keyStats, keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats } =
-    useAuthFilesStats();
+  const { keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats } = useAuthFilesStats();
   const {
     files,
     selectedFiles,
@@ -863,17 +858,9 @@ export function AuthFilesPage() {
   const showInitialLoading = loading && pageItems.length === 0;
   const showListProgress = listUpdating && pageItems.length > 0;
 
-  // 一次性按文件名预计算 stats / usage buckets。
-  // 仅当 keyStats / keyUsageStats / pageItems 任一变化时重算，
+  // 一次性按文件名预计算 usage buckets。
+  // 仅当 keyUsageStats / pageItems 任一变化时重算，
   // 卡片接收到的 bucket 引用稳定 → React.memo 命中，统计未变时不会触发整页卡片重渲染。
-  const fileStatsByName = useMemo(() => {
-    const map = new Map<string, KeyStatBucket>();
-    pageItems.forEach((file) => {
-      map.set(file.name, resolveAuthFileStats(file, keyStats));
-    });
-    return map;
-  }, [pageItems, keyStats]);
-
   const fileUsageStatsByName = useMemo(() => {
     const map = new Map<string, KeyUsageBucket>();
     pageItems.forEach((file) => {
@@ -986,42 +973,37 @@ export function AuthFilesPage() {
     }
   });
 
-  const handleServiceTierPassthroughChange = useEventCallback(
-    async (file: AuthFileItem, enabled: boolean) => {
-      const fileName = file.name;
-      if (disableControls || serviceTierPassthroughUpdating[fileName]) return;
+  const handleWebsocketsChange = useEventCallback(async (file: AuthFileItem, enabled: boolean) => {
+    const fileName = file.name;
+    if (disableControls || websocketsUpdating[fileName]) return;
 
-      setServiceTierPassthroughUpdating((prev) => ({ ...prev, [fileName]: true }));
-      try {
-        const response = await authFilesApi.patchFields({
-          name: fileName,
-          service_tier_passthrough: enabled,
-        });
-        applyLocalFilePatch(fileName, {
-          ...response.file,
-          service_tier_passthrough:
-            response.file?.service_tier_passthrough ??
-            response.file?.serviceTierPassthrough ??
-            enabled,
-        });
-        showNotification(
-          enabled
-            ? t('auth_files.service_tier_passthrough_enabled_success', { name: fileName })
-            : t('auth_files.service_tier_passthrough_disabled_success', { name: fileName }),
-          'success'
-        );
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
-      } finally {
-        setServiceTierPassthroughUpdating((prev) => {
-          const next = { ...prev };
-          delete next[fileName];
-          return next;
-        });
-      }
+    setWebsocketsUpdating((prev) => ({ ...prev, [fileName]: true }));
+    try {
+      const response = await authFilesApi.patchFields({
+        name: fileName,
+        websockets: enabled,
+      });
+      applyLocalFilePatch(fileName, {
+        ...response.file,
+        websockets: response.file?.websockets ?? response.file?.websocket ?? enabled,
+      });
+      showNotification(
+        enabled
+          ? t('auth_files.websockets_enabled_success', { name: fileName })
+          : t('auth_files.websockets_disabled_success', { name: fileName }),
+        'success'
+      );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
+    } finally {
+      setWebsocketsUpdating((prev) => {
+        const next = { ...prev };
+        delete next[fileName];
+        return next;
+      });
     }
-  );
+  });
 
   const handleAuthFileUpdated = useCallback(
     (updated: AuthFileItem) => {
@@ -1198,21 +1180,33 @@ export function AuthFilesPage() {
     batchActionAnimationRef.current = null;
     previousSelectionActiveRef.current = selectionActive;
 
+    if (prefersReducedMotion) {
+      gsap.set(actionsEl, {
+        xPercent: -50,
+        y: 0,
+        autoAlpha: selectionActive ? 1 : 0,
+      });
+      if (!selectionActive) {
+        setBatchActionBarVisible(false);
+      }
+      return;
+    }
+
     if (selectionActive) {
-      gsap.set(actionsEl, { xPercent: -50, y: 56, autoAlpha: 0 });
+      gsap.set(actionsEl, { xPercent: -50, y: 12, autoAlpha: 0 });
       batchActionAnimationRef.current = gsap.to(actionsEl, {
         y: 0,
         autoAlpha: 1,
-        duration: 0.28,
-        ease: 'power3.out',
+        duration: 0.18,
+        ease: 'power2.out',
         overwrite: 'auto',
       });
     } else {
       gsap.set(actionsEl, { xPercent: -50, y: 0, autoAlpha: 1 });
       batchActionAnimationRef.current = gsap.to(actionsEl, {
-        y: 56,
+        y: 10,
         autoAlpha: 0,
-        duration: 0.22,
+        duration: 0.16,
         ease: 'power2.in',
         overwrite: 'auto',
         onComplete: () => {
@@ -1222,7 +1216,7 @@ export function AuthFilesPage() {
         },
       });
     }
-  }, [batchActionBarVisible, selectionCount]);
+  }, [batchActionBarVisible, prefersReducedMotion, selectionCount]);
 
   useEffect(
     () => () => {
@@ -1424,8 +1418,7 @@ export function AuthFilesPage() {
                       (authIndexKey ? statusBarCache.get(authIndexKey) : undefined) ??
                       statusBarCache.get(file.name) ??
                       EMPTY_AUTH_FILE_STATUS_BAR_DATA;
-                    // 预计算的 buckets，引用稳定时 React.memo 命中
-                    const fileStats = fileStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_KEY_STATS;
+                    // 预计算的 usage bucket，引用稳定时 React.memo 命中
                     const fileUsageStats =
                       fileUsageStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_USAGE_STATS;
 
@@ -1440,11 +1433,8 @@ export function AuthFilesPage() {
                         statusUpdating={statusUpdating[file.name] === true}
                         accessTokenCopying={accessTokenCopying[file.name] === true}
                         priorityUpdating={priorityUpdating[file.name] === true}
-                        serviceTierPassthroughUpdating={
-                          serviceTierPassthroughUpdating[file.name] === true
-                        }
+                        websocketsUpdating={websocketsUpdating[file.name] === true}
                         quotaFilterType={quotaFilterType}
-                        fileStats={fileStats}
                         fileUsageStats={fileUsageStats}
                         statusData={statusData}
                         enterDelayMs={Math.min(index, 7) * 12}
@@ -1453,7 +1443,7 @@ export function AuthFilesPage() {
                         onDownload={handleDownload}
                         onCopyAccessToken={handleCopyAccessToken}
                         onPriorityChange={handlePriorityChange}
-                        onServiceTierPassthroughChange={handleServiceTierPassthroughChange}
+                        onWebsocketsChange={handleWebsocketsChange}
                         onOpenPrefixProxyEditor={openPrefixProxyEditor}
                         onAuthFileUpdated={handleAuthFileUpdated}
                         onDelete={handleDelete}

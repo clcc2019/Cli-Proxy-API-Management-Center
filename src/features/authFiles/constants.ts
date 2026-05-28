@@ -367,17 +367,13 @@ export function resolveAuthFileUsageStats(
     (bucket) =>
       bucket.success > 0 ||
       bucket.failure > 0 ||
-      bucket.totalTokens > 0 ||
-      bucket.totalCost > 0 ||
-      bucket.pricedRequests > 0
+      bucket.totalTokens > 0
   );
 
   if (
     matched.success > 0 ||
     matched.failure > 0 ||
-    matched.totalTokens > 0 ||
-    matched.totalCost > 0 ||
-    matched.pricedRequests > 0
+    matched.totalTokens > 0
   ) {
     return matched;
   }
