@@ -296,44 +296,88 @@ type AuthFileMatchedBucket = { success: number; failure: number };
 const hasAuthFileMatchData = (bucket: AuthFileMatchedBucket) =>
   bucket.success > 0 || bucket.failure > 0;
 
+const readAuthFileString = (file: AuthFileItem, ...keys: Array<keyof AuthFileItem | string>) => {
+  for (const key of keys) {
+    const value = file[key as keyof AuthFileItem];
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed) return trimmed;
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+  }
+  return '';
+};
+
+const authFilePathBasename = (value: string) => {
+  const normalized = value.trim();
+  if (!normalized) return '';
+  const parts = normalized.split(/[\\/]+/).filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : normalized;
+};
+
+const authFileUsageSourceCandidates = (file: AuthFileItem): string[] => {
+  const rawPath = readAuthFileString(file, 'path');
+  const candidates = [
+    readAuthFileString(file, 'source'),
+    readAuthFileString(file, 'file_name', 'fileName'),
+    readAuthFileString(file, 'name'),
+    readAuthFileString(file, 'id'),
+    rawPath,
+    authFilePathBasename(rawPath),
+    readAuthFileString(file, 'email'),
+    readAuthFileString(file, 'account'),
+    readAuthFileString(file, 'account_id', 'accountId', 'chatgpt_account_id', 'chatgptAccountId'),
+    readAuthFileString(file, 'project_id', 'projectId'),
+    readAuthFileString(file, 'prefix'),
+  ];
+
+  const result: string[] = [];
+  const seen = new Set<string>();
+  candidates.forEach((candidate) => {
+    const normalized = normalizeUsageSourceId(candidate);
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    result.push(normalized);
+
+    const withoutExt = candidate.replace(/\.[^/.\\]+$/, '');
+    if (withoutExt && withoutExt !== candidate) {
+      const normalizedWithoutExt = normalizeUsageSourceId(withoutExt);
+      if (normalizedWithoutExt && !seen.has(normalizedWithoutExt)) {
+        seen.add(normalizedWithoutExt);
+        result.push(normalizedWithoutExt);
+      }
+    }
+  });
+  return result;
+};
+
 const resolveAuthFileBucket = <T extends AuthFileMatchedBucket>(
   file: AuthFileItem,
   stats: { bySource?: Record<string, T>; byAuthIndex?: Record<string, T> },
   defaultStats: T,
   hasMatchData: (bucket: T) => boolean = hasAuthFileMatchData
 ): T => {
-  const rawFileName = file?.name || '';
+  // 先用与后端 usage source 对齐的稳定身份匹配。Codex/OAuth 类文件的
+  // source 可能是邮箱、账号、项目或 auth ID，不总是文件名。
+  for (const sourceID of authFileUsageSourceCandidates(file)) {
+    const fromSource = stats.bySource?.[sourceID];
+    if (fromSource && hasMatchData(fromSource)) {
+      return fromSource;
+    }
+  }
 
   // 兼容 auth_index 和 authIndex 两种字段名（API 返回的是 auth_index）
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndexKey = normalizeAuthIndex(rawAuthIndex);
 
-  // 尝试根据 authIndex 匹配
-  if (authIndexKey && stats.byAuthIndex?.[authIndexKey]) {
+  // 旧数据或 source 缺失时再根据 authIndex 匹配。跳过 0 这个常见默认值，
+  // 避免多张认证文件卡片误用同一个聚合桶。
+  if (authIndexKey && authIndexKey !== '0' && stats.byAuthIndex?.[authIndexKey]) {
     const fromAuthIndex = stats.byAuthIndex[authIndexKey];
     if (hasMatchData(fromAuthIndex)) {
       return fromAuthIndex;
-    }
-  }
-
-  // 尝试根据 source (文件名) 匹配
-  const fileNameId = rawFileName ? normalizeUsageSourceId(rawFileName) : '';
-  if (fileNameId && stats.bySource?.[fileNameId]) {
-    const fromName = stats.bySource[fileNameId];
-    if (hasMatchData(fromName)) {
-      return fromName;
-    }
-  }
-
-  // 尝试去掉扩展名后匹配
-  if (rawFileName) {
-    const nameWithoutExt = rawFileName.replace(/\.[^/.]+$/, '');
-    if (nameWithoutExt && nameWithoutExt !== rawFileName) {
-      const nameWithoutExtId = normalizeUsageSourceId(nameWithoutExt);
-      const fromNameWithoutExt = nameWithoutExtId ? stats.bySource?.[nameWithoutExtId] : undefined;
-      if (fromNameWithoutExt && hasMatchData(fromNameWithoutExt)) {
-        return fromNameWithoutExt;
-      }
     }
   }
 
