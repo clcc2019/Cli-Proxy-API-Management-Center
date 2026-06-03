@@ -30,22 +30,6 @@ export function QuotaPage() {
 
   const disableControls = connectionStatus !== 'connected';
 
-  const applyAuthFileUpdates = useCallback((updates: AuthFileItem[]) => {
-    if (updates.length === 0) return;
-    const updatesByName = updates.reduce<Map<string, AuthFileItem>>((map, file) => {
-      const name = String(file.name ?? '').trim();
-      if (name) map.set(name, file);
-      return map;
-    }, new Map());
-    if (updatesByName.size === 0) return;
-    setFiles((prev) =>
-      prev.map((file) => {
-        const updated = updatesByName.get(file.name);
-        return updated ? { ...file, ...updated, name: file.name } : file;
-      })
-    );
-  }, []);
-
   const loadConfig = useCallback(async () => {
     try {
       await configFileApi.fetchConfigYaml();
@@ -56,20 +40,43 @@ export function QuotaPage() {
   }, [t]);
 
   const loadFiles = useCallback(
-    async (codexSubscription: AuthFilesListCodexSubscriptionMode = 'cache') => {
-      setLoading(true);
-      setError('');
+    async (codexSubscription: AuthFilesListCodexSubscriptionMode = 'cache', silent = false) => {
+      if (!silent) {
+        setLoading(true);
+        setError('');
+      }
       try {
         const data = await authFilesApi.list({ codexSubscription, summary: true });
         setFiles(data?.files || []);
       } catch (err: unknown) {
+        if (silent) return;
         const errorMessage = err instanceof Error ? err.message : t('notification.refresh_failed');
         setError(errorMessage);
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     },
     [t]
+  );
+
+  const applyAuthFileUpdates = useCallback(
+    (updates: AuthFileItem[]) => {
+      if (updates.length === 0) return;
+      const updatesByName = updates.reduce<Map<string, AuthFileItem>>((map, file) => {
+        const name = String(file.name ?? '').trim();
+        if (name) map.set(name, file);
+        return map;
+      }, new Map());
+      if (updatesByName.size === 0) return;
+      setFiles((prev) =>
+        prev.map((file) => {
+          const updated = updatesByName.get(file.name);
+          return updated ? { ...file, ...updated, name: file.name } : file;
+        })
+      );
+      void loadFiles('cache', true);
+    },
+    [loadFiles]
   );
 
   const handleHeaderRefresh = useCallback(async () => {

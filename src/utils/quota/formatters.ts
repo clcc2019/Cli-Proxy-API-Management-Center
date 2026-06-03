@@ -4,7 +4,7 @@
 
 import type { TFunction } from 'i18next';
 import type { CodexUsageWindow } from '@/types';
-import { normalizeNumberValue } from './parsers';
+import { normalizeNumberValue, normalizeUnixTimestampSeconds } from './parsers';
 
 export function formatQuotaResetTime(value?: string): string {
   if (!value) return '-';
@@ -34,9 +34,9 @@ export function formatUnixSeconds(value: number | null): string {
 
 export function formatCodexResetLabel(window?: CodexUsageWindow | null): string {
   if (!window) return '-';
-  const resetAt = normalizeNumberValue(window.reset_at ?? window.resetAt);
-  if (resetAt !== null && resetAt > 0) {
-    return formatUnixSeconds(resetAt);
+  const resetAtSec = normalizeUnixTimestampSeconds(window.reset_at ?? window.resetAt);
+  if (resetAtSec !== null) {
+    return formatUnixSeconds(resetAtSec);
   }
   const resetAfter = normalizeNumberValue(window.reset_after_seconds ?? window.resetAfterSeconds);
   if (resetAfter !== null && resetAfter > 0) {

@@ -70,6 +70,17 @@ export interface AuthFileItem {
   note?: string;
   user_agent?: string;
   userAgent?: string;
+  originator?: string;
+  Originator?: string;
+  beta_features?: string;
+  betaFeatures?: string;
+  'beta-features'?: string;
+  installation_id?: string;
+  installationId?: string;
+  'installation-id'?: string;
+  include_timing_metrics?: boolean | string | null;
+  includeTimingMetrics?: boolean | string | null;
+  'include-timing-metrics'?: boolean | string | null;
   excluded_models?: string[];
   excludedModels?: string[];
   disable_cooling?: boolean | string | null;

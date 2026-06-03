@@ -14,10 +14,7 @@ import {
   readCodexAuthFileServiceTierPassthrough,
   readCodexAuthFileWebsockets,
 } from '@/features/authFiles/constants';
-import {
-  resolveAuthFileRuntimeMetadata,
-  stripAuthFileRuntimeMetadata,
-} from '@/features/authFiles/runtimeMetadata';
+import { stripAuthFileRuntimeMetadata } from '@/features/authFiles/runtimeMetadata';
 import { resolveAuthFileClientProfileMetadata } from '@/features/authFiles/clientProfileMetadata';
 
 type AuthFileHeaders = Record<string, string>;
@@ -62,7 +59,6 @@ export type PrefixProxyEditorState = {
   originalText: string;
   rawText: string;
   json: Record<string, unknown> | null;
-  runtimeMetadata: Record<string, unknown> | null;
   clientProfile: Record<string, unknown> | null;
   prefix: string;
   proxyUrl: string;
@@ -82,6 +78,7 @@ export type PrefixProxyEditorState = {
 export type UseAuthFilesPrefixProxyEditorOptions = {
   disableControls: boolean;
   applyLocalFilePatch: (name: string, patch: Partial<AuthFileItem>) => void;
+  refreshAuthFilesFromServer?: () => Promise<void>;
 };
 
 export type UseAuthFilesPrefixProxyEditorResult = {
@@ -248,7 +245,6 @@ const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => ({
   originalText: '',
   rawText: '',
   json: null,
-  runtimeMetadata: null,
   clientProfile: null,
   prefix: '',
   proxyUrl: '',
@@ -477,12 +473,6 @@ const buildLoadedPrefixProxyEditorState = (
 
   const parsedRecord = parsed as Record<string, unknown>;
   const fileRecord = file as Record<string, unknown>;
-  const runtimeMetadataFromFile = resolveAuthFileRuntimeMetadata(fileRecord);
-  const runtimeMetadataFromJson = resolveAuthFileRuntimeMetadata(parsedRecord);
-  const runtimeMetadata =
-    runtimeMetadataFromFile && runtimeMetadataFromJson
-      ? { ...runtimeMetadataFromFile, ...runtimeMetadataFromJson }
-      : (runtimeMetadataFromJson ?? runtimeMetadataFromFile);
   const clientProfileFromFile = resolveAuthFileClientProfileMetadata(fileRecord);
   const clientProfileFromJson = resolveAuthFileClientProfileMetadata(parsedRecord);
   const clientProfile =
@@ -528,7 +518,6 @@ const buildLoadedPrefixProxyEditorState = (
       originalText,
       rawText: originalText,
       json,
-      runtimeMetadata,
       clientProfile,
       ...derivedState,
     };
@@ -539,7 +528,6 @@ const buildLoadedPrefixProxyEditorState = (
     originalText,
     rawText: originalText,
     json,
-    runtimeMetadata,
     clientProfile,
     prefix: previous.prefix,
     proxyUrl: previous.proxyUrl,
@@ -697,7 +685,7 @@ const buildLocalPatchedAuthFile = (
 export function useAuthFilesPrefixProxyEditor(
   options: UseAuthFilesPrefixProxyEditorOptions
 ): UseAuthFilesPrefixProxyEditorResult {
-  const { disableControls, applyLocalFilePatch } = options;
+  const { disableControls, applyLocalFilePatch, refreshAuthFilesFromServer } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const [prefixProxyEditor, setPrefixProxyEditor] = useState<PrefixProxyEditorState | null>(null);
@@ -818,6 +806,7 @@ export function useAuthFilesPrefixProxyEditor(
     try {
       const response = await authFilesApi.patchFields(payload);
       applyLocalFilePatch(fileName, buildLocalPatchedAuthFile(current, response.file));
+      await refreshAuthFilesFromServer?.();
       setPrefixProxyEditor(null);
       showNotification(t('auth_files.prefix_proxy_saved_success', { name: fileName }), 'success');
     } catch (err: unknown) {
@@ -828,7 +817,7 @@ export function useAuthFilesPrefixProxyEditor(
         return { ...prev, saving: false };
       });
     }
-  }, [applyLocalFilePatch, prefixProxyDirty, showNotification, t]);
+  }, [applyLocalFilePatch, prefixProxyDirty, refreshAuthFilesFromServer, showNotification, t]);
 
   return {
     prefixProxyEditor,

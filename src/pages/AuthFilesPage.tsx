@@ -389,6 +389,7 @@ export function AuthFilesPage() {
     listMeta,
     fileInputRef,
     loadFiles,
+    refreshFilesFromServer,
     handleUploadClick,
     handleFileChange,
     handleDelete,
@@ -451,6 +452,7 @@ export function AuthFilesPage() {
   } = useAuthFilesPrefixProxyEditor({
     disableControls: connectionStatus !== 'connected',
     applyLocalFilePatch,
+    refreshAuthFilesFromServer: refreshFilesFromServer,
   });
 
   const disableControls = connectionStatus !== 'connected';
@@ -960,6 +962,7 @@ export function AuthFilesPage() {
         ...response.file,
         priority: response.file?.priority ?? priority,
       });
+      await refreshFilesFromServer();
       showNotification(t('auth_files.priority_update_success', { priority }), 'success');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -987,6 +990,7 @@ export function AuthFilesPage() {
         ...response.file,
         websockets: response.file?.websockets ?? response.file?.websocket ?? enabled,
       });
+      await refreshFilesFromServer();
       showNotification(
         enabled
           ? t('auth_files.websockets_enabled_success', { name: fileName })
@@ -1008,8 +1012,9 @@ export function AuthFilesPage() {
   const handleAuthFileUpdated = useCallback(
     (updated: AuthFileItem) => {
       applyLocalFileUpdates([updated]);
+      void refreshFilesFromServer();
     },
-    [applyLocalFileUpdates]
+    [applyLocalFileUpdates, refreshFilesFromServer]
   );
 
   const handlePageRefreshQuota = useCallback(async () => {
@@ -1055,6 +1060,9 @@ export function AuthFilesPage() {
         result.status === 'success' && result.authFile ? [result.authFile] : []
       );
       applyLocalFileUpdates(authFileUpdates);
+      if (authFileUpdates.length > 0) {
+        await refreshFilesFromServer();
+      }
 
       const resultCounts = results.reduce(
         (counts, result) => {
@@ -1091,6 +1099,7 @@ export function AuthFilesPage() {
     pageItems.length,
     pageQuotaRefreshItems,
     pageQuotaRefreshing,
+    refreshFilesFromServer,
     showNotification,
     t,
   ]);

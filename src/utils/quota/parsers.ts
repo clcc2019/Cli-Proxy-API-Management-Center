@@ -39,6 +39,22 @@ export function normalizeNumberValue(value: unknown): number | null {
   return null;
 }
 
+/** Normalize unix timestamps (seconds/ms/µs/ns) or ISO strings to epoch seconds. */
+export function normalizeUnixTimestampSeconds(value: unknown): number | null {
+  const numeric = normalizeNumberValue(value);
+  if (numeric !== null && numeric > 0) {
+    const abs = Math.abs(numeric);
+    if (abs < 1e11) return Math.floor(numeric);
+    if (abs < 1e14) return Math.floor(numeric / 1000);
+    if (abs < 1e17) return Math.floor(numeric / 1e6);
+    return Math.floor(numeric / 1e9);
+  }
+  const text = normalizeStringValue(value);
+  if (!text) return null;
+  const parsed = Date.parse(text);
+  return Number.isNaN(parsed) ? null : Math.floor(parsed / 1000);
+}
+
 export function normalizeQuotaFraction(value: unknown): number | null {
   const normalized = normalizeNumberValue(value);
   if (normalized !== null) return normalized;

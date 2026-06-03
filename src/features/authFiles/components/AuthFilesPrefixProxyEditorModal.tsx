@@ -12,7 +12,6 @@ import type {
   PrefixProxyEditorFieldValue,
   PrefixProxyEditorState,
 } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
-import { formatRuntimeMetadataJson } from '@/features/authFiles/runtimeMetadata';
 import { formatClientProfileJson } from '@/features/authFiles/clientProfileMetadata';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
@@ -55,18 +54,11 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
     () => (editor?.file ? JSON.stringify(editor.file, null, 2) : ''),
     [editor?.file]
   );
-  const runtimeMetadataText = useMemo(
-    () => formatRuntimeMetadataJson(editor?.runtimeMetadata ?? null),
-    [editor?.runtimeMetadata]
-  );
   const clientProfileText = useMemo(
     () => formatClientProfileJson(editor?.clientProfile ?? null),
     [editor?.clientProfile]
   );
   const clientProfileCount = editor?.clientProfile ? Object.keys(editor.clientProfile).length : 0;
-  const runtimeMetadataCount = editor?.runtimeMetadata
-    ? Object.keys(editor.runtimeMetadata).length
-    : 0;
   const disableCoolingOptions = useMemo(
     () => [
       { value: '', label: t('auth_files.disable_cooling_default', { defaultValue: '默认' }) },
@@ -172,292 +164,297 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
             <>
               {editor.error && <div className={styles.prefixProxyError}>{editor.error}</div>}
               <div className={styles.prefixProxyLayout}>
-                <div className={styles.prefixProxyForm}>
-                  <section className={styles.prefixProxySection}>
-                    <header className={styles.prefixProxySectionHeader}>
-                      <h3 className={styles.prefixProxySectionTitle}>
-                        {t('auth_files.section_basic', { defaultValue: '常用设置' })}
+                <section className={styles.prefixProxyPanel}>
+                  <header className={styles.prefixProxyPanelHeader}>
+                    <div className={styles.prefixProxyPanelTitleGroup}>
+                      <h3 className={styles.prefixProxyPanelTitle}>
+                        {t('auth_files.settings_edit_section')}
                       </h3>
-                    </header>
-                    <div className={styles.prefixProxyFields}>
-                      <div className={styles.prefixProxyField}>
-                        <Input
-                          density="sm"
-                          label={t('auth_files.prefix_label')}
-                          value={editor.prefix}
-                          title="prefix"
-                          disabled={editorControlsDisabled}
-                          onChange={handlePrefixChange}
-                        />
-                      </div>
-                      <div className={styles.prefixProxyField}>
-                        <Input
-                          density="sm"
-                          label={t('auth_files.priority_label')}
-                          value={editor.priority}
-                          placeholder={t('auth_files.priority_placeholder')}
-                          title={t('auth_files.priority_hint')}
-                          disabled={editorControlsDisabled}
-                          onChange={handlePriorityChange}
-                        />
-                      </div>
-                      <div className={styles.prefixProxyFieldWide}>
-                        <Input
-                          density="sm"
-                          label={t('auth_files.proxy_url_label')}
-                          value={editor.proxyUrl}
-                          placeholder={t('auth_files.proxy_url_placeholder')}
-                          title="proxy_url"
-                          disabled={editorControlsDisabled}
-                          onChange={handleProxyUrlChange}
-                        />
-                      </div>
-                      <div className={styles.prefixProxyField}>
-                        <label className={styles.prefixProxyFieldLabel}>
-                          {t('auth_files.disable_cooling_label')}
-                        </label>
-                        <Select
-                          value={editor.disableCooling}
-                          options={disableCoolingOptions}
-                          className={styles.prefixProxySelect}
-                          disabled={editorControlsDisabled}
-                          ariaLabel={t('auth_files.disable_cooling_label')}
-                          onChange={handleDisableCoolingChange}
-                        />
-                      </div>
-                      <div className={styles.prefixProxyFieldWide}>
-                        <Input
-                          density="sm"
-                          label={t('auth_files.note_label')}
-                          value={editor.note}
-                          placeholder={t('auth_files.note_placeholder')}
-                          title={t('auth_files.note_hint')}
-                          disabled={editorControlsDisabled}
-                          onChange={handleNoteChange}
-                        />
-                      </div>
+                      <span className={styles.prefixProxyPanelHint}>
+                        {t('auth_files.settings_edit_hint')}
+                      </span>
                     </div>
-                  </section>
+                  </header>
 
-                  {editor.isCodexFile && (
+                  <div className={styles.prefixProxyForm}>
                     <section className={styles.prefixProxySection}>
                       <header className={styles.prefixProxySectionHeader}>
                         <h3 className={styles.prefixProxySectionTitle}>
-                          {t('auth_files.section_codex', { defaultValue: 'Codex' })}
+                          {t('auth_files.section_basic', { defaultValue: '常用设置' })}
                         </h3>
                       </header>
                       <div className={styles.prefixProxyFields}>
-                        <div
-                          className={styles.prefixProxySwitchField}
-                          title={t('ai_providers.codex_websockets_hint')}
-                        >
-                          <span className={styles.prefixProxySwitchFieldLabel}>
-                            {t('ai_providers.codex_websockets_label')}
-                          </span>
-                          <ToggleSwitch
-                            checked={Boolean(editor.websockets)}
+                        <div className={styles.prefixProxyField}>
+                          <Input
+                            density="sm"
+                            label={t('auth_files.prefix_label')}
+                            value={editor.prefix}
+                            title="prefix"
                             disabled={editorControlsDisabled}
-                            ariaLabel={t('ai_providers.codex_websockets_label')}
-                            onChange={handleWebsocketsChange}
+                            onChange={handlePrefixChange}
                           />
                         </div>
-                        <div
-                          className={styles.prefixProxySwitchField}
-                          title={t('auth_files.service_tier_passthrough_hint')}
-                        >
-                          <span className={styles.prefixProxySwitchFieldLabelGroup}>
-                            <span className={styles.prefixProxySwitchFieldLabel}>
-                              {t('auth_files.service_tier_passthrough_label')}
-                            </span>
-                            <span className={styles.prefixProxySwitchFieldHint}>
-                              {t('auth_files.service_tier_passthrough_hint')}
-                            </span>
-                          </span>
-                          <ToggleSwitch
-                            checked={Boolean(editor.serviceTierPassthrough)}
+                        <div className={styles.prefixProxyField}>
+                          <Input
+                            density="sm"
+                            label={t('auth_files.priority_label')}
+                            value={editor.priority}
+                            placeholder={t('auth_files.priority_placeholder')}
+                            title={t('auth_files.priority_hint')}
                             disabled={editorControlsDisabled}
-                            ariaLabel={t('auth_files.service_tier_passthrough_label')}
-                            onChange={handleServiceTierPassthroughChange}
+                            onChange={handlePriorityChange}
                           />
                         </div>
                         <div className={styles.prefixProxyFieldWide}>
                           <Input
                             density="sm"
-                            label={t('auth_files.user_agent_label')}
-                            value={editor.userAgent}
-                            placeholder={t('auth_files.user_agent_placeholder')}
-                            title={t('auth_files.user_agent_hint')}
+                            label={t('auth_files.proxy_url_label')}
+                            value={editor.proxyUrl}
+                            placeholder={t('auth_files.proxy_url_placeholder')}
+                            title="proxy_url"
                             disabled={editorControlsDisabled}
-                            onChange={handleUserAgentChange}
+                            onChange={handleProxyUrlChange}
+                          />
+                        </div>
+                        <div className={styles.prefixProxyField}>
+                          <label className={styles.prefixProxyFieldLabel}>
+                            {t('auth_files.disable_cooling_label')}
+                          </label>
+                          <Select
+                            value={editor.disableCooling}
+                            options={disableCoolingOptions}
+                            className={styles.prefixProxySelect}
+                            disabled={editorControlsDisabled}
+                            ariaLabel={t('auth_files.disable_cooling_label')}
+                            onChange={handleDisableCoolingChange}
+                          />
+                        </div>
+                        <div className={styles.prefixProxyFieldWide}>
+                          <Input
+                            density="sm"
+                            label={t('auth_files.note_label')}
+                            value={editor.note}
+                            placeholder={t('auth_files.note_placeholder')}
+                            title={t('auth_files.note_hint')}
+                            disabled={editorControlsDisabled}
+                            onChange={handleNoteChange}
                           />
                         </div>
                       </div>
                     </section>
-                  )}
 
-                  <section className={styles.prefixProxySection}>
-                    <header className={styles.prefixProxySectionHeader}>
-                      <h3 className={styles.prefixProxySectionTitle}>
-                        {t('auth_files.section_advanced', { defaultValue: '高级设置' })}
-                      </h3>
-                    </header>
-                    <div className={styles.prefixProxyFields}>
-                      <div
-                        className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
-                      >
-                        <label>{t('auth_files.excluded_models_label')}</label>
-                        <textarea
-                          className={`input ${styles.prefixProxyMonoTextarea}`}
-                          value={editor.excludedModelsText}
-                          placeholder={t('auth_files.excluded_models_placeholder')}
-                          title={t('auth_files.excluded_models_hint')}
-                          rows={2}
-                          disabled={editorControlsDisabled}
-                          onChange={handleExcludedModelsChange}
-                          spellCheck={false}
-                        />
+                    {editor.isCodexFile && (
+                      <section className={styles.prefixProxySection}>
+                        <header className={styles.prefixProxySectionHeader}>
+                          <h3 className={styles.prefixProxySectionTitle}>
+                            {t('auth_files.section_codex', { defaultValue: 'Codex' })}
+                          </h3>
+                        </header>
+                        <div className={styles.prefixProxyFields}>
+                          <div
+                            className={styles.prefixProxySwitchField}
+                            title={t('ai_providers.codex_websockets_hint')}
+                          >
+                            <span className={styles.prefixProxySwitchFieldLabel}>
+                              {t('ai_providers.codex_websockets_label')}
+                            </span>
+                            <ToggleSwitch
+                              checked={Boolean(editor.websockets)}
+                              disabled={editorControlsDisabled}
+                              ariaLabel={t('ai_providers.codex_websockets_label')}
+                              onChange={handleWebsocketsChange}
+                            />
+                          </div>
+                          <div
+                            className={styles.prefixProxySwitchField}
+                            title={t('auth_files.service_tier_passthrough_hint')}
+                          >
+                            <span className={styles.prefixProxySwitchFieldLabelGroup}>
+                              <span className={styles.prefixProxySwitchFieldLabel}>
+                                {t('auth_files.service_tier_passthrough_label')}
+                              </span>
+                              <span className={styles.prefixProxySwitchFieldHint}>
+                                {t('auth_files.service_tier_passthrough_hint')}
+                              </span>
+                            </span>
+                            <ToggleSwitch
+                              checked={Boolean(editor.serviceTierPassthrough)}
+                              disabled={editorControlsDisabled}
+                              ariaLabel={t('auth_files.service_tier_passthrough_label')}
+                              onChange={handleServiceTierPassthroughChange}
+                            />
+                          </div>
+                          <div className={styles.prefixProxyFieldWide}>
+                            <Input
+                              density="sm"
+                              label={t('auth_files.user_agent_label')}
+                              value={editor.userAgent}
+                              placeholder={t('auth_files.user_agent_placeholder')}
+                              title={t('auth_files.user_agent_hint')}
+                              disabled={editorControlsDisabled}
+                              onChange={handleUserAgentChange}
+                            />
+                          </div>
+                        </div>
+                      </section>
+                    )}
+
+                    <section className={styles.prefixProxySection}>
+                      <header className={styles.prefixProxySectionHeader}>
+                        <h3 className={styles.prefixProxySectionTitle}>
+                          {t('auth_files.section_advanced', { defaultValue: '高级设置' })}
+                        </h3>
+                      </header>
+                      <div className={styles.prefixProxyFields}>
+                        <div
+                          className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
+                        >
+                          <label>{t('auth_files.excluded_models_label')}</label>
+                          <textarea
+                            className={`input ${styles.prefixProxyMonoTextarea}`}
+                            value={editor.excludedModelsText}
+                            placeholder={t('auth_files.excluded_models_placeholder')}
+                            title={t('auth_files.excluded_models_hint')}
+                            rows={2}
+                            disabled={editorControlsDisabled}
+                            onChange={handleExcludedModelsChange}
+                            spellCheck={false}
+                          />
+                        </div>
+                        <div
+                          className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
+                        >
+                          <label>
+                            {t('auth_files.headers_label')}
+                            {headersInvalid && (
+                              <span className={styles.prefixProxyFieldStatusError}>
+                                {t('common.invalid', { defaultValue: '格式错误' })}
+                              </span>
+                            )}
+                          </label>
+                          <textarea
+                            className={`input ${styles.prefixProxyMonoTextarea} ${styles.prefixProxyHeadersTextarea} ${headersInvalid ? styles.prefixProxyTextareaInvalid : ''}`}
+                            value={editor.headersText}
+                            placeholder={t('auth_files.headers_placeholder')}
+                            title={t('auth_files.headers_hint')}
+                            rows={3}
+                            aria-invalid={Boolean(editor.headersError)}
+                            disabled={editorControlsDisabled}
+                            onChange={handleHeadersChange}
+                            spellCheck={false}
+                          />
+                          {editor.headersError && (
+                            <div className="error-box">{editor.headersError}</div>
+                          )}
+                        </div>
                       </div>
-                      <div
-                        className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
+                    </section>
+                  </div>
+                </section>
+
+                <section className={`${styles.prefixProxyPanel} ${styles.prefixProxyPanelMuted}`}>
+                  <header className={styles.prefixProxyPanelHeader}>
+                    <div className={styles.prefixProxyPanelTitleGroup}>
+                      <h3 className={styles.prefixProxyPanelTitle}>
+                        {t('auth_files.settings_info_section')}
+                      </h3>
+                      <span className={styles.prefixProxyPanelHint}>
+                        {t('auth_files.settings_info_hint')}
+                      </span>
+                    </div>
+                  </header>
+
+                  <div className={styles.prefixProxyInfoStack}>
+                    {fileInfoText && (
+                      <details
+                        className={`${styles.prefixProxyJsonDetails} ${styles.prefixProxyJsonDetailsPrimary}`}
+                        open
                       >
-                        <label>
-                          {t('auth_files.headers_label')}
-                          {headersInvalid && (
-                            <span className={styles.prefixProxyFieldStatusError}>
-                              {t('common.invalid', { defaultValue: '格式错误' })}
+                        <summary className={styles.prefixProxyJsonSummary}>
+                          <span className={styles.prefixProxyLabelGroup}>
+                            <span className={styles.prefixProxyLabel}>
+                              {t('auth_files.prefix_proxy_info_label')}
+                            </span>
+                          </span>
+                        </summary>
+                        <div className={styles.prefixProxyJsonWrapper}>
+                          <textarea
+                            className={styles.prefixProxyInfoTextarea}
+                            rows={8}
+                            readOnly
+                            value={fileInfoText}
+                            spellCheck={false}
+                          />
+                        </div>
+                      </details>
+                    )}
+
+                    <details className={styles.prefixProxyJsonDetails}>
+                      <summary className={styles.prefixProxyJsonSummary}>
+                        <span className={styles.prefixProxyLabelGroup}>
+                          <span className={styles.prefixProxyLabel}>
+                            {t('auth_files.prefix_proxy_source_label')}
+                          </span>
+                          {dirty && (
+                            <span className={styles.prefixProxyPreviewBadge}>
+                              {t('common.modified', { defaultValue: '已修改' })}
                             </span>
                           )}
-                        </label>
+                        </span>
+                      </summary>
+                      <div className={styles.prefixProxyJsonWrapper}>
+                        <div className={styles.prefixProxyJsonActions}>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className={styles.prefixProxyCopyButton}
+                            onClick={handleCopyPreview}
+                            disabled={editor.saving || !updatedText}
+                            title={t('auth_files.prefix_proxy_copy_json')}
+                            aria-label={t('auth_files.prefix_proxy_copy_json')}
+                          >
+                            <IconCopy size={14} />
+                            {t('auth_files.prefix_proxy_copy_json')}
+                          </Button>
+                        </div>
                         <textarea
-                          className={`input ${styles.prefixProxyMonoTextarea} ${styles.prefixProxyHeadersTextarea} ${headersInvalid ? styles.prefixProxyTextareaInvalid : ''}`}
-                          value={editor.headersText}
-                          placeholder={t('auth_files.headers_placeholder')}
-                          title={t('auth_files.headers_hint')}
-                          rows={3}
-                          aria-invalid={Boolean(editor.headersError)}
-                          disabled={editorControlsDisabled}
-                          onChange={handleHeadersChange}
+                          className={styles.prefixProxyTextarea}
+                          rows={10}
+                          readOnly
+                          value={previewText}
                           spellCheck={false}
                         />
-                        {editor.headersError && (
-                          <div className="error-box">{editor.headersError}</div>
-                        )}
                       </div>
-                    </div>
-                  </section>
-                </div>
+                    </details>
 
-                {fileInfoText && (
-                  <details className={styles.prefixProxyJsonDetails} open>
-                    <summary className={styles.prefixProxyJsonSummary}>
-                      <span className={styles.prefixProxyLabelGroup}>
-                        <span className={styles.prefixProxyLabel}>
-                          {t('auth_files.prefix_proxy_info_label')}
-                        </span>
-                      </span>
-                    </summary>
-                    <div className={styles.prefixProxyJsonWrapper}>
-                      <textarea
-                        className={styles.prefixProxyRuntimeMetadataPre}
-                        rows={6}
-                        readOnly
-                        value={fileInfoText}
-                        spellCheck={false}
-                      />
-                    </div>
-                  </details>
-                )}
-
-                <details className={styles.prefixProxyJsonDetails}>
-                  <summary className={styles.prefixProxyJsonSummary}>
-                    <span className={styles.prefixProxyLabelGroup}>
-                      <span className={styles.prefixProxyLabel}>
-                        {t('auth_files.prefix_proxy_source_label')}
-                      </span>
-                      {dirty && (
-                        <span className={styles.prefixProxyPreviewBadge}>
-                          {t('common.modified', { defaultValue: '已修改' })}
-                        </span>
-                      )}
-                    </span>
-                  </summary>
-                  <div className={styles.prefixProxyJsonWrapper}>
-                    <div className={styles.prefixProxyJsonActions}>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        className={styles.prefixProxyCopyButton}
-                        onClick={handleCopyPreview}
-                        disabled={editor.saving || !updatedText}
-                        title={t('auth_files.prefix_proxy_copy_json')}
-                        aria-label={t('auth_files.prefix_proxy_copy_json')}
-                      >
-                        <IconCopy size={14} />
-                        {t('auth_files.prefix_proxy_copy_json')}
-                      </Button>
-                    </div>
-                    <textarea
-                      className={styles.prefixProxyTextarea}
-                      rows={10}
-                      readOnly
-                      value={previewText}
-                      spellCheck={false}
-                    />
+                    {clientProfileText && (
+                      <details className={styles.prefixProxyJsonDetails}>
+                        <summary className={styles.prefixProxyJsonSummary}>
+                          <span className={styles.prefixProxyLabelGroup}>
+                            <span className={styles.prefixProxyLabel}>
+                              {t('auth_files.client_profile_label')}
+                            </span>
+                            <span className={styles.prefixProxyPreviewBadge}>
+                              {t('auth_files.client_profile_count', {
+                                count: clientProfileCount,
+                              })}
+                            </span>
+                          </span>
+                        </summary>
+                        <div className={styles.prefixProxyJsonWrapper}>
+                          <textarea
+                            className={styles.prefixProxyInfoTextarea}
+                            rows={6}
+                            readOnly
+                            value={clientProfileText}
+                            spellCheck={false}
+                          />
+                        </div>
+                      </details>
+                    )}
                   </div>
-                </details>
-
-                {clientProfileText && (
-                  <details className={styles.prefixProxyJsonDetails}>
-                    <summary className={styles.prefixProxyJsonSummary}>
-                      <span className={styles.prefixProxyLabelGroup}>
-                        <span className={styles.prefixProxyLabel}>
-                          {t('auth_files.client_profile_label')}
-                        </span>
-                        <span className={styles.prefixProxyPreviewBadge}>
-                          {t('auth_files.client_profile_count', {
-                            count: clientProfileCount,
-                          })}
-                        </span>
-                      </span>
-                    </summary>
-                    <div className={styles.prefixProxyJsonWrapper}>
-                      <textarea
-                        className={styles.prefixProxyRuntimeMetadataPre}
-                        rows={6}
-                        readOnly
-                        value={clientProfileText}
-                        spellCheck={false}
-                      />
-                    </div>
-                  </details>
-                )}
-
-                {runtimeMetadataText && (
-                  <details className={styles.prefixProxyJsonDetails}>
-                    <summary className={styles.prefixProxyJsonSummary}>
-                      <span className={styles.prefixProxyLabelGroup}>
-                        <span className={styles.prefixProxyLabel}>
-                          {t('auth_files.runtime_metadata_label')}
-                        </span>
-                        <span className={styles.prefixProxyPreviewBadge}>
-                          {t('auth_files.runtime_metadata_count', {
-                            count: runtimeMetadataCount,
-                          })}
-                        </span>
-                      </span>
-                    </summary>
-                    <div className={styles.prefixProxyJsonWrapper}>
-                      <textarea
-                        className={styles.prefixProxyRuntimeMetadataPre}
-                        rows={6}
-                        readOnly
-                        value={runtimeMetadataText}
-                        spellCheck={false}
-                      />
-                    </div>
-                  </details>
-                )}
+                </section>
               </div>
             </>
           )}

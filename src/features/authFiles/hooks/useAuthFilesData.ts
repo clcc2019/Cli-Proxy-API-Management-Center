@@ -127,6 +127,7 @@ export type UseAuthFilesDataResult = {
     overrideOptions?: Partial<AuthFilesListOptions>,
     behaviorOptions?: LoadFilesBehaviorOptions
   ) => Promise<void>;
+  refreshFilesFromServer: () => Promise<void>;
   handleUploadClick: () => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleDelete: (name: string) => void;
@@ -475,6 +476,11 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     void loadFiles(undefined, { silent: true });
   }, [listUsesServerPagination, loadFiles]);
 
+  const refreshFilesFromServer = useCallback(
+    () => loadFiles(undefined, { silent: true }),
+    [loadFiles]
+  );
+
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
@@ -706,6 +712,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       try {
         const res = await authFilesApi.setStatus(name, nextDisabled);
         patchLocalFileStatus(item, res.disabled);
+        await refreshFilesFromServer();
         showNotification(
           enabled
             ? t('auth_files.status_enabled_success', { name })
@@ -725,7 +732,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         });
       }
     },
-    [patchLocalFileStatus, showNotification, t]
+    [patchLocalFileStatus, refreshFilesFromServer, showNotification, t]
   );
 
   const batchSetStatus = useCallback(
@@ -808,6 +815,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
 
         deselectAll();
+        await refreshFilesFromServer();
       } finally {
         batchStatusPendingRef.current = false;
         setBatchStatusUpdating(false);
@@ -820,7 +828,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         });
       }
     },
-    [applyFilesState, deselectAll, showNotification, t]
+    [applyFilesState, deselectAll, refreshFilesFromServer, showNotification, t]
   );
 
   const batchDownload = useCallback(
@@ -918,6 +926,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     listMeta,
     fileInputRef,
     loadFiles,
+    refreshFilesFromServer,
     handleUploadClick,
     handleFileChange,
     handleDelete,

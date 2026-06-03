@@ -240,9 +240,21 @@ const fetchAntigravityQuota = async (
   throw createStatusError(lastError || t('common.unknown_error'), priorityStatus ?? lastStatus);
 };
 
-const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): CodexQuotaWindow[] => {
+const buildCodexQuotaWindows = (
+  payload: CodexUsagePayload,
+  t: TFunction,
+  planTypeHint?: string | null
+): CodexQuotaWindow[] => {
   const FIVE_HOUR_SECONDS = 18000;
   const WEEK_SECONDS = 604800;
+  const isFreePlan =
+    normalizePlanType(
+      planTypeHint ??
+        payload.plan_type ??
+        payload.planType ??
+        payload.chatgpt_plan_type ??
+        payload.chatgptPlanType
+    ) === 'free';
   const WINDOW_META = {
     codeFiveHour: { id: 'five-hour', labelKey: 'codex_quota.primary_window' },
     codeWeekly: { id: 'weekly', labelKey: 'codex_quota.secondary_window' },
@@ -318,12 +330,20 @@ const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): Codex
 
     // For legacy payloads without window duration, fallback to primary/secondary ordering.
     if (allowOrderFallback) {
-      if (!fiveHourWindow) {
+      if (!fiveHourWindow && !isFreePlan) {
         fiveHourWindow = primaryWindow && primaryWindow !== weeklyWindow ? primaryWindow : null;
       }
       if (!weeklyWindow) {
         weeklyWindow =
           secondaryWindow && secondaryWindow !== fiveHourWindow ? secondaryWindow : null;
+      }
+    }
+
+    // Free tier only exposes weekly limits; never surface a 5-hour row.
+    if (isFreePlan) {
+      fiveHourWindow = null;
+      if (!weeklyWindow) {
+        weeklyWindow = secondaryWindow ?? primaryWindow ?? null;
       }
     }
 
@@ -393,24 +413,29 @@ const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): Codex
       const additionalPrimaryWindow = rateInfo.primary_window ?? rateInfo.primaryWindow ?? null;
       const additionalSecondaryWindow =
         rateInfo.secondary_window ?? rateInfo.secondaryWindow ?? null;
+      const additionalWindows = pickClassifiedWindows(rateInfo);
       const additionalLimitReached = rateInfo.limit_reached ?? rateInfo.limitReached;
       const additionalAllowed = rateInfo.allowed;
 
-      addWindow(
-        `${idPrefix}-five-hour-${index}`,
-        t('codex_quota.additional_primary_window', { name: limitName }),
-        'codex_quota.additional_primary_window',
-        { name: limitName },
-        additionalPrimaryWindow,
-        additionalLimitReached,
-        additionalAllowed
-      );
+      if (!isFreePlan) {
+        addWindow(
+          `${idPrefix}-five-hour-${index}`,
+          t('codex_quota.additional_primary_window', { name: limitName }),
+          'codex_quota.additional_primary_window',
+          { name: limitName },
+          additionalWindows.fiveHourWindow ?? additionalPrimaryWindow,
+          additionalLimitReached,
+          additionalAllowed
+        );
+      }
       addWindow(
         `${idPrefix}-weekly-${index}`,
         t('codex_quota.additional_secondary_window', { name: limitName }),
         'codex_quota.additional_secondary_window',
         { name: limitName },
-        additionalSecondaryWindow,
+        isFreePlan
+          ? (additionalWindows.weeklyWindow ?? additionalSecondaryWindow ?? additionalPrimaryWindow)
+          : (additionalWindows.weeklyWindow ?? additionalSecondaryWindow),
         additionalLimitReached,
         additionalAllowed
       );
@@ -502,7 +527,7 @@ const fetchCodexQuota = async (
   const subscriptionActiveStart = resolveCodexSubscriptionActiveStart(subscriptionSource);
   const subscriptionActiveDays = resolveCodexSubscriptionActiveDays(subscriptionSource);
   const subscriptionUntil = resolveCodexSubscriptionActiveUntil(subscriptionSource);
-  const windows = buildCodexQuotaWindows(payload, t);
+  const windows = buildCodexQuotaWindows(payload, t, planTypeFromUsage ?? planTypeFromFile);
   const rateLimitReachedType = resolveCodexRateLimitReachedType(payload);
   const authFile = resolveCodexUpdatedAuthFile(file, payload);
   return {

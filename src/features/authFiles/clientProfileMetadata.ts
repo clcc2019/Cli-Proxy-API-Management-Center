@@ -16,6 +16,15 @@ const hasDisplayValue = (value: unknown): boolean => {
 const readString = (value: unknown): string | null =>
   typeof value === 'string' && value.trim() ? value.trim() : null;
 
+const readBoolean = (value: unknown): boolean | null => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true') return true;
+  if (normalized === 'false') return false;
+  return null;
+};
+
 const normalizedHeaders = (value: unknown): Record<string, string> | null => {
   if (!isRecord(value)) return null;
   const out: Record<string, string> = {};
@@ -43,6 +52,21 @@ const fromAuthMetadata = (source: Record<string, unknown>): Record<string, unkno
 
   const originator = readString(source.originator);
   if (originator) out.originator = originator;
+
+  const betaFeatures = readString(
+    source.beta_features ?? source.betaFeatures ?? source['beta-features']
+  );
+  if (betaFeatures) out.beta_features = betaFeatures;
+
+  const installationId = readString(
+    source.installation_id ?? source.installationId ?? source['installation-id']
+  );
+  if (installationId) out.installation_id = installationId;
+
+  const includeTimingMetrics = readBoolean(
+    source.include_timing_metrics ?? source.includeTimingMetrics ?? source['include-timing-metrics']
+  );
+  if (includeTimingMetrics !== null) out.include_timing_metrics = includeTimingMetrics;
 
   const headers = normalizedHeaders(source.headers);
   if (headers) out.headers = headers;
