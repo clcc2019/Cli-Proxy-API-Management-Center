@@ -14,6 +14,11 @@ import {
   readCodexAuthFileServiceTierPassthrough,
   readCodexAuthFileWebsockets,
 } from '@/features/authFiles/constants';
+import {
+  resolveAuthFileRuntimeMetadata,
+  stripAuthFileRuntimeMetadata,
+} from '@/features/authFiles/runtimeMetadata';
+import { resolveAuthFileClientProfileMetadata } from '@/features/authFiles/clientProfileMetadata';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =
@@ -57,6 +62,8 @@ export type PrefixProxyEditorState = {
   originalText: string;
   rawText: string;
   json: Record<string, unknown> | null;
+  runtimeMetadata: Record<string, unknown> | null;
+  clientProfile: Record<string, unknown> | null;
   prefix: string;
   proxyUrl: string;
   priority: string;
@@ -241,6 +248,8 @@ const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => ({
   originalText: '',
   rawText: '',
   json: null,
+  runtimeMetadata: null,
+  clientProfile: null,
   prefix: '',
   proxyUrl: '',
   priority: '',
@@ -466,8 +475,22 @@ const buildLoadedPrefixProxyEditorState = (
     };
   }
 
-  let json = { ...(parsed as Record<string, unknown>) };
+  const parsedRecord = parsed as Record<string, unknown>;
   const fileRecord = file as Record<string, unknown>;
+  const runtimeMetadataFromFile = resolveAuthFileRuntimeMetadata(fileRecord);
+  const runtimeMetadataFromJson = resolveAuthFileRuntimeMetadata(parsedRecord);
+  const runtimeMetadata =
+    runtimeMetadataFromFile && runtimeMetadataFromJson
+      ? { ...runtimeMetadataFromFile, ...runtimeMetadataFromJson }
+      : (runtimeMetadataFromJson ?? runtimeMetadataFromFile);
+  const clientProfileFromFile = resolveAuthFileClientProfileMetadata(fileRecord);
+  const clientProfileFromJson = resolveAuthFileClientProfileMetadata(parsedRecord);
+  const clientProfile =
+    clientProfileFromFile && clientProfileFromJson
+      ? { ...clientProfileFromFile, ...clientProfileFromJson }
+      : (clientProfileFromJson ?? clientProfileFromFile);
+
+  let json = stripAuthFileRuntimeMetadata(parsedRecord);
   json = applyBackendFieldFallbacks(json, fileRecord, base.isCodexFile);
 
   const originalText = JSON.stringify(json);
@@ -505,6 +528,8 @@ const buildLoadedPrefixProxyEditorState = (
       originalText,
       rawText: originalText,
       json,
+      runtimeMetadata,
+      clientProfile,
       ...derivedState,
     };
   }
@@ -514,6 +539,8 @@ const buildLoadedPrefixProxyEditorState = (
     originalText,
     rawText: originalText,
     json,
+    runtimeMetadata,
+    clientProfile,
     prefix: previous.prefix,
     proxyUrl: previous.proxyUrl,
     priority: previous.priority,

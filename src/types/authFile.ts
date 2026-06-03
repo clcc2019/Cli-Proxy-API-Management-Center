@@ -54,6 +54,8 @@ export interface AuthFileItem {
   runtimeState?: Record<string, unknown>;
   runtime_metadata?: Record<string, unknown>;
   runtimeMetadata?: Record<string, unknown>;
+  client_profile?: Record<string, unknown>;
+  clientProfile?: Record<string, unknown>;
   next_retry_after?: string | number;
   modified?: number;
   email?: string;

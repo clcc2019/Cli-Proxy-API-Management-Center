@@ -12,10 +12,8 @@ import type {
   PrefixProxyEditorFieldValue,
   PrefixProxyEditorState,
 } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
-import {
-  formatRuntimeMetadataJson,
-  resolveAuthFileRuntimeMetadata,
-} from '@/features/authFiles/runtimeMetadata';
+import { formatRuntimeMetadataJson } from '@/features/authFiles/runtimeMetadata';
+import { formatClientProfileJson } from '@/features/authFiles/clientProfileMetadata';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 const compactJsonText = (text: string) => {
@@ -53,15 +51,22 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
     props;
   // 缩进 JSON 让预览面板可读性大幅提升
   const previewText = useMemo(() => prettyJsonText(updatedText), [updatedText]);
-  const runtimeMetadata = useMemo(
-    () => resolveAuthFileRuntimeMetadata(editor?.json ?? null),
-    [editor?.json]
+  const fileInfoText = useMemo(
+    () => (editor?.file ? JSON.stringify(editor.file, null, 2) : ''),
+    [editor?.file]
   );
   const runtimeMetadataText = useMemo(
-    () => formatRuntimeMetadataJson(runtimeMetadata),
-    [runtimeMetadata]
+    () => formatRuntimeMetadataJson(editor?.runtimeMetadata ?? null),
+    [editor?.runtimeMetadata]
   );
-  const runtimeMetadataCount = runtimeMetadata ? Object.keys(runtimeMetadata).length : 0;
+  const clientProfileText = useMemo(
+    () => formatClientProfileJson(editor?.clientProfile ?? null),
+    [editor?.clientProfile]
+  );
+  const clientProfileCount = editor?.clientProfile ? Object.keys(editor.clientProfile).length : 0;
+  const runtimeMetadataCount = editor?.runtimeMetadata
+    ? Object.keys(editor.runtimeMetadata).length
+    : 0;
   const disableCoolingOptions = useMemo(
     () => [
       { value: '', label: t('auth_files.disable_cooling_default', { defaultValue: '默认' }) },
@@ -342,6 +347,27 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   </section>
                 </div>
 
+                {fileInfoText && (
+                  <details className={styles.prefixProxyJsonDetails} open>
+                    <summary className={styles.prefixProxyJsonSummary}>
+                      <span className={styles.prefixProxyLabelGroup}>
+                        <span className={styles.prefixProxyLabel}>
+                          {t('auth_files.prefix_proxy_info_label')}
+                        </span>
+                      </span>
+                    </summary>
+                    <div className={styles.prefixProxyJsonWrapper}>
+                      <textarea
+                        className={styles.prefixProxyRuntimeMetadataPre}
+                        rows={6}
+                        readOnly
+                        value={fileInfoText}
+                        spellCheck={false}
+                      />
+                    </div>
+                  </details>
+                )}
+
                 <details className={styles.prefixProxyJsonDetails}>
                   <summary className={styles.prefixProxyJsonSummary}>
                     <span className={styles.prefixProxyLabelGroup}>
@@ -380,6 +406,32 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     />
                   </div>
                 </details>
+
+                {clientProfileText && (
+                  <details className={styles.prefixProxyJsonDetails}>
+                    <summary className={styles.prefixProxyJsonSummary}>
+                      <span className={styles.prefixProxyLabelGroup}>
+                        <span className={styles.prefixProxyLabel}>
+                          {t('auth_files.client_profile_label')}
+                        </span>
+                        <span className={styles.prefixProxyPreviewBadge}>
+                          {t('auth_files.client_profile_count', {
+                            count: clientProfileCount,
+                          })}
+                        </span>
+                      </span>
+                    </summary>
+                    <div className={styles.prefixProxyJsonWrapper}>
+                      <textarea
+                        className={styles.prefixProxyRuntimeMetadataPre}
+                        rows={6}
+                        readOnly
+                        value={clientProfileText}
+                        spellCheck={false}
+                      />
+                    </div>
+                  </details>
+                )}
 
                 {runtimeMetadataText && (
                   <details className={styles.prefixProxyJsonDetails}>

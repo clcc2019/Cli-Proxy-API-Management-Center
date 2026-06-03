@@ -28,6 +28,8 @@ const RUNTIME_SUMMARY_KEYS = [
   'recentRequests',
 ] as const;
 
+const RUNTIME_FIELD_KEYS = [...RUNTIME_METADATA_KEYS, ...RUNTIME_SUMMARY_KEYS] as const;
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
@@ -92,4 +94,14 @@ export const formatRuntimeMetadataJson = (metadata: Record<string, unknown> | nu
   } catch {
     return '';
   }
+};
+
+export const stripAuthFileRuntimeMetadata = (
+  source: Record<string, unknown>
+): Record<string, unknown> => {
+  const next = { ...source };
+  for (const key of RUNTIME_FIELD_KEYS) {
+    delete next[key];
+  }
+  return next;
 };
