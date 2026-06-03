@@ -342,32 +342,6 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   </section>
                 </div>
 
-                {runtimeMetadataText && (
-                  <details className={styles.prefixProxyJsonDetails}>
-                    <summary className={styles.prefixProxyJsonSummary}>
-                      <span className={styles.prefixProxyLabelGroup}>
-                        <span className={styles.prefixProxyLabel}>
-                          {t('auth_files.runtime_metadata_label')}
-                        </span>
-                        <span className={styles.prefixProxyPreviewBadge}>
-                          {t('auth_files.runtime_metadata_count', {
-                            count: runtimeMetadataCount,
-                          })}
-                        </span>
-                      </span>
-                    </summary>
-                    <div className={styles.prefixProxyJsonWrapper}>
-                      <textarea
-                        className={styles.prefixProxyRuntimeMetadataPre}
-                        rows={6}
-                        readOnly
-                        value={runtimeMetadataText}
-                        spellCheck={false}
-                      />
-                    </div>
-                  </details>
-                )}
-
                 <details className={styles.prefixProxyJsonDetails}>
                   <summary className={styles.prefixProxyJsonSummary}>
                     <span className={styles.prefixProxyLabelGroup}>
@@ -406,6 +380,32 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     />
                   </div>
                 </details>
+
+                {runtimeMetadataText && (
+                  <details className={styles.prefixProxyJsonDetails}>
+                    <summary className={styles.prefixProxyJsonSummary}>
+                      <span className={styles.prefixProxyLabelGroup}>
+                        <span className={styles.prefixProxyLabel}>
+                          {t('auth_files.runtime_metadata_label')}
+                        </span>
+                        <span className={styles.prefixProxyPreviewBadge}>
+                          {t('auth_files.runtime_metadata_count', {
+                            count: runtimeMetadataCount,
+                          })}
+                        </span>
+                      </span>
+                    </summary>
+                    <div className={styles.prefixProxyJsonWrapper}>
+                      <textarea
+                        className={styles.prefixProxyRuntimeMetadataPre}
+                        rows={6}
+                        readOnly
+                        value={runtimeMetadataText}
+                        spellCheck={false}
+                      />
+                    </div>
+                  </details>
+                )}
               </div>
             </>
           )}

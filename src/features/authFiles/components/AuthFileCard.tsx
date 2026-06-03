@@ -46,10 +46,6 @@ import {
   AuthFileQuotaSection,
 } from '@/features/authFiles/components/AuthFileQuotaSection';
 import { AuthFileWarningIndicator } from '@/features/authFiles/components/AuthFileWarningIndicator';
-import {
-  formatRuntimeMetadataJson,
-  resolveAuthFileRuntimeMetadata,
-} from '@/features/authFiles/runtimeMetadata';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 const HEALTHY_STATUS_MESSAGES = new Set(['ok', 'healthy', 'ready', 'success', 'available']);
@@ -205,12 +201,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     if (!quotaFilterType) return null;
     return resolveQuotaType(file) === quotaFilterType ? quotaFilterType : null;
   }, [file, quotaFilterType]);
-  const runtimeMetadata = useMemo(() => resolveAuthFileRuntimeMetadata(file), [file]);
-  const runtimeMetadataText = useMemo(
-    () => formatRuntimeMetadataJson(runtimeMetadata),
-    [runtimeMetadata]
-  );
-  const runtimeMetadataCount = runtimeMetadata ? Object.keys(runtimeMetadata).length : 0;
 
   const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly;
 
@@ -510,18 +500,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               />
             )}
           </div>
-
-          {runtimeMetadataText && (
-            <details className={styles.runtimeMetadataDetails}>
-              <summary className={styles.runtimeMetadataSummary}>
-                <span>{t('auth_files.runtime_metadata_label')}</span>
-                <span className={styles.runtimeMetadataCount}>
-                  {t('auth_files.runtime_metadata_count', { count: runtimeMetadataCount })}
-                </span>
-              </summary>
-              <pre className={styles.runtimeMetadataPre}>{runtimeMetadataText}</pre>
-            </details>
-          )}
 
           <div className={styles.cardActions}>
             <div
