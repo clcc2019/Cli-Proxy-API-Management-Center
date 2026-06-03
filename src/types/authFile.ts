@@ -48,6 +48,12 @@ export interface AuthFileItem {
   runtimeUpdatedAt?: string | number;
   runtime_updated_at?: string | number;
   runtime_saved_at?: string | number;
+  runtimeSavedAt?: string | number;
+  cliproxy_runtime_state?: Record<string, unknown>;
+  runtime_state?: Record<string, unknown>;
+  runtimeState?: Record<string, unknown>;
+  runtime_metadata?: Record<string, unknown>;
+  runtimeMetadata?: Record<string, unknown>;
   next_retry_after?: string | number;
   modified?: number;
   email?: string;
@@ -107,7 +113,9 @@ export interface AuthFileItem {
   has_refresh_token?: boolean;
   hasRefreshToken?: boolean;
   last_error?: unknown;
+  lastError?: unknown;
   model_states?: unknown;
+  modelStates?: unknown;
   quota?: unknown;
   success?: number | string;
   failed?: number | string;

@@ -497,6 +497,8 @@
     "health_status_disabled": "已停用",
     "health_status_unknown": "未知",
     "health_status_no_message": "暂无状态说明",
+    "runtime_metadata_label": "运行时元数据",
+    "runtime_metadata_count": "{{count}} 项",
     "last_refresh_label": "最近刷新",
     "codex_subscription_until_label": "订阅到期",
     "refresh_token_badge": "包含 refresh_token",

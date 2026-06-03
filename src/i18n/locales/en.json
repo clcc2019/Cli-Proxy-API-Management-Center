@@ -497,6 +497,8 @@
     "health_status_disabled": "Disabled",
     "health_status_unknown": "Unknown",
     "health_status_no_message": "No status message",
+    "runtime_metadata_label": "Runtime metadata",
+    "runtime_metadata_count": "{{count}} items",
     "last_refresh_label": "Last Refresh",
     "codex_subscription_until_label": "Subscription Until",
     "refresh_token_badge": "Contains refresh_token",
