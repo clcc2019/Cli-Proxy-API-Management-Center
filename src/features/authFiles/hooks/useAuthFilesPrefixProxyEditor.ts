@@ -138,6 +138,19 @@ const readStringField = (
   return trim ? text.trim() : text;
 };
 
+const readHeaderValue = (headersValue: unknown, headerName: string): string => {
+  if (!isRecordObject(headersValue)) return '';
+  const normalizedHeaderName = headerName.trim().toLowerCase();
+  for (const [key, item] of Object.entries(headersValue)) {
+    if (key.trim().toLowerCase() !== normalizedHeaderName || typeof item !== 'string') {
+      continue;
+    }
+    const value = item.trim();
+    if (value) return value;
+  }
+  return '';
+};
+
 const readProxyUrlFromJson = (value: Record<string, unknown>): string =>
   readStringField(value, PROXY_URL_KEYS);
 
@@ -157,7 +170,7 @@ const readDisableCoolingFromJson = (value: Record<string, unknown>): boolean | u
   parseDisableCoolingValue(readFirstDefinedField(value, DISABLE_COOLING_KEYS));
 
 const readUserAgentFromJson = (value: Record<string, unknown>): string =>
-  readStringField(value, USER_AGENT_KEYS, true);
+  readStringField(value, USER_AGENT_KEYS, true) || readHeaderValue(value.headers, 'User-Agent');
 
 const readWebsocketsFromJson = (value: Record<string, unknown>): boolean | undefined =>
   parseDisableCoolingValue(readFirstDefinedField(value, WEBSOCKETS_KEYS));
