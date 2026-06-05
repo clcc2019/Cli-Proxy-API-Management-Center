@@ -106,7 +106,7 @@ export function QuotaSection<TState extends QuotaStatusState, TData>({
   const { t } = useTranslation();
   const resolvedTheme: ResolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const setQuota = useQuotaStore((state) => state[config.storeSetter]) as QuotaSetter<
+  const setQuota = useQuotaStore((state) => (state as any)[config.storeSetter]) as QuotaSetter<
     Record<string, TState>
   >;
 

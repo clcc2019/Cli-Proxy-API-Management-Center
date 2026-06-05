@@ -3,18 +3,10 @@
  */
 
 import { apiClient } from './client';
-import {
-  normalizeGeminiKeyConfig,
-  normalizeOpenAIProvider,
-  normalizeProviderKeyConfig
-} from './transformers';
+import { normalizeProviderKeyConfig } from './transformers';
 import type {
-  GeminiKeyConfig,
-  OpenAIProviderConfig,
   ProviderKeyConfig,
-  ApiKeyEntry,
-  ModelAlias,
-  ThinkingSupport
+  ModelAlias
 } from '@/types';
 
 const serializeHeaders = (headers?: Record<string, string>) => (headers && Object.keys(headers).length ? headers : undefined);
@@ -36,17 +28,6 @@ const buildProviderDeleteQuery = (apiKey: string, baseUrl?: string) => {
   return `?${params.toString()}`;
 };
 
-const serializeThinkingSupport = (thinking?: ThinkingSupport) => {
-  if (!thinking) return undefined;
-  const payload: Record<string, unknown> = {};
-  if (thinking.min !== undefined) payload.min = thinking.min;
-  if (thinking.max !== undefined) payload.max = thinking.max;
-  if (thinking.zeroAllowed !== undefined) payload.zero_allowed = thinking.zeroAllowed;
-  if (thinking.dynamicAllowed !== undefined) payload.dynamic_allowed = thinking.dynamicAllowed;
-  if (thinking.levels?.length) payload.levels = thinking.levels;
-  return Object.keys(payload).length ? payload : undefined;
-};
-
 const serializeModelAliases = (models?: ModelAlias[]) =>
   Array.isArray(models)
     ? models
@@ -60,28 +41,6 @@ const serializeModelAliases = (models?: ModelAlias[]) =>
         })
         .filter(Boolean)
     : undefined;
-
-const serializeOpenAIModelAliases = (models?: ModelAlias[]) =>
-  Array.isArray(models)
-    ? models
-        .map((model) => {
-          if (!model?.name) return null;
-          const payload: Record<string, unknown> = { name: model.name.trim() };
-          if (model.alias && model.alias !== model.name) {
-            payload.alias = model.alias.trim();
-          }
-          const thinking = serializeThinkingSupport(model.thinking);
-          if (thinking) payload.thinking = thinking;
-          return payload;
-        })
-        .filter(Boolean)
-    : undefined;
-
-const serializeApiKeyEntry = (entry: ApiKeyEntry) => {
-  const payload: Record<string, unknown> = { 'api-key': entry.apiKey.trim() };
-  if (entry.proxyUrl?.trim()) payload['proxy-url'] = entry.proxyUrl.trim();
-  return payload;
-};
 
 const serializeProviderKey = (config: ProviderKeyConfig) => {
   const payload: Record<string, unknown> = { 'api-key': config.apiKey };
@@ -116,84 +75,7 @@ const serializeProviderKey = (config: ProviderKeyConfig) => {
   return payload;
 };
 
-const serializeVertexModelAliases = (models?: ModelAlias[]) =>
-  Array.isArray(models)
-    ? models
-        .map((model) => {
-          const name = typeof model?.name === 'string' ? model.name.trim() : '';
-          const alias = typeof model?.alias === 'string' ? model.alias.trim() : '';
-          if (!name || !alias) return null;
-          return { name, alias };
-        })
-        .filter(Boolean)
-    : undefined;
-
-const serializeVertexKey = (config: ProviderKeyConfig) => {
-  const payload: Record<string, unknown> = { 'api-key': config.apiKey };
-  if (config.priority !== undefined) payload.priority = config.priority;
-  if (config.prefix?.trim()) payload.prefix = config.prefix.trim();
-  if (config.baseUrl) payload['base-url'] = config.baseUrl;
-  if (config.proxyUrl) payload['proxy-url'] = config.proxyUrl;
-  const headers = serializeHeaders(config.headers);
-  if (headers) payload.headers = headers;
-  const models = serializeVertexModelAliases(config.models);
-  if (models && models.length) payload.models = models;
-  if (config.excludedModels && config.excludedModels.length) {
-    payload['excluded-models'] = config.excludedModels;
-  }
-  return payload;
-};
-
-const serializeGeminiKey = (config: GeminiKeyConfig) => {
-  const payload: Record<string, unknown> = { 'api-key': config.apiKey };
-  if (config.priority !== undefined) payload.priority = config.priority;
-  if (config.prefix?.trim()) payload.prefix = config.prefix.trim();
-  if (config.baseUrl) payload['base-url'] = config.baseUrl;
-  if (config.proxyUrl) payload['proxy-url'] = config.proxyUrl;
-  const headers = serializeHeaders(config.headers);
-  if (headers) payload.headers = headers;
-  const models = serializeModelAliases(config.models);
-  if (models && models.length) payload.models = models;
-  if (config.excludedModels && config.excludedModels.length) {
-    payload['excluded-models'] = config.excludedModels;
-  }
-  return payload;
-};
-
-const serializeOpenAIProvider = (provider: OpenAIProviderConfig) => {
-  const payload: Record<string, unknown> = {
-    name: provider.name,
-    'base-url': provider.baseUrl,
-    'api-key-entries': Array.isArray(provider.apiKeyEntries)
-      ? provider.apiKeyEntries.map((entry) => serializeApiKeyEntry(entry))
-      : []
-  };
-  if (provider.prefix?.trim()) payload.prefix = provider.prefix.trim();
-  if (provider.disabled !== undefined) payload.disabled = provider.disabled;
-  const headers = serializeHeaders(provider.headers);
-  if (headers) payload.headers = headers;
-  const models = serializeOpenAIModelAliases(provider.models);
-  if (models && models.length) payload.models = models;
-  if (provider.priority !== undefined) payload.priority = provider.priority;
-  return payload;
-};
-
 export const providersApi = {
-  async getGeminiKeys(): Promise<GeminiKeyConfig[]> {
-    const data = await apiClient.get('/gemini-api-key');
-    const list = extractArrayPayload(data, 'gemini-api-key');
-    return list.map((item) => normalizeGeminiKeyConfig(item)).filter(Boolean) as GeminiKeyConfig[];
-  },
-
-  saveGeminiKeys: (configs: GeminiKeyConfig[]) =>
-    apiClient.put('/gemini-api-key', configs.map((item) => serializeGeminiKey(item))),
-
-  updateGeminiKey: (index: number, value: GeminiKeyConfig) =>
-    apiClient.patch('/gemini-api-key', { index, value: serializeGeminiKey(value) }),
-
-  deleteGeminiKey: (apiKey: string, baseUrl?: string) =>
-    apiClient.delete(`/gemini-api-key${buildProviderDeleteQuery(apiKey, baseUrl)}`),
-
   async getCodexConfigs(): Promise<ProviderKeyConfig[]> {
     const data = await apiClient.get('/codex-api-key');
     const list = extractArrayPayload(data, 'codex-api-key');
@@ -222,38 +104,5 @@ export const providersApi = {
     apiClient.patch('/claude-api-key', { index, value: serializeProviderKey(value) }),
 
   deleteClaudeConfig: (apiKey: string, baseUrl?: string) =>
-    apiClient.delete(`/claude-api-key${buildProviderDeleteQuery(apiKey, baseUrl)}`),
-
-  async getVertexConfigs(): Promise<ProviderKeyConfig[]> {
-    const data = await apiClient.get('/vertex-api-key');
-    const list = extractArrayPayload(data, 'vertex-api-key');
-    return list.map((item) => normalizeProviderKeyConfig(item)).filter(Boolean) as ProviderKeyConfig[];
-  },
-
-  saveVertexConfigs: (configs: ProviderKeyConfig[]) =>
-    apiClient.put('/vertex-api-key', configs.map((item) => serializeVertexKey(item))),
-
-  updateVertexConfig: (index: number, value: ProviderKeyConfig) =>
-    apiClient.patch('/vertex-api-key', { index, value: serializeVertexKey(value) }),
-
-  deleteVertexConfig: (apiKey: string, baseUrl?: string) =>
-    apiClient.delete(`/vertex-api-key${buildProviderDeleteQuery(apiKey, baseUrl)}`),
-
-  async getOpenAIProviders(): Promise<OpenAIProviderConfig[]> {
-    const data = await apiClient.get('/openai-compatibility');
-    const list = extractArrayPayload(data, 'openai-compatibility');
-    return list.map((item) => normalizeOpenAIProvider(item)).filter(Boolean) as OpenAIProviderConfig[];
-  },
-
-  saveOpenAIProviders: (providers: OpenAIProviderConfig[]) =>
-    apiClient.put('/openai-compatibility', providers.map((item) => serializeOpenAIProvider(item))),
-
-  updateOpenAIProvider: (index: number, value: OpenAIProviderConfig) =>
-    apiClient.patch('/openai-compatibility', { index, value: serializeOpenAIProvider(value) }),
-
-  updateOpenAIProviderDisabled: (index: number, disabled: boolean) =>
-    apiClient.patch('/openai-compatibility', { index, value: { disabled } }),
-
-  deleteOpenAIProvider: (name: string) =>
-    apiClient.delete(`/openai-compatibility?name=${encodeURIComponent(name)}`)
+    apiClient.delete(`/claude-api-key${buildProviderDeleteQuery(apiKey, baseUrl)}`)
 };

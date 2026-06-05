@@ -799,12 +799,6 @@ function getNextDirtyFields(
       nextValues.quotaSwitchPreviewModel === baselineValues.quotaSwitchPreviewModel
     );
   }
-  if (Object.prototype.hasOwnProperty.call(patch, 'quotaAntigravityCredits')) {
-    updateDirty(
-      'quotaAntigravityCredits',
-      nextValues.quotaAntigravityCredits === baselineValues.quotaAntigravityCredits
-    );
-  }
   if (Object.prototype.hasOwnProperty.call(patch, 'routingStrategy')) {
     updateDirty('routingStrategy', nextValues.routingStrategy === baselineValues.routingStrategy);
   }
@@ -1015,8 +1009,6 @@ export function useVisualConfig() {
 
         quotaSwitchProject: Boolean(quotaExceeded?.['switch-project'] ?? true),
         quotaSwitchPreviewModel: Boolean(quotaExceeded?.['switch-preview-model'] ?? true),
-        quotaAntigravityCredits: Boolean(quotaExceeded?.['antigravity-credits'] ?? false),
-
         routingStrategy: routing?.strategy === 'fill-first' ? 'fill-first' : 'round-robin',
         routingSessionAffinity: Boolean(
           routing?.['session-affinity'] ??
@@ -1150,17 +1142,14 @@ export function useVisualConfig() {
         if (
           docHas(doc, ['quota-exceeded']) ||
           !values.quotaSwitchProject ||
-          !values.quotaSwitchPreviewModel ||
-          values.quotaAntigravityCredits
+          !values.quotaSwitchPreviewModel
         ) {
           ensureMapInDoc(doc, ['quota-exceeded']);
           doc.setIn(['quota-exceeded', 'switch-project'], values.quotaSwitchProject);
           doc.setIn(['quota-exceeded', 'switch-preview-model'], values.quotaSwitchPreviewModel);
-          setBooleanInDoc(
-            doc,
-            ['quota-exceeded', 'antigravity-credits'],
-            values.quotaAntigravityCredits
-          );
+          if (docHas(doc, ['quota-exceeded', 'antigravity-credits'])) {
+            doc.deleteIn(['quota-exceeded', 'antigravity-credits']);
+          }
           deleteIfMapEmpty(doc, ['quota-exceeded']);
         }
 
@@ -1301,11 +1290,6 @@ export const VISUAL_CONFIG_PROTOCOL_OPTIONS = [
     defaultLabel: 'OpenAI Response',
   },
   {
-    value: 'gemini',
-    labelKey: 'config_management.visual.payload_rules.provider_gemini',
-    defaultLabel: 'Gemini',
-  },
-  {
     value: 'claude',
     labelKey: 'config_management.visual.payload_rules.provider_claude',
     defaultLabel: 'Claude',
@@ -1314,16 +1298,6 @@ export const VISUAL_CONFIG_PROTOCOL_OPTIONS = [
     value: 'codex',
     labelKey: 'config_management.visual.payload_rules.provider_codex',
     defaultLabel: 'Codex',
-  },
-  {
-    value: 'kiro',
-    labelKey: 'config_management.visual.payload_rules.provider_kiro',
-    defaultLabel: 'Kiro',
-  },
-  {
-    value: 'antigravity',
-    labelKey: 'config_management.visual.payload_rules.provider_antigravity',
-    defaultLabel: 'Antigravity',
   },
 ] as const;
 

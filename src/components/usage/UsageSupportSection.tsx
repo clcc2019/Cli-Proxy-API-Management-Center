@@ -34,11 +34,8 @@ export const UsageSupportSection = memo(function UsageSupportSection({
         <CredentialStatsCard
           credentials={window?.credentials ?? (EMPTY_LIST as never[])}
           loading={loading}
-          geminiKeys={config?.geminiApiKeys ?? (EMPTY_LIST as never[])}
           claudeConfigs={config?.claudeApiKeys ?? (EMPTY_LIST as never[])}
           codexConfigs={config?.codexApiKeys ?? (EMPTY_LIST as never[])}
-          vertexConfigs={config?.vertexApiKeys ?? (EMPTY_LIST as never[])}
-          openaiProviders={config?.openaiCompatibility ?? (EMPTY_LIST as never[])}
         />
       </div>
 

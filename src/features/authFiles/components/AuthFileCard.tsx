@@ -205,19 +205,13 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly;
 
   const providerCardClass =
-    quotaType === 'antigravity'
-      ? styles.antigravityCard
-      : quotaType === 'claude'
+    quotaType === 'claude'
         ? styles.claudeCard
         : quotaType === 'codex'
           ? styles.codexCard
-          : quotaType === 'gemini-cli'
-            ? styles.geminiCliCard
-            : quotaType === 'kiro'
-              ? styles.kiroCard
-              : quotaType === 'kimi'
-                ? styles.kimiCard
-                : '';
+          : quotaType === 'kimi'
+            ? styles.kimiCard
+            : '';
 
   const rawStatusMessage = getAuthFileStatusMessage(file);
   const hasStatusWarning =

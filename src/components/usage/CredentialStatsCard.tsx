@@ -8,7 +8,7 @@ import {
 } from '@/utils/usage';
 import { normalizeAggregateCredentialKey } from '@/utils/usageAggregate';
 import { authFilesApi } from '@/services/api/authFiles';
-import type { GeminiKeyConfig, ProviderKeyConfig, OpenAIProviderConfig } from '@/types';
+import type { ProviderKeyConfig } from '@/types';
 import type { AuthFileItem } from '@/types/authFile';
 import type { CredentialInfo } from '@/types/sourceInfo';
 import type { UsageAggregateCredentialStat } from '@/types/usageAggregate';
@@ -17,11 +17,8 @@ import styles from '@/pages/UsagePage.module.scss';
 export interface CredentialStatsCardProps {
   credentials: UsageAggregateCredentialStat[];
   loading: boolean;
-  geminiKeys: GeminiKeyConfig[];
   claudeConfigs: ProviderKeyConfig[];
   codexConfigs: ProviderKeyConfig[];
-  vertexConfigs: ProviderKeyConfig[];
-  openaiProviders: OpenAIProviderConfig[];
 }
 
 interface CredentialRow {
@@ -44,11 +41,8 @@ interface CredentialBucket {
 export const CredentialStatsCard = memo(function CredentialStatsCard({
   credentials,
   loading,
-  geminiKeys,
   claudeConfigs,
   codexConfigs,
-  vertexConfigs,
-  openaiProviders,
 }: CredentialStatsCardProps) {
   const { t } = useTranslation();
   const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(new Map());
@@ -181,15 +175,6 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     };
 
     // Provider rows — one row per config, stats merged across all its candidate source IDs
-    geminiKeys.forEach((c, i) =>
-      addConfigRow(
-        c.apiKey,
-        c.prefix,
-        c.prefix?.trim() || `Gemini #${i + 1}`,
-        'gemini',
-        `gemini:${i}`
-      )
-    );
     claudeConfigs.forEach((c, i) =>
       addConfigRow(
         c.apiKey,
@@ -202,54 +187,6 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     codexConfigs.forEach((c, i) =>
       addConfigRow(c.apiKey, c.prefix, c.prefix?.trim() || `Codex #${i + 1}`, 'codex', `codex:${i}`)
     );
-    vertexConfigs.forEach((c, i) =>
-      addConfigRow(
-        c.apiKey,
-        c.prefix,
-        c.prefix?.trim() || `Vertex #${i + 1}`,
-        'vertex',
-        `vertex:${i}`
-      )
-    );
-    // OpenAI compatibility providers — one row per provider, merged across all apiKey entries (prefix counted once).
-    openaiProviders.forEach((provider, providerIndex) => {
-      const prefix = provider.prefix;
-      const displayName = prefix?.trim() || provider.name || `OpenAI #${providerIndex + 1}`;
-
-      const candidates = new Set<string>();
-      buildCandidateUsageSourceIds({ prefix }).forEach((id) => candidates.add(id));
-      (provider.apiKeyEntries || []).forEach((entry) => {
-        buildCandidateUsageSourceIds({ apiKey: entry.apiKey }).forEach((id) => candidates.add(id));
-      });
-
-      let success = 0;
-      let failure = 0;
-      let totalTokens = 0;
-      candidates.forEach((id) => {
-        const bucket = bySource[id];
-        if (bucket) {
-          success += bucket.success;
-          failure += bucket.failure;
-          totalTokens += bucket.totalTokens;
-          consumedSourceIds.add(id);
-        }
-      });
-
-      const total = success + failure;
-      if (total > 0) {
-        result.push({
-          key: `openai:${providerIndex}`,
-          displayName,
-          type: 'openai',
-          success,
-          failure,
-          total,
-          totalTokens,
-          successRate: (success / total) * 100,
-        });
-      }
-    });
-
     // Remaining unmatched bySource entries — resolve name from auth files if possible
     Object.entries(bySource).forEach(([key, bucket]) => {
       if (consumedSourceIds.has(key)) return;
@@ -311,11 +248,8 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     return result.sort((a, b) => b.totalTokens - a.totalTokens || b.total - a.total);
   }, [
     credentials,
-    geminiKeys,
     claudeConfigs,
     codexConfigs,
-    vertexConfigs,
-    openaiProviders,
     authFileMap,
   ]);
 

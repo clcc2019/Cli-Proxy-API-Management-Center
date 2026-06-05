@@ -4,11 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getTypeColor, normalizeProviderKey } from '@/features/authFiles/constants';
 import { useNotificationStore, useThemeStore } from '@/stores';
-import type {
-  GeminiKeyConfig,
-  ProviderKeyConfig,
-  OpenAIProviderConfig,
-} from '@/types';
+import type { ProviderKeyConfig } from '@/types';
 import {
   formatDurationMs,
   formatUsd,
@@ -42,11 +38,8 @@ export interface RequestEventsDetailsCardProps {
   usage: unknown;
   loading: boolean;
   modelPrices: Record<string, ModelPrice>;
-  geminiKeys: GeminiKeyConfig[];
   claudeConfigs: ProviderKeyConfig[];
   codexConfigs: ProviderKeyConfig[];
-  vertexConfigs: ProviderKeyConfig[];
-  openaiProviders: OpenAIProviderConfig[];
 }
 
 function RequestEventsSkeleton() {
@@ -99,11 +92,8 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
   usage,
   loading,
   modelPrices,
-  geminiKeys,
   claudeConfigs,
   codexConfigs,
-  vertexConfigs,
-  openaiProviders,
 }: RequestEventsDetailsCardProps) {
   const { t } = useTranslation();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
@@ -114,11 +104,8 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
   const { rows, hasLatencyData } = useRequestEventRows({
     usage,
     modelPrices,
-    geminiKeys,
     claudeConfigs,
     codexConfigs,
-    vertexConfigs,
-    openaiProviders,
   });
 
   const latencyHint = t('usage_stats.latency_unit_hint', {

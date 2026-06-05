@@ -33,10 +33,6 @@ function renderLazyPage(Component: ComponentType) {
 const LazyDashboardPage = lazyNamed(loadDashboardPage, 'DashboardPage');
 const LazyApiKeysPage = lazyNamed(loadApiKeysPage, 'ApiKeysPage');
 const LazyAiProvidersPage = lazyNamed(loadAiProvidersPage, 'AiProvidersPage');
-const LazyAiProvidersAmpcodeEditPage = lazyNamed(
-  () => import('@/pages/AiProvidersAmpcodeEditPage'),
-  'AiProvidersAmpcodeEditPage'
-);
 const LazyAiProvidersClaudeEditLayout = lazyNamed(
   () => import('@/pages/AiProvidersClaudeEditLayout'),
   'AiProvidersClaudeEditLayout'
@@ -52,26 +48,6 @@ const LazyAiProvidersClaudeModelsPage = lazyNamed(
 const LazyAiProvidersCodexEditPage = lazyNamed(
   () => import('@/pages/AiProvidersCodexEditPage'),
   'AiProvidersCodexEditPage'
-);
-const LazyAiProvidersGeminiEditPage = lazyNamed(
-  () => import('@/pages/AiProvidersGeminiEditPage'),
-  'AiProvidersGeminiEditPage'
-);
-const LazyAiProvidersOpenAIEditLayout = lazyNamed(
-  () => import('@/pages/AiProvidersOpenAIEditLayout'),
-  'AiProvidersOpenAIEditLayout'
-);
-const LazyAiProvidersOpenAIEditPage = lazyNamed(
-  () => import('@/pages/AiProvidersOpenAIEditPage'),
-  'AiProvidersOpenAIEditPage'
-);
-const LazyAiProvidersOpenAIModelsPage = lazyNamed(
-  () => import('@/pages/AiProvidersOpenAIModelsPage'),
-  'AiProvidersOpenAIModelsPage'
-);
-const LazyAiProvidersVertexEditPage = lazyNamed(
-  () => import('@/pages/AiProvidersVertexEditPage'),
-  'AiProvidersVertexEditPage'
 );
 const LazyAuthFilesPage = lazyNamed(loadAuthFilesPage, 'AuthFilesPage');
 const LazyAuthFilesOAuthExcludedEditPage = lazyNamed(
@@ -95,8 +71,6 @@ const mainRoutes = [
   { path: '/dashboard', element: renderLazyPage(LazyDashboardPage) },
   { path: '/settings', element: <Navigate to="/config" replace /> },
   { path: '/api-keys', element: renderLazyPage(LazyApiKeysPage) },
-  { path: '/ai-providers/gemini/new', element: renderLazyPage(LazyAiProvidersGeminiEditPage) },
-  { path: '/ai-providers/gemini/:index', element: renderLazyPage(LazyAiProvidersGeminiEditPage) },
   { path: '/ai-providers/codex/new', element: renderLazyPage(LazyAiProvidersCodexEditPage) },
   { path: '/ai-providers/codex/:index', element: renderLazyPage(LazyAiProvidersCodexEditPage) },
   {
@@ -115,25 +89,6 @@ const mainRoutes = [
       { path: 'models', element: renderLazyPage(LazyAiProvidersClaudeModelsPage) },
     ],
   },
-  { path: '/ai-providers/vertex/new', element: renderLazyPage(LazyAiProvidersVertexEditPage) },
-  { path: '/ai-providers/vertex/:index', element: renderLazyPage(LazyAiProvidersVertexEditPage) },
-  {
-    path: '/ai-providers/openai/new',
-    element: renderLazyPage(LazyAiProvidersOpenAIEditLayout),
-    children: [
-      { index: true, element: renderLazyPage(LazyAiProvidersOpenAIEditPage) },
-      { path: 'models', element: renderLazyPage(LazyAiProvidersOpenAIModelsPage) },
-    ],
-  },
-  {
-    path: '/ai-providers/openai/:index',
-    element: renderLazyPage(LazyAiProvidersOpenAIEditLayout),
-    children: [
-      { index: true, element: renderLazyPage(LazyAiProvidersOpenAIEditPage) },
-      { path: 'models', element: renderLazyPage(LazyAiProvidersOpenAIModelsPage) },
-    ],
-  },
-  { path: '/ai-providers/ampcode', element: renderLazyPage(LazyAiProvidersAmpcodeEditPage) },
   { path: '/ai-providers', element: renderLazyPage(LazyAiProvidersPage) },
   { path: '/ai-providers/*', element: renderLazyPage(LazyAiProvidersPage) },
   { path: '/auth-files', element: renderLazyPage(LazyAuthFilesPage) },

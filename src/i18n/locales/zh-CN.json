@@ -127,11 +127,10 @@
   "dashboard": {
     "title": "仪表盘",
     "subtitle": "欢迎使用 CLI Proxy API 管理中心",
-    "openai_providers": "OpenAI 提供商",
     "quick_actions": "快捷操作",
     "current_config": "当前配置",
     "management_keys": "管理密钥",
-    "provider_keys_detail": "G:{{gemini}} C:{{codex}} Cl:{{claude}} O:{{openai}}",
+    "provider_keys_detail": "Codex：{{codex}} Claude：{{claude}}",
     "oauth_credentials": "OAuth 凭证",
     "usage_overview": "使用概览",
     "total_requests": "总请求数",
@@ -218,7 +217,7 @@
   "ai_providers": {
     "title": "AI 提供商配置",
     "page_eyebrow": "上游路由与模型覆盖",
-    "page_description": "集中管理 Gemini、Codex、Claude、Vertex 与 OpenAI 兼容提供商的密钥、上游地址和模型覆盖状态。",
+    "page_description": "集中管理 Codex 与 Claude 提供商的密钥、上游地址和模型覆盖状态。",
     "page_meta_configured": "已配置 {{count}} 项",
     "page_meta_enabled": "启用中 {{count}} 项",
     "gemini_title": "Gemini API 密钥",

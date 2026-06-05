@@ -4,7 +4,7 @@
 
 import { apiClient, type ApiRequestConfig } from './client';
 import type { AuthFilesResponse } from '@/types/authFile';
-import type { CodexUsagePayload, KiroUsageResponse, OAuthModelAliasEntry } from '@/types';
+import type { CodexUsagePayload, OAuthModelAliasEntry } from '@/types';
 
 type StatusError = { status?: number };
 type AuthFileStatusResponse = { status: string; disabled: boolean };
@@ -771,18 +771,6 @@ export const authFilesApi = {
     return Array.isArray(models)
       ? (models as { id: string; display_name?: string; type?: string; owned_by?: string }[])
       : [];
-  },
-
-  getKiroUsage: (name: string, authIndex?: string) => {
-    const params = new URLSearchParams();
-    params.set('name', name);
-    if (authIndex) {
-      params.set('auth_index', authIndex);
-    }
-    return apiClient.get<KiroUsageResponse>(
-      `/auth-files/kiro-usage?${params.toString()}`,
-      AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
-    );
   },
 
   getCodexUsage: async (

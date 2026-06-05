@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authFilesApi } from '@/services/api/authFiles';
-import type {
-  GeminiKeyConfig,
-  ProviderKeyConfig,
-  OpenAIProviderConfig,
-} from '@/types';
+import type { ProviderKeyConfig } from '@/types';
 import type { AuthFileItem } from '@/types/authFile';
 import type { CredentialInfo } from '@/types/sourceInfo';
 import { maskApiKey } from '@/utils/format';
@@ -51,11 +47,8 @@ export interface RequestEventRow {
 export interface UseRequestEventRowsOptions {
   usage: unknown;
   modelPrices: Record<string, ModelPrice>;
-  geminiKeys: GeminiKeyConfig[];
   claudeConfigs: ProviderKeyConfig[];
   codexConfigs: ProviderKeyConfig[];
-  vertexConfigs: ProviderKeyConfig[];
-  openaiProviders: OpenAIProviderConfig[];
 }
 
 export interface UseRequestEventRowsReturn {
@@ -90,11 +83,8 @@ const formatTimeOfDay = (date: Date | null, locale: string): string => {
 export function useRequestEventRows({
   usage,
   modelPrices,
-  geminiKeys,
   claudeConfigs,
   codexConfigs,
-  vertexConfigs,
-  openaiProviders,
 }: UseRequestEventRowsOptions): UseRequestEventRowsReturn {
   const { i18n } = useTranslation();
   const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(
@@ -131,13 +121,10 @@ export function useRequestEventRows({
   const sourceInfoMap = useMemo(
     () =>
       buildSourceInfoMap({
-        geminiApiKeys: geminiKeys,
         claudeApiKeys: claudeConfigs,
         codexApiKeys: codexConfigs,
-        vertexApiKeys: vertexConfigs,
-        openaiCompatibility: openaiProviders,
       }),
-    [claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]
+    [claudeConfigs, codexConfigs]
   );
 
   const rows = useMemo<RequestEventRow[]>(() => {

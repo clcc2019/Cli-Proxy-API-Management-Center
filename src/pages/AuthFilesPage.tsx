@@ -458,7 +458,6 @@ export function AuthFilesPage() {
   const disableControls = connectionStatus !== 'connected';
   const claudeQuota = useQuotaStore((state) => state.claudeQuota);
   const codexQuota = useQuotaStore((state) => state.codexQuota);
-  const geminiCliQuota = useQuotaStore((state) => state.geminiCliQuota);
   const normalizedFilter = normalizeProviderKey(String(filter));
   const quotaFilterType: QuotaProviderType | null = QUOTA_PROVIDER_TYPES.has(
     normalizedFilter as QuotaProviderType
@@ -469,9 +468,8 @@ export function AuthFilesPage() {
     () => ({
       claudeQuota,
       codexQuota,
-      geminiCliQuota,
     }),
-    [claudeQuota, codexQuota, geminiCliQuota]
+    [claudeQuota, codexQuota]
   );
 
   useEffect(() => {

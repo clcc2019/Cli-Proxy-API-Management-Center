@@ -2,10 +2,9 @@
  * Normalization and parsing functions for quota data.
  */
 
-import type { ClaudeUsagePayload, CodexUsagePayload, GeminiCliCodeAssistPayload, GeminiCliQuotaPayload, KimiUsagePayload } from '@/types';
+import type { ClaudeUsagePayload, CodexUsagePayload, KimiUsagePayload } from '@/types';
 import { normalizeAuthIndex } from '@/utils/usage';
 
-const GEMINI_CLI_MODEL_SUFFIX = '_vertex';
 export { normalizeAuthIndex };
 
 export function normalizeStringValue(value: unknown): string | null {
@@ -17,15 +16,6 @@ export function normalizeStringValue(value: unknown): string | null {
     return value.toString();
   }
   return null;
-}
-
-export function normalizeGeminiCliModelId(value: unknown): string | null {
-  const modelId = normalizeStringValue(value);
-  if (!modelId) return null;
-  if (modelId.endsWith(GEMINI_CLI_MODEL_SUFFIX)) {
-    return modelId.slice(0, -GEMINI_CLI_MODEL_SUFFIX.length);
-  }
-  return modelId;
 }
 
 export function normalizeNumberValue(value: unknown): number | null {
@@ -136,43 +126,6 @@ export function parseIdTokenPayload(value: unknown): Record<string, unknown> | n
   return cacheIdTokenPayload(trimmed, null);
 }
 
-export function parseAntigravityPayload(payload: unknown): Record<string, unknown> | null {
-  const toRecord = (value: unknown): Record<string, unknown> | null => {
-    if (value === undefined || value === null) return null;
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      if (!trimmed) return null;
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          return parsed as Record<string, unknown>;
-        }
-      } catch {
-        return null;
-      }
-      return null;
-    }
-    if (typeof value === 'object' && !Array.isArray(value)) {
-      return value as Record<string, unknown>;
-    }
-    return null;
-  };
-
-  const parsed = toRecord(payload);
-  if (!parsed) return null;
-
-  if ('models' in parsed) {
-    return parsed;
-  }
-
-  const nested = toRecord(parsed.body);
-  if (nested) {
-    return nested;
-  }
-
-  return parsed;
-}
-
 export function parseClaudeUsagePayload(payload: unknown): ClaudeUsagePayload | null {
   if (payload === undefined || payload === null) return null;
   if (typeof payload === 'string') {
@@ -203,40 +156,6 @@ export function parseCodexUsagePayload(payload: unknown): CodexUsagePayload | nu
   }
   if (typeof payload === 'object') {
     return payload as CodexUsagePayload;
-  }
-  return null;
-}
-
-export function parseGeminiCliQuotaPayload(payload: unknown): GeminiCliQuotaPayload | null {
-  if (payload === undefined || payload === null) return null;
-  if (typeof payload === 'string') {
-    const trimmed = payload.trim();
-    if (!trimmed) return null;
-    try {
-      return JSON.parse(trimmed) as GeminiCliQuotaPayload;
-    } catch {
-      return null;
-    }
-  }
-  if (typeof payload === 'object') {
-    return payload as GeminiCliQuotaPayload;
-  }
-  return null;
-}
-
-export function parseGeminiCliCodeAssistPayload(payload: unknown): GeminiCliCodeAssistPayload | null {
-  if (payload === undefined || payload === null) return null;
-  if (typeof payload === 'string') {
-    const trimmed = payload.trim();
-    if (!trimmed) return null;
-    try {
-      return JSON.parse(trimmed) as GeminiCliCodeAssistPayload;
-    } catch {
-      return null;
-    }
-  }
-  if (typeof payload === 'object') {
-    return payload as GeminiCliCodeAssistPayload;
   }
   return null;
 }

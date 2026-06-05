@@ -21,10 +21,8 @@ interface QuickStat {
 }
 
 interface ProviderStats {
-  gemini: number | null;
   codex: number | null;
   claude: number | null;
-  openai: number | null;
 }
 
 type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
@@ -131,10 +129,8 @@ export function DashboardPage() {
   });
 
   const [providerStats, setProviderStats] = useState<ProviderStats>({
-    gemini: null,
     codex: null,
-    claude: null,
-    openai: null
+    claude: null
   });
 
   const [loading, setLoading] = useState(true);
@@ -225,14 +221,12 @@ export function DashboardPage() {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        const [keysRes, filesRes, geminiRes, codexRes, claudeRes, openaiRes] =
+        const [keysRes, filesRes, codexRes, claudeRes] =
           await Promise.allSettled([
             apiKeysApi.list(),
             authFilesApi.list({ codexSubscription: 'skip', summary: true, page: 1, pageSize: 1 }),
-            providersApi.getGeminiKeys(),
             providersApi.getCodexConfigs(),
-            providersApi.getClaudeConfigs(),
-            providersApi.getOpenAIProviders()
+            providersApi.getClaudeConfigs()
           ]);
 
         setStats({
@@ -244,10 +238,8 @@ export function DashboardPage() {
         });
 
         setProviderStats({
-          gemini: geminiRes.status === 'fulfilled' ? geminiRes.value.length : null,
           codex: codexRes.status === 'fulfilled' ? codexRes.value.length : null,
-          claude: claudeRes.status === 'fulfilled' ? claudeRes.value.length : null,
-          openai: openaiRes.status === 'fulfilled' ? openaiRes.value.length : null
+          claude: claudeRes.status === 'fulfilled' ? claudeRes.value.length : null
         });
       } finally {
         setLoading(false);
@@ -263,20 +255,14 @@ export function DashboardPage() {
   }, [connectionStatus, fetchModels]);
 
   const providerStatsReady =
-    providerStats.gemini !== null &&
     providerStats.codex !== null &&
-    providerStats.claude !== null &&
-    providerStats.openai !== null;
+    providerStats.claude !== null;
   const hasProviderStats =
-    providerStats.gemini !== null ||
     providerStats.codex !== null ||
-    providerStats.claude !== null ||
-    providerStats.openai !== null;
+    providerStats.claude !== null;
   const totalProviderKeys = providerStatsReady
-    ? (providerStats.gemini ?? 0) +
-      (providerStats.codex ?? 0) +
-      (providerStats.claude ?? 0) +
-      (providerStats.openai ?? 0)
+    ? (providerStats.codex ?? 0) +
+      (providerStats.claude ?? 0)
     : 0;
 
   const quickStats: QuickStat[] = useMemo(
@@ -297,10 +283,8 @@ export function DashboardPage() {
         loading: loading,
         sublabel: hasProviderStats
           ? t('dashboard.provider_keys_detail', {
-              gemini: providerStats.gemini ?? '-',
               codex: providerStats.codex ?? '-',
-              claude: providerStats.claude ?? '-',
-              openai: providerStats.openai ?? '-'
+              claude: providerStats.claude ?? '-'
             })
           : undefined
       },
@@ -329,10 +313,8 @@ export function DashboardPage() {
       providerStatsReady,
       totalProviderKeys,
       hasProviderStats,
-      providerStats.gemini,
       providerStats.codex,
       providerStats.claude,
-      providerStats.openai,
       modelsLoading,
       models.length
     ]

@@ -1,10 +1,7 @@
 import type { TFunction } from 'i18next';
 import {
-  ANTIGRAVITY_CONFIG,
   CLAUDE_CONFIG,
   CODEX_CONFIG,
-  GEMINI_CLI_CONFIG,
-  KIRO_CONFIG,
   KIMI_CONFIG,
 } from '@/components/quota';
 import { useQuotaStore } from '@/stores';
@@ -33,12 +30,9 @@ export type AuthFileQuotaRefreshResult =
   | { status: 'error'; fileName: string; message: string; errorStatus?: number };
 
 export const getAuthFileQuotaConfig = (type: QuotaProviderType) => {
-  if (type === 'antigravity') return ANTIGRAVITY_CONFIG;
   if (type === 'claude') return CLAUDE_CONFIG;
   if (type === 'codex') return CODEX_CONFIG;
-  if (type === 'kiro') return KIRO_CONFIG;
-  if (type === 'kimi') return KIMI_CONFIG;
-  return GEMINI_CLI_CONFIG;
+  return KIMI_CONFIG;
 };
 
 const getTypedQuotaConfig = (type: QuotaProviderType) =>
@@ -46,19 +40,13 @@ const getTypedQuotaConfig = (type: QuotaProviderType) =>
 
 const getQuotaEntry = (quotaType: QuotaProviderType, fileName: string): QuotaState => {
   const state = useQuotaStore.getState();
-  if (quotaType === 'antigravity') return state.antigravityQuota[fileName] as QuotaState;
   if (quotaType === 'claude') return state.claudeQuota[fileName] as QuotaState;
   if (quotaType === 'codex') return state.codexQuota[fileName] as QuotaState;
-  if (quotaType === 'kiro') return state.kiroQuota[fileName] as QuotaState;
-  if (quotaType === 'kimi') return state.kimiQuota[fileName] as QuotaState;
-  return state.geminiCliQuota[fileName] as QuotaState;
+  return state.kimiQuota[fileName] as QuotaState;
 };
 
 const getQuotaStateUpdater = (quotaType: QuotaProviderType) => {
   const state = useQuotaStore.getState();
-  if (quotaType === 'antigravity') {
-    return state.setAntigravityQuota as unknown as (updater: unknown) => void;
-  }
   if (quotaType === 'claude') {
     return state.setClaudeQuota as unknown as (updater: unknown) => void;
   }
@@ -68,10 +56,7 @@ const getQuotaStateUpdater = (quotaType: QuotaProviderType) => {
   if (quotaType === 'kimi') {
     return state.setKimiQuota as unknown as (updater: unknown) => void;
   }
-  if (quotaType === 'kiro') {
-    return state.setKiroQuota as unknown as (updater: unknown) => void;
-  }
-  return state.setGeminiCliQuota as unknown as (updater: unknown) => void;
+  return state.setKimiQuota as unknown as (updater: unknown) => void;
 };
 
 export async function refreshAuthFileQuota(options: {

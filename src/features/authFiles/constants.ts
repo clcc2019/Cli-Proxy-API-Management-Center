@@ -1,15 +1,10 @@
 import type { TFunction } from 'i18next';
-import iconAntigravity from '@/assets/icons/antigravity.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconCodex from '@/assets/icons/codex.svg';
-import iconGemini from '@/assets/icons/gemini.svg';
 import iconGrok from '@/assets/icons/grok.svg';
-import iconIflow from '@/assets/icons/iflow.svg';
-import iconKiro from '@/assets/icons/kiro.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
-import iconVertex from '@/assets/icons/vertex.svg';
 import type { AuthFileItem } from '@/types';
 import { hasAuthFileRequestStats, readAuthFileRequestStats } from '@/features/authFiles/stats';
 import {
@@ -32,14 +27,11 @@ export type AuthFileModelItem = {
 };
 export type AuthFileIconAsset = string | { light: string; dark: string };
 
-export type QuotaProviderType = 'antigravity' | 'claude' | 'codex' | 'gemini-cli' | 'kiro' | 'kimi';
+export type QuotaProviderType = 'claude' | 'codex' | 'kimi';
 
 export const QUOTA_PROVIDER_TYPES = new Set<QuotaProviderType>([
-  'antigravity',
   'claude',
   'codex',
-  'gemini-cli',
-  'kiro',
   'kimi',
 ]);
 
@@ -64,21 +56,6 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
     light: { bg: '#e2ecff', text: '#1057c9' },
     dark: { bg: '#0d2f6b', text: '#85c0ff' },
   },
-  // Gemini logo: 多色蓝 #3186FF（偏柔和的蓝）
-  gemini: {
-    light: { bg: '#e7f1fc', text: '#1769b0' },
-    dark: { bg: '#0e3d7a', text: '#7cc1f7' },
-  },
-  // Gemini-CLI: 同 Gemini 图标，用更深的海军蓝区分
-  'gemini-cli': {
-    light: { bg: '#e6edff', text: '#1f4b97' },
-    dark: { bg: '#1a3a66', text: '#b4c8ff' },
-  },
-  // AI Studio: 使用 Gemini 图标，中性灰标签
-  aistudio: {
-    light: { bg: '#eef0f3', text: '#3a4049' },
-    dark: { bg: '#363b42', text: '#d6dae0' },
-  },
   // Claude logo: 陶土橙 #D97757
   claude: {
     light: { bg: '#fbeadf', text: '#b8521e' },
@@ -89,30 +66,10 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
     light: { bg: '#ece9ff', text: '#3c3fcc' },
     dark: { bg: '#231f7c', text: '#beb8ff' },
   },
-  // Antigravity logo: 多色（主色 #3789F9 蓝 + #53A89A 青绿），用青色区分
-  antigravity: {
-    light: { bg: '#dff4f7', text: '#0a6a72' },
-    dark: { bg: '#0d3f44', text: '#8de2eb' },
-  },
-  // iFlow logo: 品红紫渐变 #5C5CFF → #AE5CFF
-  iflow: {
-    light: { bg: '#f6e6fc', text: '#8a23c0' },
-    dark: { bg: '#451176', text: '#dca8f5' },
-  },
-  // Kiro / Amazon Q: AWS 深蓝底 + 橙色强调
-  kiro: {
-    light: { bg: '#fff0d6', text: '#915400' },
-    dark: { bg: '#352510', text: '#ffc26a' },
-  },
   // xAI / Grok: 黑白品牌
   xai: {
     light: { bg: '#e9edf2', text: '#2b3540' },
     dark: { bg: '#252d38', text: '#d2dae3' },
-  },
-  // Vertex logo: Google 蓝 #4285F4
-  vertex: {
-    light: { bg: '#e4edfc', text: '#2c5db5' },
-    dark: { bg: '#173873', text: '#92b8f9' },
   },
   empty: {
     light: { bg: '#f3f4f6', text: '#5b6573' },
@@ -125,18 +82,11 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
 };
 
 export const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
-  antigravity: iconAntigravity,
-  aistudio: iconGemini,
   claude: iconClaude,
   codex: iconCodex,
-  gemini: iconGemini,
-  'gemini-cli': iconGemini,
-  iflow: iconIflow,
-  kiro: iconKiro,
   kimi: { light: iconKimiLight, dark: iconKimiDark },
   qwen: iconQwen,
   xai: iconGrok,
-  vertex: iconVertex,
 };
 
 export const clampCardPageSize = (value: number) =>
@@ -168,7 +118,6 @@ export const getTypeLabel = (t: TFunction, type: string): string => {
   const key = `auth_files.filter_${type}`;
   const translated = t(key);
   if (translated !== key) return translated;
-  if (type.toLowerCase() === 'iflow') return 'iFlow';
   return type.charAt(0).toUpperCase() + type.slice(1);
 };
 

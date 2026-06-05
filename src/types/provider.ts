@@ -6,21 +6,6 @@
 export interface ModelAlias {
   name: string;
   alias?: string;
-  thinking?: ThinkingSupport;
-}
-
-export interface ThinkingSupport {
-  min?: number;
-  max?: number;
-  zeroAllowed?: boolean;
-  dynamicAllowed?: boolean;
-  levels?: string[];
-}
-
-export interface ApiKeyEntry {
-  apiKey: string;
-  proxyUrl?: string;
-  headers?: Record<string, string>;
 }
 
 export interface CloakConfig {
@@ -28,17 +13,6 @@ export interface CloakConfig {
   strictMode?: boolean;
   sensitiveWords?: string[];
   cacheUserId?: boolean;
-}
-
-export interface GeminiKeyConfig {
-  apiKey: string;
-  priority?: number;
-  prefix?: string;
-  baseUrl?: string;
-  proxyUrl?: string;
-  models?: ModelAlias[];
-  headers?: Record<string, string>;
-  excludedModels?: string[];
 }
 
 export interface ProviderKeyConfig {
@@ -53,16 +27,4 @@ export interface ProviderKeyConfig {
   excludedModels?: string[];
   cloak?: CloakConfig;
   experimentalCchSigning?: boolean;
-}
-
-export interface OpenAIProviderConfig {
-  name: string;
-  prefix?: string;
-  baseUrl: string;
-  apiKeyEntries: ApiKeyEntry[];
-  disabled?: boolean;
-  headers?: Record<string, string>;
-  models?: ModelAlias[];
-  priority?: number;
-  [key: string]: unknown;
 }

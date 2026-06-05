@@ -10,11 +10,8 @@ import { authFilesApi, configFileApi } from '@/services/api';
 import type { AuthFilesListCodexSubscriptionMode } from '@/services/api/authFiles';
 import {
   QuotaSection,
-  ANTIGRAVITY_CONFIG,
   CLAUDE_CONFIG,
   CODEX_CONFIG,
-  GEMINI_CLI_CONFIG,
-  KIRO_CONFIG,
   KIMI_CONFIG,
 } from '@/components/quota';
 import type { AuthFileItem } from '@/types';
@@ -106,28 +103,7 @@ export function QuotaPage() {
         onAuthFilesUpdated={applyAuthFileUpdates}
       />
       <QuotaSection
-        config={ANTIGRAVITY_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-        onAuthFilesUpdated={applyAuthFileUpdates}
-      />
-      <QuotaSection
         config={CODEX_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-        onAuthFilesUpdated={applyAuthFileUpdates}
-      />
-      <QuotaSection
-        config={GEMINI_CLI_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-        onAuthFilesUpdated={applyAuthFileUpdates}
-      />
-      <QuotaSection
-        config={KIRO_CONFIG}
         files={files}
         loading={loading}
         disabled={disableControls}

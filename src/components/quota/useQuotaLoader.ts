@@ -26,7 +26,7 @@ interface LoadQuotaResult<TData> {
 export function useQuotaLoader<TState, TData>(config: QuotaConfig<TState, TData>) {
   const { t } = useTranslation();
   const quota = useQuotaStore(config.storeSelector);
-  const setQuota = useQuotaStore((state) => state[config.storeSetter]) as QuotaSetter<
+  const setQuota = useQuotaStore((state) => (state as any)[config.storeSetter]) as QuotaSetter<
     Record<string, TState>
   >;
 

@@ -127,11 +127,10 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Welcome to CLI Proxy API Management Center",
-    "openai_providers": "OpenAI Providers",
     "quick_actions": "Quick Actions",
     "current_config": "Current Configuration",
     "management_keys": "Management Keys",
-    "provider_keys_detail": "G:{{gemini}} C:{{codex}} Cl:{{claude}} O:{{openai}}",
+    "provider_keys_detail": "Codex: {{codex}} Claude: {{claude}}",
     "oauth_credentials": "OAuth Credentials",
     "usage_overview": "Usage Overview",
     "total_requests": "Total Requests",
@@ -218,7 +217,7 @@
   "ai_providers": {
     "title": "AI Providers Configuration",
     "page_eyebrow": "Upstream routing and model coverage",
-    "page_description": "Manage keys, upstream endpoints, and model coverage for Gemini, Codex, Claude, Vertex, and OpenAI-compatible providers in one place.",
+    "page_description": "Manage keys, upstream endpoints, and model coverage for Codex and Claude providers in one place.",
     "page_meta_configured": "{{count}} configured",
     "page_meta_enabled": "{{count}} enabled",
     "gemini_title": "Gemini API Keys",

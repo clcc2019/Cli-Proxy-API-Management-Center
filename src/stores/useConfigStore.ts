@@ -49,12 +49,8 @@ const SECTION_KEYS: RawConfigSection[] = [
   'force-model-prefix',
   'routing/strategy',
   'api-keys',
-  'ampcode',
-  'gemini-api-key',
   'codex-api-key',
   'claude-api-key',
-  'vertex-api-key',
-  'openai-compatibility',
   'oauth-excluded-models',
 ];
 
@@ -91,18 +87,10 @@ const extractSectionValue = (config: Config | null, section?: RawConfigSection) 
       return config.routingStrategy;
     case 'api-keys':
       return config.apiKeys;
-    case 'ampcode':
-      return config.ampcode;
-    case 'gemini-api-key':
-      return config.geminiApiKeys;
     case 'codex-api-key':
       return config.codexApiKeys;
     case 'claude-api-key':
       return config.claudeApiKeys;
-    case 'vertex-api-key':
-      return config.vertexApiKeys;
-    case 'openai-compatibility':
-      return config.openaiCompatibility;
     case 'oauth-excluded-models':
       return config.oauthExcludedModels;
     default:
@@ -249,23 +237,11 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         case 'api-keys':
           nextConfig.apiKeys = value as Config['apiKeys'];
           break;
-        case 'ampcode':
-          nextConfig.ampcode = value as Config['ampcode'];
-          break;
-        case 'gemini-api-key':
-          nextConfig.geminiApiKeys = value as Config['geminiApiKeys'];
-          break;
         case 'codex-api-key':
           nextConfig.codexApiKeys = value as Config['codexApiKeys'];
           break;
         case 'claude-api-key':
           nextConfig.claudeApiKeys = value as Config['claudeApiKeys'];
-          break;
-        case 'vertex-api-key':
-          nextConfig.vertexApiKeys = value as Config['vertexApiKeys'];
-          break;
-        case 'openai-compatibility':
-          nextConfig.openaiCompatibility = value as Config['openaiCompatibility'];
           break;
         case 'oauth-excluded-models':
           nextConfig.oauthExcludedModels = value as Config['oauthExcludedModels'];
