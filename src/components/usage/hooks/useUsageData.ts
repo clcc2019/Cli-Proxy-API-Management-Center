@@ -32,7 +32,11 @@ export interface UseUsageDataReturn {
   importing: boolean;
 }
 
-export function useUsageData(): UseUsageDataReturn {
+export interface UseUsageDataOptions {
+  detailsLimit?: number;
+}
+
+export function useUsageData(options: UseUsageDataOptions = {}): UseUsageDataReturn {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const usageSnapshot = useUsageStatsStore((state) => state.usage);
@@ -45,13 +49,14 @@ export function useUsageData(): UseUsageDataReturn {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const detailsLimit = options.detailsLimit;
 
   const loadUsage = useCallback(async () => {
-    await loadUsageStats({ force: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS });
-  }, [loadUsageStats]);
+    await loadUsageStats({ force: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS, detailsLimit });
+  }, [detailsLimit, loadUsageStats]);
 
   useEffect(() => {
-    void loadUsageStats({ staleTimeMs: USAGE_STATS_STALE_TIME_MS }).catch(() => {});
+    void loadUsageStats({ staleTimeMs: USAGE_STATS_STALE_TIME_MS, detailsLimit }).catch(() => {});
     setModelPrices(loadModelPrices());
     void usageApi
       .getModelPrices()
@@ -61,7 +66,7 @@ export function useUsageData(): UseUsageDataReturn {
         saveModelPrices(prices);
       })
       .catch(() => {});
-  }, [loadUsageStats]);
+  }, [detailsLimit, loadUsageStats]);
 
   const handleExport = async () => {
     setExporting(true);
@@ -120,7 +125,7 @@ export function useUsageData(): UseUsageDataReturn {
         'success'
       );
       try {
-        await loadUsageStats({ force: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS });
+        await loadUsageStats({ force: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS, detailsLimit });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : '';
         showNotification(

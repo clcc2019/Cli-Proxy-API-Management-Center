@@ -62,6 +62,10 @@ export interface UsageImportResponse {
   [key: string]: unknown;
 }
 
+export interface UsageDetailsOptions {
+  recent?: number;
+}
+
 export const usageApi = {
   /**
    * 获取轻量使用统计汇总
@@ -74,8 +78,14 @@ export const usageApi = {
   /**
    * 获取包含请求明细的使用统计
    */
-  getUsageDetails: () =>
-    apiClient.get<Record<string, unknown>>('/usage/details', { timeout: USAGE_TIMEOUT_MS }),
+  getUsageDetails: (options: UsageDetailsOptions = {}) =>
+    apiClient.get<Record<string, unknown>>('/usage/details', {
+      params:
+        typeof options.recent === 'number' && Number.isFinite(options.recent) && options.recent > 0
+          ? { recent: Math.floor(options.recent) }
+          : undefined,
+      timeout: USAGE_TIMEOUT_MS
+    }),
 
   /**
    * 获取使用统计页面所需的聚合数据

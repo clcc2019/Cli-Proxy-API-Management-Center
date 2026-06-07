@@ -13,6 +13,7 @@ import {
   extractLatencyMs,
   extractTotalTokens,
   type ModelPrice,
+  type UsageDetail,
   normalizeAuthIndex,
 } from '@/utils/usage';
 
@@ -76,6 +77,45 @@ const formatTimeOfDay = (date: Date | null, locale: string): string => {
   }
 };
 
+const getDetailTimestampMs = (detail: UsageDetail): number => {
+  const timestampMs =
+    typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
+      ? detail.__timestampMs
+      : parseTimestampMs(detail.timestamp);
+  return Number.isNaN(timestampMs) ? 0 : timestampMs;
+};
+
+const selectRecentUsageDetails = (
+  details: UsageDetail[],
+  limit: number
+): UsageDetail[] => {
+  if (limit <= 0) return [];
+
+  const selected: { detail: UsageDetail; timestampMs: number; order: number }[] = [];
+  details.forEach((detail, order) => {
+    const timestampMs = getDetailTimestampMs(detail);
+    const insertIndex = selected.findIndex(
+      (entry) =>
+        timestampMs > entry.timestampMs ||
+        (timestampMs === entry.timestampMs && order < entry.order)
+    );
+
+    if (insertIndex === -1) {
+      if (selected.length < limit) {
+        selected.push({ detail, timestampMs, order });
+      }
+      return;
+    }
+
+    selected.splice(insertIndex, 0, { detail, timestampMs, order });
+    if (selected.length > limit) {
+      selected.pop();
+    }
+  });
+
+  return selected.map((entry) => entry.detail);
+};
+
 /**
  * Build normalized request event rows from a raw usage payload.
  * Resolves credential display names against config + auth-files API.
@@ -128,22 +168,10 @@ export function useRequestEventRows({
   );
 
   const rows = useMemo<RequestEventRow[]>(() => {
-    const details = collectUsageDetails(usage)
-      .slice()
-      .sort((a, b) => {
-        const left =
-          typeof a.__timestampMs === 'number' && a.__timestampMs > 0
-            ? a.__timestampMs
-            : parseTimestampMs(a.timestamp);
-        const right =
-          typeof b.__timestampMs === 'number' && b.__timestampMs > 0
-            ? b.__timestampMs
-            : parseTimestampMs(b.timestamp);
-        return (
-          (Number.isNaN(right) ? 0 : right) - (Number.isNaN(left) ? 0 : left)
-        );
-      })
-      .slice(0, REQUEST_EVENT_ROWS_LIMIT);
+    const details = selectRecentUsageDetails(
+      collectUsageDetails(usage),
+      REQUEST_EVENT_ROWS_LIMIT
+    );
 
     return details.map((detail, index) => {
       const timestamp = detail.timestamp;

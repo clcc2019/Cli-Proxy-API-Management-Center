@@ -6,6 +6,7 @@ import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconExternalLink,
   IconLink,
+  IconRefreshCw,
   IconSatellite,
   IconShield,
   IconStar,
@@ -25,7 +26,7 @@ import styles from '@/pages/AiProvidersPage.module.scss';
 import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 import { ProviderList } from '../ProviderList';
 import { ProviderStatusBar } from '../ProviderStatusBar';
-import { hasDisableAllModelsRule } from '../utils';
+import { buildProviderConfigKey, hasDisableAllModelsRule } from '../utils';
 
 interface CodexSectionProps {
   configs: ProviderKeyConfig[];
@@ -40,6 +41,7 @@ interface CodexSectionProps {
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
   onToggle: (index: number, enabled: boolean) => void;
+  onPoolModeToggle: (index: number, enabled: boolean) => void;
 }
 
 export const CodexSection = memo(function CodexSection({
@@ -54,6 +56,7 @@ export const CodexSection = memo(function CodexSection({
   onEdit,
   onDelete,
   onToggle,
+  onPoolModeToggle,
 }: CodexSectionProps) {
   const { t } = useTranslation();
   void keyStats;
@@ -63,11 +66,8 @@ export const CodexSection = memo(function CodexSection({
   const actionsDisabled = disableControls || loading;
   const toggleGloballyDisabled = disableControls || loading;
 
-  const buildItemKey = (item: ProviderKeyConfig) =>
-    `${item.apiKey}:${item.baseUrl ?? ''}:${item.prefix ?? ''}`;
-
   const isItemSwitching = (item: ProviderKeyConfig) =>
-    switchingItemKeys ? switchingItemKeys.has(buildItemKey(item)) : false;
+    switchingItemKeys ? switchingItemKeys.has(buildProviderConfigKey(item)) : false;
 
   const statusBarCache = useMemo(() => {
     const cache = new Map<string, ReturnType<typeof calculateStatusBarData>>();
@@ -107,9 +107,9 @@ export const CodexSection = memo(function CodexSection({
           items={configs}
           loading={loading}
           listClassName={styles.providerConfigList}
-          rowClassName={styles.providerConfigItem}
+          rowClassName={`${styles.providerConfigItem} ${styles.providerConfigItemCodex}`}
           leadingIcon={<img src={iconCodex} alt="" />}
-          keyField={(item) => item.apiKey}
+          keyField={(item) => buildProviderConfigKey(item)}
           emptyTitle={t('ai_providers.codex_empty_title')}
           emptyDescription={t('ai_providers.codex_empty_desc')}
           onEdit={onEdit}
@@ -118,13 +118,22 @@ export const CodexSection = memo(function CodexSection({
           getRowDisabled={(item) => hasDisableAllModelsRule(item.excludedModels)}
           isRowSwitching={(item) => isItemSwitching(item)}
           renderExtraActions={(item, index) => (
-            <ToggleSwitch
-              label={t('ai_providers.config_toggle_label')}
-              checked={!hasDisableAllModelsRule(item.excludedModels)}
-              className={styles.providerCardToggle}
-              disabled={toggleGloballyDisabled || isItemSwitching(item)}
-              onChange={(value) => void onToggle(index, value)}
-            />
+            <>
+              <ToggleSwitch
+                label={t('ai_providers.codex_pool_mode_label')}
+                checked={Boolean(item.poolMode)}
+                className={styles.providerCardToggle}
+                disabled={toggleGloballyDisabled || isItemSwitching(item)}
+                onChange={(value) => void onPoolModeToggle(index, value)}
+              />
+              <ToggleSwitch
+                label={t('ai_providers.config_toggle_label')}
+                checked={!hasDisableAllModelsRule(item.excludedModels)}
+                className={styles.providerCardToggle}
+                disabled={toggleGloballyDisabled || isItemSwitching(item)}
+                onChange={(value) => void onToggle(index, value)}
+              />
+            </>
           )}
           renderContent={(item) => {
             const headerEntries = Object.entries(item.headers || {});
@@ -180,6 +189,15 @@ export const CodexSection = memo(function CodexSection({
                       tone="option"
                     >
                       {item.websockets ? t('common.yes') : t('common.no')}
+                    </ProviderDetailRow>
+                  )}
+                  {item.poolMode !== undefined && (
+                    <ProviderDetailRow
+                      icon={<IconRefreshCw size={20} />}
+                      label={t('ai_providers.codex_pool_mode_label')}
+                      tone="option"
+                    >
+                      {item.poolMode ? t('common.yes') : t('common.no')}
                     </ProviderDetailRow>
                   )}
                 </div>

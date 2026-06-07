@@ -10,6 +10,7 @@ export type LoadUsageStatsOptions = {
   force?: boolean;
   staleTimeMs?: number;
   summaryOnly?: boolean;
+  detailsLimit?: number;
 };
 
 type UsageStatsSnapshot = Record<string, unknown>;
@@ -37,6 +38,7 @@ type UsageStatsState = {
   keyStats: KeyStats;
   usageDetails: UsageDetail[];
   usageMode: 'summary' | 'details';
+  usageDetailsLimit: number | null;
   loading: boolean;
   error: string | null;
   lastRefreshedAt: number | null;
@@ -52,6 +54,7 @@ let inFlightUsageRequest: {
   id: number;
   scopeKey: string;
   mode: 'summary' | 'details';
+  detailsLimit: number | null;
   promise: Promise<void>;
 } | null = null;
 
@@ -62,11 +65,30 @@ const getErrorMessage = (error: unknown) =>
       ? error
       : i18n.t('usage_stats.loading_error');
 
+const normalizeDetailsLimit = (value: unknown): number | null => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.floor(parsed);
+};
+
+const canSatisfyUsageRequest = (
+  existingMode: 'summary' | 'details',
+  existingDetailsLimit: number | null,
+  requestMode: 'summary' | 'details',
+  requestDetailsLimit: number | null
+) => {
+  if (requestMode === 'summary') return true;
+  if (existingMode !== 'details') return false;
+  if (existingDetailsLimit === null) return true;
+  return requestDetailsLimit !== null && existingDetailsLimit >= requestDetailsLimit;
+};
+
 export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
   usage: null,
   keyStats: createEmptyKeyStats(),
   usageDetails: [],
   usageMode: 'summary',
+  usageDetailsLimit: null,
   loading: false,
   error: null,
   lastRefreshedAt: null,
@@ -76,6 +98,8 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
     const force = options.force === true;
     const staleTimeMs = options.staleTimeMs ?? USAGE_STATS_STALE_TIME_MS;
     const requestMode = options.summaryOnly === true ? 'summary' : 'details';
+    const requestDetailsLimit =
+      requestMode === 'details' ? normalizeDetailsLimit(options.detailsLimit) : null;
     const { apiBase = '', managementKey = '' } = useAuthStore.getState();
     const scopeKey = `${apiBase}::${managementKey}`;
     const state = get();
@@ -85,8 +109,12 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
     if (
       inFlightUsageRequest &&
       inFlightUsageRequest.scopeKey === scopeKey &&
-      (inFlightUsageRequest.mode === requestMode ||
-        (requestMode === 'summary' && inFlightUsageRequest.mode === 'details'))
+      canSatisfyUsageRequest(
+        inFlightUsageRequest.mode,
+        inFlightUsageRequest.detailsLimit,
+        requestMode,
+        requestDetailsLimit
+      )
     ) {
       await inFlightUsageRequest.promise;
       return;
@@ -100,7 +128,12 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
 
     const fresh =
       !scopeChanged &&
-      (requestMode === 'summary' || state.usageMode === 'details') &&
+      canSatisfyUsageRequest(
+        state.usageMode,
+        state.usageDetailsLimit,
+        requestMode,
+        requestDetailsLimit
+      ) &&
       state.lastRefreshedAt !== null &&
       Date.now() - state.lastRefreshedAt < staleTimeMs;
 
@@ -114,6 +147,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
         keyStats: createEmptyKeyStats(),
         usageDetails: [],
         usageMode: 'summary',
+        usageDetailsLimit: null,
         error: null,
         lastRefreshedAt: null,
         scopeKey
@@ -126,7 +160,11 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
     const requestPromise = (async () => {
       try {
         const [usageResponse, aggregatedResponse] = await Promise.all([
-          requestMode === 'summary' ? usageApi.getUsage() : usageApi.getUsageDetails(),
+          requestMode === 'summary'
+            ? usageApi.getUsage()
+            : usageApi.getUsageDetails(
+                requestDetailsLimit === null ? undefined : { recent: requestDetailsLimit }
+              ),
           usageApi.getAggregatedUsage().catch(() => null)
         ]);
         const rawUsage = usageResponse?.usage ?? usageResponse;
@@ -149,6 +187,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
           keyStats: computeKeyStats(usage),
           usageDetails,
           usageMode: requestMode,
+          usageDetailsLimit: requestMode === 'details' ? requestDetailsLimit : null,
           loading: false,
           error: null,
           lastRefreshedAt: Date.now(),
@@ -170,7 +209,13 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
       }
     })();
 
-    inFlightUsageRequest = { id: requestId, scopeKey, mode: requestMode, promise: requestPromise };
+    inFlightUsageRequest = {
+      id: requestId,
+      scopeKey,
+      mode: requestMode,
+      detailsLimit: requestDetailsLimit,
+      promise: requestPromise
+    };
     await requestPromise;
   },
 
@@ -182,6 +227,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
       keyStats: createEmptyKeyStats(),
       usageDetails: [],
       usageMode: 'summary',
+      usageDetailsLimit: null,
       loading: false,
       error: null,
       lastRefreshedAt: null,

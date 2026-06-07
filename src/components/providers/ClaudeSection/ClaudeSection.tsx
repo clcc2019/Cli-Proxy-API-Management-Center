@@ -12,7 +12,7 @@ import styles from '@/pages/AiProvidersPage.module.scss';
 import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 import { ProviderList } from '../ProviderList';
 import { ProviderStatusBar } from '../ProviderStatusBar';
-import { hasDisableAllModelsRule } from '../utils';
+import { buildProviderConfigKey, hasDisableAllModelsRule } from '../utils';
 
 interface ClaudeSectionProps {
   configs: ProviderKeyConfig[];
@@ -46,10 +46,8 @@ export const ClaudeSection = memo(function ClaudeSection({
   const actionsDisabled = disableControls || loading;
   const toggleGloballyDisabled = disableControls || loading;
 
-  const buildItemKey = (item: ProviderKeyConfig) =>
-    `${item.apiKey}:${item.baseUrl ?? ''}:${item.prefix ?? ''}`;
   const isItemSwitching = (item: ProviderKeyConfig) =>
-    switchingItemKeys ? switchingItemKeys.has(buildItemKey(item)) : false;
+    switchingItemKeys ? switchingItemKeys.has(buildProviderConfigKey(item)) : false;
 
   const statusBarCache = useMemo(() => {
     const cache = new Map<string, ReturnType<typeof calculateStatusBarData>>();
@@ -89,9 +87,9 @@ export const ClaudeSection = memo(function ClaudeSection({
           items={configs}
           loading={loading}
           listClassName={styles.providerConfigList}
-          rowClassName={styles.providerConfigItem}
+          rowClassName={`${styles.providerConfigItem} ${styles.providerConfigItemClaude}`}
           leadingIcon={<img src={iconClaude} alt="" />}
-          keyField={(item) => item.apiKey}
+          keyField={(item) => buildProviderConfigKey(item)}
           emptyTitle={t('ai_providers.claude_empty_title')}
           emptyDescription={t('ai_providers.claude_empty_desc')}
           onEdit={onEdit}

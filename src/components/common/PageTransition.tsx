@@ -39,7 +39,7 @@ type Layer = {
 
 type TransitionDirection = 'forward' | 'backward';
 
-type TransitionVariant = 'vertical' | 'ios';
+type TransitionVariant = 'vertical' | 'ios' | 'none';
 
 export function PageTransition({
   render,
@@ -113,6 +113,13 @@ export function PageTransition({
 
     transitionDirectionRef.current = nextDirection;
     transitionVariantRef.current = nextVariant;
+
+    if (nextVariant === 'none') {
+      setLayers([{ key: location.key, location, status: 'current' }]);
+      setIsAnimating(false);
+      nextLayersRef.current = null;
+      return;
+    }
 
     const shouldSkipExitLayer = (() => {
       if (nextVariant !== 'ios' || nextDirection !== 'backward') return false;

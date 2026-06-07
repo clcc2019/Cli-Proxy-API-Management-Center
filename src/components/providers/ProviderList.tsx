@@ -9,8 +9,8 @@ interface ProviderListProps<T> {
   loading: boolean;
   keyField: (item: T, index: number) => string;
   renderContent: (item: T, index: number) => ReactNode;
-  onEdit: (index: number) => void;
-  onDelete: (index: number) => void;
+  onEdit?: (index: number) => void;
+  onDelete?: (index: number) => void;
   emptyTitle: string;
   emptyDescription: string;
   deleteLabel?: string;
@@ -79,6 +79,7 @@ function ProviderListImpl<T>({
             });
         const extraActions = renderExtraActions ? renderExtraActions(item, index) : null;
         const rowActionsDisabled = actionsDisabled || rowSwitching;
+        const hasActions = Boolean(onEdit || onDelete);
 
         return (
           <div
@@ -88,38 +89,42 @@ function ProviderListImpl<T>({
           >
             <div className="provider-card-header">
               {leadingIcon && <span className="provider-card-avatar">{leadingIcon}</span>}
-              <span
-                className={`provider-card-state ${rowDisabled ? 'is-disabled' : 'is-enabled'}`}
-              >
+              <span className={`provider-card-state ${rowDisabled ? 'is-disabled' : 'is-enabled'}`}>
                 {statusLabel}
               </span>
               {extraActions && <div className="provider-card-toggle-slot">{extraActions}</div>}
             </div>
             <div className="item-meta">{renderContent(item, index)}</div>
-            <div className="item-actions">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onEdit(index)}
-                disabled={rowActionsDisabled}
-                className="provider-card-action provider-card-action-edit"
-                title={editLabel || t('common.edit')}
-                aria-label={editLabel || t('common.edit')}
-              >
-                <IconSettings size={18} />
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => onDelete(index)}
-                disabled={rowActionsDisabled}
-                className="provider-card-action provider-card-action-delete"
-                title={deleteLabel || t('common.delete')}
-                aria-label={deleteLabel || t('common.delete')}
-              >
-                <IconTrash2 size={18} />
-              </Button>
-            </div>
+            {hasActions && (
+              <div className="item-actions">
+                {onEdit && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onEdit(index)}
+                    disabled={rowActionsDisabled}
+                    className="provider-card-action provider-card-action-edit"
+                    title={editLabel || t('common.edit')}
+                    aria-label={editLabel || t('common.edit')}
+                  >
+                    <IconSettings size={18} />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => onDelete(index)}
+                    disabled={rowActionsDisabled}
+                    className="provider-card-action provider-card-action-delete"
+                    title={deleteLabel || t('common.delete')}
+                    aria-label={deleteLabel || t('common.delete')}
+                  >
+                    <IconTrash2 size={18} />
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         );
       })}

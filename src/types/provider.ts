@@ -8,6 +8,29 @@ export interface ModelAlias {
   alias?: string;
 }
 
+export interface OpenAICompatibilityModel extends ModelAlias {
+  image?: boolean;
+  thinking?: unknown;
+}
+
+export interface OpenAICompatibilityApiKeyEntry {
+  apiKey: string;
+  proxyUrl?: string;
+}
+
+export interface OpenAICompatibilityConfig {
+  name: string;
+  priority?: number;
+  prefix?: string;
+  disabled?: boolean;
+  poolMode?: boolean;
+  baseUrl: string;
+  apiKeyEntries?: OpenAICompatibilityApiKeyEntry[];
+  models?: OpenAICompatibilityModel[];
+  headers?: Record<string, string>;
+  disableCooling?: boolean;
+}
+
 export interface CloakConfig {
   mode?: string;
   strictMode?: boolean;
@@ -21,6 +44,7 @@ export interface ProviderKeyConfig {
   prefix?: string;
   baseUrl?: string;
   websockets?: boolean;
+  poolMode?: boolean;
   proxyUrl?: string;
   headers?: Record<string, string>;
   models?: ModelAlias[];

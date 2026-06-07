@@ -738,6 +738,17 @@ export function LogsPage() {
                   <div className={styles.logList}>
                     {parsedVisibleLines.map((line, index) => {
                       const canTraceRequest = isTraceableRequestPath(line.path);
+                      const hasMeta = Boolean(
+                        line.level ||
+                          line.method ||
+                          typeof line.statusCode === 'number' ||
+                          line.path ||
+                          line.source ||
+                          line.requestId ||
+                          line.latency ||
+                          line.ip ||
+                          canTraceRequest
+                      );
                       const rowClassNames = [styles.logRow];
                       if (line.level === 'warn') rowClassNames.push(styles.rowWarn);
                       if (line.level === 'error' || line.level === 'fatal')
@@ -760,89 +771,95 @@ export function LogsPage() {
                         >
                           <div className={styles.timestamp}>{line.timestamp || ''}</div>
                           <div className={styles.rowMain}>
-                            {line.level && (
-                              <span
-                                className={[
-                                  styles.badge,
-                                  line.level === 'info' ? styles.levelInfo : '',
-                                  line.level === 'warn' ? styles.levelWarn : '',
-                                  line.level === 'error' || line.level === 'fatal'
-                                    ? styles.levelError
-                                    : '',
-                                  line.level === 'debug' ? styles.levelDebug : '',
-                                  line.level === 'trace' ? styles.levelTrace : '',
-                                ]
-                                  .filter(Boolean)
-                                  .join(' ')}
-                              >
-                                {line.level.toUpperCase()}
-                              </span>
+                            {hasMeta && (
+                              <div className={styles.rowMeta}>
+                                {line.level && (
+                                  <span
+                                    className={[
+                                      styles.badge,
+                                      line.level === 'info' ? styles.levelInfo : '',
+                                      line.level === 'warn' ? styles.levelWarn : '',
+                                      line.level === 'error' || line.level === 'fatal'
+                                        ? styles.levelError
+                                        : '',
+                                      line.level === 'debug' ? styles.levelDebug : '',
+                                      line.level === 'trace' ? styles.levelTrace : '',
+                                    ]
+                                      .filter(Boolean)
+                                      .join(' ')}
+                                  >
+                                    {line.level.toUpperCase()}
+                                  </span>
+                                )}
+
+                                {line.method && (
+                                  <span className={[styles.badge, styles.methodBadge].join(' ')}>
+                                    {line.method}
+                                  </span>
+                                )}
+
+                                {typeof line.statusCode === 'number' && (
+                                  <span
+                                    className={[
+                                      styles.badge,
+                                      styles.statusBadge,
+                                      line.statusCode >= 200 && line.statusCode < 300
+                                        ? styles.statusSuccess
+                                        : line.statusCode >= 300 && line.statusCode < 400
+                                          ? styles.statusInfo
+                                          : line.statusCode >= 400 && line.statusCode < 500
+                                            ? styles.statusWarn
+                                            : styles.statusError,
+                                    ].join(' ')}
+                                  >
+                                    {line.statusCode}
+                                  </span>
+                                )}
+
+                                {line.path && (
+                                  <span className={styles.path} title={line.path}>
+                                    {line.path}
+                                  </span>
+                                )}
+
+                                {line.source && (
+                                  <span className={styles.source} title={line.source}>
+                                    {line.source}
+                                  </span>
+                                )}
+
+                                {line.requestId && (
+                                  <span
+                                    className={[styles.badge, styles.requestIdBadge].join(' ')}
+                                    title={line.requestId}
+                                  >
+                                    {line.requestId}
+                                  </span>
+                                )}
+
+                                {line.latency && (
+                                  <span className={styles.pill}>{line.latency}</span>
+                                )}
+                                {line.ip && <span className={styles.pill}>{line.ip}</span>}
+
+                                {canTraceRequest && (
+                                  <button
+                                    type="button"
+                                    className={styles.traceButton}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      cancelLongPress();
+                                      trace.openTraceModal(line);
+                                    }}
+                                    title={t('logs.trace_button')}
+                                  >
+                                    {t('logs.trace_button')}
+                                  </button>
+                                )}
+                              </div>
                             )}
 
-                            {line.source && (
-                              <span className={styles.source} title={line.source}>
-                                {line.source}
-                              </span>
-                            )}
-
-                            {line.requestId && (
-                              <span
-                                className={[styles.badge, styles.requestIdBadge].join(' ')}
-                                title={line.requestId}
-                              >
-                                {line.requestId}
-                              </span>
-                            )}
-
-                            {typeof line.statusCode === 'number' && (
-                              <span
-                                className={[
-                                  styles.badge,
-                                  styles.statusBadge,
-                                  line.statusCode >= 200 && line.statusCode < 300
-                                    ? styles.statusSuccess
-                                    : line.statusCode >= 300 && line.statusCode < 400
-                                      ? styles.statusInfo
-                                      : line.statusCode >= 400 && line.statusCode < 500
-                                        ? styles.statusWarn
-                                        : styles.statusError,
-                                ].join(' ')}
-                              >
-                                {line.statusCode}
-                              </span>
-                            )}
-
-                            {line.latency && <span className={styles.pill}>{line.latency}</span>}
-                            {line.ip && <span className={styles.pill}>{line.ip}</span>}
-
-                            {line.method && (
-                              <span className={[styles.badge, styles.methodBadge].join(' ')}>
-                                {line.method}
-                              </span>
-                            )}
-
-                            {line.path && (
-                              <span className={styles.path} title={line.path}>
-                                {line.path}
-                              </span>
-                            )}
-
-                            {line.message && <span className={styles.message}>{line.message}</span>}
-
-                            {canTraceRequest && (
-                              <button
-                                type="button"
-                                className={styles.traceButton}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  cancelLongPress();
-                                  trace.openTraceModal(line);
-                                }}
-                                title={t('logs.trace_button')}
-                              >
-                                {t('logs.trace_button')}
-                              </button>
-                            )}
+                            {line.message && <div className={styles.message}>{line.message}</div>}
                           </div>
                         </div>
                       );

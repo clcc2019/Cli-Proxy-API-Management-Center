@@ -36,6 +36,7 @@ const buildEmptyForm = (): ProviderFormState => ({
   prefix: '',
   baseUrl: '',
   websockets: false,
+  poolMode: false,
   proxyUrl: '',
   headers: [],
   models: [],
@@ -74,6 +75,7 @@ type CodexFormBaseline = {
   prefix: string;
   baseUrl: string;
   websockets: boolean;
+  poolMode: boolean;
   proxyUrl: string;
   headers: ReturnType<typeof normalizeHeaderEntries>;
   models: ReturnType<typeof normalizeModelEntries>;
@@ -87,6 +89,7 @@ const buildCodexBaseline = (form: ProviderFormState): CodexFormBaseline => ({
   prefix: String(form.prefix ?? '').trim(),
   baseUrl: String(form.baseUrl ?? '').trim(),
   websockets: Boolean(form.websockets),
+  poolMode: Boolean(form.poolMode),
   proxyUrl: String(form.proxyUrl ?? '').trim(),
   headers: normalizeHeaderEntries(form.headers),
   models: normalizeModelEntries(form.modelEntries),
@@ -103,7 +106,6 @@ export function AiProvidersCodexEditPage() {
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const disableControls = connectionStatus !== 'connected';
 
-  const fetchConfig = useConfigStore((state) => state.fetchConfig);
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
   const clearCache = useConfigStore((state) => state.clearCache);
 
@@ -154,7 +156,8 @@ export function AiProvidersCodexEditPage() {
     setLoading(true);
     setError('');
 
-    fetchConfig('codex-api-key')
+    providersApi
+      .getCodexConfigs()
       .then((value) => {
         if (cancelled) return;
         setConfigs(Array.isArray(value) ? (value as ProviderKeyConfig[]) : []);
@@ -172,7 +175,7 @@ export function AiProvidersCodexEditPage() {
     return () => {
       cancelled = true;
     };
-  }, [fetchConfig, t]);
+  }, [t]);
 
   useEffect(() => {
     if (loading) return;
@@ -181,6 +184,7 @@ export function AiProvidersCodexEditPage() {
       const nextForm: ProviderFormState = {
         ...initialData,
         websockets: Boolean(initialData.websockets),
+        poolMode: Boolean(initialData.poolMode),
         headers: headersToEntries(initialData.headers),
         modelEntries: modelsToEntries(initialData.models),
         excludedText: excludedModelsToText(initialData.excludedModels),
@@ -226,6 +230,7 @@ export function AiProvidersCodexEditPage() {
     baseline.prefix !== String(form.prefix ?? '').trim() ||
     baseline.baseUrl !== String(form.baseUrl ?? '').trim() ||
     baseline.websockets !== Boolean(form.websockets) ||
+    baseline.poolMode !== Boolean(form.poolMode) ||
     baseline.proxyUrl !== String(form.proxyUrl ?? '').trim() ||
     isHeadersDirty ||
     isModelsDirty ||
@@ -449,18 +454,25 @@ export function AiProvidersCodexEditPage() {
         prefix: normalizedPrefix || undefined,
         baseUrl,
         websockets: Boolean(form.websockets),
+        poolMode: Boolean(form.poolMode),
         proxyUrl: form.proxyUrl?.trim() || undefined,
         headers: buildHeaderObject(form.headers),
         models: entriesToModels(form.modelEntries),
         excludedModels: parseExcludedModels(form.excludedText),
       };
 
-      const nextList =
+      let nextList =
         editIndex !== null
           ? configs.map((item, idx) => (idx === editIndex ? payload : item))
           : [...configs, payload];
 
-      await providersApi.saveCodexConfigs(nextList);
+      if (editIndex !== null) {
+        await providersApi.updateCodexConfig(editIndex, payload);
+      } else {
+        await providersApi.saveCodexConfigs(nextList);
+      }
+      nextList = await providersApi.getCodexConfigs();
+      setConfigs(nextList);
       updateConfigValue('codex-api-key', nextList);
       clearCache('codex-api-key');
       showNotification(
@@ -525,7 +537,7 @@ export function AiProvidersCodexEditPage() {
         {invalidIndexParam || invalidIndex ? (
           <div className="hint">{t('common.invalid_provider_index')}</div>
         ) : (
-          <>
+          <div className={styles.openaiEditForm}>
             <Input
               label={t('ai_providers.codex_add_modal_key_label')}
               value={form.apiKey}
@@ -571,6 +583,16 @@ export function AiProvidersCodexEditPage() {
                 ariaLabel={t('ai_providers.codex_websockets_label')}
               />
               <div className="hint">{t('ai_providers.codex_websockets_hint')}</div>
+            </div>
+            <div className="form-group">
+              <label>{t('ai_providers.codex_pool_mode_label')}</label>
+              <ToggleSwitch
+                checked={Boolean(form.poolMode)}
+                onChange={(value) => setForm((prev) => ({ ...prev, poolMode: value }))}
+                disabled={disableControls || saving}
+                ariaLabel={t('ai_providers.codex_pool_mode_label')}
+              />
+              <div className="hint">{t('ai_providers.codex_pool_mode_hint')}</div>
             </div>
             <Input
               label={t('ai_providers.codex_add_modal_proxy_label')}
@@ -791,7 +813,7 @@ export function AiProvidersCodexEditPage() {
                 )}
               </div>
             </Modal>
-          </>
+          </div>
         )}
       </Card>
     </ProviderEditShell>

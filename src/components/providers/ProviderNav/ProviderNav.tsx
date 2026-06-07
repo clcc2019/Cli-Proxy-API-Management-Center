@@ -5,9 +5,10 @@ import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer'
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import iconCodex from '@/assets/icons/codex.svg';
 import iconClaude from '@/assets/icons/claude.svg';
+import iconOpenAI from '@/assets/icons/openai-dark.svg';
 import styles from './ProviderNav.module.scss';
 
-export type ProviderId = 'codex' | 'claude';
+export type ProviderId = 'codex' | 'claude' | 'openai';
 
 interface ProviderNavItem {
   id: ProviderId;
@@ -18,10 +19,15 @@ interface ProviderNavItem {
 const PROVIDERS: ProviderNavItem[] = [
   { id: 'codex', label: 'Codex', getIcon: () => iconCodex },
   { id: 'claude', label: 'Claude', getIcon: () => iconClaude },
+  { id: 'openai', label: 'OpenAI', getIcon: () => iconOpenAI },
 ];
 
 const HEADER_OFFSET = 24;
 type ScrollContainer = HTMLElement | (Window & typeof globalThis);
+type IndicatorStyle = CSSProperties & {
+  '--provider-nav-indicator-x': string;
+  '--provider-nav-indicator-y': string;
+};
 
 export function ProviderNav() {
   const location = useLocation();
@@ -35,6 +41,7 @@ export function ProviderNav() {
   const itemRefs = useRef<Record<ProviderId, HTMLButtonElement | null>>({
     codex: null,
     claude: null,
+    openai: null,
   });
   const [indicatorRect, setIndicatorRect] = useState<{
     x: number;
@@ -234,6 +241,15 @@ export function ProviderNav() {
     };
   }, [activeProvider, shouldShow, updateIndicator]);
 
+  const indicatorStyle: CSSProperties | undefined = indicatorRect
+    ? ({
+        '--provider-nav-indicator-x': `${indicatorRect.x}px`,
+        '--provider-nav-indicator-y': `${indicatorRect.y}px`,
+        width: indicatorRect.width,
+        height: indicatorRect.height,
+      } as IndicatorStyle)
+    : undefined;
+
   const navContent = (
     <div className={styles.navContainer} ref={navContainerRef}>
       <div className={styles.navList} ref={navListRef}>
@@ -245,15 +261,7 @@ export function ProviderNav() {
           ]
             .filter(Boolean)
             .join(' ')}
-          style={
-            (indicatorRect
-              ? ({
-                  transform: `translate3d(${indicatorRect.x}px, ${indicatorRect.y}px, 0)`,
-                  width: indicatorRect.width,
-                  height: indicatorRect.height,
-                } satisfies CSSProperties)
-              : undefined) as CSSProperties | undefined
-          }
+          style={indicatorStyle}
         />
         {PROVIDERS.map((provider) => {
           const isActive = activeProvider === provider.id;
@@ -270,11 +278,7 @@ export function ProviderNav() {
               aria-label={provider.label}
               aria-pressed={isActive}
             >
-              <img
-                src={provider.getIcon()}
-                alt=""
-                className={styles.icon}
-              />
+              <img src={provider.getIcon()} alt="" className={styles.icon} />
               <span className={styles.label}>{provider.label}</span>
             </button>
           );

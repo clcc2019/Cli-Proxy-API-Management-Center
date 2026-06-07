@@ -3,7 +3,7 @@
  * 与基线 /config 返回结构保持一致（内部使用驼峰形式）
  */
 
-import type { ProviderKeyConfig } from './provider';
+import type { OpenAICompatibilityConfig, ProviderKeyConfig } from './provider';
 
 export interface ClientApiKeyConfig {
   apiKey: string;
@@ -43,6 +43,7 @@ export interface Config {
   apiKeys?: ClientApiKeyConfig[];
   codexApiKeys?: ProviderKeyConfig[];
   claudeApiKeys?: ProviderKeyConfig[];
+  openAICompatibility?: OpenAICompatibilityConfig[];
   oauthExcludedModels?: Record<string, string[]>;
   raw?: Record<string, unknown>;
 }
@@ -65,6 +66,7 @@ export type RawConfigSection =
   | 'api-keys'
   | 'codex-api-key'
   | 'claude-api-key'
+  | 'openai-compatibility'
   | 'oauth-excluded-models';
 
 export interface ConfigCache {

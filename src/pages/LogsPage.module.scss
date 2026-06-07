@@ -317,6 +317,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: $radius-md;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
   flex: 1 1 auto;
   min-height: 280px;
   max-height: calc(100vh - 320px);
@@ -416,6 +417,8 @@
 .rawLog {
   margin: 0;
   padding: 10px 12px;
+  min-height: 100%;
+  background: var(--bg-primary);
   cursor: text;
   user-select: text;
   white-space: pre;
@@ -439,11 +442,13 @@
 
 .logRow {
   display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: $spacing-md;
-  padding: 10px 12px;
+  grid-template-columns: minmax(138px, 160px) minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px;
   border-bottom: 1px solid var(--border-color);
   border-left: 3px solid transparent;
+  background: var(--bg-primary);
   cursor: copy;
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
@@ -455,9 +460,13 @@
   contain: layout style;
   content-visibility: auto;
   contain-intrinsic-size: 1px 44px;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
     background: rgba($primary-color, 0.06);
+    box-shadow: inset 0 0 0 1px rgba($primary-color, 0.12);
   }
 
   @include tablet {
@@ -470,33 +479,47 @@
   @include mobile {
     grid-template-columns: 1fr;
     gap: $spacing-xs;
-    padding: 8px 10px;
+    padding: 9px 10px;
     font-size: 11.5px;
   }
 }
 
 .rowWarn {
   border-left-color: var(--warning-color);
+  background: linear-gradient(90deg, var(--warning-bg) 0, var(--bg-primary) 42%);
 }
 
 .rowError {
   border-left-color: var(--error-color);
+  background: linear-gradient(90deg, var(--failure-badge-bg) 0, var(--bg-primary) 42%);
 }
 
 .timestamp {
   color: var(--text-tertiary);
   white-space: nowrap;
-  padding-top: 2px;
+  padding-top: 3px;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 1.35;
 
   @include mobile {
     white-space: normal;
+    padding-top: 0;
   }
 }
 
 .rowMain {
   display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.rowMeta {
+  display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   min-width: 0;
 }
@@ -504,27 +527,31 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: $radius-full;
-  font-size: 12px;
+  min-height: 21px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
   font-weight: 800;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-secondary);
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: $radius-full;
-  font-size: 12px;
+  min-height: 21px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
   font-weight: 600;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-secondary);
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .source {
@@ -608,7 +635,8 @@
 .path {
   color: var(--text-primary);
   font-weight: 700;
-  max-width: 520px;
+  max-width: min(620px, 100%);
+  min-width: 0;
   @include text-ellipsis;
 
   @include mobile {
@@ -619,7 +647,11 @@
 
 .message {
   color: var(--text-secondary);
+  width: 100%;
+  min-width: 0;
+  line-height: 1.5;
   word-break: break-word;
+  overflow-wrap: anywhere;
 
   @include mobile {
     flex-basis: 100%;
@@ -630,8 +662,9 @@
   @include button-reset;
   display: inline-flex;
   align-items: center;
+  min-height: 21px;
   padding: 2px 8px;
-  border-radius: $radius-full;
+  border-radius: 6px;
   border: 1px solid rgba($primary-color, 0.3);
   background: rgba($primary-color, 0.1);
   color: var(--primary-color);

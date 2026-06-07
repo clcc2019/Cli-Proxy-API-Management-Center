@@ -2,62 +2,68 @@
 @use '../../styles/mixins' as *;
 
 .modal {
-  border-color: color-mix(in srgb, var(--border-color) 52%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 97%, transparent),
-    color-mix(in srgb, var(--bg-secondary) 32%, var(--bg-primary))
-  );
-  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.16);
+  border-color: color-mix(in srgb, var(--border-color) 76%, transparent);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  box-shadow: 0 20px 48px color-mix(in srgb, var(--text-primary) 14%, transparent);
 
   :global(.modal-header) {
-    padding-right: 56px;
-    border-bottom-color: color-mix(in srgb, var(--border-color) 46%, transparent);
-    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+    min-height: 56px;
+    padding: 12px 56px 12px 18px;
+    border-bottom-color: color-mix(in srgb, var(--border-color) 64%, transparent);
+    background: var(--bg-primary);
   }
 
   :global(.modal-body) {
-    padding: $spacing-lg;
-    max-height: min(72vh, calc(100vh - 176px));
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-primary) 96%, transparent),
-      color-mix(in srgb, var(--bg-secondary) 20%, var(--bg-primary))
-    );
+    padding: 16px 18px;
+    max-height: min(74vh, calc(100vh - 164px));
+    background: color-mix(in srgb, var(--bg-secondary) 18%, var(--bg-primary));
   }
 
   :global(.modal-footer) {
     position: sticky;
     bottom: 0;
     z-index: 2;
-    border-top-color: color-mix(in srgb, var(--border-color) 42%, transparent);
-    background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
-    backdrop-filter: blur(10px);
+    padding: 12px 18px;
+    border-top-color: color-mix(in srgb, var(--border-color) 64%, transparent);
+    background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+    backdrop-filter: blur(8px);
+
+    :global(.btn.btn-sm) {
+      min-height: 34px;
+      border-radius: 7px;
+      padding-inline: 13px;
+    }
   }
 
   @supports (height: 100dvh) {
     :global(.modal-body) {
-      max-height: min(72dvh, calc(100dvh - 176px));
+      max-height: min(74dvh, calc(100dvh - 164px));
     }
   }
 
   @include mobile {
     width: 100%;
-    border-radius: $radius-md;
+    border-radius: 10px;
+
+    :global(.modal-header) {
+      min-height: 54px;
+      padding: 11px 52px 11px 14px;
+    }
 
     :global(.modal-body) {
-      padding: $spacing-md;
-      max-height: calc(100vh - 148px);
+      padding: 14px;
+      max-height: calc(100vh - 144px);
     }
 
     @supports (height: 100dvh) {
       :global(.modal-body) {
-        max-height: calc(100dvh - 148px);
+        max-height: calc(100dvh - 144px);
       }
     }
 
     :global(.modal-footer) {
-      padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+      padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
     }
   }
 }
@@ -65,7 +71,7 @@
 .titleRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
 }
 
@@ -74,41 +80,39 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 6%, var(--surface-raised-strong));
-  box-shadow:
-    0 16px 28px -18px color-mix(in srgb, var(--primary-color) 72%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 34%, var(--surface-raised));
+  box-shadow: none;
 
   img,
   svg {
     display: block;
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
     object-fit: contain;
   }
 
   @include mobile {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
 
     img,
     svg {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
     }
   }
 }
 
 .titleText {
   min-width: 0;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: var(--text-primary);
   line-height: 1.25;
   overflow: hidden;
@@ -123,7 +127,7 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -141,10 +145,33 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 
   @include mobile {
     gap: 8px;
+  }
+}
+
+:global([data-theme='dark']) {
+  .modal {
+    border-color: color-mix(in srgb, var(--border-color) 82%, transparent);
+    background: var(--bg-primary);
+    box-shadow: 0 22px 54px rgba(0, 0, 0, 0.5);
+
+    :global(.modal-header),
+    :global(.modal-footer) {
+      background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+      border-color: color-mix(in srgb, var(--border-color) 76%, transparent);
+    }
+
+    :global(.modal-body) {
+      background: color-mix(in srgb, var(--bg-tertiary) 22%, var(--bg-primary));
+    }
+  }
+
+  .titleAvatar {
+    border-color: color-mix(in srgb, var(--border-color) 76%, transparent);
+    background: color-mix(in srgb, var(--bg-tertiary) 44%, var(--surface-raised));
   }
 }

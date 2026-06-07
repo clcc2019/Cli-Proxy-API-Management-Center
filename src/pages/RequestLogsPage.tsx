@@ -22,6 +22,7 @@ import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useAuthStore, useNotificationStore, useConfigStore, useThemeStore } from '@/stores';
 import { useUsageData } from '@/components/usage';
 import {
+  REQUEST_EVENT_ROWS_LIMIT,
   useRequestEventRows,
   type RequestEventRow,
 } from '@/components/usage/hooks/useRequestEventRows';
@@ -431,7 +432,9 @@ export function RequestLogsPage() {
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
 
-  const { usage, loading, error, modelPrices, loadUsage } = useUsageData();
+  const { usage, loading, error, modelPrices, loadUsage } = useUsageData({
+    detailsLimit: REQUEST_EVENT_ROWS_LIMIT,
+  });
 
   useHeaderRefresh(loadUsage);
 

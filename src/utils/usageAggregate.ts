@@ -84,6 +84,40 @@ const calculateCostForTokens = (
   return Number.isFinite(total) && total > 0 ? total : 0;
 };
 
+const calculateRate = (part: number, total: number): number | null => {
+  if (total <= 0) {
+    return null;
+  }
+
+  return part / total;
+};
+
+const calculateAggregateCostSummary = (
+  window: UsageAggregateWindow | null,
+  modelPrices: Record<string, ModelPrice>
+) => {
+  const models = window?.models ?? [];
+  let pricedModelCount = 0;
+  let totalCost = 0;
+
+  models.forEach((stat) => {
+    const modelName = typeof stat.model === 'string' ? stat.model : '';
+    const price = lookupModelPrice(modelPrices, modelName);
+    if (!price) {
+      return;
+    }
+
+    pricedModelCount += 1;
+    totalCost += calculateCostForTokens(stat.token_breakdown, price);
+  });
+
+  return {
+    totalCost,
+    pricedModelCount,
+    modelCount: models.length,
+  };
+};
+
 const averageLatencyMs = (latency?: UsageAggregateLatencyStats): number | null => {
   const count = asNumber(latency?.count);
   const totalMs = asNumber(latency?.total_ms);
@@ -224,13 +258,7 @@ export const getAggregateWindowModelNames = (window: UsageAggregateWindow | null
 export const calculateAggregateWindowCost = (
   window: UsageAggregateWindow | null,
   modelPrices: Record<string, ModelPrice>
-) =>
-  (window?.models ?? []).reduce((sum, stat) => {
-    const modelName = typeof stat.model === 'string' ? stat.model : '';
-    return (
-      sum + calculateCostForTokens(stat.token_breakdown, lookupModelPrice(modelPrices, modelName))
-    );
-  }, 0);
+) => calculateAggregateCostSummary(window, modelPrices).totalCost;
 
 export const getAggregateRateStats = (window: UsageAggregateWindow | null) => ({
   rpm: asNumber(window?.rate_30m?.rpm),
@@ -254,6 +282,47 @@ export const getAggregateTokenBreakdown = (window: UsageAggregateWindow | null) 
   return {
     cachedTokens: tokenBreakdown.cached_tokens,
     reasoningTokens: tokenBreakdown.reasoning_tokens,
+  };
+};
+
+export const getAggregateOverviewMetrics = (
+  window: UsageAggregateWindow | null,
+  modelPrices: Record<string, ModelPrice>
+) => {
+  const totalRequests = asNumber(window?.total_requests);
+  const successCount = asNumber(window?.success_count);
+  const failureCount = asNumber(window?.failure_count);
+  const tokenStats = normalizeTokenStats(window?.token_breakdown);
+  const totalTokens = Math.max(asNumber(window?.total_tokens), tokenStats.total_tokens);
+  const hasPrices = Object.keys(modelPrices).length > 0;
+  const costSummary = hasPrices
+    ? calculateAggregateCostSummary(window, modelPrices)
+    : {
+        totalCost: 0,
+        pricedModelCount: 0,
+        modelCount: window?.models?.length ?? 0,
+      };
+
+  return {
+    totalRequests,
+    successCount,
+    failureCount,
+    successRate: calculateRate(successCount, totalRequests),
+    failureRate: calculateRate(failureCount, totalRequests),
+    totalTokens,
+    tokenBreakdown: {
+      cachedTokens: tokenStats.cached_tokens,
+      reasoningTokens: tokenStats.reasoning_tokens,
+      cachedRate: calculateRate(tokenStats.cached_tokens, totalTokens),
+      reasoningRate: calculateRate(tokenStats.reasoning_tokens, totalTokens),
+    },
+    rateStats: getAggregateRateStats(window),
+    latencyStats: getAggregateLatencySummary(window),
+    hasPrices,
+    totalCost: costSummary.totalCost,
+    pricedModelCount: costSummary.pricedModelCount,
+    modelCount: costSummary.modelCount,
+    pricedModelRate: calculateRate(costSummary.pricedModelCount, costSummary.modelCount),
   };
 };
 

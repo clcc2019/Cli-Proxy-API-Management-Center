@@ -1,6 +1,9 @@
 import type {
   CloakConfig,
   ModelAlias,
+  OpenAICompatibilityApiKeyEntry,
+  OpenAICompatibilityConfig,
+  OpenAICompatibilityModel,
   ProviderKeyConfig,
 } from '@/types';
 import type { ClientApiKeyConfig, Config } from '@/types/config';
@@ -146,6 +149,8 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
   if (baseUrl) config.baseUrl = String(baseUrl);
   const websockets = normalizeBoolean(record?.websockets ?? record?.['websockets']);
   if (websockets !== undefined) config.websockets = websockets;
+  const poolMode = normalizeBoolean(record?.['pool-mode'] ?? record?.poolMode ?? record?.pool_mode);
+  if (poolMode !== undefined) config.poolMode = poolMode;
   if (proxyUrl) config.proxyUrl = String(proxyUrl);
   const headers = normalizeHeaders(record?.headers);
   if (headers) config.headers = headers;
@@ -197,6 +202,96 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
   if (experimentalCchSigning !== undefined) {
     config.experimentalCchSigning = experimentalCchSigning;
   }
+
+  return config;
+};
+
+const normalizeOpenAICompatibilityApiKeys = (value: unknown): OpenAICompatibilityApiKeyEntry[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (item === undefined || item === null) return null;
+      const record = isRecord(item) ? item : null;
+      const apiKey =
+        record?.['api-key'] ??
+        record?.apiKey ??
+        record?.api_key ??
+        (typeof item === 'string' ? item : '');
+      const trimmed = String(apiKey || '').trim();
+      if (!trimmed) return null;
+      const entry: OpenAICompatibilityApiKeyEntry = { apiKey: trimmed };
+      const proxyUrl = record?.['proxy-url'] ?? record?.proxyUrl ?? record?.proxy_url;
+      if (proxyUrl) entry.proxyUrl = String(proxyUrl);
+      return entry;
+    })
+    .filter(Boolean) as OpenAICompatibilityApiKeyEntry[];
+};
+
+const normalizeOpenAICompatibilityModels = (models: unknown): OpenAICompatibilityModel[] => {
+  if (!Array.isArray(models)) return [];
+  return models
+    .map((item) => {
+      if (item === undefined || item === null) return null;
+      if (typeof item === 'string') {
+        const trimmed = item.trim();
+        return trimmed ? ({ name: trimmed } satisfies OpenAICompatibilityModel) : null;
+      }
+      if (!isRecord(item)) return null;
+
+      const name = item.name || item.id || item.model;
+      const trimmedName = String(name || '').trim();
+      if (!trimmedName) return null;
+      const alias = item.alias || item.display_name || item.displayName;
+      const entry: OpenAICompatibilityModel = { name: trimmedName };
+      if (alias && String(alias).trim() !== trimmedName) {
+        entry.alias = String(alias).trim();
+      }
+      const image = normalizeBoolean(item.image);
+      if (image !== undefined) entry.image = image;
+      if (item.thinking !== undefined) entry.thinking = item.thinking;
+      return entry;
+    })
+    .filter(Boolean) as OpenAICompatibilityModel[];
+};
+
+const normalizeOpenAICompatibilityConfig = (item: unknown): OpenAICompatibilityConfig | null => {
+  if (item === undefined || item === null || !isRecord(item)) return null;
+  const baseUrl = item['base-url'] ?? item.baseUrl ?? item.base_url;
+  const trimmedBaseUrl = String(baseUrl || '').trim();
+  if (!trimmedBaseUrl) return null;
+
+  const name = item.name ?? item.provider ?? item.id ?? '';
+  const config: OpenAICompatibilityConfig = {
+    name: String(name || '').trim(),
+    baseUrl: trimmedBaseUrl,
+  };
+
+  const priority = item.priority;
+  if (priority !== undefined && priority !== null && String(priority).trim() !== '') {
+    const parsed = Number(priority);
+    if (Number.isFinite(parsed)) {
+      config.priority = parsed;
+    }
+  }
+  const prefix = normalizePrefix(item.prefix ?? item['prefix']);
+  if (prefix) config.prefix = prefix;
+  const disabled = normalizeBoolean(item.disabled ?? item.disable ?? item.isDisabled);
+  if (disabled !== undefined) config.disabled = disabled;
+  const poolMode = normalizeBoolean(item['pool-mode'] ?? item.poolMode ?? item.pool_mode);
+  if (poolMode !== undefined) config.poolMode = poolMode;
+  const disableCooling = normalizeBoolean(
+    item['disable-cooling'] ?? item.disableCooling ?? item.disable_cooling
+  );
+  if (disableCooling !== undefined) config.disableCooling = disableCooling;
+
+  const apiKeyEntries = normalizeOpenAICompatibilityApiKeys(
+    item['api-key-entries'] ?? item.apiKeyEntries ?? item.api_key_entries
+  );
+  if (apiKeyEntries.length) config.apiKeyEntries = apiKeyEntries;
+  const models = normalizeOpenAICompatibilityModels(item.models);
+  if (models.length) config.models = models;
+  const headers = normalizeHeaders(item.headers);
+  if (headers) config.headers = headers;
 
   return config;
 };
@@ -322,6 +417,14 @@ export const normalizeConfigResponse = (raw: unknown): Config => {
       .filter(Boolean) as ProviderKeyConfig[];
   }
 
+  const openAICompatibilityList =
+    raw['openai-compatibility'] ?? raw.openAICompatibility ?? raw.openaiCompatibility;
+  if (Array.isArray(openAICompatibilityList)) {
+    config.openAICompatibility = openAICompatibilityList
+      .map((item) => normalizeOpenAICompatibilityConfig(item))
+      .filter(Boolean) as OpenAICompatibilityConfig[];
+  }
+
   const oauthExcluded = normalizeOauthExcluded(
     raw['oauth-excluded-models'] ?? raw.oauthExcludedModels
   );
@@ -335,6 +438,7 @@ export const normalizeConfigResponse = (raw: unknown): Config => {
 export {
   normalizeModelAliases,
   normalizeProviderKeyConfig,
+  normalizeOpenAICompatibilityConfig,
   normalizeHeaders,
   normalizeExcludedModels,
 };

@@ -51,6 +51,7 @@ const SECTION_KEYS: RawConfigSection[] = [
   'api-keys',
   'codex-api-key',
   'claude-api-key',
+  'openai-compatibility',
   'oauth-excluded-models',
 ];
 
@@ -91,6 +92,8 @@ const extractSectionValue = (config: Config | null, section?: RawConfigSection) 
       return config.codexApiKeys;
     case 'claude-api-key':
       return config.claudeApiKeys;
+    case 'openai-compatibility':
+      return config.openAICompatibility;
     case 'oauth-excluded-models':
       return config.oauthExcludedModels;
     default:
@@ -242,6 +245,9 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
           break;
         case 'claude-api-key':
           nextConfig.claudeApiKeys = value as Config['claudeApiKeys'];
+          break;
+        case 'openai-compatibility':
+          nextConfig.openAICompatibility = value as Config['openAICompatibility'];
           break;
         case 'oauth-excluded-models':
           nextConfig.oauthExcludedModels = value as Config['oauthExcludedModels'];

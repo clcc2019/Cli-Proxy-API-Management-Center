@@ -1,6 +1,9 @@
 import { buildCandidateUsageSourceIds, type KeyStatBucket, type KeyStats } from '@/utils/usage';
+import type { OpenAICompatibilityConfig, ProviderKeyConfig } from '@/types';
 
 export const DISABLE_ALL_MODELS_RULE = '*';
+
+export type ProviderKind = 'codex' | 'claude';
 
 export const hasDisableAllModelsRule = (models?: string[]) =>
   Array.isArray(models) &&
@@ -20,6 +23,85 @@ export const withoutDisableAllModelsRule = (models?: string[]) => {
   const base = stripDisableAllModelsRule(models);
   return base;
 };
+
+const getPriorityValue = (priority: number | null | undefined) =>
+  Number.isFinite(priority) ? Number(priority) : 0;
+
+export const sortToggleableProviderConfigs = <
+  T extends { priority?: number | null; excludedModels?: string[] },
+>(
+  items: T[]
+) =>
+  items
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => {
+      const leftEnabled = !hasDisableAllModelsRule(left.item.excludedModels);
+      const rightEnabled = !hasDisableAllModelsRule(right.item.excludedModels);
+      if (leftEnabled !== rightEnabled) {
+        return leftEnabled ? -1 : 1;
+      }
+
+      const priorityDiff =
+        getPriorityValue(right.item.priority) - getPriorityValue(left.item.priority);
+      if (priorityDiff !== 0) return priorityDiff;
+      return left.index - right.index;
+    })
+    .map(({ item }) => item);
+
+const normalizeOptionalString = (value: string | null | undefined) => (value ?? '').trim();
+
+export const buildProviderConfigKey = <
+  T extends { apiKey: string; baseUrl?: string; prefix?: string },
+>(
+  item: T
+) => `${item.apiKey}:${item.baseUrl ?? ''}:${item.prefix ?? ''}`;
+
+export const buildProviderSwitchingKey = (provider: ProviderKind, item: ProviderKeyConfig) =>
+  `${provider}:${buildProviderConfigKey(item)}`;
+
+export const buildOpenAICompatibilityConfigKey = (
+  item: OpenAICompatibilityConfig,
+  index: number
+) => {
+  const name = normalizeOptionalString(item.name);
+  const baseUrl = normalizeOptionalString(item.baseUrl);
+  const prefix = normalizeOptionalString(item.prefix);
+  return `${name}:${baseUrl}:${prefix}:${index}`;
+};
+
+export const findProviderKeyConfigIndex = <
+  T extends { apiKey: string; baseUrl?: string; prefix?: string },
+>(
+  items: T[],
+  target: T
+) => {
+  const referenceIndex = items.indexOf(target);
+  if (referenceIndex >= 0) return referenceIndex;
+
+  const apiKey = normalizeOptionalString(target.apiKey);
+  const baseUrl = normalizeOptionalString(target.baseUrl);
+  const prefix = normalizeOptionalString(target.prefix);
+
+  const exactIndex = items.findIndex(
+    (item) =>
+      normalizeOptionalString(item.apiKey) === apiKey &&
+      normalizeOptionalString(item.baseUrl) === baseUrl &&
+      normalizeOptionalString(item.prefix) === prefix
+  );
+  if (exactIndex >= 0) return exactIndex;
+
+  const apiAndUrlIndex = items.findIndex(
+    (item) =>
+      normalizeOptionalString(item.apiKey) === apiKey &&
+      normalizeOptionalString(item.baseUrl) === baseUrl
+  );
+  if (apiAndUrlIndex >= 0) return apiAndUrlIndex;
+
+  return items.findIndex((item) => normalizeOptionalString(item.apiKey) === apiKey);
+};
+
+export const getEnabledProviderConfigCount = (items: ProviderKeyConfig[]) =>
+  items.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length;
 
 export const parseTextList = (text: string): string[] =>
   text

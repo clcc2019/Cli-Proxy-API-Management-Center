@@ -5,6 +5,11 @@ import { buildAggregateChartData } from '@/utils/usageAggregate';
 import type { ChartData } from '@/utils/usage';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
 
+const EMPTY_CHART_DATA: ChartData = {
+  labels: [],
+  datasets: [],
+};
+
 export interface UseUsageAggregateChartDataOptions {
   window: UsageAggregateWindow | null;
   chartLines: string[];
@@ -26,7 +31,7 @@ export interface UseUsageAggregateChartDataReturn {
 }
 
 const relabelAllModels = (chartData: ChartData, allModelsLabel?: string): ChartData => {
-  if (!allModelsLabel) {
+  if (!allModelsLabel || chartData.datasets.length === 0) {
     return chartData;
   }
 
@@ -55,35 +60,58 @@ export function useUsageAggregateChartData({
   }, [preferredPeriod]);
 
   const requestsChartData = useMemo(() => {
+    if (!window) {
+      return EMPTY_CHART_DATA;
+    }
+
     const chartData = buildAggregateChartData(window, requestsPeriod, 'requests', chartLines);
     return relabelAllModels(chartData, allModelsLabel);
   }, [allModelsLabel, chartLines, requestsPeriod, window]);
 
   const tokensChartData = useMemo(() => {
+    if (!window) {
+      return EMPTY_CHART_DATA;
+    }
+
     const chartData = buildAggregateChartData(window, tokensPeriod, 'tokens', chartLines);
     return relabelAllModels(chartData, allModelsLabel);
   }, [allModelsLabel, chartLines, tokensPeriod, window]);
 
-  const requestsChartOptions = useMemo(
+  const emptyChartOptions = useMemo(
     () =>
       buildChartOptions({
-        period: requestsPeriod,
-        labels: requestsChartData.labels,
+        period: preferredPeriod,
+        labels: EMPTY_CHART_DATA.labels,
         isDark,
         isMobile
       }),
-    [isDark, isMobile, requestsChartData.labels, requestsPeriod]
+    [isDark, isMobile, preferredPeriod]
+  );
+
+  const requestsChartOptions = useMemo(
+    () =>
+      window
+        ? buildChartOptions({
+            period: requestsPeriod,
+            labels: requestsChartData.labels,
+            isDark,
+            isMobile
+          })
+        : emptyChartOptions,
+    [emptyChartOptions, isDark, isMobile, requestsChartData.labels, requestsPeriod, window]
   );
 
   const tokensChartOptions = useMemo(
     () =>
-      buildChartOptions({
-        period: tokensPeriod,
-        labels: tokensChartData.labels,
-        isDark,
-        isMobile
-      }),
-    [isDark, isMobile, tokensChartData.labels, tokensPeriod]
+      window
+        ? buildChartOptions({
+            period: tokensPeriod,
+            labels: tokensChartData.labels,
+            isDark,
+            isMobile
+          })
+        : emptyChartOptions,
+    [emptyChartOptions, isDark, isMobile, tokensChartData.labels, tokensPeriod, window]
   );
 
   return {
