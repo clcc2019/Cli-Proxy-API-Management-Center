@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import type { TFunction } from 'i18next';
 import type {
   AuthFileItem,
@@ -42,14 +42,8 @@ import {
   formatKimiResetHint,
   buildKimiQuotaRows,
   createStatusError,
-  isClaudeFile,
-  isCodexFile,
-  isDisabledAuthFile,
-  isKimiFile,
 } from '@/utils/quota';
 import { normalizeAuthIndex } from '@/utils/usage';
-import type { QuotaRenderHelpers } from './QuotaCard';
-import styles from '@/pages/QuotaPage.module.scss';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
 
@@ -71,20 +65,24 @@ export interface QuotaStore {
 export interface QuotaConfig<TState, TData> {
   type: QuotaType;
   i18nPrefix: string;
-  cardIdleMessageKey?: string;
-  filterFn: (file: AuthFileItem) => boolean;
   fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<TData>;
-  storeSelector: (state: any) => Record<string, TState>;
-  storeSetter: string;
   buildLoadingState: () => TState;
   buildSuccessState: (data: TData) => TState;
   buildErrorState: (message: string, status?: number) => TState;
   extractAuthFileUpdate?: (data: TData) => AuthFileItem | null;
-  cardClassName: string;
-  controlsClassName: string;
-  controlClassName: string;
-  gridClassName: string;
   renderQuotaItems: (quota: TState, t: TFunction, helpers: QuotaRenderHelpers) => ReactNode;
+}
+
+interface QuotaProgressBarProps {
+  percent: number | null;
+  highThreshold: number;
+  mediumThreshold: number;
+}
+
+export interface QuotaRenderHelpers {
+  styles: Record<string, string>;
+  QuotaProgressBar: (props: QuotaProgressBarProps) => ReactElement;
+  item?: AuthFileItem;
 }
 
 const buildCodexQuotaWindows = (
@@ -729,11 +727,7 @@ export const CLAUDE_CONFIG: QuotaConfig<
 > = {
   type: 'claude',
   i18nPrefix: 'claude_quota',
-  cardIdleMessageKey: 'quota_management.card_idle_hint',
-  filterFn: (file) => isClaudeFile(file) && !isDisabledAuthFile(file),
   fetchQuota: fetchClaudeQuota,
-  storeSelector: (state) => state.claudeQuota,
-  storeSetter: 'setClaudeQuota',
   buildLoadingState: () => ({ status: 'loading', windows: [] }),
   buildSuccessState: (data) => ({
     status: 'success',
@@ -747,10 +741,6 @@ export const CLAUDE_CONFIG: QuotaConfig<
     error: message,
     errorStatus: status,
   }),
-  cardClassName: styles.claudeCard,
-  controlsClassName: styles.claudeControls,
-  controlClassName: styles.claudeControl,
-  gridClassName: styles.claudeGrid,
   renderQuotaItems: renderClaudeItems,
 };
 
@@ -768,11 +758,7 @@ export const CODEX_CONFIG: QuotaConfig<
 > = {
   type: 'codex',
   i18nPrefix: 'codex_quota',
-  cardIdleMessageKey: 'quota_management.card_idle_hint',
-  filterFn: (file) => isCodexFile(file) && !isDisabledAuthFile(file),
   fetchQuota: fetchCodexQuota,
-  storeSelector: (state) => state.codexQuota,
-  storeSetter: 'setCodexQuota',
   buildLoadingState: () => ({ status: 'loading', windows: [] }),
   buildSuccessState: (data) => ({
     status: 'success',
@@ -790,10 +776,6 @@ export const CODEX_CONFIG: QuotaConfig<
     error: message,
     errorStatus: status,
   }),
-  cardClassName: styles.codexCard,
-  controlsClassName: styles.codexControls,
-  controlClassName: styles.codexControl,
-  gridClassName: styles.codexGrid,
   renderQuotaItems: renderCodexItems,
 };
 
@@ -878,11 +860,7 @@ const renderKimiItems = (
 export const KIMI_CONFIG: QuotaConfig<KimiQuotaState, KimiQuotaRow[]> = {
   type: 'kimi',
   i18nPrefix: 'kimi_quota',
-  cardIdleMessageKey: 'quota_management.card_idle_hint',
-  filterFn: (file) => isKimiFile(file) && !isDisabledAuthFile(file),
   fetchQuota: fetchKimiQuota,
-  storeSelector: (state) => state.kimiQuota,
-  storeSetter: 'setKimiQuota',
   buildLoadingState: () => ({ status: 'loading', rows: [] }),
   buildSuccessState: (rows) => ({ status: 'success', rows }),
   buildErrorState: (message, status) => ({
@@ -891,9 +869,5 @@ export const KIMI_CONFIG: QuotaConfig<KimiQuotaState, KimiQuotaRow[]> = {
     error: message,
     errorStatus: status,
   }),
-  cardClassName: styles.kimiCard,
-  controlsClassName: styles.kimiControls,
-  controlClassName: styles.kimiControl,
-  gridClassName: styles.kimiGrid,
   renderQuotaItems: renderKimiItems,
 };

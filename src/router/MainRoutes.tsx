@@ -59,7 +59,6 @@ const LazyAuthFilesOAuthModelAliasEditPage = lazyNamed(
   'AuthFilesOAuthModelAliasEditPage'
 );
 const LazyOAuthPage = lazyNamed(() => import('@/pages/OAuthPage'), 'OAuthPage');
-const LazyQuotaPage = lazyNamed(() => import('@/pages/QuotaPage'), 'QuotaPage');
 const LazyRequestLogsPage = lazyNamed(loadRequestLogsPage, 'RequestLogsPage');
 const LazyUsagePage = lazyNamed(loadUsagePage, 'UsagePage');
 const LazyConfigPage = lazyNamed(loadConfigPage, 'ConfigPage');
@@ -95,7 +94,6 @@ const mainRoutes = [
   { path: '/auth-files/oauth-excluded', element: renderLazyPage(LazyAuthFilesOAuthExcludedEditPage) },
   { path: '/auth-files/oauth-model-alias', element: renderLazyPage(LazyAuthFilesOAuthModelAliasEditPage) },
   { path: '/oauth', element: renderLazyPage(LazyOAuthPage) },
-  { path: '/quota', element: renderLazyPage(LazyQuotaPage) },
   { path: '/usage', element: renderLazyPage(LazyUsagePage) },
   { path: '/request-logs', element: renderLazyPage(LazyRequestLogsPage) },
   { path: '/config', element: renderLazyPage(LazyConfigPage) },

@@ -23,7 +23,6 @@ import {
   IconSidebarLogs,
   IconSidebarOauth,
   IconSidebarProviders,
-  IconSidebarQuota,
   IconSidebarSystem,
   IconSidebarUsage,
 } from '@/components/ui/icons';
@@ -46,7 +45,6 @@ const sidebarIcons: Record<string, ReactNode> = {
   aiProviders: <IconSidebarProviders size={18} />,
   authFiles: <IconSidebarAuthFiles size={18} />,
   oauth: <IconSidebarOauth size={18} />,
-  quota: <IconSidebarQuota size={18} />,
   usage: <IconSidebarUsage size={18} />,
   requestLogs: <IconFileText size={18} />,
   config: <IconSidebarConfig size={18} />,
@@ -480,7 +478,6 @@ export function MainLayout() {
         label: t('nav.oauth', { defaultValue: 'OAuth' }),
         icon: sidebarIcons.oauth,
       },
-      { path: '/quota', label: t('nav.quota_management'), icon: sidebarIcons.quota },
       { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
       { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
       ...(config?.loggingToFile
@@ -543,8 +540,9 @@ export function MainLayout() {
       pathname === '/auth-files' || pathname.startsWith('/auth-files/');
     const isAiProviders = (pathname: string) =>
       pathname === '/ai-providers' || pathname.startsWith('/ai-providers/');
+
     if (isAuthFiles(from) && isAuthFiles(to)) return 'ios';
-    if (isAiProviders(from) && isAiProviders(to)) return 'ios';
+    if (isAiProviders(from) && isAiProviders(to)) return 'none';
     return 'vertical';
   }, []);
 
