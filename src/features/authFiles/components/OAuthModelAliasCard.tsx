@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -24,12 +24,19 @@ export type OAuthModelAliasCardProps = {
   allProviderModels: Record<string, AuthFileModelItem[]>;
   onUpdate: (provider: string, sourceModel: string, newAlias: string) => Promise<void>;
   onDeleteLink: (provider: string, sourceModel: string, alias: string) => void;
-  onToggleFork: (provider: string, sourceModel: string, alias: string, fork: boolean) => Promise<void>;
+  onToggleFork: (
+    provider: string,
+    sourceModel: string,
+    alias: string,
+    fork: boolean
+  ) => Promise<void>;
   onRenameAlias: (oldAlias: string, newAlias: string) => Promise<void>;
   onDeleteAlias: (aliasName: string) => void;
 };
 
-export function OAuthModelAliasCard(props: OAuthModelAliasCardProps) {
+export const OAuthModelAliasCard = memo(function OAuthModelAliasCard(
+  props: OAuthModelAliasCardProps
+) {
   const { t } = useTranslation();
   const diagramRef = useRef<ModelMappingDiagramRef | null>(null);
   const {
@@ -46,8 +53,10 @@ export function OAuthModelAliasCard(props: OAuthModelAliasCardProps) {
     onDeleteLink,
     onToggleFork,
     onRenameAlias,
-    onDeleteAlias
+    onDeleteAlias,
   } = props;
+  const modelAliasEntries = useMemo(() => Object.entries(modelAlias), [modelAlias]);
+  const hasModelAlias = modelAliasEntries.length > 0;
 
   return (
     <Card
@@ -88,7 +97,7 @@ export function OAuthModelAliasCard(props: OAuthModelAliasCardProps) {
           description={t('oauth_model_alias.upgrade_required_desc')}
         />
       ) : viewMode === 'diagram' ? (
-        Object.keys(modelAlias).length === 0 ? (
+        !hasModelAlias ? (
           <EmptyState title={t('oauth_model_alias.list_empty_all')} />
         ) : (
           <div className={styles.aliasChartSection}>
@@ -120,11 +129,11 @@ export function OAuthModelAliasCard(props: OAuthModelAliasCardProps) {
             />
           </div>
         )
-      ) : Object.keys(modelAlias).length === 0 ? (
+      ) : !hasModelAlias ? (
         <EmptyState title={t('oauth_model_alias.list_empty_all')} />
       ) : (
         <div className={styles.excludedList}>
-          {Object.entries(modelAlias).map(([provider, mappings]) => (
+          {modelAliasEntries.map(([provider, mappings]) => (
             <div key={provider} className={styles.excludedItem}>
               <div className={styles.excludedInfo}>
                 <div className={styles.excludedProvider}>{provider}</div>
@@ -148,5 +157,4 @@ export function OAuthModelAliasCard(props: OAuthModelAliasCardProps) {
       )}
     </Card>
   );
-}
-
+});

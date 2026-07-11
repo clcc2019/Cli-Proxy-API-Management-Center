@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import { IconChevronDown } from './icons';
 
 interface AutocompleteInputProps {
@@ -30,20 +38,39 @@ export function AutocompleteInput({
   wrapperClassName = '',
   wrapperStyle,
   id,
-  rightElement
+  rightElement,
 }: AutocompleteInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
   
-  const normalizedOptions = options.map(opt => 
-    typeof opt === 'string' ? { value: opt, label: opt } : { value: opt.value, label: opt.label || opt.value }
+  const normalizedOptions = options.map((opt) =>
+    typeof opt === 'string'
+      ? { value: opt, label: opt }
+      : { value: opt.value, label: opt.label || opt.value }
   );
 
-  const filteredOptions = normalizedOptions.filter(opt => {
+  const filteredOptions = normalizedOptions.filter((opt) => {
     const v = value.toLowerCase();
-    return opt.value.toLowerCase().includes(v) || (opt.label && opt.label.toLowerCase().includes(v));
+    return (
+      opt.value.toLowerCase().includes(v) ||
+      (opt.label && opt.label.toLowerCase().includes(v))
+    );
   });
+  const dropdownId = `${inputId}-options`;
+  const hintId = hint ? `${inputId}-hint` : undefined;
+  const errorId = error ? `${inputId}-error` : undefined;
+  const toggleLabel = label || placeholder || 'Options';
+  const boundedHighlightedIndex =
+    highlightedIndex >= 0 && highlightedIndex < filteredOptions.length ? highlightedIndex : -1;
+  const isExpanded = isOpen && filteredOptions.length > 0 && !disabled;
+  const activeOptionId =
+    isExpanded && boundedHighlightedIndex >= 0
+      ? `${dropdownId}-option-${boundedHighlightedIndex}`
+      : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,6 +82,13 @@ export function AutocompleteInput({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!isExpanded || boundedHighlightedIndex < 0) return;
+    document
+      .getElementById(`${dropdownId}-option-${boundedHighlightedIndex}`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [boundedHighlightedIndex, dropdownId, isExpanded]);
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
     setIsOpen(true);
@@ -64,6 +98,7 @@ export function AutocompleteInput({
   const handleSelect = (selectedValue: string) => {
     onChange(selectedValue);
     setIsOpen(false);
+    setHighlightedIndex(-1);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -72,22 +107,34 @@ export function AutocompleteInput({
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (!isOpen) {
-          setIsOpen(true);
-          return;
+        setIsOpen(true);
+        setHighlightedIndex(filteredOptions.length > 0 ? 0 : -1);
+        return;
       }
-      setHighlightedIndex(prev => 
-        prev < filteredOptions.length - 1 ? prev + 1 : prev
+      setHighlightedIndex((prev) =>
+        filteredOptions.length === 0
+          ? -1
+          : (prev + 1 + filteredOptions.length) % filteredOptions.length
       );
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setHighlightedIndex(prev => prev > 0 ? prev - 1 : 0);
+      if (!isOpen) {
+        setIsOpen(true);
+        setHighlightedIndex(filteredOptions.length > 0 ? filteredOptions.length - 1 : -1);
+        return;
+      }
+      setHighlightedIndex((prev) =>
+        filteredOptions.length === 0
+          ? -1
+          : (prev - 1 + filteredOptions.length) % filteredOptions.length
+      );
     } else if (e.key === 'Enter') {
-      if (isOpen && highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
+      if (isOpen && boundedHighlightedIndex >= 0) {
         e.preventDefault();
-        handleSelect(filteredOptions[highlightedIndex].value);
+        handleSelect(filteredOptions[boundedHighlightedIndex].value);
       } else if (isOpen) {
-          e.preventDefault();
-          setIsOpen(false);
+        e.preventDefault();
+        setIsOpen(false);
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
@@ -98,78 +145,124 @@ export function AutocompleteInput({
 
   return (
     <div className={`form-group ${wrapperClassName}`} ref={containerRef} style={wrapperStyle}>
-      {label && <label htmlFor={id}>{label}</label>}
+      {label && <label htmlFor={inputId}>{label}</label>}
       <div style={{ position: 'relative' }}>
-        <input 
-            id={id}
-            className={`input ${className}`.trim()} 
-            value={value}
-            onChange={handleInputChange}
-            onFocus={() => setIsOpen(true)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            autoComplete="off"
-            style={{ paddingRight: 32 }}
+        <input
+          id={inputId}
+          className={`input ${className}`.trim()}
+          value={value}
+          onChange={handleInputChange}
+          onFocus={() => setIsOpen(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoComplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-haspopup="listbox"
+          aria-expanded={isExpanded}
+          aria-controls={dropdownId}
+          aria-activedescendant={activeOptionId}
+          aria-describedby={describedBy}
+          aria-label={label ? undefined : toggleLabel}
+          style={{ paddingRight: 32 }}
         />
-        <div 
-            style={{ 
-                position: 'absolute', 
-                right: 8, 
-                top: '50%', 
-                transform: 'translateY(-50%)',
-                display: 'flex',
-                alignItems: 'center',
-                pointerEvents: disabled ? 'none' : 'auto',
-                cursor: 'pointer',
-                height: '100%'
-            }}
-            onClick={() => !disabled && setIsOpen(!isOpen)}
+        <button
+          type="button"
+          style={{
+            position: 'absolute',
+            right: 8,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: 0,
+            padding: 0,
+            background: 'transparent',
+            color: 'inherit',
+            pointerEvents: disabled ? 'none' : 'auto',
+            cursor: disabled ? 'default' : 'pointer',
+            height: '100%',
+          }}
+          onClick={() => !disabled && setIsOpen(!isOpen)}
+          disabled={disabled}
+          aria-label={toggleLabel}
+          aria-haspopup="listbox"
+          aria-expanded={isExpanded}
+          aria-controls={dropdownId}
         >
-            {rightElement}
-            <IconChevronDown size={16} style={{ opacity: 0.5, marginLeft: 4 }} />
-        </div>
+          {rightElement}
+          <IconChevronDown size={16} style={{ opacity: 0.5, marginLeft: 4 }} />
+        </button>
 
         {isOpen && filteredOptions.length > 0 && !disabled && (
-            <div className="autocomplete-dropdown" style={{
-                position: 'absolute',
-                top: 'calc(100% + 4px)',
-                left: 0,
-                right: 0,
-                zIndex: 1000,
-                backgroundColor: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                maxHeight: 200,
-                overflowY: 'auto',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-            }}>
-                {filteredOptions.map((opt, index) => (
-                    <div
-                        key={`${opt.value}-${index}`}
-                        onClick={() => handleSelect(opt.value)}
-                        style={{
-                            padding: '8px 12px',
-                            cursor: 'pointer',
-                            backgroundColor: index === highlightedIndex ? 'var(--bg-tertiary)' : 'transparent',
-                            color: 'var(--text-primary)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            fontSize: '0.9rem'
-                        }}
-                        onMouseEnter={() => setHighlightedIndex(index)}
-                    >
-                        <span style={{ fontWeight: 500 }}>{opt.value}</span>
-                        {opt.label && opt.label !== opt.value && (
-                            <span style={{ fontSize: '0.85em', color: 'var(--text-secondary)' }}>{opt.label}</span>
-                        )}
-                    </div>
-                ))}
-            </div>
+          <div
+            id={dropdownId}
+            className="autocomplete-dropdown"
+            role="listbox"
+            aria-label={toggleLabel}
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 4px)',
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-md)',
+              maxHeight: 200,
+              overflowY: 'auto',
+              boxShadow:
+                '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            }}
+          >
+            {filteredOptions.map((opt, index) => (
+              <button
+                type="button"
+                id={`${dropdownId}-option-${index}`}
+                key={`${opt.value}-${index}`}
+                role="option"
+                aria-selected={index === boundedHighlightedIndex}
+                onClick={() => handleSelect(opt.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: 0,
+                  cursor: 'pointer',
+                  backgroundColor:
+                    index === boundedHighlightedIndex ? 'var(--bg-tertiary)' : 'transparent',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  font: 'inherit',
+                  fontSize: '0.9rem',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={() => setHighlightedIndex(index)}
+              >
+                <span style={{ fontWeight: 500 }}>{opt.value}</span>
+                {opt.label && opt.label !== opt.value && (
+                  <span style={{ fontSize: '0.85em', color: 'var(--text-secondary)' }}>
+                    {opt.label}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         )}
       </div>
-      {hint && <div className="hint">{hint}</div>}
-      {error && <div className="error-box">{error}</div>}
+      {hint && (
+        <div id={hintId} className="hint">
+          {hint}
+        </div>
+      )}
+      {error && (
+        <div id={errorId} className="error-box" role="alert">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

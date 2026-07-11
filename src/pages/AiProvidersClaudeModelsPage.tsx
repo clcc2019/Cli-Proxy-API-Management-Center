@@ -202,12 +202,13 @@ export function AiProvidersClaudeModelsPage() {
         <div className={styles.openaiModelsContent}>
           <div className={styles.sectionHint}>{t('ai_providers.claude_models_fetch_hint')}</div>
           <div className={styles.openaiModelsEndpointSection}>
-            <label className={styles.openaiModelsEndpointLabel}>
+            <span className={styles.openaiModelsEndpointLabel}>
               {t('ai_providers.claude_models_fetch_url_label')}
-            </label>
+            </span>
             <div className={styles.openaiModelsEndpointControls}>
               <input
                 className={`input ${styles.openaiModelsEndpointInput}`}
+                aria-label={t('ai_providers.claude_models_fetch_url_label')}
                 readOnly
                 value={endpoint}
               />
@@ -260,7 +261,11 @@ export function AiProvidersClaudeModelsPage() {
               </div>
             </div>
           )}
-          {error && <div className="error-box">{error}</div>}
+          {error && (
+            <div className="error-box" role="alert">
+              {error}
+            </div>
+          )}
           {fetching ? (
             <div className={styles.sectionHint}>
               {t('ai_providers.claude_models_fetch_loading')}

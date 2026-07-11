@@ -10,6 +10,8 @@ interface HeaderInputListProps {
   disabled?: boolean;
   keyPlaceholder?: string;
   valuePlaceholder?: string;
+  keyAriaLabel?: string;
+  valueAriaLabel?: string;
   removeButtonTitle?: string;
   removeButtonAriaLabel?: string;
 }
@@ -21,6 +23,8 @@ export function HeaderInputList({
   disabled = false,
   keyPlaceholder = 'X-Custom-Header',
   valuePlaceholder = 'value',
+  keyAriaLabel,
+  valueAriaLabel,
   removeButtonTitle = 'Remove',
   removeButtonAriaLabel = 'Remove',
 }: HeaderInputListProps) {
@@ -48,6 +52,7 @@ export function HeaderInputList({
             <input
               className="input"
               placeholder={keyPlaceholder}
+              aria-label={`${keyAriaLabel ?? keyPlaceholder} ${index + 1}`}
               value={entry.key}
               onChange={(e) => updateEntry(index, 'key', e.target.value)}
               disabled={disabled}
@@ -56,6 +61,7 @@ export function HeaderInputList({
             <input
               className="input"
               placeholder={valuePlaceholder}
+              aria-label={`${valueAriaLabel ?? valuePlaceholder} ${index + 1}`}
               value={entry.value}
               onChange={(e) => updateEntry(index, 'value', e.target.value)}
               disabled={disabled}

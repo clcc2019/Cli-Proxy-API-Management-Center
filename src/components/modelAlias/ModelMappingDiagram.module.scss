@@ -105,6 +105,13 @@
     z-index: 10;
   }
 
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 46%, transparent);
+    outline-offset: 2px;
+    border-color: var(--primary-color);
+    z-index: 10;
+  }
+
   &.dropTarget {
     background-color: var(--bg-secondary);
     border-color: var(--primary-color);
@@ -252,9 +259,15 @@
   padding: 4px 0;
 
   .menuItem {
+    width: 100%;
     padding: 8px 12px;
+    border: 0;
+    appearance: none;
+    background: transparent;
+    font: inherit;
     font-size: 13px;
     color: var(--text-primary);
+    text-align: left;
     cursor: pointer;
     transition: background-color 0.1s;
     display: flex;
@@ -262,6 +275,12 @@
     gap: 8px;
 
     &:hover {
+      background-color: var(--bg-secondary);
+    }
+
+    &:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--primary-color) 42%, transparent);
+      outline-offset: -2px;
       background-color: var(--bg-secondary);
     }
 

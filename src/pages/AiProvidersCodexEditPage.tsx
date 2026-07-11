@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
@@ -125,6 +125,7 @@ export function AiProvidersCodexEditPage() {
   const [modelDiscoverySelected, setModelDiscoverySelected] = useState<Set<string>>(new Set());
   const autoFetchSignatureRef = useRef<string>('');
   const modelDiscoveryRequestIdRef = useRef(0);
+  const modelDiscoveryHintId = useId();
 
   const hasIndexParam = typeof params.index === 'string';
   const editIndex = useMemo(() => parseIndexParam(params.index), [params.index]);
@@ -533,7 +534,11 @@ export function AiProvidersCodexEditPage() {
       loadingLabel={t('common.loading')}
     >
       <Card>
-        {error && <div className="error-box">{error}</div>}
+        {error && (
+          <div className="error-box" role="alert">
+            {error}
+          </div>
+        )}
         {invalidIndexParam || invalidIndex ? (
           <div className="hint">{t('common.invalid_provider_index')}</div>
         ) : (
@@ -575,7 +580,7 @@ export function AiProvidersCodexEditPage() {
               disabled={disableControls || saving}
             />
             <div className="form-group">
-              <label>{t('ai_providers.codex_websockets_label')}</label>
+              <span className="form-label">{t('ai_providers.codex_websockets_label')}</span>
               <ToggleSwitch
                 checked={Boolean(form.websockets)}
                 onChange={(value) => setForm((prev) => ({ ...prev, websockets: value }))}
@@ -585,7 +590,7 @@ export function AiProvidersCodexEditPage() {
               <div className="hint">{t('ai_providers.codex_websockets_hint')}</div>
             </div>
             <div className="form-group">
-              <label>{t('ai_providers.codex_pool_mode_label')}</label>
+              <span className="form-label">{t('ai_providers.codex_pool_mode_label')}</span>
               <ToggleSwitch
                 checked={Boolean(form.poolMode)}
                 onChange={(value) => setForm((prev) => ({ ...prev, poolMode: value }))}
@@ -613,9 +618,9 @@ export function AiProvidersCodexEditPage() {
 
             <div className={styles.modelConfigSection}>
               <div className={styles.modelConfigHeader}>
-                <label className={styles.modelConfigTitle}>
+                <span className={styles.modelConfigTitle}>
                   {t('ai_providers.codex_models_label')}
-                </label>
+                </span>
                 <div className={styles.modelConfigToolbar}>
                   <Button
                     variant="secondary"
@@ -658,9 +663,10 @@ export function AiProvidersCodexEditPage() {
               />
             </div>
             <div className="form-group">
-              <label>{t('ai_providers.excluded_models_label')}</label>
+              <span className="form-label">{t('ai_providers.excluded_models_label')}</span>
               <textarea
                 className="input"
+                aria-label={t('ai_providers.excluded_models_label')}
                 placeholder={t('ai_providers.excluded_models_placeholder')}
                 value={form.excludedText}
                 onChange={(e) => setForm((prev) => ({ ...prev, excludedText: e.target.value }))}
@@ -675,6 +681,7 @@ export function AiProvidersCodexEditPage() {
               title={t('ai_providers.codex_models_fetch_title')}
               onClose={() => setModelDiscoveryOpen(false)}
               width={720}
+              ariaDescribedBy={modelDiscoveryHintId}
               footer={
                 <>
                   <Button
@@ -696,16 +703,17 @@ export function AiProvidersCodexEditPage() {
               }
             >
               <div className={styles.openaiModelsContent}>
-                <div className={styles.sectionHint}>
+                <div id={modelDiscoveryHintId} className={styles.sectionHint}>
                   {t('ai_providers.codex_models_fetch_hint')}
                 </div>
                 <div className={styles.openaiModelsEndpointSection}>
-                  <label className={styles.openaiModelsEndpointLabel}>
+                  <span className={styles.openaiModelsEndpointLabel}>
                     {t('ai_providers.codex_models_fetch_url_label')}
-                  </label>
+                  </span>
                   <div className={styles.openaiModelsEndpointControls}>
                     <input
                       className={`input ${styles.openaiModelsEndpointInput}`}
+                      aria-label={t('ai_providers.codex_models_fetch_url_label')}
                       readOnly
                       value={modelDiscoveryEndpoint}
                     />
@@ -765,7 +773,11 @@ export function AiProvidersCodexEditPage() {
                     </div>
                   </div>
                 )}
-                {modelDiscoveryError && <div className="error-box">{modelDiscoveryError}</div>}
+                {modelDiscoveryError && (
+                  <div className="error-box" role="alert">
+                    {modelDiscoveryError}
+                  </div>
+                )}
                 {modelDiscoveryFetching ? (
                   <div className={styles.sectionHint}>
                     {t('ai_providers.codex_models_fetch_loading')}

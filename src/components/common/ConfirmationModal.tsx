@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -5,6 +6,7 @@ import { useNotificationStore } from '@/stores';
 
 export function ConfirmationModal() {
   const { t } = useTranslation();
+  const messageId = useId();
   const confirmation = useNotificationStore((state) => state.confirmation);
   const hideConfirmation = useNotificationStore((state) => state.hideConfirmation);
   const setConfirmationLoading = useNotificationStore((state) => state.setConfirmationLoading);
@@ -42,11 +44,17 @@ export function ConfirmationModal() {
   };
 
   return (
-    <Modal open={isOpen} onClose={handleCancel} title={title} closeDisabled={isLoading}>
+    <Modal
+      open={isOpen}
+      onClose={handleCancel}
+      title={title}
+      closeDisabled={isLoading}
+      ariaDescribedBy={messageId}
+    >
       {typeof message === 'string' ? (
-        <p style={{ margin: '1rem 0' }}>{message}</p>
+        <p id={messageId} style={{ margin: '1rem 0' }}>{message}</p>
       ) : (
-        <div style={{ margin: '1rem 0' }}>{message}</div>
+        <div id={messageId} style={{ margin: '1rem 0' }}>{message}</div>
       )}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
         <Button variant="ghost" onClick={handleCancel} disabled={isLoading}>

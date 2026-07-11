@@ -2,23 +2,16 @@
  * 定时器 Hook
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { useEventCallback } from './useEventCallback';
 
 export function useInterval(callback: () => void, delay: number | null) {
-  const savedCallback = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    savedCallback.current = callback;
-  }, [callback]);
+  const stableCallback = useEventCallback(callback);
 
   useEffect(() => {
     if (delay === null) return;
 
-    const tick = () => {
-      savedCallback.current?.();
-    };
-
-    const id = setInterval(tick, delay);
+    const id = setInterval(stableCallback, delay);
     return () => clearInterval(id);
-  }, [delay]);
+  }, [delay, stableCallback]);
 }

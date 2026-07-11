@@ -703,10 +703,20 @@ export function useAuthFilesPrefixProxyEditor(
   const showNotification = useNotificationStore((state) => state.showNotification);
   const [prefixProxyEditor, setPrefixProxyEditor] = useState<PrefixProxyEditorState | null>(null);
   const prefixProxyEditorRef = useRef<PrefixProxyEditorState | null>(null);
+  const mountedRef = useRef(true);
+  const editorRequestSeqRef = useRef(0);
 
   useEffect(() => {
     prefixProxyEditorRef.current = prefixProxyEditor;
   }, [prefixProxyEditor]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      editorRequestSeqRef.current += 1;
+    };
+  }, []);
 
   const hasBlockingValidationError = Boolean(
     prefixProxyEditor?.headersTouched && prefixProxyEditor.headersError
@@ -732,19 +742,24 @@ export function useAuthFilesPrefixProxyEditor(
 
       if (disableControls) return;
       if (prefixProxyEditorRef.current?.fileName === name) {
+        editorRequestSeqRef.current += 1;
         setPrefixProxyEditor(null);
         return;
       }
 
+      const requestSeq = editorRequestSeqRef.current + 1;
+      editorRequestSeqRef.current = requestSeq;
       setPrefixProxyEditor(createEditorState(file));
 
       try {
         const rawText = await authFilesApi.previewText(name);
+        if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
         setPrefixProxyEditor((prev) => {
           if (!prev || prev.fileName !== name) return prev;
           return buildLoadedPrefixProxyEditorState(file, rawText, t);
         });
       } catch (err: unknown) {
+        if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
         const errorMessage = err instanceof Error ? err.message : t('notification.download_failed');
         setPrefixProxyEditor((prev) => {
           if (!prev || prev.fileName !== name) return prev;
@@ -757,6 +772,7 @@ export function useAuthFilesPrefixProxyEditor(
   );
 
   const closePrefixProxyEditor = useCallback(() => {
+    editorRequestSeqRef.current += 1;
     setPrefixProxyEditor(null);
   }, []);
 
@@ -764,20 +780,47 @@ export function useAuthFilesPrefixProxyEditor(
     (field: PrefixProxyEditorField, value: PrefixProxyEditorFieldValue) => {
       setPrefixProxyEditor((prev) => {
         if (!prev) return prev;
-        if (field === 'prefix') return { ...prev, prefix: String(value) };
-        if (field === 'proxyUrl') return { ...prev, proxyUrl: String(value) };
-        if (field === 'priority') return { ...prev, priority: String(value) };
+        if (field === 'prefix') {
+          const nextValue = String(value);
+          return prev.prefix === nextValue ? prev : { ...prev, prefix: nextValue };
+        }
+        if (field === 'proxyUrl') {
+          const nextValue = String(value);
+          return prev.proxyUrl === nextValue ? prev : { ...prev, proxyUrl: nextValue };
+        }
+        if (field === 'priority') {
+          const nextValue = String(value);
+          return prev.priority === nextValue ? prev : { ...prev, priority: nextValue };
+        }
         if (field === 'excludedModelsText') {
-          return { ...prev, excludedModelsText: String(value) };
+          const nextValue = String(value);
+          return prev.excludedModelsText === nextValue
+            ? prev
+            : { ...prev, excludedModelsText: nextValue };
         }
-        if (field === 'disableCooling') return { ...prev, disableCooling: String(value) };
-        if (field === 'userAgent') return { ...prev, userAgent: String(value) };
+        if (field === 'disableCooling') {
+          const nextValue = String(value);
+          return prev.disableCooling === nextValue ? prev : { ...prev, disableCooling: nextValue };
+        }
+        if (field === 'userAgent') {
+          const nextValue = String(value);
+          return prev.userAgent === nextValue ? prev : { ...prev, userAgent: nextValue };
+        }
         if (field === 'serviceTierPassthrough') {
-          return { ...prev, serviceTierPassthrough: Boolean(value) };
+          const nextValue = Boolean(value);
+          return prev.serviceTierPassthrough === nextValue
+            ? prev
+            : { ...prev, serviceTierPassthrough: nextValue };
         }
-        if (field === 'note') return { ...prev, note: String(value), noteTouched: true };
+        if (field === 'note') {
+          const nextValue = String(value);
+          return prev.note === nextValue && prev.noteTouched
+            ? prev
+            : { ...prev, note: nextValue, noteTouched: true };
+        }
         if (field === 'headersText') {
           const headersText = String(value);
+          if (prev.headersText === headersText && prev.headersTouched) return prev;
           const { errorKey } = parseHeadersText(headersText);
           return {
             ...prev,
@@ -786,7 +829,8 @@ export function useAuthFilesPrefixProxyEditor(
             headersError: errorKey ? t(errorKey) : null,
           };
         }
-        return { ...prev, websockets: Boolean(value) };
+        const nextValue = Boolean(value);
+        return prev.websockets === nextValue ? prev : { ...prev, websockets: nextValue };
       });
     },
     [t]
@@ -811,6 +855,7 @@ export function useAuthFilesPrefixProxyEditor(
     }
 
     const { fileName } = current;
+    const requestSeq = editorRequestSeqRef.current;
     setPrefixProxyEditor((prev) => {
       if (!prev || prev.fileName !== fileName) return prev;
       return { ...prev, saving: true };
@@ -818,11 +863,14 @@ export function useAuthFilesPrefixProxyEditor(
 
     try {
       const response = await authFilesApi.patchFields(payload);
+      if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
       applyLocalFilePatch(fileName, buildLocalPatchedAuthFile(current, response.file));
       await refreshAuthFilesFromServer?.();
+      if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
       setPrefixProxyEditor(null);
       showNotification(t('auth_files.prefix_proxy_saved_success', { name: fileName }), 'success');
     } catch (err: unknown) {
+      if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
       const errorMessage = err instanceof Error ? err.message : '';
       showNotification(`${t('notification.upload_failed')}: ${errorMessage}`, 'error');
       setPrefixProxyEditor((prev) => {

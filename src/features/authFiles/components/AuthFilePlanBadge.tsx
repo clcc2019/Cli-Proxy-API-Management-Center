@@ -10,10 +10,9 @@ type AuthFilePlanBadgeProps = {
 export function AuthFilePlanBadge(props: AuthFilePlanBadgeProps) {
   const { badge } = props;
   const { t } = useTranslation();
-  const planLabel = t(badge.labelKey, { defaultValue: badge.fallbackLabel });
+  const planLabel = t(badge.labelKey);
   const text = t('auth_files.plan_badge', {
     plan: planLabel,
-    defaultValue: `Plan: ${planLabel}`,
   });
 
   return (

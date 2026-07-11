@@ -11,6 +11,7 @@ import type {
   TokenCategory,
 } from './usage';
 import {
+  ALL_MODELS_CHART_LABEL,
   formatDayLabel,
   formatHourLabel,
   lookupModelPrice,
@@ -178,7 +179,7 @@ const buildPeriodSeries = (
     const shouldFill = modelsToShow.length === 1 || (isAll && modelsToShow.length > 1);
 
     return {
-      label: isAll ? 'All Models' : model,
+      label: isAll ? ALL_MODELS_CHART_LABEL : model,
       data,
       borderColor: color,
       backgroundColor: shouldFill

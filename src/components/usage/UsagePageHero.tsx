@@ -1,4 +1,4 @@
-import { memo, type ChangeEventHandler, type RefObject } from 'react';
+import { memo, useMemo, type ChangeEventHandler, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
@@ -53,7 +53,18 @@ export const UsagePageHero = memo(function UsagePageHero({
   importInputRef,
   onImportChange,
 }: UsagePageHeroProps) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const lastUpdatedLabel = useMemo(
+    () =>
+      lastRefreshedAt
+        ? `${t('usage_stats.last_updated')}: ${lastRefreshedAt.toLocaleString(i18n.language)}`
+        : null,
+    [i18n.language, lastRefreshedAt, t]
+  );
+  const disableExport = loading || importing || exportingDetailed;
+  const disableExportDetailed = loading || importing || exporting;
+  const disableImport = loading || exporting || exportingDetailed;
+  const disableRefresh = loading || exporting || exportingDetailed || importing;
 
   return (
     <section className={styles.hero}>
@@ -70,11 +81,7 @@ export const UsagePageHero = memo(function UsagePageHero({
           <span>
             {t('usage_stats.model_price_model')}: {visibleModelCount}
           </span>
-          {lastRefreshedAt && (
-            <span>
-              {t('usage_stats.last_updated')}: {lastRefreshedAt.toLocaleString()}
-            </span>
-          )}
+          {lastUpdatedLabel && <span>{lastUpdatedLabel}</span>}
         </div>
       </div>
 
@@ -100,7 +107,7 @@ export const UsagePageHero = memo(function UsagePageHero({
             size="sm"
             onClick={onExport}
             loading={exporting}
-            disabled={loading || importing || exportingDetailed}
+            disabled={disableExport}
             className={styles.heroActionPrimary}
           >
             <IconDownload size={15} />
@@ -111,7 +118,7 @@ export const UsagePageHero = memo(function UsagePageHero({
             size="sm"
             onClick={onExportDetailed}
             loading={exportingDetailed}
-            disabled={loading || importing || exporting}
+            disabled={disableExportDetailed}
           >
             <IconFileText size={15} />
             <span>{t('usage_stats.export_details')}</span>
@@ -121,7 +128,7 @@ export const UsagePageHero = memo(function UsagePageHero({
             size="sm"
             onClick={onImport}
             loading={importing}
-            disabled={loading || exporting || exportingDetailed}
+            disabled={disableImport}
           >
             <IconDatabase size={15} />
             <span>{t('usage_stats.import')}</span>
@@ -130,7 +137,7 @@ export const UsagePageHero = memo(function UsagePageHero({
             variant="secondary"
             size="sm"
             onClick={onRefresh}
-            disabled={loading || exporting || exportingDetailed || importing}
+            disabled={disableRefresh}
           >
             <IconRefreshCw size={15} />
             <span>{loading ? t('common.loading') : t('usage_stats.refresh')}</span>
@@ -140,6 +147,7 @@ export const UsagePageHero = memo(function UsagePageHero({
         <input
           ref={importInputRef}
           type="file"
+          aria-label={t('usage_stats.import')}
           accept=".json,application/json"
           style={{ display: 'none' }}
           onChange={onImportChange}

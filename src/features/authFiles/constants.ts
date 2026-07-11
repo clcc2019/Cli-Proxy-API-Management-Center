@@ -44,40 +44,40 @@ export const TRUTHY_TEXT_VALUES = new Set(['true', '1', 'yes', 'y', 'on']);
 export const FALSY_TEXT_VALUES = new Set(['false', '0', 'no', 'n', 'off']);
 
 // 标签类型颜色配置 — 基于各提供商 Logo 品牌色调配，确保彼此不重复
-// 优化策略：light 用更柔的"奶油色"底 + 高对比文字；dark 用低饱和度深色底 + 明亮品牌色文字
+// 优化策略：light 使用清亮浅底 + 高对比文字；dark 使用深色底 + 明亮品牌色文字
 export const TYPE_COLORS: Record<string, TypeColorSet> = {
   // Qwen logo: 紫罗兰渐变 #6336E7 → #6F69F7
   qwen: {
-    light: { bg: '#f1ebfe', text: '#5b2bd6' },
-    dark: { bg: '#2c1c6e', text: '#c4b0ff' },
+    light: { bg: '#f5f3ff', text: '#7c3aed' },
+    dark: { bg: '#34215f', text: '#ddd6fe' },
   },
   // Kimi logo: 亮蓝 #027AFF（K字 + 蓝色圆点）
   kimi: {
-    light: { bg: '#e2ecff', text: '#1057c9' },
-    dark: { bg: '#0d2f6b', text: '#85c0ff' },
+    light: { bg: '#ecfeff', text: '#0891b2' },
+    dark: { bg: '#103f4a', text: '#a5f3fc' },
   },
   // Claude logo: 陶土橙 #D97757
   claude: {
-    light: { bg: '#fbeadf', text: '#b8521e' },
-    dark: { bg: '#522411', text: '#f0b48f' },
+    light: { bg: '#fff7ed', text: '#c2410c' },
+    dark: { bg: '#4a2b17', text: '#fed7aa' },
   },
   // Codex logo: 靛蓝渐变 #B1A7FF → #3941FF
   codex: {
-    light: { bg: '#ece9ff', text: '#3c3fcc' },
-    dark: { bg: '#231f7c', text: '#beb8ff' },
+    light: { bg: '#eef2ff', text: '#4f46e5' },
+    dark: { bg: '#2d2a67', text: '#c7d2fe' },
   },
   // xAI / Grok: 黑白品牌
   xai: {
-    light: { bg: '#e9edf2', text: '#2b3540' },
-    dark: { bg: '#252d38', text: '#d2dae3' },
+    light: { bg: '#f8fafc', text: '#334155' },
+    dark: { bg: '#28313d', text: '#e2e8f0' },
   },
   empty: {
-    light: { bg: '#f3f4f6', text: '#5b6573' },
-    dark: { bg: '#3a3f47', text: '#c2c8d1' },
+    light: { bg: '#f8fafc', text: '#475569' },
+    dark: { bg: '#374151', text: '#d1d8e4' },
   },
   unknown: {
-    light: { bg: '#f3f4f6', text: '#646b76', border: '1px dashed #b4bac3' },
-    dark: { bg: '#363a42', text: '#a8aeb8', border: '1px dashed #5e6470' },
+    light: { bg: '#f8fafc', text: '#526173', border: '1px dashed #b9c3d0' },
+    dark: { bg: '#374151', text: '#b9c3d1', border: '1px dashed #667085' },
   },
 };
 

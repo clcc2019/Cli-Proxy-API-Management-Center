@@ -7,6 +7,8 @@ import {
   IconFileText,
   IconSatellite
 } from '@/components/ui/icons';
+import { useAlignedInterval } from '@/hooks/useAlignedInterval';
+import { useInterval } from '@/hooks/useInterval';
 import { useAuthStore, useConfigStore, useModelsStore } from '@/stores';
 import { apiKeysApi, providersApi, authFilesApi } from '@/services/api';
 import styles from './DashboardPage.module.scss';
@@ -27,6 +29,9 @@ interface ProviderStats {
 
 type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
+const MINUTE_INTERVAL_MS = 60_000;
+const GREETING_REFRESH_INTERVAL_MS = 5 * 60_000;
+
 function getTimeOfDay(date = new Date()): TimeOfDay {
   const hour = date.getHours();
   if (hour >= 5 && hour < 12) return 'morning';
@@ -43,22 +48,9 @@ const HeroTimeBlock = memo(function HeroTimeBlock() {
   const { i18n } = useTranslation();
   const [now, setNow] = useState<Date>(() => new Date());
 
-  useEffect(() => {
-    // 第一次对齐到下一个整分钟，之后每 60s 更新
-    const current = new Date();
-    const msToNextMinute = 60_000 - (current.getSeconds() * 1000 + current.getMilliseconds());
-
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-    const initialId = window.setTimeout(() => {
-      setNow(new Date());
-      intervalId = setInterval(() => setNow(new Date()), 60_000);
-    }, msToNextMinute);
-
-    return () => {
-      window.clearTimeout(initialId);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, []);
+  useAlignedInterval(() => {
+    setNow(new Date());
+  }, MINUTE_INTERVAL_MS);
 
   const formattedTime = useMemo(
     () => now.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' }),
@@ -90,14 +82,10 @@ const HeroGreeting = memo(function HeroGreeting() {
   const { t } = useTranslation();
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay);
 
-  useEffect(() => {
-    // 5 分钟检查一次 time-of-day 切换已足够
-    const id = setInterval(() => {
-      const tod = getTimeOfDay();
-      setTimeOfDay((prev) => (prev === tod ? prev : tod));
-    }, 5 * 60_000);
-    return () => clearInterval(id);
-  }, []);
+  useInterval(() => {
+    const tod = getTimeOfDay();
+    setTimeOfDay((prev) => (prev === tod ? prev : tod));
+  }, GREETING_REFRESH_INTERVAL_MS);
 
   return (
     <>
@@ -350,17 +338,8 @@ export function DashboardPage() {
 
   return (
     <div className={styles.dashboard}>
-      {/* Decorative background orbs — hidden on mobile & reduced-motion via CSS */}
-      <div className={styles.backgroundOrbs} aria-hidden="true">
-        <div className={styles.orb1} />
-        <div className={styles.orb2} />
-      </div>
-
       {/* Hero welcome section */}
       <section className={styles.hero}>
-        <span className={styles.heroWatermark} aria-hidden="true">
-          OVERVIEW
-        </span>
         <div className={styles.heroContent}>
           <HeroGreeting />
         </div>

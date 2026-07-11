@@ -14,12 +14,16 @@
 }
 
 .pageTitle {
-  font-size: clamp(20px, 1.2vw + 14px, 24px);
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--text-primary);
   margin: 0 0 $spacing-md 0;
   line-height: 1.2;
+
+  @include mobile {
+    font-size: 20px;
+  }
 }
 
 .tabBar {
@@ -467,6 +471,13 @@
   &:hover {
     background: rgba($primary-color, 0.06);
     box-shadow: inset 0 0 0 1px rgba($primary-color, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 46%, transparent);
+    outline-offset: -2px;
+    background: rgba($primary-color, 0.08);
+    box-shadow: inset 0 0 0 1px rgba($primary-color, 0.18);
   }
 
   @include tablet {

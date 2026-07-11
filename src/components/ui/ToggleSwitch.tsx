@@ -40,10 +40,12 @@ export function ToggleSwitch({
     <label className={className}>
       <input
         type="checkbox"
+        role="switch"
         checked={checked}
         onChange={handleChange}
         disabled={disabled}
         aria-label={ariaLabel}
+        aria-checked={checked}
       />
       <span className={styles.track}>
         {labelInside && label && <span className={styles.trackLabel}>{label}</span>}

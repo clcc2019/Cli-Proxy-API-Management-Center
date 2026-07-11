@@ -24,14 +24,16 @@ export function Input({
   fullWidth = true,
   className = '',
   id,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   ...rest
 }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const hintId = hint ? `${inputId}-hint` : undefined;
   const errorId = error ? `${inputId}-error` : undefined;
-  const describedBy =
-    [rest['aria-describedby'], errorId, hintId].filter(Boolean).join(' ') || undefined;
+  const describedBy = [ariaDescribedBy, errorId, hintId].filter(Boolean).join(' ') || undefined;
+  const invalid = error ? true : ariaInvalid;
 
   const controlClasses = ['input-control'];
   if (density === 'sm') controlClasses.push('input-control-sm');
@@ -49,11 +51,11 @@ export function Input({
           </span>
         )}
         <input
+          {...rest}
           id={inputId}
           className={`input ${className}`.trim()}
-          aria-invalid={Boolean(error) || rest['aria-invalid']}
+          aria-invalid={invalid}
           aria-describedby={describedBy}
-          {...rest}
         />
         {rightElement && (
           <span className="input-affix input-affix-right" aria-hidden="true">
@@ -67,7 +69,7 @@ export function Input({
         </div>
       )}
       {error && (
-        <div id={errorId} className="error-box">
+        <div id={errorId} className="error-box" role="alert">
           {error}
         </div>
       )}

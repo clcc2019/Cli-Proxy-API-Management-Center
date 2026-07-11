@@ -50,7 +50,11 @@ function ProviderListImpl<T>({
   const { t } = useTranslation();
 
   if (loading && items.length === 0) {
-    return <div className="hint">{t('common.loading')}</div>;
+    return (
+      <div className="hint" role="status" aria-busy="true">
+        {t('common.loading')}
+      </div>
+    );
   }
 
   if (!items.length) {
@@ -74,9 +78,7 @@ function ProviderListImpl<T>({
           .join(' ');
         const statusLabel = rowDisabled
           ? t('ai_providers.config_disabled_badge')
-          : t('ai_providers.config_enabled_badge', {
-              defaultValue: t('ai_providers.config_toggle_label'),
-            });
+          : t('ai_providers.config_enabled_badge');
         const extraActions = renderExtraActions ? renderExtraActions(item, index) : null;
         const rowActionsDisabled = actionsDisabled || rowSwitching;
         const hasActions = Boolean(onEdit || onDelete);

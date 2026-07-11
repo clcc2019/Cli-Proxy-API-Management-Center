@@ -14,7 +14,11 @@ export function PageLoadFallback({
   const { t } = useTranslation();
 
   return (
-    <div className={`${styles.wrapper} ${fullScreen ? styles.fullScreen : ''}`} role="status">
+    <div
+      className={`${styles.wrapper} ${fullScreen ? styles.fullScreen : ''}`}
+      role="status"
+      aria-busy="true"
+    >
       <div className={styles.panel}>
         <LoadingSpinner size={18} className={styles.spinner} />
         <span className={styles.label}>{label ?? t('common.loading')}</span>

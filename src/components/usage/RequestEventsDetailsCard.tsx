@@ -1,34 +1,33 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { getTypeColor, normalizeProviderKey } from '@/features/authFiles/constants';
 import { useNotificationStore, useThemeStore } from '@/stores';
 import type { ProviderKeyConfig } from '@/types';
 import {
   formatDurationMs,
   formatUsd,
+  getLatencyTone,
   LATENCY_SOURCE_FIELD,
+  type LatencyTone,
   type ModelPrice,
 } from '@/utils/usage';
-import { copyToClipboard } from '@/utils/clipboard';
 import {
   useRequestEventRows,
   REQUEST_EVENT_ROWS_LIMIT,
 } from './hooks/useRequestEventRows';
+import {
+  buildRequestEventTokenLabels,
+  copyRequestEventErrorMessage,
+  formatRequestEventTokenBreakdown,
+  getRequestEventCredentialTypeStyle,
+  hasRequestEventValue,
+} from './hooks/requestEventFormat';
 import styles from '@/pages/UsagePage.module.scss';
 
 const SKELETON_ROW_COUNT = 5;
 
-const getLatencyTone = (
-  latencyMs: number
-): 'normal' | 'slow' | 'verySlow' => {
-  if (latencyMs <= 30_000) return 'normal';
-  if (latencyMs <= 60_000) return 'slow';
-  return 'verySlow';
-};
-
-const LATENCY_TONE_CLASS: Record<'normal' | 'slow' | 'verySlow', string> = {
+const LATENCY_TONE_CLASS: Record<LatencyTone, string> = {
   normal: styles.latencyCapsuleNormal,
   slow: styles.latencyCapsuleSlow,
   verySlow: styles.latencyCapsuleVerySlow,
@@ -112,18 +111,14 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
     field: LATENCY_SOURCE_FIELD,
     unit: t('usage_stats.duration_unit_ms'),
   });
+  const tokenLabels = useMemo(
+    () => buildRequestEventTokenLabels(t),
+    [t]
+  );
 
   const handleCopyError = useCallback(
     async (errorMessage: string) => {
-      const text = errorMessage.trim();
-      if (!text) return;
-      const ok = await copyToClipboard(text);
-      showNotification(
-        ok
-          ? t('usage_stats.request_events_error_copy_success')
-          : t('usage_stats.request_events_error_copy_failed'),
-        ok ? 'success' : 'error'
-      );
+      await copyRequestEventErrorMessage({ errorMessage, t, showNotification });
     },
     [showNotification, t]
   );
@@ -152,6 +147,9 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
 
           <div className={styles.requestEventsTableWrapper}>
             <table className={styles.table}>
+              <caption className={styles.visuallyHidden}>
+                {t('usage_stats.request_events_title')}
+              </caption>
               <thead>
                 <tr>
                   <th>{t('usage_stats.request_events_col_time')}</th>
@@ -166,38 +164,17 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
               </thead>
               <tbody>
                 {rows.map((row) => {
-                  const tokenParts: string[] = [];
-                  if (row.inputTokens > 0) {
-                    tokenParts.push(
-                      `${t('usage_stats.request_events_token_in')} ${row.inputTokens.toLocaleString()}`
-                    );
-                  }
-                  if (row.outputTokens > 0) {
-                    tokenParts.push(
-                      `${t('usage_stats.request_events_token_out')} ${row.outputTokens.toLocaleString()}`
-                    );
-                  }
-                  if (row.reasoningTokens > 0) {
-                    tokenParts.push(
-                      `${t('usage_stats.request_events_token_reasoning')} ${row.reasoningTokens.toLocaleString()}`
-                    );
-                  }
-                  if (row.cachedTokens > 0) {
-                    tokenParts.push(
-                      `${t('usage_stats.request_events_token_cached')} ${row.cachedTokens.toLocaleString()}`
-                    );
-                  }
-
-                  const hasReasoning =
-                    row.modelReasoningEffort && row.modelReasoningEffort !== '-';
-                  const hasAuthIndex = row.authIndex && row.authIndex !== '-';
-                  const hasApiKey = row.apiKeyMasked && row.apiKeyMasked !== '-';
-                  const typeColor = row.sourceType
-                    ? getTypeColor(
-                        normalizeProviderKey(row.sourceType),
-                        resolvedTheme as 'light' | 'dark'
-                      )
-                    : null;
+                  const tokenBreakdown = formatRequestEventTokenBreakdown(
+                    row.tokenParts,
+                    tokenLabels
+                  );
+                  const hasReasoning = hasRequestEventValue(row.modelReasoningEffort);
+                  const hasAuthIndex = hasRequestEventValue(row.authIndex);
+                  const hasApiKey = hasRequestEventValue(row.apiKeyMasked);
+                  const credentialTypeStyle = getRequestEventCredentialTypeStyle(
+                    row.sourceType,
+                    resolvedTheme as 'light' | 'dark'
+                  );
 
                   return (
                     <tr
@@ -234,14 +211,10 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                           <span className={styles.credentialName}>
                             {row.source}
                           </span>
-                          {row.sourceType && typeColor && (
+                          {row.sourceType && credentialTypeStyle && (
                             <span
                               className={styles.credentialType}
-                              style={{
-                                background: typeColor.bg,
-                                color: typeColor.text,
-                                borderColor: typeColor.bg,
-                              }}
+                              style={credentialTypeStyle}
                             >
                               {row.sourceType}
                             </span>
@@ -313,9 +286,9 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                         <div className={styles.cellPrimary}>
                           {row.totalTokens.toLocaleString()}
                         </div>
-                        {tokenParts.length > 0 && (
+                        {tokenBreakdown && (
                           <div className={styles.cellSecondary}>
-                            {tokenParts.join(' · ')}
+                            {tokenBreakdown}
                           </div>
                         )}
                       </td>

@@ -14,13 +14,14 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useInterval } from '@/hooks/useInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
-import { useDebounce, useEventCallback, useReducedMotion } from '@/hooks';
+import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } from '@/hooks';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
+import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 import { normalizeAuthIndex, type KeyUsageBucket } from '@/utils/usage';
 import {
   normalizePlanType,
@@ -73,14 +74,16 @@ import {
   readAuthFilesUiState,
   writeAuthFilesUiState,
   type AuthFilesSortMode,
+  type AuthFilesUiState,
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
-import type { AuthFileItem } from '@/types';
+import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
 import styles from './AuthFilesPage.module.scss';
 
 const DEFAULT_REGULAR_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [3, 6, 9, 12, 15, 18];
 const AUTH_FILE_SKELETON_MAX = 12;
+const LIST_PROGRESS_HIDE_DELAY_MS = 200;
 
 const getAuthFileCardEnterStyle = (index: number): CSSProperties =>
   ({
@@ -94,20 +97,38 @@ const EMPTY_AUTH_FILE_USAGE_STATS: KeyUsageBucket = {
   totalCost: 0,
   pricedRequests: 0,
 };
+const EMPTY_AUTH_FILE_TYPE_COUNTS: Record<string, number> = { all: 0 };
+const EMPTY_AUTH_FILE_MAP = new Map<string, AuthFileItem>();
+const EMPTY_AUTH_FILE_ITEMS: AuthFileItem[] = [];
+const EMPTY_AUTH_FILE_NAMES: string[] = [];
+const EMPTY_AUTH_FILE_PROVIDER_TYPES: string[] = [];
+const ALL_AUTH_FILE_TYPES = ['all'];
+const EMPTY_CLAUDE_QUOTA: Record<string, ClaudeQuotaState> = {};
+const EMPTY_CODEX_QUOTA: Record<string, CodexQuotaState> = {};
+let previousFileUsageStatsByName: Map<string, KeyUsageBucket> | null = null;
 
-const scheduleAuthFilesDeferredTask = (callback: () => void): (() => void) => {
-  if (typeof window === 'undefined') {
-    callback();
-    return () => {};
+const keyUsageBucketMapsEqual = (
+  left: Map<string, KeyUsageBucket>,
+  right: Map<string, KeyUsageBucket>
+): boolean => {
+  if (left.size !== right.size) return false;
+
+  for (const [key, value] of left) {
+    if (right.get(key) !== value) return false;
   }
 
-  if (typeof window.requestIdleCallback === 'function') {
-    const idleId = window.requestIdleCallback(callback, { timeout: 2_000 });
-    return () => window.cancelIdleCallback?.(idleId);
+  return true;
+};
+
+const reuseFileUsageStatsByName = (
+  map: Map<string, KeyUsageBucket>
+): Map<string, KeyUsageBucket> => {
+  if (previousFileUsageStatsByName && keyUsageBucketMapsEqual(map, previousFileUsageStatsByName)) {
+    return previousFileUsageStatsByName;
   }
 
-  const timeoutId = window.setTimeout(callback, 400);
-  return () => window.clearTimeout(timeoutId);
+  previousFileUsageStatsByName = map;
+  return map;
 };
 
 const escapeWildcardSearchSegment = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -118,52 +139,82 @@ const buildWildcardSearch = (value: string): RegExp | null => {
   return new RegExp(pattern, 'i');
 };
 
-function AuthFilesSkeletonGrid({ count, quotaManaged }: { count: number; quotaManaged: boolean }) {
-  const items = Array.from({ length: Math.min(Math.max(count, 3), AUTH_FILE_SKELETON_MAX) });
+const buildProviderTypesKey = (typeCounts: Record<string, number> | undefined): string =>
+  typeCounts
+    ? Object.keys(typeCounts)
+        .filter((type) => type !== 'all')
+        .join('\n')
+    : '';
+
+const filterSelectableAuthFiles = (files: AuthFileItem[]): AuthFileItem[] => {
+  const selectable = files.filter((file) => !isRuntimeOnlyAuthFile(file));
+  return selectable.length > 0 ? selectable : EMPTY_AUTH_FILE_ITEMS;
+};
+
+function AuthFilesSkeletonGrid({
+  count,
+  quotaManaged,
+  loadingLabel,
+}: {
+  count: number;
+  quotaManaged: boolean;
+  loadingLabel: string;
+}) {
+  const items = useMemo(
+    () => Array.from({ length: Math.min(Math.max(count, 3), AUTH_FILE_SKELETON_MAX) }),
+    [count]
+  );
 
   return (
-    <div
-      className={`${styles.fileGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''} ${styles.skeletonGrid}`}
-      aria-hidden="true"
-    >
-      {items.map((_, index) => (
-        <div
-          key={index}
-          className={styles.fileCardSkeleton}
-          style={getAuthFileCardEnterStyle(index)}
-        >
-          <div className={styles.skeletonHeader}>
-            <span className={`${styles.skeletonBlock} ${styles.skeletonAvatar}`} />
-            <span className={`${styles.skeletonBlock} ${styles.skeletonTitle}`} />
-            <span className={`${styles.skeletonBlock} ${styles.skeletonBadge}`} />
+    <>
+      <span className={styles.visuallyHidden} role="status" aria-busy="true">
+        {loadingLabel}
+      </span>
+      <div
+        className={`${styles.fileGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''} ${styles.skeletonGrid}`}
+        aria-hidden="true"
+      >
+        {items.map((_, index) => (
+          <div
+            key={index}
+            className={styles.fileCardSkeleton}
+            style={getAuthFileCardEnterStyle(index)}
+          >
+            <div className={styles.skeletonHeader}>
+              <span className={`${styles.skeletonBlock} ${styles.skeletonAvatar}`} />
+              <span className={`${styles.skeletonBlock} ${styles.skeletonTitle}`} />
+              <span className={`${styles.skeletonBlock} ${styles.skeletonBadge}`} />
+            </div>
+            <div className={styles.skeletonMeta}>
+              <span className={styles.skeletonBlock} />
+              <span className={styles.skeletonBlock} />
+              <span className={styles.skeletonBlock} />
+            </div>
+            <div className={styles.skeletonStats}>
+              {Array.from({ length: 4 }).map((__, statIndex) => (
+                <span key={statIndex} className={styles.skeletonBlock} />
+              ))}
+            </div>
+            <div className={styles.skeletonActions}>
+              <span className={styles.skeletonBlock} />
+              <span className={styles.skeletonBlock} />
+              <span className={styles.skeletonBlock} />
+            </div>
           </div>
-          <div className={styles.skeletonMeta}>
-            <span className={styles.skeletonBlock} />
-            <span className={styles.skeletonBlock} />
-            <span className={styles.skeletonBlock} />
-          </div>
-          <div className={styles.skeletonStats}>
-            {Array.from({ length: 4 }).map((__, statIndex) => (
-              <span key={statIndex} className={styles.skeletonBlock} />
-            ))}
-          </div>
-          <div className={styles.skeletonActions}>
-            <span className={styles.skeletonBlock} />
-            <span className={styles.skeletonBlock} />
-            <span className={styles.skeletonBlock} />
-          </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   );
 }
 
 const compareAuthFilesByName = (left: AuthFileItem, right: AuthFileItem): number =>
   left.name.localeCompare(right.name);
 
-const resolveQuotaRefreshTarget = (
-  file: AuthFileItem
-): { file: AuthFileItem; quotaType: QuotaProviderType } | null => {
+const EMPTY_SORT_SNAPSHOT: Record<string, AuthFileSortSnapshot> = {};
+type AuthFileQuotaRefreshTarget = { file: AuthFileItem; quotaType: QuotaProviderType };
+const EMPTY_QUOTA_REFRESH_TARGETS: AuthFileQuotaRefreshTarget[] = [];
+
+const resolveQuotaRefreshTarget = (file: AuthFileItem): AuthFileQuotaRefreshTarget | null => {
   if (isRuntimeOnlyAuthFile(file) || file.disabled) return null;
 
   const provider = resolveAuthProvider(file);
@@ -172,12 +223,14 @@ const resolveQuotaRefreshTarget = (
   return { file, quotaType: provider as QuotaProviderType };
 };
 
-const resolveQuotaRefreshTargets = (files: AuthFileItem[]) =>
-  files.reduce<Array<{ file: AuthFileItem; quotaType: QuotaProviderType }>>((items, file) => {
+const resolveQuotaRefreshTargets = (files: AuthFileItem[]): AuthFileQuotaRefreshTarget[] => {
+  const targets = files.reduce<AuthFileQuotaRefreshTarget[]>((items, file) => {
     const target = resolveQuotaRefreshTarget(file);
     if (target) items.push(target);
     return items;
   }, []);
+  return targets.length > 0 ? targets : EMPTY_QUOTA_REFRESH_TARGETS;
+};
 
 const countAuthFilesByType = (files: AuthFileItem[]): Record<string, number> => {
   const counts: Record<string, number> = { all: files.length };
@@ -186,6 +239,18 @@ const countAuthFilesByType = (files: AuthFileItem[]): Record<string, number> => 
     counts[file.type] = (counts[file.type] || 0) + 1;
   });
   return counts;
+};
+
+const areAuthFileTypeCountsEqual = (
+  left: Record<string, number> | null | undefined,
+  right: Record<string, number> | null | undefined
+) => {
+  if (left === right) return true;
+  if (!left || !right) return false;
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) return false;
+  return leftKeys.every((key) => left[key] === right[key]);
 };
 
 type AuthFileSortSnapshot = {
@@ -316,6 +381,7 @@ export function AuthFilesPage() {
   const [websocketsUpdating, setWebsocketsUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
+  const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
   const [scopedTypeCounts, setScopedTypeCounts] = useState<{
     key: string;
     counts: Record<string, number>;
@@ -331,6 +397,7 @@ export function AuthFilesPage() {
   const previousSelectionActiveRef = useRef(false);
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
+  const pageMountedRef = useRef(true);
   const deferredSearch = useDeferredValue(search);
   const normalizedSearch = search.trim();
   const deferredNormalizedSearch = deferredSearch.trim();
@@ -345,6 +412,23 @@ export function AuthFilesPage() {
   const serverListProblemOnly = serverPaginationEnabled ? problemOnly : undefined;
   const serverListDisabledOnly = serverPaginationEnabled ? disabledOnly : undefined;
   const serverListPremiumOnly = serverPaginationEnabled ? premiumOnly : undefined;
+  const authFilesUiState = useMemo<AuthFilesUiState>(
+    () => ({
+      filter,
+      problemOnly,
+      disabledOnly,
+      premiumOnly,
+      search,
+      page,
+      pageSize,
+      sortMode,
+    }),
+    [disabledOnly, filter, page, pageSize, premiumOnly, problemOnly, search, sortMode]
+  );
+  const debouncedAuthFilesUiState = useDebounce<AuthFilesUiState | null>(
+    uiStateHydrated ? authFilesUiState : null,
+    300
+  );
   const authFilesListOptions = useMemo<AuthFilesListOptions>(() => {
     if (!serverPaginationEnabled) {
       return { codexSubscription: 'cache', summary: true };
@@ -408,10 +492,18 @@ export function AuthFilesPage() {
   } = useAuthFilesData({ refreshKeyStats, listOptions: authFilesListOptions });
 
   const statusBarCache = useAuthFilesStatusBarCache(files, usageDetails);
-  const providerTypesFromListMeta = useMemo(
-    () => Object.keys(listMeta.typeCounts ?? {}).filter((type) => type !== 'all'),
+  const providerTypesFromListMetaKey = useMemo(
+    () => buildProviderTypesKey(listMeta.typeCounts),
     [listMeta.typeCounts]
   );
+  const providerTypesFromListMeta = useMemo(
+    () =>
+      providerTypesFromListMetaKey
+        ? providerTypesFromListMetaKey.split('\n')
+        : EMPTY_AUTH_FILE_PROVIDER_TYPES,
+    [providerTypesFromListMetaKey]
+  );
+  const oauthViewMode = belowFoldCardsReady ? viewMode : 'list';
 
   const {
     excluded,
@@ -428,7 +520,11 @@ export function AuthFilesPage() {
     handleToggleFork,
     handleRenameAlias,
     handleDeleteAlias,
-  } = useAuthFilesOauth({ viewMode, files, providerTypes: providerTypesFromListMeta });
+  } = useAuthFilesOauth({
+    viewMode: oauthViewMode,
+    files,
+    providerTypes: providerTypesFromListMeta,
+  });
 
   const {
     modelsModalOpen,
@@ -456,8 +552,20 @@ export function AuthFilesPage() {
   });
 
   const disableControls = connectionStatus !== 'connected';
-  const claudeQuota = useQuotaStore((state) => state.claudeQuota);
-  const codexQuota = useQuotaStore((state) => state.codexQuota);
+  const needsPlanSources =
+    premiumOnly || (!listMeta.paginated && sortMode === 'subscription_expiry');
+  const selectClaudeQuotaForPlanSources = useCallback(
+    (state: ReturnType<typeof useQuotaStore.getState>) =>
+      needsPlanSources ? state.claudeQuota : EMPTY_CLAUDE_QUOTA,
+    [needsPlanSources]
+  );
+  const selectCodexQuotaForPlanSources = useCallback(
+    (state: ReturnType<typeof useQuotaStore.getState>) =>
+      needsPlanSources ? state.codexQuota : EMPTY_CODEX_QUOTA,
+    [needsPlanSources]
+  );
+  const claudeQuota = useQuotaStore(selectClaudeQuotaForPlanSources);
+  const codexQuota = useQuotaStore(selectCodexQuotaForPlanSources);
   const normalizedFilter = normalizeProviderKey(String(filter));
   const quotaFilterType: QuotaProviderType | null = QUOTA_PROVIDER_TYPES.has(
     normalizedFilter as QuotaProviderType
@@ -507,42 +615,19 @@ export function AuthFilesPage() {
   }, []);
 
   useEffect(() => {
-    if (!uiStateHydrated) return;
+    if (!debouncedAuthFilesUiState) return;
+    writeAuthFilesUiState(debouncedAuthFilesUiState);
+  }, [debouncedAuthFilesUiState]);
 
-    // 搜索/翻页等连续操作会频繁改变依赖；用 debounce 聚合 300ms 内的变化，减少 localStorage 同步开销。
-    const timeoutId = window.setTimeout(() => {
-      writeAuthFilesUiState({
-        filter,
-        problemOnly,
-        disabledOnly,
-        premiumOnly,
-        search,
-        page,
-        pageSize,
-        sortMode,
-      });
-    }, 300);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [
-    disabledOnly,
-    filter,
-    page,
-    pageSize,
-    premiumOnly,
-    problemOnly,
-    search,
-    sortMode,
-    uiStateHydrated,
-  ]);
+  const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
 
   useEffect(() => {
     const listBusy = loading || refreshing;
-    if (previousListBusyRef.current && !listBusy) {
+    if (displayOptionsActive && !listMeta.paginated && previousListBusyRef.current && !listBusy) {
       setDisplayFilterRefreshVersion((version) => version + 1);
     }
     previousListBusyRef.current = listBusy;
-  }, [loading, refreshing]);
+  }, [displayOptionsActive, listMeta.paginated, loading, refreshing]);
 
   const handleSortModeChange = useCallback(
     (value: string) => {
@@ -555,9 +640,13 @@ export function AuthFilesPage() {
 
   const handleHeaderRefresh = useCallback(async () => {
     await loadFiles({ codexSubscription: 'cache' });
-    scheduleAuthFilesDeferredTask(() => {
-      void Promise.allSettled([refreshKeyStats(), loadExcluded(), loadModelAlias()]);
-    });
+    scheduleIdleTask(
+      () => {
+        if (!pageMountedRef.current) return;
+        void Promise.allSettled([refreshKeyStats(), loadExcluded(), loadModelAlias()]);
+      },
+      { fallbackDelayMs: 400 }
+    );
   }, [loadFiles, refreshKeyStats, loadExcluded, loadModelAlias]);
 
   const handleToggleProblemOnly = useCallback(() => {
@@ -572,29 +661,58 @@ export function AuthFilesPage() {
     setPremiumOnly((prev) => !prev);
     setPage(1);
   }, []);
-  const handleSearchValue = useCallback((value: string) => {
-    setSearch(value);
-    setPage(1);
-  }, []);
+  const handleSearchValue = useCallback(
+    (value: string) => {
+      if (value === search) return;
+      setSearch(value);
+      setPage(1);
+    },
+    [search]
+  );
   const handleClearFilters = useCallback(() => {
+    if (
+      filter === 'all' &&
+      !problemOnly &&
+      !disabledOnly &&
+      !premiumOnly &&
+      search === '' &&
+      page === 1
+    ) {
+      return;
+    }
     setFilter('all');
     setProblemOnly(false);
     setDisabledOnly(false);
     setPremiumOnly(false);
     setSearch('');
     setPage(1);
-  }, []);
-  const handleFilterTagSelect = useCallback((value: string) => {
-    setFilter(value);
-    setPage(1);
-  }, []);
-  const handlePageSizeCommit = useCallback((next: number) => {
-    const clamped = clampCardPageSize(next);
-    setPageSize(clamped);
-    setPage(1);
-  }, []);
+  }, [disabledOnly, filter, page, premiumOnly, problemOnly, search]);
+  const handleFilterTagSelect = useCallback(
+    (value: string) => {
+      if (value === filter) return;
+      setFilter(value);
+      setPage(1);
+    },
+    [filter]
+  );
+  const handlePageSizeCommit = useCallback(
+    (next: number) => {
+      const clamped = clampCardPageSize(next);
+      if (clamped === pageSize) return;
+      setPageSize(clamped);
+      setPage(1);
+    },
+    [pageSize]
+  );
 
   useHeaderRefresh(handleHeaderRefresh);
+
+  useEffect(() => {
+    pageMountedRef.current = true;
+    return () => {
+      pageMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isCurrentLayer || !uiStateHydrated || serverSearchPending) return;
@@ -602,11 +720,26 @@ export function AuthFilesPage() {
   }, [isCurrentLayer, loadFiles, serverSearchPending, uiStateHydrated]);
 
   useEffect(() => {
+    if (!isCurrentLayer || !uiStateHydrated || belowFoldCardsReady) return undefined;
+
+    return scheduleIdleTask(
+      () => {
+        if (!pageMountedRef.current) return;
+        setBelowFoldCardsReady(true);
+      },
+      { fallbackDelayMs: 900 }
+    );
+  }, [belowFoldCardsReady, isCurrentLayer, uiStateHydrated]);
+
+  useEffect(() => {
     if (!isCurrentLayer || !uiStateHydrated) return undefined;
 
-    return scheduleAuthFilesDeferredTask(() => {
-      void Promise.allSettled([loadKeyStats(), loadExcluded(), loadModelAlias()]);
-    });
+    return scheduleIdleTask(
+      () => {
+        void Promise.allSettled([loadKeyStats(), loadExcluded(), loadModelAlias()]);
+      },
+      { fallbackDelayMs: 400 }
+    );
   }, [isCurrentLayer, loadExcluded, loadKeyStats, loadModelAlias, uiStateHydrated]);
 
   useInterval(
@@ -616,43 +749,47 @@ export function AuthFilesPage() {
     isCurrentLayer ? 240_000 : null
   );
 
+  const hasListMetaTypeCounts = Boolean(listMeta.typeCounts);
+  const existingTypesFromListMeta = useMemo(() => {
+    if (!hasListMetaTypeCounts) return null;
+    return providerTypesFromListMeta.length > 0
+      ? ['all', ...providerTypesFromListMeta]
+      : ALL_AUTH_FILE_TYPES;
+  }, [hasListMetaTypeCounts, providerTypesFromListMeta]);
+
   const existingTypes = useMemo(() => {
+    if (existingTypesFromListMeta) return existingTypesFromListMeta;
     const types = new Set<string>(['all']);
-    if (listMeta.typeCounts) {
-      Object.keys(listMeta.typeCounts).forEach((type) => {
-        if (type !== 'all') types.add(type);
-      });
-      return Array.from(types);
-    }
     files.forEach((file) => {
       if (file.type) {
         types.add(file.type);
       }
     });
     return Array.from(types);
-  }, [files, listMeta.typeCounts]);
+  }, [existingTypesFromListMeta, files]);
 
   const sortSnapshotByName = useMemo(() => {
+    // 服务端分页时排序由后端完成，本地不调用 compareAuthFiles，跳过全量 snapshot 计算。
+    if (listMeta.paginated) return EMPTY_SORT_SNAPSHOT;
     const snapshot: Record<string, AuthFileSortSnapshot> = {};
     files.forEach((file) => {
       snapshot[file.name] = getAuthFileSortSnapshot(file, planSources);
     });
     return snapshot;
-  }, [files, planSources]);
-
-  const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
+  }, [files, planSources, listMeta.paginated]);
 
   const matchesSupplementalDisplayFilters = useCallback(
     (file: (typeof files)[number]) => {
       if (disabledOnly && file.disabled !== true) {
         return false;
       }
-      if (premiumOnly && !serverPaginationEnabled && !hasPremiumAuthFilePlan(file, planSources)) {
+      // 服务端 premium_only 结果可能落后于认证文件最新状态，本地再兜底过滤一次。
+      if (premiumOnly && !hasPremiumAuthFilePlan(file, planSources)) {
         return false;
       }
       return true;
     },
-    [disabledOnly, planSources, premiumOnly, serverPaginationEnabled]
+    [disabledOnly, planSources, premiumOnly]
   );
   const matchesDisplayFilters = useCallback(
     (file: (typeof files)[number]) => {
@@ -666,29 +803,49 @@ export function AuthFilesPage() {
     },
     [matchesSupplementalDisplayFilters, problemOnly]
   );
+  const serverPaginated = listMeta.paginated;
+  const serverPageResultSettled = serverPaginated && !refreshing && !serverSearchPending;
+  const shouldApplyLocalDisplayFilters =
+    displayOptionsActive && (!serverPageResultSettled || premiumOnly);
   const currentFilesMatchingDisplayFilters = useMemo(
-    () => (displayOptionsActive ? files.filter(matchesDisplayFilters) : files),
-    [displayOptionsActive, files, matchesDisplayFilters]
+    () => (shouldApplyLocalDisplayFilters ? files.filter(matchesDisplayFilters) : files),
+    [files, matchesDisplayFilters, shouldApplyLocalDisplayFilters]
   );
   const currentDisplayFilterNames = useMemo(
-    () => currentFilesMatchingDisplayFilters.map((file) => file.name),
-    [currentFilesMatchingDisplayFilters]
+    () =>
+      displayOptionsActive && !serverPaginated
+        ? currentFilesMatchingDisplayFilters.map((file) => file.name)
+        : EMPTY_AUTH_FILE_NAMES,
+    [currentFilesMatchingDisplayFilters, displayOptionsActive, serverPaginated]
   );
   const currentDisplayFilterSortSnapshot = useMemo(() => {
-    if (!displayOptionsActive) return {};
+    if (!displayOptionsActive || serverPaginated) return EMPTY_SORT_SNAPSHOT;
     return Object.fromEntries(
       currentFilesMatchingDisplayFilters.map((file) => [
         file.name,
         sortSnapshotByName[file.name] ?? getAuthFileSortSnapshot(file, planSources),
       ])
     );
-  }, [currentFilesMatchingDisplayFilters, displayOptionsActive, planSources, sortSnapshotByName]);
+  }, [
+    currentFilesMatchingDisplayFilters,
+    displayOptionsActive,
+    planSources,
+    serverPaginated,
+    sortSnapshotByName,
+  ]);
   const currentDisplayFilterNamesRef = useRef<string[]>([]);
   const currentDisplayFilterSortSnapshotRef = useRef<Record<string, AuthFileSortSnapshot>>({});
   currentDisplayFilterNamesRef.current = currentDisplayFilterNames;
   currentDisplayFilterSortSnapshotRef.current = currentDisplayFilterSortSnapshot;
-  const fileByName = useMemo(() => new Map(files.map((file) => [file.name, file])), [files]);
-  const displayFilterSnapshotKey = displayOptionsActive
+  const shouldSnapshotDisplayFilters = displayOptionsActive && !serverPaginated;
+  const fileByName = useMemo(
+    () =>
+      shouldSnapshotDisplayFilters
+        ? new Map(files.map((file) => [file.name, file]))
+        : EMPTY_AUTH_FILE_MAP,
+    [files, shouldSnapshotDisplayFilters]
+  );
+  const displayFilterSnapshotKey = shouldSnapshotDisplayFilters
     ? [
         problemOnly ? 'problem' : 'normal',
         disabledOnly ? 'disabled' : 'any-status',
@@ -781,9 +938,16 @@ export function AuthFilesPage() {
       )
       .then((data) => {
         if (abortController.signal.aborted) return;
-        setScopedTypeCounts({
-          key: requestKey,
-          counts: countAuthFilesByType(data?.files ?? []),
+        // 优先用后端返回的 type_counts（summary 模式已包含），避免遍历完整 files 列表。
+        const counts = data?.type_counts ?? countAuthFilesByType(data?.files ?? []);
+        setScopedTypeCounts((current) => {
+          if (current?.key === requestKey && areAuthFileTypeCountsEqual(current.counts, counts)) {
+            return current;
+          }
+          return {
+            key: requestKey,
+            counts,
+          };
         });
       })
       .catch(() => {
@@ -794,9 +958,13 @@ export function AuthFilesPage() {
     return () => abortController.abort();
   }, [disabledOnly, displaySearch, premiumOnly, problemOnly, scopedTypeCountsKey]);
 
+  const needsLocalTypeCounts = scopedTypeCountsKey !== null || !listMeta.typeCounts;
   const localTypeCounts = useMemo(
-    () => countAuthFilesByType(filesMatchingDisplayFilters),
-    [filesMatchingDisplayFilters]
+    () =>
+      needsLocalTypeCounts
+        ? countAuthFilesByType(filesMatchingDisplayFilters)
+        : EMPTY_AUTH_FILE_TYPE_COUNTS,
+    [filesMatchingDisplayFilters, needsLocalTypeCounts]
   );
   const typeCounts = scopedTypeCountsKey
     ? scopedTypeCounts?.key === scopedTypeCountsKey
@@ -805,6 +973,8 @@ export function AuthFilesPage() {
     : (listMeta.typeCounts ?? localTypeCounts);
 
   const filtered = useMemo(() => {
+    if (serverPageResultSettled) return filesMatchingDisplayFilters;
+
     const normalizedTerm = displaySearch.toLowerCase();
 
     return filesMatchingDisplayFilters.filter((item) => {
@@ -819,11 +989,11 @@ export function AuthFilesPage() {
         });
       return matchType && matchSearch;
     });
-  }, [displaySearch, filesMatchingDisplayFilters, filter, wildcardSearch]);
+  }, [displaySearch, filesMatchingDisplayFilters, filter, serverPageResultSettled, wildcardSearch]);
 
   const sorted = useMemo(() => {
+    if (serverPaginated) return filtered;
     const copy = [...filtered];
-    if (listMeta.paginated) return copy;
 
     const activeSortSnapshot =
       displayFilterSnapshotKey && displayFilterSnapshot?.key === displayFilterSnapshotKey
@@ -835,16 +1005,16 @@ export function AuthFilesPage() {
     displayFilterSnapshot,
     displayFilterSnapshotKey,
     filtered,
-    listMeta.paginated,
     planSources,
+    serverPaginated,
     sortMode,
     sortSnapshotByName,
   ]);
 
-  const serverPaginated = listMeta.paginated;
   const listTotal = serverPaginated ? listMeta.total : sorted.length;
   const filterTagTypeCounts = useMemo(() => {
     if (!scopedTypeCountsKey) return typeCounts;
+    if (typeCounts[filter] === listTotal) return typeCounts;
 
     const counts = { ...typeCounts };
     counts[filter] = listTotal;
@@ -853,7 +1023,10 @@ export function AuthFilesPage() {
   const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * pageSize;
-  const pageItems = serverPaginated ? sorted : sorted.slice(start, start + pageSize);
+  const pageItems = useMemo(
+    () => (serverPaginated ? sorted : sorted.slice(start, start + pageSize)),
+    [pageSize, serverPaginated, sorted, start]
+  );
   const listUpdating = refreshing || serverSearchPending;
   const showInitialLoading = loading && pageItems.length === 0;
   const showListProgress = listUpdating && pageItems.length > 0;
@@ -866,23 +1039,21 @@ export function AuthFilesPage() {
     pageItems.forEach((file) => {
       map.set(file.name, resolveAuthFileUsageStats(file, keyUsageStats));
     });
-    return map;
+
+    return reuseFileUsageStatsByName(map);
   }, [pageItems, keyUsageStats]);
   useEffect(() => {
     if (page > totalPages) {
       setPage(totalPages);
     }
   }, [page, totalPages]);
-  const selectablePageItems = useMemo(
-    () => pageItems.filter((file) => !isRuntimeOnlyAuthFile(file)),
-    [pageItems]
-  );
+  const selectablePageItems = useMemo(() => filterSelectableAuthFiles(pageItems), [pageItems]);
   const pageQuotaRefreshItems = useMemo(() => resolveQuotaRefreshTargets(pageItems), [pageItems]);
-  const selectableFilteredItems = useMemo(
-    () => sorted.filter((file) => !isRuntimeOnlyAuthFile(file)),
-    [sorted]
+  const selectableFilteredItems = useMemo(() => filterSelectableAuthFiles(sorted), [sorted]);
+  const selectedNames = useMemo(
+    () => (selectedFiles.size > 0 ? Array.from(selectedFiles) : EMPTY_AUTH_FILE_NAMES),
+    [selectedFiles]
   );
-  const selectedNames = useMemo(() => Array.from(selectedFiles), [selectedFiles]);
   const selectedHasStatusUpdating = useMemo(
     () => selectedNames.some((name) => statusUpdating[name] === true),
     [selectedNames, statusUpdating]
@@ -895,29 +1066,15 @@ export function AuthFilesPage() {
     selectedHasStatusUpdating;
   const pageQuotaRefreshDisabled =
     disableControls || loading || listUpdating || pageQuotaRefreshing || pageItems.length === 0;
-  const [showListProgressVisual, setShowListProgressVisual] = useState(false);
+  const showListProgressVisual = useDelayedBoolean(showListProgress, LIST_PROGRESS_HIDE_DELAY_MS);
   const hasActiveFilters =
     filter !== 'all' || normalizedSearch.length > 0 || problemOnly || disabledOnly || premiumOnly;
-  useEffect(() => {
-    if (showListProgress) {
-      setShowListProgressVisual(true);
-      return undefined;
-    }
-
-    if (!showListProgressVisual) return undefined;
-    const timer = window.setTimeout(() => {
-      setShowListProgressVisual(false);
-    }, 200);
-    return () => window.clearTimeout(timer);
-  }, [showListProgress, showListProgressVisual]);
 
   const copyTextWithNotification = useCallback(
     async (text: string) => {
       const copied = await copyToClipboard(text);
       showNotification(
-        copied
-          ? t('notification.link_copied', { defaultValue: 'Copied to clipboard' })
-          : t('notification.copy_failed', { defaultValue: 'Copy failed' }),
+        copied ? t('notification.link_copied') : t('notification.copy_failed'),
         copied ? 'success' : 'error'
       );
     },
@@ -928,9 +1085,10 @@ export function AuthFilesPage() {
     const fileName = file.name;
     if (accessTokenCopying[fileName]) return;
 
-    setAccessTokenCopying((prev) => ({ ...prev, [fileName]: true }));
+    setAccessTokenCopying((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
     try {
       const json = await authFilesApi.downloadJsonObject(fileName);
+      if (!pageMountedRef.current) return;
       const accessToken = extractAuthFileAccessToken(json);
       if (!accessToken) {
         showNotification(t('auth_files.access_token_empty'), 'warning');
@@ -938,14 +1096,18 @@ export function AuthFilesPage() {
       }
       await copyTextWithNotification(accessToken);
     } catch (error) {
+      if (!pageMountedRef.current) return;
       const errorMessage = error instanceof Error ? error.message : String(error);
       showNotification(`${t('notification.copy_failed')}: ${errorMessage}`, 'error');
     } finally {
-      setAccessTokenCopying((prev) => {
-        const next = { ...prev };
-        delete next[fileName];
-        return next;
-      });
+      if (pageMountedRef.current) {
+        setAccessTokenCopying((prev) => {
+          if (!prev[fileName]) return prev;
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
     }
   });
 
@@ -953,24 +1115,30 @@ export function AuthFilesPage() {
     const fileName = file.name;
     if (disableControls || priorityUpdating[fileName]) return;
 
-    setPriorityUpdating((prev) => ({ ...prev, [fileName]: true }));
+    setPriorityUpdating((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
     try {
       const response = await authFilesApi.patchFields({ name: fileName, priority });
+      if (!pageMountedRef.current) return;
       applyLocalFilePatch(fileName, {
         ...response.file,
         priority: response.file?.priority ?? priority,
       });
       await refreshFilesFromServer();
+      if (!pageMountedRef.current) return;
       showNotification(t('auth_files.priority_update_success', { priority }), 'success');
     } catch (error) {
+      if (!pageMountedRef.current) return;
       const errorMessage = error instanceof Error ? error.message : String(error);
       showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
     } finally {
-      setPriorityUpdating((prev) => {
-        const next = { ...prev };
-        delete next[fileName];
-        return next;
-      });
+      if (pageMountedRef.current) {
+        setPriorityUpdating((prev) => {
+          if (!prev[fileName]) return prev;
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
     }
   });
 
@@ -978,17 +1146,19 @@ export function AuthFilesPage() {
     const fileName = file.name;
     if (disableControls || websocketsUpdating[fileName]) return;
 
-    setWebsocketsUpdating((prev) => ({ ...prev, [fileName]: true }));
+    setWebsocketsUpdating((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
     try {
       const response = await authFilesApi.patchFields({
         name: fileName,
         websockets: enabled,
       });
+      if (!pageMountedRef.current) return;
       applyLocalFilePatch(fileName, {
         ...response.file,
         websockets: response.file?.websockets ?? response.file?.websocket ?? enabled,
       });
       await refreshFilesFromServer();
+      if (!pageMountedRef.current) return;
       showNotification(
         enabled
           ? t('auth_files.websockets_enabled_success', { name: fileName })
@@ -996,14 +1166,18 @@ export function AuthFilesPage() {
         'success'
       );
     } catch (error) {
+      if (!pageMountedRef.current) return;
       const errorMessage = error instanceof Error ? error.message : String(error);
       showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
     } finally {
-      setWebsocketsUpdating((prev) => {
-        const next = { ...prev };
-        delete next[fileName];
-        return next;
-      });
+      if (pageMountedRef.current) {
+        setWebsocketsUpdating((prev) => {
+          if (!prev[fileName]) return prev;
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
     }
   });
 
@@ -1057,10 +1231,12 @@ export function AuthFilesPage() {
       const authFileUpdates = results.flatMap((result) =>
         result.status === 'success' && result.authFile ? [result.authFile] : []
       );
+      if (!pageMountedRef.current) return;
       applyLocalFileUpdates(authFileUpdates);
       if (authFileUpdates.length > 0) {
         await refreshFilesFromServer();
       }
+      if (!pageMountedRef.current) return;
 
       const resultCounts = results.reduce(
         (counts, result) => {
@@ -1087,7 +1263,9 @@ export function AuthFilesPage() {
         showNotification(t('auth_files.batch_quota_refresh_partial', resultCounts), 'warning');
       }
     } finally {
-      setPageQuotaRefreshing(false);
+      if (pageMountedRef.current) {
+        setPageQuotaRefreshing(false);
+      }
     }
   }, [
     applyLocalFileUpdates,
@@ -1117,6 +1295,10 @@ export function AuthFilesPage() {
     [filter, navigate]
   );
 
+  const handleAddExcluded = useCallback(() => {
+    openExcludedEditor();
+  }, [openExcludedEditor]);
+
   const openModelAliasEditor = useCallback(
     (provider?: string) => {
       const providerValue = (provider || (filter !== 'all' ? String(filter) : '')).trim();
@@ -1131,6 +1313,10 @@ export function AuthFilesPage() {
     },
     [filter, navigate]
   );
+
+  const handleAddModelAlias = useCallback(() => {
+    openModelAliasEditor();
+  }, [openModelAliasEditor]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1236,20 +1422,149 @@ export function AuthFilesPage() {
   const showTitleCountBadge =
     listTotal > 0 || displayOptionsActive || filter !== 'all' || displaySearch.length > 0;
 
-  const titleNode = (
-    <div className={styles.titleWrapper}>
-      <span>{t('auth_files.title_section')}</span>
-      {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
-    </div>
+  const titleNode = useMemo(
+    () => (
+      <div className={styles.titleWrapper}>
+        <span>{t('auth_files.title_section')}</span>
+        {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
+      </div>
+    ),
+    [listTotal, showTitleCountBadge, t]
   );
 
-  const deleteAllButtonLabel = problemOnly
-    ? filter === 'all'
-      ? t('auth_files.delete_problem_button')
-      : t('auth_files.delete_problem_button_with_type', { type: getTypeLabel(t, filter) })
-    : filter === 'all'
-      ? t('auth_files.delete_all_button')
-      : `${t('common.delete')} ${getTypeLabel(t, filter)}`;
+  const deleteAllButtonLabel = useMemo(
+    () =>
+      problemOnly
+        ? filter === 'all'
+          ? t('auth_files.delete_problem_button')
+          : t('auth_files.delete_problem_button_with_type', { type: getTypeLabel(t, filter) })
+        : filter === 'all'
+          ? t('auth_files.delete_all_button')
+          : `${t('common.delete')} ${getTypeLabel(t, filter)}`,
+    [filter, problemOnly, t]
+  );
+
+  const handleDeleteAllClick = useCallback(() => {
+    handleDeleteAll({
+      filter,
+      problemOnly,
+      matchDisplayFilter:
+        disabledOnly || premiumOnly ? matchesSupplementalDisplayFilters : undefined,
+      onResetFilterToAll: () => setFilter('all'),
+      onResetProblemOnly: () => setProblemOnly(false),
+    });
+  }, [
+    disabledOnly,
+    filter,
+    handleDeleteAll,
+    matchesSupplementalDisplayFilters,
+    premiumOnly,
+    problemOnly,
+  ]);
+
+  const handlePreviousPage = useCallback(() => {
+    setPage((prev) => Math.max(1, Math.min(prev, currentPage) - 1));
+  }, [currentPage]);
+
+  const handleNextPage = useCallback(() => {
+    setPage((prev) => Math.min(totalPages, Math.max(prev, currentPage) + 1));
+  }, [currentPage, totalPages]);
+
+  const handleSelectPageItems = useCallback(() => {
+    selectAllVisible(pageItems);
+  }, [pageItems, selectAllVisible]);
+
+  const handleSelectFilteredItems = useCallback(() => {
+    selectAllVisible(sorted);
+  }, [selectAllVisible, sorted]);
+
+  const handleInvertPageItems = useCallback(() => {
+    invertVisibleSelection(pageItems);
+  }, [invertVisibleSelection, pageItems]);
+
+  const handleBatchDownload = useCallback(() => {
+    void batchDownload(selectedNames);
+  }, [batchDownload, selectedNames]);
+
+  const handleBatchEnable = useCallback(() => {
+    void batchSetStatus(selectedNames, true);
+  }, [batchSetStatus, selectedNames]);
+
+  const handleBatchDisable = useCallback(() => {
+    void batchSetStatus(selectedNames, false);
+  }, [batchSetStatus, selectedNames]);
+
+  const handleBatchDelete = useCallback(() => {
+    batchDelete(selectedNames);
+  }, [batchDelete, selectedNames]);
+
+  const authFileCardNodes = useMemo(
+    () =>
+      pageItems.map((file, index) => {
+        const authIndexKey = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
+        const statusData =
+          (authIndexKey ? statusBarCache.get(authIndexKey) : undefined) ??
+          statusBarCache.get(file.name) ??
+          EMPTY_AUTH_FILE_STATUS_BAR_DATA;
+        const fileUsageStats = fileUsageStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_USAGE_STATS;
+
+        return (
+          <AuthFileCard
+            key={file.name}
+            file={file}
+            selected={selectedFiles.has(file.name)}
+            resolvedTheme={resolvedTheme}
+            disableControls={disableControls || listUpdating}
+            deleting={deleting === file.name}
+            statusUpdating={statusUpdating[file.name] === true}
+            accessTokenCopying={accessTokenCopying[file.name] === true}
+            priorityUpdating={priorityUpdating[file.name] === true}
+            websocketsUpdating={websocketsUpdating[file.name] === true}
+            quotaFilterType={quotaFilterType}
+            fileUsageStats={fileUsageStats}
+            statusData={statusData}
+            enterDelayMs={Math.min(index, 7) * 12}
+            onShowModels={showModels}
+            onCopyName={copyTextWithNotification}
+            onDownload={handleDownload}
+            onCopyAccessToken={handleCopyAccessToken}
+            onPriorityChange={handlePriorityChange}
+            onWebsocketsChange={handleWebsocketsChange}
+            onOpenPrefixProxyEditor={openPrefixProxyEditor}
+            onAuthFileUpdated={handleAuthFileUpdated}
+            onDelete={handleDelete}
+            onToggleStatus={handleStatusToggle}
+            onToggleSelect={toggleSelect}
+          />
+        );
+      }),
+    [
+      accessTokenCopying,
+      copyTextWithNotification,
+      deleting,
+      disableControls,
+      fileUsageStatsByName,
+      handleAuthFileUpdated,
+      handleCopyAccessToken,
+      handleDelete,
+      handleDownload,
+      handlePriorityChange,
+      handleStatusToggle,
+      handleWebsocketsChange,
+      listUpdating,
+      openPrefixProxyEditor,
+      pageItems,
+      priorityUpdating,
+      quotaFilterType,
+      resolvedTheme,
+      selectedFiles,
+      showModels,
+      statusBarCache,
+      statusUpdating,
+      toggleSelect,
+      websocketsUpdating,
+    ]
+  );
 
   return (
     <div className={styles.container}>
@@ -1283,16 +1598,7 @@ export function AuthFilesPage() {
               variant="danger"
               size="sm"
               className={`${styles.headerActionButton} ${styles.headerActionDanger}`}
-              onClick={() =>
-                handleDeleteAll({
-                  filter,
-                  problemOnly,
-                  matchDisplayFilter:
-                    disabledOnly || premiumOnly ? matchesSupplementalDisplayFilters : undefined,
-                  onResetFilterToAll: () => setFilter('all'),
-                  onResetProblemOnly: () => setProblemOnly(false),
-                })
-              }
+              onClick={handleDeleteAllClick}
               disabled={disableControls || loading || refreshing || deletingAll}
               loading={deletingAll}
             >
@@ -1302,6 +1608,7 @@ export function AuthFilesPage() {
             <input
               ref={fileInputRef}
               type="file"
+              aria-label={t('auth_files.upload_button')}
               accept=".json,application/json"
               multiple
               style={{ display: 'none' }}
@@ -1310,7 +1617,11 @@ export function AuthFilesPage() {
           </div>
         }
       >
-        {error && <div className={styles.errorBox}>{error}</div>}
+        {error && (
+          <div className={styles.errorBox} role="alert">
+            {error}
+          </div>
+        )}
 
         <div className={styles.filterSection}>
           <FilterTagsRail
@@ -1409,7 +1720,11 @@ export function AuthFilesPage() {
                 aria-hidden="true"
               />
               {showInitialLoading ? (
-                <AuthFilesSkeletonGrid count={pageSize} quotaManaged={Boolean(quotaFilterType)} />
+                <AuthFilesSkeletonGrid
+                  count={pageSize}
+                  quotaManaged={Boolean(quotaFilterType)}
+                  loadingLabel={t('common.loading')}
+                />
               ) : pageItems.length === 0 ? (
                 <EmptyState
                   title={t('auth_files.search_empty_title')}
@@ -1419,46 +1734,7 @@ export function AuthFilesPage() {
                 <div
                   className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
                 >
-                  {pageItems.map((file, index) => {
-                    const authIndexKey = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
-                    const statusData =
-                      (authIndexKey ? statusBarCache.get(authIndexKey) : undefined) ??
-                      statusBarCache.get(file.name) ??
-                      EMPTY_AUTH_FILE_STATUS_BAR_DATA;
-                    // 预计算的 usage bucket，引用稳定时 React.memo 命中
-                    const fileUsageStats =
-                      fileUsageStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_USAGE_STATS;
-
-                    return (
-                      <AuthFileCard
-                        key={file.name}
-                        file={file}
-                        selected={selectedFiles.has(file.name)}
-                        resolvedTheme={resolvedTheme}
-                        disableControls={disableControls || listUpdating}
-                        deleting={deleting === file.name}
-                        statusUpdating={statusUpdating[file.name] === true}
-                        accessTokenCopying={accessTokenCopying[file.name] === true}
-                        priorityUpdating={priorityUpdating[file.name] === true}
-                        websocketsUpdating={websocketsUpdating[file.name] === true}
-                        quotaFilterType={quotaFilterType}
-                        fileUsageStats={fileUsageStats}
-                        statusData={statusData}
-                        enterDelayMs={Math.min(index, 7) * 12}
-                        onShowModels={showModels}
-                        onCopyName={copyTextWithNotification}
-                        onDownload={handleDownload}
-                        onCopyAccessToken={handleCopyAccessToken}
-                        onPriorityChange={handlePriorityChange}
-                        onWebsocketsChange={handleWebsocketsChange}
-                        onOpenPrefixProxyEditor={openPrefixProxyEditor}
-                        onAuthFileUpdated={handleAuthFileUpdated}
-                        onDelete={handleDelete}
-                        onToggleStatus={handleStatusToggle}
-                        onToggleSelect={toggleSelect}
-                      />
-                    );
-                  })}
+                  {authFileCardNodes}
                 </div>
               )}
             </div>
@@ -1468,7 +1744,7 @@ export function AuthFilesPage() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setPage(Math.max(1, currentPage - 1))}
+                  onClick={handlePreviousPage}
                   disabled={currentPage <= 1}
                 >
                   {t('auth_files.pagination_prev')}
@@ -1483,7 +1759,7 @@ export function AuthFilesPage() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={handleNextPage}
                   disabled={currentPage >= totalPages}
                 >
                   {t('auth_files.pagination_next')}
@@ -1494,31 +1770,39 @@ export function AuthFilesPage() {
         </div>
       </Card>
 
-      <OAuthExcludedCard
-        disableControls={disableControls}
-        excludedError={excludedError}
-        excluded={excluded}
-        onAdd={() => openExcludedEditor()}
-        onEdit={openExcludedEditor}
-        onDelete={deleteExcluded}
-      />
+      {belowFoldCardsReady && (
+        <>
+          <div className={styles.belowFoldCard}>
+            <OAuthExcludedCard
+              disableControls={disableControls}
+              excludedError={excludedError}
+              excluded={excluded}
+              onAdd={handleAddExcluded}
+              onEdit={openExcludedEditor}
+              onDelete={deleteExcluded}
+            />
+          </div>
 
-      <OAuthModelAliasCard
-        disableControls={disableControls}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        onAdd={() => openModelAliasEditor()}
-        onEditProvider={openModelAliasEditor}
-        onDeleteProvider={deleteModelAlias}
-        modelAliasError={modelAliasError}
-        modelAlias={modelAlias}
-        allProviderModels={allProviderModels}
-        onUpdate={handleMappingUpdate}
-        onDeleteLink={handleDeleteLink}
-        onToggleFork={handleToggleFork}
-        onRenameAlias={handleRenameAlias}
-        onDeleteAlias={handleDeleteAlias}
-      />
+          <div className={styles.belowFoldCard}>
+            <OAuthModelAliasCard
+              disableControls={disableControls}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onAdd={handleAddModelAlias}
+              onEditProvider={openModelAliasEditor}
+              onDeleteProvider={deleteModelAlias}
+              modelAliasError={modelAliasError}
+              modelAlias={modelAlias}
+              allProviderModels={allProviderModels}
+              onUpdate={handleMappingUpdate}
+              onDeleteLink={handleDeleteLink}
+              onToggleFork={handleToggleFork}
+              onRenameAlias={handleRenameAlias}
+              onDeleteAlias={handleDeleteAlias}
+            />
+          </div>
+        </>
+      )}
 
       <AuthFileModelsModal
         open={modelsModalOpen}
@@ -1554,7 +1838,7 @@ export function AuthFilesPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => selectAllVisible(pageItems)}
+                    onClick={handleSelectPageItems}
                     disabled={listUpdating || selectablePageItems.length === 0}
                   >
                     {t('auth_files.batch_select_page')}
@@ -1562,7 +1846,7 @@ export function AuthFilesPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => selectAllVisible(sorted)}
+                    onClick={handleSelectFilteredItems}
                     disabled={listUpdating || selectableFilteredItems.length === 0}
                   >
                     {t('auth_files.batch_select_filtered')}
@@ -1570,7 +1854,7 @@ export function AuthFilesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => invertVisibleSelection(pageItems)}
+                    onClick={handleInvertPageItems}
                     disabled={listUpdating || selectablePageItems.length === 0}
                   >
                     {t('auth_files.batch_invert_page')}
@@ -1583,14 +1867,14 @@ export function AuthFilesPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => void batchDownload(selectedNames)}
+                    onClick={handleBatchDownload}
                     disabled={disableControls || listUpdating || selectedNames.length === 0}
                   >
                     {t('auth_files.batch_download')}
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => batchSetStatus(selectedNames, true)}
+                    onClick={handleBatchEnable}
                     disabled={batchStatusButtonsDisabled}
                   >
                     {t('auth_files.batch_enable')}
@@ -1598,7 +1882,7 @@ export function AuthFilesPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => batchSetStatus(selectedNames, false)}
+                    onClick={handleBatchDisable}
                     disabled={batchStatusButtonsDisabled}
                   >
                     {t('auth_files.batch_disable')}
@@ -1606,7 +1890,7 @@ export function AuthFilesPage() {
                   <Button
                     variant="danger"
                     size="sm"
-                    onClick={() => batchDelete(selectedNames)}
+                    onClick={handleBatchDelete}
                     disabled={disableControls || listUpdating || selectedNames.length === 0}
                   >
                     {t('common.delete')}

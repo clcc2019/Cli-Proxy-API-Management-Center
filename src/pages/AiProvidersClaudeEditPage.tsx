@@ -332,7 +332,7 @@ export function AiProvidersClaudeEditPage() {
 
             <div className={styles.modelConfigSection}>
               <div className={styles.modelConfigHeader}>
-                <label className={styles.modelConfigTitle}>{t('ai_providers.claude_models_label')}</label>
+                <span className={styles.modelConfigTitle}>{t('ai_providers.claude_models_label')}</span>
                 <div className={styles.modelConfigToolbar}>
                   <Button
                     variant="secondary"
@@ -377,7 +377,7 @@ export function AiProvidersClaudeEditPage() {
 
               <div className={styles.modelTestPanel}>
                 <div className={styles.modelTestMeta}>
-                  <label className={styles.modelTestLabel}>{t('ai_providers.claude_test_title')}</label>
+                  <span className={styles.modelTestLabel}>{t('ai_providers.claude_test_title')}</span>
                   <span className={styles.modelTestHint}>{t('ai_providers.claude_test_hint')}</span>
                 </div>
                 <div className={styles.modelTestControls}>
@@ -439,9 +439,10 @@ export function AiProvidersClaudeEditPage() {
             </div>
 
             <div className="form-group">
-              <label>{t('ai_providers.excluded_models_label')}</label>
+              <span className="form-label">{t('ai_providers.excluded_models_label')}</span>
               <textarea
                 className="input"
+                aria-label={t('ai_providers.excluded_models_label')}
                 placeholder={t('ai_providers.excluded_models_placeholder')}
                 value={form.excludedText}
                 onChange={(e) => setForm((prev) => ({ ...prev, excludedText: e.target.value }))}
@@ -453,7 +454,7 @@ export function AiProvidersClaudeEditPage() {
 
             <div className={styles.modelConfigSection}>
               <div className={styles.modelConfigHeader}>
-                <label className={styles.modelConfigTitle}>{t('ai_providers.claude_cloak_title')}</label>
+                <span className={styles.modelConfigTitle}>{t('ai_providers.claude_cloak_title')}</span>
                 <div className={styles.modelConfigToolbar}>
                   <ToggleSwitch
                     checked={Boolean(form.cloak)}
@@ -497,7 +498,7 @@ export function AiProvidersClaudeEditPage() {
               {form.cloak ? (
                 <>
                   <div className="form-group">
-                    <label>{t('ai_providers.claude_cloak_mode_label')}</label>
+                    <span className="form-label">{t('ai_providers.claude_cloak_mode_label')}</span>
                     <Select
                       value={resolvedCloakMode}
                       options={cloakModeOptions}
@@ -517,7 +518,7 @@ export function AiProvidersClaudeEditPage() {
                   </div>
 
                   <div className="form-group">
-                    <label>{t('ai_providers.claude_cloak_strict_label')}</label>
+                    <span className="form-label">{t('ai_providers.claude_cloak_strict_label')}</span>
                     <ToggleSwitch
                       checked={Boolean(form.cloak.strictMode)}
                       onChange={(value) =>
@@ -536,7 +537,7 @@ export function AiProvidersClaudeEditPage() {
                   </div>
 
                   <div className="form-group">
-                    <label>{t('ai_providers.claude_cloak_cache_user_id_label')}</label>
+                    <span className="form-label">{t('ai_providers.claude_cloak_cache_user_id_label')}</span>
                     <ToggleSwitch
                       checked={Boolean(form.cloak.cacheUserId)}
                       onChange={(value) =>
@@ -555,9 +556,10 @@ export function AiProvidersClaudeEditPage() {
                   </div>
 
                   <div className="form-group">
-                    <label>{t('ai_providers.claude_cloak_sensitive_words_label')}</label>
+                    <span className="form-label">{t('ai_providers.claude_cloak_sensitive_words_label')}</span>
                     <textarea
                       className="input"
+                      aria-label={t('ai_providers.claude_cloak_sensitive_words_label')}
                       placeholder={t('ai_providers.claude_cloak_sensitive_words_placeholder')}
                       value={(form.cloak.sensitiveWords ?? []).join('\n')}
                       onChange={(e) => {
@@ -580,7 +582,7 @@ export function AiProvidersClaudeEditPage() {
             </div>
 
             <div className="form-group">
-              <label>{t('ai_providers.claude_experimental_cch_signing_label')}</label>
+              <span className="form-label">{t('ai_providers.claude_experimental_cch_signing_label')}</span>
               <ToggleSwitch
                 checked={Boolean(form.experimentalCchSigning)}
                 onChange={(value) =>

@@ -1,6 +1,5 @@
-import { Suspense, lazy, type ComponentType } from 'react';
 import { Navigate, useRoutes, type Location } from 'react-router-dom';
-import { PageLoadFallback } from '@/components/common/PageLoadFallback';
+import { lazyNamed, renderLazyPage } from '@/router/lazyRoute';
 import {
   loadApiKeysPage,
   loadAiProvidersPage,
@@ -11,24 +10,6 @@ import {
   loadSystemPage,
   loadUsagePage,
 } from './routeLoaders';
-
-function lazyNamed<TModule extends Record<string, unknown>>(
-  loader: () => Promise<TModule>,
-  exportName: keyof TModule
-) {
-  return lazy(async () => {
-    const module = await loader();
-    return { default: module[exportName] as ComponentType };
-  });
-}
-
-function renderLazyPage(Component: ComponentType) {
-  return (
-    <Suspense fallback={<PageLoadFallback />}>
-      <Component />
-    </Suspense>
-  );
-}
 
 const LazyDashboardPage = lazyNamed(loadDashboardPage, 'DashboardPage');
 const LazyApiKeysPage = lazyNamed(loadApiKeysPage, 'ApiKeysPage');
@@ -48,6 +29,10 @@ const LazyAiProvidersClaudeModelsPage = lazyNamed(
 const LazyAiProvidersCodexEditPage = lazyNamed(
   () => import('@/pages/AiProvidersCodexEditPage'),
   'AiProvidersCodexEditPage'
+);
+const LazyAiProvidersOpenAIEditPage = lazyNamed(
+  () => import('@/pages/AiProvidersOpenAIEditPage'),
+  'AiProvidersOpenAIEditPage'
 );
 const LazyAuthFilesPage = lazyNamed(loadAuthFilesPage, 'AuthFilesPage');
 const LazyAuthFilesOAuthExcludedEditPage = lazyNamed(
@@ -72,6 +57,8 @@ const mainRoutes = [
   { path: '/api-keys', element: renderLazyPage(LazyApiKeysPage) },
   { path: '/ai-providers/codex/new', element: renderLazyPage(LazyAiProvidersCodexEditPage) },
   { path: '/ai-providers/codex/:index', element: renderLazyPage(LazyAiProvidersCodexEditPage) },
+  { path: '/ai-providers/openai/new', element: renderLazyPage(LazyAiProvidersOpenAIEditPage) },
+  { path: '/ai-providers/openai/:index', element: renderLazyPage(LazyAiProvidersOpenAIEditPage) },
   {
     path: '/ai-providers/claude/new',
     element: renderLazyPage(LazyAiProvidersClaudeEditLayout),

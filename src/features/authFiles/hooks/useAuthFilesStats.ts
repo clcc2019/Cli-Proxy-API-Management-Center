@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { USAGE_STATS_STALE_TIME_MS, useAuthStore, useUsageStatsStore } from '@/stores';
 import { usageApi } from '@/services/api/usage';
 import type {
@@ -15,6 +15,8 @@ import {
   type UsageDetail,
 } from '@/utils/usage';
 
+const EMPTY_KEY_USAGE_STATS: KeyUsageStats = { bySource: {}, byAuthIndex: {} };
+
 export type UseAuthFilesStatsResult = {
   keyStats: KeyStats;
   keyUsageStats: KeyUsageStats;
@@ -23,12 +25,17 @@ export type UseAuthFilesStatsResult = {
   refreshKeyStats: () => Promise<void>;
 };
 
-const createEmptyKeyUsageStats = (): KeyUsageStats => ({ bySource: {}, byAuthIndex: {} });
+const createEmptyKeyUsageStats = (): KeyUsageStats => EMPTY_KEY_USAGE_STATS;
 
 type AuthFileUsageCacheEntry = {
   scopeKey: string;
   stats: KeyUsageStats;
   fetchedAt: number;
+};
+
+type AuthFileUsageState = {
+  scopeKey: string;
+  stats: KeyUsageStats;
 };
 
 let authFileUsageRequestToken = 0;
@@ -55,6 +62,54 @@ const asAggregateSnapshot = (value: unknown): UsageAggregateSnapshot | null => {
 
 const readFiniteNumber = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : 0;
+
+const areUsageBucketsEqual = (left: KeyUsageBucket, right: KeyUsageBucket): boolean =>
+  left.success === right.success &&
+  left.failure === right.failure &&
+  left.totalTokens === right.totalTokens &&
+  left.totalCost === right.totalCost &&
+  left.pricedRequests === right.pricedRequests;
+
+const reuseUsageBucketRecordReferences = (
+  previous: Record<string, KeyUsageBucket>,
+  next: Record<string, KeyUsageBucket>
+): Record<string, KeyUsageBucket> => {
+  if (previous === next) return previous;
+
+  const previousKeys = Object.keys(previous);
+  const nextKeys = Object.keys(next);
+  if (nextKeys.length === 0) return next;
+
+  let changed = previousKeys.length !== nextKeys.length;
+  const reused: Record<string, KeyUsageBucket> = {};
+
+  nextKeys.forEach((key) => {
+    const previousBucket = previous[key];
+    const nextBucket = next[key];
+    if (previousBucket && areUsageBucketsEqual(previousBucket, nextBucket)) {
+      reused[key] = previousBucket;
+      return;
+    }
+    changed = true;
+    reused[key] = nextBucket;
+  });
+
+  return changed ? reused : previous;
+};
+
+const reuseKeyUsageStatsReferences = (
+  previous: KeyUsageStats | undefined,
+  next: KeyUsageStats
+): KeyUsageStats => {
+  if (!previous) return next;
+
+  const bySource = reuseUsageBucketRecordReferences(previous.bySource, next.bySource);
+  const byAuthIndex = reuseUsageBucketRecordReferences(previous.byAuthIndex, next.byAuthIndex);
+
+  return bySource === previous.bySource && byAuthIndex === previous.byAuthIndex
+    ? previous
+    : { bySource, byAuthIndex };
+};
 
 const ensureUsageBucket = (stats: Record<string, KeyUsageBucket>, key: string) => {
   if (!stats[key]) {
@@ -106,11 +161,7 @@ const loadAuthFileUsageStats = async (
 ): Promise<AuthFileUsageCacheEntry> => {
   const cached = authFileUsageCache.get(scopeKey);
 
-  if (
-    !force &&
-    cached &&
-    Date.now() - cached.fetchedAt < USAGE_STATS_STALE_TIME_MS
-  ) {
+  if (!force && cached && Date.now() - cached.fetchedAt < USAGE_STATS_STALE_TIME_MS) {
     return cached;
   }
 
@@ -127,9 +178,10 @@ const loadAuthFileUsageStats = async (
   const requestPromise = (async (): Promise<AuthFileUsageCacheEntry> => {
     const response = await usageApi.getUsageAggregated();
     const snapshot = asAggregateSnapshot(response);
+    const rawStats = computeAuthFileUsageStatsFromAggregate(snapshot?.windows?.all);
     const entry: AuthFileUsageCacheEntry = {
       scopeKey,
-      stats: computeAuthFileUsageStatsFromAggregate(snapshot?.windows?.all),
+      stats: reuseKeyUsageStatsReferences(cached?.stats, rawStats),
       fetchedAt: Date.now(),
     };
     authFileUsageCache.set(scopeKey, entry);
@@ -157,23 +209,46 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
     () => `${apiBase ?? ''}::${managementKey ?? ''}`,
     [apiBase, managementKey]
   );
-  const [keyUsageStats, setKeyUsageStats] = useState<KeyUsageStats>(() => {
-    const cached = authFileUsageCache.get(getUsageScopeKey());
-    return cached?.stats ?? createEmptyKeyUsageStats();
+  const mountedRef = useRef(true);
+  const [keyUsageState, setKeyUsageState] = useState<AuthFileUsageState>(() => {
+    const initialScopeKey = getUsageScopeKey();
+    const cached = authFileUsageCache.get(initialScopeKey);
+    return {
+      scopeKey: initialScopeKey,
+      stats: cached?.stats ?? createEmptyKeyUsageStats(),
+    };
   });
 
   useEffect(() => {
-    const cached = authFileUsageCache.get(scopeKey);
-    setKeyUsageStats(cached?.stats ?? createEmptyKeyUsageStats());
-  }, [scopeKey]);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
-  const applyAuthFileUsageStats = useCallback(async (force = false) => {
-    const entry = await loadAuthFileUsageStats(force, scopeKey);
-    if (entry.scopeKey !== getUsageScopeKey()) {
-      return;
+  const keyUsageStats = useMemo(() => {
+    if (keyUsageState.scopeKey === scopeKey) {
+      return keyUsageState.stats;
     }
-    setKeyUsageStats(entry.stats);
-  }, [scopeKey]);
+    const cached = authFileUsageCache.get(scopeKey);
+    return cached?.stats ?? createEmptyKeyUsageStats();
+  }, [keyUsageState, scopeKey]);
+
+  const applyAuthFileUsageStats = useCallback(
+    async (force = false) => {
+      const entry = await loadAuthFileUsageStats(force, scopeKey);
+      if (entry.scopeKey !== getUsageScopeKey()) {
+        return;
+      }
+      if (!mountedRef.current) return;
+      setKeyUsageState((prev) =>
+        prev.scopeKey === entry.scopeKey && prev.stats === entry.stats
+          ? prev
+          : { scopeKey: entry.scopeKey, stats: entry.stats }
+      );
+    },
+    [scopeKey]
+  );
 
   const loadKeyStats = useCallback(async () => {
     await Promise.all([

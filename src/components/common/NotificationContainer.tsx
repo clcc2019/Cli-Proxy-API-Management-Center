@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNotificationStore } from '@/stores';
 import { IconX } from '@/components/ui/icons';
+import { useTimeoutRegistry } from '@/hooks';
 import type { Notification } from '@/types';
 
 interface AnimatedNotification extends Notification {
@@ -16,6 +17,11 @@ export function NotificationContainer() {
   const removeNotification = useNotificationStore((state) => state.removeNotification);
   const [animatedNotifications, setAnimatedNotifications] = useState<AnimatedNotification[]>([]);
   const prevNotificationsRef = useRef<Notification[]>([]);
+  const { scheduleTimeout } = useTimeoutRegistry();
+
+  const scheduleAfterAnimation = useCallback((callback: () => void) => {
+    scheduleTimeout(callback, ANIMATION_DURATION);
+  }, [scheduleTimeout]);
 
   useEffect(() => {
     const prevNotifications = prevNotificationsRef.current;
@@ -41,30 +47,31 @@ export function NotificationContainer() {
     });
 
     if (removedIds.size > 0) {
-      setTimeout(() => {
+      scheduleAfterAnimation(() => {
         setAnimatedNotifications((prev) => prev.filter((n) => !removedIds.has(n.id)));
-      }, ANIMATION_DURATION);
+      });
     }
 
     prevNotificationsRef.current = notifications;
-  }, [notifications]);
+  }, [notifications, scheduleAfterAnimation]);
 
-  const handleClose = (id: string) => {
+  const handleClose = useCallback((id: string) => {
     setAnimatedNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isExiting: true } : n)));
 
-    setTimeout(() => {
+    scheduleAfterAnimation(() => {
       removeNotification(id);
-    }, ANIMATION_DURATION);
-  };
+    });
+  }, [removeNotification, scheduleAfterAnimation]);
 
   if (!animatedNotifications.length) return null;
 
   return (
-    <div className="notification-container">
+    <div className="notification-container" aria-live="polite" aria-relevant="additions text">
       {animatedNotifications.map((notification) => (
         <div
           key={notification.id}
           className={`notification ${notification.type} ${notification.isExiting ? 'exiting' : 'entering'}`}
+          role={notification.type === 'error' ? 'alert' : 'status'}
         >
           <div className="message">{notification.message}</div>
           <button

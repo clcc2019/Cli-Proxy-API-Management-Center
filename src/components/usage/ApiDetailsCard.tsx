@@ -65,14 +65,20 @@ export const ApiDetailsCard = memo(function ApiDetailsCard({
   }, [apiStats, sortKey, sortDir]);
 
   const arrow = (key: ApiSortKey) => (sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '');
+  const sortDirectionText = (key: ApiSortKey) =>
+    sortKey === key
+      ? t(sortDir === 'asc' ? 'usage_stats.sort_ascending' : 'usage_stats.sort_descending')
+      : t('usage_stats.sort_inactive');
 
   return (
     <Card title={t('usage_stats.api_details')} className={styles.detailsFixedCard}>
       {loading ? (
-        <div className={styles.hint}>{t('common.loading')}</div>
+        <div className={styles.hint} role="status" aria-busy="true">
+          {t('common.loading')}
+        </div>
       ) : sorted.length > 0 ? (
         <>
-          <div className={styles.apiSortBar}>
+          <div className={styles.apiSortBar} role="toolbar" aria-label={t('usage_stats.sort_label')}>
             {(
               [
                 ['endpoint', 'usage_stats.api_endpoint'],
@@ -90,6 +96,7 @@ export const ApiDetailsCard = memo(function ApiDetailsCard({
               >
                 {t(labelKey)}
                 {arrow(key)}
+                <span className={styles.visuallyHidden}> {sortDirectionText(key)}</span>
               </button>
             ))}
           </div>

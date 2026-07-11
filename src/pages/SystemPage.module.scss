@@ -3,12 +3,16 @@
 }
 
 .pageTitle {
-  font-size: clamp(20px, 1.2vw + 14px, 24px);
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--text-primary);
   margin: 0 0 $spacing-md 0;
   line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
 }
 
 .content {
@@ -34,18 +38,18 @@
 .aboutLogo {
   width: 88px;
   height: 88px;
-  border-radius: 22px;
+  border-radius: 12px;
   object-fit: cover;
   box-shadow: 0 8px 24px -16px rgba(0, 0, 0, 0.28);
 }
 
 .aboutTitle {
   width: min(100%, 920px);
-  font-size: clamp(22px, 2.8vw + 8px, 32px);
+  font-size: 32px;
   font-weight: 800;
   line-height: 1.15;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   text-align: center;
   text-wrap: balance;
   white-space: normal;
@@ -353,24 +357,24 @@
   .aboutLogo {
     width: 92px;
     height: 92px;
-    border-radius: 22px;
+    border-radius: 12px;
   }
 
   .aboutTitle {
     width: min(100%, 24ch);
-    font-size: clamp(22px, 6.6vw, 34px);
+    font-size: 28px;
     font-weight: 700;
     line-height: 1.18;
-    letter-spacing: -0.012em;
+    letter-spacing: 0;
   }
 }
 
 @media (max-width: 520px) {
   .aboutTitle {
     width: min(100%, 19ch);
-    font-size: clamp(20px, 7.2vw, 28px);
+    font-size: 24px;
     font-weight: 600;
     line-height: 1.22;
-    letter-spacing: -0.006em;
+    letter-spacing: 0;
   }
 }

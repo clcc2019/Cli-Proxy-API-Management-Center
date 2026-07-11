@@ -14,6 +14,7 @@
 
 .disabled {
   cursor: not-allowed;
+  opacity: 0.68;
 }
 
 .root input {
@@ -46,6 +47,15 @@
 
 .root input:checked + .track {
   background: var(--primary-color);
+}
+
+.root input:focus-visible + .track {
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 48%, transparent);
+  outline-offset: 3px;
+}
+
+.root input:disabled + .track {
+  cursor: not-allowed;
 }
 
 .root input:checked + .track .thumb {

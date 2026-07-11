@@ -120,7 +120,7 @@ function FieldShell({
       </label>
       {children}
       {error ? (
-        <div id={errorId} className="error-box">
+        <div id={errorId} className="error-box" role="alert">
           {error}
         </div>
       ) : null}
@@ -663,6 +663,11 @@ export function VisualConfigEditor({
                       type="number"
                       placeholder="0"
                       value={values.streaming.keepaliveSeconds}
+                      aria-label={t('config_management.visual.sections.streaming.keepalive_seconds')}
+                      aria-describedby={
+                        keepaliveError ? `${keepaliveErrorId} ${keepaliveHintId}` : keepaliveHintId
+                      }
+                      aria-invalid={Boolean(keepaliveError)}
                       onChange={(e) =>
                         onChange({
                           streaming: {
@@ -716,6 +721,15 @@ export function VisualConfigEditor({
                       type="number"
                       placeholder="0"
                       value={values.streaming.nonstreamKeepaliveInterval}
+                      aria-label={t(
+                        'config_management.visual.sections.streaming.nonstream_keepalive'
+                      )}
+                      aria-describedby={
+                        nonstreamKeepaliveError
+                          ? `${nonstreamKeepaliveErrorId} ${nonstreamKeepaliveHintId}`
+                          : nonstreamKeepaliveHintId
+                      }
+                      aria-invalid={Boolean(nonstreamKeepaliveError)}
                       onChange={(e) =>
                         onChange({
                           streaming: {

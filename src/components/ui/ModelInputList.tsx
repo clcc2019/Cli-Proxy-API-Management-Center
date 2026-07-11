@@ -10,6 +10,8 @@ interface ModelInputListProps {
   disabled?: boolean;
   namePlaceholder?: string;
   aliasPlaceholder?: string;
+  nameAriaLabel?: string;
+  aliasAriaLabel?: string;
   hideAddButton?: boolean;
   onAdd?: () => void;
   className?: string;
@@ -27,6 +29,8 @@ export function ModelInputList({
   disabled = false,
   namePlaceholder = 'model-name',
   aliasPlaceholder = 'alias (optional)',
+  nameAriaLabel,
+  aliasAriaLabel,
   hideAddButton = false,
   onAdd,
   className = '',
@@ -67,6 +71,7 @@ export function ModelInputList({
             <input
               className={inputClassNames}
               placeholder={namePlaceholder}
+              aria-label={`${nameAriaLabel ?? namePlaceholder} ${index + 1}`}
               value={entry.name}
               onChange={(e) => updateEntry(index, 'name', e.target.value)}
               disabled={disabled}
@@ -75,6 +80,7 @@ export function ModelInputList({
             <input
               className={inputClassNames}
               placeholder={aliasPlaceholder}
+              aria-label={`${aliasAriaLabel ?? aliasPlaceholder} ${index + 1}`}
               value={entry.alias}
               onChange={(e) => updateEntry(index, 'alias', e.target.value)}
               disabled={disabled}

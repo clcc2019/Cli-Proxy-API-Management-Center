@@ -279,6 +279,23 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
     [commitConfigs, getConfigs, showNotification, t]
   );
 
+  const deleteOpenAICompatEntry = useCallback(
+    async (index: number) => {
+      const entry = openAIConfigs[index];
+      if (!entry) return;
+
+      try {
+        await providersApi.deleteOpenAICompatConfig(index);
+        commitOpenAIConfigs(openAIConfigs.filter((_, idx) => idx !== index));
+        showNotification(t('notification.openai_provider_deleted'), 'success');
+      } catch (err: unknown) {
+        const message = getErrorMessage(err);
+        showNotification(`${t('notification.delete_failed')}: ${message}`, 'error');
+      }
+    },
+    [commitOpenAIConfigs, openAIConfigs, showNotification, t]
+  );
+
   const setOpenAICompatPoolMode = useCallback(
     async (index: number, enabled: boolean) => {
       const current = openAIConfigs[index];
@@ -359,6 +376,7 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
     isSwitching: switchingKeys.size > 0,
     providerSummary,
     deleteProviderEntry,
+    deleteOpenAICompatEntry,
     setConfigEnabled,
     setCodexPoolMode,
     setOpenAICompatPoolMode,

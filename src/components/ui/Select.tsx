@@ -167,12 +167,28 @@ export function Select({
     };
   }, [isOpen, scheduleDropdownStyleUpdate, updateDropdownStyle]);
 
-  const selectedIndex = useMemo(() => options.findIndex((option) => option.value === value), [options, value]);
+  const selectedIndex = useMemo(
+    () => options.findIndex((option) => option.value === value),
+    [options, value]
+  );
+  const boundedHighlightedIndex =
+    highlightedIndex >= 0 && highlightedIndex < options.length ? highlightedIndex : -1;
   const resolvedHighlightedIndex =
-    highlightedIndex >= 0 ? highlightedIndex : selectedIndex >= 0 ? selectedIndex : options.length > 0 ? 0 : -1;
+    boundedHighlightedIndex >= 0
+      ? boundedHighlightedIndex
+      : selectedIndex >= 0
+        ? selectedIndex
+        : options.length > 0
+          ? 0
+          : -1;
   const selected = selectedIndex >= 0 ? options[selectedIndex] : undefined;
   const displayText = selected?.label ?? placeholder ?? '';
   const isPlaceholder = !selected && placeholder;
+  const activeOptionId =
+    isOpen && resolvedHighlightedIndex >= 0
+      ? `${selectId}-option-${resolvedHighlightedIndex}`
+      : undefined;
+  const listboxLabelledBy = ariaLabel ? undefined : ariaLabelledBy ?? selectId;
 
   const commitSelection = useCallback(
     (nextIndex: number) => {
@@ -267,6 +283,7 @@ export function Select({
             id={listboxId}
             role="listbox"
             aria-label={ariaLabel}
+            aria-labelledby={listboxLabelledBy}
             style={dropdownStyle}
           >
             {options.map((opt, index) => {
@@ -281,6 +298,7 @@ export function Select({
                   aria-selected={active}
                   className={`${styles.option} ${active ? styles.optionActive : ''} ${highlighted ? styles.optionHighlighted : ''}`.trim()}
                   onMouseEnter={() => setHighlightedIndex(index)}
+                  onMouseDown={(event) => event.preventDefault()}
                   onKeyDown={handleKeyDown}
                   onClick={() => commitSelection(index)}
                 >
@@ -301,17 +319,14 @@ export function Select({
         <button
           id={selectId}
           type="button"
+          role="combobox"
           className={styles.trigger}
           onClick={disabled ? undefined : () => setOpen((prev) => !prev)}
           onKeyDown={handleKeyDown}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-controls={isOpen ? listboxId : undefined}
-          aria-activedescendant={
-            isOpen && resolvedHighlightedIndex >= 0
-              ? `${selectId}-option-${resolvedHighlightedIndex}`
-              : undefined
-          }
+          aria-activedescendant={activeOptionId}
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}

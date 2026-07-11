@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { ChartOptions } from 'chart.js';
 import { buildChartData, type ChartData } from '@/utils/usage';
 import { buildChartOptions } from '@/utils/usage/chartConfig';
+import { useSyncedUsageChartPeriods, type UsageChartPeriod } from '../chartPeriod';
 import type { UsagePayload } from './useUsageData';
+import { relabelAllModels } from './chartDataUtils';
 
 export interface UseChartDataOptions {
   usage: UsagePayload | null;
@@ -10,33 +12,20 @@ export interface UseChartDataOptions {
   isDark: boolean;
   isMobile: boolean;
   hourWindowHours?: number;
-  preferredPeriod?: 'hour' | 'day';
+  preferredPeriod?: UsageChartPeriod;
   allModelsLabel?: string;
 }
 
 export interface UseChartDataReturn {
-  requestsPeriod: 'hour' | 'day';
-  setRequestsPeriod: (period: 'hour' | 'day') => void;
-  tokensPeriod: 'hour' | 'day';
-  setTokensPeriod: (period: 'hour' | 'day') => void;
+  requestsPeriod: UsageChartPeriod;
+  setRequestsPeriod: (period: UsageChartPeriod) => void;
+  tokensPeriod: UsageChartPeriod;
+  setTokensPeriod: (period: UsageChartPeriod) => void;
   requestsChartData: ChartData;
   tokensChartData: ChartData;
   requestsChartOptions: ChartOptions<'line'>;
   tokensChartOptions: ChartOptions<'line'>;
 }
-
-const relabelAllModels = (chartData: ChartData, allModelsLabel?: string): ChartData => {
-  if (!allModelsLabel) {
-    return chartData;
-  }
-
-  return {
-    ...chartData,
-    datasets: chartData.datasets.map((dataset) =>
-      dataset.label === 'All Models' ? { ...dataset, label: allModelsLabel } : dataset
-    ),
-  };
-};
 
 export function useChartData({
   usage,
@@ -47,13 +36,8 @@ export function useChartData({
   preferredPeriod = 'day',
   allModelsLabel,
 }: UseChartDataOptions): UseChartDataReturn {
-  const [requestsPeriod, setRequestsPeriod] = useState<'hour' | 'day'>(preferredPeriod);
-  const [tokensPeriod, setTokensPeriod] = useState<'hour' | 'day'>(preferredPeriod);
-
-  useEffect(() => {
-    setRequestsPeriod(preferredPeriod);
-    setTokensPeriod(preferredPeriod);
-  }, [preferredPeriod]);
+  const { requestsPeriod, setRequestsPeriod, tokensPeriod, setTokensPeriod } =
+    useSyncedUsageChartPeriods(preferredPeriod);
 
   const requestsChartData = useMemo(() => {
     if (!usage) {

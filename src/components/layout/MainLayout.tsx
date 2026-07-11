@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +38,7 @@ import {
 import { triggerHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
 import { isSupportedLanguage } from '@/utils/language';
+import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 import type { Theme } from '@/types';
 
 const sidebarIcons: Record<string, ReactNode> = {
@@ -208,11 +210,7 @@ const THEME_CARDS: Array<{
 
 const AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS = 3500;
 const ROUTE_PRELOAD_IDLE_TIMEOUT_MS = 2000;
-
-type IdleCapableWindow = Window & {
-  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
+const HEADER_MENU_ITEM_SELECTOR = '[role="menuitemradio"]:not(:disabled)';
 
 type NetworkAwareNavigator = Navigator & {
   connection?: {
@@ -239,37 +237,19 @@ const shouldPreloadPrimaryRoutes = () => {
 };
 
 function scheduleAuthenticatedRoutePreload() {
-  if (typeof window === 'undefined') {
-    return () => undefined;
-  }
-
-  const idleWindow = window as IdleCapableWindow;
-  let idleHandle: number | null = null;
-
-  const preload = () => {
+  return scheduleIdleTask(() => {
     if (!shouldPreloadPrimaryRoutes()) {
       return;
     }
     void preloadPrimaryRoutes();
-  };
-
-  const timeoutId = window.setTimeout(() => {
-    if (typeof idleWindow.requestIdleCallback === 'function') {
-      idleHandle = idleWindow.requestIdleCallback(preload, {
-        timeout: ROUTE_PRELOAD_IDLE_TIMEOUT_MS,
-      });
-      return;
-    }
-    preload();
-  }, AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS);
-
-  return () => {
-    window.clearTimeout(timeoutId);
-    if (idleHandle !== null) {
-      idleWindow.cancelIdleCallback?.(idleHandle);
-    }
-  };
+  }, {
+    delayMs: AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS,
+    timeoutMs: ROUTE_PRELOAD_IDLE_TIMEOUT_MS,
+  });
 }
+
+const getHeaderMenuItems = (menu: HTMLDivElement | null) =>
+  Array.from(menu?.querySelectorAll<HTMLButtonElement>(HEADER_MENU_ITEM_SELECTOR) ?? []);
 
 export function MainLayout() {
   const { t } = useTranslation();
@@ -363,10 +343,63 @@ export function MainLayout() {
     };
   }, []);
 
+  const focusHeaderMenuItem = useCallback(
+    (menu: HTMLDivElement | null, direction: 1 | -1) => {
+      const items = getHeaderMenuItems(menu);
+      if (items.length === 0) return;
+
+      const activeIndex = items.findIndex((item) => item === document.activeElement);
+      const nextIndex =
+        activeIndex === -1 ? 0 : (activeIndex + direction + items.length) % items.length;
+      items[nextIndex]?.focus();
+    },
+    []
+  );
+
+  const handleHeaderMenuKeyDown = useCallback(
+    (
+      event: ReactKeyboardEvent<HTMLDivElement>,
+      menu: HTMLDivElement | null,
+      closeMenu: () => void
+    ) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMenu();
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        focusHeaderMenuItem(menu, 1);
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        focusHeaderMenuItem(menu, -1);
+        return;
+      }
+
+      if (event.key === 'Home' || event.key === 'End') {
+        event.preventDefault();
+        const items = getHeaderMenuItems(menu);
+        const index = event.key === 'Home' ? 0 : items.length - 1;
+        items[index]?.focus();
+      }
+    },
+    [focusHeaderMenuItem]
+  );
+
   useEffect(() => {
     if (!languageMenuOpen) {
       return;
     }
+
+    const frame = window.requestAnimationFrame(() => {
+      const items = getHeaderMenuItems(languageMenuRef.current);
+      const selected = items.find((item) => item.getAttribute('aria-checked') === 'true');
+      (selected ?? items[0])?.focus({ preventScroll: true });
+    });
 
     const handlePointerDown = (event: MouseEvent) => {
       if (!languageMenuRef.current?.contains(event.target as Node)) {
@@ -384,6 +417,7 @@ export function MainLayout() {
     document.addEventListener('keydown', handleEscape);
 
     return () => {
+      window.cancelAnimationFrame(frame);
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleEscape);
     };
@@ -393,6 +427,12 @@ export function MainLayout() {
     if (!themeMenuOpen) {
       return;
     }
+
+    const frame = window.requestAnimationFrame(() => {
+      const items = getHeaderMenuItems(themeMenuRef.current);
+      const selected = items.find((item) => item.getAttribute('aria-checked') === 'true');
+      (selected ?? items[0])?.focus({ preventScroll: true });
+    });
 
     const handlePointerDown = (event: MouseEvent) => {
       if (!themeMenuRef.current?.contains(event.target as Node)) {
@@ -410,6 +450,7 @@ export function MainLayout() {
     document.addEventListener('keydown', handleEscape);
 
     return () => {
+      window.cancelAnimationFrame(frame);
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleEscape);
     };
@@ -475,7 +516,7 @@ export function MainLayout() {
       { path: '/auth-files', label: t('nav.auth_files'), icon: sidebarIcons.authFiles },
       {
         path: '/oauth',
-        label: t('nav.oauth', { defaultValue: 'OAuth' }),
+        label: t('nav.oauth'),
         icon: sidebarIcons.oauth,
       },
       { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
@@ -575,43 +616,51 @@ export function MainLayout() {
             variant="ghost"
             size="sm"
             onClick={() => setSidebarOpen((prev) => !prev)}
-            aria-label={t('sidebar.toggle_mobile', { defaultValue: 'Toggle navigation' })}
+            aria-label={t('sidebar.toggle_mobile')}
             aria-expanded={sidebarOpen}
             aria-controls="main-sidebar"
           >
             {headerIcons.menu}
           </Button>
           <button
+            type="button"
             className="sidebar-toggle-header"
             onClick={() => setSidebarCollapsed((prev) => !prev)}
             aria-label={
               sidebarCollapsed
-                ? t('sidebar.expand', { defaultValue: '展开侧边栏' })
-                : t('sidebar.collapse', { defaultValue: '收起侧边栏' })
+                ? t('sidebar.expand')
+                : t('sidebar.collapse')
             }
             aria-expanded={!sidebarCollapsed}
             aria-controls="main-sidebar"
             title={
               sidebarCollapsed
-                ? t('sidebar.expand', { defaultValue: '展开' })
-                : t('sidebar.collapse', { defaultValue: '收起' })
+                ? t('sidebar.expand')
+                : t('sidebar.collapse')
             }
           >
             {sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
           </button>
-          <img src={INLINE_LOGO_JPEG} alt="CPAMC logo" className="brand-logo" />
-          <div
-            className={`brand-header ${sidebarCollapsed ? 'collapsed' : 'expanded'}`}
-            onClick={() => {
-              if (sidebarCollapsed) {
-                setSidebarCollapsed(false);
-              }
-            }}
-            title={sidebarCollapsed ? fullBrandName : undefined}
-          >
-            <span className="brand-full">{fullBrandName}</span>
-            <span className="brand-abbr">{abbrBrandName}</span>
-          </div>
+          <img src={INLINE_LOGO_JPEG} alt="" aria-hidden="true" className="brand-logo" />
+          {sidebarCollapsed ? (
+            <button
+              type="button"
+              className="brand-header collapsed"
+              onClick={() => setSidebarCollapsed(false)}
+              title={fullBrandName}
+              aria-label={t('sidebar.expand')}
+              aria-controls="main-sidebar"
+              aria-expanded={false}
+            >
+              <span className="brand-full">{fullBrandName}</span>
+              <span className="brand-abbr">{abbrBrandName}</span>
+            </button>
+          ) : (
+            <div className="brand-header expanded">
+              <span className="brand-full">{fullBrandName}</span>
+              <span className="brand-abbr">{abbrBrandName}</span>
+            </div>
+          )}
         </div>
 
         <div className="right">
@@ -658,6 +707,11 @@ export function MainLayout() {
                   className="notification entering language-menu-popover"
                   role="menu"
                   aria-label={t('language.switch')}
+                  onKeyDown={(event) =>
+                    handleHeaderMenuKeyDown(event, languageMenuRef.current, () =>
+                      setLanguageMenuOpen(false)
+                    )
+                  }
                 >
                   {LANGUAGE_ORDER.map((lang) => (
                     <button
@@ -698,6 +752,11 @@ export function MainLayout() {
                   className="notification entering theme-menu-popover"
                   role="menu"
                   aria-label={t('theme.switch')}
+                  onKeyDown={(event) =>
+                    handleHeaderMenuKeyDown(event, themeMenuRef.current, () =>
+                      setThemeMenuOpen(false)
+                    )
+                  }
                 >
                   {THEME_CARDS.map((tc) => (
                     <button
@@ -774,7 +833,7 @@ export function MainLayout() {
         <aside
           id="main-sidebar"
           className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
-          aria-label={t('nav.dashboard', { defaultValue: '导航' })}
+          aria-label={t('nav.navigation')}
         >
           <div className="nav-section">
             {navItems.map((item) => (

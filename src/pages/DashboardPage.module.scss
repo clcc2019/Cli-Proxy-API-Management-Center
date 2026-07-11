@@ -13,58 +13,6 @@
   position: relative;
 }
 
-// ─── Decorative Background Orbs ─────────────────────────
-
-.backgroundOrbs {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.orb1 {
-  position: absolute;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--primary-color) 11%, transparent), transparent 72%);
-  top: -140px;
-  right: -80px;
-  will-change: transform;
-  animation: orbFloat 22s ease-in-out infinite alternate;
-}
-
-.orb2 {
-  position: absolute;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--success-color) 8%, transparent), transparent 72%);
-  bottom: 18%;
-  left: -100px;
-  will-change: transform;
-  animation: orbFloat 28s ease-in-out infinite alternate-reverse;
-}
-
-// 移动端 / 低功耗 / 低对比度 下关闭装饰性动画与大尺寸模糊，避免长时间占用合成器
-@media (max-width: $breakpoint-mobile),
-  (prefers-reduced-motion: reduce),
-  (prefers-reduced-transparency: reduce) {
-  .backgroundOrbs {
-    display: none;
-  }
-}
-
-@keyframes orbFloat {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  100% {
-    transform: translate3d(30px, -20px, 0) scale(1.1);
-  }
-}
-
 // ─── Hero Welcome Section ───────────────────────────────
 
 .hero {
@@ -75,7 +23,7 @@
   align-items: center;
   gap: $spacing-lg;
   padding: $spacing-2xl $spacing-xl;
-  border-radius: 18px;
+  border-radius: 12px;
   --glass-blur: 12px;
   background: var(--surface-hero);
   border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
@@ -85,58 +33,10 @@
   animation: heroEnter 0.6s ease-out both;
   box-shadow: var(--shadow-soft);
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: auto -100px -120px auto;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--primary-color) 16%, transparent);
-    filter: blur(24px);
-    opacity: 0.55;
-    pointer-events: none;
-  }
-
   @media (max-width: $breakpoint-mobile) {
     grid-template-columns: 1fr;
     align-items: flex-start;
     padding: $spacing-xl $spacing-lg;
-  }
-}
-
-// Large watermark text behind hero content
-.heroWatermark {
-  position: absolute;
-  top: 50%;
-  left: $spacing-xl;
-  transform: translateY(-50%);
-  font-size: clamp(64px, 12vw, 120px);
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-  color: var(--text-primary);
-  opacity: 0.05;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  animation: watermarkEnter 0.8s ease-out 0.1s both;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: clamp(48px, 14vw, 80px);
-    left: $spacing-lg;
-  }
-}
-
-@keyframes watermarkEnter {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) translateX(-20px);
-  }
-  to {
-    opacity: 0.04;
-    transform: translateY(-50%) translateX(0);
   }
 }
 
@@ -159,10 +59,10 @@
 
 .heroTitle {
   margin: 0;
-  font-size: clamp(34px, 5vw, 52px);
+  font-size: 52px;
   font-weight: 800;
   line-height: 1.08;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   color: var(--text-primary);
   animation: fadeSlideUp 0.5s ease-out 0.2s both;
   text-wrap: balance;
@@ -188,7 +88,7 @@
   flex-shrink: 0;
   animation: fadeSlideUp 0.5s ease-out 0.35s both;
   padding: $spacing-md $spacing-md $spacing-sm;
-  border-radius: 16px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--surface-raised) 78%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   box-shadow:
@@ -215,7 +115,7 @@
   font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   line-height: 1.15;
 }
 
@@ -370,7 +270,11 @@
   );
 
   .bentoValue {
-    font-size: clamp(32px, 4vw, 44px);
+    font-size: 44px;
+
+    @media (max-width: $breakpoint-mobile) {
+      font-size: 32px;
+    }
   }
 
   .bentoIcon {
@@ -417,7 +321,7 @@
   font-weight: 800;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   line-height: 1.15;
 }
 
@@ -446,7 +350,7 @@
   padding: $spacing-lg;
   background: color-mix(in srgb, var(--surface-overlay) 88%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  border-radius: 18px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
   backdrop-filter: var(--glass-backdrop-filter);
   -webkit-backdrop-filter: var(--glass-backdrop-filter);
@@ -598,7 +502,7 @@
   }
 
   .heroTitle {
-    font-size: clamp(26px, 9vw, 34px);
+    font-size: 34px;
   }
 
   .heroCaring {
@@ -709,7 +613,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hero,
-  .heroWatermark,
   .heroGreeting,
   .heroTitle,
   .heroCaring,

@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -15,15 +16,20 @@ export type OAuthExcludedCardProps = {
   onDelete: (provider: string) => void;
 };
 
-export function OAuthExcludedCard(props: OAuthExcludedCardProps) {
+export const OAuthExcludedCard = memo(function OAuthExcludedCard(props: OAuthExcludedCardProps) {
   const { t } = useTranslation();
   const { disableControls, excludedError, excluded, onAdd, onEdit, onDelete } = props;
+  const excludedEntries = useMemo(() => Object.entries(excluded), [excluded]);
 
   return (
     <Card
       title={t('oauth_excluded.title')}
       extra={
-        <Button size="sm" onClick={onAdd} disabled={disableControls || excludedError === 'unsupported'}>
+        <Button
+          size="sm"
+          onClick={onAdd}
+          disabled={disableControls || excludedError === 'unsupported'}
+        >
           {t('oauth_excluded.add')}
         </Button>
       }
@@ -33,11 +39,11 @@ export function OAuthExcludedCard(props: OAuthExcludedCardProps) {
           title={t('oauth_excluded.upgrade_required_title')}
           description={t('oauth_excluded.upgrade_required_desc')}
         />
-      ) : Object.keys(excluded).length === 0 ? (
+      ) : excludedEntries.length === 0 ? (
         <EmptyState title={t('oauth_excluded.list_empty_all')} />
       ) : (
         <div className={styles.excludedList}>
-          {Object.entries(excluded).map(([provider, models]) => (
+          {excludedEntries.map(([provider, models]) => (
             <div key={provider} className={styles.excludedItem}>
               <div className={styles.excludedInfo}>
                 <div className={styles.excludedProvider}>{provider}</div>
@@ -61,5 +67,4 @@ export function OAuthExcludedCard(props: OAuthExcludedCardProps) {
       )}
     </Card>
   );
-}
-
+});

@@ -21,6 +21,8 @@ export interface LatencyAccumulator {
   sampleCount: number;
 }
 
+export type LatencyTone = 'normal' | 'slow' | 'verySlow';
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
@@ -66,7 +68,7 @@ const formatDurationNumber = (
 };
 
 const getDurationUnitLabel = (unit: 'd' | 'h' | 'm' | 's' | 'ms'): string =>
-  i18n.t(`usage_stats.duration_unit_${unit}`, { defaultValue: unit });
+  i18n.t(`usage_stats.duration_unit_${unit}`);
 
 const formatDurationPart = (
   value: number,
@@ -123,6 +125,12 @@ export const finalizeLatencyStats = (accumulator: LatencyAccumulator): LatencySt
   totalMs: accumulator.sampleCount > 0 ? accumulator.totalMs : null,
   sampleCount: accumulator.sampleCount,
 });
+
+export const getLatencyTone = (latencyMs: number): LatencyTone => {
+  if (latencyMs <= 30_000) return 'normal';
+  if (latencyMs <= 60_000) return 'slow';
+  return 'verySlow';
+};
 
 /**
  * 从明细列表计算耗时统计

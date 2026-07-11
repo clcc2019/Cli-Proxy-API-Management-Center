@@ -37,7 +37,7 @@ const normalizeModelPrices = (value: unknown): Record<string, ModelPrice> => {
     const normalized = {
       prompt: Number.isFinite(prompt) && prompt > 0 ? prompt : 0,
       completion: Number.isFinite(completion) && completion > 0 ? completion : 0,
-      cache: Number.isFinite(cache) && cache > 0 ? cache : 0
+      cache: Number.isFinite(cache) && cache > 0 ? cache : 0,
     };
     if (normalized.prompt > 0 || normalized.completion > 0 || normalized.cache > 0) {
       prices[model] = normalized;
@@ -64,6 +64,7 @@ export interface UsageImportResponse {
 
 export interface UsageDetailsOptions {
   recent?: number;
+  compact?: boolean;
 }
 
 export const usageApi = {
@@ -78,14 +79,23 @@ export const usageApi = {
   /**
    * 获取包含请求明细的使用统计
    */
-  getUsageDetails: (options: UsageDetailsOptions = {}) =>
-    apiClient.get<Record<string, unknown>>('/usage/details', {
+  getUsageDetails: (options: UsageDetailsOptions = {}) => {
+    const recent =
+      typeof options.recent === 'number' && Number.isFinite(options.recent) && options.recent > 0
+        ? Math.floor(options.recent)
+        : undefined;
+
+    return apiClient.get<Record<string, unknown>>('/usage/details', {
       params:
-        typeof options.recent === 'number' && Number.isFinite(options.recent) && options.recent > 0
-          ? { recent: Math.floor(options.recent) }
-          : undefined,
-      timeout: USAGE_TIMEOUT_MS
-    }),
+        recent === undefined
+          ? undefined
+          : {
+              recent,
+              ...(options.compact === true ? { compact: true } : {}),
+            },
+      timeout: USAGE_TIMEOUT_MS,
+    });
+  },
 
   /**
    * 获取使用统计页面所需的聚合数据
@@ -107,13 +117,11 @@ export const usageApi = {
   exportUsage: async (fallbackUsage?: unknown): Promise<UsageExportPayload> => {
     const [exportResult, usageResult] = await Promise.allSettled([
       apiClient.get<UsageExportPayload>('/usage/export', { timeout: USAGE_TIMEOUT_MS }),
-      apiClient.get<Record<string, unknown>>('/usage', { timeout: USAGE_TIMEOUT_MS })
+      apiClient.get<Record<string, unknown>>('/usage', { timeout: USAGE_TIMEOUT_MS }),
     ]);
 
     const exportPayload =
-      exportResult.status === 'fulfilled' && isRecord(exportResult.value)
-        ? exportResult.value
-        : {};
+      exportResult.status === 'fulfilled' && isRecord(exportResult.value) ? exportResult.value : {};
 
     const fullUsage =
       (usageResult.status === 'fulfilled' ? extractUsageSnapshot(usageResult.value) : null) ??
@@ -137,7 +145,7 @@ export const usageApi = {
         typeof exportPayload.exported_at === 'string'
           ? exportPayload.exported_at
           : new Date().toISOString(),
-      usage: fullUsage
+      usage: fullUsage,
     };
   },
 
@@ -147,13 +155,11 @@ export const usageApi = {
   exportDetailedUsage: async (fallbackUsage?: unknown): Promise<UsageExportPayload> => {
     const [exportResult, usageResult] = await Promise.allSettled([
       apiClient.get<UsageExportPayload>('/usage/export/details', { timeout: USAGE_TIMEOUT_MS }),
-      apiClient.get<Record<string, unknown>>('/usage/details', { timeout: USAGE_TIMEOUT_MS })
+      apiClient.get<Record<string, unknown>>('/usage/details', { timeout: USAGE_TIMEOUT_MS }),
     ]);
 
     const exportPayload =
-      exportResult.status === 'fulfilled' && isRecord(exportResult.value)
-        ? exportResult.value
-        : {};
+      exportResult.status === 'fulfilled' && isRecord(exportResult.value) ? exportResult.value : {};
 
     const fullUsage =
       (usageResult.status === 'fulfilled' ? extractUsageSnapshot(usageResult.value) : null) ??
@@ -177,7 +183,7 @@ export const usageApi = {
         typeof exportPayload.exported_at === 'string'
           ? exportPayload.exported_at
           : new Date().toISOString(),
-      usage: fullUsage
+      usage: fullUsage,
     };
   },
 
@@ -194,10 +200,10 @@ export const usageApi = {
     let payload = usageData;
     if (!payload) {
       const response = await apiClient.get<Record<string, unknown>>('/usage/details', {
-        timeout: USAGE_TIMEOUT_MS
+        timeout: USAGE_TIMEOUT_MS,
       });
       payload = response?.usage ?? response;
     }
     return computeKeyStats(payload);
-  }
+  },
 };

@@ -39,11 +39,29 @@ const normalizeModelAliases = (models: unknown): ModelAlias[] => {
       const name = item.name || item.id || item.model;
       if (!name) return null;
       const alias = item.alias || item.display_name || item.displayName;
+      const priority = item.priority;
+      const testModel = item['test-model'] ?? item.testModel ?? item.test_model;
       const trimmedName = String(name).trim();
       if (!trimmedName) return null;
       const entry: ModelAlias = { name: trimmedName };
       if (alias && String(alias).trim() !== trimmedName) {
         entry.alias = String(alias).trim();
+      }
+      if (priority !== undefined && priority !== null && String(priority).trim() !== '') {
+        const parsed = Number(priority);
+        if (Number.isFinite(parsed)) {
+          entry.priority = parsed;
+        }
+      }
+      if (testModel) {
+        entry.testModel = String(testModel);
+      }
+      const image = normalizeBoolean(item.image);
+      if (image !== undefined) {
+        entry.image = image;
+      }
+      if (item.thinking !== undefined) {
+        entry.thinking = item.thinking;
       }
       return entry;
     })
@@ -82,6 +100,12 @@ const normalizeExcludedModels = (input: unknown): string[] => {
 };
 
 const normalizePrefix = (value: unknown): string | undefined => {
+  if (value === undefined || value === null) return undefined;
+  const trimmed = String(value).trim();
+  return trimmed ? trimmed : undefined;
+};
+
+const normalizeAuthIndex = (value: unknown): string | undefined => {
   if (value === undefined || value === null) return undefined;
   const trimmed = String(value).trim();
   return trimmed ? trimmed : undefined;
@@ -152,6 +176,10 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
   const poolMode = normalizeBoolean(record?.['pool-mode'] ?? record?.poolMode ?? record?.pool_mode);
   if (poolMode !== undefined) config.poolMode = poolMode;
   if (proxyUrl) config.proxyUrl = String(proxyUrl);
+  const disableCooling = normalizeBoolean(
+    record?.['disable-cooling'] ?? record?.disableCooling ?? record?.disable_cooling
+  );
+  if (disableCooling !== undefined) config.disableCooling = disableCooling;
   const headers = normalizeHeaders(record?.headers);
   if (headers) config.headers = headers;
   const models = normalizeModelAliases(record?.models);
@@ -202,6 +230,8 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
   if (experimentalCchSigning !== undefined) {
     config.experimentalCchSigning = experimentalCchSigning;
   }
+  const authIndex = normalizeAuthIndex(record?.['auth-index'] ?? record?.authIndex);
+  if (authIndex) config.authIndex = authIndex;
 
   return config;
 };
@@ -222,6 +252,8 @@ const normalizeOpenAICompatibilityApiKeys = (value: unknown): OpenAICompatibilit
       const entry: OpenAICompatibilityApiKeyEntry = { apiKey: trimmed };
       const proxyUrl = record?.['proxy-url'] ?? record?.proxyUrl ?? record?.proxy_url;
       if (proxyUrl) entry.proxyUrl = String(proxyUrl);
+      const authIndex = normalizeAuthIndex(record?.['auth-index'] ?? record?.authIndex);
+      if (authIndex) entry.authIndex = authIndex;
       return entry;
     })
     .filter(Boolean) as OpenAICompatibilityApiKeyEntry[];
@@ -242,10 +274,19 @@ const normalizeOpenAICompatibilityModels = (models: unknown): OpenAICompatibilit
       const trimmedName = String(name || '').trim();
       if (!trimmedName) return null;
       const alias = item.alias || item.display_name || item.displayName;
+      const priority = item.priority;
+      const testModel = item['test-model'] ?? item.testModel ?? item.test_model;
       const entry: OpenAICompatibilityModel = { name: trimmedName };
       if (alias && String(alias).trim() !== trimmedName) {
         entry.alias = String(alias).trim();
       }
+      if (priority !== undefined && priority !== null && String(priority).trim() !== '') {
+        const parsed = Number(priority);
+        if (Number.isFinite(parsed)) {
+          entry.priority = parsed;
+        }
+      }
+      if (testModel) entry.testModel = String(testModel);
       const image = normalizeBoolean(item.image);
       if (image !== undefined) entry.image = image;
       if (item.thinking !== undefined) entry.thinking = item.thinking;
@@ -283,6 +324,8 @@ const normalizeOpenAICompatibilityConfig = (item: unknown): OpenAICompatibilityC
     item['disable-cooling'] ?? item.disableCooling ?? item.disable_cooling
   );
   if (disableCooling !== undefined) config.disableCooling = disableCooling;
+  const testModel = item['test-model'] ?? item.testModel ?? item.test_model;
+  if (testModel) config.testModel = String(testModel);
 
   const apiKeyEntries = normalizeOpenAICompatibilityApiKeys(
     item['api-key-entries'] ?? item.apiKeyEntries ?? item.api_key_entries
@@ -292,6 +335,8 @@ const normalizeOpenAICompatibilityConfig = (item: unknown): OpenAICompatibilityC
   if (models.length) config.models = models;
   const headers = normalizeHeaders(item.headers);
   if (headers) config.headers = headers;
+  const authIndex = normalizeAuthIndex(item['auth-index'] ?? item.authIndex);
+  if (authIndex) config.authIndex = authIndex;
 
   return config;
 };

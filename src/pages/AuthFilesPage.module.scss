@@ -10,6 +10,13 @@
   );
 }
 
+// 首屏下方的 OAuth 卡片：用 content-visibility:auto 让其在滚入视口前跳过渲染，
+// 显著减少首屏绘制与样式计算量；contain-intrinsic-size 给出占位高度避免滚动条抖动。
+.belowFoldCard {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 240px;
+}
+
 .authFilesCard:global(.card) {
   border-radius: 14px;
   border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
@@ -366,20 +373,20 @@
   min-height: 38px;
   height: 38px;
   padding: 0;
-  border-color: color-mix(in srgb, var(--quota-medium-color) 26%, var(--border-color));
+  border-color: color-mix(in srgb, #f59e0b 30%, var(--border-color));
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--surface-raised-strong) 76%, transparent),
-    color-mix(in srgb, var(--quota-medium-color) 7%, var(--surface-raised))
+    color-mix(in srgb, #f59e0b 8%, var(--surface-raised))
   );
-  color: color-mix(in srgb, var(--quota-medium-color) 72%, var(--text-primary));
+  color: color-mix(in srgb, #f59e0b 80%, var(--text-primary));
   box-shadow:
-    0 10px 22px -18px color-mix(in srgb, var(--quota-medium-color) 58%, transparent),
+    0 10px 22px -18px color-mix(in srgb, #f59e0b 58%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
 
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--quota-medium-color) 42%, var(--border-color));
-    background: color-mix(in srgb, var(--quota-medium-color) 10%, var(--surface-raised-strong));
+    border-color: color-mix(in srgb, #f59e0b 46%, var(--border-color));
+    background: color-mix(in srgb, #f59e0b 11%, var(--surface-raised-strong));
   }
 
   > span {
@@ -602,6 +609,12 @@
   &:hover {
     background: color-mix(in srgb, var(--text-tertiary) 12%, transparent);
   }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
+    outline-offset: 2px;
+    background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  }
 }
 
 .searchToolbarOptionActive {
@@ -644,6 +657,12 @@
   &:hover {
     color: var(--text-primary);
     border-color: color-mix(in srgb, var(--primary-color) 40%, var(--border-color));
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
+    outline-offset: 2px;
+    border-color: color-mix(in srgb, var(--primary-color) 55%, var(--border-color));
   }
 }
 
@@ -968,6 +987,18 @@
   opacity: 0.94;
 }
 
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .listProgressBar {
   position: absolute;
   z-index: 2;
@@ -1090,8 +1121,9 @@
     linear-gradient(180deg, color-mix(in srgb, #ffffff 38%, transparent), transparent 44%),
     var(--surface-raised);
   box-shadow: var(--shadow-card);
-  animation: authFileCardEnter 180ms ease-out both;
+  animation: authFileCardEnter 150ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
+  will-change: opacity, transform;
   &::after {
     content: '';
     position: absolute;
@@ -1272,11 +1304,11 @@
 .geminiCliCard,
 .kiroCard,
 .kimiCard {
-  --auth-card-border: color-mix(in srgb, var(--provider-accent) 46%, var(--border-color));
-  --auth-card-border-hover: color-mix(in srgb, var(--provider-accent) 68%, var(--border-color));
-  --auth-card-tint: color-mix(in srgb, var(--provider-accent) 14%, transparent);
-  --auth-card-hover-tint: color-mix(in srgb, var(--provider-accent) 22%, transparent);
-  --auth-card-glow: color-mix(in srgb, var(--provider-accent) 20%, transparent);
+  --auth-card-border: color-mix(in srgb, var(--provider-accent) 18%, var(--border-color));
+  --auth-card-border-hover: color-mix(in srgb, var(--provider-accent) 38%, var(--border-color));
+  --auth-card-tint: color-mix(in srgb, var(--provider-accent) 4%, transparent);
+  --auth-card-hover-tint: color-mix(in srgb, var(--provider-accent) 8%, transparent);
+  --auth-card-glow: color-mix(in srgb, var(--provider-accent) 12%, transparent);
 
   &::before {
     background: linear-gradient(
@@ -1286,49 +1318,50 @@
       var(--provider-accent) 88%,
       transparent
     );
-    height: 4px;
-    opacity: 0.86;
+    height: 1px;
+    opacity: 0.62;
   }
 }
 
 .antigravityCard {
-  --provider-accent: rgba(11, 141, 171, 0.7);
+  --provider-accent: rgba(20, 184, 166, 0.86);
 }
 
 .claudeCard {
-  --provider-accent: rgba(211, 93, 52, 0.7);
+  --provider-accent: rgba(249, 115, 22, 0.86);
 }
 
 .codexCard {
-  --provider-accent: rgba(118, 104, 88, 0.78);
+  --provider-accent: rgba(99, 102, 241, 0.86);
 }
 
 .geminiCliCard {
-  --provider-accent: rgba(55, 132, 164, 0.72);
+  --provider-accent: rgba(14, 165, 233, 0.86);
 }
 
 .kiroCard {
-  --provider-accent: rgba(216, 124, 10, 0.7);
+  --provider-accent: rgba(245, 158, 11, 0.88);
 }
 
 .kimiCard {
-  --provider-accent: rgba(64, 132, 170, 0.72);
+  --provider-accent: rgba(6, 182, 212, 0.88);
 }
 
 .quotaSection {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 12px;
-  margin-top: 2px;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  gap: 9px;
+  padding-top: 11px;
+  margin-top: 1px;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
 }
 
 .quotaSectionHeader {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: $spacing-sm;
+  min-width: 0;
 }
 
 .quotaSectionTitle {
@@ -1337,7 +1370,7 @@
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: 0;
-  color: color-mix(in srgb, var(--primary-color) 60%, var(--text-tertiary));
+  color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 64%, var(--text-tertiary));
   text-transform: uppercase;
 }
 
@@ -1345,7 +1378,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
   min-height: 58px;
 }
@@ -1397,7 +1430,7 @@
 
 .pageQuotaRefreshButton .quotaButtonSpinner,
 .refreshActionButton .quotaButtonSpinner {
-  color: color-mix(in srgb, #b8752a 78%, var(--text-secondary));
+  color: color-mix(in srgb, #f59e0b 82%, var(--text-secondary));
 }
 
 .quotaRefreshIconSpinning .quotaRefreshIconSvg,
@@ -1407,8 +1440,8 @@
 }
 
 .quotaRefreshButtonSpinning {
-  border-color: color-mix(in srgb, #b8752a 44%, var(--border-color));
-  color: color-mix(in srgb, #b8752a 82%, var(--text-secondary));
+  border-color: color-mix(in srgb, #f59e0b 48%, var(--border-color));
+  color: color-mix(in srgb, #f59e0b 86%, var(--text-secondary));
   animation: quotaRefreshButtonPulse 1.1s ease-in-out infinite;
 }
 
@@ -1466,7 +1499,7 @@
 
 .quotaModel {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 750;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -1481,21 +1514,21 @@
 
 .quotaBar {
   position: relative;
-  height: 12px;
-  padding: 2px;
+  height: 10px;
+  padding: 1px;
   box-sizing: border-box;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--bg-tertiary) 46%, var(--bg-secondary)) 0%,
-    color-mix(in srgb, var(--bg-tertiary) 70%, var(--bg-secondary)) 100%
+    color-mix(in srgb, #ffffff 90%, var(--surface-raised)) 0%,
+    color-mix(in srgb, #eef2f7 58%, var(--bg-tertiary)) 100%
   );
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  border: 0;
   border-radius: 999px;
   overflow: hidden;
   box-shadow:
-    inset 0 1px 2px rgba(15, 23, 42, 0.11),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
-    0 1px 0 rgba(255, 255, 255, 0.14);
+    inset 0 0 0 1px color-mix(in srgb, var(--border-color) 70%, transparent),
+    inset 0 1px 2px rgba(15, 23, 42, 0.08),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .quotaBarFill {
@@ -1504,20 +1537,20 @@
   border-radius: 999px;
   overflow: hidden;
   // 通过 --quota-fill-start/mid/end 变量驱动渐变色，3 种变体共用同一组规则
-  --quota-fill-start: #22c55e;
-  --quota-fill-mid: #34d86d;
+  --quota-fill-start: #16a34a;
+  --quota-fill-mid: #22c55e;
   --quota-fill-end: #86efac;
-  --quota-fill-glow: rgba(34, 197, 94, 0.24);
+  --quota-fill-glow: rgba(34, 197, 94, 0.22);
   background: linear-gradient(
     90deg,
     var(--quota-fill-start),
-    var(--quota-fill-mid) 52%,
+    var(--quota-fill-mid) 62%,
     var(--quota-fill-end)
   );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.36),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.09),
-    0 0 10px var(--quota-fill-glow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.06),
+    0 0 7px var(--quota-fill-glow);
   transition:
     width 0.36s cubic-bezier(0.32, 0.72, 0.2, 1),
     background-color 0.22s ease,
@@ -1534,37 +1567,37 @@
 
   &::before {
     left: 0;
-    width: 34%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+    width: 26%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.44), transparent);
     transform: translate3d(-125%, 0, 0) skewX(-18deg);
     opacity: 0;
   }
 
   &::after {
     inset-inline: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 62%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 64%);
   }
 }
 
 .quotaBarFillHigh {
-  --quota-fill-start: #22c55e;
-  --quota-fill-mid: #34d86d;
+  --quota-fill-start: #16a34a;
+  --quota-fill-mid: #22c55e;
   --quota-fill-end: #86efac;
-  --quota-fill-glow: rgba(34, 197, 94, 0.26);
+  --quota-fill-glow: rgba(34, 197, 94, 0.22);
 }
 
 .quotaBarFillMedium {
-  --quota-fill-start: #f59e0b;
-  --quota-fill-mid: #fbbf24;
-  --quota-fill-end: #fde047;
-  --quota-fill-glow: rgba(245, 158, 11, 0.26);
+  --quota-fill-start: #eab308;
+  --quota-fill-mid: #facc15;
+  --quota-fill-end: #fef08a;
+  --quota-fill-glow: rgba(234, 179, 8, 0.24);
 }
 
 .quotaBarFillLow {
-  --quota-fill-start: #ef4444;
-  --quota-fill-mid: #f87171;
-  --quota-fill-end: #fb7185;
-  --quota-fill-glow: rgba(239, 68, 68, 0.28);
+  --quota-fill-start: #dc2626;
+  --quota-fill-mid: #ef4444;
+  --quota-fill-end: #fca5a5;
+  --quota-fill-glow: rgba(239, 68, 68, 0.24);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1577,7 +1610,7 @@
 .quotaMeta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 11px;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -1621,22 +1654,45 @@
 }
 
 .quotaPercent {
+  --quota-percent-text: #166534;
+  --quota-percent-bg: color-mix(in srgb, #dcfce7 82%, var(--surface-raised));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 20px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--quota-percent-bg);
   font-weight: 800;
-  color: #16a34a;
+  color: var(--quota-percent-text);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  transition: color 0.22s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  transition:
+    color 0.22s ease,
+    background-color 0.22s ease;
 }
 
-.quotaRow:has(.quotaBarFillHigh) .quotaPercent {
-  color: #16a34a;
+.quotaRowHigh .quotaPercent {
+  --quota-percent-text: #166534;
+  --quota-percent-bg: color-mix(in srgb, #dcfce7 82%, var(--surface-raised));
 }
 
-.quotaRow:has(.quotaBarFillMedium) .quotaPercent {
-  color: #d97706;
+.quotaRowMedium .quotaPercent {
+  --quota-percent-text: #854d0e;
+  --quota-percent-bg: color-mix(in srgb, #fef9c3 84%, var(--surface-raised));
 }
 
-.quotaRow:has(.quotaBarFillLow) .quotaPercent {
-  color: #dc2626;
+.quotaRowLow .quotaPercent {
+  --quota-percent-text: #b91c1c;
+  --quota-percent-bg: color-mix(in srgb, #fee2e2 84%, var(--surface-raised));
+}
+
+.quotaRowUnknown .quotaPercent {
+  --quota-percent-text: var(--text-secondary);
+  --quota-percent-bg: color-mix(in srgb, var(--bg-tertiary) 64%, transparent);
 }
 
 .quotaReset {
@@ -1654,9 +1710,13 @@
   gap: 8px;
   min-height: 58px;
   padding: 12px 0;
-  color: color-mix(in srgb, #b8752a 72%, var(--text-secondary));
+  color: color-mix(in srgb, #f59e0b 78%, var(--text-secondary));
   font-size: 12px;
   font-weight: 700;
+
+  span {
+    color: var(--text-secondary);
+  }
 
   :global(.loading-spinner) {
     border-color: color-mix(in srgb, currentColor 24%, transparent);
@@ -1755,6 +1815,62 @@
   text-transform: none;
 }
 
+.codexResetCredits {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+
+  @include mobile {
+    flex: 0 1 auto;
+    align-items: center;
+    flex-direction: row;
+  }
+}
+
+.codexResetCreditsText {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+
+  .codexPlanLabel {
+    color: color-mix(in srgb, var(--text-tertiary) 82%, transparent);
+  }
+
+  .codexPlanValue {
+    font-size: 11px;
+    font-weight: 750;
+  }
+}
+
+.codexResetCreditButton:global(.btn.btn-sm) {
+  flex: 0 0 auto;
+  min-width: 42px;
+  min-height: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+
+  @include mobile {
+    width: auto;
+  }
+}
+
 .premiumPlanValue {
   display: inline-flex;
   align-items: center;
@@ -1774,26 +1890,57 @@
   color: #ffd862;
 }
 
-// 单个认证文件卡片：只做淡入，不改变位置，避免刷新/翻页时产生卡片跳动。
+// 单个认证文件卡片：淡入 + 轻量上移（均为合成器属性），不改变最终位置，避免刷新/翻页时产生卡片跳动。
+// 同时缩短至 150ms 提升响应感；translateY 仅 6px，低端机也无压力。
 @keyframes authFileCardEnter {
   from {
     opacity: 0;
+    transform: translate3d(0, 6px, 0);
   }
   to {
     opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 .fileCard {
-  --auth-card-border: color-mix(in srgb, var(--border-color) 72%, transparent);
-  --auth-card-border-hover: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
-  --auth-card-sheen: color-mix(in srgb, #ffffff 50%, transparent);
-  --auth-card-tint: color-mix(in srgb, var(--primary-color) 6%, transparent);
-  --auth-card-hover-tint: color-mix(in srgb, var(--primary-color) 12%, transparent);
-  --auth-card-glow: color-mix(in srgb, var(--primary-color) 14%, transparent);
-  --auth-card-inner-bg: color-mix(in srgb, var(--bg-secondary) 54%, var(--surface-raised));
-  --auth-card-inner-border: color-mix(in srgb, var(--border-color) 64%, transparent);
-  --auth-card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  --auth-card-border: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 10%,
+    color-mix(in srgb, var(--border-color) 68%, transparent)
+  );
+  --auth-card-border-hover: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 30%,
+    var(--border-color)
+  );
+  --auth-card-sheen: color-mix(in srgb, #ffffff 92%, transparent);
+  --auth-card-tint: color-mix(in srgb, var(--provider-soft, var(--primary-color)) 12%, transparent);
+  --auth-card-hover-tint: color-mix(
+    in srgb,
+    var(--provider-soft, var(--primary-color)) 18%,
+    transparent
+  );
+  --auth-card-glow: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 10%,
+    transparent
+  );
+  --auth-card-inner-bg:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--provider-soft, var(--bg-secondary)) 8%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, #ffffff 58%, var(--surface-raised));
+  --auth-card-inner-border: color-mix(
+    in srgb,
+    var(--provider-accent, var(--border-color)) 7%,
+    color-mix(in srgb, var(--border-color) 58%, transparent)
+  );
+  --auth-card-inner-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 1px 0 color-mix(in srgb, var(--provider-accent, var(--border-color)) 8%, transparent);
   // Plus 套餐：与 cost 同色系（琥珀金）但略浅
   --auth-plan-plus-text: #8c660d;
   --auth-plan-plus-bg: color-mix(in srgb, var(--quota-medium-color) 18%, var(--surface-raised));
@@ -1875,29 +2022,38 @@
   --auth-toggle-thumb-border: color-mix(in srgb, var(--border-color) 60%, transparent);
   position: relative;
   overflow: hidden;
+  // 隔离每张卡片的布局与样式作用域，hover/选中态变化时重排重算限制在卡片自身子树，
+  // 避免大网格下邻接卡片参与样式重算。
+  contain: layout style;
   // 静态背景一次绘制，hover 时仅切换 ::after 的 opacity，不再过渡 background
   background:
-    linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
-    linear-gradient(135deg, var(--auth-card-tint), transparent 48%), var(--surface-raised);
+    linear-gradient(180deg, var(--auth-card-sheen), transparent 46%),
+    linear-gradient(135deg, var(--auth-card-tint), transparent 52%), var(--surface-raised);
   border: 1px solid var(--auth-card-border);
-  border-radius: 14px;
-  padding: 14px 14px 12px;
+  border-radius: 12px;
+  padding: 12px 12px 11px;
   display: flex;
   flex-direction: column;
   min-height: 100%;
   isolation: isolate;
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
   // 卡片本体不再过渡 transform，避免 hover/刷新时产生位移感。
   transition:
     box-shadow 160ms ease,
     border-color 160ms ease;
-  animation: authFileCardEnter 180ms ease-out both;
+  animation: authFileCardEnter 150ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
+  // 入场用合成器属性（opacity/transform），提前提示浏览器分层，避免首帧抖动；
+  // 动画结束后由浏览器自动回收该提示。
+  will-change: opacity, transform;
 
   &:hover {
     box-shadow:
       var(--shadow-card-hover),
-      0 12px 28px -24px var(--auth-card-glow);
+      0 14px 32px -24px var(--auth-card-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.52);
     border-color: var(--auth-card-border-hover);
 
     &::before {
@@ -1925,10 +2081,10 @@
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in srgb, var(--primary-color) 28%, transparent),
+      color-mix(in srgb, var(--provider-accent, var(--primary-color)) 34%, transparent),
       transparent
     );
-    opacity: 0.6;
+    opacity: 0.54;
     pointer-events: none;
     transition: opacity $transition-fast;
   }
@@ -1943,8 +2099,8 @@
     pointer-events: none;
     opacity: 0;
     background:
-      radial-gradient(120% 80% at 50% -10%, var(--auth-card-glow), transparent 60%),
-      linear-gradient(135deg, var(--auth-card-hover-tint), transparent 52%);
+      linear-gradient(180deg, color-mix(in srgb, #ffffff 24%, transparent), transparent 48%),
+      linear-gradient(135deg, var(--auth-card-hover-tint), transparent 56%);
     transition: opacity 160ms ease;
     z-index: 0;
   }
@@ -1956,8 +2112,8 @@
 
   @include mobile {
     width: 100%;
-    padding: 14px 12px;
-    border-radius: 12px;
+    padding: 14px 12px 12px;
+    border-radius: 10px;
   }
 }
 
@@ -1967,6 +2123,7 @@
   .fileCardSkeleton::after {
     animation: none;
     transition: none;
+    will-change: auto;
 
     &:hover {
       transform: none;
@@ -1976,7 +2133,7 @@
 
 @media (max-width: 640px) {
   .fileCard {
-    padding: 14px 12px;
+    padding: 14px 12px 12px;
   }
 }
 
@@ -2000,10 +2157,10 @@
   &::after {
     opacity: 0.55;
     background:
-      radial-gradient(
-        120% 80% at 50% -10%,
-        color-mix(in srgb, var(--primary-color) 18%, transparent),
-        transparent 60%
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--primary-color) 10%, transparent),
+        transparent 46%
       ),
       linear-gradient(
         135deg,
@@ -2053,7 +2210,7 @@
 .fileCardMain {
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
 
@@ -2065,9 +2222,9 @@
 .cardHeader {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
+  gap: 10px;
   min-width: 0;
-  padding-bottom: 1px;
+  padding: 1px 1px 2px 0;
 
   @include mobile {
     gap: 8px;
@@ -2174,7 +2331,7 @@
 
 .cardSelection {
   flex-shrink: 0;
-  margin-top: 5px;
+  margin-top: 6px;
 
   > span {
     width: 18px;
@@ -2195,13 +2352,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 9px;
   // 边框跟随 provider 色 (currentColor)，让头像与服务类型形成视觉关联
   // background 由 inline style (typeColor.bg) 控制
   border: 1px solid color-mix(in srgb, currentColor 24%, var(--border-color));
   box-shadow:
-    0 4px 12px -10px color-mix(in srgb, currentColor 45%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    0 8px 18px -14px color-mix(in srgb, currentColor 54%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
   // 仅过渡 border-color（廉价），其他效果由静态 ::before 提供
   transition: border-color $transition-fast;
   // 头像内部用一层柔和白色高光增加立体感（不影响 inline bg）
@@ -2213,7 +2370,9 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 62%);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 58%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 52%);
     pointer-events: none;
     z-index: 0;
   }
@@ -2228,9 +2387,9 @@
   }
 
   @include mobile {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
   }
 }
 
@@ -2273,15 +2432,15 @@
 
 .cardIdentityRow {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 6px 8px;
+  gap: 4px 8px;
   min-width: 0;
   max-width: 100%;
 }
 
 .cardIdentityRowWithWarning {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
 }
 
 .cardIdentityRowNoBadges {
@@ -2307,10 +2466,12 @@
 .cardTypeGroup {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: flex-end;
+  gap: 4px;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
+  padding: 1px 0;
 }
 
 .cardBadgeRow {
@@ -2332,17 +2493,17 @@
   .cardIdentityRow {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      'type priority'
-      'name name';
+      'name priority'
+      'type type';
     column-gap: 6px;
-    row-gap: 3px;
+    row-gap: 2px;
   }
 
   .cardIdentityRowWithWarning {
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas:
-      'type priority warning'
-      'name name name';
+      'name priority warning'
+      'type type type';
   }
 
   .cardIdentityRowNoBadges {
@@ -2357,9 +2518,10 @@
 
   .cardTypeGroup {
     grid-area: type;
+    justify-content: flex-start;
     flex-wrap: wrap;
     overflow: visible;
-    row-gap: 3px;
+    row-gap: 2px;
   }
 
   .cardIdentityRow .fileNameRow {
@@ -2492,11 +2654,11 @@
   align-items: center;
   justify-content: center;
   max-width: 100%;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 9px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 7px;
   border-radius: 999px;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
@@ -2513,15 +2675,15 @@
 }
 
 .featureBadgeIconOnly {
-  width: 22px;
-  min-width: 22px;
-  max-width: 22px;
+  width: 20px;
+  min-width: 20px;
+  max-width: 20px;
   padding: 0;
-  flex: 0 0 22px;
+  flex: 0 0 20px;
 
   svg {
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
     stroke-width: 2.4;
   }
 }
@@ -2542,14 +2704,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
   border-radius: 999px;
   border: 1px solid var(--auth-refresh-border);
   background: var(--auth-refresh-bg);
   color: var(--auth-refresh-text);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0;
@@ -2569,19 +2731,19 @@
 .fileName {
   min-width: 0;
   max-width: 100%;
-  min-height: 22px;
-  padding: 1px 5px;
-  margin-left: -5px;
+  min-height: 23px;
+  padding: 2px 6px 1px;
+  margin-left: -6px;
   box-sizing: border-box;
   border: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   appearance: none;
   background: transparent;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   font-family: inherit;
   color: var(--text-primary);
-  line-height: 1.3;
+  line-height: 1.25;
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2602,8 +2764,8 @@
 }
 
 .fileName:hover {
-  color: color-mix(in srgb, var(--primary-color) 72%, var(--text-primary));
-  background: color-mix(in srgb, var(--primary-color) 7%, transparent);
+  color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 78%, var(--text-primary));
+  background: color-mix(in srgb, var(--provider-soft, var(--primary-color)) 58%, transparent);
 }
 
 .fileName:focus-visible {
@@ -2756,12 +2918,12 @@
   gap: 0;
   width: fit-content;
   max-width: 100%;
-  min-height: 24px;
+  min-height: 21px;
   min-width: 0;
   padding: 0;
   border: 1px solid var(--auth-card-inner-border);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
   box-shadow: var(--auth-card-inner-shadow);
   overflow: hidden;
 }
@@ -2779,13 +2941,13 @@
 }
 
 .priorityInlineReadOnly {
-  padding: 0 8px;
+  padding: 0 7px;
 }
 
 .priorityStepper {
   display: inline-flex;
   align-items: center;
-  height: 24px;
+  height: 21px;
   overflow: hidden;
   border: 0;
   border-radius: 0;
@@ -2794,8 +2956,8 @@
 }
 
 .priorityStepButton {
-  width: 21px;
-  height: 24px;
+  width: 20px;
+  height: 21px;
   border: 0;
   padding: 0;
   display: inline-flex;
@@ -2803,7 +2965,7 @@
   justify-content: center;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -2829,8 +2991,8 @@
 }
 
 .priorityInput {
-  width: 30px;
-  height: 24px;
+  width: 29px;
+  height: 21px;
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
   border-right: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
@@ -2838,7 +3000,7 @@
   text-align: center;
   background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
   color: var(--text-primary);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -2869,6 +3031,7 @@
   gap: 6px;
   align-items: flex-start;
   min-width: 0;
+  padding: 1px 0 0;
 
   @include mobile {
     gap: 4px;
@@ -2897,23 +3060,23 @@
   display: flex;
   flex-direction: column;
   gap: 9px;
-  padding: 9px;
+  padding: 9px 10px;
   border: 1px solid var(--auth-card-inner-border);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--auth-card-inner-bg);
   box-shadow: var(--auth-card-inner-shadow);
 
   @include mobile {
     gap: 8px;
     padding: 8px;
-    border-radius: 10px;
+    border-radius: 9px;
   }
 }
 
 .statusPanel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
   padding-top: 1px;
 
@@ -2925,23 +3088,31 @@
 .statusPanelLabel {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
   font-size: 11px;
   font-weight: 800;
   color: var(--text-tertiary);
   text-transform: none;
   letter-spacing: 0;
+
+  > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .statusTokens {
-  margin-left: 2px;
+  margin-left: auto;
   min-width: max-content;
   max-width: none;
   overflow: visible;
   text-overflow: clip;
   white-space: nowrap;
-  color: var(--text-tertiary);
+  color: color-mix(in srgb, var(--provider-accent, var(--text-tertiary)) 42%, var(--text-tertiary));
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -2952,7 +3123,7 @@
 .statusBar {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   width: 100%;
   min-width: 0;
   padding: 0;
@@ -2967,7 +3138,7 @@
 
 .statusBlocks {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
   min-width: 0;
   position: relative;
@@ -2983,7 +3154,7 @@
 
 .statusBlock {
   width: 100%;
-  height: 7px;
+  height: 8px;
   border-radius: 999px;
   transform-origin: center center;
   transition: transform 140ms ease;
@@ -2995,7 +3166,7 @@
 }
 
 .statusBlockIdle {
-  background: color-mix(in srgb, var(--bg-tertiary) 80%, var(--border-color));
+  background: color-mix(in srgb, var(--provider-soft, var(--bg-tertiary)) 42%, var(--bg-tertiary));
 }
 
 .statusTooltip {
@@ -3090,15 +3261,17 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-width: 32px;
-  height: 28px;
+  min-width: 34px;
+  height: 26px;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
-  padding: 0 9px;
+  padding: 0 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--provider-accent, var(--border-color)) 12%, transparent);
+  background: color-mix(in srgb, var(--bg-tertiary) 74%, transparent);
   color: var(--text-secondary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
   flex-shrink: 0;
 }
 
@@ -3689,7 +3862,9 @@
   }
 
   :global(label),
+  :global(.form-label),
   .prefixProxyTextareaGroup label,
+  .prefixProxyTextareaGroup :global(.form-label),
   .prefixProxySwitchField label,
   .prefixProxyFieldLabel {
     font-size: 12px;
@@ -3757,7 +3932,8 @@
   flex-direction: column;
   gap: 5px;
 
-  > label {
+  > label,
+  > :global(.form-label) {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -3919,10 +4095,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 9px;
+  gap: 8px;
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--provider-accent, var(--border-color)) 8%, var(--border-color));
   min-width: 0;
   width: 100%;
 }
@@ -3930,7 +4107,7 @@
 .cardActionsMain {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   min-width: 0;
   flex: 1;
   justify-content: space-between;
@@ -3940,7 +4117,7 @@
 .cardActionsContent {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
   flex: 1 1 auto;
   justify-content: flex-start;
@@ -3954,7 +4131,7 @@
 .cardActionCluster {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
   flex: 0 1 auto;
   justify-content: flex-start;
@@ -3999,7 +4176,7 @@
 .cardUtilityActions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -4113,13 +4290,13 @@
 }
 
 .iconButton:global(.btn.btn-sm) {
-  width: 31px;
-  height: 31px;
-  min-height: 31px;
-  min-width: 31px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  min-width: 32px;
   padding: 0;
   box-sizing: border-box;
-  border-radius: 9px;
+  border-radius: 8px;
   gap: 0;
   border-color: var(--auth-action-border);
   border-width: 1px;
@@ -4187,9 +4364,9 @@
 }
 
 .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
-  border-color: color-mix(in srgb, #b8752a 48%, var(--border-color));
+  border-color: color-mix(in srgb, #f59e0b 50%, var(--border-color));
   background: transparent;
-  color: color-mix(in srgb, #b8752a 78%, var(--text-secondary));
+  color: color-mix(in srgb, #f59e0b 82%, var(--text-secondary));
   box-shadow: none;
 }
 
@@ -4509,15 +4686,45 @@
   }
 
   .fileCard {
-    --auth-card-border: color-mix(in srgb, var(--border-color) 78%, transparent);
-    --auth-card-border-hover: color-mix(in srgb, var(--primary-active) 54%, var(--border-color));
-    --auth-card-sheen: color-mix(in srgb, #ffffff 6%, transparent);
-    --auth-card-tint: color-mix(in srgb, var(--primary-active) 10%, transparent);
-    --auth-card-hover-tint: color-mix(in srgb, var(--primary-active) 16%, transparent);
-    --auth-card-glow: color-mix(in srgb, var(--primary-active) 18%, transparent);
-    --auth-card-inner-bg: color-mix(in srgb, var(--bg-secondary) 52%, transparent);
-    --auth-card-inner-border: color-mix(in srgb, var(--border-color) 78%, transparent);
-    --auth-card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --auth-card-border: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-active)) 18%,
+      color-mix(in srgb, var(--border-color) 72%, transparent)
+    );
+    --auth-card-border-hover: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-active)) 30%,
+      var(--border-color)
+    );
+    --auth-card-sheen: color-mix(in srgb, #ffffff 16%, transparent);
+    --auth-card-tint: color-mix(
+      in srgb,
+      var(--provider-soft, var(--primary-active)) 4%,
+      transparent
+    );
+    --auth-card-hover-tint: color-mix(
+      in srgb,
+      var(--provider-soft, var(--primary-active)) 7%,
+      transparent
+    );
+    --auth-card-glow: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-active)) 18%,
+      transparent
+    );
+    --auth-card-inner-bg:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--provider-soft, var(--bg-secondary)) 6%, transparent),
+        transparent 76%
+      ),
+      color-mix(in srgb, var(--surface-raised-strong) 64%, transparent);
+    --auth-card-inner-border: color-mix(
+      in srgb,
+      var(--provider-accent, var(--border-color)) 12%,
+      color-mix(in srgb, var(--border-color) 78%, transparent)
+    );
+    --auth-card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 0 rgba(0, 0, 0, 0.18);
     // Plus 琥珀金（与 --quota-medium-color #eac45a 协调）
     --auth-plan-plus-text: #eac45a;
     --auth-plan-plus-bg: color-mix(in srgb, var(--quota-medium-color) 22%, transparent);
@@ -4606,14 +4813,16 @@
     background:
       linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
       linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--surface-raised);
-    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
-    box-shadow: var(--shadow-card);
+    border-color: var(--auth-card-border);
+    box-shadow:
+      var(--shadow-card),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
     &::before {
       background: linear-gradient(
         90deg,
         transparent,
-        color-mix(in srgb, var(--primary-color) 28%, transparent),
+        color-mix(in srgb, var(--provider-accent, var(--primary-active)) 34%, transparent),
         transparent
       );
     }
@@ -4638,27 +4847,27 @@
   }
 
   .fileCard.antigravityCard {
-    --provider-accent: rgba(88, 206, 232, 0.82);
+    --provider-accent: rgba(45, 212, 191, 0.92);
   }
 
   .fileCard.claudeCard {
-    --provider-accent: rgba(244, 140, 116, 0.82);
+    --provider-accent: rgba(251, 146, 60, 0.92);
   }
 
   .fileCard.codexCard {
-    --provider-accent: rgba(190, 170, 140, 0.82);
+    --provider-accent: rgba(165, 180, 252, 0.92);
   }
 
   .fileCard.geminiCliCard {
-    --provider-accent: rgba(112, 184, 196, 0.78);
+    --provider-accent: rgba(56, 189, 248, 0.92);
   }
 
   .fileCard.kiroCard {
-    --provider-accent: rgba(249, 198, 100, 0.82);
+    --provider-accent: rgba(251, 191, 36, 0.94);
   }
 
   .fileCard.kimiCard {
-    --provider-accent: rgba(112, 184, 196, 0.78);
+    --provider-accent: rgba(34, 211, 238, 0.94);
   }
 
   .fileCardSelected {
@@ -4785,7 +4994,11 @@
   }
 
   .quotaSectionTitle {
-    color: color-mix(in srgb, var(--primary-active) 70%, var(--text-tertiary));
+    color: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-active)) 68%,
+      var(--text-tertiary)
+    );
   }
 
   .quotaModel {
@@ -4795,81 +5008,71 @@
   .quotaBar {
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--bg-tertiary) 64%, var(--bg-primary)),
-      color-mix(in srgb, var(--bg-tertiary) 42%, var(--bg-secondary))
+      color-mix(in srgb, #334155 22%, var(--bg-primary)),
+      color-mix(in srgb, #0f172a 16%, var(--bg-secondary))
     );
-    border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
     box-shadow:
-      inset 0 1px 2px rgba(0, 0, 0, 0.5),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-      0 1px 0 rgba(255, 255, 255, 0.03);
+      inset 0 0 0 1px color-mix(in srgb, var(--border-color) 84%, transparent),
+      inset 0 1px 2px rgba(0, 0, 0, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .quotaBarFill {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+      0 0 8px var(--quota-fill-glow);
   }
 
   .quotaBarFillHigh {
-    --quota-fill-start: #10b981;
-    --quota-fill-mid: #34d399;
+    --quota-fill-start: #16a34a;
+    --quota-fill-mid: #22c55e;
     --quota-fill-end: #86efac;
-    --quota-fill-glow: rgba(52, 211, 153, 0.3);
-    background: linear-gradient(
-      90deg,
-      var(--quota-fill-start),
-      var(--quota-fill-mid) 52%,
-      var(--quota-fill-end)
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.24),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-      0 0 14px var(--quota-fill-glow);
+    --quota-fill-glow: rgba(34, 197, 94, 0.3);
   }
 
   .quotaBarFillMedium {
-    --quota-fill-start: #f59e0b;
-    --quota-fill-mid: #fbbf24;
-    --quota-fill-end: #fde047;
-    --quota-fill-glow: rgba(251, 191, 36, 0.3);
-    background: linear-gradient(
-      90deg,
-      var(--quota-fill-start),
-      var(--quota-fill-mid) 52%,
-      var(--quota-fill-end)
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-      0 0 14px var(--quota-fill-glow);
+    --quota-fill-start: #eab308;
+    --quota-fill-mid: #facc15;
+    --quota-fill-end: #fef08a;
+    --quota-fill-glow: rgba(250, 204, 21, 0.32);
   }
 
   .quotaBarFillLow {
-    --quota-fill-start: #ef4444;
-    --quota-fill-mid: #f87171;
-    --quota-fill-end: #fb7185;
-    --quota-fill-glow: rgba(248, 113, 113, 0.32);
-    background: linear-gradient(
-      90deg,
-      var(--quota-fill-start),
-      var(--quota-fill-mid) 52%,
-      var(--quota-fill-end)
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.2),
-      0 0 14px var(--quota-fill-glow);
+    --quota-fill-start: #dc2626;
+    --quota-fill-mid: #ef4444;
+    --quota-fill-end: #fca5a5;
+    --quota-fill-glow: rgba(239, 68, 68, 0.32);
   }
 
   .quotaPercent {
-    color: #86efac;
+    --quota-percent-text: #bbf7d0;
+    --quota-percent-bg: rgba(34, 197, 94, 0.18);
+    color: var(--quota-percent-text);
+    background: var(--quota-percent-bg);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 1px 0 rgba(0, 0, 0, 0.16);
   }
 
-  .quotaRow:has(.quotaBarFillHigh) .quotaPercent {
-    color: #86efac;
+  .quotaRowHigh .quotaPercent {
+    --quota-percent-text: #bbf7d0;
+    --quota-percent-bg: rgba(34, 197, 94, 0.18);
   }
 
-  .quotaRow:has(.quotaBarFillMedium) .quotaPercent {
-    color: #fbbf24;
+  .quotaRowMedium .quotaPercent {
+    --quota-percent-text: #fef9c3;
+    --quota-percent-bg: rgba(250, 204, 21, 0.18);
   }
 
-  .quotaRow:has(.quotaBarFillLow) .quotaPercent {
-    color: #fca5a5;
+  .quotaRowLow .quotaPercent {
+    --quota-percent-text: #fecaca;
+    --quota-percent-bg: rgba(239, 68, 68, 0.18);
+  }
+
+  .quotaRowUnknown .quotaPercent {
+    --quota-percent-text: var(--text-secondary);
+    --quota-percent-bg: color-mix(in srgb, var(--bg-tertiary) 58%, transparent);
   }
 
   .quotaReset {
@@ -5067,6 +5270,8 @@
   width: min(960px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
   box-sizing: border-box;
+  // 隔离浮动操作栏的布局/样式作用域，GSAP 动画时避免触发整页样式重算。
+  contain: layout style;
 }
 
 .batchActionBar {
@@ -5440,10 +5645,14 @@
 }
 
 .modelItem {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
+  appearance: none;
+  font: inherit;
+  text-align: left;
   background-color: var(--bg-secondary);
   border-radius: $radius-md;
   border: 1px solid var(--border-color);
@@ -5460,6 +5669,12 @@
 
   &:active {
     border-color: color-mix(in srgb, var(--primary-color) 72%, var(--border-color));
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 46%, transparent);
+    outline-offset: 2px;
+    border-color: var(--primary-color);
   }
 }
 
@@ -6298,10 +6513,12 @@
   }
 
   .statusTokens {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
     margin-left: 0;
-    overflow: visible;
-    text-overflow: clip;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
@@ -6339,6 +6556,12 @@
   .quotaMeta {
     min-width: 0;
     max-width: 100%;
+  }
+
+  .quotaMeta {
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 4px;
   }
 
   .quotaModel,
@@ -6393,10 +6616,13 @@
 }
 
 @media (max-width: 380px) {
-  .featureBadge,
   .stateBadge,
   .planBadge {
-    max-width: 64px;
+    max-width: 84px;
+  }
+
+  .featureBadge:not(.featureBadgeIconOnly) {
+    max-width: 96px;
   }
 
   .statusRate {

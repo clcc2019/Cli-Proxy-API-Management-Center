@@ -19,6 +19,7 @@ interface ModalProps {
   width?: number | string;
   className?: string;
   closeDisabled?: boolean;
+  ariaDescribedBy?: string;
 }
 
 const CLOSE_ANIMATION_DURATION = 180;
@@ -124,6 +125,7 @@ export function Modal({
   width = 520,
   className,
   closeDisabled = false,
+  ariaDescribedBy,
   children,
 }: PropsWithChildren<ModalProps>) {
   const { t } = useTranslation();
@@ -281,6 +283,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
+        aria-describedby={ariaDescribedBy}
         tabIndex={-1}
       >
         <button

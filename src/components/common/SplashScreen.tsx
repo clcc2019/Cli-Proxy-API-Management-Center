@@ -25,12 +25,16 @@ export function SplashScreen({ onFinish, fadeOut = false }: SplashScreenProps) {
   }, [fadeOut, onFinish]);
 
   return (
-    <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
+    <div
+      className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}
+      role="status"
+      aria-busy="true"
+    >
       <div className="splash-content">
-        <img src={INLINE_LOGO_JPEG} alt="CPAMC" className="splash-logo" />
+        <img src={INLINE_LOGO_JPEG} alt={t('title.main')} className="splash-logo" />
         <h1 className="splash-title">{t('splash.title')}</h1>
         <p className="splash-subtitle">{t('splash.subtitle')}</p>
-        <div className="splash-loader">
+        <div className="splash-loader" aria-hidden="true">
           <div className="splash-loader-bar" />
         </div>
       </div>

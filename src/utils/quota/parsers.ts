@@ -4,6 +4,7 @@
 
 import type { ClaudeUsagePayload, CodexUsagePayload, KimiUsagePayload } from '@/types';
 import { normalizeAuthIndex } from '@/utils/usage';
+import { QUOTA_PROGRESS_HIGH_THRESHOLD, QUOTA_PROGRESS_MEDIUM_THRESHOLD } from './constants';
 
 export { normalizeAuthIndex };
 
@@ -57,6 +58,25 @@ export function normalizeQuotaFraction(value: unknown): number | null {
     }
   }
   return null;
+}
+
+export type QuotaProgressLevel = 'high' | 'medium' | 'low' | 'unknown';
+
+export function normalizeQuotaProgressPercent(value: number | null): number | null {
+  if (value === null || !Number.isFinite(value)) return null;
+  return Math.min(100, Math.max(0, value));
+}
+
+export function getQuotaProgressLevel(
+  percent: number | null,
+  highThreshold = QUOTA_PROGRESS_HIGH_THRESHOLD,
+  mediumThreshold = QUOTA_PROGRESS_MEDIUM_THRESHOLD
+): QuotaProgressLevel {
+  const normalized = normalizeQuotaProgressPercent(percent);
+  if (normalized === null) return 'unknown';
+  if (normalized >= highThreshold) return 'high';
+  if (normalized >= mediumThreshold) return 'medium';
+  return 'low';
 }
 
 export function normalizePlanType(value: unknown): string | null {

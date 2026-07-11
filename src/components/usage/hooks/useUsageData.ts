@@ -1,11 +1,17 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { USAGE_STATS_STALE_TIME_MS, useNotificationStore, useUsageStatsStore } from '@/stores';
 import { usageApi } from '@/services/api/usage';
 import { downloadBlob } from '@/utils/download';
-import { loadModelPrices, saveModelPrices, type ModelPrice } from '@/utils/usage';
-
-const hasPrices = (prices: Record<string, ModelPrice>) => Object.keys(prices).length > 0;
+import type { ModelPrice } from '@/utils/usage';
+import { primeModelPrices, saveAndSyncModelPrices } from './usageModelPriceUtils';
+import {
+  appendErrorMessage,
+  buildUsageImportMessageOptions,
+  buildUsageExportFilename,
+  createJsonExportBlob,
+  readJsonFile,
+} from './usageFileUtils';
 
 export interface UsagePayload {
   total_requests?: number;
@@ -34,6 +40,8 @@ export interface UseUsageDataReturn {
 
 export interface UseUsageDataOptions {
   detailsLimit?: number;
+  compactDetails?: boolean;
+  includeAggregated?: boolean;
 }
 
 export function useUsageData(options: UseUsageDataOptions = {}): UseUsageDataReturn {
@@ -50,110 +58,97 @@ export function useUsageData(options: UseUsageDataOptions = {}): UseUsageDataRet
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const detailsLimit = options.detailsLimit;
+  const compactDetails = options.compactDetails === true;
+  const includeAggregated = options.includeAggregated !== false;
 
   const loadUsage = useCallback(async () => {
-    await loadUsageStats({ force: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS, detailsLimit });
-  }, [detailsLimit, loadUsageStats]);
+    await loadUsageStats({
+      force: true,
+      staleTimeMs: USAGE_STATS_STALE_TIME_MS,
+      detailsLimit,
+      compactDetails,
+      includeAggregated,
+    });
+  }, [compactDetails, detailsLimit, includeAggregated, loadUsageStats]);
 
   useEffect(() => {
-    void loadUsageStats({ staleTimeMs: USAGE_STATS_STALE_TIME_MS, detailsLimit }).catch(() => {});
-    setModelPrices(loadModelPrices());
-    void usageApi
-      .getModelPrices()
-      .then((prices) => {
-        if (!hasPrices(prices)) return;
-        setModelPrices(prices);
-        saveModelPrices(prices);
-      })
-      .catch(() => {});
-  }, [detailsLimit, loadUsageStats]);
+    void loadUsageStats({
+      staleTimeMs: USAGE_STATS_STALE_TIME_MS,
+      detailsLimit,
+      compactDetails,
+      includeAggregated,
+    }).catch(() => {});
+    primeModelPrices(setModelPrices);
+  }, [compactDetails, detailsLimit, includeAggregated, loadUsageStats]);
 
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     setExporting(true);
     try {
       const data = await usageApi.exportDetailedUsage(usageSnapshot);
-      const exportedAt =
-        typeof data?.exported_at === 'string' ? new Date(data.exported_at) : new Date();
-      const safeTimestamp = Number.isNaN(exportedAt.getTime())
-        ? new Date().toISOString()
-        : exportedAt.toISOString();
-      const filename = `usage-export-details-${safeTimestamp.replace(/[:.]/g, '-')}.json`;
       downloadBlob({
-        filename,
-        blob: new Blob([JSON.stringify(data ?? {}, null, 2)], { type: 'application/json' })
+        filename: buildUsageExportFilename('usage-export-details', data),
+        blob: createJsonExportBlob(data)
       });
       showNotification(t('usage_stats.export_success'), 'success');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '';
-      showNotification(
-        `${t('notification.download_failed')}${message ? `: ${message}` : ''}`,
-        'error'
-      );
+      showNotification(appendErrorMessage(t('notification.download_failed'), err), 'error');
     } finally {
       setExporting(false);
     }
-  };
+  }, [showNotification, t, usageSnapshot]);
 
-  const handleImport = () => {
+  const handleImport = useCallback(() => {
     importInputRef.current?.click();
-  };
+  }, []);
 
-  const handleImportChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
+  const handleImportChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file) return;
 
-    setImporting(true);
-    try {
-      const text = await file.text();
-      let payload: unknown;
+      setImporting(true);
       try {
-        payload = JSON.parse(text);
-      } catch {
-        showNotification(t('usage_stats.import_invalid'), 'error');
-        return;
-      }
+        let payload: unknown;
+        try {
+          payload = await readJsonFile(file);
+        } catch {
+          showNotification(t('usage_stats.import_invalid'), 'error');
+          return;
+        }
 
-      const result = await usageApi.importUsage(payload);
-      showNotification(
-        t('usage_stats.import_success', {
-          added: result?.added ?? 0,
-          skipped: result?.skipped ?? 0,
-          total: result?.total_requests ?? 0,
-          failed: result?.failed_requests ?? 0
-        }),
-        'success'
-      );
-      try {
-        await loadUsageStats({ force: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS, detailsLimit });
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : '';
+        const result = await usageApi.importUsage(payload);
         showNotification(
-          `${t('notification.refresh_failed')}${message ? `: ${message}` : ''}`,
-          'error'
+          t('usage_stats.import_success', buildUsageImportMessageOptions(result)),
+          'success'
         );
+        try {
+          await loadUsageStats({
+            force: true,
+            staleTimeMs: USAGE_STATS_STALE_TIME_MS,
+            detailsLimit,
+            compactDetails,
+            includeAggregated,
+          });
+        } catch (err: unknown) {
+          showNotification(
+            appendErrorMessage(t('notification.refresh_failed'), err),
+            'error'
+          );
+        }
+      } catch (err: unknown) {
+        showNotification(appendErrorMessage(t('notification.upload_failed'), err), 'error');
+      } finally {
+        setImporting(false);
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '';
-      showNotification(
-        `${t('notification.upload_failed')}${message ? `: ${message}` : ''}`,
-        'error'
-      );
-    } finally {
-      setImporting(false);
-    }
-  };
+    },
+    [compactDetails, detailsLimit, includeAggregated, loadUsageStats, showNotification, t]
+  );
 
   const handleSetModelPrices = useCallback(
     (prices: Record<string, ModelPrice>) => {
-      setModelPrices(prices);
-      saveModelPrices(prices);
-      void usageApi.updateModelPrices(prices).catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : '';
-        showNotification(
-          `${t('notification.save_failed')}${message ? `: ${message}` : ''}`,
-          'error'
-        );
+      saveAndSyncModelPrices(prices, setModelPrices, (err) => {
+        showNotification(appendErrorMessage(t('notification.save_failed'), err), 'error');
       });
     },
     [showNotification, t]
@@ -161,7 +156,10 @@ export function useUsageData(options: UseUsageDataOptions = {}): UseUsageDataRet
 
   const usage = usageSnapshot as UsagePayload | null;
   const error = storeError || '';
-  const lastRefreshedAt = lastRefreshedAtTs ? new Date(lastRefreshedAtTs) : null;
+  const lastRefreshedAt = useMemo(
+    () => (lastRefreshedAtTs ? new Date(lastRefreshedAtTs) : null),
+    [lastRefreshedAtTs]
+  );
 
   return {
     usage,

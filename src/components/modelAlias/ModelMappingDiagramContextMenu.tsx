@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { TFunction } from 'i18next';
 import type { ContextMenuState } from './ModelMappingDiagramTypes';
@@ -31,6 +31,15 @@ export function DiagramContextMenu({
 }: DiagramContextMenuProps) {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const getMenuItems = useCallback(
+    () =>
+      Array.from(
+        menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ??
+          []
+      ),
+    []
+  );
+
   useEffect(() => {
     if (!contextMenu) return;
     const handleClick = (event: globalThis.MouseEvent) => {
@@ -42,30 +51,92 @@ export function DiagramContextMenu({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [contextMenu, onRequestClose]);
 
+  useEffect(() => {
+    if (!contextMenu || typeof window === 'undefined') return undefined;
+
+    const frame = window.requestAnimationFrame(() => {
+      getMenuItems()[0]?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [contextMenu, getMenuItems]);
+
   if (!contextMenu) return null;
 
   const { type, data } = contextMenu;
 
+  const focusMenuItem = (direction: 1 | -1) => {
+    const items = getMenuItems();
+    if (items.length === 0) return;
+
+    const activeIndex = items.findIndex((item) => item === document.activeElement);
+    const nextIndex =
+      activeIndex === -1 ? 0 : (activeIndex + direction + items.length) % items.length;
+    items[nextIndex]?.focus();
+  };
+
+  const handleMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onRequestClose();
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      focusMenuItem(1);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      focusMenuItem(-1);
+      return;
+    }
+
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      const items = getMenuItems();
+      const index = event.key === 'Home' ? 0 : items.length - 1;
+      items[index]?.focus();
+    }
+  };
+
   const renderBackground = () => (
-    <div className={styles.menuItem} onClick={onAddAlias}>
+    <button type="button" role="menuitem" className={styles.menuItem} onClick={onAddAlias}>
       <span>{t('oauth_model_alias.diagram_add_alias')}</span>
-    </div>
+    </button>
   );
 
   const renderAlias = () => {
     if (!data) return null;
     return (
       <>
-        <div className={styles.menuItem} onClick={() => onRenameAlias(data)}>
+        <button
+          type="button"
+          role="menuitem"
+          className={styles.menuItem}
+          onClick={() => onRenameAlias(data)}
+        >
           <span>{t('oauth_model_alias.diagram_rename')}</span>
-        </div>
-        <div className={styles.menuItem} onClick={() => onOpenAliasSettings(data)}>
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          className={styles.menuItem}
+          onClick={() => onOpenAliasSettings(data)}
+        >
           <span>{t('oauth_model_alias.diagram_settings')}</span>
-        </div>
+        </button>
         <div className={styles.menuDivider} />
-        <div className={`${styles.menuItem} ${styles.danger}`} onClick={() => onDeleteAlias(data)}>
+        <button
+          type="button"
+          role="menuitem"
+          className={`${styles.menuItem} ${styles.danger}`}
+          onClick={() => onDeleteAlias(data)}
+        >
           <span>{t('oauth_model_alias.diagram_delete_alias')}</span>
-        </div>
+        </button>
       </>
     );
   };
@@ -74,13 +145,23 @@ export function DiagramContextMenu({
     if (!data) return null;
     return (
       <>
-        <div className={styles.menuItem} onClick={() => onEditProvider(data)}>
+        <button
+          type="button"
+          role="menuitem"
+          className={styles.menuItem}
+          onClick={() => onEditProvider(data)}
+        >
           <span>{t('common.edit')}</span>
-        </div>
+        </button>
         <div className={styles.menuDivider} />
-        <div className={`${styles.menuItem} ${styles.danger}`} onClick={() => onDeleteProvider(data)}>
+        <button
+          type="button"
+          role="menuitem"
+          className={`${styles.menuItem} ${styles.danger}`}
+          onClick={() => onDeleteProvider(data)}
+        >
           <span>{t('oauth_model_alias.delete')}</span>
-        </div>
+        </button>
       </>
     );
   };
@@ -88,9 +169,14 @@ export function DiagramContextMenu({
   const renderSource = () => {
     if (!data) return null;
     return (
-      <div className={styles.menuItem} onClick={() => onOpenSourceSettings(data)}>
+      <button
+        type="button"
+        role="menuitem"
+        className={styles.menuItem}
+        onClick={() => onOpenSourceSettings(data)}
+      >
         <span>{t('oauth_model_alias.diagram_settings')}</span>
-      </div>
+      </button>
     );
   };
 
@@ -99,7 +185,10 @@ export function DiagramContextMenu({
       ref={menuRef}
       className={styles.contextMenu}
       style={{ top: contextMenu.y, left: contextMenu.x }}
-      onClick={(e) => e.stopPropagation()}
+      role="menu"
+      aria-label={t('oauth_model_alias.title')}
+      onMouseDown={(e) => e.stopPropagation()}
+      onKeyDown={handleMenuKeyDown}
     >
       {type === 'background' && renderBackground()}
       {type === 'alias' && renderAlias()}

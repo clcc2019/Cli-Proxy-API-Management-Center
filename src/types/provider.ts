@@ -6,6 +6,10 @@
 export interface ModelAlias {
   name: string;
   alias?: string;
+  priority?: number;
+  testModel?: string;
+  image?: boolean;
+  thinking?: unknown;
 }
 
 export interface OpenAICompatibilityModel extends ModelAlias {
@@ -16,6 +20,7 @@ export interface OpenAICompatibilityModel extends ModelAlias {
 export interface OpenAICompatibilityApiKeyEntry {
   apiKey: string;
   proxyUrl?: string;
+  authIndex?: string;
 }
 
 export interface OpenAICompatibilityConfig {
@@ -28,7 +33,9 @@ export interface OpenAICompatibilityConfig {
   apiKeyEntries?: OpenAICompatibilityApiKeyEntry[];
   models?: OpenAICompatibilityModel[];
   headers?: Record<string, string>;
+  testModel?: string;
   disableCooling?: boolean;
+  authIndex?: string;
 }
 
 export interface CloakConfig {
@@ -49,6 +56,8 @@ export interface ProviderKeyConfig {
   headers?: Record<string, string>;
   models?: ModelAlias[];
   excludedModels?: string[];
+  disableCooling?: boolean;
   cloak?: CloakConfig;
   experimentalCchSigning?: boolean;
+  authIndex?: string;
 }

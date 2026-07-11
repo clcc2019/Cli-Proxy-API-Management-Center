@@ -93,12 +93,10 @@ const PopoverButton = memo(function PopoverButton({
         type="button"
         className={`${styles.searchToolbarIconButton} ${open ? styles.searchToolbarIconButtonActive : ''}`}
         onClick={() => onOpenChange(!open)}
-        aria-haspopup="listbox"
+        aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={popoverId}
-        aria-label={
-          triggerSummary ? `${ariaLabel}: ${triggerSummary}` : ariaLabel
-        }
+        aria-label={triggerSummary ? `${ariaLabel}: ${triggerSummary}` : ariaLabel}
         title={triggerSummary ? `${triggerLabel} · ${triggerSummary}` : triggerLabel}
       >
         {triggerIcon}
@@ -139,11 +137,6 @@ export const SearchToolbar = memo(function SearchToolbar({
   const [pageSizeOpen, setPageSizeOpen] = useState(false);
   const [pageSizeDraft, setPageSizeDraft] = useState(String(pageSize));
 
-  // Keep the draft in sync if pageSize is updated externally.
-  useEffect(() => {
-    setPageSizeDraft(String(pageSize));
-  }, [pageSize]);
-
   const handleSearchInput = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       onSearchChange(event.target.value);
@@ -155,12 +148,26 @@ export const SearchToolbar = memo(function SearchToolbar({
     onSearchChange('');
   }, [onSearchChange]);
 
+  const handlePageSizeDraftChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setPageSizeDraft(event.target.value);
+  }, []);
+
   const handleSortPick = useCallback(
     (value: string) => {
       onSortChange(value);
       setSortOpen(false);
     },
     [onSortChange]
+  );
+
+  const handlePageSizeOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setPageSizeDraft(String(pageSize));
+      }
+      setPageSizeOpen(open);
+    },
+    [pageSize]
   );
 
   const commitPageSizeDraft = useCallback(() => {
@@ -170,7 +177,9 @@ export const SearchToolbar = memo(function SearchToolbar({
       return;
     }
     const clamped = Math.min(pageSizeMax, Math.max(pageSizeMin, parsed));
-    onPageSizeChange(clamped);
+    if (clamped !== pageSize) {
+      onPageSizeChange(clamped);
+    }
     setPageSizeDraft(String(clamped));
   }, [onPageSizeChange, pageSize, pageSizeDraft, pageSizeMax, pageSizeMin]);
 
@@ -187,16 +196,27 @@ export const SearchToolbar = memo(function SearchToolbar({
 
   const handlePageSizePreset = useCallback(
     (value: number) => {
-      onPageSizeChange(value);
+      if (value !== pageSize) {
+        onPageSizeChange(value);
+      }
       setPageSizeDraft(String(value));
       setPageSizeOpen(false);
     },
-    [onPageSizeChange]
+    [onPageSizeChange, pageSize]
   );
 
   const sortSummary = useMemo(
     () => sortOptions.find((option) => option.value === sortValue)?.label ?? sortValue,
     [sortOptions, sortValue]
+  );
+  const pageSizeSummary = useMemo(
+    () => `${pageSize}/${t('auth_files.page_size_unit')}`,
+    [pageSize, t]
+  );
+  const sortTriggerIcon = useMemo(() => <IconSlidersHorizontal size={16} aria-hidden="true" />, []);
+  const pageSizeTriggerIcon = useMemo(
+    () => <IconLayoutDashboard size={16} aria-hidden="true" />,
+    []
   );
 
   return (
@@ -218,8 +238,8 @@ export const SearchToolbar = memo(function SearchToolbar({
             type="button"
             className={styles.searchToolbarFieldClear}
             onClick={handleSearchClear}
-            aria-label={t('common.clear', { defaultValue: 'Clear' })}
-            title={t('common.clear', { defaultValue: 'Clear' })}
+            aria-label={t('common.clear')}
+            title={t('common.clear')}
           >
             <IconX size={14} />
           </button>
@@ -232,72 +252,80 @@ export const SearchToolbar = memo(function SearchToolbar({
         ariaLabel={sortLabel}
         triggerLabel={sortLabel}
         triggerSummary={sortSummary}
-        triggerIcon={<IconSlidersHorizontal size={16} aria-hidden="true" />}
+        triggerIcon={sortTriggerIcon}
       >
-        <div className={styles.searchToolbarPopoverHeader}>{sortLabel}</div>
-        <ul className={styles.searchToolbarOptionList} role="listbox" aria-label={sortLabel}>
-          {sortOptions.map((option) => {
-            const active = option.value === sortValue;
-            return (
-              <li key={option.value}>
-                <button
-                  type="button"
-                  className={`${styles.searchToolbarOption} ${active ? styles.searchToolbarOptionActive : ''}`}
-                  role="option"
-                  aria-selected={active}
-                  onClick={() => handleSortPick(option.value)}
-                >
-                  <span>{option.label}</span>
-                  {active && <IconCheck size={14} aria-hidden="true" />}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        {sortOpen ? (
+          <>
+            <div className={styles.searchToolbarPopoverHeader}>{sortLabel}</div>
+            <ul className={styles.searchToolbarOptionList} role="listbox" aria-label={sortLabel}>
+              {sortOptions.map((option) => {
+                const active = option.value === sortValue;
+                return (
+                  <li key={option.value} role="presentation">
+                    <button
+                      type="button"
+                      className={`${styles.searchToolbarOption} ${active ? styles.searchToolbarOptionActive : ''}`}
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => handleSortPick(option.value)}
+                    >
+                      <span>{option.label}</span>
+                      {active && <IconCheck size={14} aria-hidden="true" />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        ) : null}
       </PopoverButton>
 
       <PopoverButton
         open={pageSizeOpen}
-        onOpenChange={setPageSizeOpen}
+        onOpenChange={handlePageSizeOpenChange}
         ariaLabel={pageSizeLabel}
         triggerLabel={pageSizeLabel}
-        triggerSummary={`${pageSize}/${t('auth_files.page_size_unit', { defaultValue: '页' })}`}
-        triggerIcon={<IconLayoutDashboard size={16} aria-hidden="true" />}
+        triggerSummary={pageSizeSummary}
+        triggerIcon={pageSizeTriggerIcon}
       >
-        <div className={styles.searchToolbarPopoverHeader}>{pageSizeLabel}</div>
-        <div className={styles.searchToolbarPresetGrid} role="group" aria-label={pageSizeLabel}>
-          {pageSizePresets.map((preset) => {
-            const active = preset === pageSize;
-            return (
-              <button
-                key={preset}
-                type="button"
-                className={`${styles.searchToolbarPreset} ${active ? styles.searchToolbarPresetActive : ''}`}
-                onClick={() => handlePageSizePreset(preset)}
-                aria-pressed={active}
-              >
-                {preset}
-              </button>
-            );
-          })}
-        </div>
-        <label className={styles.searchToolbarCustom}>
-          <span className={styles.searchToolbarCustomLabel}>
-            {t('auth_files.page_size_custom', { defaultValue: '自定义' })}
-          </span>
-          <input
-            type="number"
-            min={pageSizeMin}
-            max={pageSizeMax}
-            step={1}
-            value={pageSizeDraft}
-            onChange={(event) => setPageSizeDraft(event.target.value)}
-            onBlur={commitPageSizeDraft}
-            onKeyDown={handlePageSizeKeyDown}
-            className={styles.searchToolbarCustomInput}
-            aria-label={pageSizeLabel}
-          />
-        </label>
+        {pageSizeOpen ? (
+          <>
+            <div className={styles.searchToolbarPopoverHeader}>{pageSizeLabel}</div>
+            <div className={styles.searchToolbarPresetGrid} role="group" aria-label={pageSizeLabel}>
+              {pageSizePresets.map((preset) => {
+                const active = preset === pageSize;
+                return (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={`${styles.searchToolbarPreset} ${active ? styles.searchToolbarPresetActive : ''}`}
+                    onClick={() => handlePageSizePreset(preset)}
+                    aria-pressed={active}
+                  >
+                    {preset}
+                  </button>
+                );
+              })}
+            </div>
+            <label className={styles.searchToolbarCustom}>
+              <span className={styles.searchToolbarCustomLabel}>
+                {t('auth_files.page_size_custom')}
+              </span>
+              <input
+                type="number"
+                min={pageSizeMin}
+                max={pageSizeMax}
+                step={1}
+                value={pageSizeDraft}
+                onChange={handlePageSizeDraftChange}
+                onBlur={commitPageSizeDraft}
+                onKeyDown={handlePageSizeKeyDown}
+                className={styles.searchToolbarCustomInput}
+                aria-label={pageSizeLabel}
+              />
+            </label>
+          </>
+        ) : null}
       </PopoverButton>
     </div>
   );

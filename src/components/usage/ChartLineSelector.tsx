@@ -71,28 +71,31 @@ export const ChartLineSelector = memo(function ChartLineSelector({
       }
     >
       <div className={styles.chartLineList}>
-        {chartLines.map((line, index) => (
-          <div key={index} className={styles.chartLineItem}>
-            <span className={styles.chartLineLabel}>
-              {t(`usage_stats.chart_line_label_${index + 1}`)}
-            </span>
-            <Select
-              value={line}
-              options={options}
-              onChange={(value) => handleChange(index, value)}
-            />
-            {chartLines.length > 1 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={styles.chartLineRemoveButton}
-                onClick={() => handleRemove(index)}
-              >
-                {t('usage_stats.chart_line_delete')}
-              </Button>
-            )}
-          </div>
-        ))}
+        {chartLines.map((line, index) => {
+          const lineLabel = t(`usage_stats.chart_line_label_${index + 1}`);
+
+          return (
+            <div key={index} className={styles.chartLineItem}>
+              <span className={styles.chartLineLabel}>{lineLabel}</span>
+              <Select
+                value={line}
+                options={options}
+                onChange={(value) => handleChange(index, value)}
+                ariaLabel={lineLabel}
+              />
+              {chartLines.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={styles.chartLineRemoveButton}
+                  onClick={() => handleRemove(index)}
+                >
+                  {t('usage_stats.chart_line_delete')}
+                </Button>
+              )}
+            </div>
+          );
+        })}
       </div>
       <p className={styles.chartLineHint}>
         {t('usage_stats.chart_line_hint', { count: maxLines })}

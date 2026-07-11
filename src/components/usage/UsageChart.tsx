@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChartData } from '@/utils/usage';
 import type { ChartOptions } from 'chart.js';
@@ -32,14 +32,19 @@ export const UsageChart = memo(function UsageChart({
   tone = 'neutral',
 }: UsageChartProps) {
   const { t } = useTranslation();
-  const summaryItems: UsageChartSummaryItem[] = [
-    { label: t('usage_stats.chart_series'), value: chartData.datasets.length.toString() },
-    { label: t('usage_stats.chart_points'), value: chartData.labels.length.toString() },
-    {
-      label: t('usage_stats.chart_view'),
-      value: period === 'hour' ? t('usage_stats.by_hour') : t('usage_stats.by_day'),
-    },
-  ];
+  const datasetCount = chartData.datasets.length;
+  const labelCount = chartData.labels.length;
+  const summaryItems = useMemo<UsageChartSummaryItem[]>(
+    () => [
+      { label: t('usage_stats.chart_series'), value: datasetCount.toString() },
+      { label: t('usage_stats.chart_points'), value: labelCount.toString() },
+      {
+        label: t('usage_stats.chart_view'),
+        value: period === 'hour' ? t('usage_stats.by_hour') : t('usage_stats.by_day'),
+      },
+    ],
+    [datasetCount, labelCount, period, t]
+  );
 
   return (
     <UsageChartPanel

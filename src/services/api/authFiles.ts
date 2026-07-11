@@ -4,7 +4,12 @@
 
 import { apiClient, type ApiRequestConfig } from './client';
 import type { AuthFilesResponse } from '@/types/authFile';
-import type { CodexUsagePayload, OAuthModelAliasEntry } from '@/types';
+import type {
+  CodexRateLimitResetConsumePayload,
+  CodexRateLimitResetCreditsPayload,
+  CodexUsagePayload,
+  OAuthModelAliasEntry,
+} from '@/types';
 
 type StatusError = { status?: number };
 type AuthFileStatusResponse = { status: string; disabled: boolean };
@@ -787,6 +792,45 @@ export const authFilesApi = {
     try {
       return await apiClient.get<CodexUsagePayload>(
         `/auth-files/codex-usage?${params.toString()}`,
+        AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
+      );
+    } catch (err: unknown) {
+      throw createUsageRequestError(err);
+    }
+  },
+
+  getCodexRateLimitResetCredits: async (name: string, authIndex?: string) => {
+    const params = new URLSearchParams();
+    params.set('name', name);
+    params.set('codex_subscription', 'refresh');
+    if (authIndex) {
+      params.set('auth_index', authIndex);
+    }
+    try {
+      return await apiClient.get<CodexRateLimitResetCreditsPayload>(
+        `/auth-files/codex-rate-limit-reset-credits?${params.toString()}`,
+        AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
+      );
+    } catch (err: unknown) {
+      throw createUsageRequestError(err);
+    }
+  },
+
+  consumeCodexRateLimitResetCredit: async (
+    name: string,
+    authIndex?: string,
+    redeemRequestId?: string
+  ) => {
+    const params = new URLSearchParams();
+    params.set('name', name);
+    if (authIndex) {
+      params.set('auth_index', authIndex);
+    }
+    const body = redeemRequestId ? { redeem_request_id: redeemRequestId } : {};
+    try {
+      return await apiClient.post<CodexRateLimitResetConsumePayload>(
+        `/auth-files/codex-rate-limit-reset-credits/consume?${params.toString()}`,
+        body,
         AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
       );
     } catch (err: unknown) {

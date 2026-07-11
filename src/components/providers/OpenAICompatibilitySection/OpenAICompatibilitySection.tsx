@@ -1,5 +1,6 @@
 import { Fragment, memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { IconBot, IconKey, IconLink, IconShield, IconStar } from '@/components/ui/icons';
@@ -14,6 +15,9 @@ interface OpenAICompatibilitySectionProps {
   loading: boolean;
   disableControls: boolean;
   switchingItemKeys?: ReadonlySet<string>;
+  onAdd: () => void;
+  onEdit: (index: number) => void;
+  onDelete: (index: number) => void;
   onPoolModeToggle: (index: number, enabled: boolean) => void;
 }
 
@@ -22,6 +26,9 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
   loading,
   disableControls,
   switchingItemKeys,
+  onAdd,
+  onEdit,
+  onDelete,
   onPoolModeToggle,
 }: OpenAICompatibilitySectionProps) {
   const { t } = useTranslation();
@@ -40,6 +47,11 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
           {t('ai_providers.openai_title')}
         </span>
       }
+      extra={
+        <Button size="sm" onClick={onAdd} disabled={actionsDisabled}>
+          {t('ai_providers.openai_add_button')}
+        </Button>
+      }
     >
       <ProviderList<OpenAICompatibilityConfig>
         items={configs}
@@ -50,6 +62,8 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
         keyField={(item, index) => buildOpenAICompatibilityConfigKey(item, index)}
         emptyTitle={t('ai_providers.openai_empty_title')}
         emptyDescription={t('ai_providers.openai_empty_desc')}
+        onEdit={onEdit}
+        onDelete={onDelete}
         actionsDisabled={actionsDisabled}
         getRowDisabled={(item) => Boolean(item.disabled)}
         isRowSwitching={(item, index) => isItemSwitching(item, index)}

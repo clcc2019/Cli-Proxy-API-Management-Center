@@ -1,4 +1,14 @@
-import { memo, useState, useCallback, useRef, useEffect } from 'react';
+import {
+  memo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
 import defaultStyles from '@/pages/AiProvidersPage.module.scss';
@@ -8,9 +18,9 @@ import defaultStyles from '@/pages/AiProvidersPage.module.scss';
  * 0 → 红 (#ef4444)  →  0.5 → 金黄 (#facc15)  →  1 → 绿 (#22c55e)
  */
 const COLOR_STOPS = [
-  { r: 239, g: 68, b: 68 },   // #ef4444
-  { r: 250, g: 204, b: 21 },  // #facc15
-  { r: 34, g: 197, b: 94 },   // #22c55e
+  { r: 239, g: 68, b: 68 }, // #ef4444
+  { r: 250, g: 204, b: 21 }, // #facc15
+  { r: 34, g: 197, b: 94 }, // #22c55e
 ] as const;
 
 function rateToColor(rate: number): string {
@@ -45,6 +55,50 @@ interface ProviderStatusBarProps {
   showRateLabel?: boolean;
 }
 
+type StatusBlockView = {
+  detail: StatusBlockDetail;
+  blockClassName: string;
+  blockStyle: CSSProperties | undefined;
+  tooltipPositionClass: string;
+};
+
+interface StatusBlockItemProps {
+  item: StatusBlockView;
+  index: number;
+  active: boolean;
+  wrapperClassName: string;
+  activeWrapperClassName: string;
+  onPointerEnter: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerLeave: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  renderTooltip: (item: StatusBlockView) => ReactNode;
+}
+
+const StatusBlockItem = memo(function StatusBlockItem({
+  item,
+  index,
+  active,
+  wrapperClassName,
+  activeWrapperClassName,
+  onPointerEnter,
+  onPointerLeave,
+  onPointerDown,
+  renderTooltip,
+}: StatusBlockItemProps) {
+  return (
+    <div
+      className={`${wrapperClassName} ${active ? activeWrapperClassName : ''}`}
+      data-index={index}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onPointerDown={onPointerDown}
+    >
+      <div className={item.blockClassName} style={item.blockStyle} />
+      {active && renderTooltip(item)}
+    </div>
+  );
+});
+
 function ProviderStatusBarImpl({
   statusData,
   styles: stylesProp,
@@ -76,78 +130,119 @@ function ProviderStatusBarImpl({
     return () => document.removeEventListener('pointerdown', handler);
   }, [activeTooltip]);
 
-  const handlePointerEnter = useCallback((e: React.PointerEvent, idx: number) => {
-    if (e.pointerType === 'mouse') {
-      setActiveTooltip(idx);
-    }
+  const getBlockIndex = useCallback((target: EventTarget & HTMLDivElement): number | null => {
+    const index = Number(target.dataset.index);
+    return Number.isInteger(index) && index >= 0 ? index : null;
   }, []);
+
+  const handlePointerEnter = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.pointerType === 'mouse') {
+        const index = getBlockIndex(e.currentTarget);
+        if (index !== null) {
+          setActiveTooltip((prev) => (prev === index ? prev : index));
+        }
+      }
+    },
+    [getBlockIndex]
+  );
 
   const rateText = hasData ? formatSuccessRate(statusData.successRate) : '--';
 
-  const handlePointerLeave = useCallback((e: React.PointerEvent) => {
+  const handlePointerLeave = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.pointerType === 'mouse') {
-      setActiveTooltip(null);
+      setActiveTooltip((prev) => (prev === null ? prev : null));
     }
   }, []);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent, idx: number) => {
-    if (e.pointerType === 'touch') {
-      e.preventDefault();
-      setActiveTooltip((prev) => (prev === idx ? null : idx));
-    }
-  }, []);
+  const handlePointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.pointerType === 'touch') {
+        e.preventDefault();
+        const index = getBlockIndex(e.currentTarget);
+        if (index !== null) {
+          setActiveTooltip((prev) => (prev === index ? null : index));
+        }
+      }
+    },
+    [getBlockIndex]
+  );
 
-  const getTooltipPositionClass = (idx: number, total: number): string => {
-    if (idx <= 2) return s.statusTooltipLeft;
-    if (idx >= total - 3) return s.statusTooltipRight;
-    return '';
-  };
+  const blockItems = useMemo<StatusBlockView[]>(() => {
+    const total = statusData.blockDetails.length;
+    return statusData.blockDetails.map((detail, idx) => {
+      const isIdle = detail.rate === -1;
+      const tooltipPositionClass =
+        idx <= 2 ? s.statusTooltipLeft : idx >= total - 3 ? s.statusTooltipRight : '';
 
-  const renderTooltip = (detail: StatusBlockDetail, idx: number) => {
-    const total = detail.success + detail.failure;
-    const posClass = getTooltipPositionClass(idx, statusData.blockDetails.length);
-    const timeRange = `${formatTime(detail.startTime)} – ${formatTime(detail.endTime)}`;
+      return {
+        detail,
+        blockClassName: `${s.statusBlock} ${isIdle ? s.statusBlockIdle : ''}`,
+        blockStyle: isIdle ? undefined : { backgroundColor: rateToColor(detail.rate) },
+        tooltipPositionClass,
+      };
+    });
+  }, [
+    s.statusBlock,
+    s.statusBlockIdle,
+    s.statusTooltipLeft,
+    s.statusTooltipRight,
+    statusData.blockDetails,
+  ]);
 
-    return (
-      <div className={`${s.statusTooltip} ${posClass}`}>
-        <span className={s.tooltipTime}>{timeRange}</span>
-        {total > 0 ? (
-          <span className={s.tooltipStats}>
-            <span className={s.tooltipSuccess}>{t('status_bar.success_short')} {detail.success}</span>
-            <span className={s.tooltipFailure}>{t('status_bar.failure_short')} {detail.failure}</span>
-            <span className={s.tooltipRate}>({(detail.rate * 100).toFixed(1)}%)</span>
-          </span>
-        ) : (
-          <span className={s.tooltipStats}>{t('status_bar.no_requests')}</span>
-        )}
-      </div>
-    );
-  };
+  const renderTooltip = useCallback(
+    (item: StatusBlockView) => {
+      const { detail, tooltipPositionClass } = item;
+      const total = detail.success + detail.failure;
+      const timeRange = `${formatTime(detail.startTime)} – ${formatTime(detail.endTime)}`;
+
+      return (
+        <div className={`${s.statusTooltip} ${tooltipPositionClass}`}>
+          <span className={s.tooltipTime}>{timeRange}</span>
+          {total > 0 ? (
+            <span className={s.tooltipStats}>
+              <span className={s.tooltipSuccess}>
+                {t('status_bar.success_short')} {detail.success}
+              </span>
+              <span className={s.tooltipFailure}>
+                {t('status_bar.failure_short')} {detail.failure}
+              </span>
+              <span className={s.tooltipRate}>({(detail.rate * 100).toFixed(1)}%)</span>
+            </span>
+          ) : (
+            <span className={s.tooltipStats}>{t('status_bar.no_requests')}</span>
+          )}
+        </div>
+      );
+    },
+    [
+      s.statusTooltip,
+      s.tooltipFailure,
+      s.tooltipRate,
+      s.tooltipStats,
+      s.tooltipSuccess,
+      s.tooltipTime,
+      t,
+    ]
+  );
 
   return (
     <div className={s.statusBar}>
       <div className={s.statusBlocks} ref={blocksRef}>
-        {statusData.blockDetails.map((detail, idx) => {
-          const isIdle = detail.rate === -1;
-          const blockStyle = isIdle ? undefined : { backgroundColor: rateToColor(detail.rate) };
-          const isActive = activeTooltip === idx;
-
-          return (
-            <div
-              key={idx}
-              className={`${s.statusBlockWrapper} ${isActive ? s.statusBlockActive : ''}`}
-              onPointerEnter={(e) => handlePointerEnter(e, idx)}
-              onPointerLeave={handlePointerLeave}
-              onPointerDown={(e) => handlePointerDown(e, idx)}
-            >
-              <div
-                className={`${s.statusBlock} ${isIdle ? s.statusBlockIdle : ''}`}
-                style={blockStyle}
-              />
-              {isActive && renderTooltip(detail, idx)}
-            </div>
-          );
-        })}
+        {blockItems.map((item, idx) => (
+          <StatusBlockItem
+            key={idx}
+            item={item}
+            index={idx}
+            active={activeTooltip === idx}
+            wrapperClassName={s.statusBlockWrapper}
+            activeWrapperClassName={s.statusBlockActive}
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
+            onPointerDown={handlePointerDown}
+            renderTooltip={renderTooltip}
+          />
+        ))}
       </div>
       <span className={`${s.statusRate} ${rateClass}`}>
         {showRateLabel ? (

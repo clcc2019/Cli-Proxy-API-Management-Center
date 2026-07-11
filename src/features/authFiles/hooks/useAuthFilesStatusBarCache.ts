@@ -89,32 +89,90 @@ const chooseStatusBarData = (
     : fromDetails;
 };
 
-export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: UsageDetail[]) {
-  return useMemo(() => {
-    const cache = new Map<string, AuthFileStatusBarData>();
+const buildFileStatusBarData = (
+  file: AuthFileItem,
+  detailsForAuthIndex: UsageDetail[] | undefined
+): AuthFileStatusBarData => {
+  const fromDetails =
+    detailsForAuthIndex && detailsForAuthIndex.length > 0
+      ? calculateStatusBarData(detailsForAuthIndex)
+      : null;
+  const fromRecent = calculateStatusBarDataFromRecentRequests(
+    readAuthFileRecentRequestBuckets(file)
+  );
+  return chooseStatusBarData(fromDetails, fromRecent);
+};
 
-    const usageDetailsByAuthIndex = new Map<string, UsageDetail[]>();
+type StatusBarCacheEntry = {
+  detailsForAuthIndex: UsageDetail[] | undefined;
+  statusData: AuthFileStatusBarData;
+};
+
+const FILE_STATUS_CACHE = new WeakMap<AuthFileItem, StatusBarCacheEntry>();
+const EMPTY_DETAILS_BY_AUTH_INDEX = new Map<string, UsageDetail[]>();
+let previousStatusBarCacheMap: Map<string, AuthFileStatusBarData> | null = null;
+
+const statusBarCacheMapsEqual = (
+  left: Map<string, AuthFileStatusBarData>,
+  right: Map<string, AuthFileStatusBarData>
+): boolean => {
+  if (left.size !== right.size) return false;
+
+  for (const [key, value] of left) {
+    if (right.get(key) !== value) return false;
+  }
+
+  return true;
+};
+
+const reuseStatusBarCacheMap = (
+  cache: Map<string, AuthFileStatusBarData>
+): Map<string, AuthFileStatusBarData> => {
+  if (previousStatusBarCacheMap && statusBarCacheMapsEqual(cache, previousStatusBarCacheMap)) {
+    return previousStatusBarCacheMap;
+  }
+
+  previousStatusBarCacheMap = cache;
+  return cache;
+};
+
+export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: UsageDetail[]) {
+  // usageDetails 引用变化时才重建 auth_index -> details 索引。
+  // usageDetails 通常来自 store，引用稳定，避免每次 files 局部更新都重算索引。
+  const detailsByAuthIndex = useMemo(() => {
+    if (usageDetails.length === 0) return EMPTY_DETAILS_BY_AUTH_INDEX;
+
+    const index = new Map<string, UsageDetail[]>();
     usageDetails.forEach((detail) => {
       const authIndexKey = normalizeAuthIndex(detail.auth_index);
       if (!authIndexKey) return;
-
-      const list = usageDetailsByAuthIndex.get(authIndexKey);
+      const list = index.get(authIndexKey);
       if (list) {
         list.push(detail);
       } else {
-        usageDetailsByAuthIndex.set(authIndexKey, [detail]);
+        index.set(authIndexKey, [detail]);
       }
     });
+    return index;
+  }, [usageDetails]);
+
+  return useMemo(() => {
+    const cache = new Map<string, AuthFileStatusBarData>();
 
     files.forEach((file) => {
       const rawAuthIndex = file['auth_index'] ?? file.authIndex;
       const authIndexKey = normalizeAuthIndex(rawAuthIndex);
-      const details = authIndexKey ? usageDetailsByAuthIndex.get(authIndexKey) : undefined;
-      const fromDetails = details && details.length > 0 ? calculateStatusBarData(details) : null;
-      const fromRecent = calculateStatusBarDataFromRecentRequests(
-        readAuthFileRecentRequestBuckets(file)
-      );
-      const statusData = chooseStatusBarData(fromDetails, fromRecent);
+      const detailsForAuthIndex = authIndexKey ? detailsByAuthIndex.get(authIndexKey) : undefined;
+      const cached = FILE_STATUS_CACHE.get(file);
+      const statusData =
+        cached && cached.detailsForAuthIndex === detailsForAuthIndex
+          ? cached.statusData
+          : buildFileStatusBarData(file, detailsForAuthIndex);
+
+      FILE_STATUS_CACHE.set(file, {
+        detailsForAuthIndex,
+        statusData,
+      });
 
       if (authIndexKey) {
         cache.set(authIndexKey, statusData);
@@ -124,6 +182,6 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
       }
     });
 
-    return cache;
-  }, [files, usageDetails]);
+    return reuseStatusBarCacheMap(cache);
+  }, [files, detailsByAuthIndex]);
 }

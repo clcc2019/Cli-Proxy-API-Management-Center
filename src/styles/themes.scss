@@ -74,18 +74,7 @@
     color-mix(in srgb, #ffffff 72%, var(--bg-primary)),
     color-mix(in srgb, var(--bg-secondary) 92%, transparent)
   );
-  --bg-canvas:
-    radial-gradient(
-      960px circle at top right,
-      color-mix(in srgb, var(--primary-color) 11%, transparent),
-      transparent 36%
-    ),
-    radial-gradient(
-      760px circle at bottom left,
-      color-mix(in srgb, var(--success-color) 7%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #fcfbf8 0%, #f7f4ee 100%);
+  --bg-canvas: linear-gradient(180deg, #fcfbf8 0%, #f7f4ee 100%);
 
   // Glass effect (blurred surfaces)
   --glass-blur: 12px;
@@ -166,18 +155,7 @@
     color-mix(in srgb, #ffffff 84%, var(--bg-primary)),
     color-mix(in srgb, var(--bg-secondary) 96%, transparent)
   );
-  --bg-canvas:
-    radial-gradient(
-      960px circle at top right,
-      color-mix(in srgb, var(--primary-color) 10%, transparent),
-      transparent 36%
-    ),
-    radial-gradient(
-      760px circle at bottom left,
-      color-mix(in srgb, var(--success-color) 6%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #ffffff 0%, #f7f5f0 100%);
+  --bg-canvas: linear-gradient(180deg, #ffffff 0%, #f7f5f0 100%);
 }
 
 // 深色主题（#191919）
@@ -251,18 +229,7 @@
     color-mix(in srgb, #25221f 82%, var(--bg-primary)),
     color-mix(in srgb, #171513 92%, transparent)
   );
-  --bg-canvas:
-    radial-gradient(
-      960px circle at top right,
-      color-mix(in srgb, var(--primary-color) 12%, transparent),
-      transparent 34%
-    ),
-    radial-gradient(
-      760px circle at bottom left,
-      color-mix(in srgb, var(--success-color) 7%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #171614 0%, #12110f 100%);
+  --bg-canvas: linear-gradient(180deg, #171614 0%, #12110f 100%);
 
   --glass-border: color-mix(in srgb, var(--border-color) 55%, transparent);
 }

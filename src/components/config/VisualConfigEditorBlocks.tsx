@@ -201,7 +201,7 @@ function buildProtocolOptions(
   const options: Array<{ value: string; label: string }> = VISUAL_CONFIG_PROTOCOL_OPTIONS.map(
     (option) => ({
       value: option.value,
-      label: t(option.labelKey, { defaultValue: option.defaultLabel }),
+      label: t(option.labelKey),
     })
   );
   const seen = new Set<string>(options.map((option) => option.value));
@@ -252,6 +252,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const apiKeyErrorId = `${apiKeyInputId}-error`;
   const noteInputId = `${apiKeyInputId}-note`;
   const noteHintId = `${noteInputId}-hint`;
+  const quotaHintId = `${apiKeyInputId}-quota-hint`;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingApiKeyId, setEditingApiKeyId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -380,7 +381,9 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     <div className="form-group" style={{ marginBottom: 0 }}>
       <div className={apiKeyCardStyles.headerRow}>
         <div className={apiKeyCardStyles.headerCopy}>
-          <label>{t('config_management.visual.api_keys.label')}</label>
+          <span className={apiKeyCardStyles.headerLabel}>
+            {t('config_management.visual.api_keys.label')}
+          </span>
           <p className={apiKeyCardStyles.headerHint}>
             {t('config_management.visual.api_keys.hint')}
           </p>
@@ -566,7 +569,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
             {t('config_management.visual.api_keys.input_hint')}
           </div>
           {formError && (
-            <div id={apiKeyErrorId} className="error-box">
+            <div id={apiKeyErrorId} className="error-box" role="alert">
               {formError}
             </div>
           )}
@@ -600,10 +603,13 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
           <div className="hint">{t('config_management.visual.api_keys.disabled_hint')}</div>
         </div>
         <div className="form-group">
-          <label>{t('config_management.visual.api_keys.allowed_models_label')}</label>
+          <span className="form-label">
+            {t('config_management.visual.api_keys.allowed_models_label')}
+          </span>
           <textarea
             className="input"
             rows={4}
+            aria-label={t('config_management.visual.api_keys.allowed_models_label')}
             placeholder={t('config_management.visual.api_keys.allowed_models_placeholder')}
             value={allowedModelsValue}
             onChange={(e) => setAllowedModelsValue(e.target.value)}
@@ -612,10 +618,13 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
           <div className="hint">{t('config_management.visual.api_keys.allowed_models_hint')}</div>
         </div>
         <div className="form-group">
-          <label>{t('config_management.visual.api_keys.excluded_models_label')}</label>
+          <span className="form-label">
+            {t('config_management.visual.api_keys.excluded_models_label')}
+          </span>
           <textarea
             className="input"
             rows={4}
+            aria-label={t('config_management.visual.api_keys.excluded_models_label')}
             placeholder={t('config_management.visual.api_keys.excluded_models_placeholder')}
             value={excludedModelsValue}
             onChange={(e) => setExcludedModelsValue(e.target.value)}
@@ -624,7 +633,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
           <div className="hint">{t('config_management.visual.api_keys.excluded_models_hint')}</div>
         </div>
         <div className="form-group">
-          <label>{t('config_management.visual.api_keys.quota_title')}</label>
+          <span className="form-label">{t('config_management.visual.api_keys.quota_title')}</span>
           <div className={styles.quotaGrid}>
             {CLIENT_API_KEY_QUOTA_FIELDS.map(({ field }) => (
               <div key={field} className={styles.quotaField}>
@@ -640,6 +649,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
                   inputMode="decimal"
                   placeholder={t('config_management.visual.api_keys.quota_placeholder')}
                   value={quotaValues[field]}
+                  aria-describedby={quotaHintId}
                   onChange={(e) =>
                     setQuotaValues((current) => ({ ...current, [field]: e.target.value }))
                   }
@@ -648,7 +658,9 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
               </div>
             ))}
           </div>
-          <div className="hint">{t('config_management.visual.api_keys.quota_hint')}</div>
+          <div id={quotaHintId} className="hint">
+            {t('config_management.visual.api_keys.quota_hint')}
+          </div>
         </div>
       </Modal>
     </div>
@@ -736,7 +748,7 @@ export const PayloadRulesEditor = memo(function PayloadRulesEditor({
     () =>
       VISUAL_CONFIG_PAYLOAD_VALUE_TYPE_OPTIONS.map((option) => ({
         value: option.value,
-        label: t(option.labelKey, { defaultValue: option.defaultLabel }),
+        label: t(option.labelKey),
       })),
     [t]
   );
@@ -1038,7 +1050,9 @@ export const PayloadRulesEditor = memo(function PayloadRulesEditor({
                     </Button>
                   </div>
                   {paramError && (
-                    <div className={`error-box ${styles.payloadParamError}`}>{paramError}</div>
+                    <div className={`error-box ${styles.payloadParamError}`} role="alert">
+                      {paramError}
+                    </div>
                   )}
                 </div>
               );

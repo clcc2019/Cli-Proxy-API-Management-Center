@@ -8,6 +8,77 @@ import { normalizeProviderKey } from '@/features/authFiles/constants';
 
 type UnsupportedError = 'unsupported' | null;
 type ViewMode = 'diagram' | 'list';
+const EMPTY_PROVIDER_LIST: string[] = [];
+
+const areStringArraysEqual = (left: string[], right: string[]): boolean => {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => value === right[index]);
+};
+
+const areRecordKeysEqual = <T,>(left: Record<string, T>, right: Record<string, T>): boolean => {
+  if (left === right) return true;
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  return leftKeys.length === rightKeys.length && leftKeys.every((key) => key in right);
+};
+
+const areExcludedRecordsEqual = (
+  left: Record<string, string[]>,
+  right: Record<string, string[]>
+): boolean => {
+  if (!areRecordKeysEqual(left, right)) return false;
+  return Object.keys(left).every((key) => areStringArraysEqual(left[key] ?? [], right[key] ?? []));
+};
+
+const areModelAliasEntriesEqual = (
+  left: OAuthModelAliasEntry[],
+  right: OAuthModelAliasEntry[]
+): boolean => {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  return left.every((entry, index) => {
+    const other = right[index];
+    return entry.name === other?.name && entry.alias === other.alias && entry.fork === other.fork;
+  });
+};
+
+const areModelAliasRecordsEqual = (
+  left: Record<string, OAuthModelAliasEntry[]>,
+  right: Record<string, OAuthModelAliasEntry[]>
+): boolean => {
+  if (!areRecordKeysEqual(left, right)) return false;
+  return Object.keys(left).every((key) =>
+    areModelAliasEntriesEqual(left[key] ?? [], right[key] ?? [])
+  );
+};
+
+const areAuthFileModelItemsEqual = (
+  left: AuthFileModelItem[],
+  right: AuthFileModelItem[]
+): boolean => {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  return left.every((item, index) => {
+    const other = right[index];
+    return (
+      item.id === other?.id &&
+      item.display_name === other.display_name &&
+      item.type === other.type &&
+      item.owned_by === other.owned_by
+    );
+  });
+};
+
+const areProviderModelsEqual = (
+  left: Record<string, AuthFileModelItem[]>,
+  right: Record<string, AuthFileModelItem[]>
+): boolean => {
+  if (!areRecordKeysEqual(left, right)) return false;
+  return Object.keys(left).every((key) =>
+    areAuthFileModelItemsEqual(left[key] ?? [], right[key] ?? [])
+  );
+};
 
 export type UseAuthFilesOauthResult = {
   excluded: Record<string, string[]>;
@@ -53,8 +124,41 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
 
   const excludedUnsupportedRef = useRef(false);
   const mappingsUnsupportedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const excludedLoadSeqRef = useRef(0);
+  const modelAliasLoadSeqRef = useRef(0);
+  const providerListRef = useRef<string[]>(EMPTY_PROVIDER_LIST);
 
-  const providerList = useMemo(() => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      excludedLoadSeqRef.current += 1;
+      modelAliasLoadSeqRef.current += 1;
+    };
+  }, []);
+
+  const shouldReadFilesForProviderList = viewMode === 'diagram' && providerTypes.length === 0;
+  const fileProviderTypes = useMemo(() => {
+    if (!shouldReadFilesForProviderList) return EMPTY_PROVIDER_LIST;
+
+    const providers = new Set<string>();
+    files.forEach((file) => {
+      if (typeof file.type === 'string') {
+        const key = file.type.trim().toLowerCase();
+        if (key) providers.add(key);
+      }
+      if (typeof file.provider === 'string') {
+        const key = file.provider.trim().toLowerCase();
+        if (key) providers.add(key);
+      }
+    });
+    return Array.from(providers);
+  }, [files, shouldReadFilesForProviderList]);
+
+  const computedProviderList = useMemo(() => {
+    if (viewMode !== 'diagram') return EMPTY_PROVIDER_LIST;
+
     const providers = new Set<string>();
 
     Object.keys(modelAlias).forEach((provider) => {
@@ -67,18 +171,15 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
       if (key && key !== 'all') providers.add(key);
     });
 
-    files.forEach((file) => {
-      if (typeof file.type === 'string') {
-        const key = file.type.trim().toLowerCase();
-        if (key) providers.add(key);
-      }
-      if (typeof file.provider === 'string') {
-        const key = file.provider.trim().toLowerCase();
-        if (key) providers.add(key);
-      }
+    fileProviderTypes.forEach((provider) => {
+      if (provider) providers.add(provider);
     });
-    return Array.from(providers);
-  }, [files, modelAlias, providerTypes]);
+    return Array.from(providers).sort();
+  }, [fileProviderTypes, modelAlias, providerTypes, viewMode]);
+  const providerList = areStringArraysEqual(providerListRef.current, computedProviderList)
+    ? providerListRef.current
+    : computedProviderList;
+  providerListRef.current = providerList;
 
   useEffect(() => {
     if (viewMode !== 'diagram') return;
@@ -87,7 +188,9 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
 
     const loadAllModels = async () => {
       if (providerList.length === 0) {
-        if (!cancelled) setAllProviderModels({});
+        if (!cancelled) {
+          setAllProviderModels((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+        }
         return;
       }
 
@@ -111,7 +214,9 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
         }
       });
 
-      setAllProviderModels(nextModels);
+      setAllProviderModels((prev) =>
+        areProviderModelsEqual(prev, nextModels) ? prev : nextModels
+      );
     };
 
     void loadAllModels();
@@ -122,19 +227,24 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
   }, [providerList, viewMode]);
 
   const loadExcluded = useCallback(async () => {
+    const requestSeq = excludedLoadSeqRef.current + 1;
+    excludedLoadSeqRef.current = requestSeq;
     try {
       const res = await authFilesApi.getOauthExcludedModels();
+      if (!mountedRef.current || excludedLoadSeqRef.current !== requestSeq) return;
       excludedUnsupportedRef.current = false;
-      setExcluded(res || {});
+      const nextExcluded = res || {};
+      setExcluded((prev) => (areExcludedRecordsEqual(prev, nextExcluded) ? prev : nextExcluded));
       setExcludedError(null);
     } catch (err: unknown) {
+      if (!mountedRef.current || excludedLoadSeqRef.current !== requestSeq) return;
       const status =
         typeof err === 'object' && err !== null && 'status' in err
           ? (err as { status?: unknown }).status
           : undefined;
 
       if (status === 404) {
-        setExcluded({});
+        setExcluded((prev) => (Object.keys(prev).length === 0 ? prev : {}));
         setExcludedError('unsupported');
         if (!excludedUnsupportedRef.current) {
           excludedUnsupportedRef.current = true;
@@ -147,19 +257,26 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
   }, [showNotification, t]);
 
   const loadModelAlias = useCallback(async () => {
+    const requestSeq = modelAliasLoadSeqRef.current + 1;
+    modelAliasLoadSeqRef.current = requestSeq;
     try {
       const res = await authFilesApi.getOauthModelAlias();
+      if (!mountedRef.current || modelAliasLoadSeqRef.current !== requestSeq) return;
       mappingsUnsupportedRef.current = false;
-      setModelAlias(res || {});
+      const nextModelAlias = res || {};
+      setModelAlias((prev) =>
+        areModelAliasRecordsEqual(prev, nextModelAlias) ? prev : nextModelAlias
+      );
       setModelAliasError(null);
     } catch (err: unknown) {
+      if (!mountedRef.current || modelAliasLoadSeqRef.current !== requestSeq) return;
       const status =
         typeof err === 'object' && err !== null && 'status' in err
           ? (err as { status?: unknown }).status
           : undefined;
 
       if (status === 404) {
-        setModelAlias({});
+        setModelAlias((prev) => (Object.keys(prev).length === 0 ? prev : {}));
         setModelAliasError('unsupported');
         if (!mappingsUnsupportedRef.current) {
           mappingsUnsupportedRef.current = true;
@@ -257,7 +374,7 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
 
       const nextMappings: OAuthModelAliasEntry[] = [
         ...currentMappings,
-        { name: nameTrim, alias: aliasTrim, fork: true }
+        { name: nameTrim, alias: aliasTrim, fork: true },
       ];
 
       try {
@@ -475,6 +592,6 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
     handleDeleteLink,
     handleToggleFork,
     handleRenameAlias,
-    handleDeleteAlias
+    handleDeleteAlias,
   };
 }

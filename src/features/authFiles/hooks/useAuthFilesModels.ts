@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authFilesApi } from '@/services/api';
 import { useNotificationStore } from '@/stores';
@@ -6,6 +6,7 @@ import type { AuthFileItem } from '@/types';
 import type { AuthFileModelItem } from '@/features/authFiles/constants';
 
 type ModelsError = 'unsupported' | null;
+const EMPTY_AUTH_FILE_MODELS: AuthFileModelItem[] = [];
 
 export type UseAuthFilesModelsResult = {
   modelsModalOpen: boolean;
@@ -29,32 +30,49 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
   const [modelsFileType, setModelsFileType] = useState('');
   const [modelsError, setModelsError] = useState<ModelsError>(null);
   const modelsCacheRef = useRef<Map<string, AuthFileModelItem[]>>(new Map());
+  const mountedRef = useRef(true);
+  const modelsRequestSeqRef = useRef(0);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      modelsRequestSeqRef.current += 1;
+    };
+  }, []);
 
   const closeModelsModal = useCallback(() => {
-    setModelsModalOpen(false);
+    modelsRequestSeqRef.current += 1;
+    setModelsModalOpen((prev) => (prev ? false : prev));
   }, []);
 
   const showModels = useCallback(
     async (item: AuthFileItem) => {
-      setModelsFileName(item.name);
-      setModelsFileType(item.type || '');
-      setModelsList([]);
-      setModelsError(null);
-      setModelsModalOpen(true);
-
+      const requestSeq = modelsRequestSeqRef.current + 1;
+      modelsRequestSeqRef.current = requestSeq;
       const cached = modelsCacheRef.current.get(item.name);
+      const fileType = item.type || '';
+      setModelsFileName((prev) => (prev === item.name ? prev : item.name));
+      setModelsFileType((prev) => (prev === fileType ? prev : fileType));
+      setModelsError((prev) => (prev === null ? prev : null));
+      setModelsModalOpen((prev) => (prev ? prev : true));
+
       if (cached) {
-        setModelsList(cached);
-        setModelsLoading(false);
+        if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
+        setModelsList((prev) => (prev === cached ? prev : cached));
+        setModelsLoading((prev) => (prev ? false : prev));
         return;
       }
 
-      setModelsLoading(true);
+      setModelsList((prev) => (prev.length === 0 ? prev : EMPTY_AUTH_FILE_MODELS));
+      setModelsLoading((prev) => (prev ? prev : true));
       try {
         const models = await authFilesApi.getModelsForAuthFile(item.name);
+        if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
         modelsCacheRef.current.set(item.name, models);
-        setModelsList(models);
+        setModelsList((prev) => (prev === models ? prev : models));
       } catch (err) {
+        if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
         const errorMessage = err instanceof Error ? err.message : '';
         if (
           errorMessage.includes('404') ||
@@ -66,7 +84,9 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
           showNotification(`${t('notification.load_failed')}: ${errorMessage}`, 'error');
         }
       } finally {
-        setModelsLoading(false);
+        if (mountedRef.current && modelsRequestSeqRef.current === requestSeq) {
+          setModelsLoading(false);
+        }
       }
     },
     [showNotification, t]
@@ -80,7 +100,6 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
     modelsFileType,
     modelsError,
     showModels,
-    closeModelsModal
+    closeModelsModal,
   };
 }
-

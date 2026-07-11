@@ -369,7 +369,11 @@ export function AuthFilesOAuthExcludedEditPage() {
             <div className={styles.settingsHeader}>
               <div className={styles.settingsHeaderTitle}>{t('oauth_excluded.models_label')}</div>
               {resolvedProviderKey && (
-                <div className={styles.modelsHint}>
+                <div
+                  className={styles.modelsHint}
+                  role="status"
+                  aria-busy={modelsLoading || undefined}
+                >
                   {modelsLoading ? (
                     <>
                       <LoadingSpinner size={14} />
@@ -387,7 +391,7 @@ export function AuthFilesOAuthExcludedEditPage() {
             </div>
 
             {modelsLoading ? (
-              <div className={styles.loadingModels}>
+              <div className={styles.loadingModels} role="status" aria-busy="true">
                 <LoadingSpinner size={16} />
                 <span>{t('common.loading')}</span>
               </div>

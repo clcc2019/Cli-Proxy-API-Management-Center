@@ -131,14 +131,20 @@
   }
 
   .brand-header {
+    appearance: none;
     display: flex;
     align-items: center;
     gap: $spacing-xs;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
     font-weight: 800;
     font-size: 18px;
     color: var(--text-primary);
     margin-right: $spacing-md;
-    cursor: pointer;
+    text-align: left;
+    cursor: default;
     overflow: hidden;
     white-space: nowrap;
     flex-shrink: 0;
@@ -183,6 +189,7 @@
     }
 
     &.collapsed {
+      cursor: pointer;
       margin-right: 0;
     }
 

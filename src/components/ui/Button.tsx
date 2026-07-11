@@ -19,6 +19,7 @@ export function Button({
   loading = false,
   className = '',
   disabled,
+  'aria-busy': ariaBusy,
   ...rest
 }: PropsWithChildren<ButtonProps>) {
   const hasChildren = children !== null && children !== undefined && children !== false;
@@ -33,7 +34,13 @@ export function Button({
     .join(' ');
 
   return (
-    <button type={type} className={classes} disabled={disabled || loading} {...rest}>
+    <button
+      type={type}
+      className={classes}
+      disabled={disabled || loading}
+      aria-busy={ariaBusy ?? (loading || undefined)}
+      {...rest}
+    >
       {loading && <span className="loading-spinner" aria-hidden="true" />}
       {hasChildren && <span>{children}</span>}
     </button>

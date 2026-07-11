@@ -83,13 +83,16 @@ export const ModelStatsCard = memo(function ModelStatsCard({
   return (
     <Card title={t('usage_stats.models')} className={styles.detailsFixedCard}>
       {loading ? (
-        <div className={styles.hint}>{t('common.loading')}</div>
+        <div className={styles.hint} role="status" aria-busy="true">
+          {t('common.loading')}
+        </div>
       ) : sorted.length > 0 ? (
         <>
           {hasLatencyData && <div className={styles.detailsNote}>{latencyHint}</div>}
           <div className={styles.detailsScroll}>
             <div className={styles.tableWrapper}>
               <table className={styles.table}>
+                <caption className={styles.visuallyHidden}>{t('usage_stats.models')}</caption>
                 <thead>
                   <tr>
                     <th className={styles.sortableHeader} aria-sort={ariaSort('model')}>

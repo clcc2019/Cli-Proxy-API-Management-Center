@@ -1,5 +1,8 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -22,18 +25,14 @@ import {
 } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import { logsApi } from '@/services/api/logs';
 import { copyToClipboard } from '@/utils/clipboard';
 import { downloadBlob } from '@/utils/download';
 import { MANAGEMENT_API_PREFIX } from '@/utils/constants';
 import { formatUnixTimestamp } from '@/utils/format';
-import {
-  HTTP_METHODS,
-  STATUS_GROUPS,
-  resolveStatusGroup,
-  type LogState,
-} from './hooks/logTypes';
+import { HTTP_METHODS, STATUS_GROUPS, resolveStatusGroup, type LogState } from './hooks/logTypes';
 import { parseLogLine } from './hooks/logParsing';
 import { useLogFilters } from './hooks/useLogFilters';
 import { isNearBottom, useLogScroller } from './hooks/useLogScroller';
@@ -49,6 +48,7 @@ interface ErrorLogItem {
 // 初始只渲染最近 100 行，滚动到顶部再逐步加载更多（避免一次性渲染过多导致卡顿）
 const INITIAL_DISPLAY_LINES = 100;
 const MAX_BUFFER_LINES = 10000;
+const AUTO_REFRESH_INTERVAL_MS = 8_000;
 const LONG_PRESS_MS = 650;
 const LONG_PRESS_MOVE_THRESHOLD = 10;
 
@@ -101,7 +101,7 @@ export function LogsPage() {
     traceScopeKey,
     connectionStatus,
     config,
-    requestLogDownloading
+    requestLogDownloading,
   });
 
   const logScrollerRef = useRef<ReturnType<typeof useLogScroller> | null>(null);
@@ -201,7 +201,7 @@ export function LogsPage() {
 
   const clearLogs = async () => {
     showConfirmation({
-      title: t('logs.clear_confirm_title', { defaultValue: 'Clear Logs' }),
+      title: t('logs.clear_confirm_title'),
       message: t('logs.clear_confirm'),
       variant: 'danger',
       confirmText: t('common.confirm'),
@@ -281,16 +281,13 @@ export function LogsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, connectionStatus, requestLogEnabled]);
 
-  useEffect(() => {
-    if (!autoRefresh || connectionStatus !== 'connected') {
-      return;
-    }
-    const id = window.setInterval(() => {
-      loadLogs(true);
-    }, 8000);
-    return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRefresh, connectionStatus]);
+  useVisibleInterval(
+    () => {
+      void loadLogs(true);
+    },
+    AUTO_REFRESH_INTERVAL_MS,
+    { enabled: autoRefresh && connectionStatus === 'connected' }
+  );
 
   const visibleLines = useMemo(
     () => logState.buffer.slice(logState.visibleFrom),
@@ -348,14 +345,14 @@ export function LogsPage() {
     return {
       filteredParsedLines: filteredParsed,
       filteredLines: filteredParsed.map((line) => line.raw),
-      removedCount: Math.max(baseLines.length - filteredParsed.length, 0)
+      removedCount: Math.max(baseLines.length - filteredParsed.length, 0),
     };
   }, [
     baseLines,
     filters.methodFilterSet,
     filters.pathFilterSet,
     filters.statusFilterSet,
-    parsedSearchLines
+    parsedSearchLines,
   ]);
 
   const parsedVisibleLines = useMemo(
@@ -372,7 +369,7 @@ export function LogsPage() {
     isSearching,
     filteredLineCount: filteredLines.length,
     hasStructuredFilters: filters.hasStructuredFilters,
-    showRawLogs
+    showRawLogs,
   });
 
   logScrollerRef.current = scroller;
@@ -380,10 +377,16 @@ export function LogsPage() {
   const copyLogLine = async (raw: string) => {
     const ok = await copyToClipboard(raw);
     if (ok) {
-      showNotification(t('logs.copy_success', { defaultValue: 'Copied to clipboard' }), 'success');
+      showNotification(t('logs.copy_success'), 'success');
     } else {
-      showNotification(t('logs.copy_failed', { defaultValue: 'Copy failed' }), 'error');
+      showNotification(t('logs.copy_failed'), 'error');
     }
+  };
+
+  const handleLogRowKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>, raw: string) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    void copyLogLine(raw);
   };
 
   const clearLongPressTimer = () => {
@@ -438,7 +441,7 @@ export function LogsPage() {
       const response = await logsApi.downloadRequestLogById(id);
       downloadBlob({
         filename: `request-${id}.log`,
-        blob: new Blob([response.data], { type: 'text/plain' })
+        blob: new Blob([response.data], { type: 'text/plain' }),
       });
       showNotification(t('logs.request_log_download_success'), 'success');
       setRequestLogId(null);
@@ -486,7 +489,11 @@ export function LogsPage() {
       <div className={styles.content}>
         {activeTab === 'logs' && (
           <Card className={styles.logCard}>
-            {error && <div className="error-box">{error}</div>}
+            {error && (
+              <div className="error-box" role="alert">
+                {error}
+              </div>
+            )}
 
             <div className={styles.filters}>
               <div className={styles.searchWrapper}>
@@ -500,8 +507,8 @@ export function LogsPage() {
                         type="button"
                         className={styles.searchClear}
                         onClick={() => setSearchQuery('')}
-                        title="Clear"
-                        aria-label="Clear"
+                        title={t('common.clear')}
+                        aria-label={t('common.clear')}
                       >
                         <IconX size={16} />
                       </button>
@@ -643,12 +650,10 @@ export function LogsPage() {
                 label={
                   <span
                     className={styles.switchLabel}
-                    title={t('logs.show_raw_logs_hint', {
-                      defaultValue: 'Show original log text for easier multi-line copy',
-                    })}
+                    title={t('logs.show_raw_logs_hint')}
                   >
                     <IconCode size={16} />
-                    {t('logs.show_raw_logs', { defaultValue: 'Show raw logs' })}
+                    {t('logs.show_raw_logs')}
                   </span>
                 }
               />
@@ -705,7 +710,9 @@ export function LogsPage() {
             </div>
 
             {loading ? (
-              <div className="hint">{t('logs.loading')}</div>
+              <div className="hint" role="status" aria-busy="true">
+                {t('logs.loading')}
+              </div>
             ) : logState.buffer.length > 0 && filteredLines.length > 0 ? (
               <div
                 ref={scroller.logViewerRef}
@@ -716,9 +723,7 @@ export function LogsPage() {
                   <div className={styles.loadMoreBanner}>
                     <span>{t('logs.load_more_hint')}</span>
                     <div className={styles.loadMoreStats}>
-                      <span>
-                        {t('logs.loaded_lines', { count: filteredLines.length })}
-                      </span>
+                      <span>{t('logs.loaded_lines', { count: filteredLines.length })}</span>
                       {removedCount > 0 && (
                         <span className={styles.loadMoreCount}>
                           {t('logs.filtered_lines', { count: removedCount })}
@@ -740,14 +745,14 @@ export function LogsPage() {
                       const canTraceRequest = isTraceableRequestPath(line.path);
                       const hasMeta = Boolean(
                         line.level ||
-                          line.method ||
-                          typeof line.statusCode === 'number' ||
-                          line.path ||
-                          line.source ||
-                          line.requestId ||
-                          line.latency ||
-                          line.ip ||
-                          canTraceRequest
+                        line.method ||
+                        typeof line.statusCode === 'number' ||
+                        line.path ||
+                        line.source ||
+                        line.requestId ||
+                        line.latency ||
+                        line.ip ||
+                        canTraceRequest
                       );
                       const rowClassNames = [styles.logRow];
                       if (line.level === 'warn') rowClassNames.push(styles.rowWarn);
@@ -757,17 +762,18 @@ export function LogsPage() {
                         <div
                           key={`${logState.visibleFrom + index}-${line.raw}`}
                           className={rowClassNames.join(' ')}
+                          tabIndex={0}
+                          aria-label={t('logs.double_click_copy_hint')}
                           onDoubleClick={() => {
                             void copyLogLine(line.raw);
                           }}
+                          onKeyDown={(event) => handleLogRowKeyDown(event, line.raw)}
                           onPointerDown={(event) => startLongPress(event, line.requestId)}
                           onPointerUp={cancelLongPress}
                           onPointerLeave={cancelLongPress}
                           onPointerCancel={cancelLongPress}
                           onPointerMove={handleLongPressMove}
-                          title={t('logs.double_click_copy_hint', {
-                            defaultValue: 'Double-click to copy',
-                          })}
+                          title={t('logs.double_click_copy_hint')}
                         >
                           <div className={styles.timestamp}>{line.timestamp || ''}</div>
                           <div className={styles.rowMain}>
@@ -897,15 +903,23 @@ export function LogsPage() {
 
               {requestLogEnabled && (
                 <div>
-                  <div className="status-badge warning">{t('logs.error_logs_request_log_enabled')}</div>
+                  <div className="status-badge warning">
+                    {t('logs.error_logs_request_log_enabled')}
+                  </div>
                 </div>
               )}
 
-              {errorLogsError && <div className="error-box">{errorLogsError}</div>}
+              {errorLogsError && (
+                <div className="error-box" role="alert">
+                  {errorLogsError}
+                </div>
+              )}
 
               <div className={styles.errorPanel}>
                 {loadingErrors ? (
-                  <div className="hint">{t('common.loading')}</div>
+                  <div className="hint" role="status" aria-busy="true">
+                    {t('common.loading')}
+                  </div>
                 ) : errorLogs.length === 0 ? (
                   <div className="hint">{t('logs.error_logs_empty')}</div>
                 ) : (
@@ -1027,9 +1041,13 @@ export function LogsPage() {
               </Button>
             </div>
             {trace.traceLoading ? (
-              <div className="hint">{t('logs.trace_loading')}</div>
+              <div className="hint" role="status" aria-busy="true">
+                {t('logs.trace_loading')}
+              </div>
             ) : trace.traceError ? (
-              <div className="error-box">{trace.traceError}</div>
+              <div className="error-box" role="alert">
+                {trace.traceError}
+              </div>
             ) : trace.traceCandidates.length === 0 ? (
               <div className="hint">{t('logs.trace_no_match')}</div>
             ) : (
@@ -1053,7 +1071,7 @@ export function LogsPage() {
                         {candidate.timeDeltaMs !== null && (
                           <span className={styles.traceDelta}>
                             {t('logs.trace_delta_seconds', {
-                              seconds: (candidate.timeDeltaMs / 1000).toFixed(2)
+                              seconds: (candidate.timeDeltaMs / 1000).toFixed(2),
                             })}
                           </span>
                         )}
@@ -1061,11 +1079,15 @@ export function LogsPage() {
                       <div className={styles.traceCandidateGrid}>
                         <div className={styles.traceInfoItem}>
                           <span className={styles.traceInfoLabel}>{t('logs.trace_endpoint')}</span>
-                          <span className={styles.traceInfoValue}>{candidate.detail.__endpoint}</span>
+                          <span className={styles.traceInfoValue}>
+                            {candidate.detail.__endpoint}
+                          </span>
                         </div>
                         <div className={styles.traceInfoItem}>
                           <span className={styles.traceInfoLabel}>{t('logs.trace_model')}</span>
-                          <span className={styles.traceInfoValue}>{candidate.detail.__modelName || '-'}</span>
+                          <span className={styles.traceInfoValue}>
+                            {candidate.detail.__modelName || '-'}
+                          </span>
                         </div>
                         <div className={styles.traceInfoItem}>
                           <span className={styles.traceInfoLabel}>{t('logs.trace_source')}</span>
@@ -1080,7 +1102,9 @@ export function LogsPage() {
                           </span>
                         </div>
                         <div className={styles.traceInfoItem}>
-                          <span className={styles.traceInfoLabel}>{t('logs.trace_auth_index')}</span>
+                          <span className={styles.traceInfoLabel}>
+                            {t('logs.trace_auth_index')}
+                          </span>
                           <span className={styles.traceInfoValue}>
                             {candidate.detail.auth_index ?? '-'}
                           </span>
@@ -1113,7 +1137,11 @@ export function LogsPage() {
         title={t('logs.request_log_download_title')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeRequestLogModal} disabled={requestLogDownloading}>
+            <Button
+              variant="secondary"
+              onClick={closeRequestLogModal}
+              disabled={requestLogDownloading}
+            >
               {t('common.cancel')}
             </Button>
             <Button

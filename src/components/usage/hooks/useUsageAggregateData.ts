@@ -3,8 +3,16 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore, useNotificationStore } from '@/stores';
 import { usageApi, type UsageExportPayload } from '@/services/api/usage';
 import { downloadBlob } from '@/utils/download';
-import { loadModelPrices, saveModelPrices, type ModelPrice } from '@/utils/usage';
+import type { ModelPrice } from '@/utils/usage';
 import type { UsageAggregateSnapshot } from '@/types/usageAggregate';
+import { primeModelPrices, saveAndSyncModelPrices } from './usageModelPriceUtils';
+import {
+  appendErrorMessage,
+  buildUsageImportMessageOptions,
+  buildUsageExportFilename,
+  createJsonExportBlob,
+  readJsonFile,
+} from './usageFileUtils';
 
 export interface LoadUsageAggregateOptions {
   force?: boolean;
@@ -63,17 +71,6 @@ const resolveGeneratedAt = (snapshot: UsageAggregateSnapshot | null) => {
 
 const readAggregateUsageCache = (scopeKey = getUsageScopeKey()) =>
   aggregateUsageCache.get(scopeKey);
-
-const hasPrices = (prices: Record<string, ModelPrice>) => Object.keys(prices).length > 0;
-
-const buildExportFilename = (prefix: string, payload: UsageExportPayload) => {
-  const exportedAt =
-    typeof payload?.exported_at === 'string' ? new Date(payload.exported_at) : new Date();
-  const safeTimestamp = Number.isNaN(exportedAt.getTime())
-    ? new Date().toISOString()
-    : exportedAt.toISOString();
-  return `${prefix}-${safeTimestamp.replace(/[:.]/g, '-')}.json`;
-};
 
 export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   const { t } = useTranslation();
@@ -172,15 +169,7 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
 
   useEffect(() => {
     void loadUsage({ preferCache: true }).catch(() => {});
-    setModelPrices(loadModelPrices());
-    void usageApi
-      .getModelPrices()
-      .then((prices) => {
-        if (!hasPrices(prices)) return;
-        setModelPrices(prices);
-        saveModelPrices(prices);
-      })
-      .catch(() => {});
+    primeModelPrices(setModelPrices);
   }, [loadUsage]);
 
   const downloadExport = useCallback(
@@ -194,16 +183,12 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
       try {
         const data = await run();
         downloadBlob({
-          filename: buildExportFilename(filenamePrefix, data),
-          blob: new Blob([JSON.stringify(data ?? {}, null, 2)], { type: 'application/json' }),
+          filename: buildUsageExportFilename(filenamePrefix, data),
+          blob: createJsonExportBlob(data),
         });
         showNotification(t(successKey), 'success');
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : '';
-        showNotification(
-          `${t('notification.download_failed')}${message ? `: ${message}` : ''}`,
-          'error'
-        );
+        showNotification(appendErrorMessage(t('notification.download_failed'), err), 'error');
       } finally {
         setBusy(false);
       }
@@ -247,10 +232,9 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
 
       setImporting(true);
       try {
-        const text = await file.text();
         let payload: unknown;
         try {
-          payload = JSON.parse(text);
+          payload = await readJsonFile(file);
         } catch {
           showNotification(t('usage_stats.import_invalid'), 'error');
           return;
@@ -258,21 +242,12 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
 
         const result = await usageApi.importUsage(payload);
         showNotification(
-          t('usage_stats.import_success', {
-            added: result?.added ?? 0,
-            skipped: result?.skipped ?? 0,
-            total: result?.total_requests ?? 0,
-            failed: result?.failed_requests ?? 0,
-          }),
+          t('usage_stats.import_success', buildUsageImportMessageOptions(result)),
           'success'
         );
         await loadUsage();
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : '';
-        showNotification(
-          `${t('notification.upload_failed')}${message ? `: ${message}` : ''}`,
-          'error'
-        );
+        showNotification(appendErrorMessage(t('notification.upload_failed'), err), 'error');
       } finally {
         setImporting(false);
       }
@@ -282,14 +257,8 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
 
   const handleSetModelPrices = useCallback(
     (prices: Record<string, ModelPrice>) => {
-      setModelPrices(prices);
-      saveModelPrices(prices);
-      void usageApi.updateModelPrices(prices).catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : '';
-        showNotification(
-          `${t('notification.save_failed')}${message ? `: ${message}` : ''}`,
-          'error'
-        );
+      saveAndSyncModelPrices(prices, setModelPrices, (err) => {
+        showNotification(appendErrorMessage(t('notification.save_failed'), err), 'error');
       });
     },
     [showNotification, t]

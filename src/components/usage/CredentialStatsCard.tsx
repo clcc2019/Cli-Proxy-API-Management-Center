@@ -50,7 +50,6 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
   // Fetch auth files for auth_index-based matching
   useEffect(() => {
     if (loading || credentials.length === 0) {
-      setAuthFileMap((current) => (current.size > 0 ? new Map() : current));
       return;
     }
 
@@ -246,21 +245,21 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     });
 
     return result.sort((a, b) => b.totalTokens - a.totalTokens || b.total - a.total);
-  }, [
-    credentials,
-    claudeConfigs,
-    codexConfigs,
-    authFileMap,
-  ]);
+  }, [credentials, claudeConfigs, codexConfigs, authFileMap]);
 
   return (
     <Card title={t('usage_stats.credential_stats')} className={styles.detailsFixedCard}>
       {loading ? (
-        <div className={styles.hint}>{t('common.loading')}</div>
+        <div className={styles.hint} role="status" aria-busy="true">
+          {t('common.loading')}
+        </div>
       ) : rows.length > 0 ? (
         <div className={styles.detailsScroll}>
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
+              <caption className={styles.visuallyHidden}>
+                {t('usage_stats.credential_stats')}
+              </caption>
               <thead>
                 <tr>
                   <th>{t('usage_stats.credential_name')}</th>

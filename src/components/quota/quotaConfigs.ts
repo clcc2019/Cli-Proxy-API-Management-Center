@@ -13,6 +13,7 @@ import type {
   ClaudeQuotaWindow,
   ClaudeUsagePayload,
   CodexRateLimitInfo,
+  CodexRateLimitResetCredits,
   CodexQuotaState,
   CodexUsageWindow,
   CodexQuotaWindow,
@@ -40,6 +41,7 @@ import {
   formatCodexResetLabel,
   formatQuotaResetTime,
   formatKimiResetHint,
+  getQuotaProgressLevel,
   buildKimiQuotaRows,
   createStatusError,
 } from '@/utils/quota';
@@ -49,8 +51,18 @@ type QuotaUpdater<T> = T | ((prev: T) => T);
 
 type QuotaType = 'claude' | 'codex' | 'kimi';
 
-const QUOTA_PROGRESS_HIGH_THRESHOLD = 70;
-const QUOTA_PROGRESS_MEDIUM_THRESHOLD = 30;
+const getQuotaRowClassName = (styles: Record<string, string>, percent: number | null): string => {
+  const level = getQuotaProgressLevel(percent);
+  const levelClass =
+    level === 'high'
+      ? styles.quotaRowHigh
+      : level === 'medium'
+        ? styles.quotaRowMedium
+        : level === 'low'
+          ? styles.quotaRowLow
+          : styles.quotaRowUnknown;
+  return [styles.quotaRow, levelClass].filter(Boolean).join(' ');
+};
 
 export interface QuotaStore {
   claudeQuota: Record<string, ClaudeQuotaState>;
@@ -75,8 +87,10 @@ export interface QuotaConfig<TState, TData> {
 
 interface QuotaProgressBarProps {
   percent: number | null;
-  highThreshold: number;
-  mediumThreshold: number;
+  highThreshold?: number;
+  mediumThreshold?: number;
+  ariaLabel?: string;
+  ariaValueText?: string;
 }
 
 export interface QuotaRenderHelpers {
@@ -84,6 +98,54 @@ export interface QuotaRenderHelpers {
   QuotaProgressBar: (props: QuotaProgressBarProps) => ReactElement;
   item?: AuthFileItem;
 }
+
+interface RenderQuotaRowOptions {
+  key: string;
+  label: string;
+  remaining: number | null;
+  metaItems?: ReactNode[];
+}
+
+const clampPercent = (value: number | null): number | null =>
+  value === null ? null : Math.max(0, Math.min(100, value));
+
+const getRemainingQuotaPercent = (usedPercent: number | null): number | null => {
+  const clampedUsed = clampPercent(usedPercent);
+  return clampedUsed === null ? null : Math.max(0, 100 - clampedUsed);
+};
+
+const formatQuotaPercentLabel = (percent: number | null): string =>
+  percent === null ? '--' : `${Math.round(percent)}%`;
+
+const renderQuotaRow = (
+  helpers: QuotaRenderHelpers,
+  { key, label, remaining, metaItems = [] }: RenderQuotaRowOptions
+): ReactElement => {
+  const { styles: styleMap, QuotaProgressBar } = helpers;
+  const { createElement: h } = React;
+  const percentLabel = formatQuotaPercentLabel(remaining);
+
+  return h(
+    'div',
+    { key, className: getQuotaRowClassName(styleMap, remaining) },
+    h(
+      'div',
+      { className: styleMap.quotaRowHeader },
+      h('span', { className: styleMap.quotaModel }, label),
+      h(
+        'div',
+        { className: styleMap.quotaMeta },
+        h('span', { className: styleMap.quotaPercent }, percentLabel),
+        ...metaItems
+      )
+    ),
+    h(QuotaProgressBar, {
+      percent: remaining,
+      ariaLabel: label,
+      ariaValueText: percentLabel,
+    })
+  );
+};
 
 const buildCodexQuotaWindows = (
   payload: CodexUsagePayload,
@@ -297,6 +359,14 @@ const resolveCodexRateLimitReachedType = (payload: CodexUsagePayload): string | 
   return null;
 };
 
+const resolveCodexRateLimitResetCreditsAvailable = (payload: CodexUsagePayload): number | null => {
+  const raw = payload.rate_limit_reset_credits ?? payload.rateLimitResetCredits;
+  if (!raw || typeof raw !== 'object') return null;
+  const credits = raw as CodexRateLimitResetCredits;
+  const count = normalizeNumberValue(credits.available_count ?? credits.availableCount);
+  return count === null ? null : Math.max(0, Math.trunc(count));
+};
+
 const resolveCodexUpdatedAuthFile = (
   file: AuthFileItem,
   payload: CodexUsagePayload
@@ -347,6 +417,7 @@ const fetchCodexQuota = async (
   subscriptionActiveDays: number | null;
   subscriptionUntil: string | number | null;
   rateLimitReachedType: string | null;
+  rateLimitResetCreditsAvailable: number | null;
   windows: CodexQuotaWindow[];
 }> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
@@ -374,6 +445,7 @@ const fetchCodexQuota = async (
   const subscriptionUntil = resolveCodexSubscriptionActiveUntil(subscriptionSource);
   const windows = buildCodexQuotaWindows(payload, t, planTypeFromUsage ?? planTypeFromFile);
   const rateLimitReachedType = resolveCodexRateLimitReachedType(payload);
+  const rateLimitResetCreditsAvailable = resolveCodexRateLimitResetCreditsAvailable(payload);
   const authFile = resolveCodexUpdatedAuthFile(file, payload);
   return {
     authFile,
@@ -382,6 +454,7 @@ const fetchCodexQuota = async (
     subscriptionActiveDays,
     subscriptionUntil,
     rateLimitReachedType,
+    rateLimitResetCreditsAvailable,
     windows,
   };
 };
@@ -421,10 +494,7 @@ const resolveCodexSubscriptionActiveDaysLabel = (
   const days =
     quota.subscriptionActiveDays ?? (item ? resolveCodexSubscriptionActiveDays(item) : null);
   if (days === null || days < 0) return null;
-  return t('codex_quota.subscription_active_days', {
-    days,
-    defaultValue: `Active ${days}d`,
-  });
+  return t('codex_quota.subscription_active_days', { days });
 };
 
 const renderCodexItems = (
@@ -432,7 +502,7 @@ const renderCodexItems = (
   t: TFunction,
   helpers: QuotaRenderHelpers
 ): ReactNode => {
-  const { styles: styleMap, QuotaProgressBar } = helpers;
+  const { styles: styleMap } = helpers;
   const { createElement: h, Fragment } = React;
   const windows = quota.windows ?? [];
   const planType = quota.planType ?? null;
@@ -487,34 +557,17 @@ const renderCodexItems = (
 
   nodes.push(
     ...windows.map((window) => {
-      const used = window.usedPercent;
-      const clampedUsed = used === null ? null : Math.max(0, Math.min(100, used));
-      const remaining = clampedUsed === null ? null : Math.max(0, Math.min(100, 100 - clampedUsed));
-      const percentLabel = remaining === null ? '--' : `${Math.round(remaining)}%`;
+      const remaining = getRemainingQuotaPercent(window.usedPercent);
       const windowLabel = window.labelKey
         ? t(window.labelKey, window.labelParams as Record<string, string | number>)
         : window.label;
 
-      return h(
-        'div',
-        { key: window.id, className: styleMap.quotaRow },
-        h(
-          'div',
-          { className: styleMap.quotaRowHeader },
-          h('span', { className: styleMap.quotaModel }, windowLabel),
-          h(
-            'div',
-            { className: styleMap.quotaMeta },
-            h('span', { className: styleMap.quotaPercent }, percentLabel),
-            h('span', { className: styleMap.quotaReset }, window.resetLabel)
-          )
-        ),
-        h(QuotaProgressBar, {
-          percent: remaining,
-          highThreshold: QUOTA_PROGRESS_HIGH_THRESHOLD,
-          mediumThreshold: QUOTA_PROGRESS_MEDIUM_THRESHOLD,
-        })
-      );
+      return renderQuotaRow(helpers, {
+        key: window.id,
+        label: windowLabel,
+        remaining,
+        metaItems: [h('span', { key: 'reset', className: styleMap.quotaReset }, window.resetLabel)],
+      });
     })
   );
 
@@ -650,7 +703,7 @@ const renderClaudeItems = (
   t: TFunction,
   helpers: QuotaRenderHelpers
 ): ReactNode => {
-  const { styles: styleMap, QuotaProgressBar } = helpers;
+  const { styles: styleMap } = helpers;
   const { createElement: h, Fragment } = React;
   const windows = quota.windows ?? [];
   const extraUsage = quota.extraUsage ?? null;
@@ -689,32 +742,15 @@ const renderClaudeItems = (
 
   nodes.push(
     ...windows.map((window) => {
-      const used = window.usedPercent;
-      const clampedUsed = used === null ? null : Math.max(0, Math.min(100, used));
-      const remaining = clampedUsed === null ? null : Math.max(0, Math.min(100, 100 - clampedUsed));
-      const percentLabel = remaining === null ? '--' : `${Math.round(remaining)}%`;
+      const remaining = getRemainingQuotaPercent(window.usedPercent);
       const windowLabel = window.labelKey ? t(window.labelKey) : window.label;
 
-      return h(
-        'div',
-        { key: window.id, className: styleMap.quotaRow },
-        h(
-          'div',
-          { className: styleMap.quotaRowHeader },
-          h('span', { className: styleMap.quotaModel }, windowLabel),
-          h(
-            'div',
-            { className: styleMap.quotaMeta },
-            h('span', { className: styleMap.quotaPercent }, percentLabel),
-            h('span', { className: styleMap.quotaReset }, window.resetLabel)
-          )
-        ),
-        h(QuotaProgressBar, {
-          percent: remaining,
-          highThreshold: QUOTA_PROGRESS_HIGH_THRESHOLD,
-          mediumThreshold: QUOTA_PROGRESS_MEDIUM_THRESHOLD,
-        })
-      );
+      return renderQuotaRow(helpers, {
+        key: window.id,
+        label: windowLabel,
+        remaining,
+        metaItems: [h('span', { key: 'reset', className: styleMap.quotaReset }, window.resetLabel)],
+      });
     })
   );
 
@@ -753,6 +789,7 @@ export const CODEX_CONFIG: QuotaConfig<
     subscriptionActiveDays: number | null;
     subscriptionUntil: string | number | null;
     rateLimitReachedType: string | null;
+    rateLimitResetCreditsAvailable: number | null;
     windows: CodexQuotaWindow[];
   }
 > = {
@@ -768,6 +805,7 @@ export const CODEX_CONFIG: QuotaConfig<
     subscriptionActiveStart: data.subscriptionActiveStart,
     subscriptionActiveDays: data.subscriptionActiveDays,
     subscriptionUntil: data.subscriptionUntil,
+    rateLimitResetCreditsAvailable: data.rateLimitResetCreditsAvailable,
   }),
   extractAuthFileUpdate: (data) => data.authFile,
   buildErrorState: (message, status) => ({
@@ -810,7 +848,7 @@ const renderKimiItems = (
   t: TFunction,
   helpers: QuotaRenderHelpers
 ): ReactNode => {
-  const { styles: styleMap, QuotaProgressBar } = helpers;
+  const { styles: styleMap } = helpers;
   const { createElement: h } = React;
   const rows = quota.rows ?? [];
 
@@ -827,33 +865,23 @@ const renderKimiItems = (
         : used > 0
           ? 0
           : null;
-    const percentLabel = remaining === null ? '--' : `${remaining}%`;
     const rowLabel = row.labelKey
       ? t(row.labelKey, (row.labelParams ?? {}) as Record<string, string | number>)
       : (row.label ?? '');
     const resetLabel = formatKimiResetHint(t, row.resetHint);
+    const metaItems = [
+      limit > 0
+        ? h('span', { key: 'amount', className: styleMap.quotaAmount }, `${used} / ${limit}`)
+        : null,
+      resetLabel ? h('span', { key: 'reset', className: styleMap.quotaReset }, resetLabel) : null,
+    ];
 
-    return h(
-      'div',
-      { key: row.id, className: styleMap.quotaRow },
-      h(
-        'div',
-        { className: styleMap.quotaRowHeader },
-        h('span', { className: styleMap.quotaModel }, rowLabel),
-        h(
-          'div',
-          { className: styleMap.quotaMeta },
-          h('span', { className: styleMap.quotaPercent }, percentLabel),
-          limit > 0 ? h('span', { className: styleMap.quotaAmount }, `${used} / ${limit}`) : null,
-          resetLabel ? h('span', { className: styleMap.quotaReset }, resetLabel) : null
-        )
-      ),
-      h(QuotaProgressBar, {
-        percent: remaining,
-        highThreshold: QUOTA_PROGRESS_HIGH_THRESHOLD,
-        mediumThreshold: QUOTA_PROGRESS_MEDIUM_THRESHOLD,
-      })
-    );
+    return renderQuotaRow(helpers, {
+      key: row.id,
+      label: rowLabel,
+      remaining,
+      metaItems,
+    });
   });
 };
 

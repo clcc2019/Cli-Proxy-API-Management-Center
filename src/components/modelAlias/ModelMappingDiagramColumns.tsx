@@ -1,6 +1,14 @@
-import type { DragEvent, MouseEvent as ReactMouseEvent, RefObject } from 'react';
+import type {
+  DragEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  RefObject,
+} from 'react';
 import type { AliasNode, ProviderNode, SourceNode } from './ModelMappingDiagramTypes';
 import styles from './ModelMappingDiagram.module.scss';
+
+const isActivationKey = (event: ReactKeyboardEvent<HTMLElement>) =>
+  event.key === 'Enter' || event.key === ' ';
 
 interface ProviderColumnProps {
   providerNodes: ProviderNode[];
@@ -141,7 +149,15 @@ export function SourceColumn({
             } ${dropTargetSource === source.id ? styles.dropTarget : ''} ${
               selectedSourceId === source.id ? styles.selected : ''
             }`}
+            role="button"
+            tabIndex={0}
+            aria-pressed={selectedSourceId === source.id}
             onClick={() => onSelectSource?.(source)}
+            onKeyDown={(e) => {
+              if (!isActivationKey(e)) return;
+              e.preventDefault();
+              onSelectSource?.(source);
+            }}
             draggable={draggable}
             onDragStart={(e) => onDragStart(e, source)}
             onDragEnd={onDragEnd}
@@ -226,7 +242,15 @@ export function AliasColumn({
           } ${draggedAlias === node.alias ? styles.dragging : ''} ${
             selectedAlias === node.alias ? styles.selected : ''
           }`}
+          role="button"
+          tabIndex={0}
+          aria-pressed={selectedAlias === node.alias}
           onClick={() => onSelectAlias?.(node.alias)}
+          onKeyDown={(e) => {
+            if (!isActivationKey(e)) return;
+            e.preventDefault();
+            onSelectAlias?.(node.alias);
+          }}
           draggable={draggable}
           onDragStart={(e) => onDragStart(e, node.alias)}
           onDragEnd={onDragEnd}

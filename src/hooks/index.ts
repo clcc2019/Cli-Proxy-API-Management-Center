@@ -11,3 +11,7 @@ export { useReducedMotion } from './useReducedMotion';
 export { usePagination } from './usePagination';
 export { useHeaderRefresh } from './useHeaderRefresh';
 export { useEventCallback } from './useEventCallback';
+export { useVisibleInterval } from './useVisibleInterval';
+export { useAlignedInterval } from './useAlignedInterval';
+export { useDelayedBoolean } from './useDelayedBoolean';
+export { useTimeoutRegistry } from './useTimeoutRegistry';

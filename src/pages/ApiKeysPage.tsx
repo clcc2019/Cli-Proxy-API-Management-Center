@@ -193,7 +193,11 @@ export function ApiKeysPage() {
 
       <div className={styles.workspaceShell}>
         <div className={styles.content}>
-          {error && <div className="error-box">{error}</div>}
+          {error && (
+            <div className="error-box" role="alert">
+              {error}
+            </div>
+          )}
           <div id="api-keys" className={editorStyles.sectionStack}>
             <div className={editorStyles.subsection}>
               <div className={editorStyles.subsectionHeader}>

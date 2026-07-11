@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ScriptableContext } from 'chart.js';
 import { formatUsd, type ModelPrice } from '@/utils/usage';
@@ -9,7 +9,7 @@ import {
   buildUsageAreaGradient,
   withUsageColorAlpha,
 } from '@/utils/usage/chartConfig';
-import { getAdaptiveAnalysisChartPeriod } from './chartPeriod';
+import { useAdaptiveAnalysisChartPeriod } from './chartPeriod';
 import { UsageChartPanel } from './UsageChartPanel';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
 
@@ -34,13 +34,8 @@ export const CostTrendChart = memo(function CostTrendChart({
   hourWindowHours,
 }: CostTrendChartProps) {
   const { t } = useTranslation();
-  const preferredPeriod = getAdaptiveAnalysisChartPeriod(hourWindowHours);
-  const [period, setPeriod] = useState<'hour' | 'day'>(preferredPeriod);
+  const [period, setPeriod] = useAdaptiveAnalysisChartPeriod(hourWindowHours);
   const hasPrices = Object.keys(modelPrices).length > 0;
-
-  useEffect(() => {
-    setPeriod(preferredPeriod);
-  }, [preferredPeriod]);
 
   const { chartData, chartOptions, hasData, summaryItems } = useMemo(() => {
     if (!hasPrices || !window) {

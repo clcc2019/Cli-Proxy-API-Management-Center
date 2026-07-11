@@ -1,10 +1,10 @@
 import {
   type ChangeEvent,
+  type ReactNode,
   memo,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,7 @@ import {
   IconX,
 } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useAuthStore, useNotificationStore, useConfigStore, useThemeStore } from '@/stores';
 import { useUsageData } from '@/components/usage';
 import {
@@ -27,14 +28,18 @@ import {
   type RequestEventRow,
 } from '@/components/usage/hooks/useRequestEventRows';
 import {
-  getTypeColor,
-  normalizeProviderKey,
-} from '@/features/authFiles/constants';
-import { copyToClipboard } from '@/utils/clipboard';
+  buildRequestEventTokenLabels,
+  copyRequestEventErrorMessage,
+  getRequestEventCredentialTypeStyle,
+  hasRequestEventValue,
+  type RequestEventTokenLabels,
+} from '@/components/usage/hooks/requestEventFormat';
 import {
   formatDurationMs,
   formatUsd,
+  getLatencyTone,
   LATENCY_SOURCE_FIELD,
+  type LatencyTone,
 } from '@/utils/usage';
 import styles from './RequestLogsPage.module.scss';
 
@@ -45,14 +50,6 @@ type StatusFilter = 'all' | 'success' | 'failed';
 const SKELETON_COUNT = 6;
 const AUTO_REFRESH_INTERVAL_MS = 15_000;
 const RELATIVE_TICK_MS = 60_000;
-
-type LatencyTone = 'normal' | 'slow' | 'verySlow';
-
-const getLatencyTone = (latencyMs: number): LatencyTone => {
-  if (latencyMs <= 30_000) return 'normal';
-  if (latencyMs <= 60_000) return 'slow';
-  return 'verySlow';
-};
 
 const LATENCY_TONE_CLASS: Record<LatencyTone, string> = {
   normal: '',
@@ -68,12 +65,71 @@ interface RelativeLabels {
   day: string;
 }
 
-interface TokenLabels {
-  in: string;
-  out: string;
-  reasoning: string;
-  cached: string;
+interface StatusFilterButtonProps {
+  active: boolean;
+  count: number;
+  disabled?: boolean;
+  icon: ReactNode;
+  label: string;
+  toneClassName?: string;
+  onClick: () => void;
 }
+
+const StatusFilterButton = memo(function StatusFilterButton({
+  active,
+  count,
+  disabled = false,
+  icon,
+  label,
+  toneClassName,
+  onClick,
+}: StatusFilterButtonProps) {
+  const className = [
+    styles.statusFilterButton,
+    toneClassName,
+    active ? styles.statusFilterButtonActive : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {icon}
+      <span className={styles.statusFilterText}>{label}</span>
+      <span className={styles.statusFilterCount}>{count}</span>
+    </button>
+  );
+});
+
+interface RequestEventsEmptyStateProps {
+  title: string;
+  description: string;
+  action?: ReactNode;
+}
+
+const RequestEventsEmptyState = memo(function RequestEventsEmptyState({
+  title,
+  description,
+  action,
+}: RequestEventsEmptyStateProps) {
+  return (
+    <div className={styles.emptyState}>
+      <span className={styles.emptyStateIcon} aria-hidden="true">
+        <IconInbox size={22} />
+      </span>
+      <span className={styles.emptyStateTitle}>{title}</span>
+      <p className={styles.emptyStateDesc}>{description}</p>
+      {action}
+    </div>
+  );
+});
 
 function formatRelative(
   now: number,
@@ -156,19 +212,43 @@ const RelativeTime = memo(function RelativeTime({
   return <span className={className}>{text}</span>;
 });
 
+type RequestEventLabels = {
+  authShort: string;
+  clearFilters: string;
+  columns: {
+    cost: string;
+    credential: string;
+    model: string;
+    status: string;
+    time: string;
+    tokens: string;
+  };
+  empty: {
+    title: string;
+    description: string;
+  };
+  errorCopyHint: string;
+  errorEmpty: string;
+  filterAll: string;
+  noResult: {
+    title: string;
+    description: string;
+  };
+  reasoning: string;
+  refresh: string;
+  refreshing: string;
+  success: string;
+  failure: string;
+};
+
 interface RequestEventRowItemProps {
   row: RequestEventRow;
   hasLatencyData: boolean;
   latencyHint: string;
   resolvedTheme: 'light' | 'dark';
   onCopyError: (errorMessage: string, fallback: string) => void;
-  errorEmptyLabel: string;
-  errorCopyHint: string;
-  successLabel: string;
-  failureLabel: string;
-  reasoningLabel: string;
-  authShortLabel: string;
-  tokenLabels: TokenLabels;
+  labels: RequestEventLabels;
+  tokenLabels: RequestEventTokenLabels;
   isZh: boolean;
   relativeLabels: RelativeLabels;
 }
@@ -179,67 +259,31 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
   latencyHint,
   resolvedTheme,
   onCopyError,
-  errorEmptyLabel,
-  errorCopyHint,
-  successLabel,
-  failureLabel,
-  reasoningLabel,
-  authShortLabel,
+  labels,
   tokenLabels,
   isZh,
   relativeLabels,
 }: RequestEventRowItemProps) {
-  const tokenParts = useMemo(() => {
-    const parts: { label: string; value: number }[] = [];
-    if (row.inputTokens > 0)
-      parts.push({ label: tokenLabels.in, value: row.inputTokens });
-    if (row.outputTokens > 0)
-      parts.push({ label: tokenLabels.out, value: row.outputTokens });
-    if (row.reasoningTokens > 0)
-      parts.push({ label: tokenLabels.reasoning, value: row.reasoningTokens });
-    if (row.cachedTokens > 0)
-      parts.push({ label: tokenLabels.cached, value: row.cachedTokens });
-    return parts;
-  }, [
-    row.inputTokens,
-    row.outputTokens,
-    row.reasoningTokens,
-    row.cachedTokens,
-    tokenLabels,
-  ]);
+  const hasReasoning = hasRequestEventValue(row.modelReasoningEffort);
+  const hasAuthIndex = hasRequestEventValue(row.authIndex);
+  const hasApiKey = hasRequestEventValue(row.apiKeyMasked);
 
-  const hasReasoning =
-    row.modelReasoningEffort && row.modelReasoningEffort !== '-';
-  const hasAuthIndex = row.authIndex && row.authIndex !== '-';
-  const hasApiKey = row.apiKeyMasked && row.apiKeyMasked !== '-';
-
-  const typeColor = useMemo(
-    () =>
-      row.sourceType
-        ? getTypeColor(normalizeProviderKey(row.sourceType), resolvedTheme)
-        : null,
+  const credentialTypeStyle = useMemo(
+    () => getRequestEventCredentialTypeStyle(row.sourceType, resolvedTheme),
     [row.sourceType, resolvedTheme]
   );
 
-  const credentialTypeStyle = useMemo(
-    () =>
-      typeColor
-        ? {
-            background: typeColor.bg,
-            color: typeColor.text,
-            borderColor: typeColor.bg,
-          }
-        : undefined,
-    [typeColor]
-  );
-
   const handleCopyError = useCallback(() => {
-    onCopyError(row.errorMessage, errorEmptyLabel);
-  }, [onCopyError, row.errorMessage, errorEmptyLabel]);
+    onCopyError(row.errorMessage, labels.errorEmpty);
+  }, [onCopyError, row.errorMessage, labels.errorEmpty]);
 
   const rowClassName = row.failed
     ? `${styles.eventRow} ${styles.eventRowFailed}`
     : `${styles.eventRow} ${styles.eventRowSuccess}`;
+  const latencyClassName =
+    hasLatencyData && row.latencyMs !== null
+      ? LATENCY_TONE_CLASS[getLatencyTone(row.latencyMs)]
+      : '';
 
   return (
     <div className={rowClassName}>
@@ -264,7 +308,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
         </span>
         {hasReasoning && (
           <span className={styles.eventModelMeta}>
-            {reasoningLabel} · {row.modelReasoningEffort}
+            {labels.reasoning} · {row.modelReasoningEffort}
           </span>
         )}
       </div>
@@ -290,7 +334,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
                 className={styles.eventCredentialMetaItem}
                 title={row.authIndex}
               >
-                {authShortLabel} #{row.authIndex}
+                {labels.authShort} #{row.authIndex}
               </span>
             )}
             {hasApiKey && (
@@ -312,28 +356,28 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
             className={`${styles.eventStatusBadge} ${styles.eventStatusBadgeFailed}`}
             title={
               row.errorMessage
-                ? `${errorCopyHint}\n${row.errorMessage}`
-                : errorEmptyLabel
+                ? `${labels.errorCopyHint}\n${row.errorMessage}`
+                : labels.errorEmpty
             }
             onClick={handleCopyError}
             disabled={!row.errorMessage}
           >
             <IconX size={12} aria-hidden="true" />
-            {failureLabel}
+            {labels.failure}
           </button>
         ) : (
           <span
             className={`${styles.eventStatusBadge} ${styles.eventStatusBadgeSuccess}`}
           >
             <IconCheck size={12} aria-hidden="true" />
-            {successLabel}
+            {labels.success}
           </span>
         )}
         {hasLatencyData && row.latencyMs !== null && (
           <span
             className={
-              LATENCY_TONE_CLASS[getLatencyTone(row.latencyMs)]
-                ? `${styles.eventLatency} ${LATENCY_TONE_CLASS[getLatencyTone(row.latencyMs)]}`
+              latencyClassName
+                ? `${styles.eventLatency} ${latencyClassName}`
                 : styles.eventLatency
             }
             title={latencyHint}
@@ -342,18 +386,28 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
             {formatDurationMs(row.latencyMs)}
           </span>
         )}
+        {row.failed && row.errorMessage && (
+          <button
+            type="button"
+            className={styles.eventErrorPreview}
+            title={`${labels.errorCopyHint}\n${row.errorMessage}`}
+            onClick={handleCopyError}
+          >
+            {row.errorMessage}
+          </button>
+        )}
       </div>
 
       <div className={styles.eventTokens}>
         <span className={styles.eventTokensTotal}>
           {row.totalTokens.toLocaleString()}
         </span>
-        {tokenParts.length > 0 && (
+        {row.tokenParts.length > 0 && (
           <span className={styles.eventTokensBreakdown}>
-            {tokenParts.map((part) => (
-              <span key={part.label} className={styles.eventTokensPart}>
+            {row.tokenParts.map((part) => (
+              <span key={part.kind} className={styles.eventTokensPart}>
                 <span className={styles.eventTokensPartLabel}>
-                  {part.label}
+                  {tokenLabels[part.kind]}
                 </span>
                 {part.value.toLocaleString()}
               </span>
@@ -434,6 +488,8 @@ export function RequestLogsPage() {
 
   const { usage, loading, error, modelPrices, loadUsage } = useUsageData({
     detailsLimit: REQUEST_EVENT_ROWS_LIMIT,
+    compactDetails: true,
+    includeAggregated: false,
   });
 
   useHeaderRefresh(loadUsage);
@@ -487,52 +543,13 @@ export function RequestLogsPage() {
     );
   }, [rows, searchQuery, statusFilter]);
 
-  // 自动每 15 秒刷新一次请求详情，文档隐藏时暂停以节省资源，恢复可见后立即刷新一次
-  const loadUsageRef = useRef(loadUsage);
-  useEffect(() => {
-    loadUsageRef.current = loadUsage;
-  }, [loadUsage]);
-
-  useEffect(() => {
-    if (connectionStatus !== 'connected') return;
-
-    const refresh = () => {
-      void loadUsageRef.current?.();
-    };
-
-    let intervalId: number | null = null;
-
-    const startInterval = () => {
-      if (intervalId !== null) return;
-      intervalId = window.setInterval(refresh, AUTO_REFRESH_INTERVAL_MS);
-    };
-
-    const stopInterval = () => {
-      if (intervalId === null) return;
-      window.clearInterval(intervalId);
-      intervalId = null;
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        stopInterval();
-      } else {
-        // 切回前台时立即刷新一次，再继续轮询
-        refresh();
-        startInterval();
-      }
-    };
-
-    if (!document.hidden) {
-      startInterval();
-    }
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      stopInterval();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [connectionStatus]);
+  useVisibleInterval(
+    () => {
+      void loadUsage();
+    },
+    AUTO_REFRESH_INTERVAL_MS,
+    { enabled: connectionStatus === 'connected' }
+  );
 
   const latencyHint = useMemo(
     () =>
@@ -545,38 +562,28 @@ export function RequestLogsPage() {
 
   const handleCopyError = useCallback(
     async (errorMessage: string, fallback: string) => {
-      const text = (errorMessage || fallback).trim();
-      if (!text) return;
-      const ok = await copyToClipboard(text);
-      showNotification(
-        ok
-          ? t('usage_stats.request_events_error_copy_success')
-          : t('usage_stats.request_events_error_copy_failed'),
-        ok ? 'success' : 'error'
-      );
+      await copyRequestEventErrorMessage({
+        errorMessage,
+        fallback,
+        t,
+        showNotification,
+      });
     },
     [showNotification, t]
   );
 
-  const tokenLabels = useMemo<TokenLabels>(
-    () => ({
-      in: t('usage_stats.request_events_token_in'),
-      out: t('usage_stats.request_events_token_out'),
-      reasoning: t('usage_stats.request_events_token_reasoning'),
-      cached: t('usage_stats.request_events_token_cached'),
-    }),
+  const tokenLabels = useMemo(
+    () => buildRequestEventTokenLabels(t),
     [t]
   );
 
   const relativeLabels = useMemo<RelativeLabels>(
     () => ({
-      justNow: t('usage_stats.request_events_relative_just_now', {
-        defaultValue: 'just now',
-      }),
-      sec: t('usage_stats.request_events_relative_sec', { defaultValue: 's' }),
-      min: t('usage_stats.request_events_relative_min', { defaultValue: 'm' }),
-      hour: t('usage_stats.request_events_relative_hour', { defaultValue: 'h' }),
-      day: t('usage_stats.request_events_relative_day', { defaultValue: 'd' }),
+      justNow: t('usage_stats.request_events_relative_just_now'),
+      sec: t('usage_stats.request_events_relative_sec'),
+      min: t('usage_stats.request_events_relative_min'),
+      hour: t('usage_stats.request_events_relative_hour'),
+      day: t('usage_stats.request_events_relative_day'),
     }),
     [t]
   );
@@ -588,12 +595,37 @@ export function RequestLogsPage() {
     [i18n.language]
   );
 
-  const errorEmptyLabel = t('usage_stats.request_events_error_empty');
-  const errorCopyHint = t('usage_stats.request_events_error_copy_hint');
-  const successLabel = t('stats.success');
-  const failureLabel = t('stats.failure');
-  const reasoningLabel = t('usage_stats.request_events_reasoning_label');
-  const authShortLabel = t('usage_stats.request_events_auth_short');
+  const requestEventLabels = useMemo<RequestEventLabels>(
+    () => ({
+      authShort: t('usage_stats.request_events_auth_short'),
+      clearFilters: t('logs.clear_filters'),
+      columns: {
+        cost: t('usage_stats.request_events_col_cost'),
+        credential: t('usage_stats.request_events_col_credential'),
+        model: t('usage_stats.request_events_col_model'),
+        status: t('usage_stats.request_events_col_status'),
+        time: t('usage_stats.request_events_col_time'),
+        tokens: t('usage_stats.request_events_col_tokens'),
+      },
+      empty: {
+        title: t('usage_stats.request_events_empty_title'),
+        description: t('usage_stats.request_events_empty_desc'),
+      },
+      errorCopyHint: t('usage_stats.request_events_error_copy_hint'),
+      errorEmpty: t('usage_stats.request_events_error_empty'),
+      filterAll: t('usage_stats.request_events_filter_all'),
+      noResult: {
+        title: t('usage_stats.request_events_no_result_title'),
+        description: t('usage_stats.request_events_no_result_desc'),
+      },
+      reasoning: t('usage_stats.request_events_reasoning_label'),
+      refresh: t('common.refresh'),
+      refreshing: t('common.refreshing'),
+      success: t('stats.success'),
+      failure: t('stats.failure'),
+    }),
+    [t]
+  );
 
   const showInitialLoadingOverlay = loading && !usage;
   const showSkeleton = loading && rows.length === 0;
@@ -626,7 +658,7 @@ export function RequestLogsPage() {
   return (
     <div className={styles.page}>
       {showInitialLoadingOverlay && (
-        <div className={styles.loadingOverlay} aria-busy="true">
+        <div className={styles.loadingOverlay} role="status" aria-busy="true">
           <div className={styles.loadingOverlayContent}>
             <LoadingSpinner
               size={20}
@@ -639,66 +671,44 @@ export function RequestLogsPage() {
         </div>
       )}
 
-      {error && <div className={styles.errorBanner}>{error}</div>}
+      {error && (
+        <div className={styles.errorBanner} role="alert">
+          {error}
+        </div>
+      )}
 
       {/* Filters */}
       <div className={styles.toolbar}>
         <div
           className={styles.statusFilter}
           role="tablist"
-          aria-label={t('usage_stats.request_events_col_status')}
+          aria-label={requestEventLabels.columns.status}
         >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={statusFilter === 'all'}
-            className={
-              statusFilter === 'all'
-                ? `${styles.statusFilterButton} ${styles.statusFilterButtonActive}`
-                : styles.statusFilterButton
-            }
+          <StatusFilterButton
+            active={statusFilter === 'all'}
+            count={counts.total}
+            icon={<IconFilterAll size={12} aria-hidden="true" />}
+            label={requestEventLabels.filterAll}
             onClick={handleSelectAll}
-          >
-            <IconFilterAll size={12} aria-hidden="true" />
-            <span className={styles.statusFilterText}>
-              {t('usage_stats.request_events_filter_all', {
-                defaultValue: 'All',
-              })}
-            </span>
-            <span className={styles.statusFilterCount}>{counts.total}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={statusFilter === 'success'}
-            className={
-              statusFilter === 'success'
-                ? `${styles.statusFilterButton} ${styles.statusFilterSuccess} ${styles.statusFilterButtonActive}`
-                : `${styles.statusFilterButton} ${styles.statusFilterSuccess}`
-            }
-            onClick={handleSelectSuccess}
+          />
+          <StatusFilterButton
+            active={statusFilter === 'success'}
+            count={counts.success}
             disabled={counts.success === 0}
-          >
-            <IconCheck size={12} aria-hidden="true" />
-            <span className={styles.statusFilterText}>{successLabel}</span>
-            <span className={styles.statusFilterCount}>{counts.success}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={statusFilter === 'failed'}
-            className={
-              statusFilter === 'failed'
-                ? `${styles.statusFilterButton} ${styles.statusFilterFailed} ${styles.statusFilterButtonActive}`
-                : `${styles.statusFilterButton} ${styles.statusFilterFailed}`
-            }
-            onClick={handleSelectFailed}
+            icon={<IconCheck size={12} aria-hidden="true" />}
+            label={requestEventLabels.success}
+            toneClassName={styles.statusFilterSuccess}
+            onClick={handleSelectSuccess}
+          />
+          <StatusFilterButton
+            active={statusFilter === 'failed'}
+            count={counts.failed}
             disabled={counts.failed === 0}
-          >
-            <IconX size={12} aria-hidden="true" />
-            <span className={styles.statusFilterText}>{failureLabel}</span>
-            <span className={styles.statusFilterCount}>{counts.failed}</span>
-          </button>
+            icon={<IconX size={12} aria-hidden="true" />}
+            label={requestEventLabels.failure}
+            toneClassName={styles.statusFilterFailed}
+            onClick={handleSelectFailed}
+          />
         </div>
 
         <label className={styles.searchBox}>
@@ -726,7 +736,6 @@ export function RequestLogsPage() {
         <div className={styles.toolbarActions}>
           <span className={styles.resultMeta}>
             {t('usage_stats.request_events_result_count', {
-              defaultValue: '{{shown}} / {{total}} events',
               shown: filteredRows.length,
               total: counts.total,
             })}
@@ -744,8 +753,8 @@ export function RequestLogsPage() {
               aria-hidden="true"
             />
             {loading
-              ? t('common.refreshing', { defaultValue: 'Refreshing...' })
-              : t('common.refresh', { defaultValue: 'Refresh' })}
+              ? requestEventLabels.refreshing
+              : requestEventLabels.refresh}
           </Button>
         </div>
       </div>
@@ -754,43 +763,31 @@ export function RequestLogsPage() {
       {showSkeleton ? (
         <SkeletonList />
       ) : showEmptyAll ? (
-        <div className={styles.emptyState}>
-          <span className={styles.emptyStateIcon} aria-hidden="true">
-            <IconInbox size={22} />
-          </span>
-          <span className={styles.emptyStateTitle}>
-            {t('usage_stats.request_events_empty_title')}
-          </span>
-          <p className={styles.emptyStateDesc}>
-            {t('usage_stats.request_events_empty_desc')}
-          </p>
-        </div>
+        <RequestEventsEmptyState
+          title={requestEventLabels.empty.title}
+          description={requestEventLabels.empty.description}
+        />
       ) : showEmptyFiltered ? (
-        <div className={styles.emptyState}>
-          <span className={styles.emptyStateIcon} aria-hidden="true">
-            <IconInbox size={22} />
-          </span>
-          <span className={styles.emptyStateTitle}>
-            {t('usage_stats.request_events_no_result_title')}
-          </span>
-          <p className={styles.emptyStateDesc}>
-            {t('usage_stats.request_events_no_result_desc')}
-          </p>
-          <Button variant="ghost" size="sm" onClick={handleClearFilters}>
-            {t('logs.clear_filters', { defaultValue: 'Clear filters' })}
-          </Button>
-        </div>
+        <RequestEventsEmptyState
+          title={requestEventLabels.noResult.title}
+          description={requestEventLabels.noResult.description}
+          action={
+            <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+              {requestEventLabels.clearFilters}
+            </Button>
+          }
+        />
       ) : (
         <div className={styles.eventTableShell}>
           <div className={styles.eventListHeader} aria-hidden="true">
             <span />
-            <span>{t('usage_stats.request_events_col_time')}</span>
-            <span>{t('usage_stats.request_events_col_model')}</span>
-            <span>{t('usage_stats.request_events_col_credential')}</span>
-            <span>{t('usage_stats.request_events_col_status')}</span>
-            <span>{t('usage_stats.request_events_col_tokens')}</span>
+            <span>{requestEventLabels.columns.time}</span>
+            <span>{requestEventLabels.columns.model}</span>
+            <span>{requestEventLabels.columns.credential}</span>
+            <span>{requestEventLabels.columns.status}</span>
+            <span>{requestEventLabels.columns.tokens}</span>
             <span style={{ textAlign: 'right' }}>
-              {t('usage_stats.request_events_col_cost')}
+              {requestEventLabels.columns.cost}
             </span>
           </div>
           <div className={styles.eventList}>
@@ -802,12 +799,7 @@ export function RequestLogsPage() {
                 latencyHint={latencyHint}
                 resolvedTheme={resolvedTheme}
                 onCopyError={handleCopyError}
-                errorEmptyLabel={errorEmptyLabel}
-                errorCopyHint={errorCopyHint}
-                successLabel={successLabel}
-                failureLabel={failureLabel}
-                reasoningLabel={reasoningLabel}
-                authShortLabel={authShortLabel}
+                labels={requestEventLabels}
                 tokenLabels={tokenLabels}
                 isZh={isZh}
                 relativeLabels={relativeLabels}

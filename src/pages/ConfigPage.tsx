@@ -435,16 +435,16 @@ export function ConfigPage() {
   const getFloatingStatusText = () => {
     if (!isMobile) return getStatusText();
     if (disableControls)
-      return t('config_management.status_disconnected_short', { defaultValue: 'Disconnected' });
-    if (loading) return t('config_management.status_loading_short', { defaultValue: 'Loading' });
-    if (error) return t('config_management.status_load_failed_short', { defaultValue: 'Failed' });
+      return t('config_management.status_disconnected_short');
+    if (loading) return t('config_management.status_loading_short');
+    if (error) return t('config_management.status_load_failed_short');
     if (hasVisualModeError)
-      return t('config_management.visual_mode_unavailable_short', { defaultValue: 'YAML issue' });
+      return t('config_management.visual_mode_unavailable_short');
     if (hasVisualValidationErrors)
-      return t('config_management.visual.validation_blocked_short', { defaultValue: 'Fix errors' });
-    if (saving) return t('config_management.status_saving_short', { defaultValue: 'Saving' });
-    if (isDirty) return t('config_management.status_dirty_short', { defaultValue: 'Unsaved' });
-    return t('config_management.status_loaded_short', { defaultValue: 'Loaded' });
+      return t('config_management.visual.validation_blocked_short');
+    if (saving) return t('config_management.status_saving_short');
+    if (isDirty) return t('config_management.status_dirty_short');
+    return t('config_management.status_loaded_short');
   };
 
   const handleReload = useCallback(() => {
@@ -522,7 +522,7 @@ export function ConfigPage() {
               onClick={() => handleTabChange('visual')}
               disabled={saving || loading}
             >
-              {t('config_management.tabs.visual', { defaultValue: '可视化编辑' })}
+              {t('config_management.tabs.visual')}
             </button>
             <button
               type="button"
@@ -530,7 +530,7 @@ export function ConfigPage() {
               onClick={() => handleTabChange('source')}
               disabled={saving || loading}
             >
-              {t('config_management.tabs.source', { defaultValue: '源代码编辑' })}
+              {t('config_management.tabs.source')}
             </button>
           </div>
         </div>
@@ -538,9 +538,13 @@ export function ConfigPage() {
 
       <div className={styles.workspaceShell}>
         <div className={styles.content}>
-          {error && <div className="error-box">{error}</div>}
+          {error && (
+            <div className="error-box" role="alert">
+              {error}
+            </div>
+          )}
           {!error && visualParseError && (
-            <div className="error-box">
+            <div className="error-box" role="alert">
               {t('config_management.visual_mode_unavailable_detail', { message: visualParseError })}
             </div>
           )}
@@ -561,9 +565,7 @@ export function ConfigPage() {
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
-                    placeholder={t('config_management.search_placeholder', {
-                      defaultValue: '搜索配置内容...',
-                    })}
+                    placeholder={t('config_management.search_placeholder')}
                     disabled={disableControls || loading}
                     className={styles.searchInput}
                     rightElement={
@@ -572,9 +574,7 @@ export function ConfigPage() {
                           <span className={styles.searchCount}>
                             {searchResults.total > 0
                               ? `${searchResults.current} / ${searchResults.total}`
-                              : t('config_management.search_no_results', {
-                                  defaultValue: '无结果',
-                                })}
+                              : t('config_management.search_no_results')}
                           </span>
                         )}
                         <button
@@ -582,7 +582,8 @@ export function ConfigPage() {
                           className={styles.searchButton}
                           onClick={() => executeSearch('next')}
                           disabled={!searchQuery || disableControls || loading}
-                          title={t('config_management.search_button', { defaultValue: '搜索' })}
+                          title={t('config_management.search_button')}
+                          aria-label={t('config_management.search_button')}
                         >
                           <IconSearch size={16} />
                         </button>
@@ -599,7 +600,7 @@ export function ConfigPage() {
                     disabled={
                       !searchQuery || lastSearchedQuery !== searchQuery || searchResults.total === 0
                     }
-                    title={t('config_management.search_prev', { defaultValue: '上一个' })}
+                    title={t('config_management.search_prev')}
                   >
                     <IconChevronUp size={16} />
                   </Button>
@@ -610,7 +611,7 @@ export function ConfigPage() {
                     disabled={
                       !searchQuery || lastSearchedQuery !== searchQuery || searchResults.total === 0
                     }
-                    title={t('config_management.search_next', { defaultValue: '下一个' })}
+                    title={t('config_management.search_next')}
                   >
                     <IconChevronDown size={16} />
                   </Button>

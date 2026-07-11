@@ -16,7 +16,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import type { ChartData } from '@/utils/usage';
+import { ALL_MODELS_CHART_LABEL, type ChartData } from '@/utils/usage';
 import { getHourChartMinWidth } from '@/utils/usage/chartConfig';
 import styles from './UsageCharts.module.scss';
 
@@ -65,7 +65,7 @@ const toneClassMap: Record<UsageChartTone, string> = {
 };
 
 const resolveLegendLabel = (label: string, allModelsLabel: string) =>
-  label === 'All Models' ? allModelsLabel : label;
+  label === ALL_MODELS_CHART_LABEL ? allModelsLabel : label;
 
 export const UsageChartPanel = memo(function UsageChartPanel({
   title,
@@ -129,7 +129,9 @@ export const UsageChartPanel = memo(function UsageChartPanel({
       }
     >
       {loading ? (
-        <div className={styles.panelEmpty}>{t('common.loading')}</div>
+        <div className={styles.panelEmpty} role="status" aria-busy="true">
+          {t('common.loading')}
+        </div>
       ) : !showChart ? (
         <div className={styles.panelEmpty}>{emptyText}</div>
       ) : (
@@ -145,7 +147,7 @@ export const UsageChartPanel = memo(function UsageChartPanel({
             </div>
           )}
           {showLegend && (
-            <div className={styles.legend} aria-label="Chart legend">
+            <div className={styles.legend} aria-label={t('usage_stats.chart_legend')}>
               {legendItems.map((item) => (
                 <div key={item.label} className={styles.legendItem} title={item.label}>
                   <span className={styles.legendDot} style={{ backgroundColor: item.color }} />

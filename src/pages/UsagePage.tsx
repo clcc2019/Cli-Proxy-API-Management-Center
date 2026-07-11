@@ -2,7 +2,7 @@ import { Suspense, lazy, useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DeferredRender } from '@/components/common/DeferredRender';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { IconChartLine } from '@/components/ui/icons';
+import { IconChartLine, IconChevronDown } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useConfigStore, useThemeStore } from '@/stores';
@@ -134,7 +134,7 @@ export function UsagePage() {
   return (
     <main className={styles.container}>
       {loading && !usage && (
-        <div className={styles.loadingOverlay} aria-busy="true">
+        <div className={styles.loadingOverlay} role="status" aria-busy="true">
           <div className={styles.loadingOverlayContent}>
             <LoadingSpinner size={28} className={styles.loadingOverlaySpinner} />
             <span className={styles.loadingOverlayText}>{t('common.loading')}</span>
@@ -163,7 +163,11 @@ export function UsagePage() {
         />
       </div>
 
-      {error && <div className={styles.errorBox}>{error}</div>}
+      {error && (
+        <div className={styles.errorBox} role="alert">
+          {error}
+        </div>
+      )}
 
       <section id="usage-overview" className={`${styles.section} ${styles.overviewPanel}`}>
         <UsageSectionIntro
@@ -172,7 +176,7 @@ export function UsagePage() {
           eyebrow={
             <>
               <IconChartLine size={15} />
-              {t('usage_stats.core_overview', { defaultValue: '核心概览' })}
+              {t('usage_stats.core_overview')}
             </>
           }
         />
@@ -190,8 +194,13 @@ export function UsagePage() {
               aria-expanded={!trendsCollapsed}
               onClick={() => setTrendsCollapsed((current) => !current)}
             >
-              <span className={styles.sectionToggleIcon} aria-hidden="true">
-                {trendsCollapsed ? '+' : '-'}
+              <span
+                className={`${styles.sectionToggleIcon} ${
+                  !trendsCollapsed ? styles.sectionToggleIconExpanded : ''
+                }`}
+                aria-hidden="true"
+              >
+                <IconChevronDown size={14} />
               </span>
               <span>{t(trendsCollapsed ? 'common.expand' : 'common.collapse')}</span>
             </button>

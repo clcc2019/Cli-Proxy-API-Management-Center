@@ -197,7 +197,7 @@ export function LoginPage() {
       <div className={styles.formPanel}>
         {showSplash ? (
           <div className={styles.splashContent}>
-            <img src={INLINE_LOGO_JPEG} alt="CPAMC" className={styles.splashLogo} />
+            <img src={INLINE_LOGO_JPEG} alt={t('title.main')} className={styles.splashLogo} />
             <h1 className={styles.splashTitle}>{t('splash.title')}</h1>
             <p className={styles.splashSubtitle}>{t('splash.subtitle')}</p>
             <div className={styles.splashLoader}>
@@ -207,7 +207,7 @@ export function LoginPage() {
         ) : (
           <div className={styles.formContent}>
             <div className={styles.logoBadge}>
-              <img src={INLINE_LOGO_JPEG} alt="Logo" className={styles.logo} />
+              <img src={INLINE_LOGO_JPEG} alt={t('title.main')} className={styles.logo} />
             </div>
             <div className={styles.loginCard}>
               <div className={styles.loginHeader}>
@@ -267,14 +267,10 @@ export function LoginPage() {
                     className="btn btn-ghost btn-sm"
                     onClick={() => setShowKey((prev) => !prev)}
                     aria-label={
-                      showKey
-                        ? t('login.hide_key', { defaultValue: '隐藏密钥' })
-                        : t('login.show_key', { defaultValue: '显示密钥' })
+                      showKey ? t('login.hide_key') : t('login.show_key')
                     }
                     title={
-                      showKey
-                        ? t('login.hide_key', { defaultValue: '隐藏密钥' })
-                        : t('login.show_key', { defaultValue: '显示密钥' })
+                      showKey ? t('login.hide_key') : t('login.show_key')
                     }
                   >
                     {showKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
@@ -296,7 +292,11 @@ export function LoginPage() {
                 {loading ? t('login.submitting') : t('login.submit_button')}
               </Button>
 
-              {error && <div className={styles.errorBox}>{error}</div>}
+              {error && (
+                <div className={styles.errorBox} role="alert">
+                  {error}
+                </div>
+              )}
             </div>
           </div>
         )}

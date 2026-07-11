@@ -7,24 +7,24 @@ import type { TypeColorSet } from '@/types';
 // Theme colors for type badges — 与 authFiles/constants.ts 保持同步
 export const TYPE_COLORS: Record<string, TypeColorSet> = {
   qwen: {
-    light: { bg: '#ede5fd', text: '#5530c7' },
-    dark: { bg: '#36208a', text: '#b5a3f0' },
+    light: { bg: '#f5f3ff', text: '#7c3aed' },
+    dark: { bg: '#34215f', text: '#ddd6fe' },
   },
   aistudio: {
     light: { bg: '#f0f2f5', text: '#2f343c' },
     dark: { bg: '#373c42', text: '#cfd3db' },
   },
   claude: {
-    light: { bg: '#fbece4', text: '#c05621' },
-    dark: { bg: '#5e2c14', text: '#e8a882' },
+    light: { bg: '#fff7ed', text: '#c2410c' },
+    dark: { bg: '#4a2b17', text: '#fed7aa' },
   },
   codex: {
-    light: { bg: '#eae7ff', text: '#3538d4' },
-    dark: { bg: '#262395', text: '#b5b0ff' },
+    light: { bg: '#eef2ff', text: '#4f46e5' },
+    dark: { bg: '#2d2a67', text: '#c7d2fe' },
   },
   kimi: {
-    light: { bg: '#dce8ff', text: '#0560cf' },
-    dark: { bg: '#003880', text: '#70b5ff' },
+    light: { bg: '#ecfeff', text: '#0891b2' },
+    dark: { bg: '#103f4a', text: '#a5f3fc' },
   },
   empty: {
     light: { bg: '#f5f5f5', text: '#616161' },
@@ -35,6 +35,9 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
     dark: { bg: '#3a3a3a', text: '#aaaaaa', border: '1px dashed #666666' },
   },
 };
+
+export const QUOTA_PROGRESS_HIGH_THRESHOLD = 50;
+export const QUOTA_PROGRESS_MEDIUM_THRESHOLD = 20;
 
 // Claude API configuration
 export const CLAUDE_PROFILE_URL = 'https://api.anthropic.com/api/oauth/profile';
@@ -50,7 +53,11 @@ export const CLAUDE_REQUEST_HEADERS = {
 export const CLAUDE_USAGE_WINDOW_KEYS = [
   { key: 'five_hour', id: 'five-hour', labelKey: 'claude_quota.five_hour' },
   { key: 'seven_day', id: 'seven-day', labelKey: 'claude_quota.seven_day' },
-  { key: 'seven_day_oauth_apps', id: 'seven-day-oauth-apps', labelKey: 'claude_quota.seven_day_oauth_apps' },
+  {
+    key: 'seven_day_oauth_apps',
+    id: 'seven-day-oauth-apps',
+    labelKey: 'claude_quota.seven_day_oauth_apps',
+  },
   { key: 'seven_day_opus', id: 'seven-day-opus', labelKey: 'claude_quota.seven_day_opus' },
   { key: 'seven_day_sonnet', id: 'seven-day-sonnet', labelKey: 'claude_quota.seven_day_sonnet' },
   { key: 'seven_day_cowork', id: 'seven-day-cowork', labelKey: 'claude_quota.seven_day_cowork' },

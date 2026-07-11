@@ -100,6 +100,35 @@ export const findProviderKeyConfigIndex = <
   return items.findIndex((item) => normalizeOptionalString(item.apiKey) === apiKey);
 };
 
+export const findOpenAICompatibilityConfigIndex = (
+  items: OpenAICompatibilityConfig[],
+  target: OpenAICompatibilityConfig
+) => {
+  const referenceIndex = items.indexOf(target);
+  if (referenceIndex >= 0) return referenceIndex;
+
+  const name = normalizeOptionalString(target.name);
+  const baseUrl = normalizeOptionalString(target.baseUrl);
+  const prefix = normalizeOptionalString(target.prefix);
+
+  const exactIndex = items.findIndex(
+    (item) =>
+      normalizeOptionalString(item.name) === name &&
+      normalizeOptionalString(item.baseUrl) === baseUrl &&
+      normalizeOptionalString(item.prefix) === prefix
+  );
+  if (exactIndex >= 0) return exactIndex;
+
+  const nameAndUrlIndex = items.findIndex(
+    (item) =>
+      normalizeOptionalString(item.name) === name &&
+      normalizeOptionalString(item.baseUrl) === baseUrl
+  );
+  if (nameAndUrlIndex >= 0) return nameAndUrlIndex;
+
+  return items.findIndex((item) => normalizeOptionalString(item.name) === name);
+};
+
 export const getEnabledProviderConfigCount = (items: ProviderKeyConfig[]) =>
   items.filter((item) => !hasDisableAllModelsRule(item.excludedModels)).length;
 

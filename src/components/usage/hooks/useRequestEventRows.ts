@@ -20,6 +20,13 @@ import {
 /** Maximum number of recent request events to retain & render. */
 export const REQUEST_EVENT_ROWS_LIMIT = 30;
 
+export type RequestEventTokenKind = 'in' | 'out' | 'reasoning' | 'cached';
+
+export interface RequestEventTokenPart {
+  kind: RequestEventTokenKind;
+  value: number;
+}
+
 export interface RequestEventRow {
   id: string;
   timestamp: string;
@@ -41,6 +48,7 @@ export interface RequestEventRow {
   outputTokens: number;
   reasoningTokens: number;
   cachedTokens: number;
+  tokenParts: RequestEventTokenPart[];
   totalTokens: number;
   totalCost: number;
 }
@@ -61,6 +69,25 @@ const toNumber = (value: unknown): number => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 0;
   return parsed;
+};
+
+const buildRequestEventTokenParts = ({
+  inputTokens,
+  outputTokens,
+  reasoningTokens,
+  cachedTokens,
+}: {
+  inputTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  cachedTokens: number;
+}): RequestEventTokenPart[] => {
+  const parts: RequestEventTokenPart[] = [];
+  if (inputTokens > 0) parts.push({ kind: 'in', value: inputTokens });
+  if (outputTokens > 0) parts.push({ kind: 'out', value: outputTokens });
+  if (reasoningTokens > 0) parts.push({ kind: 'reasoning', value: reasoningTokens });
+  if (cachedTokens > 0) parts.push({ kind: 'cached', value: cachedTokens });
+  return parts;
 };
 
 const formatTimeOfDay = (date: Date | null, locale: string): string => {
@@ -90,6 +117,21 @@ const selectRecentUsageDetails = (
   limit: number
 ): UsageDetail[] => {
   if (limit <= 0) return [];
+  // The endpoint may already return a globally bounded recent set, but callers
+  // still need a deterministic newest-first order for rendering.
+  if (details.length <= limit) {
+    return details
+      .map((detail, order) => ({
+        detail,
+        timestampMs: getDetailTimestampMs(detail),
+        order,
+      }))
+      .sort(
+        (left, right) =>
+          right.timestampMs - left.timestampMs || left.order - right.order
+      )
+      .map((entry) => entry.detail);
+  }
 
   const selected: { detail: UsageDetail; timestampMs: number; order: number }[] = [];
   details.forEach((detail, order) => {
@@ -215,6 +257,12 @@ export function useRequestEventRows({
         toNumber(detail.tokens?.total_tokens),
         extractTotalTokens(detail)
       );
+      const tokenParts = buildRequestEventTokenParts({
+        inputTokens,
+        outputTokens,
+        reasoningTokens,
+        cachedTokens,
+      });
       const latencyMs = extractLatencyMs(detail);
       const totalCost = calculateCost(detail, modelPrices);
       const errorMessage =
@@ -246,6 +294,7 @@ export function useRequestEventRows({
         outputTokens,
         reasoningTokens,
         cachedTokens,
+        tokenParts,
         totalTokens,
         totalCost,
       };

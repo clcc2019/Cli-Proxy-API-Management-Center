@@ -20,7 +20,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.52fr);
   gap: 20px;
   padding: clamp(18px, 1.8vw + 10px, 26px);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--usage-hero-border);
   background:
     linear-gradient(180deg, var(--usage-hero-sheen), transparent 38%),
@@ -46,7 +46,7 @@
     );
     opacity: 0.82;
     pointer-events: none;
-    border-radius: 16px 16px 0 0;
+    border-radius: 12px 12px 0 0;
   }
 
   &::after {
@@ -356,10 +356,19 @@
   color: var(--primary-color);
   font-size: 12px;
   font-weight: 800;
+  // chevron 展开时旋转 180deg，配合 transition 实现平滑切换
   transition: transform $transition-fast;
 
   .sectionToggle:hover & {
     transform: scale(1.1);
+  }
+
+  &.sectionToggleIconExpanded {
+    transform: rotate(180deg);
+  }
+
+  &.sectionToggleIconExpanded.sectionToggle:hover & {
+    transform: rotate(180deg) scale(1.1);
   }
 }
 
@@ -658,6 +667,23 @@
   background: var(--glass-bg-secondary);
   backdrop-filter: var(--glass-backdrop-filter);
   -webkit-backdrop-filter: var(--glass-backdrop-filter);
+  // 淡入避免突兀出现（卸载由条件渲染控制，淡入已能显著改善观感）
+  animation: usageOverlayFadeIn 180ms ease-out;
+}
+
+@keyframes usageOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingOverlay {
+    animation: none;
+  }
 }
 
 .loadingOverlayContent {
@@ -721,10 +747,13 @@
     var(--shadow-card),
     0 10px 24px -22px color-mix(in srgb, var(--accent) 36%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  // hover 上浮用 transform（合成器属性），配合 box-shadow 过渡形成立体反馈
   transition:
+    transform $transition-fast,
     box-shadow $transition-fast,
     border-color $transition-fast;
   overflow: hidden;
+  will-change: transform;
 
   &::before {
     content: '';
@@ -738,9 +767,10 @@
 
   &:hover {
     border-color: color-mix(in srgb, var(--accent) 26%, var(--border-color));
+    transform: translateY(-2px);
     box-shadow:
       var(--shadow-card-hover),
-      0 12px 28px -24px color-mix(in srgb, var(--accent) 42%, transparent);
+      0 14px 30px -22px color-mix(in srgb, var(--accent) 48%, transparent);
   }
 
   @include mobile {
@@ -924,6 +954,18 @@
 .statHint {
   color: var(--text-tertiary);
   font-style: italic;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 // API List (80%比例)
@@ -1310,7 +1352,8 @@
   flex: 1;
   min-width: 120px;
 
-  label {
+  label,
+  .formLabel {
     font-size: 10px;
     color: var(--text-secondary);
     font-weight: 500;
@@ -1319,10 +1362,6 @@
   // 确保 Input 组件的 form-group 包装器不影响布局
   :global(.form-group) {
     margin: 0;
-
-    > label {
-      display: none; // 隐藏 Input 自带的 label，使用外层的
-    }
   }
 
   :global(.input) {
@@ -2091,6 +2130,14 @@
 @media (prefers-reduced-motion: reduce) {
   .deferredChartGlow {
     animation: none;
+  }
+
+  .statCard,
+  .sectionToggle,
+  .sectionToggleIcon {
+    transition: none;
+    transform: none !important;
+    will-change: auto;
   }
 }
 

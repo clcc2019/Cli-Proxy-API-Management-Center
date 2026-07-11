@@ -1,7 +1,6 @@
 import {
   memo,
   useCallback,
-  useEffect,
   useMemo,
   useState,
   type CSSProperties,
@@ -191,9 +190,10 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     [file]
   );
   const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
-  const serviceTierPassthroughBadgeLabel = serviceTierPassthroughEnabled
-    ? t('auth_files.service_tier_passthrough_badge')
-    : null;
+  const serviceTierPassthroughBadgeLabel = useMemo(
+    () => (serviceTierPassthroughEnabled ? t('auth_files.service_tier_passthrough_badge') : null),
+    [serviceTierPassthroughEnabled, t]
+  );
   const hasHeaderBadges =
     hasRefreshToken || websocketsEnabled || Boolean(serviceTierPassthroughBadgeLabel);
 
@@ -206,47 +206,64 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
   const providerCardClass =
     quotaType === 'claude'
-        ? styles.claudeCard
-        : quotaType === 'codex'
-          ? styles.codexCard
-          : quotaType === 'kimi'
-            ? styles.kimiCard
-            : '';
+      ? styles.claudeCard
+      : quotaType === 'codex'
+        ? styles.codexCard
+        : quotaType === 'kimi'
+          ? styles.kimiCard
+          : '';
 
-  const rawStatusMessage = getAuthFileStatusMessage(file);
-  const hasStatusWarning =
-    Boolean(rawStatusMessage) && !HEALTHY_STATUS_MESSAGES.has(rawStatusMessage.toLowerCase());
+  const rawStatusMessage = useMemo(() => getAuthFileStatusMessage(file), [file]);
+  const hasStatusWarning = useMemo(
+    () => Boolean(rawStatusMessage) && !HEALTHY_STATUS_MESSAGES.has(rawStatusMessage.toLowerCase()),
+    [rawStatusMessage]
+  );
 
   const priorityValue = useMemo(
     () => parsePriorityValue(file.priority ?? file['priority']),
     [file]
   );
   const currentPriority = priorityValue ?? 0;
-  const [priorityDraft, setPriorityDraft] = useState(String(currentPriority));
+  const [priorityDraftState, setPriorityDraftState] = useState(() => ({
+    sourcePriority: currentPriority,
+    value: String(currentPriority),
+  }));
   const [actionsExpanded, setActionsExpanded] = useState(false);
+  const priorityDraft =
+    priorityDraftState.sourcePriority === currentPriority
+      ? priorityDraftState.value
+      : String(currentPriority);
 
-  useEffect(() => {
-    setPriorityDraft(String(currentPriority));
+  const resetPriorityDraft = useCallback(() => {
+    const value = String(currentPriority);
+    setPriorityDraftState((prev) =>
+      prev.sourcePriority === currentPriority && prev.value === value
+        ? prev
+        : { sourcePriority: currentPriority, value }
+    );
   }, [currentPriority]);
 
   // 用 useEventCallback 让 handler 引用稳定，同时闭包总能拿到最新值
   const commitPriorityDraft = useEventCallback(() => {
     const nextPriority = parsePriorityValue(priorityDraft);
     if (nextPriority === undefined) {
-      setPriorityDraft(String(currentPriority));
+      resetPriorityDraft();
       return;
     }
     if (nextPriority !== currentPriority) {
       onPriorityChange(file, nextPriority);
       return;
     }
-    setPriorityDraft(String(currentPriority));
+    resetPriorityDraft();
   });
 
   const stepPriority = useEventCallback((delta: number) => {
     const draftPriority = parsePriorityValue(priorityDraft);
     const nextPriority = (draftPriority ?? currentPriority) + delta;
-    setPriorityDraft(String(nextPriority));
+    setPriorityDraftState({
+      sourcePriority: currentPriority,
+      value: String(nextPriority),
+    });
     onPriorityChange(file, nextPriority);
   });
 
@@ -265,14 +282,22 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
       return;
     }
     if (event.key === 'Escape') {
-      setPriorityDraft(String(currentPriority));
+      resetPriorityDraft();
       event.currentTarget.blur();
     }
   });
 
-  const handlePriorityInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setPriorityDraft(event.target.value);
-  }, []);
+  const handlePriorityInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      setPriorityDraftState((prev) =>
+        prev.sourcePriority === currentPriority && prev.value === value
+          ? prev
+          : { sourcePriority: currentPriority, value }
+      );
+    },
+    [currentPriority]
+  );
 
   // 行内交互的稳定化封装
   const handleToggleSelect = useEventCallback(() => onToggleSelect(file.name));
@@ -286,8 +311,11 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleDelete = useEventCallback(() => onDelete(file.name));
   const handleToggleStatus = useEventCallback((value: boolean) => onToggleStatus(file, value));
 
-  const noteValue = typeof file.note === 'string' ? file.note.trim() : '';
-  const tokenDisplay = formatMillionTokens(fileUsageStats.totalTokens);
+  const noteValue = useMemo(() => (typeof file.note === 'string' ? file.note.trim() : ''), [file]);
+  const tokenDisplay = useMemo(
+    () => formatMillionTokens(fileUsageStats.totalTokens),
+    [fileUsageStats.totalTokens]
+  );
   const authFileDisplayName = useMemo(() => file.name.replace(/\.json$/i, ''), [file.name]);
   const maskedAuthFileDisplayName = useMemo(
     () => maskAuthFileDisplayName(authFileDisplayName),
@@ -307,10 +335,19 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     }),
     [typeColor]
   );
-  const cardStyle = useMemo<CSSProperties | undefined>(() => {
-    if (!enterDelayMs) return undefined;
-    return { '--auth-file-card-enter-delay': `${enterDelayMs}ms` } as CSSProperties;
-  }, [enterDelayMs]);
+  const cardStyle = useMemo<CSSProperties>(() => {
+    const nextStyle = {
+      '--provider-accent': typeColor.text,
+      '--provider-soft': typeColor.bg,
+    } as CSSProperties;
+    if (enterDelayMs) {
+      return {
+        ...nextStyle,
+        '--auth-file-card-enter-delay': `${enterDelayMs}ms`,
+      } as CSSProperties;
+    }
+    return nextStyle;
+  }, [enterDelayMs, typeColor]);
 
   const cardClassName = useMemo(() => {
     const cls = [styles.fileCard];
@@ -319,6 +356,17 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     if (file.disabled) cls.push(styles.fileCardDisabled);
     return cls.join(' ');
   }, [providerCardClass, selected, file.disabled]);
+  const cardIdentityRowClassName = useMemo(
+    () =>
+      [
+        styles.cardIdentityRow,
+        hasStatusWarning ? styles.cardIdentityRowWithWarning : '',
+        hasHeaderBadges ? '' : styles.cardIdentityRowNoBadges,
+      ]
+        .filter(Boolean)
+        .join(' '),
+    [hasHeaderBadges, hasStatusWarning]
+  );
 
   const checkboxLabel = selected
     ? t('auth_files.batch_deselect')
@@ -349,15 +397,19 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               )}
             </div>
             <div className={styles.cardHeaderContent}>
-              <div
-                className={[
-                  styles.cardIdentityRow,
-                  hasStatusWarning ? styles.cardIdentityRowWithWarning : '',
-                  hasHeaderBadges ? '' : styles.cardIdentityRowNoBadges,
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
+              <div className={cardIdentityRowClassName}>
+                <div className={styles.fileNameRow}>
+                  <button
+                    type="button"
+                    className={styles.fileName}
+                    onClick={handleCopyName}
+                    title={`${maskedAuthFileDisplayName} - ${t('common.copy')}`}
+                    aria-label={t('common.copy')}
+                  >
+                    {maskedAuthFileDisplayName}
+                  </button>
+                </div>
+
                 {hasHeaderBadges && (
                   <div className={styles.cardTypeGroup}>
                     {hasRefreshToken && (
@@ -390,18 +442,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     )}
                   </div>
                 )}
-
-                <div className={styles.fileNameRow}>
-                  <button
-                    type="button"
-                    className={styles.fileName}
-                    onClick={handleCopyName}
-                    title={`${maskedAuthFileDisplayName} - ${t('common.copy')}`}
-                    aria-label={t('common.copy')}
-                  >
-                    {maskedAuthFileDisplayName}
-                  </button>
-                </div>
 
                 {!isRuntimeOnly ? (
                   <div className={styles.priorityInlineRow}>
@@ -540,6 +580,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       onClick={handleOpenPrefixProxy}
                       className={styles.iconButton}
                       title={t('auth_files.prefix_proxy_button')}
+                      aria-label={t('auth_files.prefix_proxy_button')}
                       disabled={disableControls}
                     >
                       <IconSettings className={styles.actionIcon} size={18} />
@@ -570,6 +611,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       onClick={handleCopyAccessToken}
                       className={styles.iconButton}
                       title={t('auth_files.access_token_copy')}
+                      aria-label={t('auth_files.access_token_copy')}
                       disabled={disableControls || accessTokenCopying}
                     >
                       {accessTokenCopying ? (
@@ -585,7 +627,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       size="sm"
                       onClick={handleShowModels}
                       className={`${styles.iconButton} ${styles.modelsActionButton}`}
-                      title={t('auth_files.models_button', { defaultValue: '模型' })}
+                      title={t('auth_files.models_button')}
+                      aria-label={t('auth_files.models_button')}
                       disabled={disableControls}
                     >
                       <IconModelCluster className={styles.actionIcon} size={18} />
@@ -599,6 +642,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                         onClick={handleDownload}
                         className={styles.iconButton}
                         title={t('auth_files.download_button')}
+                        aria-label={t('auth_files.download_button')}
                         disabled={disableControls}
                       >
                         <IconDownload className={styles.actionIcon} size={18} />
@@ -609,6 +653,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                         onClick={handleDelete}
                         className={styles.iconButton}
                         title={t('auth_files.delete_button')}
+                        aria-label={t('auth_files.delete_button')}
                         disabled={disableControls || deleting}
                       >
                         {deleting ? (

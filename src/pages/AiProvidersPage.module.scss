@@ -10,9 +10,9 @@
 
 .pageHeader {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
   align-items: stretch;
-  justify-content: space-between;
   gap: 16px;
   padding: 16px;
   border-radius: 8px;
@@ -20,9 +20,13 @@
   background: var(--surface-raised);
   box-shadow: var(--shadow-card);
 
+  @media (max-width: 1180px) {
+    grid-template-columns: 1fr;
+  }
+
   @include mobile {
-    flex-direction: column;
     gap: 12px;
+    padding: 14px;
   }
 }
 
@@ -36,15 +40,18 @@
 }
 
 .pageHeaderAside {
-  display: flex;
-  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: stretch;
-  justify-content: flex-end;
   gap: 10px;
+  min-width: 0;
 
-  @include mobile {
-    flex-direction: column;
-    justify-content: stretch;
+  @media (max-width: 1180px) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -103,20 +110,15 @@
   font-weight: 800;
   text-align: center;
   white-space: nowrap;
-
-  @include mobile {
-    width: 100%;
-  }
 }
 
 .pageMetaGrid {
   display: grid;
-  min-width: 330px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+  grid-template-columns: repeat(5, minmax(58px, 1fr));
   gap: 8px;
 
-  @media (max-width: 980px) {
-    min-width: 0;
+  @media (max-width: 760px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -149,13 +151,11 @@
 
 .pageMetaLabel {
   min-width: 0;
-  overflow: hidden;
   color: var(--text-tertiary);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .cardTitleIcon {
@@ -175,7 +175,7 @@
 .errorBanner {
   background: rgba($error-color, 0.08);
   border: 1px solid rgba($error-color, 0.26);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 14px 16px;
   color: $error-color;
   line-height: 1.6;
@@ -199,6 +199,9 @@
   }
 
   :global(.card-header) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: -14px -14px 10px;
     padding: 11px 14px;
     border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
@@ -206,6 +209,7 @@
   }
 
   :global(.card-header .title) {
+    min-width: 0;
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 0;
@@ -252,7 +256,7 @@
 .providerConfigList {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 328px), 1fr));
 
   @media (min-width: 1760px) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -294,71 +298,55 @@
 }
 
 .providerConfigItem {
-  --provider-accent: rgba(55, 132, 164, 0.72);
-  --provider-card-border: color-mix(in srgb, var(--provider-accent) 46%, var(--border-color));
+  --provider-accent: rgba(14, 165, 233, 0.82);
+  --provider-card-border: color-mix(in srgb, var(--border-color) 86%, transparent);
   --provider-card-border-hover: color-mix(
     in srgb,
-    var(--provider-accent) 68%,
+    var(--provider-accent) 24%,
     var(--border-color)
   );
-  --provider-card-sheen: color-mix(in srgb, #ffffff 50%, transparent);
-  --provider-card-tint: color-mix(in srgb, var(--provider-accent) 14%, transparent);
-  --provider-card-hover-tint: color-mix(in srgb, var(--provider-accent) 22%, transparent);
-  --provider-card-glow: color-mix(in srgb, var(--provider-accent) 20%, transparent);
-  --provider-card-inner-bg: color-mix(in srgb, var(--bg-secondary) 54%, var(--surface-raised));
-  --provider-card-inner-border: color-mix(in srgb, var(--border-color) 64%, transparent);
-  --provider-card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  --provider-card-inner-bg: color-mix(in srgb, var(--bg-secondary) 44%, var(--surface-raised));
+  --provider-card-inner-border: color-mix(in srgb, var(--border-color) 70%, transparent);
+  --provider-card-inner-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.52),
+    0 1px 1px rgba(15, 23, 42, 0.03);
   --provider-action-border: color-mix(
     in srgb,
-    var(--provider-accent) 18%,
-    var(--border-color)
+    var(--border-color) 88%,
+    transparent
   );
-  --provider-action-bg: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
+  --provider-action-bg: color-mix(in srgb, var(--bg-secondary) 58%, transparent);
   --provider-action-text: color-mix(
     in srgb,
-    var(--text-primary) 88%,
-    var(--provider-accent)
-  );
-  --provider-action-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
-  --provider-action-hover-border: color-mix(
-    in srgb,
-    var(--provider-accent) 42%,
-    var(--border-color)
-  );
-  --provider-action-hover-bg: color-mix(
-    in srgb,
-    var(--provider-accent) 8%,
-    var(--surface-raised)
-  );
-  --provider-action-hover-text: color-mix(
-    in srgb,
-    var(--provider-accent) 34%,
+    var(--text-secondary) 76%,
     var(--text-primary)
   );
-  --provider-action-hover-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.44),
-    0 8px 16px -14px color-mix(in srgb, var(--provider-accent) 44%, transparent);
-  --provider-danger-text: color-mix(in srgb, var(--danger-color) 88%, var(--text-primary));
-  --provider-danger-bg: color-mix(in srgb, var(--danger-color) 5%, var(--provider-action-bg));
-  --provider-danger-border: color-mix(in srgb, var(--danger-color) 36%, var(--border-color));
-  --provider-danger-hover-bg: color-mix(in srgb, var(--danger-color) 8%, var(--surface-raised));
-  --provider-danger-hover-border: color-mix(in srgb, var(--danger-color) 62%, var(--border-color));
-  --provider-toggle-off-border: color-mix(in srgb, var(--border-color) 80%, transparent);
-  --provider-toggle-off-bg: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-secondary) 88%, var(--bg-primary)) 0%,
-    color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 100%
+  --provider-action-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  --provider-action-hover-border: color-mix(
+    in srgb,
+    var(--provider-accent) 30%,
+    var(--border-color)
   );
-  --provider-toggle-on-border: color-mix(in srgb, var(--provider-accent) 70%, transparent);
-  --provider-toggle-on-bg: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--provider-accent) 88%, white),
-    var(--provider-accent) 54%,
-    color-mix(in srgb, var(--provider-accent) 78%, black)
+  --provider-action-hover-bg: color-mix(in srgb, var(--provider-accent) 6%, var(--surface-raised));
+  --provider-action-hover-text: color-mix(
+    in srgb,
+    var(--provider-accent) 20%,
+    var(--text-primary)
   );
+  --provider-action-hover-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --provider-danger-text: color-mix(in srgb, var(--danger-color) 76%, var(--text-primary));
+  --provider-danger-bg: color-mix(in srgb, var(--danger-color) 4%, var(--provider-action-bg));
+  --provider-danger-border: color-mix(in srgb, var(--danger-color) 30%, var(--border-color));
+  --provider-danger-hover-bg: color-mix(in srgb, var(--danger-color) 7%, var(--surface-raised));
+  --provider-danger-hover-border: color-mix(in srgb, var(--danger-color) 52%, var(--border-color));
+  --provider-toggle-off-border: color-mix(in srgb, var(--border-color) 86%, transparent);
+  --provider-toggle-off-bg: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  --provider-toggle-on-border: color-mix(in srgb, var(--provider-accent) 52%, transparent);
+  --provider-toggle-on-bg: color-mix(in srgb, var(--provider-accent) 82%, var(--primary-color));
   --provider-toggle-thumb-bg: #fff;
-  --provider-toggle-thumb-border: color-mix(in srgb, var(--border-color) 60%, transparent);
+  --provider-toggle-thumb-border: color-mix(in srgb, var(--border-color) 64%, transparent);
   position: relative;
+  container-type: inline-size;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -367,48 +355,25 @@
   height: 100%;
   gap: 10px;
   min-height: 100%;
-  padding: 14px 14px 12px;
+  padding: 12px;
   border: 1px solid var(--provider-card-border);
-  border-radius: 14px;
-  background:
-    linear-gradient(180deg, var(--provider-card-sheen), transparent 42%),
-    linear-gradient(135deg, var(--provider-card-tint), transparent 48%), var(--surface-raised);
-  box-shadow: var(--shadow-card);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
   isolation: isolate;
   transition:
     box-shadow 160ms ease,
-    border-color 160ms ease;
+    border-color 160ms ease,
+    background-color 160ms ease;
 
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--provider-accent) 12%,
-      var(--provider-accent) 88%,
-      transparent
-    );
-    opacity: 0.86;
-    pointer-events: none;
-    transition: opacity $transition-fast;
-    z-index: 0;
+    content: none;
   }
 
   &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    opacity: 0;
-    background:
-      radial-gradient(120% 80% at 50% -10%, var(--provider-card-glow), transparent 60%),
-      linear-gradient(135deg, var(--provider-card-hover-tint), transparent 52%);
-    transition: opacity 160ms ease;
-    z-index: 0;
+    content: none;
   }
 
   > * {
@@ -417,42 +382,38 @@
   }
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--provider-accent) 54%, var(--border-color));
+    border-color: color-mix(in srgb, var(--provider-accent) 44%, var(--border-color));
     box-shadow:
-      var(--shadow-card-hover),
-      0 0 0 2px color-mix(in srgb, var(--provider-accent) 22%, transparent);
+      0 1px 2px rgba(15, 23, 42, 0.06),
+      0 0 0 2px color-mix(in srgb, var(--provider-accent) 16%, transparent);
   }
 
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  @media (hover: hover) {
     &:hover {
       border-color: var(--provider-card-border-hover);
+      background: color-mix(in srgb, var(--surface-raised) 96%, var(--provider-accent));
       box-shadow:
-        var(--shadow-card-hover),
-        0 12px 28px -24px var(--provider-card-glow);
-
-      &::before,
-      &::after {
-        opacity: 1;
-      }
+        0 8px 18px -16px color-mix(in srgb, var(--text-primary) 20%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
   }
 
   @media (hover: hover) and (prefers-reduced-motion: reduce) {
     &:hover {
       border-color: var(--provider-card-border-hover);
-      box-shadow: var(--shadow-card-hover);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
     }
   }
 
   :global(.provider-card-header) {
     position: relative;
     z-index: 1;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
     min-width: 0;
     width: 100%;
-    flex-wrap: wrap;
   }
 
   :global(.provider-card-avatar) {
@@ -463,13 +424,13 @@
     flex: 0 0 auto;
     width: 36px;
     height: 36px;
-    border-radius: 10px;
+    border-radius: 9px;
     color: var(--provider-accent);
     border: 1px solid color-mix(in srgb, currentColor 24%, var(--border-color));
-    background: color-mix(in srgb, currentColor 12%, var(--surface-raised));
+    background: color-mix(in srgb, currentColor 10%, var(--surface-raised));
     box-shadow:
-      0 4px 12px -10px color-mix(in srgb, currentColor 45%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+      0 8px 18px -16px color-mix(in srgb, currentColor 42%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.48);
     transition: border-color $transition-fast;
     isolation: isolate;
     overflow: hidden;
@@ -478,7 +439,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 62%);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 58%);
       pointer-events: none;
       z-index: 0;
     }
@@ -498,13 +459,15 @@
   }
 
   &:hover :global(.provider-card-avatar) {
-    border-color: color-mix(in srgb, currentColor 42%, var(--border-color));
+    border-color: color-mix(in srgb, currentColor 38%, var(--border-color));
   }
 
   :global(.provider-card-state) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    justify-self: start;
+    max-width: 100%;
     min-height: 20px;
     padding: 0 8px;
     border-radius: 999px;
@@ -523,15 +486,17 @@
 
   :global(.provider-card-state.is-disabled) {
     color: var(--text-secondary);
-    background: color-mix(in srgb, var(--bg-tertiary) 86%, transparent);
-    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--bg-tertiary) 82%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
   }
 
   :global(.provider-card-toggle-slot) {
     display: inline-flex;
     align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px 10px;
     margin-left: auto;
-    flex: 0 0 auto;
     min-width: 0;
   }
 
@@ -564,8 +529,9 @@
   :global(.item-actions) {
     width: 100%;
     margin-top: auto;
-    padding-top: 9px;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
+    padding-top: 10px;
+    border-top: 1px solid
+      color-mix(in srgb, var(--provider-accent) 8%, var(--border-color));
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -575,13 +541,13 @@
 
   :global(.provider-card-action.btn.btn-sm) {
     flex: 0 0 auto;
-    width: 31px;
-    height: 31px;
-    min-height: 31px;
-    min-width: 31px;
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    min-width: 32px;
     padding: 0;
     box-sizing: border-box;
-    border-radius: 9px;
+    border-radius: 8px;
     gap: 0;
     color: var(--provider-action-text);
     border-color: var(--provider-action-border);
@@ -638,6 +604,19 @@
     }
   }
 
+  @container (max-width: 380px) {
+    :global(.provider-card-header) {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    :global(.provider-card-toggle-slot) {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+      margin-left: 0;
+      padding-top: 2px;
+    }
+  }
+
   &:global(.provider-card-disabled) {
     opacity: 0.72;
     transition: opacity $transition-fast;
@@ -645,7 +624,7 @@
     &:hover {
       transform: none;
       border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
-      box-shadow: var(--shadow-card);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
       opacity: 0.85;
     }
   }
@@ -668,15 +647,15 @@
 }
 
 .providerConfigItemCodex {
-  --provider-accent: rgba(118, 104, 88, 0.78);
+  --provider-accent: rgba(99, 102, 241, 0.82);
 }
 
 .providerConfigItemClaude {
-  --provider-accent: rgba(211, 93, 52, 0.7);
+  --provider-accent: rgba(249, 115, 22, 0.82);
 }
 
 .providerConfigItemOpenAI {
-  --provider-accent: rgba(55, 132, 164, 0.72);
+  --provider-accent: rgba(14, 165, 233, 0.82);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -749,7 +728,8 @@
 }
 
 .providerCardToggle {
-  flex: 0 0 auto;
+  min-width: 0;
+  flex: 0 1 auto;
   gap: 5px;
   color: var(--text-primary);
   font-size: 11px;
@@ -766,7 +746,7 @@
     border: 1px solid var(--provider-toggle-off-border);
     background: var(--provider-toggle-off-bg);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.56),
       0 1px 2px rgba(15, 23, 42, 0.06);
   }
 
@@ -775,8 +755,8 @@
     background: var(--provider-toggle-on-bg);
     border-color: var(--provider-toggle-on-border);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      0 8px 18px -14px color-mix(in srgb, var(--provider-accent) 70%, transparent);
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 8px 18px -16px color-mix(in srgb, var(--provider-accent) 60%, transparent);
   }
 
   > span:first-of-type > span:first-child {
@@ -788,7 +768,7 @@
 
   > input:checked + span:first-of-type > span:first-child {
     color: #fff;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.16);
   }
 
   > span:first-of-type > span:last-child {
@@ -818,9 +798,14 @@
 
 .fieldGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr));
   gap: 6px;
   align-items: stretch;
+  padding: 9px 10px;
+  border: 1px solid var(--provider-card-inner-border);
+  border-radius: 8px;
+  background: var(--provider-card-inner-bg);
+  box-shadow: var(--provider-card-inner-shadow);
 }
 
 .fieldGrid .fieldRowUrl {
@@ -839,19 +824,24 @@
 }
 
 .fieldGrid .fieldRow {
-  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-columns: 20px minmax(0, 1fr);
   grid-template-rows: auto auto;
   align-content: center;
   column-gap: 6px;
   row-gap: 2px;
   min-width: 0;
-  min-height: 32px;
-  padding: 6px 7px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 66%, transparent);
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--bg-secondary) 22%, transparent);
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   font-size: 12px;
   box-shadow: none;
+}
+
+.fieldGrid .fieldRowPrefix,
+.fieldGrid .fieldRowProxy {
+  grid-column: span 1;
 }
 
 .fieldIcon {
@@ -1018,6 +1008,7 @@
 .headerBadge {
   display: inline-flex;
   max-width: 100%;
+  min-width: 0;
   min-height: 24px;
   align-items: center;
   gap: 4px;
@@ -1032,6 +1023,7 @@
   text-overflow: ellipsis;
 
   strong {
+    flex: 0 0 auto;
     color: var(--text-primary);
     font-weight: 700;
   }
@@ -1046,6 +1038,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  max-width: 100%;
+  min-width: 0;
   min-height: 24px;
   background: transparent;
   color: color-mix(in srgb, var(--primary-color) 35%, var(--text-primary));
@@ -1065,13 +1059,21 @@
 }
 
 .modelName {
+  min-width: 0;
+  overflow: hidden;
   font-weight: 700;
   color: currentColor;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modelAlias {
+  min-width: 0;
+  overflow: hidden;
   color: var(--text-tertiary);
   font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &::before {
     content: '→ ';
@@ -1790,35 +1792,37 @@
   // 这里只做 provider 内部细节的微调
 
   .providerConfigItem {
-    --provider-card-border: color-mix(in srgb, var(--border-color) 78%, transparent);
-    --provider-card-border-hover: color-mix(in srgb, var(--provider-accent) 54%, var(--border-color));
-    --provider-card-sheen: color-mix(in srgb, #ffffff 6%, transparent);
-    --provider-card-tint: color-mix(in srgb, var(--provider-accent) 10%, transparent);
-    --provider-card-hover-tint: color-mix(in srgb, var(--provider-accent) 16%, transparent);
-    --provider-card-glow: color-mix(in srgb, var(--provider-accent) 18%, transparent);
-    --provider-card-inner-bg: color-mix(in srgb, var(--bg-secondary) 52%, transparent);
+    --provider-card-border: color-mix(
+      in srgb,
+      var(--provider-accent) 10%,
+      color-mix(in srgb, var(--border-color) 76%, transparent)
+    );
+    --provider-card-border-hover: color-mix(in srgb, var(--provider-accent) 24%, var(--border-color));
+    --provider-card-inner-bg: color-mix(in srgb, var(--surface-raised-strong) 54%, transparent);
     --provider-card-inner-border: color-mix(in srgb, var(--border-color) 78%, transparent);
-    --provider-card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --provider-card-inner-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 1px 0 rgba(0, 0, 0, 0.18);
     --provider-action-border: color-mix(
       in srgb,
-      var(--provider-accent) 20%,
+      var(--border-color) 90%,
       var(--border-color)
     );
     --provider-action-bg: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
     --provider-action-text: color-mix(
       in srgb,
-      var(--text-primary) 88%,
-      var(--provider-accent)
+      var(--text-secondary) 70%,
+      var(--text-primary)
     );
     --provider-action-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     --provider-action-hover-border: color-mix(
       in srgb,
-      var(--provider-accent) 44%,
+      var(--provider-accent) 30%,
       var(--border-color)
     );
     --provider-action-hover-bg: color-mix(
       in srgb,
-      var(--provider-accent) 12%,
+      var(--provider-accent) 8%,
       var(--bg-secondary)
     );
     --provider-action-hover-text: color-mix(
@@ -1835,29 +1839,16 @@
     --provider-danger-hover-bg: color-mix(in srgb, var(--danger-color) 12%, var(--bg-secondary));
     --provider-danger-hover-border: rgba(241, 176, 166, 0.68);
     --provider-toggle-off-border: color-mix(in srgb, var(--border-color) 90%, transparent);
-    --provider-toggle-off-bg: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
-      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
-    );
-    --provider-toggle-on-border: color-mix(in srgb, var(--provider-accent) 70%, transparent);
-    --provider-toggle-on-bg: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--provider-accent) 92%, white),
-      var(--provider-accent) 54%,
-      color-mix(in srgb, var(--provider-accent) 80%, black)
-    );
-    --provider-toggle-thumb-bg: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--text-primary) 92%, transparent),
-      color-mix(in srgb, var(--text-secondary) 88%, transparent)
-    );
+    --provider-toggle-off-bg: color-mix(in srgb, var(--bg-tertiary) 68%, var(--bg-secondary));
+    --provider-toggle-on-border: color-mix(in srgb, var(--provider-accent) 58%, transparent);
+    --provider-toggle-on-bg: color-mix(in srgb, var(--provider-accent) 74%, var(--primary-color));
+    --provider-toggle-thumb-bg: color-mix(in srgb, var(--text-primary) 92%, transparent);
     --provider-toggle-thumb-border: rgba(255, 255, 255, 0.18);
     border-color: var(--provider-card-border);
-    background:
-      linear-gradient(180deg, var(--provider-card-sheen), transparent 42%),
-      linear-gradient(135deg, var(--provider-card-tint), transparent 50%), var(--surface-raised);
-    box-shadow: var(--shadow-card);
+    background: var(--surface-raised);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
     :global(.provider-card-avatar) {
       border-color: color-mix(in srgb, currentColor 28%, rgba(255, 255, 255, 0.06));
@@ -1904,15 +1895,15 @@
   }
 
   .providerConfigItemCodex {
-    --provider-accent: rgba(190, 170, 140, 0.82);
+    --provider-accent: rgba(165, 180, 252, 0.92);
   }
 
   .providerConfigItemClaude {
-    --provider-accent: rgba(244, 140, 116, 0.82);
+    --provider-accent: rgba(251, 146, 60, 0.92);
   }
 
   .providerConfigItemOpenAI {
-    --provider-accent: rgba(112, 184, 196, 0.78);
+    --provider-accent: rgba(56, 189, 248, 0.92);
   }
 
   .fieldIcon {
@@ -2356,6 +2347,72 @@
     border-radius: 7px;
     padding-inline: 10px;
     font-size: 12px;
+  }
+}
+
+.openaiSwitchGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+
+  :global(.form-group) {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-secondary) 18%, transparent);
+  }
+}
+
+.openaiKeyInputList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.openaiKeyInputRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr) auto;
+  gap: 7px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-primary) 48%, transparent);
+
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+    background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
+  }
+
+  :global(.input) {
+    min-height: 34px;
+    border-radius: 6px;
+    background: var(--surface-raised);
+    font-size: 12px;
+  }
+
+  :global(.btn.btn-sm) {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+    padding: 0;
+    border-radius: 7px;
+  }
+}
+
+@include mobile {
+  .openaiSwitchGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .openaiKeyInputRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    :global(.input:first-child) {
+      grid-column: 1 / -1;
+    }
   }
 }
 

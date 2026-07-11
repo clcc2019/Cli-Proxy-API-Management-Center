@@ -10,6 +10,7 @@ import {
   useProviderStats,
 } from '@/components/providers';
 import {
+  findOpenAICompatibilityConfigIndex,
   findProviderKeyConfigIndex,
   getEnabledProviderConfigCount,
   type ProviderKind,
@@ -39,12 +40,14 @@ export function AiProvidersPage() {
     openAIConfigs,
     rawCodexConfigs,
     rawClaudeConfigs,
+    rawOpenAIConfigs,
     loading,
     error,
     switchingByProvider,
     isSwitching,
     providerSummary,
     deleteProviderEntry,
+    deleteOpenAICompatEntry,
     setConfigEnabled,
     setCodexPoolMode,
     setOpenAICompatPoolMode,
@@ -84,6 +87,18 @@ export function AiProvidersPage() {
       openEditor(`/ai-providers/${provider}/${rawIndex >= 0 ? rawIndex : displayIndex}`);
     },
     [claudeConfigs, codexConfigs, openEditor, rawClaudeConfigs, rawCodexConfigs]
+  );
+
+  const openOpenAIEditor = useCallback(
+    (displayIndex: number) => {
+      const current = openAIConfigs[displayIndex];
+      const rawIndex = current
+        ? findOpenAICompatibilityConfigIndex(rawOpenAIConfigs || openAIConfigs, current)
+        : -1;
+
+      openEditor(`/ai-providers/openai/${rawIndex >= 0 ? rawIndex : displayIndex}`);
+    },
+    [openAIConfigs, openEditor, rawOpenAIConfigs]
   );
 
   const providerMeta = useMemo(
@@ -143,6 +158,11 @@ export function AiProvidersPage() {
   const handleClaudeToggle = useEventCallback((index: number, enabled: boolean) => {
     void setConfigEnabled('claude', index, enabled);
   });
+  const handleOpenAIAdd = useEventCallback(() => openEditor('/ai-providers/openai/new'));
+  const handleOpenAIEdit = useEventCallback((index: number) => openOpenAIEditor(index));
+  const handleOpenAIDelete = useEventCallback((index: number) => {
+    void deleteOpenAICompatEntry(index);
+  });
   const handleOpenAIPoolModeToggle = useEventCallback((index: number, enabled: boolean) => {
     void setOpenAICompatPoolMode(index, enabled);
   });
@@ -170,7 +190,11 @@ export function AiProvidersPage() {
       </section>
 
       <div className={styles.content}>
-        {error && <div className={styles.errorBanner}>{error}</div>}
+        {error && (
+          <div className={styles.errorBanner} role="alert">
+            {error}
+          </div>
+        )}
 
         <div id="provider-codex" className={styles.providerSectionAnchor}>
           <CodexSection
@@ -211,6 +235,9 @@ export function AiProvidersPage() {
             loading={loading}
             disableControls={disableControls}
             switchingItemKeys={switchingByProvider.openai}
+            onAdd={handleOpenAIAdd}
+            onEdit={handleOpenAIEdit}
+            onDelete={handleOpenAIDelete}
             onPoolModeToggle={handleOpenAIPoolModeToggle}
           />
         </div>

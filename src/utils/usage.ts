@@ -20,13 +20,14 @@ import {
 import { maskApiKey } from './format';
 import { parseTimestampMs } from './timestamp';
 
-export type { DurationFormatOptions, LatencyStats } from './usage/latency';
+export type { DurationFormatOptions, LatencyStats, LatencyTone } from './usage/latency';
 export {
   LATENCY_SOURCE_FIELD,
   LATENCY_SOURCE_UNIT,
   calculateLatencyStatsFromDetails,
   extractLatencyMs,
   formatDurationMs,
+  getLatencyTone,
 } from './usage/latency';
 
 export interface KeyStatBucket {
@@ -2203,6 +2204,8 @@ export interface ChartData {
   datasets: ChartDataset[];
 }
 
+export const ALL_MODELS_CHART_LABEL = 'All Models';
+
 /**
  * 构建图表数据
  */
@@ -2244,7 +2247,7 @@ export function buildChartData(
     const shouldFill = modelsToShow.length === 1 || (isAll && modelsToShow.length > 1);
 
     return {
-      label: isAll ? 'All Models' : model,
+      label: isAll ? ALL_MODELS_CHART_LABEL : model,
       data,
       borderColor: color,
       backgroundColor: shouldFill

@@ -111,7 +111,7 @@ export const SecondaryScreenShell = forwardRef<HTMLDivElement, SecondaryScreenSh
           </div>
 
           {isLoading ? (
-            <div className={styles.loadingState}>
+            <div className={styles.loadingState} role="status" aria-busy="true">
               <LoadingSpinner size={16} />
               <span>{loadingLabel}</span>
             </div>

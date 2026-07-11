@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -88,6 +89,49 @@ export type AuthFilesListMeta = {
   hasMore: boolean;
   typeCounts?: Record<string, number>;
 };
+
+const areRecordValuesShallowEqual = (
+  left: Record<string, unknown> | undefined,
+  right: Record<string, unknown> | undefined
+): boolean => {
+  if (left === right) return true;
+  if (!left || !right) return false;
+
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) return false;
+
+  return leftKeys.every((key) => Object.is(left[key], right[key]));
+};
+
+const areAuthFileItemsShallowEqual = (left: AuthFileItem, right: AuthFileItem): boolean =>
+  areRecordValuesShallowEqual(left as Record<string, unknown>, right as Record<string, unknown>);
+
+const reuseAuthFileItemReferences = (
+  previousFiles: AuthFileItem[],
+  nextFiles: AuthFileItem[]
+): AuthFileItem[] => {
+  if (previousFiles.length === 0 || nextFiles.length === 0) return nextFiles;
+
+  const previousByName = new Map(previousFiles.map((file) => [file.name, file]));
+  let changedReference = previousFiles.length !== nextFiles.length;
+  const reusedFiles = nextFiles.map((file, index) => {
+    const previous = previousByName.get(file.name);
+    const nextFile = previous && areAuthFileItemsShallowEqual(previous, file) ? previous : file;
+    if (nextFile !== previousFiles[index]) changedReference = true;
+    return nextFile;
+  });
+
+  return changedReference ? reusedFiles : previousFiles;
+};
+
+const areAuthFilesListMetaEqual = (left: AuthFilesListMeta, right: AuthFilesListMeta): boolean =>
+  left.total === right.total &&
+  left.page === right.page &&
+  left.pageSize === right.pageSize &&
+  left.paginated === right.paginated &&
+  left.hasMore === right.hasMore &&
+  areRecordValuesShallowEqual(left.typeCounts, right.typeCounts);
 
 const DEFAULT_AUTH_FILES_LIST_OPTIONS: AuthFilesListOptions = {
   codexSubscription: 'cache',
@@ -178,11 +222,12 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const filesRef = useRef<AuthFileItem[]>([]);
   const statusUpdatingRef = useRef<Record<string, boolean>>({});
   const visibleFileCountRef = useRef(0);
+  const mountedRef = useRef(true);
   const loadFilesInFlightRef = useRef<{ key: string; request: Promise<void> } | null>(null);
   const loadFilesAbortRef = useRef<AbortController | null>(null);
   const loadFilesSeqRef = useRef(0);
   const selectionCount = selectedFiles.size;
-  const listOptionsKey = JSON.stringify(listOptions);
+  const listOptionsKey = useMemo(() => JSON.stringify(listOptions), [listOptions]);
   const listUsesServerPagination = Boolean(listOptions.pageSize);
 
   const applyFilesState = useCallback((action: SetStateAction<AuthFileItem[]>) => {
@@ -221,9 +266,14 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       .map((file) => file.name);
     if (nextSelected.length === 0) return;
     setSelectedFiles((prev) => {
+      let changed = false;
       const next = new Set(prev);
-      nextSelected.forEach((name) => next.add(name));
-      return next;
+      nextSelected.forEach((name) => {
+        if (next.has(name)) return;
+        next.add(name);
+        changed = true;
+      });
+      return changed ? next : prev;
     });
   }, []);
 
@@ -247,7 +297,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   }, []);
 
   const deselectAll = useCallback(() => {
-    setSelectedFiles(new Set());
+    setSelectedFiles((prev) => (prev.size === 0 ? prev : new Set()));
   }, []);
 
   const updateListMetaAfterDeletedFiles = useCallback((deletedFiles: AuthFileItem[]) => {
@@ -286,14 +336,24 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       if (deletedNames.length === 0) return;
 
       const deletedSet = new Set(deletedNames);
-      const removedFiles = filesRef.current.filter((file) =>
-        authFileMatchesDeletedIdentifiers(file, deletedSet)
-      );
+      const currentFiles = filesRef.current;
+      const removedFiles: AuthFileItem[] = [];
+      const retainedFiles: AuthFileItem[] = [];
+      currentFiles.forEach((file) => {
+        if (authFileMatchesDeletedIdentifiers(file, deletedSet)) {
+          removedFiles.push(file);
+        } else {
+          retainedFiles.push(file);
+        }
+      });
       const removedSelectionNames = new Set(removedFiles.map((file) => file.name));
-      applyFilesState((prev) =>
-        prev.filter((file) => !authFileMatchesDeletedIdentifiers(file, deletedSet))
-      );
-      updateListMetaAfterDeletedFiles(removedFiles);
+      if (removedFiles.length > 0) {
+        applyFilesState((prev) => {
+          if (prev === currentFiles) return retainedFiles;
+          return prev.filter((file) => !authFileMatchesDeletedIdentifiers(file, deletedSet));
+        });
+        updateListMetaAfterDeletedFiles(removedFiles);
+      }
       setSelectedFiles((prev) => {
         if (prev.size === 0) return prev;
         let changed = false;
@@ -320,12 +380,20 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         return map;
       }, new Map());
       if (updatesByName.size === 0) return;
-      applyFilesState((prev) =>
-        prev.map((file) => {
+      applyFilesState((prev) => {
+        let changed = false;
+        const next = prev.map((file) => {
           const updated = updatesByName.get(file.name);
-          return updated ? { ...file, ...updated, name: file.name } : file;
-        })
-      );
+          if (!updated) return file;
+          const hasChanges = Object.entries(updated).some(([key, value]) => {
+            if (key === 'name') return false;
+            return (file as Record<string, unknown>)[key] !== value;
+          });
+          if (hasChanges) changed = true;
+          return hasChanges ? { ...file, ...updated, name: file.name } : file;
+        });
+        return changed ? next : prev;
+      });
     },
     [applyFilesState]
   );
@@ -344,13 +412,17 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       const name = item.name;
       applyFilesState((prev) => {
         let found = false;
+        let changed = false;
         const next = prev.map((file) => {
           if (file.name !== name) return file;
           found = true;
+          if (file.disabled === disabled) return file;
+          changed = true;
           return { ...file, disabled };
         });
 
-        return found ? next : [{ ...item, disabled }, ...prev];
+        if (!found) return [{ ...item, disabled }, ...prev];
+        return changed ? next : prev;
       });
     },
     [applyFilesState]
@@ -410,9 +482,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           const data = await authFilesApi.list(effectiveListOptions, {
             signal: abortController.signal,
           });
-          if (loadFilesSeqRef.current !== requestSeq) return;
+          if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
 
-          const nextFiles = data?.files || [];
+          const nextFiles = reuseAuthFileItemReferences(filesRef.current, data?.files || []);
           const nextPage =
             typeof data?.page === 'number' && Number.isFinite(data.page)
               ? data.page
@@ -425,23 +497,26 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           applyFilesState(nextFiles);
           visibleFileCountRef.current = nextFiles.length;
           setError('');
-          setListMeta({
+          const nextListMeta: AuthFilesListMeta = {
             total: typeof data?.total === 'number' ? data.total : nextFiles.length,
             page: Math.max(1, Math.round(nextPage)),
             pageSize: Math.max(0, Math.round(nextPageSize)),
             paginated: Boolean(effectiveListOptions.pageSize),
             hasMore: data?.has_more === true,
             typeCounts: data?.type_counts,
-          });
+          };
+          setListMeta((prev) =>
+            areAuthFilesListMetaEqual(prev, nextListMeta) ? prev : nextListMeta
+          );
         } catch (err: unknown) {
-          if (loadFilesSeqRef.current !== requestSeq) return;
+          if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
           if (isCanceledRequestError(err)) return;
           if (silent) return;
           const errorMessage =
             err instanceof Error ? err.message : t('notification.refresh_failed');
           setError(errorMessage);
         } finally {
-          if (loadFilesSeqRef.current === requestSeq) {
+          if (mountedRef.current && loadFilesSeqRef.current === requestSeq) {
             setLoading(false);
             setRefreshing(false);
           }
@@ -463,13 +538,14 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     [applyFilesState, listOptions, listOptionsKey, t]
   );
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
       loadFilesSeqRef.current += 1;
       loadFilesAbortRef.current?.abort();
-    },
-    []
-  );
+    };
+  }, []);
 
   const refreshFilesAfterLocalMutation = useCallback(() => {
     if (!listUsesServerPagination) return;
@@ -525,6 +601,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       setUploading(true);
       try {
         const result = await authFilesApi.uploadFiles(validFiles);
+        if (!mountedRef.current) return;
         const successCount = result.uploaded;
 
         if (successCount > 0) {
@@ -534,18 +611,23 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             result.failed.length ? 'warning' : 'success'
           );
           await loadFiles();
+          if (!mountedRef.current) return;
           await refreshKeyStats();
         }
 
+        if (!mountedRef.current) return;
         if (result.failed.length > 0) {
           const details = result.failed.map((item) => `${item.name}: ${item.error}`).join('; ');
           showNotification(`${t('notification.upload_failed')}: ${details}`, 'error');
         }
       } catch (err: unknown) {
+        if (!mountedRef.current) return;
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         showNotification(`${t('notification.upload_failed')}: ${errorMessage}`, 'error');
       } finally {
-        setUploading(false);
+        if (mountedRef.current) {
+          setUploading(false);
+        }
         event.target.value = '';
       }
     },
@@ -561,14 +643,18 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           const result = await authFilesApi.deleteFiles([
             file ? getAuthFileDeleteTarget(file) : name,
           ]);
+          if (!mountedRef.current) return;
           showNotification(t('auth_files.delete_success'), 'success');
           applyDeletedFiles(result.files.length > 0 ? result.files : [name]);
           refreshFilesAfterLocalMutation();
         } catch (err: unknown) {
+          if (!mountedRef.current) return;
           const errorMessage = err instanceof Error ? err.message : '';
           showNotification(`${t('notification.delete_failed')}: ${errorMessage}`, 'error');
         } finally {
-          setDeleting(null);
+          if (mountedRef.current) {
+            setDeleting(null);
+          }
         }
       };
 
@@ -616,6 +702,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             const result = await authFilesApi.deleteFiles(
               filesToDelete.map(getAuthFileDeleteTarget)
             );
+            if (!mountedRef.current) return;
             const success = result.deleted;
             const failed = result.failed.length;
 
@@ -663,10 +750,13 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           }
           refreshFilesAfterLocalMutation();
         } catch (err: unknown) {
+          if (!mountedRef.current) return;
           const errorMessage = err instanceof Error ? err.message : '';
           showNotification(`${t('notification.delete_failed')}: ${errorMessage}`, 'error');
         } finally {
-          setDeletingAll(false);
+          if (mountedRef.current) {
+            setDeletingAll(false);
+          }
         }
       };
 
@@ -705,14 +795,17 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       const name = item.name;
       const nextDisabled = !enabled;
       const previousDisabled = item.disabled === true;
+      if (statusUpdatingRef.current[name] === true || previousDisabled === nextDisabled) return;
 
-      setStatusUpdating((prev) => ({ ...prev, [name]: true }));
+      setStatusUpdating((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
       patchLocalFileStatus(item, nextDisabled);
 
       try {
         const res = await authFilesApi.setStatus(name, nextDisabled);
+        if (!mountedRef.current) return;
         patchLocalFileStatus(item, res.disabled);
         await refreshFilesFromServer();
+        if (!mountedRef.current) return;
         showNotification(
           enabled
             ? t('auth_files.status_enabled_success', { name })
@@ -720,16 +813,19 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           'success'
         );
       } catch (err: unknown) {
+        if (!mountedRef.current) return;
         const errorMessage = err instanceof Error ? err.message : '';
         patchLocalFileStatus(item, previousDisabled);
         showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
       } finally {
-        setStatusUpdating((prev) => {
-          if (!prev[name]) return prev;
-          const next = { ...prev };
-          delete next[name];
-          return next;
-        });
+        if (mountedRef.current) {
+          setStatusUpdating((prev) => {
+            if (!prev[name]) return prev;
+            const next = { ...prev };
+            delete next[name];
+            return next;
+          });
+        }
       }
     },
     [patchLocalFileStatus, refreshFilesFromServer, showNotification, t]
@@ -742,37 +838,46 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       const uniqueNames = Array.from(new Set(names));
       if (uniqueNames.length === 0) return;
       if (uniqueNames.some((name) => statusUpdatingRef.current[name] === true)) return;
+      const uniqueNameSet = new Set(uniqueNames);
 
+      const nextDisabled = !enabled;
       const originalDisabled = new Map(
         filesRef.current
-          .filter((file) => uniqueNames.includes(file.name))
+          .filter((file) => uniqueNameSet.has(file.name))
+          .filter((file) => (file.disabled === true) !== nextDisabled)
           .map((file) => [file.name, file.disabled === true])
       );
       const targetNames = new Set(originalDisabled.keys());
       const targetNameList = Array.from(targetNames);
       if (targetNameList.length === 0) return;
 
-      const nextDisabled = !enabled;
-
       batchStatusPendingRef.current = true;
-      setBatchStatusUpdating(true);
+      setBatchStatusUpdating((prev) => (prev ? prev : true));
       setStatusUpdating((prev) => {
+        let changed = false;
         const next = { ...prev };
         targetNameList.forEach((name) => {
+          if (next[name] === true) return;
           next[name] = true;
+          changed = true;
         });
-        return next;
+        return changed ? next : prev;
       });
-      applyFilesState((prev) =>
-        prev.map((file) =>
-          targetNames.has(file.name) ? { ...file, disabled: nextDisabled } : file
-        )
-      );
+      applyFilesState((prev) => {
+        let changed = false;
+        const next = prev.map((file) => {
+          if (!targetNames.has(file.name) || file.disabled === nextDisabled) return file;
+          changed = true;
+          return { ...file, disabled: nextDisabled };
+        });
+        return changed ? next : prev;
+      });
 
       try {
         const results = await Promise.allSettled(
           targetNameList.map((name) => authFilesApi.setStatus(name, nextDisabled))
         );
+        if (!mountedRef.current) return;
 
         let successCount = 0;
         let failCount = 0;
@@ -790,17 +895,25 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           }
         });
 
-        applyFilesState((prev) =>
-          prev.map((file) => {
+        applyFilesState((prev) => {
+          let changed = false;
+          const next = prev.map((file) => {
             if (failedNames.has(file.name)) {
-              return { ...file, disabled: originalDisabled.get(file.name) === true };
+              const disabled = originalDisabled.get(file.name) === true;
+              if (file.disabled === disabled) return file;
+              changed = true;
+              return { ...file, disabled };
             }
             if (confirmedDisabled.has(file.name)) {
-              return { ...file, disabled: confirmedDisabled.get(file.name) };
+              const disabled = confirmedDisabled.get(file.name) === true;
+              if (file.disabled === disabled) return file;
+              changed = true;
+              return { ...file, disabled };
             }
             return file;
-          })
-        );
+          });
+          return changed ? next : prev;
+        });
 
         if (failCount === 0) {
           showNotification(
@@ -818,14 +931,19 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         await refreshFilesFromServer();
       } finally {
         batchStatusPendingRef.current = false;
-        setBatchStatusUpdating(false);
-        setStatusUpdating((prev) => {
-          const next = { ...prev };
-          targetNameList.forEach((name) => {
-            delete next[name];
+        if (mountedRef.current) {
+          setBatchStatusUpdating(false);
+          setStatusUpdating((prev) => {
+            let changed = false;
+            const next = { ...prev };
+            targetNameList.forEach((name) => {
+              if (!next[name]) return;
+              delete next[name];
+              changed = true;
+            });
+            return changed ? next : prev;
           });
-          return next;
-        });
+        }
       }
     },
     [applyFilesState, deselectAll, refreshFilesFromServer, showNotification, t]
@@ -845,6 +963,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             `/auth-files/download?name=${encodeURIComponent(name)}`,
             { responseType: 'blob' }
           );
+          if (!mountedRef.current) return;
           const blob = new Blob([response.data]);
           downloadBlob({ filename: name, blob });
           successCount++;
@@ -853,6 +972,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       }
 
+      if (!mountedRef.current) return;
       if (failCount === 0) {
         showNotification(
           t('auth_files.batch_download_success', { count: successCount }),
@@ -882,6 +1002,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
               return file ? getAuthFileDeleteTarget(file) : name;
             })
           );
+          if (!mountedRef.current) return;
           applyDeletedFiles(result.files);
 
           if (result.failed.length === 0) {
@@ -901,6 +1022,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           }
           refreshFilesAfterLocalMutation();
         } catch (err: unknown) {
+          if (!mountedRef.current) return;
           const errorMessage = err instanceof Error ? err.message : '';
           showNotification(`${t('notification.delete_failed')}: ${errorMessage}`, 'error');
         }

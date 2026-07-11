@@ -3,13 +3,11 @@
 .container {
   min-height: 100vh;
   display: flex;
-  background:
-    radial-gradient(
-      900px circle at right top,
-      color-mix(in srgb, var(--primary-color) 10%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(180deg, var(--bg-secondary) 0%, color-mix(in srgb, var(--bg-primary) 84%, white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--bg-secondary) 0%,
+    color-mix(in srgb, var(--bg-primary) 84%, white) 100%
+  );
 
   @media (max-width: $breakpoint-mobile) {
     display: block;
@@ -24,21 +22,7 @@
   justify-content: center;
   overflow: hidden;
   padding: clamp(40px, 5vw, 72px);
-  background:
-    radial-gradient(520px circle at 18% 82%, rgb(255 255 255 / 0.08), transparent 58%),
-    linear-gradient(145deg, #070707 0%, #121212 55%, #1a1a1a 100%);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 12%;
-    right: -120px;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgb(255 255 255 / 0.12), transparent 68%);
-    pointer-events: none;
-  }
+  background: linear-gradient(145deg, #070707 0%, #121212 55%, #1a1a1a 100%);
 
   @media (max-width: $breakpoint-mobile) {
     display: none;
@@ -65,10 +49,10 @@
 }
 
 .brandWord {
-  font-size: clamp(72px, 10vw, 148px);
+  font-size: 132px;
   font-weight: 900;
   line-height: 0.86;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   color: rgb(255 255 255 / 0.92);
   text-align: right;
   opacity: 1;
@@ -108,18 +92,6 @@
   background: transparent;
   position: relative;
 
-  &::before {
-    content: '';
-    position: absolute;
-    inset: auto auto 14% 12%;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--success-color) 10%, transparent);
-    filter: blur(36px);
-    pointer-events: none;
-  }
-
   @media (max-width: $breakpoint-mobile) {
     min-height: 100vh;
     padding:
@@ -148,7 +120,7 @@
   height: 84px;
   margin: 0 auto;
   padding: 4px;
-  border-radius: 20px;
+  border-radius: 12px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
@@ -157,7 +129,7 @@
 .logo {
   width: 100%;
   height: 100%;
-  border-radius: 16px;
+  border-radius: 8px;
   object-fit: cover;
 }
 
@@ -167,7 +139,7 @@
   flex-direction: column;
   gap: $spacing-lg;
   padding: clamp(24px, 3vw, 32px);
-  border-radius: 20px;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   box-shadow: var(--shadow-lg);
@@ -202,7 +174,7 @@
   font-size: 24px;
   font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .subtitle {
@@ -292,7 +264,7 @@
 .loginCard :global(.input) {
   min-height: 52px;
   padding: 14px 50px 14px 16px;
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 16px;
 }
 
@@ -304,7 +276,7 @@
 
 .loginCard :global(.btn-full) {
   min-height: 52px;
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 700;
 }
@@ -324,7 +296,7 @@
   align-items: center;
   gap: $spacing-md;
   padding: clamp(28px, 3vw, 36px);
-  border-radius: 20px;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   box-shadow: var(--shadow-lg);
@@ -334,7 +306,7 @@
 .splashLogo {
   width: 80px;
   height: 80px;
-  border-radius: 18px;
+  border-radius: 10px;
   object-fit: cover;
   animation: splash-logo-pulse 1.5s ease-in-out infinite;
 }
@@ -394,14 +366,14 @@
   .logoBadge {
     width: 60px;
     height: 60px;
-    border-radius: 16px;
+    border-radius: 10px;
     margin-top: 4px;
   }
 
   .loginCard {
     gap: 14px;
     padding: 18px 16px;
-    border-radius: 18px;
+    border-radius: 10px;
     box-shadow: 0 14px 32px rgb(0 0 0 / 0.08);
     border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
     background:
@@ -416,7 +388,7 @@
   }
 
   .title {
-    font-size: clamp(22px, 6.5vw, 28px);
+    font-size: 28px;
     line-height: 1.1;
   }
 
@@ -449,7 +421,7 @@
 
   .toggleAdvanced {
     padding: 9px 10px;
-    border-radius: 14px;
+    border-radius: 8px;
   }
 
   .toggleLabel {
@@ -463,13 +435,13 @@
   .loginCard :global(.input) {
     min-height: 48px;
     padding: 12px 46px 12px 14px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 15px;
   }
 
   .loginCard :global(.btn-full) {
     min-height: 48px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 15px;
   }
 
@@ -488,13 +460,13 @@
     width: 100%;
     gap: 12px;
     padding: 24px 18px;
-    border-radius: 18px;
+    border-radius: 10px;
   }
 
   .splashLogo {
     width: 64px;
     height: 64px;
-    border-radius: 16px;
+    border-radius: 8px;
   }
 
   .splashTitle {

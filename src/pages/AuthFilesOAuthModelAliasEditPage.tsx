@@ -367,7 +367,13 @@ export function AuthFilesOAuthModelAliasEditPage() {
                 <IconInfo size={16} />
                 <span>{t('oauth_model_alias.title')}</span>
               </div>
-              <div className={styles.settingsHeaderHint}>{headerHint}</div>
+              <div
+                className={styles.settingsHeaderHint}
+                role="status"
+                aria-busy={modelsLoading || undefined}
+              >
+                {headerHint}
+              </div>
             </div>
 
             <div className={styles.settingsSection}>
@@ -443,6 +449,7 @@ export function AuthFilesOAuthModelAliasEditPage() {
                   <span className={styles.mappingSeparator}>→</span>
                   <input
                     className={`input ${styles.mappingAliasInput}`}
+                    aria-label={t('oauth_model_alias.alias_placeholder')}
                     placeholder={t('oauth_model_alias.alias_placeholder')}
                     value={entry.alias}
                     onChange={(e) => updateMappingEntry(index, 'alias', e.target.value)}

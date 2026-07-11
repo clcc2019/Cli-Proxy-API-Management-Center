@@ -57,7 +57,7 @@ export const ProviderEditShell = forwardRef<HTMLDivElement, ProviderEditShellPro
       >
         <div ref={ref} className={bodyClassName}>
           {isLoading ? (
-            <div className={styles.loadingState}>
+            <div className={styles.loadingState} role="status" aria-busy="true">
               <LoadingSpinner size={16} />
               <span>{loadingLabel}</span>
             </div>

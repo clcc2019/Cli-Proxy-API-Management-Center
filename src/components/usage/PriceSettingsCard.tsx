@@ -99,17 +99,18 @@ export function PriceSettingsCard({
         <div className={styles.priceForm}>
           <div className={styles.formRow}>
             <div className={styles.formField}>
-              <label>{t('usage_stats.model_name')}</label>
+              <span className={styles.formLabel}>{t('usage_stats.model_name')}</span>
               <Select
                 value={selectedModel}
                 options={options}
                 onChange={handleModelSelect}
                 placeholder={t('usage_stats.model_price_select_placeholder')}
+                ariaLabel={t('usage_stats.model_name')}
               />
             </div>
             <div className={styles.formField}>
-              <label>{t('usage_stats.model_price_prompt')} ($/1M)</label>
               <Input
+                label={`${t('usage_stats.model_price_prompt')} ($/1M)`}
                 type="number"
                 value={promptPrice}
                 onChange={(e) => setPromptPrice(e.target.value)}
@@ -118,8 +119,8 @@ export function PriceSettingsCard({
               />
             </div>
             <div className={styles.formField}>
-              <label>{t('usage_stats.model_price_completion')} ($/1M)</label>
               <Input
+                label={`${t('usage_stats.model_price_completion')} ($/1M)`}
                 type="number"
                 value={completionPrice}
                 onChange={(e) => setCompletionPrice(e.target.value)}
@@ -128,8 +129,8 @@ export function PriceSettingsCard({
               />
             </div>
             <div className={styles.formField}>
-              <label>{t('usage_stats.model_price_cache')} ($/1M)</label>
               <Input
+                label={`${t('usage_stats.model_price_cache')} ($/1M)`}
                 type="number"
                 value={cachePrice}
                 onChange={(e) => setCachePrice(e.target.value)}
@@ -200,8 +201,8 @@ export function PriceSettingsCard({
       >
         <div className={styles.editModalBody}>
           <div className={styles.formField}>
-            <label>{t('usage_stats.model_price_prompt')} ($/1M)</label>
             <Input
+              label={`${t('usage_stats.model_price_prompt')} ($/1M)`}
               type="number"
               value={editPrompt}
               onChange={(e) => setEditPrompt(e.target.value)}
@@ -210,8 +211,8 @@ export function PriceSettingsCard({
             />
           </div>
           <div className={styles.formField}>
-            <label>{t('usage_stats.model_price_completion')} ($/1M)</label>
             <Input
+              label={`${t('usage_stats.model_price_completion')} ($/1M)`}
               type="number"
               value={editCompletion}
               onChange={(e) => setEditCompletion(e.target.value)}
@@ -220,8 +221,8 @@ export function PriceSettingsCard({
             />
           </div>
           <div className={styles.formField}>
-            <label>{t('usage_stats.model_price_cache')} ($/1M)</label>
             <Input
+              label={`${t('usage_stats.model_price_cache')} ($/1M)`}
               type="number"
               value={editCache}
               onChange={(e) => setEditCache(e.target.value)}

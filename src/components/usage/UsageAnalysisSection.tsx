@@ -1,5 +1,6 @@
 import { Suspense, lazy, memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconChevronDown } from '@/components/ui/icons';
 import { DeferredRender } from '@/components/common/DeferredRender';
 import styles from '@/pages/UsagePage.module.scss';
 import { DeferredUsageCard } from './DeferredUsageCard';
@@ -57,8 +58,13 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
               aria-expanded={!collapsed}
               onClick={onToggleCollapse}
             >
-              <span className={styles.sectionToggleIcon} aria-hidden="true">
-                {collapsed ? '+' : '-'}
+              <span
+                className={`${styles.sectionToggleIcon} ${
+                  !collapsed ? styles.sectionToggleIconExpanded : ''
+                }`}
+                aria-hidden="true"
+              >
+                <IconChevronDown size={14} />
               </span>
               <span>{t(collapsed ? 'common.expand' : 'common.collapse')}</span>
             </button>

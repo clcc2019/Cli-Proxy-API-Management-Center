@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { IconGithub, IconBookOpen, IconExternalLink, IconCode } from '@/components/ui/icons';
+import { useTimeoutRegistry } from '@/hooks';
 import {
   useAuthStore,
   useConfigStore,
@@ -70,6 +71,7 @@ const compareVersions = (latest?: string | null, current?: string | null) => {
 
 export function SystemPage() {
   const { t, i18n } = useTranslation();
+  const requestLogWarningId = useId();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
@@ -96,7 +98,8 @@ export function SystemPage() {
 
   const apiKeysCache = useRef<string[]>([]);
   const versionTapCount = useRef(0);
-  const versionTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelVersionTapResetRef = useRef<(() => void) | null>(null);
+  const { scheduleTimeout } = useTimeoutRegistry();
 
   const otherLabel = useMemo(
     () => (i18n.language?.toLowerCase().startsWith('zh') ? '其他' : 'Other'),
@@ -223,7 +226,7 @@ export function SystemPage() {
 
   const handleClearLoginStorage = () => {
     showConfirmation({
-      title: t('system_info.clear_login_title', { defaultValue: 'Clear Login Storage' }),
+      title: t('system_info.clear_login_title'),
       message: t('system_info.clear_login_confirm'),
       variant: 'danger',
       confirmText: t('common.confirm'),
@@ -253,24 +256,26 @@ export function SystemPage() {
     setRequestLogModalOpen(true);
   }, [requestLogEnabled]);
 
+  const clearVersionTapReset = useCallback(() => {
+    cancelVersionTapResetRef.current?.();
+    cancelVersionTapResetRef.current = null;
+  }, []);
+
   const handleInfoVersionTap = useCallback(() => {
     versionTapCount.current += 1;
-    if (versionTapTimer.current) {
-      clearTimeout(versionTapTimer.current);
-    }
+    clearVersionTapReset();
 
     if (versionTapCount.current >= 7) {
       versionTapCount.current = 0;
-      versionTapTimer.current = null;
       openRequestLogModal();
       return;
     }
 
-    versionTapTimer.current = setTimeout(() => {
+    cancelVersionTapResetRef.current = scheduleTimeout(() => {
       versionTapCount.current = 0;
-      versionTapTimer.current = null;
+      cancelVersionTapResetRef.current = null;
     }, 1500);
-  }, [openRequestLogModal]);
+  }, [clearVersionTapReset, openRequestLogModal, scheduleTimeout]);
 
   const handleRequestLogClose = useCallback(() => {
     setRequestLogModalOpen(false);
@@ -352,14 +357,6 @@ export function SystemPage() {
   }, [requestLogModalOpen, requestLogTouched, requestLogEnabled]);
 
   useEffect(() => {
-    return () => {
-      if (versionTapTimer.current) {
-        clearTimeout(versionTapTimer.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     fetchModels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.connectionStatus, auth.apiBase]);
@@ -370,7 +367,7 @@ export function SystemPage() {
       <div className={styles.content}>
         <Card className={styles.aboutCard}>
           <div className={styles.aboutHeader}>
-            <img src={INLINE_LOGO_JPEG} alt="CPAMC" className={styles.aboutLogo} />
+            <img src={INLINE_LOGO_JPEG} alt={t('title.main')} className={styles.aboutLogo} />
             <div className={styles.aboutTitle}>{t('system_info.about_title')}</div>
           </div>
 
@@ -494,9 +491,15 @@ export function SystemPage() {
           {modelStatus && (
             <div className={`status-badge ${modelStatus.type}`}>{modelStatus.message}</div>
           )}
-          {modelsError && <div className="error-box">{modelsError}</div>}
+          {modelsError && (
+            <div className="error-box" role="alert">
+              {modelsError}
+            </div>
+          )}
           {modelsLoading ? (
-            <div className="hint">{t('common.loading')}</div>
+            <div className="hint" role="status" aria-busy="true">
+              {t('common.loading')}
+            </div>
           ) : models.length === 0 ? (
             <div className="hint">{t('system_info.models_empty')}</div>
           ) : (
@@ -547,6 +550,7 @@ export function SystemPage() {
         open={requestLogModalOpen}
         onClose={handleRequestLogClose}
         title={t('basic_settings.request_log_title')}
+        ariaDescribedBy={requestLogWarningId}
         footer={
           <>
             <Button variant="secondary" onClick={handleRequestLogClose} disabled={requestLogSaving}>
@@ -563,7 +567,9 @@ export function SystemPage() {
         }
       >
         <div className="request-log-modal">
-          <div className="status-badge warning">{t('basic_settings.request_log_warning')}</div>
+          <div id={requestLogWarningId} className="status-badge warning">
+            {t('basic_settings.request_log_warning')}
+          </div>
           <ToggleSwitch
             label={t('basic_settings.request_log_enable')}
             labelPosition="left"

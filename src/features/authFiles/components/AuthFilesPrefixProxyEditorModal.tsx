@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useDeferredValue, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -48,22 +48,34 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
   const { t } = useTranslation();
   const { disableControls, editor, updatedText, dirty, onClose, onCopyText, onSave, onChange } =
     props;
+  const editorFileName = editor?.fileName ?? '';
+  const editorFile = editor?.file ?? null;
+  const editorClientProfile = editor?.clientProfile ?? null;
+  const previewPayload = useMemo(
+    () => ({ fileName: editorFileName, text: updatedText }),
+    [editorFileName, updatedText]
+  );
+  const deferredPreviewPayload = useDeferredValue(previewPayload);
+  const previewSourceText =
+    updatedText && deferredPreviewPayload.fileName === editorFileName
+      ? deferredPreviewPayload.text
+      : updatedText;
   // 缩进 JSON 让预览面板可读性大幅提升
-  const previewText = useMemo(() => prettyJsonText(updatedText), [updatedText]);
+  const previewText = useMemo(() => prettyJsonText(previewSourceText), [previewSourceText]);
   const fileInfoText = useMemo(
-    () => (editor?.file ? JSON.stringify(editor.file, null, 2) : ''),
-    [editor?.file]
+    () => (editorFile ? JSON.stringify(editorFile, null, 2) : ''),
+    [editorFile]
   );
   const clientProfileText = useMemo(
-    () => formatClientProfileJson(editor?.clientProfile ?? null),
-    [editor?.clientProfile]
+    () => formatClientProfileJson(editorClientProfile),
+    [editorClientProfile]
   );
-  const clientProfileCount = editor?.clientProfile ? Object.keys(editor.clientProfile).length : 0;
+  const clientProfileCount = editorClientProfile ? Object.keys(editorClientProfile).length : 0;
   const disableCoolingOptions = useMemo(
     () => [
-      { value: '', label: t('auth_files.disable_cooling_default', { defaultValue: '默认' }) },
-      { value: 'true', label: t('auth_files.disable_cooling_true', { defaultValue: '禁用' }) },
-      { value: 'false', label: t('auth_files.disable_cooling_false', { defaultValue: '不禁用' }) },
+      { value: '', label: t('auth_files.disable_cooling_default') },
+      { value: 'true', label: t('auth_files.disable_cooling_true') },
+      { value: 'false', label: t('auth_files.disable_cooling_false') },
     ],
     [t]
   );
@@ -136,9 +148,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
             </span>
           )}
           {dirty && !editor?.saving && (
-            <span className={styles.prefixProxyDirtyBadge}>
-              {t('common.unsaved', { defaultValue: '未保存' })}
-            </span>
+            <span className={styles.prefixProxyDirtyBadge}>{t('common.unsaved')}</span>
           )}
         </span>
       }
@@ -156,13 +166,17 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
       {editor && (
         <div className={styles.prefixProxyEditor}>
           {editor.loading ? (
-            <div className={styles.prefixProxyLoading}>
+            <div className={styles.prefixProxyLoading} role="status" aria-busy="true">
               <LoadingSpinner size={14} />
               <span>{t('auth_files.prefix_proxy_loading')}</span>
             </div>
           ) : (
             <>
-              {editor.error && <div className={styles.prefixProxyError}>{editor.error}</div>}
+              {editor.error && (
+                <div className={styles.prefixProxyError} role="alert">
+                  {editor.error}
+                </div>
+              )}
               <div className={styles.prefixProxyLayout}>
                 <section className={styles.prefixProxyPanel}>
                   <header className={styles.prefixProxyPanelHeader}>
@@ -180,7 +194,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     <section className={styles.prefixProxySection}>
                       <header className={styles.prefixProxySectionHeader}>
                         <h3 className={styles.prefixProxySectionTitle}>
-                          {t('auth_files.section_basic', { defaultValue: '常用设置' })}
+                          {t('auth_files.section_basic')}
                         </h3>
                       </header>
                       <div className={styles.prefixProxyFields}>
@@ -217,9 +231,9 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                           />
                         </div>
                         <div className={styles.prefixProxyField}>
-                          <label className={styles.prefixProxyFieldLabel}>
+                          <span className={styles.prefixProxyFieldLabel}>
                             {t('auth_files.disable_cooling_label')}
-                          </label>
+                          </span>
                           <Select
                             value={editor.disableCooling}
                             options={disableCoolingOptions}
@@ -247,7 +261,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                       <section className={styles.prefixProxySection}>
                         <header className={styles.prefixProxySectionHeader}>
                           <h3 className={styles.prefixProxySectionTitle}>
-                            {t('auth_files.section_codex', { defaultValue: 'Codex' })}
+                            {t('auth_files.section_codex')}
                           </h3>
                         </header>
                         <div className={styles.prefixProxyFields}>
@@ -302,16 +316,19 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     <section className={styles.prefixProxySection}>
                       <header className={styles.prefixProxySectionHeader}>
                         <h3 className={styles.prefixProxySectionTitle}>
-                          {t('auth_files.section_advanced', { defaultValue: '高级设置' })}
+                          {t('auth_files.section_advanced')}
                         </h3>
                       </header>
                       <div className={styles.prefixProxyFields}>
                         <div
                           className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
                         >
-                          <label>{t('auth_files.excluded_models_label')}</label>
+                          <span className="form-label">
+                            {t('auth_files.excluded_models_label')}
+                          </span>
                           <textarea
                             className={`input ${styles.prefixProxyMonoTextarea}`}
+                            aria-label={t('auth_files.excluded_models_label')}
                             value={editor.excludedModelsText}
                             placeholder={t('auth_files.excluded_models_placeholder')}
                             title={t('auth_files.excluded_models_hint')}
@@ -324,16 +341,17 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                         <div
                           className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
                         >
-                          <label>
+                          <span className="form-label">
                             {t('auth_files.headers_label')}
                             {headersInvalid && (
                               <span className={styles.prefixProxyFieldStatusError}>
-                                {t('common.invalid', { defaultValue: '格式错误' })}
+                                {t('common.invalid')}
                               </span>
                             )}
-                          </label>
+                          </span>
                           <textarea
                             className={`input ${styles.prefixProxyMonoTextarea} ${styles.prefixProxyHeadersTextarea} ${headersInvalid ? styles.prefixProxyTextareaInvalid : ''}`}
+                            aria-label={t('auth_files.headers_label')}
                             value={editor.headersText}
                             placeholder={t('auth_files.headers_placeholder')}
                             title={t('auth_files.headers_hint')}
@@ -344,7 +362,9 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                             spellCheck={false}
                           />
                           {editor.headersError && (
-                            <div className="error-box">{editor.headersError}</div>
+                            <div className="error-box" role="alert">
+                              {editor.headersError}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -380,6 +400,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                         <div className={styles.prefixProxyJsonWrapper}>
                           <textarea
                             className={styles.prefixProxyInfoTextarea}
+                            aria-label={t('auth_files.prefix_proxy_info_label')}
                             rows={8}
                             readOnly
                             value={fileInfoText}
@@ -397,7 +418,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                           </span>
                           {dirty && (
                             <span className={styles.prefixProxyPreviewBadge}>
-                              {t('common.modified', { defaultValue: '已修改' })}
+                              {t('common.modified')}
                             </span>
                           )}
                         </span>
@@ -420,6 +441,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                         </div>
                         <textarea
                           className={styles.prefixProxyTextarea}
+                          aria-label={t('auth_files.prefix_proxy_source_label')}
                           rows={10}
                           readOnly
                           value={previewText}
@@ -445,6 +467,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                         <div className={styles.prefixProxyJsonWrapper}>
                           <textarea
                             className={styles.prefixProxyInfoTextarea}
+                            aria-label={t('auth_files.client_profile_label')}
                             rows={6}
                             readOnly
                             value={clientProfileText}

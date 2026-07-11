@@ -145,14 +145,14 @@
   flex-direction: column;
   gap: $spacing-lg;
   padding: clamp(18px, 3vw, 28px);
-  border-radius: 32px;
+  border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
   background: color-mix(in srgb, var(--bg-primary) 74%, transparent);
   box-shadow: var(--shadow);
 
   @include mobile {
     padding: 16px;
-    border-radius: 28px;
+    border-radius: 10px;
   }
 }
 
@@ -198,7 +198,7 @@
 
 .searchInput {
   flex: 1;
-  border-radius: 16px !important;
+  border-radius: 8px !important;
   padding-right: 132px !important;
 }
 
@@ -278,7 +278,7 @@
   flex: 0 0 auto;
   height: clamp(420px, 64vh, 980px);
   border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  border-radius: 28px;
+  border-radius: 10px;
   overflow: hidden;
   background: color-mix(in srgb, var(--bg-primary) 90%, transparent);
 

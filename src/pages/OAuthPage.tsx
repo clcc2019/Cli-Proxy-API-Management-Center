@@ -26,6 +26,9 @@ interface ProviderState {
   callbackError?: string;
 }
 
+type ProviderStateMap = Partial<Record<OAuthProvider, ProviderState>>;
+type ProviderTimerMap = Partial<Record<OAuthProvider, number>>;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
 }
@@ -81,6 +84,7 @@ const PROVIDERS: {
 ];
 
 const CALLBACK_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'xai'];
+const OAUTH_POLL_INTERVAL_MS = 3_000;
 const getProviderI18nPrefix = (provider: OAuthProvider) => provider.replace('-', '_');
 const getAuthKey = (provider: OAuthProvider, suffix: string) =>
   `auth_login.${getProviderI18nPrefix(provider)}_${suffix}`;
@@ -93,14 +97,30 @@ export function OAuthPage() {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
-  const [states, setStates] = useState<Record<OAuthProvider, ProviderState>>(
-    {} as Record<OAuthProvider, ProviderState>
-  );
-  const timers = useRef<Record<string, number>>({});
+  const [states, setStates] = useState<ProviderStateMap>({});
+  const timers = useRef<ProviderTimerMap>({});
+  const pollingRequestsInFlight = useRef<ProviderTimerMap>({});
 
   const clearTimers = useCallback(() => {
     Object.values(timers.current).forEach((timer) => window.clearInterval(timer));
     timers.current = {};
+    pollingRequestsInFlight.current = {};
+  }, []);
+
+  const stopPolling = useCallback((provider: OAuthProvider, expectedTimer?: number) => {
+    const timer = timers.current[provider];
+    if (!timer || (expectedTimer !== undefined && timer !== expectedTimer)) {
+      return;
+    }
+
+    window.clearInterval(timer);
+    delete timers.current[provider];
+    if (
+      expectedTimer === undefined ||
+      pollingRequestsInFlight.current[provider] === expectedTimer
+    ) {
+      delete pollingRequestsInFlight.current[provider];
+    }
   }, []);
 
   useEffect(() => {
@@ -117,25 +137,27 @@ export function OAuthPage() {
   };
 
   const startPolling = (provider: OAuthProvider, state: string) => {
-    if (timers.current[provider]) {
-      clearInterval(timers.current[provider]);
-    }
+    stopPolling(provider);
+
     const timer = window.setInterval(async () => {
+      if (pollingRequestsInFlight.current[provider] === timer) {
+        return;
+      }
+
+      pollingRequestsInFlight.current[provider] = timer;
       try {
         const res = await oauthApi.getAuthStatus(state);
         if (res.status === 'ok') {
           updateProviderState(provider, { status: 'success', polling: false });
           showNotification(t(getAuthKey(provider, 'oauth_status_success')), 'success');
-          window.clearInterval(timer);
-          delete timers.current[provider];
+          stopPolling(provider, timer);
         } else if (res.status === 'error') {
           updateProviderState(provider, { status: 'error', error: res.error, polling: false });
           showNotification(
             `${t(getAuthKey(provider, 'oauth_status_error'))} ${res.error || ''}`,
             'error'
           );
-          window.clearInterval(timer);
-          delete timers.current[provider];
+          stopPolling(provider, timer);
         }
       } catch (err: unknown) {
         updateProviderState(provider, {
@@ -143,10 +165,13 @@ export function OAuthPage() {
           error: getErrorMessage(err),
           polling: false,
         });
-        window.clearInterval(timer);
-        delete timers.current[provider];
+        stopPolling(provider, timer);
+      } finally {
+        if (pollingRequestsInFlight.current[provider] === timer) {
+          delete pollingRequestsInFlight.current[provider];
+        }
       }
-    }, 3000);
+    }, OAUTH_POLL_INTERVAL_MS);
     timers.current[provider] = timer;
   };
 
@@ -221,7 +246,7 @@ export function OAuthPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.pageTitle}>{t('nav.oauth', { defaultValue: 'OAuth' })}</h1>
+      <h1 className={styles.pageTitle}>{t('nav.oauth')}</h1>
 
       <div className={styles.content}>
         {PROVIDERS.map((provider) => {

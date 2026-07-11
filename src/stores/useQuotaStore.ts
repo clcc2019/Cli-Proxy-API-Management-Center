@@ -4,18 +4,11 @@
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type {
-  ClaudeQuotaState,
-  CodexQuotaState,
-  KimiQuotaState,
-} from '@/types';
+import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
 import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
-type PersistableQuotaState = Pick<
-  QuotaStoreState,
-  'claudeQuota' | 'codexQuota' | 'kimiQuota'
->;
+type PersistableQuotaState = Pick<QuotaStoreState, 'claudeQuota' | 'codexQuota' | 'kimiQuota'>;
 type PersistedQuotaEnvelope = { state?: Partial<PersistableQuotaState>; version?: number };
 type QuotaSnapshot = { status?: string };
 
@@ -35,7 +28,7 @@ const createEmptyQuotaCache = (): PersistableQuotaState => ({
   kimiQuota: {},
 });
 
-const resolveUpdater = <T,>(updater: QuotaUpdater<T>, prev: T): T => {
+const resolveUpdater = <T>(updater: QuotaUpdater<T>, prev: T): T => {
   if (typeof updater === 'function') {
     return (updater as (value: T) => T)(prev);
   }
@@ -146,17 +139,20 @@ export const useQuotaStore = create<QuotaStoreState>()(
     (set) => ({
       ...createEmptyQuotaCache(),
       setClaudeQuota: (updater) =>
-        set((state) => ({
-          claudeQuota: resolveUpdater(updater, state.claudeQuota),
-        })),
+        set((state) => {
+          const claudeQuota = resolveUpdater(updater, state.claudeQuota);
+          return claudeQuota === state.claudeQuota ? state : { claudeQuota };
+        }),
       setCodexQuota: (updater) =>
-        set((state) => ({
-          codexQuota: resolveUpdater(updater, state.codexQuota),
-        })),
+        set((state) => {
+          const codexQuota = resolveUpdater(updater, state.codexQuota);
+          return codexQuota === state.codexQuota ? state : { codexQuota };
+        }),
       setKimiQuota: (updater) =>
-        set((state) => ({
-          kimiQuota: resolveUpdater(updater, state.kimiQuota),
-        })),
+        set((state) => {
+          const kimiQuota = resolveUpdater(updater, state.kimiQuota);
+          return kimiQuota === state.kimiQuota ? state : { kimiQuota };
+        }),
       clearQuotaCache: () => set(createEmptyQuotaCache()),
     }),
     {

@@ -42,6 +42,8 @@ export interface CodexAdditionalRateLimit {
 export interface CodexUsagePayload {
   auth_file?: AuthFileItem | null;
   authFile?: AuthFileItem | null;
+  rate_limit_reset_credits?: CodexRateLimitResetCredits | null;
+  rateLimitResetCredits?: CodexRateLimitResetCredits | null;
   plan_type?: string;
   planType?: string;
   chatgpt_plan_type?: string;
@@ -76,6 +78,37 @@ export interface CodexUsagePayload {
   additionalRateLimits?: CodexAdditionalRateLimit[] | null;
   rate_limit_reached_type?: string | { kind?: string | null } | null;
   rateLimitReachedType?: string | { kind?: string | null } | null;
+}
+
+export interface CodexRateLimitResetCredits {
+  available_count?: number | string;
+  availableCount?: number | string;
+}
+
+export interface CodexRateLimitResetCreditsPayload {
+  auth_file?: AuthFileItem | null;
+  authFile?: AuthFileItem | null;
+  rate_limit_reset_credits?: CodexRateLimitResetCredits | null;
+  rateLimitResetCredits?: CodexRateLimitResetCredits | null;
+  available_count?: number | string;
+  availableCount?: number | string;
+}
+
+export interface CodexRateLimitResetConsumePayload extends CodexRateLimitResetCreditsPayload {
+  consume?: {
+    code?: string;
+    windows_reset?: number | string;
+    windowsReset?: number | string;
+  };
+  code?: string;
+  windows_reset?: number | string;
+  windowsReset?: number | string;
+  redeem_request_id?: string;
+  redeemRequestId?: string;
+  local_quota_cooldown_cleared?: boolean;
+  localQuotaCooldownCleared?: boolean;
+  usage_refresh_error?: string;
+  usageRefreshError?: string;
 }
 
 // Claude API payload types
@@ -153,6 +186,7 @@ export interface CodexQuotaWindow {
 export interface CodexQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   windows: CodexQuotaWindow[];
+  rateLimitResetCreditsAvailable?: number | null;
   planType?: string | null;
   rateLimitReachedType?: string | null;
   subscriptionActiveStart?: string | number | null;

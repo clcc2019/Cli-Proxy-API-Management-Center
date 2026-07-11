@@ -114,13 +114,6 @@ export function PageTransition({
     transitionDirectionRef.current = nextDirection;
     transitionVariantRef.current = nextVariant;
 
-    if (nextVariant === 'none') {
-      setLayers([{ key: location.key, location, status: 'current' }]);
-      setIsAnimating(false);
-      nextLayersRef.current = null;
-      return;
-    }
-
     const shouldSkipExitLayer = (() => {
       if (nextVariant !== 'ios' || nextDirection !== 'backward') return false;
       const normalizeSegments = (pathname: string) =>
@@ -149,6 +142,11 @@ export function PageTransition({
 
       if (!previousCurrent) {
         nextLayersRef.current = [nextCurrent];
+        return [nextCurrent];
+      }
+
+      if (variant === 'none') {
+        nextLayersRef.current = null;
         return [nextCurrent];
       }
 
@@ -193,7 +191,9 @@ export function PageTransition({
       nextLayersRef.current = [nextCurrent];
       return [exitingLayer, nextCurrent];
     });
-    setIsAnimating(true);
+    if (nextVariant !== 'none') {
+      setIsAnimating(true);
+    }
   }, [
     isAnimating,
     location,

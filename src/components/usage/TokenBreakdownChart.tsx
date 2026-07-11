@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatCompactNumber, type TokenCategory } from '@/utils/usage';
 import { buildAggregateTokenBreakdown } from '@/utils/usageAggregate';
@@ -7,7 +7,7 @@ import {
   buildChartOptions,
   withUsageColorAlpha,
 } from '@/utils/usage/chartConfig';
-import { getAdaptiveAnalysisChartPeriod } from './chartPeriod';
+import { useAdaptiveAnalysisChartPeriod } from './chartPeriod';
 import { UsageChartPanel } from './UsageChartPanel';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
 
@@ -48,21 +48,19 @@ export const TokenBreakdownChart = memo(function TokenBreakdownChart({
   hourWindowHours,
 }: TokenBreakdownChartProps) {
   const { t } = useTranslation();
-  const preferredPeriod = getAdaptiveAnalysisChartPeriod(hourWindowHours);
-  const [period, setPeriod] = useState<'hour' | 'day'>(preferredPeriod);
-
-  useEffect(() => {
-    setPeriod(preferredPeriod);
-  }, [preferredPeriod]);
-
-  const { chartData, chartOptions, hasData, summaryItems } = useMemo(() => {
-    const series = buildAggregateTokenBreakdown(window, period);
-    const categoryLabels: Record<TokenCategory, string> = {
+  const [period, setPeriod] = useAdaptiveAnalysisChartPeriod(hourWindowHours);
+  const categoryLabels = useMemo<Record<TokenCategory, string>>(
+    () => ({
       input: t('usage_stats.input_tokens'),
       output: t('usage_stats.output_tokens'),
       cached: t('usage_stats.cached_tokens'),
       reasoning: t('usage_stats.reasoning_tokens'),
-    };
+    }),
+    [t]
+  );
+
+  const { chartData, chartOptions, hasData, summaryItems } = useMemo(() => {
+    const series = buildAggregateTokenBreakdown(window, period);
 
     const data = {
       labels: series.labels,
@@ -112,7 +110,7 @@ export const TokenBreakdownChart = memo(function TokenBreakdownChart({
         { label: t('usage_stats.cached_tokens'), value: formatCompactNumber(totals.cached) },
       ],
     };
-  }, [isDark, isMobile, period, t, window]);
+  }, [categoryLabels, isDark, isMobile, period, t, window]);
 
   return (
     <UsageChartPanel

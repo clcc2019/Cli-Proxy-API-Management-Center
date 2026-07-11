@@ -1,18 +1,66 @@
 import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
-import { normalizePlanType } from '@/utils/quota/parsers';
-import { resolveCodexPlanType } from '@/utils/quota/resolvers';
+import { normalizePlanType, normalizeUnixTimestampSeconds } from '@/utils/quota/parsers';
+import { resolveCodexPlanType, resolveCodexSubscriptionActiveUntil } from '@/utils/quota/resolvers';
 import { normalizeProviderKey } from './constants';
 
 const PREMIUM_CODEX_PLAN_TYPES = new Set(['pro', 'prolite', 'pro-lite', 'pro_lite']);
+
 export type AuthFilePlanBadgeInfo = {
   kind: 'plus' | 'pro';
   labelKey: string;
-  fallbackLabel: string;
 };
 
 export type AuthFilePlanSources = {
   claudeQuota: Record<string, ClaudeQuotaState>;
   codexQuota: Record<string, CodexQuotaState>;
+};
+
+type CodexPlanSignal = {
+  planType: string | null;
+  subscriptionUntil: string | number | null;
+};
+
+const isCodexPremiumPlanType = (
+  planType: string | null | undefined
+): planType is string =>
+  Boolean(planType && (planType === 'plus' || PREMIUM_CODEX_PLAN_TYPES.has(planType)));
+
+const isFutureTimestamp = (value: unknown, nowMs = Date.now()) => {
+  const timestampSec = normalizeUnixTimestampSeconds(value);
+  return timestampSec !== null && timestampSec * 1000 > nowMs;
+};
+
+const isPastTimestamp = (value: unknown, nowMs = Date.now()) => {
+  const timestampSec = normalizeUnixTimestampSeconds(value);
+  return timestampSec !== null && timestampSec * 1000 <= nowMs;
+};
+
+const resolveActiveCodexPlanType = (
+  signals: CodexPlanSignal[],
+  nowMs = Date.now()
+): string | null => {
+  for (const signal of signals) {
+    if (isCodexPremiumPlanType(signal.planType) && isFutureTimestamp(signal.subscriptionUntil, nowMs)) {
+      return signal.planType;
+    }
+  }
+
+  const hasExplicitNonPremiumOrExpiredSignal = signals.some((signal) => {
+    if (!signal.planType) return false;
+    if (!isCodexPremiumPlanType(signal.planType)) return true;
+    return isPastTimestamp(signal.subscriptionUntil, nowMs);
+  });
+  if (hasExplicitNonPremiumOrExpiredSignal) {
+    return null;
+  }
+
+  for (const signal of signals) {
+    if (isCodexPremiumPlanType(signal.planType)) {
+      return signal.planType;
+    }
+  }
+
+  return null;
 };
 
 export const resolveAuthFilePlanBadge = (
@@ -22,24 +70,32 @@ export const resolveAuthFilePlanBadge = (
   const providerKey = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
 
   if (providerKey === 'codex') {
-    const planType = normalizePlanType(
-      sources.codexQuota[file.name]?.planType ?? resolveCodexPlanType(file)
-    );
+    const filePlanType = normalizePlanType(resolveCodexPlanType(file));
+    const quotaPlanType = normalizePlanType(sources.codexQuota[file.name]?.planType);
+    const planType = resolveActiveCodexPlanType([
+      {
+        planType: filePlanType,
+        subscriptionUntil: resolveCodexSubscriptionActiveUntil(file),
+      },
+      {
+        planType: quotaPlanType,
+        subscriptionUntil: sources.codexQuota[file.name]?.subscriptionUntil ?? null,
+      },
+    ]);
     if (planType === 'plus') {
-      return { kind: 'plus', labelKey: 'codex_quota.plan_plus', fallbackLabel: 'Plus' };
+      return { kind: 'plus', labelKey: 'codex_quota.plan_plus' };
     }
     if (PREMIUM_CODEX_PLAN_TYPES.has(planType ?? '')) {
       return {
         kind: 'pro',
         labelKey: planType === 'pro' ? 'codex_quota.plan_pro' : 'codex_quota.plan_prolite',
-        fallbackLabel: 'Pro',
       };
     }
     return null;
   }
 
   if (providerKey === 'claude' && sources.claudeQuota[file.name]?.planType === 'plan_pro') {
-    return { kind: 'pro', labelKey: 'claude_quota.plan_pro', fallbackLabel: 'Pro' };
+    return { kind: 'pro', labelKey: 'claude_quota.plan_pro' };
   }
 
   return null;
