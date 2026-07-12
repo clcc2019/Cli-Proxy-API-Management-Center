@@ -266,7 +266,7 @@ const authFilePathBasename = (value: string) => {
   return parts.length > 0 ? parts[parts.length - 1] : normalized;
 };
 
-const authFileUsageSourceCandidates = (file: AuthFileItem): string[] => {
+export const authFileUsageSourceCandidates = (file: AuthFileItem): string[] => {
   const rawPath = readAuthFileString(file, 'path');
   const candidates = [
     readAuthFileString(file, 'source'),

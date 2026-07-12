@@ -1,7 +1,6 @@
 import { Fragment, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { IconExternalLink, IconLink, IconShield, IconStar } from '@/components/ui/icons';
 import iconClaude from '@/assets/icons/claude.svg';
@@ -11,6 +10,7 @@ import { collectUsageDetailsForCandidates, type UsageDetailsBySource } from '@/u
 import styles from '@/pages/AiProvidersPage.module.scss';
 import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 import { ProviderList } from '../ProviderList';
+import { ProviderSectionShell } from '../ProviderSectionShell';
 import { ProviderStatusBar } from '../ProviderStatusBar';
 import { buildProviderConfigKey, hasDisableAllModelsRule } from '../utils';
 
@@ -42,9 +42,8 @@ export const ClaudeSection = memo(function ClaudeSection({
   onToggle,
 }: ClaudeSectionProps) {
   const { t } = useTranslation();
-  void isSwitching;
-  const actionsDisabled = disableControls || loading;
-  const toggleGloballyDisabled = disableControls || loading;
+  const actionsDisabled = disableControls || loading || isSwitching;
+  const toggleGloballyDisabled = actionsDisabled;
 
   const isItemSwitching = (item: ProviderKeyConfig) =>
     switchingItemKeys ? switchingItemKeys.has(buildProviderConfigKey(item)) : false;
@@ -60,7 +59,7 @@ export const ClaudeSection = memo(function ClaudeSection({
       });
       if (!candidates.length) return;
       cache.set(
-        config.apiKey,
+        buildProviderConfigKey(config),
         calculateStatusBarData(collectUsageDetailsForCandidates(usageDetailsBySource, candidates))
       );
     });
@@ -69,20 +68,20 @@ export const ClaudeSection = memo(function ClaudeSection({
   }, [configs, usageDetailsBySource]);
 
   return (
-    <>
-      <Card
-        title={
-          <span className={styles.cardTitle}>
-            <img src={iconClaude} alt="" className={styles.cardTitleIcon} />
-            {t('ai_providers.claude_title')}
-          </span>
-        }
-        extra={
-          <Button size="sm" onClick={onAdd} disabled={actionsDisabled}>
-            {t('ai_providers.claude_add_button')}
-          </Button>
-        }
-      >
+    <ProviderSectionShell
+      title={
+        <span className={styles.cardTitle}>
+          <img src={iconClaude} alt="" className={styles.cardTitleIcon} />
+          {t('ai_providers.claude_title')}
+        </span>
+      }
+      count={configs.length}
+      action={
+        <Button size="sm" onClick={onAdd} disabled={actionsDisabled}>
+          {t('ai_providers.claude_add_button')}
+        </Button>
+      }
+    >
         <ProviderList<ProviderKeyConfig>
           items={configs}
           loading={loading}
@@ -90,6 +89,7 @@ export const ClaudeSection = memo(function ClaudeSection({
           rowClassName={`${styles.providerConfigItem} ${styles.providerConfigItemClaude}`}
           leadingIcon={<img src={iconClaude} alt="" />}
           keyField={(item) => buildProviderConfigKey(item)}
+          renderTitle={() => t('ai_providers.claude_item_title')}
           emptyTitle={t('ai_providers.claude_empty_title')}
           emptyDescription={t('ai_providers.claude_empty_desc')}
           onEdit={onEdit}
@@ -109,11 +109,11 @@ export const ClaudeSection = memo(function ClaudeSection({
           renderContent={(item) => {
             const headerEntries = Object.entries(item.headers || {});
             const excludedModels = item.excludedModels ?? [];
-            const statusData = statusBarCache.get(item.apiKey) || calculateStatusBarData([]);
+            const statusData =
+              statusBarCache.get(buildProviderConfigKey(item)) || calculateStatusBarData([]);
 
             return (
               <Fragment>
-                <div className="item-title">{t('ai_providers.claude_item_title')}</div>
                 <div className={styles.fieldGrid}>
                   {item.priority !== undefined &&
                     item.priority !== null &&
@@ -250,7 +250,6 @@ export const ClaudeSection = memo(function ClaudeSection({
             );
           }}
         />
-      </Card>
-    </>
+    </ProviderSectionShell>
   );
 });

@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react';
 
 export function useDelayedBoolean(value: boolean, falseDelayMs: number): boolean {
-  const [delayedValue, setDelayedValue] = useState(value);
+  const [hidden, setHidden] = useState(!value);
 
   useEffect(() => {
     if (value) {
-      setDelayedValue(true);
-      return undefined;
+      if (!hidden) return undefined;
+      const timeoutId = window.setTimeout(() => setHidden(false), 0);
+      return () => window.clearTimeout(timeoutId);
     }
 
-    if (!delayedValue) return undefined;
-    if (falseDelayMs <= 0) {
-      setDelayedValue(false);
-      return undefined;
-    }
+    if (hidden) return undefined;
 
-    const timeoutId = window.setTimeout(() => {
-      setDelayedValue(false);
-    }, falseDelayMs);
+    const timeoutId = window.setTimeout(
+      () => {
+        setHidden(true);
+      },
+      Math.max(0, falseDelayMs)
+    );
 
     return () => window.clearTimeout(timeoutId);
-  }, [delayedValue, falseDelayMs, value]);
+  }, [falseDelayMs, hidden, value]);
 
-  return delayedValue;
+  return value || !hidden;
 }

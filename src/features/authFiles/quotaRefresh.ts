@@ -14,6 +14,43 @@ import {
 
 type QuotaState = { status?: string; error?: string; errorStatus?: number } | undefined;
 
+const quotaRequestVersions = new Map<string, number>();
+const CODEX_REFRESH_SETTLE_DELAY_MS = 400;
+
+const waitForQuotaRefreshSettle = () =>
+  new Promise<void>((resolve) => window.setTimeout(resolve, CODEX_REFRESH_SETTLE_DELAY_MS));
+
+type ComparableQuotaWindow = { id?: string; usedPercent?: number | null };
+type ComparableCodexQuotaData = { windows?: ComparableQuotaWindow[] };
+
+const stabilizeCodexQuotaData = (first: unknown, confirmation: unknown): unknown => {
+  if (!first || typeof first !== 'object' || !confirmation || typeof confirmation !== 'object') {
+    return confirmation;
+  }
+
+  const firstData = first as ComparableCodexQuotaData;
+  const confirmationData = confirmation as ComparableCodexQuotaData;
+  if (!Array.isArray(firstData.windows) || !Array.isArray(confirmationData.windows)) {
+    return confirmation;
+  }
+
+  const firstWindows = new Map(
+    firstData.windows.filter((window) => window.id).map((window) => [window.id as string, window])
+  );
+  const windows = confirmationData.windows.map((window) => {
+    const previous = window.id ? firstWindows.get(window.id) : undefined;
+    const previousUsed = previous?.usedPercent;
+    const confirmationUsed = window.usedPercent;
+    return typeof previousUsed === 'number' &&
+      typeof confirmationUsed === 'number' &&
+      previousUsed > confirmationUsed
+      ? previous
+      : window;
+  });
+
+  return { ...(confirmation as Record<string, unknown>), windows };
+};
+
 type AuthFileQuotaConfig = {
   i18nPrefix: string;
   fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<unknown>;
@@ -65,8 +102,16 @@ export async function refreshAuthFileQuota(options: {
   disableControls: boolean;
   t: TFunction;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
+  stabilizeCodexRefresh?: boolean;
 }): Promise<AuthFileQuotaRefreshResult> {
-  const { file, quotaType, disableControls, t, onAuthFileUpdated } = options;
+  const {
+    file,
+    quotaType,
+    disableControls,
+    t,
+    onAuthFileUpdated,
+    stabilizeCodexRefresh = false,
+  } = options;
   const fileName = file.name;
 
   if (disableControls) return { status: 'skipped', fileName };
@@ -78,6 +123,10 @@ export async function refreshAuthFileQuota(options: {
 
   const config = getTypedQuotaConfig(quotaType);
   const updateQuotaState = getQuotaStateUpdater(quotaType);
+  const requestKey = `${quotaType}:${fileName}`;
+  const requestVersion = (quotaRequestVersions.get(requestKey) ?? 0) + 1;
+  quotaRequestVersions.set(requestKey, requestVersion);
+  const isLatestRequest = () => quotaRequestVersions.get(requestKey) === requestVersion;
 
   updateQuotaState((prev: Record<string, unknown>) => {
     const previousEntry = prev[fileName];
@@ -98,7 +147,18 @@ export async function refreshAuthFileQuota(options: {
   });
 
   try {
-    const data = await config.fetchQuota(file, t);
+    let data = await config.fetchQuota(file, t);
+    if (quotaType === 'codex' && stabilizeCodexRefresh) {
+      await waitForQuotaRefreshSettle();
+      if (!isLatestRequest()) return { status: 'skipped', fileName };
+      try {
+        const confirmation = await config.fetchQuota(file, t);
+        data = stabilizeCodexQuotaData(data, confirmation);
+      } catch {
+        // The first successful snapshot remains usable when the confirmation read fails.
+      }
+    }
+    if (!isLatestRequest()) return { status: 'skipped', fileName };
     const authFile = config.extractAuthFileUpdate?.(data) ?? null;
     if (authFile) {
       onAuthFileUpdated?.(authFile);
@@ -109,6 +169,7 @@ export async function refreshAuthFileQuota(options: {
     }));
     return authFile ? { status: 'success', fileName, authFile } : { status: 'success', fileName };
   } catch (err: unknown) {
+    if (!isLatestRequest()) return { status: 'skipped', fileName };
     const message = err instanceof Error ? err.message : t('common.unknown_error');
     const errorStatus = getStatusFromError(err);
     updateQuotaState((prev: Record<string, unknown>) => ({

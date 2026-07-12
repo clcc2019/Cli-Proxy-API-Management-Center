@@ -1,28 +1,21 @@
-import { Suspense, lazy, useDeferredValue, useMemo, useState } from 'react';
+import { Suspense, lazy, useCallback, useDeferredValue, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DeferredRender } from '@/components/common/DeferredRender';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { IconChartLine, IconChevronDown } from '@/components/ui/icons';
+import { IconChartLine } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useConfigStore, useThemeStore } from '@/stores';
-import { ChartLineSelector } from '@/components/usage/ChartLineSelector';
 import { DeferredUsageCard } from '@/components/usage/DeferredUsageCard';
 import { StatCards } from '@/components/usage/StatCards';
 import { UsageAnalysisSection } from '@/components/usage/UsageAnalysisSection';
 import { UsagePageHero } from '@/components/usage/UsagePageHero';
 import { UsageSectionIntro } from '@/components/usage/UsageSectionIntro';
-import { useUsageAggregateChartData } from '@/components/usage/hooks/useUsageAggregateChartData';
+import { UsageTrendsSection } from '@/components/usage/UsageTrendsSection';
 import { useUsageAggregateData } from '@/components/usage/hooks/useUsageAggregateData';
 import { useUsageViewState } from '@/components/usage/hooks/useUsageViewState';
 import { getAggregateWindowModelNames } from '@/utils/usageAggregate';
 import styles from './UsagePage.module.scss';
-
-const EMPTY_CHART_LINES: string[] = [];
-
-const LazyUsageChart = lazy(async () => ({
-  default: (await import('@/components/usage/UsageChart')).UsageChart,
-}));
 
 const LazyUsageDetailsSection = lazy(async () => ({
   default: (await import('@/components/usage/UsageDetailsSection')).UsageDetailsSection,
@@ -31,13 +24,6 @@ const LazyUsageDetailsSection = lazy(async () => ({
 const LazyUsageSupportSection = lazy(async () => ({
   default: (await import('@/components/usage/UsageSupportSection')).UsageSupportSection,
 }));
-
-const buildTrendChartFallback = (requestTitle: string, tokenTitle: string, caption: string) => (
-  <>
-    <DeferredUsageCard title={requestTitle} caption={caption} />
-    <DeferredUsageCard title={tokenTitle} caption={caption} />
-  </>
-);
 
 const buildDetailsFallback = (apiTitle: string, modelTitle: string, caption: string) => (
   <section className={styles.section}>
@@ -57,8 +43,6 @@ const buildSupportFallback = (credentialTitle: string, pricingTitle: string, cap
 
 export function UsagePage() {
   const { t } = useTranslation();
-  const [trendsCollapsed, setTrendsCollapsed] = useState(true);
-  const [analysisCollapsed, setAnalysisCollapsed] = useState(true);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isDark = useThemeStore((state) => state.resolvedTheme === 'dark');
   const config = useConfigStore((state) => state.config);
@@ -106,31 +90,10 @@ export function UsagePage() {
     () => getAggregateWindowModelNames(deferredWindow),
     [deferredWindow]
   );
-  const trendWindow = trendsCollapsed ? null : deferredWindow;
-  const trendChartLines = trendsCollapsed ? EMPTY_CHART_LINES : deferredChartLines;
-
-  const {
-    requestsPeriod,
-    requestsChartData,
-    requestsChartOptions,
-    setRequestsPeriod,
-    setTokensPeriod,
-    tokensChartData,
-    tokensChartOptions,
-    tokensPeriod,
-  } = useUsageAggregateChartData({
-    window: trendWindow,
-    chartLines: trendChartLines,
-    isDark,
-    isMobile,
-    preferredPeriod: preferredChartPeriod,
-    allModelsLabel: t('usage_stats.chart_line_all'),
-  });
-
-  const showComparePanel = visibleModelNames.length > 1;
-  const trendRequestsTitle = t('usage_stats.requests_trend');
-  const trendTokensTitle = t('usage_stats.tokens_trend');
   const deferredChartCaption = t('usage_stats.render_on_demand');
+  const handleRefresh = useCallback(() => {
+    void loadUsage({ force: true }).catch(() => {});
+  }, [loadUsage]);
   return (
     <main className={styles.container}>
       {loading && !usage && (
@@ -157,7 +120,7 @@ export function UsagePage() {
           onExport={handleExport}
           onExportDetailed={handleExportDetailed}
           onImport={handleImport}
-          onRefresh={() => void loadUsage().catch(() => {})}
+          onRefresh={handleRefresh}
           importInputRef={importInputRef}
           onImportChange={handleImportChange}
         />
@@ -183,80 +146,17 @@ export function UsagePage() {
         <StatCards window={deferredWindow} loading={loading} modelPrices={modelPrices} />
       </section>
 
-      <section id="usage-trends" className={styles.section}>
-        <UsageSectionIntro
-          title={t('usage_stats.trends_title')}
-          description={t('usage_stats.trends_desc')}
-          action={
-            <button
-              type="button"
-              className={styles.sectionToggle}
-              aria-expanded={!trendsCollapsed}
-              onClick={() => setTrendsCollapsed((current) => !current)}
-            >
-              <span
-                className={`${styles.sectionToggleIcon} ${
-                  !trendsCollapsed ? styles.sectionToggleIconExpanded : ''
-                }`}
-                aria-hidden="true"
-              >
-                <IconChevronDown size={14} />
-              </span>
-              <span>{t(trendsCollapsed ? 'common.expand' : 'common.collapse')}</span>
-            </button>
-          }
-        />
-        {!trendsCollapsed && (
-          <div className={styles.trendGrid}>
-            {showComparePanel && (
-              <div className={styles.trendSidebar}>
-                <ChartLineSelector
-                  chartLines={chartLines}
-                  modelNames={visibleModelNames}
-                  onChange={handleChartLinesChange}
-                />
-              </div>
-            )}
-
-            <div
-              className={[styles.trendCharts, !showComparePanel ? styles.trendChartsFull : '']
-                .filter(Boolean)
-                .join(' ')}
-            >
-              <Suspense
-                fallback={buildTrendChartFallback(
-                  trendRequestsTitle,
-                  trendTokensTitle,
-                  deferredChartCaption
-                )}
-              >
-                <LazyUsageChart
-                  title={trendRequestsTitle}
-                  period={requestsPeriod}
-                  onPeriodChange={setRequestsPeriod}
-                  chartData={requestsChartData}
-                  chartOptions={requestsChartOptions}
-                  loading={loading}
-                  isMobile={isMobile}
-                  emptyText={t('usage_stats.no_data')}
-                  tone="neutral"
-                />
-                <LazyUsageChart
-                  title={trendTokensTitle}
-                  period={tokensPeriod}
-                  onPeriodChange={setTokensPeriod}
-                  chartData={tokensChartData}
-                  chartOptions={tokensChartOptions}
-                  loading={loading}
-                  isMobile={isMobile}
-                  emptyText={t('usage_stats.no_data')}
-                  tone="violet"
-                />
-              </Suspense>
-            </div>
-          </div>
-        )}
-      </section>
+      <UsageTrendsSection
+        window={deferredWindow}
+        chartLines={chartLines}
+        chartDataLines={deferredChartLines}
+        modelNames={visibleModelNames}
+        isDark={isDark}
+        isMobile={isMobile}
+        loading={loading}
+        preferredPeriod={preferredChartPeriod}
+        onChartLinesChange={handleChartLinesChange}
+      />
 
       <div id="usage-analysis" className={styles.anchorBlock}>
         <UsageAnalysisSection
@@ -266,8 +166,6 @@ export function UsagePage() {
           isMobile={isMobile}
           hourWindowHours={hourWindowHours}
           modelPrices={modelPrices}
-          collapsed={analysisCollapsed}
-          onToggleCollapse={() => setAnalysisCollapsed((current) => !current)}
         />
       </div>
 

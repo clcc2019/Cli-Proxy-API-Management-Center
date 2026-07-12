@@ -9,6 +9,7 @@ interface ProviderListProps<T> {
   loading: boolean;
   keyField: (item: T, index: number) => string;
   renderContent: (item: T, index: number) => ReactNode;
+  renderTitle: (item: T, index: number) => ReactNode;
   onEdit?: (index: number) => void;
   onDelete?: (index: number) => void;
   emptyTitle: string;
@@ -33,6 +34,7 @@ function ProviderListImpl<T>({
   loading,
   keyField,
   renderContent,
+  renderTitle,
   onEdit,
   onDelete,
   emptyTitle,
@@ -91,9 +93,14 @@ function ProviderListImpl<T>({
           >
             <div className="provider-card-header">
               {leadingIcon && <span className="provider-card-avatar">{leadingIcon}</span>}
-              <span className={`provider-card-state ${rowDisabled ? 'is-disabled' : 'is-enabled'}`}>
-                {statusLabel}
-              </span>
+              <div className="provider-card-identity">
+                <div className="item-title">{renderTitle(item, index)}</div>
+                <span
+                  className={`provider-card-state ${rowDisabled ? 'is-disabled' : 'is-enabled'}`}
+                >
+                  {statusLabel}
+                </span>
+              </div>
               {extraActions && <div className="provider-card-toggle-slot">{extraActions}</div>}
             </div>
             <div className="item-meta">{renderContent(item, index)}</div>

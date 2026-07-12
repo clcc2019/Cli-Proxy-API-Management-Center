@@ -83,6 +83,20 @@ export interface CodexUsagePayload {
 export interface CodexRateLimitResetCredits {
   available_count?: number | string;
   availableCount?: number | string;
+  credits?: CodexRateLimitResetCredit[] | null;
+}
+
+export interface CodexRateLimitResetCredit {
+  id?: string;
+  reset_type?: string;
+  resetType?: string;
+  status?: string;
+  granted_at?: string | number | null;
+  grantedAt?: string | number | null;
+  expires_at?: string | number | null;
+  expiresAt?: string | number | null;
+  title?: string | null;
+  description?: string | null;
 }
 
 export interface CodexRateLimitResetCreditsPayload {
@@ -187,6 +201,7 @@ export interface CodexQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   windows: CodexQuotaWindow[];
   rateLimitResetCreditsAvailable?: number | null;
+  rateLimitResetCredits?: CodexRateLimitResetCredit[];
   planType?: string | null;
   rateLimitReachedType?: string | null;
   subscriptionActiveStart?: string | number | null;

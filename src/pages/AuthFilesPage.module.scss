@@ -2,12 +2,25 @@
 @use '../styles/mixins' as *;
 
 .container {
+  --auth-surface: color-mix(in srgb, #f8fafc 68%, var(--surface-raised));
+  --auth-surface-muted: color-mix(in srgb, #eef2f6 52%, var(--bg-secondary));
+  --auth-control-surface: color-mix(in srgb, #ffffff 72%, var(--bg-primary));
+  --auth-neutral-border: color-mix(in srgb, #94a3b8 24%, var(--border-color));
+  --auth-neutral-border-strong: color-mix(in srgb, #7c8da3 34%, var(--border-color));
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
+}
+
+:global([data-theme='dark']) .container {
+  --auth-surface: color-mix(in srgb, #20252b 72%, var(--surface-raised));
+  --auth-surface-muted: color-mix(in srgb, #252b32 64%, var(--bg-secondary));
+  --auth-control-surface: color-mix(in srgb, #2a3038 58%, var(--bg-primary));
+  --auth-neutral-border: color-mix(in srgb, #718096 32%, var(--border-color));
+  --auth-neutral-border-strong: color-mix(in srgb, #8a9aaf 42%, var(--border-color));
 }
 
 // 首屏下方的 OAuth 卡片：用 content-visibility:auto 让其在滚入视口前跳过渲染，
@@ -19,7 +32,8 @@
 
 .authFilesCard:global(.card) {
   border-radius: 14px;
-  border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface);
   box-shadow: var(--shadow-card);
 
   &:hover {
@@ -126,8 +140,9 @@
   border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--count-badge-text);
-  background-color: var(--count-badge-bg);
+  color: color-mix(in srgb, var(--info-color) 82%, var(--text-primary));
+  background: color-mix(in srgb, var(--info-color) 13%, var(--auth-surface-muted));
+  border: 1px solid color-mix(in srgb, var(--info-color) 24%, var(--auth-neutral-border));
   box-sizing: border-box;
 }
 
@@ -145,8 +160,20 @@
 .filterSection {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 18px;
+}
+
+.filterToolbarRow {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.5fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 1px 0;
+  contain: layout style;
 }
 
 .filterRail {
@@ -156,6 +183,7 @@
   padding: 0;
   border: 0;
   background: transparent;
+  min-width: 0;
 
   @include mobile {
     padding: 0;
@@ -190,9 +218,20 @@
 .filterTags {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 1px 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .filterTag {
@@ -200,15 +239,15 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 36px;
+  min-height: 38px;
   max-width: 100%;
   padding: 6px 10px 6px 6px;
   border-radius: 9px;
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.2;
-  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
+  border: 1px solid var(--auth-neutral-border);
+  background: color-mix(in srgb, var(--auth-control-surface) 74%, transparent);
   color: var(--text-secondary);
   box-sizing: border-box;
   cursor: pointer;
@@ -343,27 +382,23 @@
 
 .filterControlsPanel {
   position: relative;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 54%, transparent);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 18%, transparent), transparent 58%),
-    color-mix(in srgb, var(--bg-secondary) 34%, transparent);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 10px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 1px 0 rgba(15, 23, 42, 0.03);
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto 38px;
+  align-items: center;
+  gap: 8px;
+  box-shadow: none;
 }
 
 .searchToolbar {
   display: flex;
   align-items: stretch;
-  gap: 8px;
-  flex: 1 1 380px;
-  min-width: min(100%, 280px);
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
 }
 
 .pageQuotaRefreshButton:global(.btn.btn-sm) {
@@ -373,6 +408,7 @@
   min-height: 38px;
   height: 38px;
   padding: 0;
+  border-radius: 9px;
   border-color: color-mix(in srgb, #f59e0b 30%, var(--border-color));
   background: linear-gradient(
     180deg,
@@ -407,9 +443,9 @@
   align-items: center;
   height: 38px;
   padding: 0 10px 0 36px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
-  background: var(--bg-primary);
+  border-radius: 9px;
+  border: 1px solid var(--auth-neutral-border);
+  background: var(--auth-control-surface);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transition:
     border-color 0.18s ease,
@@ -421,9 +457,9 @@
   }
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
-    background: color-mix(in srgb, var(--primary-color) 5%, var(--bg-primary));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 14%, transparent);
+    border-color: color-mix(in srgb, var(--info-color) 54%, transparent);
+    background: color-mix(in srgb, var(--info-color) 5%, var(--auth-control-surface));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--info-color) 14%, transparent);
   }
 }
 
@@ -504,9 +540,9 @@
   justify-content: center;
   width: 38px;
   height: 38px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
-  background: var(--bg-primary);
+  border-radius: 9px;
+  border: 1px solid var(--auth-neutral-border);
+  background: var(--auth-control-surface);
   color: var(--text-secondary);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
   cursor: pointer;
@@ -532,12 +568,12 @@
 }
 
 .searchToolbarIconButtonActive {
-  border-color: color-mix(in srgb, var(--primary-color) 65%, transparent);
-  color: var(--primary-color);
-  background: color-mix(in srgb, var(--primary-color) 10%, var(--bg-primary));
+  border-color: color-mix(in srgb, var(--info-color) 62%, transparent);
+  color: color-mix(in srgb, var(--info-color) 88%, var(--text-primary));
+  background: color-mix(in srgb, var(--info-color) 11%, var(--auth-control-surface));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 6px 14px -12px color-mix(in srgb, var(--primary-color) 46%, transparent);
+    0 6px 14px -12px color-mix(in srgb, var(--info-color) 46%, transparent);
 }
 
 .searchToolbarPopover {
@@ -716,12 +752,68 @@
 .filterChipRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  flex: 1 1 300px;
+  gap: 8px;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   min-width: 0;
   margin-left: 0;
+}
+
+@media (max-width: 1080px) {
+  .filterControlsPanel {
+    grid-template-columns: minmax(160px, 1fr) auto 38px;
+  }
+}
+
+@media (max-width: 900px) {
+  .filterToolbarRow {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 640px) {
+  .filterSection {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .filterTags {
+    gap: 6px;
+    padding: 1px 1px 5px;
+    scroll-snap-type: x proximity;
+  }
+
+  .filterTag {
+    flex: 0 0 auto;
+    min-height: 34px;
+    scroll-snap-align: start;
+  }
+
+  .filterControlsPanel {
+    padding: 0;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 0.9fr) 38px;
+  }
+
+  .filterChipRow {
+    gap: 4px;
+  }
+
+  .filterChipRowLabel {
+    display: none;
+  }
+
+  .filterChipGroup {
+    flex: 1 1 0;
+    width: 100%;
+    min-height: 34px;
+  }
+
+  .filterChip {
+    flex: 1 1 0;
+    padding-inline: 6px;
+  }
 }
 
 .filterChipRowLabel {
@@ -831,10 +923,10 @@
 
 .filterChipGroup {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   align-items: center;
-  min-height: 40px;
+  min-height: 38px;
   min-width: 0;
   max-width: 100%;
 }
@@ -849,8 +941,8 @@
   max-width: 100%;
   padding: 0 12px;
   border-radius: $radius-full;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
+  border: 1px solid var(--auth-neutral-border);
+  background: color-mix(in srgb, var(--auth-control-surface) 76%, transparent);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
@@ -920,16 +1012,16 @@
 }
 
 .filterChipActive {
-  border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
-  background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-primary));
-  color: var(--primary-color);
+  border-color: color-mix(in srgb, var(--info-color) 58%, transparent);
+  background: color-mix(in srgb, var(--info-color) 12%, var(--auth-control-surface));
+  color: color-mix(in srgb, var(--info-color) 88%, var(--text-primary));
   box-shadow:
-    0 1px 0 color-mix(in srgb, var(--primary-color) 18%, transparent),
-    0 6px 14px -10px color-mix(in srgb, var(--primary-color) 40%, transparent);
+    0 1px 0 color-mix(in srgb, var(--info-color) 18%, transparent),
+    0 6px 14px -10px color-mix(in srgb, var(--info-color) 38%, transparent);
 
   &:hover {
-    color: var(--primary-color);
-    background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-primary));
+    color: color-mix(in srgb, var(--info-color) 92%, var(--text-primary));
+    background: color-mix(in srgb, var(--info-color) 16%, var(--auth-control-surface));
   }
 }
 
@@ -1086,20 +1178,21 @@
 // gap 使用 clamp 在 1280–1920px 区间平滑过渡，避免大屏间距过窄、小屏过宽
 .fileGrid {
   display: grid;
-  gap: clamp(10px, 0.6vw + 7px, 14px);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  column-gap: clamp(10px, 0.6vw + 7px, 14px);
+  row-gap: clamp(12px, 0.7vw + 8px, 16px);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
   // Hint browser to limit reflow scope to this subtree.
   contain: layout style;
 
   @include mobile {
-    gap: 10px;
+    gap: 12px;
     grid-template-columns: 1fr;
   }
 }
 
 // 配额视图卡片信息更密集，保留稍宽的最小宽度
 .fileGridQuotaManaged {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -1123,7 +1216,6 @@
   box-shadow: var(--shadow-card);
   animation: authFileCardEnter 150ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
-  will-change: opacity, transform;
   &::after {
     content: '';
     position: absolute;
@@ -1138,7 +1230,6 @@
     );
     transform: translate3d(-120%, 0, 0);
     animation: authFileSkeletonSheen 1.9s linear infinite;
-    will-change: transform;
     backface-visibility: hidden;
   }
 
@@ -1296,8 +1387,7 @@
   }
 }
 
-// 卡片顶部 provider 色带 —— 使用 --provider-accent 变量驱动，6 种提供商共用一套规则
-// 渐变更柔和，两端渐隐避免硬切线条
+// 配额提供商复用同一套色彩变量，左侧色标仍由基础卡片样式统一绘制。
 .antigravityCard,
 .claudeCard,
 .codexCard,
@@ -1309,18 +1399,6 @@
   --auth-card-tint: color-mix(in srgb, var(--provider-accent) 4%, transparent);
   --auth-card-hover-tint: color-mix(in srgb, var(--provider-accent) 8%, transparent);
   --auth-card-glow: color-mix(in srgb, var(--provider-accent) 12%, transparent);
-
-  &::before {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--provider-accent) 12%,
-      var(--provider-accent) 88%,
-      transparent
-    );
-    height: 1px;
-    opacity: 0.62;
-  }
 }
 
 .antigravityCard {
@@ -1837,7 +1915,8 @@
 .codexResetCreditsText {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 4px;
   min-width: 0;
   font-size: 11px;
@@ -1852,6 +1931,18 @@
     font-size: 11px;
     font-weight: 750;
   }
+}
+
+.codexResetCreditExpiry {
+  flex: 0 0 100%;
+  overflow: hidden;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .codexResetCreditButton:global(.btn.btn-sm) {
@@ -1904,18 +1995,14 @@
 }
 
 .fileCard {
-  --auth-card-border: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 10%,
-    color-mix(in srgb, var(--border-color) 68%, transparent)
-  );
+  --auth-card-border: var(--auth-neutral-border);
   --auth-card-border-hover: color-mix(
     in srgb,
-    var(--provider-accent, var(--primary-color)) 30%,
-    var(--border-color)
+    var(--provider-accent, var(--info-color)) 26%,
+    var(--auth-neutral-border-strong)
   );
-  --auth-card-sheen: color-mix(in srgb, #ffffff 92%, transparent);
-  --auth-card-tint: color-mix(in srgb, var(--provider-soft, var(--primary-color)) 12%, transparent);
+  --auth-card-sheen: color-mix(in srgb, #ffffff 54%, transparent);
+  --auth-card-tint: color-mix(in srgb, var(--provider-soft, var(--info-color)) 7%, transparent);
   --auth-card-hover-tint: color-mix(
     in srgb,
     var(--provider-soft, var(--primary-color)) 18%,
@@ -1964,12 +2051,8 @@
   --auth-stat-token-bg: color-mix(in srgb, #5577a3 11%, var(--surface-raised));
   --auth-stat-token-border: color-mix(in srgb, #5577a3 30%, transparent);
   --auth-stat-token-icon: #4c6f99;
-  --auth-action-border: color-mix(
-    in srgb,
-    var(--provider-accent, var(--border-color)) 18%,
-    var(--border-color)
-  );
-  --auth-action-bg: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
+  --auth-action-border: var(--auth-neutral-border);
+  --auth-action-bg: color-mix(in srgb, var(--auth-control-surface) 82%, transparent);
   --auth-action-text: color-mix(
     in srgb,
     var(--text-primary) 88%,
@@ -2010,49 +2093,50 @@
     color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 100%
   );
   --auth-toggle-off-label: var(--text-tertiary);
-  --auth-toggle-on-border: color-mix(in srgb, var(--primary-color) 70%, transparent);
+  --auth-toggle-on-border: color-mix(in srgb, var(--success-color) 68%, transparent);
   --auth-toggle-on-bg: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--primary-color) 88%, white),
-    var(--primary-color) 54%,
-    color-mix(in srgb, var(--primary-color) 78%, black)
+    color-mix(in srgb, var(--success-color) 86%, white),
+    var(--success-color) 56%,
+    color-mix(in srgb, var(--success-color) 76%, black)
   );
   --auth-toggle-on-label: #fff;
   --auth-toggle-thumb-bg: #fff;
   --auth-toggle-thumb-border: color-mix(in srgb, var(--border-color) 60%, transparent);
   position: relative;
   overflow: hidden;
+  container-type: inline-size;
+  container-name: auth-file-card;
   // 隔离每张卡片的布局与样式作用域，hover/选中态变化时重排重算限制在卡片自身子树，
   // 避免大网格下邻接卡片参与样式重算。
   contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 246px;
   // 静态背景一次绘制，hover 时仅切换 ::after 的 opacity，不再过渡 background
   background:
-    linear-gradient(180deg, var(--auth-card-sheen), transparent 46%),
-    linear-gradient(135deg, var(--auth-card-tint), transparent 52%), var(--surface-raised);
+    linear-gradient(180deg, var(--auth-card-sheen), transparent 38%),
+    linear-gradient(135deg, var(--auth-card-tint), transparent 46%), var(--auth-surface);
   border: 1px solid var(--auth-card-border);
   border-radius: 12px;
-  padding: 12px 12px 11px;
+  padding: 13px 13px 12px;
   display: flex;
   flex-direction: column;
   min-height: 100%;
   isolation: isolate;
   box-shadow:
-    var(--shadow-card),
-    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    0 8px 22px -20px rgba(15, 23, 42, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
   // 卡片本体不再过渡 transform，避免 hover/刷新时产生位移感。
   transition:
     box-shadow 160ms ease,
     border-color 160ms ease;
   animation: authFileCardEnter 150ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
-  // 入场用合成器属性（opacity/transform），提前提示浏览器分层，避免首帧抖动；
-  // 动画结束后由浏览器自动回收该提示。
-  will-change: opacity, transform;
 
   &:hover {
     box-shadow:
-      var(--shadow-card-hover),
-      0 14px 32px -24px var(--auth-card-glow),
+      0 14px 30px -22px rgba(15, 23, 42, 0.28),
+      0 14px 30px -24px var(--auth-card-glow),
       inset 0 1px 0 rgba(255, 255, 255, 0.52);
     border-color: var(--auth-card-border-hover);
 
@@ -2072,19 +2156,20 @@
       0 0 0 2px color-mix(in srgb, var(--primary-color) 22%, transparent);
   }
 
-  // subtle top highlight, not an expensive blurred gradient
+  // 顶部细线保留轻量的提供商识别，不占用卡片左右边界。
   &::before {
     content: '';
     position: absolute;
-    inset: 0 0 auto 0;
+    inset: 0 12px auto;
     height: 1px;
+    border-radius: 0 0 999px 999px;
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in srgb, var(--provider-accent, var(--primary-color)) 34%, transparent),
+      color-mix(in srgb, var(--provider-accent, var(--primary-color)) 48%, transparent),
       transparent
     );
-    opacity: 0.54;
+    opacity: 0.68;
     pointer-events: none;
     transition: opacity $transition-fast;
   }
@@ -2112,7 +2197,7 @@
 
   @include mobile {
     width: 100%;
-    padding: 14px 12px 12px;
+    padding: 13px 12px 12px;
     border-radius: 10px;
   }
 }
@@ -2133,23 +2218,24 @@
 
 @media (max-width: 640px) {
   .fileCard {
-    padding: 14px 12px 12px;
+    padding: 13px 12px 12px;
   }
 }
 
 .fileCardSelected {
-  border-color: color-mix(in srgb, var(--primary-color) 55%, transparent);
+  border-color: color-mix(in srgb, var(--info-color) 58%, var(--auth-neutral-border));
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--primary-color) 26%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--info-color) 24%, transparent),
     var(--shadow-card);
 
-  // 通过 ::before 顶部高光的色相覆盖 + ::after 主色提亮叠加，避免重绘 background
+  // 选中态加强顶部细线，并通过 ::after 提亮卡片底色。
   &::before {
     opacity: 1;
+    height: 2px;
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in srgb, var(--primary-color) 56%, transparent),
+      color-mix(in srgb, var(--info-color) 72%, transparent),
       transparent
     );
   }
@@ -2159,20 +2245,20 @@
     background:
       linear-gradient(
         180deg,
-        color-mix(in srgb, var(--primary-color) 10%, transparent),
+        color-mix(in srgb, var(--info-color) 9%, transparent),
         transparent 46%
       ),
       linear-gradient(
         135deg,
-        color-mix(in srgb, var(--primary-color) 10%, transparent),
+        color-mix(in srgb, var(--info-color) 9%, transparent),
         transparent 54%
       );
   }
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
+    border-color: color-mix(in srgb, var(--info-color) 66%, var(--auth-neutral-border));
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--primary-color) 32%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--info-color) 30%, transparent),
       var(--shadow-card-hover);
 
     &::after {
@@ -2432,15 +2518,22 @@
 
 .cardIdentityRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'name priority'
+    'type type';
   align-items: center;
-  gap: 4px 8px;
+  column-gap: 8px;
+  row-gap: 3px;
   min-width: 0;
   max-width: 100%;
 }
 
 .cardIdentityRowWithWarning {
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'name priority warning'
+    'type type type';
 }
 
 .cardIdentityRowNoBadges {
@@ -2452,6 +2545,7 @@
 }
 
 .cardIdentityWarning {
+  grid-area: warning;
   justify-self: end;
   align-self: start;
   display: inline-flex;
@@ -2464,14 +2558,23 @@
 }
 
 .cardTypeGroup {
+  grid-area: type;
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 4px;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
   padding: 1px 0;
+}
+
+.cardIdentityRow .fileNameRow {
+  grid-area: name;
+}
+
+.cardIdentityRow .priorityInlineRow {
+  grid-area: priority;
 }
 
 .cardBadgeRow {
@@ -2496,7 +2599,7 @@
       'name priority'
       'type type';
     column-gap: 6px;
-    row-gap: 2px;
+    row-gap: 3px;
   }
 
   .cardIdentityRowWithWarning {
@@ -2517,7 +2620,6 @@
   }
 
   .cardTypeGroup {
-    grid-area: type;
     justify-content: flex-start;
     flex-wrap: wrap;
     overflow: visible;
@@ -2540,6 +2642,7 @@
 
   .stateBadge,
   .planBadge,
+  .providerTypeBadge,
   .featureBadge {
     min-height: 18px;
     height: auto;
@@ -2649,6 +2752,23 @@
   text-overflow: ellipsis;
 }
 
+.providerTypeBadge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 11ch;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+}
+
 .featureBadge {
   display: inline-flex;
   align-items: center;
@@ -2744,7 +2864,9 @@
   font-family: inherit;
   color: var(--text-primary);
   line-height: 1.25;
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
@@ -2761,6 +2883,28 @@
     font-size: 14px;
     line-height: 1.35;
   }
+}
+
+.fileNameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileNameCopyIcon {
+  flex: 0 0 auto;
+  opacity: 0;
+  color: var(--text-tertiary);
+  transition:
+    opacity 140ms ease,
+    color 140ms ease;
+}
+
+.fileName:hover .fileNameCopyIcon,
+.fileName:focus-visible .fileNameCopyIcon {
+  opacity: 0.9;
+  color: currentColor;
 }
 
 .fileName:hover {
@@ -2781,10 +2925,14 @@
   }
 
   .fileName {
-    display: block;
+    display: inline-flex;
     font-size: 13px;
     line-height: 1.25;
     white-space: nowrap;
+  }
+
+  .fileNameCopyIcon {
+    opacity: 0.62;
   }
 
   .metaLabel {
@@ -3061,10 +3209,10 @@
   flex-direction: column;
   gap: 9px;
   padding: 9px 10px;
-  border: 1px solid var(--auth-card-inner-border);
-  border-radius: 8px;
-  background: var(--auth-card-inner-bg);
-  box-shadow: var(--auth-card-inner-shadow);
+  border: 0;
+  border-radius: 6px;
+  background: var(--auth-surface-muted);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 36%, transparent);
 
   @include mobile {
     gap: 8px;
@@ -4177,8 +4325,9 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 0;
+  padding: 0 0 0 6px;
   border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
   border-radius: 0;
   background: transparent;
   flex: 0 0 auto;
@@ -4431,6 +4580,7 @@
     gap: 6px;
     flex-wrap: nowrap;
     flex: 0 0 auto;
+    padding-left: 6px;
   }
 
   .cardStatusActions {
@@ -4633,22 +4783,82 @@
   }
 }
 
+// 按卡片自身宽度收纳操作。桌面多列布局下的窄卡片与移动端都保持稳定宽度，
+// 用户展开后再展示完整操作集，避免横向滚动和按钮挤压。
+@container auth-file-card (max-width: 390px) {
+  .cardActionsMain {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 7px;
+    overflow: visible;
+  }
+
+  .mobileActionsToggle:global(.btn.btn-sm) {
+    display: inline-flex;
+    flex: 0 0 38px;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+
+  .cardActionsContent {
+    display: none;
+    min-width: 0;
+  }
+
+  .cardActionsMainExpanded {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .cardActionsMainExpanded .cardActionsContent {
+    display: flex;
+    flex: 1 1 calc(100% - 45px);
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .cardActionsMainExpanded .cardActionCluster,
+  .cardActionsMainExpanded .cardUtilityActions {
+    flex-wrap: wrap;
+    width: auto;
+    min-width: 0;
+  }
+
+  .cardActionsMainExpanded .cardStatusActions {
+    flex: 0 0 60px;
+    min-width: 60px;
+    max-width: 60px;
+  }
+
+  .cardRefreshActions {
+    margin-left: auto;
+  }
+
+  .iconButton:global(.btn.btn-sm),
+  .refreshActionButton:global(.btn.btn-sm) {
+    flex: 0 0 38px;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+}
+
 :global([data-theme='dark']) {
   .filterControlsPanel {
-    border-color: color-mix(in srgb, var(--border-color) 72%, transparent);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 58%),
-      color-mix(in srgb, var(--bg-secondary) 50%, transparent);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 1px 0 rgba(0, 0, 0, 0.22);
+    border-color: var(--auth-neutral-border);
+    background: var(--auth-surface-muted);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .searchToolbarField,
   .searchToolbarIconButton,
   .pageInfo {
-    background: color-mix(in srgb, var(--bg-primary) 74%, transparent);
-    border-color: color-mix(in srgb, var(--border-color) 82%, transparent);
+    background: var(--auth-control-surface);
+    border-color: var(--auth-neutral-border);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
@@ -4661,20 +4871,20 @@
   }
 
   .pagination {
-    border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
-    background: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
+    border-color: var(--auth-neutral-border);
+    background: var(--auth-surface-muted);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .batchActionBar {
-    border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
-    background: color-mix(in srgb, var(--bg-primary) 78%, transparent);
+    border-color: var(--auth-neutral-border-strong);
+    background: color-mix(in srgb, var(--auth-surface) 94%, transparent);
     box-shadow: 0 20px 46px -22px rgba(0, 0, 0, 0.72);
   }
 
   .batchSelectionText {
-    border-color: color-mix(in srgb, var(--primary-active) 34%, var(--border-color));
-    background: color-mix(in srgb, var(--primary-active) 14%, transparent);
+    border-color: color-mix(in srgb, var(--info-color) 38%, var(--auth-neutral-border));
+    background: color-mix(in srgb, var(--info-color) 14%, transparent);
   }
 
   .listSurface :global(.empty-state) {
@@ -4686,22 +4896,14 @@
   }
 
   .fileCard {
-    --auth-card-border: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-active)) 18%,
-      color-mix(in srgb, var(--border-color) 72%, transparent)
-    );
+    --auth-card-border: var(--auth-neutral-border);
     --auth-card-border-hover: color-mix(
       in srgb,
-      var(--provider-accent, var(--primary-active)) 30%,
-      var(--border-color)
+      var(--provider-accent, var(--info-color)) 28%,
+      var(--auth-neutral-border-strong)
     );
     --auth-card-sheen: color-mix(in srgb, #ffffff 16%, transparent);
-    --auth-card-tint: color-mix(
-      in srgb,
-      var(--provider-soft, var(--primary-active)) 4%,
-      transparent
-    );
+    --auth-card-tint: color-mix(in srgb, var(--provider-soft, var(--info-color)) 4%, transparent);
     --auth-card-hover-tint: color-mix(
       in srgb,
       var(--provider-soft, var(--primary-active)) 7%,
@@ -4750,12 +4952,8 @@
     --auth-stat-token-bg: rgba(85, 119, 163, 0.22);
     --auth-stat-token-border: rgba(85, 119, 163, 0.46);
     --auth-stat-token-icon: #a8c0de;
-    --auth-action-border: color-mix(
-      in srgb,
-      var(--provider-accent, var(--border-color)) 20%,
-      var(--border-color)
-    );
-    --auth-action-bg: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
+    --auth-action-border: var(--auth-neutral-border);
+    --auth-action-bg: color-mix(in srgb, var(--auth-control-surface) 84%, transparent);
     --auth-action-text: color-mix(
       in srgb,
       var(--text-primary) 88%,
@@ -4796,12 +4994,12 @@
       color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
     );
     --auth-toggle-off-label: var(--text-tertiary);
-    --auth-toggle-on-border: color-mix(in srgb, var(--primary-active) 70%, transparent);
+    --auth-toggle-on-border: color-mix(in srgb, var(--success-color) 68%, transparent);
     --auth-toggle-on-bg: linear-gradient(
       135deg,
-      color-mix(in srgb, var(--primary-active) 92%, white),
-      var(--primary-active) 54%,
-      color-mix(in srgb, var(--primary-active) 80%, black)
+      color-mix(in srgb, var(--success-color) 88%, white),
+      var(--success-color) 56%,
+      color-mix(in srgb, var(--success-color) 76%, black)
     );
     --auth-toggle-on-label: #fff;
     --auth-toggle-thumb-bg: linear-gradient(
@@ -4812,7 +5010,7 @@
     --auth-toggle-thumb-border: rgba(255, 255, 255, 0.18);
     background:
       linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
-      linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--surface-raised);
+      linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--auth-surface);
     border-color: var(--auth-card-border);
     box-shadow:
       var(--shadow-card),
@@ -4828,7 +5026,7 @@
     }
 
     &:hover {
-      border-color: color-mix(in srgb, var(--primary-active) 44%, var(--border-color));
+      border-color: var(--auth-card-border-hover);
       box-shadow: 0 10px 28px -20px rgba(0, 0, 0, 0.58);
     }
   }
@@ -4842,7 +5040,7 @@
   .fileCard.kimiCard {
     background:
       linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
-      linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--surface-raised);
+      linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--auth-surface);
     box-shadow: var(--shadow-card);
   }
 
@@ -4871,9 +5069,9 @@
   }
 
   .fileCardSelected {
-    border-color: color-mix(in srgb, var(--primary-active) 65%, transparent);
+    border-color: color-mix(in srgb, var(--info-color) 62%, var(--auth-neutral-border));
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--primary-active) 32%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--info-color) 30%, transparent),
       0 14px 36px -22px rgba(0, 0, 0, 0.7),
       inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
@@ -5235,14 +5433,49 @@
   max-width: 100%;
   margin: 18px auto 0;
   padding: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  border: 1px solid var(--auth-neutral-border);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--bg-secondary) 34%, transparent);
+  background: var(--auth-surface-muted);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
   animation: authFilePaginationEnter 160ms ease-out both;
 
   > :global(.btn.btn-sm) {
     min-width: 74px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pagination {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 7px;
+    margin-top: 14px;
+    padding: 7px;
+  }
+
+  .pagination > :global(.btn.btn-sm) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pagination > :global(.btn.btn-sm):first-child {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .pagination > :global(.btn.btn-sm):last-child {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .pageInfo {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 30px;
+    padding-inline: 8px;
+    font-size: 12px;
   }
 }
 
@@ -5283,8 +5516,8 @@
   gap: $spacing-sm;
   padding: 10px 12px;
   border-radius: $radius-lg;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 84%, transparent);
+  border: 1px solid var(--auth-neutral-border-strong);
+  background: color-mix(in srgb, var(--auth-surface) 92%, transparent);
   --glass-blur: 12px;
   backdrop-filter: var(--glass-backdrop-filter);
   -webkit-backdrop-filter: var(--glass-backdrop-filter);
@@ -5331,9 +5564,9 @@
   align-items: center;
   min-height: 30px;
   padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
+  border: 1px solid color-mix(in srgb, var(--info-color) 30%, var(--auth-neutral-border));
   border-radius: 999px;
-  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  background: color-mix(in srgb, var(--info-color) 10%, transparent);
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
@@ -5371,9 +5604,18 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   padding: 0 12px;
-  background: color-mix(in srgb, var(--bg-primary) 70%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 52%, transparent);
+  background: var(--auth-control-surface);
+  border: 1px solid var(--auth-neutral-border);
   border-radius: 9px;
+}
+
+@media (max-width: 640px) {
+  .pageInfo {
+    min-width: 0;
+    min-height: 30px;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
 }
 
 // OAuth 模型禁用

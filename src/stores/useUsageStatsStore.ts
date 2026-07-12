@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { usageApi } from '@/services/api';
+import { normalizeUsageDetailsRecentLimit, usageApi } from '@/services/api/usage';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
   collectUsageDetails,
@@ -81,9 +81,7 @@ const getErrorMessage = (error: unknown) =>
       : i18n.t('usage_stats.loading_error');
 
 const normalizeDetailsLimit = (value: unknown): number | null => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return Math.floor(parsed);
+  return normalizeUsageDetailsRecentLimit(value) ?? null;
 };
 
 const canSatisfyUsageRequest = (existing: UsageRequestProfile, request: UsageRequestProfile) => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authFilesApi } from '@/services/api/authFiles';
 import type { ProviderKeyConfig } from '@/types';
@@ -7,6 +7,7 @@ import type { CredentialInfo } from '@/types/sourceInfo';
 import { maskApiKey } from '@/utils/format';
 import { parseTimestampMs } from '@/utils/timestamp';
 import { buildSourceInfoMap, resolveSourceDisplay } from '@/utils/sourceResolver';
+import { useAuthStore } from '@/stores';
 import {
   calculateCost,
   collectUsageDetails,
@@ -18,7 +19,14 @@ import {
 } from '@/utils/usage';
 
 /** Maximum number of recent request events to retain & render. */
-export const REQUEST_EVENT_ROWS_LIMIT = 30;
+export const REQUEST_EVENT_ROWS_LIMIT = 20;
+const EMPTY_CREDENTIAL_INFO_MAP = new Map<string, CredentialInfo>();
+const AUTH_FILE_MAP_STALE_TIME_MS = 240_000;
+const authFileMapCache = new Map<
+  string,
+  { map: Map<string, CredentialInfo>; fetchedAt: number }
+>();
+const authFileMapRequests = new Map<string, Promise<Map<string, CredentialInfo>>>();
 
 export type RequestEventTokenKind = 'in' | 'out' | 'reasoning' | 'cached';
 
@@ -51,6 +59,7 @@ export interface RequestEventRow {
   tokenParts: RequestEventTokenPart[];
   totalTokens: number;
   totalCost: number;
+  searchText: string;
 }
 
 export interface UseRequestEventRowsOptions {
@@ -71,6 +80,47 @@ const toNumber = (value: unknown): number => {
   return parsed;
 };
 
+const loadAuthFileMap = (scopeKey: string): Promise<Map<string, CredentialInfo>> => {
+  const cached = authFileMapCache.get(scopeKey);
+  if (cached && Date.now() - cached.fetchedAt < AUTH_FILE_MAP_STALE_TIME_MS) {
+    return Promise.resolve(cached.map);
+  }
+
+  const inFlight = authFileMapRequests.get(scopeKey);
+  if (inFlight) return inFlight;
+
+  const request = authFilesApi
+    .list({ codexSubscription: 'skip', summary: true })
+    .then((res) => {
+      const files = Array.isArray(res) ? res : (res as { files?: AuthFileItem[] })?.files;
+      if (!Array.isArray(files)) {
+        authFileMapCache.set(scopeKey, {
+          map: EMPTY_CREDENTIAL_INFO_MAP,
+          fetchedAt: Date.now(),
+        });
+        return EMPTY_CREDENTIAL_INFO_MAP;
+      }
+
+      const map = new Map<string, CredentialInfo>();
+      files.forEach((file) => {
+        const key = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
+        if (!key) return;
+        map.set(key, {
+          name: file.name || key,
+          type: (file.type || file.provider || '').toString(),
+        });
+      });
+      authFileMapCache.set(scopeKey, { map, fetchedAt: Date.now() });
+      return map;
+    })
+    .finally(() => {
+      authFileMapRequests.delete(scopeKey);
+    });
+
+  authFileMapRequests.set(scopeKey, request);
+  return request;
+};
+
 const buildRequestEventTokenParts = ({
   inputTokens,
   outputTokens,
@@ -88,6 +138,55 @@ const buildRequestEventTokenParts = ({
   if (reasoningTokens > 0) parts.push({ kind: 'reasoning', value: reasoningTokens });
   if (cachedTokens > 0) parts.push({ kind: 'cached', value: cachedTokens });
   return parts;
+};
+
+const areTokenPartsEqual = (
+  left: RequestEventTokenPart[],
+  right: RequestEventTokenPart[]
+): boolean =>
+  left === right ||
+  (left.length === right.length &&
+    left.every(
+      (part, index) =>
+        part.kind === right[index]?.kind && part.value === right[index]?.value
+    ));
+
+const areRequestEventRowsEqual = (
+  left: RequestEventRow,
+  right: RequestEventRow
+): boolean =>
+  left.id === right.id &&
+  left.timestampLabel === right.timestampLabel &&
+  left.timeOfDay === right.timeOfDay &&
+  left.model === right.model &&
+  left.modelReasoningEffort === right.modelReasoningEffort &&
+  left.source === right.source &&
+  left.sourceType === right.sourceType &&
+  left.authIndex === right.authIndex &&
+  left.apiKeyMasked === right.apiKeyMasked &&
+  left.failed === right.failed &&
+  left.errorMessage === right.errorMessage &&
+  left.latencyMs === right.latencyMs &&
+  left.totalTokens === right.totalTokens &&
+  left.totalCost === right.totalCost &&
+  left.searchText === right.searchText &&
+  areTokenPartsEqual(left.tokenParts, right.tokenParts);
+
+const reuseRequestEventRowReferences = (
+  previousRows: RequestEventRow[],
+  nextRows: RequestEventRow[]
+): RequestEventRow[] => {
+  if (previousRows.length === 0) return nextRows;
+
+  const previousById = new Map(previousRows.map((row) => [row.id, row]));
+  let changed = previousRows.length !== nextRows.length;
+  const reused = nextRows.map((row, index) => {
+    const previous = previousById.get(row.id);
+    const next = previous && areRequestEventRowsEqual(previous, row) ? previous : row;
+    if (next !== previousRows[index]) changed = true;
+    return next;
+  });
+  return changed ? reused : previousRows;
 };
 
 const formatTimeOfDay = (date: Date | null, locale: string): string => {
@@ -169,36 +268,45 @@ export function useRequestEventRows({
   codexConfigs,
 }: UseRequestEventRowsOptions): UseRequestEventRowsReturn {
   const { i18n } = useTranslation();
-  const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(
-    new Map()
-  );
+  const apiBase = useAuthStore((state) => state.apiBase);
+  const managementKey = useAuthStore((state) => state.managementKey);
+  const authScopeKey = `${apiBase ?? ''}::${managementKey ?? ''}`;
+  const [authFileMapState, setAuthFileMapState] = useState<{
+    scopeKey: string;
+    map: Map<string, CredentialInfo>;
+  }>(() => ({
+    scopeKey: authScopeKey,
+    map: authFileMapCache.get(authScopeKey)?.map ?? EMPTY_CREDENTIAL_INFO_MAP,
+  }));
+  const authFileMap =
+    authFileMapState.scopeKey === authScopeKey
+      ? authFileMapState.map
+      : (authFileMapCache.get(authScopeKey)?.map ?? EMPTY_CREDENTIAL_INFO_MAP);
+  const previousRowsRef = useRef<RequestEventRow[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    authFilesApi
-      .list({ codexSubscription: 'skip', summary: true })
-      .then((res) => {
-        if (cancelled) return;
-        const files = Array.isArray(res)
-          ? res
-          : (res as { files?: AuthFileItem[] })?.files;
-        if (!Array.isArray(files)) return;
-        const map = new Map<string, CredentialInfo>();
-        files.forEach((file) => {
-          const key = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
-          if (!key) return;
-          map.set(key, {
-            name: file.name || key,
-            type: (file.type || file.provider || '').toString(),
-          });
-        });
-        setAuthFileMap(map);
+    const cached = authFileMapCache.get(authScopeKey);
+    if (cached && Date.now() - cached.fetchedAt < AUTH_FILE_MAP_STALE_TIME_MS) {
+      const timeoutId = window.setTimeout(() => {
+        setAuthFileMapState((previous) =>
+          previous.scopeKey === authScopeKey && previous.map === cached.map
+            ? previous
+            : { scopeKey: authScopeKey, map: cached.map }
+        );
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    void loadAuthFileMap(authScopeKey)
+      .then((map) => {
+        if (!cancelled) setAuthFileMapState({ scopeKey: authScopeKey, map });
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [authScopeKey]);
 
   const sourceInfoMap = useMemo(
     () =>
@@ -215,7 +323,8 @@ export function useRequestEventRows({
       REQUEST_EVENT_ROWS_LIMIT
     );
 
-    return details.map((detail, index) => {
+    const idOccurrences = new Map<string, number>();
+    const nextRows = details.map((detail) => {
       const timestamp = detail.timestamp;
       const timestampMs =
         typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
@@ -229,6 +338,7 @@ export function useRequestEventRows({
           ? '-'
           : String(authIndexRaw);
       const apiKey = String(detail.api_key ?? '').trim();
+      const apiKeyMasked = apiKey ? maskApiKey(apiKey) : '-';
       const sourceInfo = resolveSourceDisplay(
         sourceRaw,
         authIndexRaw,
@@ -270,9 +380,23 @@ export function useRequestEventRows({
           ? detail.error_message.trim()
           : '';
       const safeTimestampMs = Number.isNaN(timestampMs) ? 0 : timestampMs;
+      const idBase = [timestamp, model, sourceRaw || source, authIndex, apiKey].join('\u0000');
+      const occurrence = idOccurrences.get(idBase) ?? 0;
+      idOccurrences.set(idBase, occurrence + 1);
+      const searchText = [
+        model,
+        modelReasoningEffort,
+        source,
+        sourceType,
+        authIndex,
+        apiKeyMasked,
+        errorMessage,
+      ]
+        .join(' ')
+        .toLocaleLowerCase();
 
       return {
-        id: `${timestamp}-${model}-${sourceRaw || source}-${authIndex}-${index}`,
+        id: `${idBase}\u0000${occurrence}`,
         timestamp,
         timestampMs: safeTimestampMs,
         timestampLabel: date
@@ -286,7 +410,7 @@ export function useRequestEventRows({
         sourceType,
         authIndex,
         apiKey,
-        apiKeyMasked: apiKey ? maskApiKey(apiKey) : '-',
+        apiKeyMasked,
         failed: detail.failed === true,
         errorMessage,
         latencyMs,
@@ -297,8 +421,15 @@ export function useRequestEventRows({
         tokenParts,
         totalTokens,
         totalCost,
+        searchText,
       };
     });
+    const rowsWithStableReferences = reuseRequestEventRowReferences(
+      previousRowsRef.current,
+      nextRows
+    );
+    previousRowsRef.current = rowsWithStableReferences;
+    return rowsWithStableReferences;
   }, [authFileMap, i18n.language, modelPrices, sourceInfoMap, usage]);
 
   const hasLatencyData = useMemo(

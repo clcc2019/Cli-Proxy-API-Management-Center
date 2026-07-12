@@ -5,7 +5,12 @@ import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useNotificationStore, useQuotaStore } from '@/stores';
 import { authFilesApi } from '@/services/api';
-import type { AuthFileItem, CodexQuotaState, CodexRateLimitResetConsumePayload } from '@/types';
+import type {
+  AuthFileItem,
+  CodexQuotaState,
+  CodexRateLimitResetConsumePayload,
+  CodexRateLimitResetCredit,
+} from '@/types';
 import { normalizeAuthIndex } from '@/utils/usage';
 import { resolveQuotaErrorMessage, type QuotaProviderType } from '@/features/authFiles/constants';
 import { QuotaProgressBar } from '@/features/authFiles/components/QuotaProgressBar';
@@ -52,6 +57,28 @@ const resolveConsumeCode = (payload: CodexRateLimitResetConsumePayload): string 
   return String(code).trim();
 };
 
+const resetCreditExpirationTime = (credit: CodexRateLimitResetCredit): number | null => {
+  const raw = credit.expires_at ?? credit.expiresAt;
+  if (raw === null || raw === undefined || raw === '') return null;
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric)) {
+    const milliseconds = numeric < 1e12 ? numeric * 1000 : numeric;
+    return Number.isFinite(milliseconds) ? milliseconds : null;
+  }
+  const parsed = new Date(String(raw)).getTime();
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+const formatResetCreditExpiration = (timestamp: number): string =>
+  new Date(timestamp).toLocaleString(undefined, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
 const resolveAuthFileSnapshot = (
   file: AuthFileItem,
   payload: CodexRateLimitResetConsumePayload
@@ -80,6 +107,7 @@ function useAuthFileQuotaRefresh(props: AuthFileQuotaSectionProps) {
       disableControls,
       t,
       onAuthFileUpdated: props.onAuthFileUpdated,
+      stabilizeCodexRefresh: quotaType === 'codex',
     });
 
     if (result.status === 'success') {
@@ -177,6 +205,54 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   );
   const codexQuota = quotaType === 'codex' ? (quota as CodexQuotaState | undefined) : undefined;
   const resetCreditCount = codexQuota?.rateLimitResetCreditsAvailable ?? null;
+  const resetCreditExpiration = useMemo(() => {
+    const credits = (codexQuota?.rateLimitResetCredits ?? [])
+      .filter((credit) => {
+        const status = String(credit.status ?? '')
+          .trim()
+          .toLowerCase();
+        return status === '' || status === 'available';
+      })
+      .map((credit) => ({ credit, expiresAt: resetCreditExpirationTime(credit) }))
+      .sort(
+        (left, right) =>
+          (left.expiresAt ?? Number.MAX_SAFE_INTEGER) - (right.expiresAt ?? Number.MAX_SAFE_INTEGER)
+      );
+    if (credits.length === 0) {
+      return {
+        nearestLabel: null,
+        tooltip:
+          resetCreditCount && resetCreditCount > 0
+            ? t('codex_quota.reset_credit_expiry_unknown')
+            : '',
+      };
+    }
+    const lines = credits.map(({ expiresAt }, index) =>
+      expiresAt === null
+        ? t('codex_quota.reset_credit_never_expires_item', { index: index + 1 })
+        : t('codex_quota.reset_credit_expires_item', {
+            index: index + 1,
+            time: formatResetCreditExpiration(expiresAt),
+          })
+    );
+    if (resetCreditCount !== null && resetCreditCount > credits.length) {
+      lines.push(
+        t('codex_quota.reset_credit_expiry_partial', {
+          count: resetCreditCount - credits.length,
+        })
+      );
+    }
+    const nearest = credits.find(({ expiresAt }) => expiresAt !== null)?.expiresAt ?? null;
+    return {
+      nearestLabel:
+        nearest === null
+          ? t('codex_quota.reset_credit_never_expires')
+          : t('codex_quota.reset_credit_nearest_expiry', {
+              time: formatResetCreditExpiration(nearest),
+            }),
+      tooltip: lines.join('\n'),
+    };
+  }, [codexQuota?.rateLimitResetCredits, resetCreditCount, t]);
   const showResetCredits = quotaType === 'codex' && quotaStatus === 'success';
   const canConsumeResetCredit =
     showResetCredits &&
@@ -266,11 +342,21 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           <div className={styles.codexResetCredits}>
             <div className={styles.codexResetCreditsText}>
               <span className={styles.codexPlanLabel}>{t('codex_quota.reset_credit_label')}</span>
-              <span className={styles.codexPlanValue}>
+              <span
+                className={styles.codexPlanValue}
+                title={resetCreditExpiration.tooltip || undefined}
+                aria-label={resetCreditExpiration.tooltip || undefined}
+                tabIndex={resetCreditExpiration.tooltip ? 0 : undefined}
+              >
                 {resetCreditCount === null
                   ? t('codex_quota.reset_credit_unknown')
                   : t('codex_quota.reset_credit_count', { count: resetCreditCount })}
               </span>
+              {resetCreditExpiration.nearestLabel ? (
+                <span className={styles.codexResetCreditExpiry}>
+                  {resetCreditExpiration.nearestLabel}
+                </span>
+              ) : null}
             </div>
             <Button
               variant="secondary"

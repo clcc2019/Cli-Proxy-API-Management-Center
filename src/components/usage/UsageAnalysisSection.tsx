@@ -1,4 +1,4 @@
-import { Suspense, lazy, memo } from 'react';
+import { Suspense, lazy, memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconChevronDown } from '@/components/ui/icons';
 import { DeferredRender } from '@/components/common/DeferredRender';
@@ -36,10 +36,19 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
   isMobile,
   hourWindowHours,
   modelPrices,
-  collapsed = false,
+  collapsed: controlledCollapsed,
   onToggleCollapse,
 }: UsageAnalysisSectionProps) {
   const { t } = useTranslation();
+  const [internalCollapsed, setInternalCollapsed] = useState(true);
+  const collapsed = controlledCollapsed ?? internalCollapsed;
+  const handleToggleCollapse = useCallback(() => {
+    if (onToggleCollapse) {
+      onToggleCollapse();
+      return;
+    }
+    setInternalCollapsed((current) => !current);
+  }, [onToggleCollapse]);
   const deferredChartCaption = t('usage_stats.render_on_demand');
   const latencyTrendTitle = t('usage_stats.latency_trend');
   const costTrendTitle = t('usage_stats.cost_trend');
@@ -51,24 +60,22 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
         title={t('usage_stats.analysis_title')}
         description={t('usage_stats.analysis_desc')}
         action={
-          onToggleCollapse ? (
-            <button
-              type="button"
-              className={styles.sectionToggle}
-              aria-expanded={!collapsed}
-              onClick={onToggleCollapse}
+          <button
+            type="button"
+            className={styles.sectionToggle}
+            aria-expanded={!collapsed}
+            onClick={handleToggleCollapse}
+          >
+            <span
+              className={`${styles.sectionToggleIcon} ${
+                !collapsed ? styles.sectionToggleIconExpanded : ''
+              }`}
+              aria-hidden="true"
             >
-              <span
-                className={`${styles.sectionToggleIcon} ${
-                  !collapsed ? styles.sectionToggleIconExpanded : ''
-                }`}
-                aria-hidden="true"
-              >
-                <IconChevronDown size={14} />
-              </span>
-              <span>{t(collapsed ? 'common.expand' : 'common.collapse')}</span>
-            </button>
-          ) : undefined
+              <IconChevronDown size={14} />
+            </span>
+            <span>{t(collapsed ? 'common.expand' : 'common.collapse')}</span>
+          </button>
         }
       />
       {!collapsed && (

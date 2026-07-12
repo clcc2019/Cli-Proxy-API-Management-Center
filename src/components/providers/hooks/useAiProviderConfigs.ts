@@ -5,6 +5,7 @@ import { useConfigStore, useNotificationStore } from '@/stores';
 import type { OpenAICompatibilityConfig, ProviderKeyConfig } from '@/types';
 import {
   buildOpenAICompatibilityConfigKey,
+  findOpenAICompatibilityConfigIndex,
   findProviderKeyConfigIndex,
   buildProviderSwitchingKey,
   hasDisableAllModelsRule,
@@ -37,10 +38,11 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
   const configClaudeApiKeys = useConfigStore((state) => state.config?.claudeApiKeys);
   const configOpenAICompatibility = useConfigStore((state) => state.config?.openAICompatibility);
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
-  const clearCache = useConfigStore((state) => state.clearCache);
   const isCacheValid = useConfigStore((state) => state.isCacheValid);
 
-  const hasMounted = useRef(false);
+  const isMountedRef = useRef(false);
+  const loadRequestVersionRef = useRef(0);
+  const switchingKeysRef = useRef<Set<string>>(new Set());
   const [loading, setLoading] = useState(() => !isCacheValid());
   const [error, setError] = useState('');
   const [codexConfigs, setCodexConfigs] = useState<ProviderKeyConfig[]>(() =>
@@ -70,11 +72,10 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
         setClaudeConfigs(next);
       }
       updateConfigValue(section, next);
-      clearCache(section);
 
       return next;
     },
-    [clearCache, updateConfigValue]
+    [updateConfigValue]
   );
 
   const commitOpenAIConfigs = useCallback(
@@ -82,36 +83,36 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       const next = [...configs];
       setOpenAIConfigs(next);
       updateConfigValue('openai-compatibility', next);
-      clearCache('openai-compatibility');
       return next;
     },
-    [clearCache, updateConfigValue]
+    [updateConfigValue]
   );
 
   const beginSwitching = useCallback((key: string) => {
-    setSwitchingKeys((prev) => {
-      if (prev.has(key)) return prev;
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
+    if (switchingKeysRef.current.size > 0) return false;
+    loadRequestVersionRef.current += 1;
+    const next = new Set([key]);
+    switchingKeysRef.current = next;
+    setSwitchingKeys(next);
+    return true;
   }, []);
 
   const endSwitching = useCallback((key: string) => {
-    setSwitchingKeys((prev) => {
-      if (!prev.has(key)) return prev;
-      const next = new Set(prev);
-      next.delete(key);
-      return next;
-    });
+    if (!switchingKeysRef.current.has(key)) return;
+    const next = new Set(switchingKeysRef.current);
+    next.delete(key);
+    switchingKeysRef.current = next;
+    if (isMountedRef.current) setSwitchingKeys(next);
   }, []);
 
   const loadConfigs = useCallback(async () => {
+    if (switchingKeysRef.current.size > 0) return;
+    const requestVersion = (loadRequestVersionRef.current += 1);
     const hasValidCache = isCacheValid();
-    if (!hasValidCache) {
+    if (!hasValidCache && isMountedRef.current) {
       setLoading(true);
     }
-    setError('');
+    if (isMountedRef.current) setError('');
 
     try {
       const [codex, claude, openAI] = await Promise.all([
@@ -119,6 +120,7 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
         providersApi.getClaudeConfigs(),
         providersApi.getOpenAICompatConfigs(),
       ]);
+      if (!isMountedRef.current || requestVersion !== loadRequestVersionRef.current) return;
       const sortedCodex = sortToggleableProviderConfigs(codex);
       const sortedClaude = sortToggleableProviderConfigs(claude);
       setCodexConfigs(sortedCodex);
@@ -128,17 +130,26 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       updateConfigValue('claude-api-key', claude);
       updateConfigValue('openai-compatibility', openAI);
     } catch (err: unknown) {
+      if (!isMountedRef.current || requestVersion !== loadRequestVersionRef.current) return;
       const message = getErrorMessage(err) || t('notification.refresh_failed');
       setError(message);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current && requestVersion === loadRequestVersionRef.current) {
+        setLoading(false);
+      }
     }
   }, [isCacheValid, t, updateConfigValue]);
 
   useEffect(() => {
-    if (hasMounted.current) return;
-    hasMounted.current = true;
-    loadConfigs();
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      loadRequestVersionRef.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    void loadConfigs();
   }, [loadConfigs]);
 
   useEffect(() => {
@@ -160,8 +171,7 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       if (!current) return;
 
       const switchingKey = buildProviderSwitchingKey(provider, current);
-      if (switchingKeys.has(switchingKey)) return;
-      beginSwitching(switchingKey);
+      if (!beginSwitching(switchingKey)) return;
 
       const previousList = source;
       const nextExcluded = enabled
@@ -192,7 +202,7 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
         endSwitching(switchingKey);
       }
     },
-    [beginSwitching, commitConfigs, endSwitching, getConfigs, showNotification, switchingKeys, t]
+    [beginSwitching, commitConfigs, endSwitching, getConfigs, showNotification, t]
   );
 
   const setCodexPoolMode = useCallback(
@@ -201,8 +211,7 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       if (!current) return;
 
       const switchingKey = buildProviderSwitchingKey('codex', current);
-      if (switchingKeys.has(switchingKey)) return;
-      beginSwitching(switchingKey);
+      if (!beginSwitching(switchingKey)) return;
 
       const previousList = codexConfigs;
       const nextItem: ProviderKeyConfig = { ...current, poolMode: enabled };
@@ -241,7 +250,6 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       commitConfigs,
       endSwitching,
       showNotification,
-      switchingKeys,
       t,
     ]
   );
@@ -251,6 +259,8 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       const source = getConfigs(provider);
       const entry = source[index];
       if (!entry) return;
+      const switchingKey = buildProviderSwitchingKey(provider, entry);
+      if (!beginSwitching(switchingKey)) return;
 
       try {
         if (provider === 'codex') {
@@ -274,26 +284,38 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       } catch (err: unknown) {
         const message = getErrorMessage(err);
         showNotification(`${t('notification.delete_failed')}: ${message}`, 'error');
+      } finally {
+        endSwitching(switchingKey);
       }
     },
-    [commitConfigs, getConfigs, showNotification, t]
+    [beginSwitching, commitConfigs, endSwitching, getConfigs, showNotification, t]
   );
 
   const deleteOpenAICompatEntry = useCallback(
     async (index: number) => {
       const entry = openAIConfigs[index];
       if (!entry) return;
+      const switchingKey = `openai:${buildOpenAICompatibilityConfigKey(entry, index)}`;
+      if (!beginSwitching(switchingKey)) return;
 
       try {
-        await providersApi.deleteOpenAICompatConfig(index);
-        commitOpenAIConfigs(openAIConfigs.filter((_, idx) => idx !== index));
+        const latest = await providersApi.getOpenAICompatConfigs();
+        const rawIndex = findOpenAICompatibilityConfigIndex(latest, entry);
+        if (rawIndex >= 0) {
+          await providersApi.deleteOpenAICompatConfig(rawIndex);
+        }
+        commitOpenAIConfigs(
+          rawIndex >= 0 ? latest.filter((_, idx) => idx !== rawIndex) : latest
+        );
         showNotification(t('notification.openai_provider_deleted'), 'success');
       } catch (err: unknown) {
         const message = getErrorMessage(err);
         showNotification(`${t('notification.delete_failed')}: ${message}`, 'error');
+      } finally {
+        endSwitching(switchingKey);
       }
     },
-    [commitOpenAIConfigs, openAIConfigs, showNotification, t]
+    [beginSwitching, commitOpenAIConfigs, endSwitching, openAIConfigs, showNotification, t]
   );
 
   const setOpenAICompatPoolMode = useCallback(
@@ -303,8 +325,7 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
 
       const itemKey = buildOpenAICompatibilityConfigKey(current, index);
       const switchingKey = `openai:${itemKey}`;
-      if (switchingKeys.has(switchingKey)) return;
-      beginSwitching(switchingKey);
+      if (!beginSwitching(switchingKey)) return;
 
       const previousList = openAIConfigs;
       const nextItem: OpenAICompatibilityConfig = { ...current, poolMode: enabled };
@@ -333,7 +354,46 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       endSwitching,
       openAIConfigs,
       showNotification,
-      switchingKeys,
+      t,
+    ]
+  );
+
+  const setOpenAICompatEnabled = useCallback(
+    async (index: number, enabled: boolean) => {
+      const current = openAIConfigs[index];
+      if (!current) return;
+
+      const switchingKey = `openai:${buildOpenAICompatibilityConfigKey(current, index)}`;
+      if (!beginSwitching(switchingKey)) return;
+
+      const previousList = openAIConfigs;
+      const nextList = previousList.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, disabled: !enabled } : item
+      );
+      commitOpenAIConfigs(nextList);
+
+      try {
+        await providersApi.saveOpenAICompatConfigs(nextList);
+        showNotification(
+          enabled ? t('notification.config_enabled') : t('notification.config_disabled'),
+          'success'
+        );
+      } catch (err: unknown) {
+        commitOpenAIConfigs(previousList);
+        showNotification(
+          `${t('notification.update_failed')}: ${getErrorMessage(err)}`,
+          'error'
+        );
+      } finally {
+        endSwitching(switchingKey);
+      }
+    },
+    [
+      beginSwitching,
+      commitOpenAIConfigs,
+      endSwitching,
+      openAIConfigs,
+      showNotification,
       t,
     ]
   );
@@ -375,10 +435,12 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
     switchingByProvider,
     isSwitching: switchingKeys.size > 0,
     providerSummary,
+    loadConfigs,
     deleteProviderEntry,
     deleteOpenAICompatEntry,
     setConfigEnabled,
     setCodexPoolMode,
+    setOpenAICompatEnabled,
     setOpenAICompatPoolMode,
   };
 }

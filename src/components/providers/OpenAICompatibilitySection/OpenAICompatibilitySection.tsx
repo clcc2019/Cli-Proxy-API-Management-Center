@@ -1,19 +1,20 @@
 import { Fragment, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { IconBot, IconKey, IconLink, IconShield, IconStar } from '@/components/ui/icons';
 import type { OpenAICompatibilityConfig } from '@/types';
 import styles from '@/pages/AiProvidersPage.module.scss';
 import { ProviderDetailRow, ProviderModelHeader } from '../ProviderCardParts';
 import { ProviderList } from '../ProviderList';
+import { ProviderSectionShell } from '../ProviderSectionShell';
 import { buildOpenAICompatibilityConfigKey } from '../utils';
 
 interface OpenAICompatibilitySectionProps {
   configs: OpenAICompatibilityConfig[];
   loading: boolean;
   disableControls: boolean;
+  isSwitching: boolean;
   switchingItemKeys?: ReadonlySet<string>;
   onAdd: () => void;
   onEdit: (index: number) => void;
@@ -25,6 +26,7 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
   configs,
   loading,
   disableControls,
+  isSwitching,
   switchingItemKeys,
   onAdd,
   onEdit,
@@ -32,7 +34,7 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
   onPoolModeToggle,
 }: OpenAICompatibilitySectionProps) {
   const { t } = useTranslation();
-  const actionsDisabled = disableControls || loading;
+  const actionsDisabled = disableControls || loading || isSwitching;
 
   const isItemSwitching = (item: OpenAICompatibilityConfig, index: number) =>
     switchingItemKeys
@@ -40,14 +42,15 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
       : false;
 
   return (
-    <Card
+    <ProviderSectionShell
       title={
         <span className={styles.cardTitle}>
           <IconBot size={18} />
           {t('ai_providers.openai_title')}
         </span>
       }
-      extra={
+      count={configs.length}
+      action={
         <Button size="sm" onClick={onAdd} disabled={actionsDisabled}>
           {t('ai_providers.openai_add_button')}
         </Button>
@@ -60,6 +63,7 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
         rowClassName={`${styles.providerConfigItem} ${styles.providerConfigItemOpenAI}`}
         leadingIcon={<IconBot size={18} />}
         keyField={(item, index) => buildOpenAICompatibilityConfigKey(item, index)}
+        renderTitle={(item) => item.name || t('ai_providers.openai_item_title')}
         emptyTitle={t('ai_providers.openai_empty_title')}
         emptyDescription={t('ai_providers.openai_empty_desc')}
         onEdit={onEdit}
@@ -83,7 +87,6 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
 
           return (
             <Fragment>
-              <div className="item-title">{item.name || t('ai_providers.openai_item_title')}</div>
               <div className={styles.fieldGrid}>
                 {item.priority !== undefined &&
                   item.priority !== null &&
@@ -159,6 +162,6 @@ export const OpenAICompatibilitySection = memo(function OpenAICompatibilitySecti
           );
         }}
       />
-    </Card>
+    </ProviderSectionShell>
   );
 });

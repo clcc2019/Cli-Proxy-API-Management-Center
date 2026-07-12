@@ -789,6 +789,9 @@ export const authFilesApi = {
     if (authIndex) {
       params.set('auth_index', authIndex);
     }
+    if (codexSubscription === 'refresh') {
+      params.set('_ts', Date.now().toString());
+    }
     try {
       return await apiClient.get<CodexUsagePayload>(
         `/auth-files/codex-usage?${params.toString()}`,

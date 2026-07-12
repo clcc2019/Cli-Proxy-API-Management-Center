@@ -13,6 +13,7 @@ import type {
   ClaudeQuotaWindow,
   ClaudeUsagePayload,
   CodexRateLimitInfo,
+  CodexRateLimitResetCredit,
   CodexRateLimitResetCredits,
   CodexQuotaState,
   CodexUsageWindow,
@@ -179,6 +180,10 @@ const buildCodexQuotaWindows = (
   const codeReviewLimit =
     payload.code_review_rate_limit ?? payload.codeReviewRateLimit ?? undefined;
   const additionalRateLimits = payload.additional_rate_limits ?? payload.additionalRateLimits ?? [];
+  const reachedTypeRaw = payload.rate_limit_reached_type ?? payload.rateLimitReachedType;
+  const reachedType = normalizeStringValue(
+    typeof reachedTypeRaw === 'string' ? reachedTypeRaw : reachedTypeRaw?.kind
+  )?.toLowerCase();
   const windows: CodexQuotaWindow[] = [];
 
   const addWindow = (
@@ -188,13 +193,17 @@ const buildCodexQuotaWindows = (
     labelParams: Record<string, string | number> | undefined,
     window?: CodexUsageWindow | null,
     limitReached?: boolean,
-    allowed?: boolean
+    allowed?: boolean,
+    explicitlyReached = false
   ) => {
     if (!window) return;
     const resetLabel = formatCodexResetLabel(window);
     const usedPercentRaw = normalizeNumberValue(window.used_percent ?? window.usedPercent);
     const isLimitReached = Boolean(limitReached) || allowed === false;
-    const usedPercent = usedPercentRaw ?? (isLimitReached && resetLabel !== '-' ? 100 : null);
+    const usedPercent =
+      explicitlyReached && isLimitReached
+        ? 100
+        : (usedPercentRaw ?? (isLimitReached && resetLabel !== '-' ? 100 : null));
     windows.push({
       id,
       label,
@@ -212,6 +221,20 @@ const buildCodexQuotaWindows = (
 
   const rawLimitReached = rateLimit?.limit_reached ?? rateLimit?.limitReached;
   const rawAllowed = rateLimit?.allowed;
+  const primaryLimitReached =
+    reachedType === 'primary' ||
+    reachedType === 'primary_window' ||
+    reachedType === 'primary-window' ||
+    reachedType === 'five_hour' ||
+    reachedType === 'five-hour' ||
+    reachedType === '5h';
+  const secondaryLimitReached =
+    reachedType === 'secondary' ||
+    reachedType === 'secondary_window' ||
+    reachedType === 'secondary-window' ||
+    reachedType === 'weekly' ||
+    reachedType === 'week' ||
+    reachedType === '7d';
 
   const pickClassifiedWindows = (
     limitInfo?: CodexRateLimitInfo | null,
@@ -265,7 +288,8 @@ const buildCodexQuotaWindows = (
     undefined,
     rateWindows.fiveHourWindow,
     rawLimitReached,
-    rawAllowed
+    rawAllowed,
+    primaryLimitReached
   );
   addWindow(
     WINDOW_META.codeWeekly.id,
@@ -274,7 +298,8 @@ const buildCodexQuotaWindows = (
     undefined,
     rateWindows.weeklyWindow,
     rawLimitReached,
-    rawAllowed
+    rawAllowed,
+    secondaryLimitReached
   );
 
   const codeReviewWindows = pickClassifiedWindows(codeReviewLimit);
@@ -367,6 +392,16 @@ const resolveCodexRateLimitResetCreditsAvailable = (payload: CodexUsagePayload):
   return count === null ? null : Math.max(0, Math.trunc(count));
 };
 
+const resolveCodexRateLimitResetCreditDetails = (
+  payload: CodexUsagePayload
+): CodexRateLimitResetCredit[] => {
+  const raw = payload.rate_limit_reset_credits ?? payload.rateLimitResetCredits;
+  if (!raw || typeof raw !== 'object' || !Array.isArray(raw.credits)) return [];
+  return raw.credits.filter((credit): credit is CodexRateLimitResetCredit =>
+    Boolean(credit && typeof credit === 'object')
+  );
+};
+
 const resolveCodexUpdatedAuthFile = (
   file: AuthFileItem,
   payload: CodexUsagePayload
@@ -418,12 +453,21 @@ const fetchCodexQuota = async (
   subscriptionUntil: string | number | null;
   rateLimitReachedType: string | null;
   rateLimitResetCreditsAvailable: number | null;
+  rateLimitResetCredits: CodexRateLimitResetCredit[];
   windows: CodexQuotaWindow[];
 }> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   const planTypeFromFile = resolveCodexPlanType(file);
-  const payload = await authFilesApi.getCodexUsage(file.name, authIndex ?? undefined, 'refresh');
+  const [usagePayload, resetCreditsPayload] = await Promise.all([
+    authFilesApi.getCodexUsage(file.name, authIndex ?? undefined, 'refresh'),
+    authFilesApi.getCodexRateLimitResetCredits(file.name, authIndex ?? undefined).catch(() => null),
+  ]);
+  const detailedResetCredits =
+    resetCreditsPayload?.rate_limit_reset_credits ?? resetCreditsPayload?.rateLimitResetCredits;
+  const payload = detailedResetCredits
+    ? ({ ...usagePayload, rate_limit_reset_credits: detailedResetCredits } as CodexUsagePayload)
+    : usagePayload;
   if (!payload) {
     throw new Error(t('codex_quota.empty_windows'));
   }
@@ -446,6 +490,7 @@ const fetchCodexQuota = async (
   const windows = buildCodexQuotaWindows(payload, t, planTypeFromUsage ?? planTypeFromFile);
   const rateLimitReachedType = resolveCodexRateLimitReachedType(payload);
   const rateLimitResetCreditsAvailable = resolveCodexRateLimitResetCreditsAvailable(payload);
+  const rateLimitResetCredits = resolveCodexRateLimitResetCreditDetails(payload);
   const authFile = resolveCodexUpdatedAuthFile(file, payload);
   return {
     authFile,
@@ -455,6 +500,7 @@ const fetchCodexQuota = async (
     subscriptionUntil,
     rateLimitReachedType,
     rateLimitResetCreditsAvailable,
+    rateLimitResetCredits,
     windows,
   };
 };
@@ -790,6 +836,7 @@ export const CODEX_CONFIG: QuotaConfig<
     subscriptionUntil: string | number | null;
     rateLimitReachedType: string | null;
     rateLimitResetCreditsAvailable: number | null;
+    rateLimitResetCredits: CodexRateLimitResetCredit[];
     windows: CodexQuotaWindow[];
   }
 > = {
@@ -806,6 +853,7 @@ export const CODEX_CONFIG: QuotaConfig<
     subscriptionActiveDays: data.subscriptionActiveDays,
     subscriptionUntil: data.subscriptionUntil,
     rateLimitResetCreditsAvailable: data.rateLimitResetCreditsAvailable,
+    rateLimitResetCredits: data.rateLimitResetCredits,
   }),
   extractAuthFileUpdate: (data) => data.authFile,
   buildErrorState: (message, status) => ({

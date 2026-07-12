@@ -45,6 +45,8 @@ export type { UsagePageHeroProps } from './UsagePageHero';
 
 export { UsageAnalysisSection } from './UsageAnalysisSection';
 export type { UsageAnalysisSectionProps } from './UsageAnalysisSection';
+export { UsageTrendsSection } from './UsageTrendsSection';
+export type { UsageTrendsSectionProps } from './UsageTrendsSection';
 
 export { ChartLineSelector } from './ChartLineSelector';
 export type { ChartLineSelectorProps } from './ChartLineSelector';

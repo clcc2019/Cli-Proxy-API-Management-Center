@@ -67,6 +67,31 @@ export interface UsageDetailsOptions {
   compact?: boolean;
 }
 
+const DEFAULT_USAGE_DETAILS_RECENT_LIMIT = 20;
+const USAGE_DETAILS_RECENT_FALLBACKS = [10, 5, 1] as const;
+let acceptedUsageDetailsRecentLimit = DEFAULT_USAGE_DETAILS_RECENT_LIMIT;
+
+export const normalizeUsageDetailsRecentLimit = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return undefined;
+  return Math.min(Math.floor(parsed), acceptedUsageDetailsRecentLimit);
+};
+
+const isRecentTooLargeError = (error: unknown) =>
+  error instanceof Error && /\brecent\b.*\btoo large\b/i.test(error.message);
+
+const getUsageDetailsRequest = (recent: number | undefined, compact: boolean) =>
+  apiClient.get<Record<string, unknown>>('/usage/details', {
+    params:
+      recent === undefined
+        ? undefined
+        : {
+            recent,
+            ...(compact ? { compact: true } : {}),
+          },
+    timeout: USAGE_TIMEOUT_MS,
+  });
+
 export const usageApi = {
   /**
    * 获取轻量使用统计汇总
@@ -79,22 +104,28 @@ export const usageApi = {
   /**
    * 获取包含请求明细的使用统计
    */
-  getUsageDetails: (options: UsageDetailsOptions = {}) => {
-    const recent =
-      typeof options.recent === 'number' && Number.isFinite(options.recent) && options.recent > 0
-        ? Math.floor(options.recent)
-        : undefined;
+  getUsageDetails: async (options: UsageDetailsOptions = {}) => {
+    const recent = normalizeUsageDetailsRecentLimit(options.recent);
+    const compact = options.compact === true;
 
-    return apiClient.get<Record<string, unknown>>('/usage/details', {
-      params:
-        recent === undefined
-          ? undefined
-          : {
-              recent,
-              ...(options.compact === true ? { compact: true } : {}),
-            },
-      timeout: USAGE_TIMEOUT_MS,
-    });
+    try {
+      return await getUsageDetailsRequest(recent, compact);
+    } catch (error: unknown) {
+      if (recent === undefined || !isRecentTooLargeError(error)) throw error;
+
+      for (const fallback of USAGE_DETAILS_RECENT_FALLBACKS) {
+        if (fallback >= recent) continue;
+        try {
+          const response = await getUsageDetailsRequest(fallback, compact);
+          acceptedUsageDetailsRecentLimit = fallback;
+          return response;
+        } catch (fallbackError: unknown) {
+          if (!isRecentTooLargeError(fallbackError)) throw fallbackError;
+        }
+      }
+
+      throw error;
+    }
   },
 
   /**

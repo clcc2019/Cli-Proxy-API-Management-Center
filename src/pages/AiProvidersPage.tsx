@@ -1,38 +1,118 @@
-import { useCallback, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
+import { useAiProviderConfigs } from '@/components/providers/hooks/useAiProviderConfigs';
 import {
-  ClaudeSection,
-  CodexSection,
-  OpenAICompatibilitySection,
-  ProviderNav,
-  useAiProviderConfigs,
-  useProviderStats,
-} from '@/components/providers';
-import {
+  buildOpenAICompatibilityConfigKey,
+  buildProviderConfigKey,
   findOpenAICompatibilityConfigIndex,
   findProviderKeyConfigIndex,
-  getEnabledProviderConfigCount,
-  type ProviderKind,
+  hasDisableAllModelsRule,
 } from '@/components/providers/utils';
-import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
-import { useEventCallback } from '@/hooks/useEventCallback';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useAuthStore } from '@/stores';
-import { indexUsageDetailsBySource } from '@/utils/usageIndex';
-import styles from './AiProvidersPage.module.scss';
+import { Skeleton } from '@/components/ui/Skeleton';
+import type { OpenAICompatibilityConfig, ProviderKeyConfig } from '@/types';
+import { maskApiKey } from '@/utils/format';
+import { ProviderCategoryList } from '@/features/providers/components/ProviderCategoryList';
+import { ProviderHeaderCard } from '@/features/providers/components/ProviderHeaderCard';
+import {
+  ProviderResourcePanel,
+  type ProviderPanelControls,
+} from '@/features/providers/components/ProviderResourcePanel';
+import type {
+  ProviderBrand,
+  ProviderGroup,
+  ProviderResource,
+  ProviderSortBy,
+  SortDir,
+} from '@/features/providers/types';
+import { useTranslation } from 'react-i18next';
+import styles from '@/features/providers/ProvidersWorkbenchPage.module.scss';
 
-const getConnectionStatusKey = (status: string) => {
-  if (status === 'connected') return 'common.connected_status';
-  if (status === 'connecting') return 'common.connecting_status';
-  return 'common.disconnected_status';
+const formatDateTime = (date: Date, locale: string) =>
+  new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+
+const providerResourceFromKeyConfig = (
+  brand: 'codex' | 'claude',
+  config: ProviderKeyConfig,
+  index: number
+): ProviderResource => ({
+  id: `${brand}:${buildProviderConfigKey(config)}:${index}`,
+  brand,
+  originalIndex: index,
+  name: null,
+  identifier: config.apiKey || `${brand}-${index + 1}`,
+  apiKeyPreview: config.apiKey ? maskApiKey(config.apiKey) : null,
+  apiKey: config.apiKey || null,
+  authIndex: config.authIndex || null,
+  baseUrl: config.baseUrl || null,
+  proxyUrl: config.proxyUrl || null,
+  prefix: config.prefix || null,
+  modelCount: config.models?.length ?? 0,
+  models: (config.models ?? []).map((model) => model.name).filter(Boolean),
+  priority: config.priority ?? 0,
+  headerCount: Object.keys(config.headers ?? {}).length,
+  apiKeyEntryCount: 0,
+  disabled: hasDisableAllModelsRule(config.excludedModels),
+  flags: {
+    websockets: brand === 'codex' ? Boolean(config.websockets) : undefined,
+    cloakEnabled: brand === 'claude' ? Boolean(config.cloak) : undefined,
+  },
+  raw: config,
+});
+
+const providerResourceFromOpenAI = (
+  config: OpenAICompatibilityConfig,
+  index: number
+): ProviderResource => {
+  const firstApiKey = config.apiKeyEntries?.[0]?.apiKey ?? '';
+  return {
+    id: `openai:${buildOpenAICompatibilityConfigKey(config, index)}`,
+    brand: 'openaiCompatibility',
+    originalIndex: index,
+    name: config.name || null,
+    identifier: config.name || `openai-${index + 1}`,
+    apiKeyPreview: firstApiKey ? maskApiKey(firstApiKey) : null,
+    apiKey: null,
+    authIndex: config.authIndex || null,
+    baseUrl: config.baseUrl || null,
+    proxyUrl: config.apiKeyEntries?.[0]?.proxyUrl || null,
+    prefix: config.prefix || null,
+    modelCount: config.models?.length ?? 0,
+    models: (config.models ?? []).map((model) => model.name).filter(Boolean),
+    priority: config.priority ?? 0,
+    headerCount: Object.keys(config.headers ?? {}).length,
+    apiKeyEntryCount: config.apiKeyEntries?.length ?? 0,
+    disabled: Boolean(config.disabled),
+    flags: {},
+    raw: config,
+  };
+};
+
+const matchesFilter = (resource: ProviderResource, normalized: string) => {
+  if (!normalized) return true;
+  return [
+    resource.identifier,
+    resource.name,
+    resource.apiKeyPreview,
+    resource.baseUrl,
+    resource.proxyUrl,
+    resource.prefix,
+  ]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes(normalized));
 };
 
 export function AiProvidersPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
-  const disableControls = connectionStatus !== 'connected';
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
 
   const {
     codexConfigs,
@@ -43,207 +123,207 @@ export function AiProvidersPage() {
     rawOpenAIConfigs,
     loading,
     error,
-    switchingByProvider,
     isSwitching,
     providerSummary,
+    loadConfigs,
     deleteProviderEntry,
     deleteOpenAICompatEntry,
     setConfigEnabled,
-    setCodexPoolMode,
-    setOpenAICompatPoolMode,
+    setOpenAICompatEnabled,
   } = useAiProviderConfigs({ t });
 
-  const pageTransitionLayer = usePageTransitionLayer();
-  const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
-  const { keyStats, usageDetails, loadKeyStats, refreshKeyStats } = useProviderStats({
-    enabled: isCurrentLayer,
-  });
-  const usageDetailsBySource = useMemo(
-    () => indexUsageDetailsBySource(usageDetails),
-    [usageDetails]
+  const [activeBrand, setActiveBrand] = useState<ProviderBrand>('codex');
+  const [filter, setFilter] = useState('');
+  const [sortBy, setSortBy] = useState<ProviderSortBy>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(() => new Set());
+  const [updatedAt, setUpdatedAt] = useState(() => new Date());
+
+  const handleRefresh = useCallback(async () => {
+    await loadConfigs();
+    setUpdatedAt(new Date());
+  }, [loadConfigs]);
+
+  useHeaderRefresh(handleRefresh, isCurrentLayer);
+
+  const groups = useMemo<ProviderGroup[]>(
+    () => [
+      {
+        id: 'codex',
+        resources: codexConfigs.map((config, index) =>
+          providerResourceFromKeyConfig('codex', config, index)
+        ),
+      },
+      {
+        id: 'claude',
+        resources: claudeConfigs.map((config, index) =>
+          providerResourceFromKeyConfig('claude', config, index)
+        ),
+      },
+      {
+        id: 'openaiCompatibility',
+        resources: openAIConfigs.map(providerResourceFromOpenAI),
+      },
+    ],
+    [claudeConfigs, codexConfigs, openAIConfigs]
   );
 
-  useEffect(() => {
-    if (!isCurrentLayer) return;
-    void loadKeyStats().catch(() => {});
-  }, [isCurrentLayer, loadKeyStats]);
+  const activeGroup = groups.find((group) => group.id === activeBrand) ?? groups[0]!;
+  const availableModels = useMemo(
+    () => Array.from(new Set(activeGroup.resources.flatMap((resource) => resource.models))).sort(),
+    [activeGroup]
+  );
 
-  useHeaderRefresh(refreshKeyStats, isCurrentLayer);
+  const visibleResources = useMemo(() => {
+    const normalized = filter.trim().toLowerCase();
+    const filtered = activeGroup.resources.filter(
+      (resource) =>
+        matchesFilter(resource, normalized) &&
+        (selectedModels.size === 0 ||
+          resource.models.some((model) => selectedModels.has(model)))
+    );
+    return [...filtered].sort((left, right) => {
+      const result =
+        sortBy === 'priority'
+          ? left.priority - right.priority
+          : sortBy === 'recent-success'
+            ? left.originalIndex - right.originalIndex
+            : (left.name ?? left.identifier).localeCompare(right.name ?? right.identifier);
+      return sortDir === 'asc' ? result : -result;
+    });
+  }, [activeGroup.resources, filter, selectedModels, sortBy, sortDir]);
+
+  const toolbarControls: ProviderPanelControls = {
+    sortBy,
+    sortDir,
+    onSortBy: setSortBy,
+    onSortDir: setSortDir,
+    availableModels,
+    selectedModels,
+    onSelectedModelsChange: setSelectedModels,
+  };
 
   const openEditor = useCallback(
-    (path: string) => {
-      navigate(path, { state: { fromAiProviders: true } });
-    },
+    (path: string) => navigate(path, { state: { fromAiProviders: true } }),
     [navigate]
   );
 
-  const openProviderKeyEditor = useCallback(
-    (provider: ProviderKind, displayIndex: number) => {
-      const displayItems = provider === 'codex' ? codexConfigs : claudeConfigs;
-      const rawItems = provider === 'codex' ? rawCodexConfigs : rawClaudeConfigs;
-      const current = displayItems[displayIndex];
-      const rawIndex = current ? findProviderKeyConfigIndex(rawItems || displayItems, current) : -1;
+  const openResourceEditor = useCallback(
+    (resource: ProviderResource) => {
+      if (resource.brand === 'openaiCompatibility') {
+        const current = openAIConfigs[resource.originalIndex];
+        const rawIndex = current
+          ? findOpenAICompatibilityConfigIndex(rawOpenAIConfigs || openAIConfigs, current)
+          : resource.originalIndex;
+        openEditor(`/ai-providers/openai/${rawIndex >= 0 ? rawIndex : resource.originalIndex}`);
+        return;
+      }
 
-      openEditor(`/ai-providers/${provider}/${rawIndex >= 0 ? rawIndex : displayIndex}`);
-    },
-    [claudeConfigs, codexConfigs, openEditor, rawClaudeConfigs, rawCodexConfigs]
-  );
-
-  const openOpenAIEditor = useCallback(
-    (displayIndex: number) => {
-      const current = openAIConfigs[displayIndex];
+      const configs = resource.brand === 'codex' ? codexConfigs : claudeConfigs;
+      const rawConfigs = resource.brand === 'codex' ? rawCodexConfigs : rawClaudeConfigs;
+      const current = configs[resource.originalIndex];
       const rawIndex = current
-        ? findOpenAICompatibilityConfigIndex(rawOpenAIConfigs || openAIConfigs, current)
-        : -1;
-
-      openEditor(`/ai-providers/openai/${rawIndex >= 0 ? rawIndex : displayIndex}`);
+        ? findProviderKeyConfigIndex(rawConfigs || configs, current)
+        : resource.originalIndex;
+      openEditor(
+        `/ai-providers/${resource.brand}/${rawIndex >= 0 ? rawIndex : resource.originalIndex}`
+      );
     },
-    [openAIConfigs, openEditor, rawOpenAIConfigs]
-  );
-
-  const providerMeta = useMemo(
-    () => [
-      {
-        label: t('ai_providers.page_meta_configured_label'),
-        value: providerSummary.configured,
-      },
-      {
-        label: t('ai_providers.page_meta_enabled_label'),
-        value: providerSummary.enabled,
-      },
-      {
-        label: t('ai_providers.codex_title'),
-        value: getEnabledProviderConfigCount(codexConfigs),
-      },
-      {
-        label: t('ai_providers.claude_title'),
-        value: getEnabledProviderConfigCount(claudeConfigs),
-      },
-      {
-        label: t('ai_providers.openai_title'),
-        value: openAIConfigs.filter((item) => !item.disabled).length,
-      },
-    ],
     [
       claudeConfigs,
       codexConfigs,
       openAIConfigs,
-      providerSummary.configured,
-      providerSummary.enabled,
-      t,
+      openEditor,
+      rawClaudeConfigs,
+      rawCodexConfigs,
+      rawOpenAIConfigs,
     ]
   );
 
-  const handleCodexAdd = useEventCallback(() => openEditor('/ai-providers/codex/new'));
-  const handleCodexEdit = useEventCallback((index: number) =>
-    openProviderKeyEditor('codex', index)
+  const handleCreate = useCallback(() => {
+    const routeBrand = activeBrand === 'openaiCompatibility' ? 'openai' : activeBrand;
+    openEditor(`/ai-providers/${routeBrand}/new`);
+  }, [activeBrand, openEditor]);
+
+  const handleDelete = useCallback(
+    (resource: ProviderResource) => {
+      if (resource.brand === 'openaiCompatibility') {
+        void deleteOpenAICompatEntry(resource.originalIndex);
+      } else {
+        void deleteProviderEntry(resource.brand, resource.originalIndex);
+      }
+    },
+    [deleteOpenAICompatEntry, deleteProviderEntry]
   );
-  const handleCodexDelete = useEventCallback((index: number) => {
-    void deleteProviderEntry('codex', index);
-  });
-  const handleCodexToggle = useEventCallback((index: number, enabled: boolean) => {
-    void setConfigEnabled('codex', index, enabled);
-  });
-  const handleCodexPoolModeToggle = useEventCallback((index: number, enabled: boolean) => {
-    void setCodexPoolMode(index, enabled);
-  });
 
-  const handleClaudeAdd = useEventCallback(() => openEditor('/ai-providers/claude/new'));
-  const handleClaudeEdit = useEventCallback((index: number) =>
-    openProviderKeyEditor('claude', index)
+  const handleToggleDisabled = useCallback(
+    (resource: ProviderResource, disabled: boolean) => {
+      if (resource.brand === 'openaiCompatibility') {
+        void setOpenAICompatEnabled(resource.originalIndex, !disabled);
+      } else {
+        void setConfigEnabled(resource.brand, resource.originalIndex, !disabled);
+      }
+    },
+    [setConfigEnabled, setOpenAICompatEnabled]
   );
-  const handleClaudeDelete = useEventCallback((index: number) => {
-    void deleteProviderEntry('claude', index);
-  });
-  const handleClaudeToggle = useEventCallback((index: number, enabled: boolean) => {
-    void setConfigEnabled('claude', index, enabled);
-  });
-  const handleOpenAIAdd = useEventCallback(() => openEditor('/ai-providers/openai/new'));
-  const handleOpenAIEdit = useEventCallback((index: number) => openOpenAIEditor(index));
-  const handleOpenAIDelete = useEventCallback((index: number) => {
-    void deleteOpenAICompatEntry(index);
-  });
-  const handleOpenAIPoolModeToggle = useEventCallback((index: number, enabled: boolean) => {
-    void setOpenAICompatPoolMode(index, enabled);
-  });
 
-  return (
-    <div className={styles.container}>
-      <section className={styles.pageHeader}>
-        <div className={styles.pageHeaderMain}>
-          <span className={styles.pageEyebrow}>{t('ai_providers.page_eyebrow')}</span>
-          <h1 className={styles.pageTitle}>{t('ai_providers.title')}</h1>
-          <p className={styles.pageDescription}>{t('ai_providers.page_description')}</p>
-        </div>
+  const handleBrandSelect = useCallback((brand: ProviderBrand) => {
+    setActiveBrand(brand);
+    setFilter('');
+    setSelectedModels(new Set());
+  }, []);
 
-        <div className={styles.pageHeaderAside}>
-          <div className={styles.statusBadge}>{t(getConnectionStatusKey(connectionStatus))}</div>
-          <div className={styles.pageMetaGrid}>
-            {providerMeta.map((item) => (
-              <div key={item.label} className={styles.pageMetaItem}>
-                <span className={styles.pageMetaValue}>{item.value}</span>
-                <span className={styles.pageMetaLabel}>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className={styles.content}>
-        {error && (
-          <div className={styles.errorBanner} role="alert">
-            {error}
-          </div>
-        )}
-
-        <div id="provider-codex" className={styles.providerSectionAnchor}>
-          <CodexSection
-            configs={codexConfigs}
-            keyStats={keyStats}
-            usageDetailsBySource={usageDetailsBySource}
-            loading={loading}
-            disableControls={disableControls}
-            isSwitching={isSwitching}
-            switchingItemKeys={switchingByProvider.codex}
-            onAdd={handleCodexAdd}
-            onEdit={handleCodexEdit}
-            onDelete={handleCodexDelete}
-            onToggle={handleCodexToggle}
-            onPoolModeToggle={handleCodexPoolModeToggle}
-          />
-        </div>
-
-        <div id="provider-claude" className={styles.providerSectionAnchor}>
-          <ClaudeSection
-            configs={claudeConfigs}
-            keyStats={keyStats}
-            usageDetailsBySource={usageDetailsBySource}
-            loading={loading}
-            disableControls={disableControls}
-            isSwitching={isSwitching}
-            switchingItemKeys={switchingByProvider.claude}
-            onAdd={handleClaudeAdd}
-            onEdit={handleClaudeEdit}
-            onDelete={handleClaudeDelete}
-            onToggle={handleClaudeToggle}
-          />
-        </div>
-
-        <div id="provider-openai" className={styles.providerSectionAnchor}>
-          <OpenAICompatibilitySection
-            configs={openAIConfigs}
-            loading={loading}
-            disableControls={disableControls}
-            switchingItemKeys={switchingByProvider.openai}
-            onAdd={handleOpenAIAdd}
-            onEdit={handleOpenAIEdit}
-            onDelete={handleOpenAIDelete}
-            onPoolModeToggle={handleOpenAIPoolModeToggle}
-          />
+  if (loading && providerSummary.configured === 0) {
+    return (
+      <div className={styles.page}>
+        <Skeleton height={120} />
+        <div className={styles.layout}>
+          <Skeleton height={420} />
+          <Skeleton height={420} />
         </div>
       </div>
+    );
+  }
 
-      <ProviderNav />
+  return (
+    <div className={styles.page}>
+      <ProviderHeaderCard
+        totalActive={providerSummary.enabled}
+        totalResources={providerSummary.configured}
+        providerFamilies={groups.filter((group) => group.resources.length > 0).length}
+        updatedAtLabel={formatDateTime(updatedAt, i18n.language)}
+        isFetching={loading}
+        isNewDisabled={connectionStatus !== 'connected' || isSwitching}
+        onRefresh={() => void handleRefresh()}
+        onNew={handleCreate}
+      />
+
+      {error ? (
+        <div className={styles.errorBanner} role="alert">
+          {error}
+        </div>
+      ) : null}
+
+      <div className={styles.layout}>
+        <ProviderCategoryList
+          groups={groups}
+          activeBrand={activeGroup.id}
+          onSelect={handleBrandSelect}
+        />
+        <ProviderResourcePanel
+          group={activeGroup}
+          filter={filter}
+          onFilterChange={setFilter}
+          filteredResources={visibleResources}
+          disableMutations={connectionStatus !== 'connected' || isSwitching}
+          toolbarControls={toolbarControls}
+          onView={openResourceEditor}
+          onEdit={openResourceEditor}
+          onDelete={handleDelete}
+          onToggleDisabled={handleToggleDisabled}
+          onCreate={handleCreate}
+        />
+      </div>
     </div>
   );
 }

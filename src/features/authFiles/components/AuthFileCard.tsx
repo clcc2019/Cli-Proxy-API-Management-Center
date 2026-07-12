@@ -15,6 +15,7 @@ import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconChevronDown,
   IconChevronUp,
+  IconCopy,
   IconDownload,
   IconKey,
   IconModelCluster,
@@ -194,9 +195,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     () => (serviceTierPassthroughEnabled ? t('auth_files.service_tier_passthrough_badge') : null),
     [serviceTierPassthroughEnabled, t]
   );
-  const hasHeaderBadges =
-    hasRefreshToken || websocketsEnabled || Boolean(serviceTierPassthroughBadgeLabel);
-
   const quotaType = useMemo(() => {
     if (!quotaFilterType) return null;
     return resolveQuotaType(file) === quotaFilterType ? quotaFilterType : null;
@@ -335,6 +333,14 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     }),
     [typeColor]
   );
+  const providerBadgeStyle = useMemo<CSSProperties>(
+    () => ({
+      backgroundColor: typeColor.bg,
+      color: typeColor.text,
+      ...(typeColor.border ? { border: typeColor.border } : {}),
+    }),
+    [typeColor]
+  );
   const cardStyle = useMemo<CSSProperties>(() => {
     const nextStyle = {
       '--provider-accent': typeColor.text,
@@ -358,14 +364,10 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   }, [providerCardClass, selected, file.disabled]);
   const cardIdentityRowClassName = useMemo(
     () =>
-      [
-        styles.cardIdentityRow,
-        hasStatusWarning ? styles.cardIdentityRowWithWarning : '',
-        hasHeaderBadges ? '' : styles.cardIdentityRowNoBadges,
-      ]
+      [styles.cardIdentityRow, hasStatusWarning ? styles.cardIdentityRowWithWarning : '']
         .filter(Boolean)
         .join(' '),
-    [hasHeaderBadges, hasStatusWarning]
+    [hasStatusWarning]
   );
 
   const checkboxLabel = selected
@@ -404,44 +406,50 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     className={styles.fileName}
                     onClick={handleCopyName}
                     title={`${maskedAuthFileDisplayName} - ${t('common.copy')}`}
-                    aria-label={t('common.copy')}
+                    aria-label={`${t('common.copy')}: ${maskedAuthFileDisplayName}`}
                   >
-                    {maskedAuthFileDisplayName}
+                    <span className={styles.fileNameText}>{maskedAuthFileDisplayName}</span>
+                    <IconCopy className={styles.fileNameCopyIcon} size={13} aria-hidden="true" />
                   </button>
                 </div>
 
-                {hasHeaderBadges && (
-                  <div className={styles.cardTypeGroup}>
-                    {hasRefreshToken && (
-                      <span
-                        className={styles.refreshTokenBadge}
-                        title={t('auth_files.refresh_token_badge')}
-                        role="img"
-                        aria-label={t('auth_files.refresh_token_badge')}
-                      >
-                        R
-                      </span>
-                    )}
-                    {websocketsEnabled && (
-                      <span
-                        className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
-                        title={t('ai_providers.codex_websockets_hint')}
-                        role="img"
-                        aria-label={t('auth_files.websockets_enabled_badge')}
-                      >
-                        <IconSatellite size={13} aria-hidden="true" />
-                      </span>
-                    )}
-                    {serviceTierPassthroughBadgeLabel && (
-                      <span
-                        className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
-                        title={t('auth_files.service_tier_passthrough_hint')}
-                      >
-                        {serviceTierPassthroughBadgeLabel}
-                      </span>
-                    )}
-                  </div>
-                )}
+                <div className={styles.cardTypeGroup}>
+                  <span
+                    className={styles.providerTypeBadge}
+                    style={providerBadgeStyle}
+                    title={typeLabel}
+                  >
+                    {typeLabel}
+                  </span>
+                  {hasRefreshToken && (
+                    <span
+                      className={styles.refreshTokenBadge}
+                      title={t('auth_files.refresh_token_badge')}
+                      role="img"
+                      aria-label={t('auth_files.refresh_token_badge')}
+                    >
+                      R
+                    </span>
+                  )}
+                  {websocketsEnabled && (
+                    <span
+                      className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
+                      title={t('ai_providers.codex_websockets_hint')}
+                      role="img"
+                      aria-label={t('auth_files.websockets_enabled_badge')}
+                    >
+                      <IconSatellite size={13} aria-hidden="true" />
+                    </span>
+                  )}
+                  {serviceTierPassthroughBadgeLabel && (
+                    <span
+                      className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
+                      title={t('auth_files.service_tier_passthrough_hint')}
+                    >
+                      {serviceTierPassthroughBadgeLabel}
+                    </span>
+                  )}
+                </div>
 
                 {!isRuntimeOnly ? (
                   <div className={styles.priorityInlineRow}>

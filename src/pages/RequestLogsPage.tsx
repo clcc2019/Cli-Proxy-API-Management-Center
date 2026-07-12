@@ -3,6 +3,7 @@ import {
   type ReactNode,
   memo,
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -56,6 +57,9 @@ const LATENCY_TONE_CLASS: Record<LatencyTone, string> = {
   slow: styles.eventLatencySlow,
   verySlow: styles.eventLatencyVerySlow,
 };
+const FILTER_ALL_ICON = <IconFilterAll size={12} aria-hidden="true" />;
+const FILTER_SUCCESS_ICON = <IconCheck size={12} aria-hidden="true" />;
+const FILTER_FAILED_ICON = <IconX size={12} aria-hidden="true" />;
 
 interface RelativeLabels {
   justNow: string;
@@ -503,6 +507,7 @@ export function RequestLogsPage() {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLocaleLowerCase());
 
   const counts = useMemo(() => {
     let success = 0;
@@ -525,23 +530,9 @@ export function RequestLogsPage() {
         : rows.filter((row) =>
             statusFilter === 'success' ? !row.failed : row.failed
           );
-    const query = searchQuery.trim().toLocaleLowerCase();
-    if (!query) return baseRows;
-    return baseRows.filter((row) =>
-      [
-        row.model,
-        row.modelReasoningEffort,
-        row.source,
-        row.sourceType,
-        row.authIndex,
-        row.apiKeyMasked,
-        row.errorMessage,
-      ]
-        .join(' ')
-        .toLocaleLowerCase()
-        .includes(query)
-    );
-  }, [rows, searchQuery, statusFilter]);
+    if (!deferredSearchQuery) return baseRows;
+    return baseRows.filter((row) => row.searchText.includes(deferredSearchQuery));
+  }, [deferredSearchQuery, rows, statusFilter]);
 
   useVisibleInterval(
     () => {
@@ -687,7 +678,7 @@ export function RequestLogsPage() {
           <StatusFilterButton
             active={statusFilter === 'all'}
             count={counts.total}
-            icon={<IconFilterAll size={12} aria-hidden="true" />}
+            icon={FILTER_ALL_ICON}
             label={requestEventLabels.filterAll}
             onClick={handleSelectAll}
           />
@@ -695,7 +686,7 @@ export function RequestLogsPage() {
             active={statusFilter === 'success'}
             count={counts.success}
             disabled={counts.success === 0}
-            icon={<IconCheck size={12} aria-hidden="true" />}
+            icon={FILTER_SUCCESS_ICON}
             label={requestEventLabels.success}
             toneClassName={styles.statusFilterSuccess}
             onClick={handleSelectSuccess}
@@ -704,7 +695,7 @@ export function RequestLogsPage() {
             active={statusFilter === 'failed'}
             count={counts.failed}
             disabled={counts.failed === 0}
-            icon={<IconX size={12} aria-hidden="true" />}
+            icon={FILTER_FAILED_ICON}
             label={requestEventLabels.failure}
             toneClassName={styles.statusFilterFailed}
             onClick={handleSelectFailed}

@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -13,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useInterval } from '@/hooks/useInterval';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } from '@/hooks';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
@@ -45,12 +48,8 @@ import {
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
-import { AuthFileModelsModal } from '@/features/authFiles/components/AuthFileModelsModal';
-import { AuthFilesPrefixProxyEditorModal } from '@/features/authFiles/components/AuthFilesPrefixProxyEditorModal';
 import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
 import { SearchToolbar } from '@/features/authFiles/components/SearchToolbar';
-import { OAuthExcludedCard } from '@/features/authFiles/components/OAuthExcludedCard';
-import { OAuthModelAliasCard } from '@/features/authFiles/components/OAuthModelAliasCard';
 import { useAuthFilesData } from '@/features/authFiles/hooks/useAuthFilesData';
 import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModels';
 import { useAuthFilesOauth } from '@/features/authFiles/hooks/useAuthFilesOauth';
@@ -80,6 +79,27 @@ import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from
 import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
 import styles from './AuthFilesPage.module.scss';
 
+const AuthFileModelsModal = lazy(() =>
+  import('@/features/authFiles/components/AuthFileModelsModal').then((module) => ({
+    default: module.AuthFileModelsModal,
+  }))
+);
+const AuthFilesPrefixProxyEditorModal = lazy(() =>
+  import('@/features/authFiles/components/AuthFilesPrefixProxyEditorModal').then((module) => ({
+    default: module.AuthFilesPrefixProxyEditorModal,
+  }))
+);
+const OAuthExcludedCard = lazy(() =>
+  import('@/features/authFiles/components/OAuthExcludedCard').then((module) => ({
+    default: module.OAuthExcludedCard,
+  }))
+);
+const OAuthModelAliasCard = lazy(() =>
+  import('@/features/authFiles/components/OAuthModelAliasCard').then((module) => ({
+    default: module.OAuthModelAliasCard,
+  }))
+);
+
 const DEFAULT_REGULAR_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [3, 6, 9, 12, 15, 18];
 const AUTH_FILE_SKELETON_MAX = 12;
@@ -103,6 +123,7 @@ const EMPTY_AUTH_FILE_ITEMS: AuthFileItem[] = [];
 const EMPTY_AUTH_FILE_NAMES: string[] = [];
 const EMPTY_AUTH_FILE_PROVIDER_TYPES: string[] = [];
 const ALL_AUTH_FILE_TYPES = ['all'];
+const QUOTA_REFRESH_SPINNER_STYLE = { width: 15, height: 15 } as const;
 const EMPTY_CLAUDE_QUOTA: Record<string, ClaudeQuotaState> = {};
 const EMPTY_CODEX_QUOTA: Record<string, CodexQuotaState> = {};
 let previousFileUsageStatsByName: Map<string, KeyUsageBucket> | null = null;
@@ -457,7 +478,13 @@ export function AuthFilesPage() {
     serverPaginationEnabled,
   ]);
 
-  const { keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats } = useAuthFilesStats();
+  const {
+    keyUsageStats,
+    usageDetails,
+    loadKeyStats,
+    refreshKeyStats,
+    refreshStatusDetails,
+  } = useAuthFilesStats();
   const {
     files,
     selectedFiles,
@@ -747,6 +774,13 @@ export function AuthFilesPage() {
       void refreshKeyStats().catch(() => {});
     },
     isCurrentLayer ? 240_000 : null
+  );
+
+  useVisibleInterval(
+    () => {
+      void refreshStatusDetails().catch(() => {});
+    },
+    isCurrentLayer ? 60_000 : null
   );
 
   const hasListMetaTypeCounts = Boolean(listMeta.typeCounts);
@@ -1280,6 +1314,10 @@ export function AuthFilesPage() {
     t,
   ]);
 
+  const handlePageRefreshQuotaClick = useCallback(() => {
+    void handlePageRefreshQuota();
+  }, [handlePageRefreshQuota]);
+
   const openExcludedEditor = useCallback(
     (provider?: string) => {
       const providerValue = (provider || (filter !== 'all' ? String(filter) : '')).trim();
@@ -1624,15 +1662,15 @@ export function AuthFilesPage() {
         )}
 
         <div className={styles.filterSection}>
-          <FilterTagsRail
-            types={existingTypes}
-            activeFilter={filter}
-            typeCounts={filterTagTypeCounts}
-            resolvedTheme={resolvedTheme}
-            onSelect={handleFilterTagSelect}
-          />
+          <div className={styles.filterToolbarRow}>
+            <FilterTagsRail
+              types={existingTypes}
+              activeFilter={filter}
+              typeCounts={filterTagTypeCounts}
+              resolvedTheme={resolvedTheme}
+              onSelect={handleFilterTagSelect}
+            />
 
-          <div className={styles.filterContent}>
             <div className={styles.filterControlsPanel}>
               <SearchToolbar
                 search={search}
@@ -1649,25 +1687,6 @@ export function AuthFilesPage() {
                 onPageSizeChange={handlePageSizeCommit}
                 pageSizeLabel={t('auth_files.page_size_label')}
               />
-
-              <Button
-                variant="secondary"
-                size="sm"
-                className={`${styles.pageQuotaRefreshButton} ${pageQuotaRefreshing ? styles.quotaRefreshButtonSpinning : ''}`}
-                onClick={() => void handlePageRefreshQuota()}
-                disabled={pageQuotaRefreshDisabled}
-                aria-busy={pageQuotaRefreshing}
-                aria-label={t('auth_files.refresh_page_quota_aria')}
-                title={t('auth_files.refresh_page_quota_aria')}
-              >
-                <span className={styles.quotaRefreshIcon}>
-                  <span
-                    className={`${styles.quotaButtonSpinner} ${pageQuotaRefreshing ? styles.quotaButtonSpinnerSpinning : ''}`}
-                    style={{ width: 15, height: 15 }}
-                    aria-hidden="true"
-                  />
-                </span>
-              </Button>
 
               <div className={styles.filterChipRow}>
                 <span className={styles.filterChipRowLabel}>
@@ -1709,8 +1728,29 @@ export function AuthFilesPage() {
                   </button>
                 )}
               </div>
-            </div>
 
+              <Button
+                variant="secondary"
+                size="sm"
+                className={`${styles.pageQuotaRefreshButton} ${pageQuotaRefreshing ? styles.quotaRefreshButtonSpinning : ''}`}
+                onClick={handlePageRefreshQuotaClick}
+                disabled={pageQuotaRefreshDisabled}
+                aria-busy={pageQuotaRefreshing}
+                aria-label={t('auth_files.refresh_page_quota_aria')}
+                title={t('auth_files.refresh_page_quota_aria')}
+              >
+                <span className={styles.quotaRefreshIcon}>
+                  <span
+                    className={`${styles.quotaButtonSpinner} ${pageQuotaRefreshing ? styles.quotaButtonSpinnerSpinning : ''}`}
+                    style={QUOTA_REFRESH_SPINNER_STYLE}
+                    aria-hidden="true"
+                  />
+                </span>
+              </Button>
+            </div>
+          </div>
+
+          <div className={styles.filterContent}>
             <div
               className={`${styles.listSurface} ${showListProgressVisual ? styles.listSurfaceRefreshing : ''}`}
               aria-busy={showInitialLoading || showListProgress}
@@ -1771,7 +1811,7 @@ export function AuthFilesPage() {
       </Card>
 
       {belowFoldCardsReady && (
-        <>
+        <Suspense fallback={null}>
           <div className={styles.belowFoldCard}>
             <OAuthExcludedCard
               disableControls={disableControls}
@@ -1801,31 +1841,39 @@ export function AuthFilesPage() {
               onDeleteAlias={handleDeleteAlias}
             />
           </div>
-        </>
+        </Suspense>
       )}
 
-      <AuthFileModelsModal
-        open={modelsModalOpen}
-        fileName={modelsFileName}
-        fileType={modelsFileType}
-        loading={modelsLoading}
-        error={modelsError}
-        models={modelsList}
-        excluded={excluded}
-        onClose={closeModelsModal}
-        onCopyText={copyTextWithNotification}
-      />
+      {modelsModalOpen && (
+        <Suspense fallback={null}>
+          <AuthFileModelsModal
+            open
+            fileName={modelsFileName}
+            fileType={modelsFileType}
+            loading={modelsLoading}
+            error={modelsError}
+            models={modelsList}
+            excluded={excluded}
+            onClose={closeModelsModal}
+            onCopyText={copyTextWithNotification}
+          />
+        </Suspense>
+      )}
 
-      <AuthFilesPrefixProxyEditorModal
-        disableControls={disableControls}
-        editor={prefixProxyEditor}
-        updatedText={prefixProxyUpdatedText}
-        dirty={prefixProxyDirty}
-        onClose={closePrefixProxyEditor}
-        onCopyText={copyTextWithNotification}
-        onSave={handlePrefixProxySave}
-        onChange={handlePrefixProxyChange}
-      />
+      {prefixProxyEditor && (
+        <Suspense fallback={null}>
+          <AuthFilesPrefixProxyEditorModal
+            disableControls={disableControls}
+            editor={prefixProxyEditor}
+            updatedText={prefixProxyUpdatedText}
+            dirty={prefixProxyDirty}
+            onClose={closePrefixProxyEditor}
+            onCopyText={copyTextWithNotification}
+            onSave={handlePrefixProxySave}
+            onChange={handlePrefixProxyChange}
+          />
+        </Suspense>
+      )}
 
       {batchActionBarVisible && typeof document !== 'undefined'
         ? createPortal(

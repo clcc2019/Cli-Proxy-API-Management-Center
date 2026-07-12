@@ -16,6 +16,7 @@ import {
 } from '@/utils/usage';
 
 const EMPTY_KEY_USAGE_STATS: KeyUsageStats = { bySource: {}, byAuthIndex: {} };
+const AUTH_FILE_STATUS_DETAILS_LIMIT = 1000;
 
 export type UseAuthFilesStatsResult = {
   keyStats: KeyStats;
@@ -23,6 +24,7 @@ export type UseAuthFilesStatsResult = {
   usageDetails: UsageDetail[];
   loadKeyStats: () => Promise<void>;
   refreshKeyStats: () => Promise<void>;
+  refreshStatusDetails: () => Promise<void>;
 };
 
 const createEmptyKeyUsageStats = (): KeyUsageStats => EMPTY_KEY_USAGE_STATS;
@@ -252,17 +254,45 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
 
   const loadKeyStats = useCallback(async () => {
     await Promise.all([
-      loadUsageStats({ summaryOnly: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS }),
+      loadUsageStats({
+        detailsLimit: AUTH_FILE_STATUS_DETAILS_LIMIT,
+        compactDetails: true,
+        includeAggregated: false,
+        staleTimeMs: USAGE_STATS_STALE_TIME_MS,
+      }),
       applyAuthFileUsageStats(false),
     ]);
   }, [applyAuthFileUsageStats, loadUsageStats]);
 
   const refreshKeyStats = useCallback(async () => {
     await Promise.all([
-      loadUsageStats({ force: true, summaryOnly: true, staleTimeMs: USAGE_STATS_STALE_TIME_MS }),
+      loadUsageStats({
+        force: true,
+        detailsLimit: AUTH_FILE_STATUS_DETAILS_LIMIT,
+        compactDetails: true,
+        includeAggregated: false,
+        staleTimeMs: USAGE_STATS_STALE_TIME_MS,
+      }),
       applyAuthFileUsageStats(true),
     ]);
   }, [applyAuthFileUsageStats, loadUsageStats]);
 
-  return { keyStats, keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats };
+  const refreshStatusDetails = useCallback(async () => {
+    await loadUsageStats({
+      force: true,
+      detailsLimit: AUTH_FILE_STATUS_DETAILS_LIMIT,
+      compactDetails: true,
+      includeAggregated: false,
+      staleTimeMs: USAGE_STATS_STALE_TIME_MS,
+    });
+  }, [loadUsageStats]);
+
+  return {
+    keyStats,
+    keyUsageStats,
+    usageDetails,
+    loadKeyStats,
+    refreshKeyStats,
+    refreshStatusDetails,
+  };
 }

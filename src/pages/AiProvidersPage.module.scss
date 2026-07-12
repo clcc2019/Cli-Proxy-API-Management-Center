@@ -2,31 +2,46 @@
 @use '../styles/mixins' as *;
 
 .container {
+  --provider-page-surface: color-mix(in srgb, #f8fafc 68%, var(--surface-raised));
+  --provider-page-surface-muted: color-mix(in srgb, #eef2f6 52%, var(--bg-secondary));
+  --provider-page-control: color-mix(in srgb, #ffffff 72%, var(--bg-primary));
+  --provider-page-border: color-mix(in srgb, #94a3b8 24%, var(--border-color));
+  --provider-page-border-strong: color-mix(in srgb, #7c8da3 34%, var(--border-color));
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
 }
 
+:global([data-theme='dark']) .container {
+  --provider-page-surface: color-mix(in srgb, #20252b 72%, var(--surface-raised));
+  --provider-page-surface-muted: color-mix(in srgb, #252b32 64%, var(--bg-secondary));
+  --provider-page-control: color-mix(in srgb, #2a3038 58%, var(--bg-primary));
+  --provider-page-border: color-mix(in srgb, #718096 32%, var(--border-color));
+  --provider-page-border-strong: color-mix(in srgb, #8a9aaf 42%, var(--border-color));
+}
+
 .pageHeader {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
-  align-items: stretch;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  min-width: 0;
+  padding: 4px 2px 10px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 
   @media (max-width: 1180px) {
-    grid-template-columns: 1fr;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
   }
 
   @include mobile {
-    gap: 12px;
-    padding: 14px;
+    gap: 10px;
+    padding: 2px 1px 8px;
   }
 }
 
@@ -40,18 +55,19 @@
 }
 
 .pageHeaderAside {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: stretch;
-  gap: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
   min-width: 0;
 
   @media (max-width: 1180px) {
-    grid-template-columns: auto minmax(0, 1fr);
+    justify-content: flex-start;
   }
 
   @media (max-width: 760px) {
-    grid-template-columns: 1fr;
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 
@@ -73,7 +89,7 @@
 .pageTitle {
   margin: 0;
   min-width: 0;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0;
@@ -100,11 +116,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 0 12px;
+  min-height: 34px;
+  padding: 0 11px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 86%, transparent);
+  background: color-mix(in srgb, var(--provider-page-control) 82%, transparent);
   color: var(--text-primary);
   font-size: 12px;
   font-weight: 800;
@@ -116,7 +132,7 @@
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(5, minmax(58px, 1fr));
-  gap: 8px;
+  gap: 6px;
 
   @media (max-width: 760px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -128,22 +144,18 @@
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 3px;
-  min-height: 54px;
-  padding: 8px 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-radius: 8px;
-  background: linear-gradient(
-    180deg,
-    var(--surface-raised),
-    color-mix(in srgb, var(--surface-raised) 88%, var(--bg-secondary))
-  );
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 76%, transparent);
+  gap: 2px;
+  min-height: 46px;
+  padding: 6px 9px;
+  border: 1px solid var(--provider-page-border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--provider-page-control) 78%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 46%, transparent);
 }
 
 .pageMetaValue {
   color: var(--text-primary);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -166,7 +178,7 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xl;
+  gap: 26px;
   padding-bottom: calc(
     var(--provider-nav-height, 60px) + 12px + env(safe-area-inset-bottom) + #{$spacing-md}
   );
@@ -184,43 +196,67 @@
 
 .providerSectionAnchor {
   scroll-margin-top: 28px;
+  min-width: 0;
+}
 
-  :global(.card) {
-    overflow: hidden;
-    border-radius: 8px;
-    border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-    background: var(--surface-raised);
-    box-shadow: none;
-    transition: border-color $transition-fast;
+.providerSectionShell {
+  min-width: 0;
+}
 
-    &:hover {
-      border-color: color-mix(in srgb, var(--border-color) 92%, transparent);
-    }
+.providerSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.providerSectionTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.providerSectionTitle {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.providerSectionCount {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  border: 1px solid var(--provider-page-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--info-color) 10%, var(--provider-page-control));
+  color: color-mix(in srgb, var(--info-color) 78%, var(--text-primary));
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.providerSectionAction {
+  flex: 0 0 auto;
+
+  :global(.btn.btn-sm) {
+    min-height: 34px;
+    padding-inline: 13px;
+    border-radius: 9px;
+    font-weight: 650;
   }
+}
 
-  :global(.card-header) {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: -14px -14px 10px;
-    padding: 11px 14px;
-    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-    background: color-mix(in srgb, var(--bg-secondary) 28%, transparent);
-  }
-
-  :global(.card-header .title) {
-    min-width: 0;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0;
-  }
-
-  :global(.card-header .btn.btn-sm) {
-    min-height: 32px;
-    border-radius: 8px;
-    padding-inline: 12px;
-    font-weight: 600;
-  }
+.providerSectionBody {
+  min-width: 0;
 }
 
 .section {
@@ -255,8 +291,9 @@
 
 .providerConfigList {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 328px), 1fr));
+  column-gap: 12px;
+  row-gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
 
   @media (min-width: 1760px) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -264,7 +301,7 @@
 
   @media (prefers-reduced-motion: no-preference) {
     .providerConfigItem {
-      animation: providerCardEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation: providerCardEnter 150ms ease-out both;
     }
 
     .providerConfigItem:nth-child(1) {
@@ -299,23 +336,23 @@
 
 .providerConfigItem {
   --provider-accent: rgba(14, 165, 233, 0.82);
-  --provider-card-border: color-mix(in srgb, var(--border-color) 86%, transparent);
+  --provider-card-border: var(--provider-page-border);
   --provider-card-border-hover: color-mix(
     in srgb,
-    var(--provider-accent) 24%,
-    var(--border-color)
+    var(--provider-accent) 26%,
+    var(--provider-page-border-strong)
   );
-  --provider-card-inner-bg: color-mix(in srgb, var(--bg-secondary) 44%, var(--surface-raised));
-  --provider-card-inner-border: color-mix(in srgb, var(--border-color) 70%, transparent);
+  --provider-card-sheen: color-mix(in srgb, #ffffff 54%, transparent);
+  --provider-card-tint: color-mix(in srgb, var(--provider-accent) 7%, transparent);
+  --provider-card-hover-tint: color-mix(in srgb, var(--provider-accent) 11%, transparent);
+  --provider-card-glow: color-mix(in srgb, var(--provider-accent) 10%, transparent);
+  --provider-card-inner-bg: color-mix(in srgb, var(--provider-page-control) 72%, transparent);
+  --provider-card-inner-border: var(--provider-page-border);
   --provider-card-inner-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.52),
     0 1px 1px rgba(15, 23, 42, 0.03);
-  --provider-action-border: color-mix(
-    in srgb,
-    var(--border-color) 88%,
-    transparent
-  );
-  --provider-action-bg: color-mix(in srgb, var(--bg-secondary) 58%, transparent);
+  --provider-action-border: var(--provider-page-border);
+  --provider-action-bg: color-mix(in srgb, var(--provider-page-control) 82%, transparent);
   --provider-action-text: color-mix(
     in srgb,
     var(--text-secondary) 76%,
@@ -341,13 +378,21 @@
   --provider-danger-hover-border: color-mix(in srgb, var(--danger-color) 52%, var(--border-color));
   --provider-toggle-off-border: color-mix(in srgb, var(--border-color) 86%, transparent);
   --provider-toggle-off-bg: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
-  --provider-toggle-on-border: color-mix(in srgb, var(--provider-accent) 52%, transparent);
-  --provider-toggle-on-bg: color-mix(in srgb, var(--provider-accent) 82%, var(--primary-color));
+  --provider-toggle-on-border: color-mix(in srgb, var(--success-color) 68%, transparent);
+  --provider-toggle-on-bg: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--success-color) 86%, white),
+    var(--success-color) 56%,
+    color-mix(in srgb, var(--success-color) 76%, black)
+  );
   --provider-toggle-thumb-bg: #fff;
   --provider-toggle-thumb-border: color-mix(in srgb, var(--border-color) 64%, transparent);
   position: relative;
   container-type: inline-size;
   overflow: hidden;
+  contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 248px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -355,25 +400,51 @@
   height: 100%;
   gap: 10px;
   min-height: 100%;
-  padding: 12px;
+  padding: 13px 13px 12px;
   border: 1px solid var(--provider-card-border);
-  border-radius: 10px;
-  background: var(--surface-raised);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, var(--provider-card-sheen), transparent 38%),
+    linear-gradient(135deg, var(--provider-card-tint), transparent 46%),
+    var(--provider-page-surface);
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    0 8px 22px -20px rgba(15, 23, 42, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
   isolation: isolate;
   transition:
     box-shadow 160ms ease,
-    border-color 160ms ease,
-    background-color 160ms ease;
+    border-color 160ms ease;
 
   &::before {
-    content: none;
+    content: '';
+    position: absolute;
+    inset: 0 12px auto;
+    z-index: 0;
+    height: 1px;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--provider-accent) 52%, transparent),
+      transparent
+    );
+    opacity: 0.7;
+    pointer-events: none;
+    transition: opacity 160ms ease;
   }
 
   &::after {
-    content: none;
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, #ffffff 24%, transparent), transparent 48%),
+      linear-gradient(135deg, var(--provider-card-hover-tint), transparent 56%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
   }
 
   > * {
@@ -391,10 +462,15 @@
   @media (hover: hover) {
     &:hover {
       border-color: var(--provider-card-border-hover);
-      background: color-mix(in srgb, var(--surface-raised) 96%, var(--provider-accent));
       box-shadow:
-        0 8px 18px -16px color-mix(in srgb, var(--text-primary) 20%, transparent),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        0 14px 30px -22px rgba(15, 23, 42, 0.28),
+        0 14px 30px -24px var(--provider-card-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.52);
+
+      &::before,
+      &::after {
+        opacity: 1;
+      }
     }
   }
 
@@ -416,14 +492,23 @@
     width: 100%;
   }
 
+  :global(.provider-card-identity) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
   :global(.provider-card-avatar) {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 9px;
     color: var(--provider-accent);
     border: 1px solid color-mix(in srgb, currentColor 24%, var(--border-color));
@@ -466,7 +551,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    justify-self: start;
     max-width: 100%;
     min-height: 20px;
     padding: 0 8px;
@@ -642,6 +726,7 @@
       backdrop-filter: blur(0.5px);
       animation: providerCardSwitchingPulse 1.2s ease-in-out infinite;
       pointer-events: none;
+      z-index: 2;
     }
   }
 }
@@ -708,12 +793,12 @@
 @keyframes providerCardEnter {
   from {
     opacity: 0;
-    transform: translate3d(0, 8px, 0) scale(0.985);
+    transform: translate3d(0, 6px, 0);
   }
 
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -1499,16 +1584,18 @@
 }
 
 @include mobile {
-  .providerSectionAnchor {
-    :global(.card) {
-      border-radius: 8px;
-      padding: 14px;
-    }
+  .providerSectionHeader {
+    margin-bottom: 9px;
+    padding-inline: 1px;
+  }
 
-    :global(.card-header) {
-      margin: -14px -14px 12px;
-      padding: 12px 14px;
-    }
+  .providerSectionTitle {
+    font-size: 14px;
+  }
+
+  .providerSectionAction :global(.btn.btn-sm) {
+    min-height: 32px;
+    padding-inline: 11px;
   }
 
   .providerConfigList {
@@ -1517,7 +1604,7 @@
 
   .providerConfigItem {
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 10px;
     gap: 9px;
 
     :global(.provider-card-header) {
@@ -1792,23 +1879,22 @@
   // 这里只做 provider 内部细节的微调
 
   .providerConfigItem {
-    --provider-card-border: color-mix(
+    --provider-card-border: var(--provider-page-border);
+    --provider-card-border-hover: color-mix(
       in srgb,
-      var(--provider-accent) 10%,
-      color-mix(in srgb, var(--border-color) 76%, transparent)
+      var(--provider-accent) 26%,
+      var(--provider-page-border-strong)
     );
-    --provider-card-border-hover: color-mix(in srgb, var(--provider-accent) 24%, var(--border-color));
-    --provider-card-inner-bg: color-mix(in srgb, var(--surface-raised-strong) 54%, transparent);
-    --provider-card-inner-border: color-mix(in srgb, var(--border-color) 78%, transparent);
+    --provider-card-sheen: color-mix(in srgb, #ffffff 8%, transparent);
+    --provider-card-tint: color-mix(in srgb, var(--provider-accent) 6%, transparent);
+    --provider-card-hover-tint: color-mix(in srgb, var(--provider-accent) 9%, transparent);
+    --provider-card-inner-bg: color-mix(in srgb, var(--provider-page-control) 76%, transparent);
+    --provider-card-inner-border: var(--provider-page-border);
     --provider-card-inner-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
       0 1px 0 rgba(0, 0, 0, 0.18);
-    --provider-action-border: color-mix(
-      in srgb,
-      var(--border-color) 90%,
-      var(--border-color)
-    );
-    --provider-action-bg: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
+    --provider-action-border: var(--provider-page-border);
+    --provider-action-bg: color-mix(in srgb, var(--provider-page-control) 82%, transparent);
     --provider-action-text: color-mix(
       in srgb,
       var(--text-secondary) 70%,
@@ -1840,15 +1926,23 @@
     --provider-danger-hover-border: rgba(241, 176, 166, 0.68);
     --provider-toggle-off-border: color-mix(in srgb, var(--border-color) 90%, transparent);
     --provider-toggle-off-bg: color-mix(in srgb, var(--bg-tertiary) 68%, var(--bg-secondary));
-    --provider-toggle-on-border: color-mix(in srgb, var(--provider-accent) 58%, transparent);
-    --provider-toggle-on-bg: color-mix(in srgb, var(--provider-accent) 74%, var(--primary-color));
+    --provider-toggle-on-border: color-mix(in srgb, var(--success-color) 62%, transparent);
+    --provider-toggle-on-bg: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--success-color) 78%, white),
+      var(--success-color) 52%,
+      color-mix(in srgb, var(--success-color) 72%, black)
+    );
     --provider-toggle-thumb-bg: color-mix(in srgb, var(--text-primary) 92%, transparent);
     --provider-toggle-thumb-border: rgba(255, 255, 255, 0.18);
     border-color: var(--provider-card-border);
-    background: var(--surface-raised);
+    background:
+      linear-gradient(180deg, var(--provider-card-sheen), transparent 38%),
+      linear-gradient(135deg, var(--provider-card-tint), transparent 46%),
+      var(--provider-page-surface);
     box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.22),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      0 8px 22px -20px rgba(0, 0, 0, 0.72),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
     :global(.provider-card-avatar) {
       border-color: color-mix(in srgb, currentColor 28%, rgba(255, 255, 255, 0.06));

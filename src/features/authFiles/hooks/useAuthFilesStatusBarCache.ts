@@ -6,11 +6,16 @@ import {
   type StatusBlockState,
   type UsageDetail,
 } from '@/utils/usage';
+import { authFileUsageSourceCandidates } from '@/features/authFiles/constants';
 import {
   readAuthFileNumericCount,
   readAuthFileRecentRequestBuckets,
   type AuthFileRecentRequestBucketLike,
 } from '@/features/authFiles/stats';
+import {
+  collectUsageDetailsForCandidates,
+  indexUsageDetailsBySource,
+} from '@/utils/usageIndex';
 
 export type AuthFileStatusBarData = ReturnType<typeof calculateStatusBarData>;
 
@@ -90,21 +95,20 @@ const chooseStatusBarData = (
 };
 
 const buildFileStatusBarData = (
-  file: AuthFileItem,
-  detailsForAuthIndex: UsageDetail[] | undefined
+  recentRequestBuckets: AuthFileRecentRequestBucketLike[],
+  detailsForFile: UsageDetail[] | undefined
 ): AuthFileStatusBarData => {
   const fromDetails =
-    detailsForAuthIndex && detailsForAuthIndex.length > 0
-      ? calculateStatusBarData(detailsForAuthIndex)
+    detailsForFile && detailsForFile.length > 0
+      ? calculateStatusBarData(detailsForFile)
       : null;
-  const fromRecent = calculateStatusBarDataFromRecentRequests(
-    readAuthFileRecentRequestBuckets(file)
-  );
+  const fromRecent = calculateStatusBarDataFromRecentRequests(recentRequestBuckets);
   return chooseStatusBarData(fromDetails, fromRecent);
 };
 
 type StatusBarCacheEntry = {
-  detailsForAuthIndex: UsageDetail[] | undefined;
+  detailsForFile: UsageDetail[] | undefined;
+  recentRequestsSignature: string;
   statusData: AuthFileStatusBarData;
 };
 
@@ -136,6 +140,35 @@ const reuseStatusBarCacheMap = (
   return cache;
 };
 
+const getRecentRequestsSignature = (buckets: AuthFileRecentRequestBucketLike[]): string =>
+  buckets
+    .map(
+      (bucket) =>
+        `${readAuthFileNumericCount(bucket.success)}:${readAuthFileNumericCount(
+          bucket.failed ?? bucket.failure
+        )}`
+    )
+    .join('|');
+
+const mergeUsageDetails = (
+  fromSource: UsageDetail[],
+  fromAuthIndex: UsageDetail[] | undefined
+): UsageDetail[] | undefined => {
+  if (fromSource.length === 0) return fromAuthIndex;
+  if (!fromAuthIndex || fromAuthIndex.length === 0 || fromAuthIndex === fromSource) {
+    return fromSource;
+  }
+
+  const merged = [...fromSource];
+  const seen = new Set(fromSource);
+  fromAuthIndex.forEach((detail) => {
+    if (seen.has(detail)) return;
+    seen.add(detail);
+    merged.push(detail);
+  });
+  return merged;
+};
+
 export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: UsageDetail[]) {
   // usageDetails 引用变化时才重建 auth_index -> details 索引。
   // usageDetails 通常来自 store，引用稳定，避免每次 files 局部更新都重算索引。
@@ -156,21 +189,34 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
     return index;
   }, [usageDetails]);
 
+  const detailsBySource = useMemo(() => indexUsageDetailsBySource(usageDetails), [usageDetails]);
+
   return useMemo(() => {
     const cache = new Map<string, AuthFileStatusBarData>();
 
     files.forEach((file) => {
       const rawAuthIndex = file['auth_index'] ?? file.authIndex;
       const authIndexKey = normalizeAuthIndex(rawAuthIndex);
-      const detailsForAuthIndex = authIndexKey ? detailsByAuthIndex.get(authIndexKey) : undefined;
+      const detailsForSource = collectUsageDetailsForCandidates(
+        detailsBySource,
+        authFileUsageSourceCandidates(file)
+      );
+      const detailsForAuthIndex =
+        authIndexKey && authIndexKey !== '0' ? detailsByAuthIndex.get(authIndexKey) : undefined;
+      const detailsForFile = mergeUsageDetails(detailsForSource, detailsForAuthIndex);
+      const recentRequestBuckets = readAuthFileRecentRequestBuckets(file);
+      const recentRequestsSignature = getRecentRequestsSignature(recentRequestBuckets);
       const cached = FILE_STATUS_CACHE.get(file);
       const statusData =
-        cached && cached.detailsForAuthIndex === detailsForAuthIndex
+        cached &&
+        cached.detailsForFile === detailsForFile &&
+        cached.recentRequestsSignature === recentRequestsSignature
           ? cached.statusData
-          : buildFileStatusBarData(file, detailsForAuthIndex);
+          : buildFileStatusBarData(recentRequestBuckets, detailsForFile);
 
       FILE_STATUS_CACHE.set(file, {
-        detailsForAuthIndex,
+        detailsForFile,
+        recentRequestsSignature,
         statusData,
       });
 
@@ -183,5 +229,5 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
     });
 
     return reuseStatusBarCacheMap(cache);
-  }, [files, detailsByAuthIndex]);
+  }, [detailsByAuthIndex, detailsBySource, files]);
 }
