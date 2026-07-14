@@ -4783,67 +4783,69 @@
   }
 }
 
-// 按卡片自身宽度收纳操作。桌面多列布局下的窄卡片与移动端都保持稳定宽度，
-// 用户展开后再展示完整操作集，避免横向滚动和按钮挤压。
-@container auth-file-card (max-width: 390px) {
-  .cardActionsMain {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 7px;
-    overflow: visible;
-  }
+// 仅在手机视口内按卡片自身宽度收纳操作。桌面多列卡片即使宽度较窄，
+// 也应直接展示完整操作集，不能误触发移动端的“更多”按钮。
+@include mobile {
+  @container auth-file-card (max-width: 390px) {
+    .cardActionsMain {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 7px;
+      overflow: visible;
+    }
 
-  .mobileActionsToggle:global(.btn.btn-sm) {
-    display: inline-flex;
-    flex: 0 0 38px;
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
-    min-height: 38px;
-  }
+    .mobileActionsToggle:global(.btn.btn-sm) {
+      display: inline-flex;
+      flex: 0 0 38px;
+      width: 38px;
+      min-width: 38px;
+      height: 38px;
+      min-height: 38px;
+    }
 
-  .cardActionsContent {
-    display: none;
-    min-width: 0;
-  }
+    .cardActionsContent {
+      display: none;
+      min-width: 0;
+    }
 
-  .cardActionsMainExpanded {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
+    .cardActionsMainExpanded {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
 
-  .cardActionsMainExpanded .cardActionsContent {
-    display: flex;
-    flex: 1 1 calc(100% - 45px);
-    flex-wrap: wrap;
-    gap: 6px;
-  }
+    .cardActionsMainExpanded .cardActionsContent {
+      display: flex;
+      flex: 1 1 calc(100% - 45px);
+      flex-wrap: wrap;
+      gap: 6px;
+    }
 
-  .cardActionsMainExpanded .cardActionCluster,
-  .cardActionsMainExpanded .cardUtilityActions {
-    flex-wrap: wrap;
-    width: auto;
-    min-width: 0;
-  }
+    .cardActionsMainExpanded .cardActionCluster,
+    .cardActionsMainExpanded .cardUtilityActions {
+      flex-wrap: wrap;
+      width: auto;
+      min-width: 0;
+    }
 
-  .cardActionsMainExpanded .cardStatusActions {
-    flex: 0 0 60px;
-    min-width: 60px;
-    max-width: 60px;
-  }
+    .cardActionsMainExpanded .cardStatusActions {
+      flex: 0 0 60px;
+      min-width: 60px;
+      max-width: 60px;
+    }
 
-  .cardRefreshActions {
-    margin-left: auto;
-  }
+    .cardRefreshActions {
+      margin-left: auto;
+    }
 
-  .iconButton:global(.btn.btn-sm),
-  .refreshActionButton:global(.btn.btn-sm) {
-    flex: 0 0 38px;
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
-    min-height: 38px;
+    .iconButton:global(.btn.btn-sm),
+    .refreshActionButton:global(.btn.btn-sm) {
+      flex: 0 0 38px;
+      width: 38px;
+      min-width: 38px;
+      height: 38px;
+      min-height: 38px;
+    }
   }
 }
 
@@ -6872,5 +6874,151 @@
     max-width: 52px;
     padding: 0 5px;
     font-size: 9.5px;
+  }
+}
+
+// 移动端最终布局约束：认证文件页前面包含多组历史响应式规则，这里统一收口，
+// 避免工具栏、筛选项和卡片操作区在窄屏下互相挤压或覆盖。
+@include mobile {
+  .authFilesCard:global(.card) {
+    min-width: 0;
+    max-width: 100%;
+
+    :global(.card-header) {
+      align-items: stretch;
+      gap: 10px;
+    }
+  }
+
+  .titleWrapper,
+  .headerActions,
+  .filterSection,
+  .filterToolbarRow,
+  .filterControlsPanel,
+  .searchToolbar,
+  .filterChipRow,
+  .filterChipGroup {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .headerActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 7px;
+
+    .headerActionMain:global(.btn.btn-sm),
+    .headerActionDanger:global(.btn.btn-sm) {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+    }
+
+    .headerActionDanger:global(.btn.btn-sm) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .filterControlsPanel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    align-items: center;
+    padding: 8px;
+  }
+
+  .searchToolbar {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .filterChipRow {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .filterChipGroup {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .filterChip,
+  .filterResetButton {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .filterResetButton {
+    flex: 1 1 100%;
+  }
+
+  .searchToolbarPopoverWrap {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .searchToolbarPopover {
+    width: min(260px, calc(100vw - 24px));
+    min-width: 0;
+    max-width: calc(100vw - 24px);
+    max-height: min(420px, calc(100dvh - 96px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .cardActionsMainExpanded .cardActionsContent {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .cardActionsMainExpanded .cardActionCluster,
+  .cardActionsMainExpanded .cardUtilityActions {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .cardActionsMainExpanded .cardUtilityActions {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .authFilesCard:global(.card) {
+    padding-inline: 12px;
+  }
+
+  .filterControlsPanel {
+    padding: 7px;
+    gap: 7px;
+  }
+
+  .filterChipGroup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filterChip:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .searchToolbarPopover {
+    right: -43px;
+  }
+
+  .searchToolbarPopoverWrap:last-child .searchToolbarPopover {
+    right: 0;
   }
 }

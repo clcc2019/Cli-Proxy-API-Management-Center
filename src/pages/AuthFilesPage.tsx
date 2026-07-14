@@ -32,7 +32,12 @@ import {
   resolveCodexPlanType,
   resolveCodexSubscriptionActiveUntil,
 } from '@/utils/quota';
-import { authFilesApi, type AuthFilesListOptions } from '@/services/api';
+import {
+  authFilesApi,
+  getAuthFilesListOptionsKey,
+  getAuthFilesTypeCountsKey,
+  type AuthFilesListOptions,
+} from '@/services/api';
 import {
   MAX_CARD_PAGE_SIZE,
   MIN_CARD_PAGE_SIZE,
@@ -65,8 +70,8 @@ import {
   type AuthFilePlanSources,
 } from '@/features/authFiles/planMetadata';
 import {
-  refreshAuthFileQuota,
-  type AuthFileQuotaRefreshResult,
+  refreshAuthFileQuotasSerially,
+  type AuthFileQuotaRefreshTarget,
 } from '@/features/authFiles/quotaRefresh';
 import {
   isAuthFilesSortMode,
@@ -232,7 +237,6 @@ const compareAuthFilesByName = (left: AuthFileItem, right: AuthFileItem): number
   left.name.localeCompare(right.name);
 
 const EMPTY_SORT_SNAPSHOT: Record<string, AuthFileSortSnapshot> = {};
-type AuthFileQuotaRefreshTarget = { file: AuthFileItem; quotaType: QuotaProviderType };
 const EMPTY_QUOTA_REFRESH_TARGETS: AuthFileQuotaRefreshTarget[] = [];
 
 const resolveQuotaRefreshTarget = (file: AuthFileItem): AuthFileQuotaRefreshTarget | null => {
@@ -418,6 +422,7 @@ export function AuthFilesPage() {
   const previousSelectionActiveRef = useRef(false);
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
+  const pageQuotaRefreshInFlightRef = useRef(false);
   const pageMountedRef = useRef(true);
   const deferredSearch = useDeferredValue(search);
   const normalizedSearch = search.trim();
@@ -477,14 +482,13 @@ export function AuthFilesPage() {
     serverListType,
     serverPaginationEnabled,
   ]);
+  const authFilesListOptionsKey = useMemo(
+    () => getAuthFilesListOptionsKey(authFilesListOptions),
+    [authFilesListOptions]
+  );
 
-  const {
-    keyUsageStats,
-    usageDetails,
-    loadKeyStats,
-    refreshKeyStats,
-    refreshStatusDetails,
-  } = useAuthFilesStats();
+  const { keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats, refreshStatusDetails } =
+    useAuthFilesStats();
   const {
     files,
     selectedFiles,
@@ -647,6 +651,7 @@ export function AuthFilesPage() {
   }, [debouncedAuthFilesUiState]);
 
   const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
+  const listUpdating = refreshing || serverSearchPending;
 
   useEffect(() => {
     const listBusy = loading || refreshing;
@@ -743,8 +748,22 @@ export function AuthFilesPage() {
 
   useEffect(() => {
     if (!isCurrentLayer || !uiStateHydrated || serverSearchPending) return;
+    if (
+      listMeta.dataKey === authFilesListOptionsKey ||
+      listMeta.resolvedDataKey === authFilesListOptionsKey
+    ) {
+      return;
+    }
     void loadFiles();
-  }, [isCurrentLayer, loadFiles, serverSearchPending, uiStateHydrated]);
+  }, [
+    authFilesListOptionsKey,
+    isCurrentLayer,
+    listMeta.dataKey,
+    listMeta.resolvedDataKey,
+    loadFiles,
+    serverSearchPending,
+    uiStateHydrated,
+  ]);
 
   useEffect(() => {
     if (!isCurrentLayer || !uiStateHydrated || belowFoldCardsReady) return undefined;
@@ -932,7 +951,7 @@ export function AuthFilesPage() {
     if (!serverPaginationEnabled || !isCurrentLayer || !uiStateHydrated) return null;
     if (!displayOptionsActive && displaySearch.length === 0) return null;
 
-    return JSON.stringify({
+    return getAuthFilesTypeCountsKey({
       search: displaySearch,
       problemOnly,
       disabledOnly,
@@ -954,6 +973,11 @@ export function AuthFilesPage() {
       setScopedTypeCounts(null);
       return undefined;
     }
+    if (listUpdating) return undefined;
+    if (listMeta.typeCountsKey === scopedTypeCountsKey && listMeta.typeCounts) {
+      setScopedTypeCounts(null);
+      return undefined;
+    }
 
     const abortController = new AbortController();
     const requestKey = scopedTypeCountsKey;
@@ -963,6 +987,8 @@ export function AuthFilesPage() {
         {
           codexSubscription: 'cache',
           summary: true,
+          page: 1,
+          pageSize: 1,
           search: displaySearch,
           problemOnly,
           disabledOnly,
@@ -990,9 +1016,28 @@ export function AuthFilesPage() {
       });
 
     return () => abortController.abort();
-  }, [disabledOnly, displaySearch, premiumOnly, problemOnly, scopedTypeCountsKey]);
+  }, [
+    disabledOnly,
+    displaySearch,
+    listMeta.typeCounts,
+    listMeta.typeCountsKey,
+    listUpdating,
+    premiumOnly,
+    problemOnly,
+    scopedTypeCountsKey,
+  ]);
 
-  const needsLocalTypeCounts = scopedTypeCountsKey !== null || !listMeta.typeCounts;
+  const currentScopedServerTypeCounts =
+    scopedTypeCountsKey && listMeta.typeCountsKey === scopedTypeCountsKey
+      ? listMeta.typeCounts
+      : undefined;
+  const currentScopedFallbackTypeCounts =
+    scopedTypeCountsKey && scopedTypeCounts?.key === scopedTypeCountsKey
+      ? scopedTypeCounts.counts
+      : undefined;
+  const needsLocalTypeCounts = scopedTypeCountsKey
+    ? !currentScopedServerTypeCounts && !currentScopedFallbackTypeCounts
+    : !listMeta.typeCounts;
   const localTypeCounts = useMemo(
     () =>
       needsLocalTypeCounts
@@ -1001,9 +1046,7 @@ export function AuthFilesPage() {
     [filesMatchingDisplayFilters, needsLocalTypeCounts]
   );
   const typeCounts = scopedTypeCountsKey
-    ? scopedTypeCounts?.key === scopedTypeCountsKey
-      ? scopedTypeCounts.counts
-      : localTypeCounts
+    ? (currentScopedServerTypeCounts ?? currentScopedFallbackTypeCounts ?? localTypeCounts)
     : (listMeta.typeCounts ?? localTypeCounts);
 
   const filtered = useMemo(() => {
@@ -1061,7 +1104,6 @@ export function AuthFilesPage() {
     () => (serverPaginated ? sorted : sorted.slice(start, start + pageSize)),
     [pageSize, serverPaginated, sorted, start]
   );
-  const listUpdating = refreshing || serverSearchPending;
   const showInitialLoading = loading && pageItems.length === 0;
   const showListProgress = listUpdating && pageItems.length > 0;
 
@@ -1228,7 +1270,7 @@ export function AuthFilesPage() {
       disableControls ||
       loading ||
       listUpdating ||
-      pageQuotaRefreshing ||
+      pageQuotaRefreshInFlightRef.current ||
       pageItems.length === 0
     ) {
       return;
@@ -1239,64 +1281,36 @@ export function AuthFilesPage() {
       return;
     }
 
+    pageQuotaRefreshInFlightRef.current = true;
     setPageQuotaRefreshing(true);
     try {
       const skippedBeforeRefresh = Math.max(0, pageItems.length - pageQuotaRefreshItems.length);
-      const results: AuthFileQuotaRefreshResult[] = await Promise.all(
-        pageQuotaRefreshItems.map(
-          async ({ file, quotaType }): Promise<AuthFileQuotaRefreshResult> => {
-            try {
-              return await refreshAuthFileQuota({
-                file,
-                quotaType,
-                disableControls,
-                t,
-              });
-            } catch (err: unknown) {
-              return {
-                status: 'error',
-                fileName: file.name,
-                message: err instanceof Error ? err.message : t('common.unknown_error'),
-              };
-            }
-          }
-        )
-      );
-      const authFileUpdates = results.flatMap((result) =>
-        result.status === 'success' && result.authFile ? [result.authFile] : []
-      );
+      const result = await refreshAuthFileQuotasSerially({
+        targets: pageQuotaRefreshItems,
+        disableControls,
+        t,
+        initialSkipped: skippedBeforeRefresh,
+        shouldContinue: () => pageMountedRef.current,
+      });
       if (!pageMountedRef.current) return;
-      applyLocalFileUpdates(authFileUpdates);
-      if (authFileUpdates.length > 0) {
+      if (result.authFiles.length > 0) {
+        applyLocalFileUpdates(result.authFiles);
         await refreshFilesFromServer();
       }
       if (!pageMountedRef.current) return;
 
-      const resultCounts = results.reduce(
-        (counts, result) => {
-          if (result.status === 'success') {
-            counts.success += 1;
-          } else if (result.status === 'error') {
-            counts.failed += 1;
-          } else {
-            counts.skipped += 1;
-          }
-          return counts;
-        },
-        { success: 0, failed: 0, skipped: skippedBeforeRefresh }
-      );
-
-      if (resultCounts.success === 0 && resultCounts.failed === 0) {
+      if (result.success === 0 && result.failed === 0) {
         showNotification(t('auth_files.page_quota_refresh_none'), 'info');
-      } else if (resultCounts.failed === 0 && resultCounts.skipped === 0) {
+      } else if (result.failed === 0 && result.skipped === 0) {
         showNotification(
-          t('auth_files.batch_quota_refresh_success', { count: resultCounts.success }),
+          t('auth_files.batch_quota_refresh_success', { count: result.success }),
           'success'
         );
       } else {
-        showNotification(t('auth_files.batch_quota_refresh_partial', resultCounts), 'warning');
+        showNotification(t('auth_files.batch_quota_refresh_partial', result), 'warning');
       }
     } finally {
+      pageQuotaRefreshInFlightRef.current = false;
       if (pageMountedRef.current) {
         setPageQuotaRefreshing(false);
       }
@@ -1308,7 +1322,6 @@ export function AuthFilesPage() {
     loading,
     pageItems.length,
     pageQuotaRefreshItems,
-    pageQuotaRefreshing,
     refreshFilesFromServer,
     showNotification,
     t,

@@ -1,20 +1,14 @@
 import type { TFunction } from 'i18next';
-import {
-  CLAUDE_CONFIG,
-  CODEX_CONFIG,
-  KIMI_CONFIG,
-} from '@/components/quota';
+import { CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from '@/components/quota';
 import { useQuotaStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import { getStatusFromError } from '@/utils/quota';
-import {
-  isRuntimeOnlyAuthFile,
-  type QuotaProviderType,
-} from '@/features/authFiles/constants';
+import { isRuntimeOnlyAuthFile, type QuotaProviderType } from '@/features/authFiles/constants';
 
 type QuotaState = { status?: string; error?: string; errorStatus?: number } | undefined;
 
 const quotaRequestVersions = new Map<string, number>();
+let nextQuotaRequestVersion = 0;
 const CODEX_REFRESH_SETTLE_DELAY_MS = 400;
 
 const waitForQuotaRefreshSettle = () =>
@@ -65,6 +59,18 @@ export type AuthFileQuotaRefreshResult =
   | { status: 'success'; fileName: string; authFile?: AuthFileItem }
   | { status: 'skipped'; fileName: string }
   | { status: 'error'; fileName: string; message: string; errorStatus?: number };
+
+export type AuthFileQuotaRefreshTarget = {
+  file: AuthFileItem;
+  quotaType: QuotaProviderType;
+};
+
+export type AuthFileQuotaRefreshSummary = {
+  success: number;
+  failed: number;
+  skipped: number;
+  authFiles: AuthFileItem[];
+};
 
 export const getAuthFileQuotaConfig = (type: QuotaProviderType) => {
   if (type === 'claude') return CLAUDE_CONFIG;
@@ -124,7 +130,7 @@ export async function refreshAuthFileQuota(options: {
   const config = getTypedQuotaConfig(quotaType);
   const updateQuotaState = getQuotaStateUpdater(quotaType);
   const requestKey = `${quotaType}:${fileName}`;
-  const requestVersion = (quotaRequestVersions.get(requestKey) ?? 0) + 1;
+  const requestVersion = ++nextQuotaRequestVersion;
   quotaRequestVersions.set(requestKey, requestVersion);
   const isLatestRequest = () => quotaRequestVersions.get(requestKey) === requestVersion;
 
@@ -177,5 +183,47 @@ export async function refreshAuthFileQuota(options: {
       [fileName]: config.buildErrorState(message, errorStatus),
     }));
     return { status: 'error', fileName, message, errorStatus };
+  } finally {
+    if (isLatestRequest()) quotaRequestVersions.delete(requestKey);
   }
+}
+
+export async function refreshAuthFileQuotasSerially(options: {
+  targets: readonly AuthFileQuotaRefreshTarget[];
+  disableControls: boolean;
+  t: TFunction;
+  initialSkipped?: number;
+  shouldContinue?: () => boolean;
+}): Promise<AuthFileQuotaRefreshSummary> {
+  const { targets, disableControls, t, initialSkipped = 0, shouldContinue } = options;
+  const summary: AuthFileQuotaRefreshSummary = {
+    success: 0,
+    failed: 0,
+    skipped: Math.max(0, initialSkipped),
+    authFiles: [],
+  };
+
+  for (const { file, quotaType } of targets) {
+    if (shouldContinue && !shouldContinue()) break;
+
+    let result: AuthFileQuotaRefreshResult;
+    try {
+      result = await refreshAuthFileQuota({ file, quotaType, disableControls, t });
+    } catch {
+      // Keep the queue moving if an unexpected error escapes the per-file refresh path.
+      summary.failed += 1;
+      continue;
+    }
+
+    if (result.status === 'success') {
+      summary.success += 1;
+      if (result.authFile) summary.authFiles.push(result.authFile);
+    } else if (result.status === 'error') {
+      summary.failed += 1;
+    } else {
+      summary.skipped += 1;
+    }
+  }
+
+  return summary;
 }

@@ -501,6 +501,17 @@ const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
   return params;
 };
 
+export const getAuthFilesListOptionsKey = (options: AuthFilesListOptions = {}): string =>
+  JSON.stringify(buildAuthFilesListParams(options));
+
+export const getAuthFilesTypeCountsKey = (options: AuthFilesListOptions = {}): string =>
+  JSON.stringify({
+    search: options.search?.trim() ?? '',
+    problemOnly: options.problemOnly === true,
+    disabledOnly: options.disabledOnly === true,
+    premiumOnly: options.premiumOnly === true,
+  });
+
 const parseAuthFileJsonObject = (rawText: string): Record<string, unknown> => {
   const trimmed = rawText.trim();
 

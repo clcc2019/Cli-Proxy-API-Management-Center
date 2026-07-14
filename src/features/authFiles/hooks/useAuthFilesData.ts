@@ -9,7 +9,12 @@ import {
   type SetStateAction,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { authFilesApi, type AuthFilesListOptions } from '@/services/api';
+import {
+  authFilesApi,
+  getAuthFilesListOptionsKey,
+  getAuthFilesTypeCountsKey,
+  type AuthFilesListOptions,
+} from '@/services/api';
 import { apiClient } from '@/services/api/client';
 import { useNotificationStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
@@ -88,6 +93,9 @@ export type AuthFilesListMeta = {
   paginated: boolean;
   hasMore: boolean;
   typeCounts?: Record<string, number>;
+  dataKey?: string;
+  resolvedDataKey?: string;
+  typeCountsKey?: string;
 };
 
 const areRecordValuesShallowEqual = (
@@ -113,6 +121,17 @@ const reuseAuthFileItemReferences = (
 ): AuthFileItem[] => {
   if (previousFiles.length === 0 || nextFiles.length === 0) return nextFiles;
 
+  if (
+    previousFiles.length === nextFiles.length &&
+    nextFiles.every(
+      (file, index) =>
+        previousFiles[index]?.name === file.name &&
+        areAuthFileItemsShallowEqual(previousFiles[index], file)
+    )
+  ) {
+    return previousFiles;
+  }
+
   const previousByName = new Map(previousFiles.map((file) => [file.name, file]));
   let changedReference = previousFiles.length !== nextFiles.length;
   const reusedFiles = nextFiles.map((file, index) => {
@@ -131,6 +150,9 @@ const areAuthFilesListMetaEqual = (left: AuthFilesListMeta, right: AuthFilesList
   left.pageSize === right.pageSize &&
   left.paginated === right.paginated &&
   left.hasMore === right.hasMore &&
+  left.dataKey === right.dataKey &&
+  left.resolvedDataKey === right.resolvedDataKey &&
+  left.typeCountsKey === right.typeCountsKey &&
   areRecordValuesShallowEqual(left.typeCounts, right.typeCounts);
 
 const DEFAULT_AUTH_FILES_LIST_OPTIONS: AuthFilesListOptions = {
@@ -227,7 +249,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const loadFilesAbortRef = useRef<AbortController | null>(null);
   const loadFilesSeqRef = useRef(0);
   const selectionCount = selectedFiles.size;
-  const listOptionsKey = useMemo(() => JSON.stringify(listOptions), [listOptions]);
+  const listOptionsKey = useMemo(() => getAuthFilesListOptionsKey(listOptions), [listOptions]);
   const listUsesServerPagination = Boolean(listOptions.pageSize);
 
   const applyFilesState = useCallback((action: SetStateAction<AuthFileItem[]>) => {
@@ -238,11 +260,6 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       return next;
     });
   }, []);
-
-  useEffect(() => {
-    filesRef.current = files;
-    visibleFileCountRef.current = files.length;
-  }, [files]);
 
   useEffect(() => {
     statusUpdatingRef.current = statusUpdating;
@@ -457,7 +474,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         ? { ...listOptions, ...overrideOptions }
         : listOptions;
       const effectiveListOptionsKey = overrideOptions
-        ? JSON.stringify(effectiveListOptions)
+        ? getAuthFilesListOptionsKey(effectiveListOptions)
         : listOptionsKey;
 
       if (loadFilesInFlightRef.current?.key === effectiveListOptionsKey) {
@@ -493,9 +510,15 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             typeof data?.page_size === 'number' && Number.isFinite(data.page_size)
               ? data.page_size
               : (effectiveListOptions.pageSize ?? nextFiles.length);
+          const resolvedDataKey = effectiveListOptions.pageSize
+            ? getAuthFilesListOptionsKey({
+                ...effectiveListOptions,
+                page: nextPage,
+                pageSize: nextPageSize,
+              })
+            : effectiveListOptionsKey;
 
           applyFilesState(nextFiles);
-          visibleFileCountRef.current = nextFiles.length;
           setError('');
           const nextListMeta: AuthFilesListMeta = {
             total: typeof data?.total === 'number' ? data.total : nextFiles.length,
@@ -504,6 +527,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             paginated: Boolean(effectiveListOptions.pageSize),
             hasMore: data?.has_more === true,
             typeCounts: data?.type_counts,
+            dataKey: effectiveListOptionsKey,
+            resolvedDataKey,
+            typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
           };
           setListMeta((prev) =>
             areAuthFilesListMetaEqual(prev, nextListMeta) ? prev : nextListMeta
