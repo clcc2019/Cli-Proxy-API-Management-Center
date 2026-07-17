@@ -10,6 +10,7 @@ type QuotaState = { status?: string; error?: string; errorStatus?: number } | un
 const quotaRequestVersions = new Map<string, number>();
 let nextQuotaRequestVersion = 0;
 const CODEX_REFRESH_SETTLE_DELAY_MS = 400;
+const AUTH_FILE_QUOTA_REFRESH_CONCURRENCY = 4;
 
 const waitForQuotaRefreshSettle = () =>
   new Promise<void>((resolve) => window.setTimeout(resolve, CODEX_REFRESH_SETTLE_DELAY_MS));
@@ -188,7 +189,7 @@ export async function refreshAuthFileQuota(options: {
   }
 }
 
-export async function refreshAuthFileQuotasSerially(options: {
+export async function refreshAuthFileQuotasInParallel(options: {
   targets: readonly AuthFileQuotaRefreshTarget[];
   disableControls: boolean;
   t: TFunction;
@@ -203,18 +204,17 @@ export async function refreshAuthFileQuotasSerially(options: {
     authFiles: [],
   };
 
-  for (const { file, quotaType } of targets) {
-    if (shouldContinue && !shouldContinue()) break;
+  let nextTargetIndex = 0;
 
-    let result: AuthFileQuotaRefreshResult;
-    try {
-      result = await refreshAuthFileQuota({ file, quotaType, disableControls, t });
-    } catch {
-      // Keep the queue moving if an unexpected error escapes the per-file refresh path.
-      summary.failed += 1;
-      continue;
-    }
+  const takeNextTarget = (): AuthFileQuotaRefreshTarget | null => {
+    if (shouldContinue && !shouldContinue()) return null;
+    if (nextTargetIndex >= targets.length) return null;
+    const target = targets[nextTargetIndex];
+    nextTargetIndex += 1;
+    return target;
+  };
 
+  const recordResult = (result: AuthFileQuotaRefreshResult) => {
     if (result.status === 'success') {
       summary.success += 1;
       if (result.authFile) summary.authFiles.push(result.authFile);
@@ -223,7 +223,30 @@ export async function refreshAuthFileQuotasSerially(options: {
     } else {
       summary.skipped += 1;
     }
-  }
+  };
+
+  const workerCount = Math.min(AUTH_FILE_QUOTA_REFRESH_CONCURRENCY, targets.length);
+  const workers = Array.from({ length: workerCount }, async () => {
+    for (;;) {
+      const target = takeNextTarget();
+      if (!target) return;
+
+      try {
+        const result = await refreshAuthFileQuota({
+          file: target.file,
+          quotaType: target.quotaType,
+          disableControls,
+          t,
+        });
+        recordResult(result);
+      } catch {
+        // Keep the queue moving if an unexpected error escapes the per-file refresh path.
+        summary.failed += 1;
+      }
+    }
+  });
+
+  await Promise.all(workers);
 
   return summary;
 }

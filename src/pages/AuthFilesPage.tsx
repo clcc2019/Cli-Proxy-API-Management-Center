@@ -69,7 +69,7 @@ import {
   type AuthFilePlanSources,
 } from '@/features/authFiles/planMetadata';
 import {
-  refreshAuthFileQuotasSerially,
+  refreshAuthFileQuotasInParallel,
   type AuthFileQuotaRefreshTarget,
 } from '@/features/authFiles/quotaRefresh';
 import {
@@ -1284,7 +1284,7 @@ export function AuthFilesPage() {
     setPageQuotaRefreshing(true);
     try {
       const skippedBeforeRefresh = Math.max(0, pageItems.length - pageQuotaRefreshItems.length);
-      const result = await refreshAuthFileQuotasSerially({
+      const result = await refreshAuthFileQuotasInParallel({
         targets: pageQuotaRefreshItems,
         disableControls,
         t,
