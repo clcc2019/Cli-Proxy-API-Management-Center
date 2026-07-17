@@ -11,12 +11,13 @@
   --request-info-bg: color-mix(in srgb, var(--info-color) 12%, transparent);
   --request-info-border: color-mix(in srgb, var(--info-color) 28%, transparent);
   --request-info-text: color-mix(in srgb, var(--info-color) 78%, var(--text-primary));
-  --request-panel-border: color-mix(in srgb, #8796aa 28%, var(--border-color));
-  --request-panel-bg: color-mix(in srgb, #f8fafc 70%, var(--surface-raised));
-  --request-panel-muted: color-mix(in srgb, #eef2f6 54%, var(--bg-secondary));
-  --request-control-bg: color-mix(in srgb, #ffffff 74%, var(--bg-primary));
-  --request-panel-gloss: color-mix(in srgb, #ffffff 44%, transparent);
-  --request-row-grid: 4px minmax(120px, 150px) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 200px) minmax(0, 1fr) minmax(80px, 110px);
+  --request-panel-border: color-mix(in srgb, var(--neutral-accent) 28%, var(--border-color));
+  --request-panel-bg: color-mix(in srgb, var(--panel-surface) 72%, var(--surface-raised));
+  --request-panel-muted: color-mix(in srgb, var(--panel-surface-muted) 68%, var(--bg-secondary));
+  --request-control-bg: color-mix(in srgb, var(--control-surface) 76%, var(--bg-primary));
+  --request-panel-gloss: var(--surface-sheen);
+  --request-row-grid: 4px minmax(120px, 150px) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 200px)
+    minmax(0, 1fr) minmax(80px, 110px);
   width: 100%;
   min-height: 100%;
   display: flex;
@@ -91,7 +92,9 @@
   box-shadow:
     var(--shadow-card),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: border-color $transition-fast, box-shadow $transition-fast;
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
 
   &:hover {
     border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
@@ -172,8 +175,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: background-color $transition-fast, color $transition-fast,
-    box-shadow $transition-fast, transform $transition-fast;
+  transition:
+    background-color $transition-fast,
+    color $transition-fast,
+    box-shadow $transition-fast,
+    transform $transition-fast;
   white-space: nowrap;
   min-width: 0;
   position: relative;
@@ -270,7 +276,9 @@
   font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  transition: background-color $transition-fast, color $transition-fast;
+  transition:
+    background-color $transition-fast,
+    color $transition-fast;
 
   .statusFilterButtonActive & {
     background: color-mix(in srgb, var(--primary-color) 18%, transparent);
@@ -306,7 +314,9 @@
   border: 1px solid var(--request-panel-border);
   background: var(--request-control-bg);
   color: var(--text-tertiary);
-  transition: border-color $transition-fast, background-color $transition-fast,
+  transition:
+    border-color $transition-fast,
+    background-color $transition-fast,
     box-shadow $transition-fast;
 
   &:focus-within {
@@ -350,7 +360,9 @@
   background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color $transition-fast, color $transition-fast,
+  transition:
+    background-color $transition-fast,
+    color $transition-fast,
     transform $transition-fast;
 
   &:hover {
@@ -456,7 +468,9 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  transition: background-color $transition-fast, box-shadow $transition-fast;
+  transition:
+    background-color $transition-fast,
+    box-shadow $transition-fast;
   content-visibility: auto;
   contain-intrinsic-size: 64px;
 
@@ -784,7 +798,9 @@
   border: 1px solid transparent;
   min-width: 0;
   white-space: nowrap;
-  transition: background-color $transition-fast, color $transition-fast,
+  transition:
+    background-color $transition-fast,
+    color $transition-fast,
     border-color $transition-fast;
 
   @include mobile {
@@ -840,7 +856,9 @@
   text-align: left;
   cursor: pointer;
   @include text-ellipsis-multiline(2);
-  transition: background-color $transition-fast, border-color $transition-fast,
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast,
     color $transition-fast;
 
   &:hover,
@@ -1168,7 +1186,11 @@
   border-radius: 8px;
   border: 1px dashed color-mix(in srgb, var(--border-color) 82%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised-strong) 50%, transparent), transparent 72%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-raised-strong) 50%, transparent),
+      transparent 72%
+    ),
     color-mix(in srgb, var(--bg-secondary) 60%, transparent);
   text-align: center;
   gap: 10px;
@@ -1196,7 +1218,9 @@
   color: var(--text-tertiary);
   background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  transition: transform $transition-fast, color $transition-fast;
+  transition:
+    transform $transition-fast,
+    color $transition-fast;
 
   .emptyState:hover & {
     color: var(--text-secondary);
@@ -1319,11 +1343,15 @@
     --request-success-text: color-mix(in srgb, var(--success-color) 86%, var(--text-primary));
     --request-info-bg: color-mix(in srgb, var(--info-color) 14%, transparent);
     --request-info-border: color-mix(in srgb, var(--info-color) 32%, transparent);
-    --request-panel-border: color-mix(in srgb, #718096 34%, var(--border-color));
-    --request-panel-bg: color-mix(in srgb, #20252b 72%, var(--surface-raised));
-    --request-panel-muted: color-mix(in srgb, #252b32 64%, var(--bg-secondary));
-    --request-control-bg: color-mix(in srgb, #2a3038 58%, var(--bg-primary));
-    --request-panel-gloss: color-mix(in srgb, #ffffff 8%, transparent);
+    --request-panel-border: color-mix(
+      in srgb,
+      var(--neutral-accent-strong) 34%,
+      var(--border-color)
+    );
+    --request-panel-bg: color-mix(in srgb, var(--panel-surface) 76%, var(--surface-raised));
+    --request-panel-muted: color-mix(in srgb, var(--panel-surface-muted) 72%, var(--bg-secondary));
+    --request-control-bg: color-mix(in srgb, var(--control-surface) 68%, var(--bg-primary));
+    --request-panel-gloss: var(--surface-sheen);
   }
 
   .eventListHeader,

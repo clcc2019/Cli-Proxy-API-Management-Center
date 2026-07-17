@@ -2,14 +2,18 @@
 @use '../../styles/mixins' as *;
 
 .panelCard {
-  --panel-accent: #4a9b6c;
-  --panel-halo: rgba(74, 155, 108, 0.1);
+  --panel-accent: var(--primary-color);
+  --panel-halo: color-mix(in srgb, var(--primary-color) 10%, transparent);
   --panel-sheen: color-mix(in srgb, #ffffff 34%, transparent);
   overflow: hidden;
   border-radius: $radius-lg;
   background:
     linear-gradient(180deg, var(--panel-sheen), transparent 42%),
-    linear-gradient(135deg, color-mix(in srgb, var(--panel-accent) 5%, transparent), transparent 54%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--panel-accent) 5%, transparent),
+      transparent 54%
+    ),
     var(--surface-raised);
   border-color: color-mix(in srgb, var(--panel-accent) 16%, var(--border-color));
   box-shadow:
@@ -44,28 +48,28 @@
 }
 
 .toneNeutral {
-  --panel-accent: #4a9b6c;
-  --panel-halo: rgba(74, 155, 108, 0.1);
+  --panel-accent: var(--primary-color);
+  --panel-halo: color-mix(in srgb, var(--primary-color) 10%, transparent);
 }
 
 .toneSuccess {
-  --panel-accent: #4a9b6c;
-  --panel-halo: rgba(74, 155, 108, 0.1);
+  --panel-accent: var(--accent-green);
+  --panel-halo: color-mix(in srgb, var(--accent-green) 10%, transparent);
 }
 
 .toneWarning {
-  --panel-accent: #f59e0b;
-  --panel-halo: rgba(245, 158, 11, 0.1);
+  --panel-accent: var(--accent-amber);
+  --panel-halo: color-mix(in srgb, var(--accent-amber) 10%, transparent);
 }
 
 .toneDanger {
-  --panel-accent: #ef4444;
-  --panel-halo: rgba(239, 68, 68, 0.1);
+  --panel-accent: var(--accent-rose);
+  --panel-halo: color-mix(in srgb, var(--accent-rose) 10%, transparent);
 }
 
 .toneViolet {
-  --panel-accent: #8b5cf6;
-  --panel-halo: rgba(139, 92, 246, 0.1);
+  --panel-accent: var(--accent-violet);
+  --panel-halo: color-mix(in srgb, var(--accent-violet) 10%, transparent);
 }
 
 .panelHeading {
@@ -255,7 +259,9 @@
       transparent 1px
     ),
     color-mix(in srgb, var(--bg-secondary) 38%, transparent);
-  background-size: 100% 25%, 100% 100%;
+  background-size:
+    100% 25%,
+    100% 100%;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   @include mobile {
@@ -532,7 +538,11 @@
     --panel-sheen: color-mix(in srgb, #ffffff 5%, transparent);
     background:
       linear-gradient(180deg, var(--panel-sheen), transparent 42%),
-      linear-gradient(135deg, color-mix(in srgb, var(--panel-accent) 8%, transparent), transparent 54%),
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--panel-accent) 8%, transparent),
+        transparent 54%
+      ),
       var(--surface-raised);
     box-shadow:
       var(--shadow-card),

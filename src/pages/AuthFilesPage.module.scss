@@ -2,25 +2,21 @@
 @use '../styles/mixins' as *;
 
 .container {
-  --auth-surface: color-mix(in srgb, #f8fafc 68%, var(--surface-raised));
-  --auth-surface-muted: color-mix(in srgb, #eef2f6 52%, var(--bg-secondary));
-  --auth-control-surface: color-mix(in srgb, #ffffff 72%, var(--bg-primary));
-  --auth-neutral-border: color-mix(in srgb, #94a3b8 24%, var(--border-color));
-  --auth-neutral-border-strong: color-mix(in srgb, #7c8da3 34%, var(--border-color));
+  --auth-surface: color-mix(in srgb, var(--panel-surface) 72%, var(--surface-raised));
+  --auth-surface-muted: color-mix(in srgb, var(--panel-surface-muted) 66%, var(--bg-secondary));
+  --auth-control-surface: color-mix(in srgb, var(--control-surface) 76%, var(--bg-primary));
+  --auth-neutral-border: color-mix(in srgb, var(--neutral-accent) 24%, var(--border-color));
+  --auth-neutral-border-strong: color-mix(
+    in srgb,
+    var(--neutral-accent-strong) 34%,
+    var(--border-color)
+  );
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
-}
-
-:global([data-theme='dark']) .container {
-  --auth-surface: color-mix(in srgb, #20252b 72%, var(--surface-raised));
-  --auth-surface-muted: color-mix(in srgb, #252b32 64%, var(--bg-secondary));
-  --auth-control-surface: color-mix(in srgb, #2a3038 58%, var(--bg-primary));
-  --auth-neutral-border: color-mix(in srgb, #718096 32%, var(--border-color));
-  --auth-neutral-border-strong: color-mix(in srgb, #8a9aaf 42%, var(--border-color));
 }
 
 // 首屏下方的 OAuth 卡片：用 content-visibility:auto 让其在滚入视口前跳过渲染，
@@ -1402,27 +1398,27 @@
 }
 
 .antigravityCard {
-  --provider-accent: rgba(20, 184, 166, 0.86);
+  --provider-accent: var(--accent-cyan);
 }
 
 .claudeCard {
-  --provider-accent: rgba(249, 115, 22, 0.86);
+  --provider-accent: var(--accent-orange);
 }
 
 .codexCard {
-  --provider-accent: rgba(99, 102, 241, 0.86);
+  --provider-accent: var(--primary-color);
 }
 
 .geminiCliCard {
-  --provider-accent: rgba(14, 165, 233, 0.86);
+  --provider-accent: var(--accent-blue);
 }
 
 .kiroCard {
-  --provider-accent: rgba(245, 158, 11, 0.88);
+  --provider-accent: var(--accent-amber);
 }
 
 .kimiCard {
-  --provider-accent: rgba(6, 182, 212, 0.88);
+  --provider-accent: var(--accent-cyan);
 }
 
 .quotaSection {
@@ -5505,7 +5501,7 @@
   width: min(960px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
   box-sizing: border-box;
-  // 隔离浮动操作栏的布局/样式作用域，GSAP 动画时避免触发整页样式重算。
+  // 隔离浮动操作栏的布局/样式作用域，原生合成动画时避免触发整页样式重算。
   contain: layout style;
 }
 

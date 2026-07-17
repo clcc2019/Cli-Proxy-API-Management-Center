@@ -1,6 +1,7 @@
 import {
   ReactNode,
   SVGProps,
+  startTransition,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -8,13 +9,14 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
-import { preloadPrimaryRoutes } from '@/router/routeLoaders';
+import { preloadLikelyRoutes, preloadRoute } from '@/router/routeLoaders';
 import {
   IconSidebarAuthFiles,
   IconSidebarConfig,
@@ -166,11 +168,11 @@ const THEME_CARDS: Array<{
     key: 'auto',
     labelKey: 'theme.auto',
     colors: {
-      bg: 'linear-gradient(135deg, #ffffff 0 50%, #111111 50% 100%)',
-      card: 'linear-gradient(135deg, #ffffff 0 50%, #1a1a1a 50% 100%)',
-      border: '#bdbdbd',
-      text: '#2d2a26',
-      textMuted: 'linear-gradient(135deg, #c9c9c9 0 50%, #5a5a5a 50% 100%)',
+      bg: 'linear-gradient(135deg, #ffffff 0 50%, #0b1020 50% 100%)',
+      card: 'linear-gradient(135deg, #f5f7fb 0 50%, #101728 50% 100%)',
+      border: '#aeb8c8',
+      text: '#182033',
+      textMuted: 'linear-gradient(135deg, #8c97a9 0 50%, #7f8ba2 50% 100%)',
     },
   },
   {
@@ -179,37 +181,38 @@ const THEME_CARDS: Array<{
     colors: {
       bg: '#ffffff',
       card: '#ffffff',
-      border: '#e5e5e5',
-      text: '#2d2a26',
-      textMuted: '#a29c95',
+      border: '#e4e8ef',
+      text: '#151d2d',
+      textMuted: '#8c96a6',
     },
   },
   {
     key: 'light',
     labelKey: 'theme.light',
     colors: {
-      bg: '#faf9f5',
-      card: '#f0eee8',
-      border: '#e3e1db',
-      text: '#2d2a26',
-      textMuted: '#a29c95',
+      bg: '#f5f7fb',
+      card: '#ffffff',
+      border: '#e1e7f0',
+      text: '#182033',
+      textMuted: '#8c97a9',
     },
   },
   {
     key: 'dark',
     labelKey: 'theme.dark',
     colors: {
-      bg: '#151412',
-      card: '#1d1b18',
-      border: '#3a3530',
-      text: '#f6f4f1',
-      textMuted: '#9c958d',
+      bg: '#0b1020',
+      card: '#101728',
+      border: '#253149',
+      text: '#f3f6fc',
+      textMuted: '#7f8ba2',
     },
   },
 ];
 
-const AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS = 3500;
+const AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS = 5000;
 const ROUTE_PRELOAD_IDLE_TIMEOUT_MS = 2000;
+const NAVIGATION_PRELOAD_BUDGET_MS = 220;
 const HEADER_MENU_ITEM_SELECTOR = '[role="menuitemradio"]:not(:disabled)';
 
 type NetworkAwareNavigator = Navigator & {
@@ -237,15 +240,18 @@ const shouldPreloadPrimaryRoutes = () => {
 };
 
 function scheduleAuthenticatedRoutePreload() {
-  return scheduleIdleTask(() => {
-    if (!shouldPreloadPrimaryRoutes()) {
-      return;
+  return scheduleIdleTask(
+    () => {
+      if (!shouldPreloadPrimaryRoutes()) {
+        return;
+      }
+      void preloadLikelyRoutes();
+    },
+    {
+      delayMs: AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS,
+      timeoutMs: ROUTE_PRELOAD_IDLE_TIMEOUT_MS,
     }
-    void preloadPrimaryRoutes();
-  }, {
-    delayMs: AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS,
-    timeoutMs: ROUTE_PRELOAD_IDLE_TIMEOUT_MS,
-  });
+  );
 }
 
 const getHeaderMenuItems = (menu: HTMLDivElement | null) =>
@@ -255,6 +261,7 @@ export function MainLayout() {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const apiBase = useAuthStore((state) => state.apiBase);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
@@ -277,6 +284,7 @@ export function MainLayout() {
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
+  const navigationIntentRef = useRef(0);
 
   const fullBrandName = 'CLI Proxy API Management Center';
   const abbrBrandName = t('title.abbr');
@@ -343,18 +351,15 @@ export function MainLayout() {
     };
   }, []);
 
-  const focusHeaderMenuItem = useCallback(
-    (menu: HTMLDivElement | null, direction: 1 | -1) => {
-      const items = getHeaderMenuItems(menu);
-      if (items.length === 0) return;
+  const focusHeaderMenuItem = useCallback((menu: HTMLDivElement | null, direction: 1 | -1) => {
+    const items = getHeaderMenuItems(menu);
+    if (items.length === 0) return;
 
-      const activeIndex = items.findIndex((item) => item === document.activeElement);
-      const nextIndex =
-        activeIndex === -1 ? 0 : (activeIndex + direction + items.length) % items.length;
-      items[nextIndex]?.focus();
-    },
-    []
-  );
+    const activeIndex = items.findIndex((item) => item === document.activeElement);
+    const nextIndex =
+      activeIndex === -1 ? 0 : (activeIndex + direction + items.length) % items.length;
+    items[nextIndex]?.focus();
+  }, []);
 
   const handleHeaderMenuKeyDown = useCallback(
     (
@@ -607,6 +612,49 @@ export function MainLayout() {
     showNotification(t('notification.data_refreshed'), 'success');
   };
 
+  const handleNavigationIntent = useCallback((path: string) => {
+    void preloadRoute(path).catch(() => {
+      // Route rendering still has a Suspense fallback if an intent preload fails.
+    });
+  }, []);
+
+  const handleNavigationClick = useCallback(
+    (event: ReactMouseEvent<HTMLAnchorElement>, path: string) => {
+      setSidebarOpen(false);
+
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      const intentId = navigationIntentRef.current + 1;
+      navigationIntentRef.current = intentId;
+      if (location.pathname === path || (path === '/' && location.pathname === '/dashboard')) {
+        return;
+      }
+
+      // Give intent preloading a short head start so Suspense rarely flashes a full-page loader.
+      // The budget keeps navigation responsive on slow or offline connections.
+      void Promise.race([
+        preloadRoute(path).catch(() => undefined),
+        new Promise<void>((resolve) => {
+          window.setTimeout(resolve, NAVIGATION_PRELOAD_BUDGET_MS);
+        }),
+      ]).then(() => {
+        if (navigationIntentRef.current !== intentId) return;
+        startTransition(() => navigate(path));
+      });
+    },
+    [location.pathname, navigate]
+  );
+
   return (
     <div className="app-shell">
       <header className="main-header" ref={headerRef}>
@@ -626,18 +674,10 @@ export function MainLayout() {
             type="button"
             className="sidebar-toggle-header"
             onClick={() => setSidebarCollapsed((prev) => !prev)}
-            aria-label={
-              sidebarCollapsed
-                ? t('sidebar.expand')
-                : t('sidebar.collapse')
-            }
+            aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
             aria-expanded={!sidebarCollapsed}
             aria-controls="main-sidebar"
-            title={
-              sidebarCollapsed
-                ? t('sidebar.expand')
-                : t('sidebar.collapse')
-            }
+            title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
           >
             {sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
           </button>
@@ -841,7 +881,10 @@ export function MainLayout() {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                onClick={() => setSidebarOpen(false)}
+                onClick={(event) => handleNavigationClick(event, item.path)}
+                onPointerEnter={() => handleNavigationIntent(item.path)}
+                onPointerDown={() => handleNavigationIntent(item.path)}
+                onFocus={() => handleNavigationIntent(item.path)}
                 title={sidebarCollapsed ? item.label : undefined}
               >
                 <span className="nav-icon">{item.icon}</span>

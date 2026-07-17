@@ -1,6 +1,5 @@
 import { ReactNode, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, type Location } from 'react-router-dom';
-import gsap from 'gsap';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   PAGE_TRANSITION_LAYER_CONTEXT_VALUES,
@@ -16,19 +15,39 @@ interface PageTransitionProps {
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
-const VERTICAL_TRANSITION_DURATION = 0.35;
-const VERTICAL_TRAVEL_DISTANCE = 60;
-const IOS_TRANSITION_DURATION = 0.42;
+const VERTICAL_TRANSITION_DURATION_MS = 260;
+const VERTICAL_TRAVEL_DISTANCE = 28;
+const IOS_TRANSITION_DURATION_MS = 320;
 const IOS_ENTER_FROM_X_PERCENT = 100;
 const IOS_EXIT_TO_X_PERCENT_FORWARD = -30;
 const IOS_EXIT_TO_X_PERCENT_BACKWARD = 100;
 const IOS_ENTER_FROM_X_PERCENT_BACKWARD = -30;
 const IOS_EXIT_DIM_OPACITY = 0.72;
 const IOS_SHADOW_VALUE = '-14px 0 24px rgba(0, 0, 0, 0.16)';
+const VERTICAL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const IOS_EASING = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
+const ANIMATION_COMPLETION_GRACE_MS = 120;
 
 const clearLayerStyles = (element: HTMLElement | null) => {
   if (!element) return;
-  gsap.set(element, { clearProps: 'transform,opacity,visibility,boxShadow' });
+  element.style.removeProperty('transform');
+  element.style.removeProperty('opacity');
+  element.style.removeProperty('visibility');
+  element.style.removeProperty('box-shadow');
+};
+
+const animateLayer = (
+  element: HTMLElement | null,
+  keyframes: Keyframe[],
+  duration: number,
+  easing: string
+): Animation | null => {
+  if (!element || typeof element.animate !== 'function') return null;
+  return element.animate(keyframes, {
+    duration,
+    easing,
+    fill: 'both',
+  });
 };
 
 type Layer = {
@@ -40,6 +59,9 @@ type Layer = {
 type TransitionDirection = 'forward' | 'backward';
 
 type TransitionVariant = 'vertical' | 'ios' | 'none';
+
+const getLocationLayerKey = (location: Location) =>
+  `${location.key}:${location.pathname}${location.search}`;
 
 export function PageTransition({
   render,
@@ -61,14 +83,15 @@ export function PageTransition({
   const [isAnimating, setIsAnimating] = useState(false);
   const [layers, setLayers] = useState<Layer[]>(() => [
     {
-      key: location.key,
+      key: getLocationLayerKey(location),
       location,
       status: 'current',
     },
   ]);
+  const locationLayerKey = getLocationLayerKey(location);
   const currentLayer =
     layers.find((layer) => layer.status === 'current') ?? layers[layers.length - 1];
-  const currentLayerKey = currentLayer?.key ?? location.key;
+  const currentLayerKey = currentLayer?.key ?? locationLayerKey;
   const currentLayerPathname = currentLayer?.location.pathname;
 
   const resolveScrollContainer = useCallback(() => {
@@ -79,14 +102,15 @@ export function PageTransition({
 
   useLayoutEffect(() => {
     if (isAnimating) return;
-    if (location.key === currentLayerKey) return;
+    // Same-screen query/hash updates are supplied directly to render below and need no animation.
     if (currentLayerPathname === location.pathname) return;
+    if (locationLayerKey === currentLayerKey) return;
     const scrollContainer = resolveScrollContainer();
     const exitScrollOffset = scrollContainer?.scrollTop ?? 0;
     exitScrollOffsetRef.current = exitScrollOffset;
     scrollPositionsRef.current.set(currentLayerKey, exitScrollOffset);
 
-    enterScrollOffsetRef.current = scrollPositionsRef.current.get(location.key) ?? 0;
+    enterScrollOffsetRef.current = scrollPositionsRef.current.get(locationLayerKey) ?? 0;
     const resolveOrderIndex = (pathname?: string) => {
       if (!getRouteOrder || !pathname) return null;
       const index = getRouteOrder(pathname);
@@ -107,7 +131,7 @@ export function PageTransition({
 
     // When using iOS-style stacking, history POP within the same "section" can have equal route order.
     // In that case, prefer treating navigation to an existing layer as a backward (pop) transition.
-    if (nextVariant === 'ios' && layers.some((layer) => layer.key === location.key)) {
+    if (nextVariant === 'ios' && layers.some((layer) => layer.key === locationLayerKey)) {
       nextDirection = 'backward';
     }
 
@@ -138,7 +162,7 @@ export function PageTransition({
         .filter((_, idx) => idx !== resolvedCurrentIndex)
         .map((layer): Layer => ({ ...layer, status: 'stacked' }));
 
-      const nextCurrent: Layer = { key: location.key, location, status: 'current' };
+      const nextCurrent: Layer = { key: locationLayerKey, location, status: 'current' };
 
       if (!previousCurrent) {
         nextLayersRef.current = [nextCurrent];
@@ -159,7 +183,7 @@ export function PageTransition({
           return [...previousStack, exitingLayer, nextCurrent];
         }
 
-        const targetIndex = prev.findIndex((layer) => layer.key === location.key);
+        const targetIndex = prev.findIndex((layer) => layer.key === locationLayerKey);
         if (targetIndex !== -1) {
           const targetStack: Layer[] = prev.slice(0, targetIndex + 1).map((layer, idx): Layer => {
             const isTarget = idx === targetIndex;
@@ -197,6 +221,7 @@ export function PageTransition({
   }, [
     isAnimating,
     location,
+    locationLayerKey,
     currentLayerKey,
     currentLayerPathname,
     getRouteOrder,
@@ -205,7 +230,8 @@ export function PageTransition({
     layers,
   ]);
 
-  // Run Motion animation when animating starts
+  // 使用浏览器原生 Web Animations API，把整页位移和透明度交给合成线程处理。
+  // 同时设置兜底计时器，避免浏览器丢失 finished 回调后页面一直停留在过渡态。
   useLayoutEffect(() => {
     if (!isAnimating) return;
 
@@ -230,12 +256,18 @@ export function PageTransition({
     const enterFromY = isForward ? VERTICAL_TRAVEL_DISTANCE : -VERTICAL_TRAVEL_DISTANCE;
     const exitToY = isForward ? -VERTICAL_TRAVEL_DISTANCE : VERTICAL_TRAVEL_DISTANCE;
     const exitBaseY = enterScrollOffset - exitScrollOffset;
-    const activeAnimations: gsap.core.Tween[] = [];
+    const activeAnimations: Animation[] = [];
     let cancelled = false;
     let completed = false;
+    let completionTimer: number | null = null;
     const completeTransition = () => {
       if (completed) return;
       completed = true;
+
+      if (completionTimer !== null) {
+        window.clearTimeout(completionTimer);
+        completionTimer = null;
+      }
 
       const nextLayers = nextLayersRef.current;
       nextLayersRef.current = null;
@@ -259,79 +291,97 @@ export function PageTransition({
         ? IOS_ENTER_FROM_X_PERCENT
         : IOS_ENTER_FROM_X_PERCENT_BACKWARD;
 
-      if (exitingLayerEl) {
-        gsap.set(exitingLayerEl, { xPercent: 0, y: exitBaseY, autoAlpha: 1 });
-      }
-
-      gsap.set(currentLayerEl, { xPercent: enterFromXPercent, y: 0, autoAlpha: 1 });
-
       const topLayerEl = isForward ? currentLayerEl : exitingLayerEl;
       if (topLayerEl) {
         topLayerEl.style.boxShadow = IOS_SHADOW_VALUE;
       }
 
       if (exitingLayerEl) {
-        activeAnimations.push(
-          gsap.to(exitingLayerEl, {
-            xPercent: exitToXPercent,
-            y: exitBaseY,
-            autoAlpha: isForward ? IOS_EXIT_DIM_OPACITY : 1,
-            duration: IOS_TRANSITION_DURATION,
-            ease: 'power2.out',
-            overwrite: 'auto',
-          })
+        const exitAnimation = animateLayer(
+          exitingLayerEl,
+          [
+            {
+              transform: `translate3d(0%, ${exitBaseY}px, 0)`,
+              opacity: 1,
+              visibility: 'visible',
+            },
+            {
+              transform: `translate3d(${exitToXPercent}%, ${exitBaseY}px, 0)`,
+              opacity: isForward ? IOS_EXIT_DIM_OPACITY : 1,
+              visibility: 'visible',
+            },
+          ],
+          IOS_TRANSITION_DURATION_MS,
+          IOS_EASING
         );
+        if (exitAnimation) activeAnimations.push(exitAnimation);
       }
 
-      activeAnimations.push(
-        gsap.to(currentLayerEl, {
-          xPercent: 0,
-          y: 0,
-          autoAlpha: 1,
-          duration: IOS_TRANSITION_DURATION,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        })
+      const enterAnimation = animateLayer(
+        currentLayerEl,
+        [
+          {
+            transform: `translate3d(${enterFromXPercent}%, 0, 0)`,
+            opacity: 1,
+            visibility: 'visible',
+          },
+          { transform: 'translate3d(0, 0, 0)', opacity: 1, visibility: 'visible' },
+        ],
+        IOS_TRANSITION_DURATION_MS,
+        IOS_EASING
       );
+      if (enterAnimation) activeAnimations.push(enterAnimation);
     } else {
       // Exit animation: fade out with slight movement (runs simultaneously)
       if (exitingLayerEl) {
-        gsap.set(exitingLayerEl, { xPercent: 0, y: exitBaseY, autoAlpha: 1 });
-        activeAnimations.push(
-          gsap.to(exitingLayerEl, {
-            y: exitBaseY + exitToY,
-            autoAlpha: 0,
-            duration: VERTICAL_TRANSITION_DURATION,
-            ease: 'circ.out',
-            overwrite: 'auto',
-          })
+        const exitAnimation = animateLayer(
+          exitingLayerEl,
+          [
+            {
+              transform: `translate3d(0, ${exitBaseY}px, 0)`,
+              opacity: 1,
+              visibility: 'visible',
+            },
+            {
+              transform: `translate3d(0, ${exitBaseY + exitToY}px, 0)`,
+              opacity: 0,
+              visibility: 'visible',
+            },
+          ],
+          VERTICAL_TRANSITION_DURATION_MS,
+          VERTICAL_EASING
         );
+        if (exitAnimation) activeAnimations.push(exitAnimation);
       }
 
       // Enter animation: fade in with slight movement (runs simultaneously)
-      gsap.set(currentLayerEl, { xPercent: 0, y: enterFromY, autoAlpha: 0 });
-      activeAnimations.push(
-        gsap.to(currentLayerEl, {
-          y: 0,
-          autoAlpha: 1,
-          duration: VERTICAL_TRANSITION_DURATION,
-          ease: 'circ.out',
-          overwrite: 'auto',
-        })
+      const enterAnimation = animateLayer(
+        currentLayerEl,
+        [
+          {
+            transform: `translate3d(0, ${enterFromY}px, 0)`,
+            opacity: 0,
+            visibility: 'visible',
+          },
+          { transform: 'translate3d(0, 0, 0)', opacity: 1, visibility: 'visible' },
+        ],
+        VERTICAL_TRANSITION_DURATION_MS,
+        VERTICAL_EASING
       );
+      if (enterAnimation) activeAnimations.push(enterAnimation);
     }
 
     if (!activeAnimations.length) {
       completeTransition();
     } else {
-      void Promise.all(
-        activeAnimations.map(
-          (animation) =>
-            new Promise<void>((resolve) => {
-              animation.eventCallback('onComplete', resolve);
-            })
-        )
-      ).then(() => {
+      const maxDuration =
+        transitionVariant === 'ios' ? IOS_TRANSITION_DURATION_MS : VERTICAL_TRANSITION_DURATION_MS;
+      completionTimer = window.setTimeout(
+        completeTransition,
+        maxDuration + ANIMATION_COMPLETION_GRACE_MS
+      );
+
+      void Promise.allSettled(activeAnimations.map((animation) => animation.finished)).then(() => {
         if (cancelled) return;
         completeTransition();
       });
@@ -339,7 +389,10 @@ export function PageTransition({
 
     return () => {
       cancelled = true;
-      activeAnimations.forEach((animation) => animation.kill());
+      if (completionTimer !== null) {
+        window.clearTimeout(completionTimer);
+      }
+      activeAnimations.forEach((animation) => animation.cancel());
     };
   }, [isAnimating, prefersReducedMotion, resolveScrollContainer]);
 
@@ -356,6 +409,10 @@ export function PageTransition({
 
         return layers.map((layer, index) => {
           const shouldKeepStacked = layer.status === 'stacked' && index === keepStackedIndex;
+          const renderLocation =
+            layer.status === 'current' && layer.location.pathname === location.pathname
+              ? location
+              : layer.location;
           return (
             <div
               key={layer.key}
@@ -380,7 +437,7 @@ export function PageTransition({
               <PageTransitionLayerContext.Provider
                 value={PAGE_TRANSITION_LAYER_CONTEXT_VALUES[layer.status]}
               >
-                {render(layer.location)}
+                {render(renderLocation)}
               </PageTransitionLayerContext.Provider>
             </div>
           );

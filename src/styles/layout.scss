@@ -35,9 +35,9 @@
   align-items: center;
   justify-content: space-between;
   gap: $spacing-md;
-  padding: 14px 22px;
-  background: color-mix(in srgb, var(--surface-overlay) 92%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  padding: 12px 20px;
+  background: color-mix(in srgb, var(--surface-overlay) 88%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -71,11 +71,15 @@
     }
 
     .brand-logo {
-      height: 32px;
-      width: 32px;
+      height: 36px;
+      width: 36px;
       object-fit: contain;
       flex-shrink: 0;
-      border-radius: $radius-sm;
+      padding: 2px;
+      border-radius: 11px;
+      border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+      background: var(--surface-raised-strong);
+      box-shadow: 0 8px 20px -12px rgb(35 48 78 / 0.42);
 
       @media (max-width: $breakpoint-mobile) {
         display: none;
@@ -114,15 +118,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
     line-height: 1;
     box-shadow: var(--shadow);
 
     &:hover {
       background: var(--surface-raised-strong);
-      color: var(--text-primary);
+      color: var(--primary-color);
+      border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
+      transform: translateY(-1px);
     }
 
     @media (max-width: $breakpoint-mobile) {
@@ -139,8 +145,9 @@
     border: 0;
     background: transparent;
     font: inherit;
-    font-weight: 800;
-    font-size: 18px;
+    font-weight: 750;
+    font-size: 17px;
+    letter-spacing: -0.025em;
     color: var(--text-primary);
     margin-right: $spacing-md;
     text-align: left;
@@ -400,6 +407,21 @@
       display: block;
     }
 
+    > .btn,
+    .language-menu > .btn,
+    .theme-menu > .btn {
+      width: 36px;
+      min-width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 10px;
+
+      &:hover {
+        color: var(--primary-color);
+        background: var(--primary-soft);
+      }
+    }
+
     @media (max-width: $breakpoint-mobile) {
       gap: 6px;
     }
@@ -413,10 +435,10 @@
     min-width: 0;
     flex-shrink: 1;
     overflow: hidden;
-    padding: 6px 12px;
+    padding: 6px 10px 6px 7px;
     border-radius: $radius-full;
-    background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
-    border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+    background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
     box-shadow: var(--shadow);
 
     .status-badge {
@@ -427,6 +449,7 @@
 
     .base {
       font-weight: 600;
+      font-size: 13px;
       color: var(--text-primary);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -523,10 +546,10 @@
 }
 
 .sidebar {
-  width: 248px;
-  background: color-mix(in srgb, var(--surface-overlay) 92%, transparent);
-  border-right: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  padding: $spacing-md;
+  width: 232px;
+  background: color-mix(in srgb, var(--surface-overlay) 86%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
   gap: $spacing-lg;
@@ -537,32 +560,32 @@
   flex-shrink: 0;
   height: 100%;
   box-shadow: var(--sidebar-shadow);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
 
   &.collapsed {
-    width: 60px;
-    padding: $spacing-md $spacing-sm;
+    width: 72px;
+    padding: 14px 10px;
 
     .nav-item {
       justify-content: center;
-      padding: 10px;
+      padding: 8px;
     }
   }
 
   .nav-section {
     display: flex;
     flex-direction: column;
-    gap: $spacing-sm;
+    gap: 5px;
     flex: 1;
   }
 
   .nav-item {
-    padding: 10px 12px;
-    border-radius: $radius-md;
+    position: relative;
+    padding: 8px 10px;
+    border-radius: 12px;
     border: 1px solid transparent;
-    color: var(--text-primary);
+    color: var(--text-secondary);
     font-weight: 600;
+    font-size: 14px;
     display: flex;
     align-items: center;
     gap: $spacing-sm;
@@ -574,15 +597,15 @@
       transform $transition-fast;
 
     .nav-icon {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       opacity: 0.96;
-      border-radius: 7px;
-      background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+      border-radius: 9px;
+      background: color-mix(in srgb, var(--surface-raised) 86%, transparent);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.2),
         inset 0 0 0 1px color-mix(in srgb, var(--border-primary) 86%, transparent);
@@ -605,9 +628,10 @@
     }
 
     &:hover {
-      background: color-mix(in srgb, var(--surface-raised) 84%, transparent);
-      border-color: color-mix(in srgb, var(--border-color) 72%, transparent);
-      transform: translateX(2px);
+      background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+      border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+      color: var(--text-primary);
+      transform: translateX(1px);
 
       .nav-icon {
         background: color-mix(in srgb, var(--surface-raised-strong) 92%, transparent);
@@ -616,9 +640,27 @@
     }
 
     &.active {
-      background: color-mix(in srgb, var(--primary-color) 13%, transparent);
+      background: linear-gradient(
+        100deg,
+        color-mix(in srgb, var(--primary-color) 16%, transparent),
+        color-mix(in srgb, var(--primary-color) 7%, transparent)
+      );
       color: var(--primary-color);
-      border: 1px solid color-mix(in srgb, var(--primary-color) 36%, transparent);
+      border: 1px solid color-mix(in srgb, var(--primary-color) 26%, transparent);
+      box-shadow: 0 10px 26px -22px color-mix(in srgb, var(--primary-color) 72%, transparent);
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: -1px;
+        top: 50%;
+        width: 3px;
+        height: 18px;
+        border-radius: 0 $radius-full $radius-full 0;
+        background: var(--primary-color);
+        transform: translateY(-50%);
+        box-shadow: 0 0 14px color-mix(in srgb, var(--primary-color) 55%, transparent);
+      }
 
       .nav-icon {
         background: color-mix(in srgb, var(--primary-color) 16%, var(--surface-raised));
@@ -654,6 +696,8 @@
   flex-direction: column;
   min-width: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   height: 100%;
   position: relative;
@@ -672,9 +716,9 @@
 .main-content {
   flex: 1 0 auto;
   width: 100%;
-  max-width: min(1920px, 100%);
+  max-width: min(1680px, 100%);
   margin: 0 auto;
-  padding: clamp(18px, 2vw, 28px);
+  padding: clamp(20px, 2.2vw, 36px);
   display: flex;
   flex-direction: column;
   gap: $spacing-lg;

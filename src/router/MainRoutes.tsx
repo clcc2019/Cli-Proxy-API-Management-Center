@@ -6,6 +6,8 @@ import {
   loadAuthFilesPage,
   loadConfigPage,
   loadDashboardPage,
+  loadLogsPage,
+  loadOAuthPage,
   loadRequestLogsPage,
   loadSystemPage,
   loadUsagePage,
@@ -43,11 +45,11 @@ const LazyAuthFilesOAuthModelAliasEditPage = lazyNamed(
   () => import('@/pages/AuthFilesOAuthModelAliasEditPage'),
   'AuthFilesOAuthModelAliasEditPage'
 );
-const LazyOAuthPage = lazyNamed(() => import('@/pages/OAuthPage'), 'OAuthPage');
+const LazyOAuthPage = lazyNamed(loadOAuthPage, 'OAuthPage');
 const LazyRequestLogsPage = lazyNamed(loadRequestLogsPage, 'RequestLogsPage');
 const LazyUsagePage = lazyNamed(loadUsagePage, 'UsagePage');
 const LazyConfigPage = lazyNamed(loadConfigPage, 'ConfigPage');
-const LazyLogsPage = lazyNamed(() => import('@/pages/LogsPage'), 'LogsPage');
+const LazyLogsPage = lazyNamed(loadLogsPage, 'LogsPage');
 const LazySystemPage = lazyNamed(loadSystemPage, 'SystemPage');
 
 const mainRoutes = [
@@ -78,8 +80,14 @@ const mainRoutes = [
   { path: '/ai-providers', element: renderLazyPage(LazyAiProvidersPage) },
   { path: '/ai-providers/*', element: renderLazyPage(LazyAiProvidersPage) },
   { path: '/auth-files', element: renderLazyPage(LazyAuthFilesPage) },
-  { path: '/auth-files/oauth-excluded', element: renderLazyPage(LazyAuthFilesOAuthExcludedEditPage) },
-  { path: '/auth-files/oauth-model-alias', element: renderLazyPage(LazyAuthFilesOAuthModelAliasEditPage) },
+  {
+    path: '/auth-files/oauth-excluded',
+    element: renderLazyPage(LazyAuthFilesOAuthExcludedEditPage),
+  },
+  {
+    path: '/auth-files/oauth-model-alias',
+    element: renderLazyPage(LazyAuthFilesOAuthModelAliasEditPage),
+  },
   { path: '/oauth', element: renderLazyPage(LazyOAuthPage) },
   { path: '/usage', element: renderLazyPage(LazyUsagePage) },
   { path: '/request-logs', element: renderLazyPage(LazyRequestLogsPage) },

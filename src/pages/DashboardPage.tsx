@@ -1,12 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  IconKey,
-  IconBot,
-  IconFileText,
-  IconSatellite
-} from '@/components/ui/icons';
+import { IconKey, IconBot, IconFileText, IconSatellite } from '@/components/ui/icons';
 import { useAlignedInterval } from '@/hooks/useAlignedInterval';
 import { useInterval } from '@/hooks/useInterval';
 import { useAuthStore, useConfigStore, useModelsStore } from '@/stores';
@@ -62,7 +57,7 @@ const HeroTimeBlock = memo(function HeroTimeBlock() {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
       }),
     [now, i18n.language]
   );
@@ -113,12 +108,12 @@ export function DashboardPage() {
     authFiles: number | null;
   }>({
     apiKeys: null,
-    authFiles: null
+    authFiles: null,
   });
 
   const [providerStats, setProviderStats] = useState<ProviderStats>({
     codex: null,
-    claude: null
+    claude: null,
   });
 
   const [loading, setLoading] = useState(true);
@@ -209,25 +204,24 @@ export function DashboardPage() {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        const [keysRes, filesRes, codexRes, claudeRes] =
-          await Promise.allSettled([
-            apiKeysApi.list(),
-            authFilesApi.list({ codexSubscription: 'skip', summary: true, page: 1, pageSize: 1 }),
-            providersApi.getCodexConfigs(),
-            providersApi.getClaudeConfigs()
-          ]);
+        const [keysRes, filesRes, codexRes, claudeRes] = await Promise.allSettled([
+          apiKeysApi.list(),
+          authFilesApi.list({ codexSubscription: 'skip', summary: true, page: 1, pageSize: 1 }),
+          providersApi.getCodexConfigs(),
+          providersApi.getClaudeConfigs(),
+        ]);
 
         setStats({
           apiKeys: keysRes.status === 'fulfilled' ? keysRes.value.length : null,
           authFiles:
             filesRes.status === 'fulfilled'
               ? (filesRes.value.total ?? filesRes.value.files.length)
-              : null
+              : null,
         });
 
         setProviderStats({
           codex: codexRes.status === 'fulfilled' ? codexRes.value.length : null,
-          claude: claudeRes.status === 'fulfilled' ? claudeRes.value.length : null
+          claude: claudeRes.status === 'fulfilled' ? claudeRes.value.length : null,
         });
       } finally {
         setLoading(false);
@@ -242,15 +236,10 @@ export function DashboardPage() {
     }
   }, [connectionStatus, fetchModels]);
 
-  const providerStatsReady =
-    providerStats.codex !== null &&
-    providerStats.claude !== null;
-  const hasProviderStats =
-    providerStats.codex !== null ||
-    providerStats.claude !== null;
+  const providerStatsReady = providerStats.codex !== null && providerStats.claude !== null;
+  const hasProviderStats = providerStats.codex !== null || providerStats.claude !== null;
   const totalProviderKeys = providerStatsReady
-    ? (providerStats.codex ?? 0) +
-      (providerStats.claude ?? 0)
+    ? (providerStats.codex ?? 0) + (providerStats.claude ?? 0)
     : 0;
 
   const quickStats: QuickStat[] = useMemo(
@@ -261,7 +250,7 @@ export function DashboardPage() {
         icon: <IconKey size={24} />,
         path: '/config',
         loading: loading && stats.apiKeys === null,
-        sublabel: t('nav.config_management')
+        sublabel: t('nav.config_management'),
       },
       {
         label: t('nav.ai_providers'),
@@ -272,9 +261,9 @@ export function DashboardPage() {
         sublabel: hasProviderStats
           ? t('dashboard.provider_keys_detail', {
               codex: providerStats.codex ?? '-',
-              claude: providerStats.claude ?? '-'
+              claude: providerStats.claude ?? '-',
             })
-          : undefined
+          : undefined,
       },
       {
         label: t('nav.auth_files'),
@@ -282,7 +271,7 @@ export function DashboardPage() {
         icon: <IconFileText size={24} />,
         path: '/auth-files',
         loading: loading && stats.authFiles === null,
-        sublabel: t('dashboard.oauth_credentials')
+        sublabel: t('dashboard.oauth_credentials'),
       },
       {
         label: t('dashboard.available_models'),
@@ -290,8 +279,8 @@ export function DashboardPage() {
         icon: <IconSatellite size={24} />,
         path: '/system',
         loading: modelsLoading,
-        sublabel: t('dashboard.available_models_desc')
-      }
+        sublabel: t('dashboard.available_models_desc'),
+      },
     ],
     [
       t,
@@ -304,7 +293,7 @@ export function DashboardPage() {
       providerStats.codex,
       providerStats.claude,
       modelsLoading,
-      models.length
+      models.length,
     ]
   );
 
@@ -371,8 +360,8 @@ export function DashboardPage() {
             <Link
               key={stat.path}
               to={stat.path}
-              className={`${styles.bentoCard} ${index === 0 ? styles.bentoLarge : ''}`}
-              style={{ animationDelay: `${index * 80}ms` }}
+              className={styles.bentoCard}
+              style={{ animationDelay: `${index * 45}ms` }}
             >
               <div className={styles.bentoIcon}>{stat.icon}</div>
               <div className={styles.bentoContent}>
@@ -390,7 +379,12 @@ export function DashboardPage() {
       {/* Config pills section */}
       {config && (
         <section className={styles.configSection}>
-          <h2 className={styles.sectionHeading}>{t('dashboard.current_config')}</h2>
+          <div className={styles.configHeader}>
+            <h2 className={styles.sectionHeading}>{t('dashboard.current_config')}</h2>
+            <Link to="/config" className={styles.viewMoreLink}>
+              {t('dashboard.edit_settings')} <span aria-hidden="true">→</span>
+            </Link>
+          </div>
           <div className={styles.configPillGrid}>
             <div className={styles.configPill}>
               <span className={styles.configPillLabel}>{t('basic_settings.debug_enable')}</span>
@@ -446,14 +440,13 @@ export function DashboardPage() {
             </div>
             {config.proxyUrl && (
               <div className={`${styles.configPill} ${styles.configPillWide}`}>
-                <span className={styles.configPillLabel}>{t('basic_settings.proxy_url_label')}</span>
+                <span className={styles.configPillLabel}>
+                  {t('basic_settings.proxy_url_label')}
+                </span>
                 <span className={styles.configPillMono}>{config.proxyUrl}</span>
               </div>
             )}
           </div>
-          <Link to="/config" className={styles.viewMoreLink}>
-            {t('dashboard.edit_settings')} →
-          </Link>
         </section>
       )}
     </div>

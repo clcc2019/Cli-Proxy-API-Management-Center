@@ -2,6 +2,7 @@
 
 .page-transition {
   position: relative;
+  isolation: isolate;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
@@ -14,8 +15,6 @@
     gap: $spacing-lg;
     min-height: 0;
     flex: 1;
-    backface-visibility: hidden;
-    transform: translateZ(0);
 
     // During animation, exit layer uses absolute positioning
     &--exit {
@@ -23,6 +22,7 @@
       inset: 0;
       overflow: hidden;
       pointer-events: none;
+      contain: layout style;
       will-change: transform, opacity;
     }
 
@@ -38,12 +38,14 @@
         overflow: hidden;
         pointer-events: none;
         opacity: 0;
+        contain: layout style;
         will-change: transform, opacity;
       }
     }
   }
 
   &--animating &__layer {
+    backface-visibility: hidden;
     will-change: transform, opacity;
   }
 

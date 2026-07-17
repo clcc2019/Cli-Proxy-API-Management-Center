@@ -13,7 +13,6 @@ import {
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import gsap from 'gsap';
 import { useInterval } from '@/hooks/useInterval';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
@@ -418,7 +417,7 @@ export function AuthFilesPage() {
     sortSnapshot: Record<string, AuthFileSortSnapshot>;
   } | null>(null);
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
-  const batchActionAnimationRef = useRef<gsap.core.Tween | null>(null);
+  const batchActionAnimationRef = useRef<Animation | null>(null);
   const previousSelectionActiveRef = useRef(false);
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
@@ -1420,51 +1419,63 @@ export function AuthFilesPage() {
 
     if (selectionActive === previousSelectionActive) return;
 
-    batchActionAnimationRef.current?.kill();
+    batchActionAnimationRef.current?.cancel();
     batchActionAnimationRef.current = null;
     previousSelectionActiveRef.current = selectionActive;
 
-    if (prefersReducedMotion) {
-      gsap.set(actionsEl, {
-        xPercent: -50,
-        y: 0,
-        autoAlpha: selectionActive ? 1 : 0,
-      });
+    const applyPresentation = (translateY: number, opacity: number) => {
+      actionsEl.style.transform = `translate3d(-50%, ${translateY}px, 0)`;
+      actionsEl.style.opacity = String(opacity);
+      actionsEl.style.visibility = opacity === 0 ? 'hidden' : 'visible';
+    };
+
+    if (prefersReducedMotion || typeof actionsEl.animate !== 'function') {
+      applyPresentation(0, selectionActive ? 1 : 0);
       if (!selectionActive) {
         setBatchActionBarVisible(false);
       }
       return;
     }
 
-    if (selectionActive) {
-      gsap.set(actionsEl, { xPercent: -50, y: 12, autoAlpha: 0 });
-      batchActionAnimationRef.current = gsap.to(actionsEl, {
-        y: 0,
-        autoAlpha: 1,
-        duration: 0.18,
-        ease: 'power2.out',
-        overwrite: 'auto',
+    actionsEl.style.visibility = 'visible';
+    actionsEl.style.willChange = 'transform, opacity';
+    const animation = actionsEl.animate(
+      selectionActive
+        ? [
+            { transform: 'translate3d(-50%, 10px, 0)', opacity: 0 },
+            { transform: 'translate3d(-50%, 0, 0)', opacity: 1 },
+          ]
+        : [
+            { transform: 'translate3d(-50%, 0, 0)', opacity: 1 },
+            { transform: 'translate3d(-50%, 8px, 0)', opacity: 0 },
+          ],
+      {
+        duration: selectionActive ? 170 : 150,
+        easing: selectionActive ? 'cubic-bezier(0.22, 1, 0.36, 1)' : 'cubic-bezier(0.4, 0, 1, 1)',
+        fill: 'both',
+      }
+    );
+    batchActionAnimationRef.current = animation;
+
+    void animation.finished
+      .then(() => {
+        if (batchActionAnimationRef.current !== animation) return;
+        batchActionAnimationRef.current = null;
+        applyPresentation(0, selectionActive ? 1 : 0);
+        actionsEl.style.removeProperty('will-change');
+        animation.cancel();
+        if (!selectionActive && selectionCountRef.current === 0) {
+          setBatchActionBarVisible(false);
+        }
+      })
+      .catch(() => {
+        // A newer selection state cancels the previous animation.
       });
-    } else {
-      gsap.set(actionsEl, { xPercent: -50, y: 0, autoAlpha: 1 });
-      batchActionAnimationRef.current = gsap.to(actionsEl, {
-        y: 10,
-        autoAlpha: 0,
-        duration: 0.16,
-        ease: 'power2.in',
-        overwrite: 'auto',
-        onComplete: () => {
-          if (selectionCountRef.current === 0) {
-            setBatchActionBarVisible(false);
-          }
-        },
-      });
-    }
   }, [batchActionBarVisible, prefersReducedMotion, selectionCount]);
 
   useEffect(
     () => () => {
-      batchActionAnimationRef.current?.kill();
+      batchActionAnimationRef.current?.cancel();
       batchActionAnimationRef.current = null;
     },
     []
