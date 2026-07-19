@@ -2,10 +2,13 @@
 
 .container {
   width: 100%;
+  min-width: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  position: relative;
+  isolation: isolate;
 
   @include mobile {
     min-height: auto;
@@ -14,41 +17,47 @@
 }
 
 .pageTitle {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: var(--text-primary);
-  margin: 0 0 $spacing-md 0;
-  line-height: 1.2;
-
-  @include mobile {
-    font-size: 20px;
-  }
+  @include page-heading;
 }
 
 .tabBar {
   display: flex;
-  gap: $spacing-xs;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
   margin-bottom: $spacing-md;
-  border-bottom: 1px solid var(--border-color);
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  border-radius: $radius-full;
+  background: color-mix(in srgb, var(--panel-surface-muted) 78%, transparent);
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .tabItem {
   @include button-reset;
   padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: $radius-full;
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-secondary);
   background: transparent;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
   cursor: pointer;
   transition:
     color 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
     color: var(--text-primary);
+    background: color-mix(in srgb, var(--surface-raised) 74%, transparent);
   }
 
   &:focus,
@@ -60,7 +69,9 @@
 
 .tabActive {
   color: var(--primary-color);
-  border-bottom-color: var(--primary-color);
+  border-color: color-mix(in srgb, var(--primary-color) 22%, var(--border-color));
+  background: var(--surface-raised-strong);
+  box-shadow: var(--control-shadow);
 }
 
 .content {

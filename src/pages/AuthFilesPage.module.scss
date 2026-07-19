@@ -2,10 +2,10 @@
 @use '../styles/mixins' as *;
 
 .container {
-  --auth-surface: color-mix(in srgb, var(--panel-surface) 72%, var(--surface-raised));
-  --auth-surface-muted: color-mix(in srgb, var(--panel-surface-muted) 66%, var(--bg-secondary));
-  --auth-control-surface: color-mix(in srgb, var(--control-surface) 76%, var(--bg-primary));
-  --auth-neutral-border: color-mix(in srgb, var(--neutral-accent) 24%, var(--border-color));
+  --auth-surface: color-mix(in srgb, var(--panel-surface) 76%, var(--surface-raised));
+  --auth-surface-muted: color-mix(in srgb, var(--panel-surface-muted) 72%, var(--bg-secondary));
+  --auth-control-surface: color-mix(in srgb, var(--control-surface) 84%, var(--bg-primary));
+  --auth-neutral-border: color-mix(in srgb, var(--neutral-accent) 22%, var(--border-color));
   --auth-neutral-border-strong: color-mix(
     in srgb,
     var(--neutral-accent-strong) 34%,
@@ -14,9 +14,20 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  overflow: visible;
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
+
+  @include mobile {
+    display: block;
+    min-height: auto;
+    touch-action: pan-y;
+  }
 }
 
 // 首屏下方的 OAuth 卡片：用 content-visibility:auto 让其在滚入视口前跳过渲染，
@@ -26,19 +37,28 @@
   contain-intrinsic-size: 1px 240px;
 }
 
-.authFilesCard:global(.card) {
-  border-radius: 14px;
-  border-color: var(--auth-neutral-border);
-  background: var(--auth-surface);
-  box-shadow: var(--shadow-card);
+.authFilesSection {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
 
-  &:hover {
-    box-shadow: var(--shadow-card-hover);
-  }
+.authFilesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+  margin-bottom: 14px;
+  padding: 0 2px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
 
-  :global(.card-header) {
-    margin-bottom: 12px;
-    padding-bottom: 12px;
+  @include mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-inline: 0;
   }
 }
 
@@ -123,7 +143,13 @@
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  line-height: 24px;
+  min-width: 0;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 760;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
 }
 
 .countBadge {
@@ -144,10 +170,10 @@
 
 .errorBox {
   padding: $spacing-md;
-  background-color: rgba($error-color, 0.1);
-  border: 1px solid var(--danger-color);
+  background-color: var(--failure-badge-bg);
+  border: 1px solid var(--failure-badge-border);
   border-radius: $radius-md;
-  color: var(--danger-color);
+  color: var(--failure-badge-text);
   font-size: 14px;
   margin-bottom: $spacing-md;
 }
@@ -158,6 +184,9 @@
   flex-direction: column;
   gap: 12px;
   margin-bottom: 18px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .filterToolbarRow {
@@ -209,6 +238,8 @@
   flex-direction: column;
   gap: $spacing-md;
   min-width: 0;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .filterTags {
@@ -405,20 +436,20 @@
   height: 38px;
   padding: 0;
   border-radius: 9px;
-  border-color: color-mix(in srgb, #f59e0b 30%, var(--border-color));
+  border-color: color-mix(in srgb, var(--accent-amber) 30%, var(--border-color));
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--surface-raised-strong) 76%, transparent),
-    color-mix(in srgb, #f59e0b 8%, var(--surface-raised))
+    color-mix(in srgb, var(--accent-amber) 8%, var(--surface-raised))
   );
-  color: color-mix(in srgb, #f59e0b 80%, var(--text-primary));
+  color: color-mix(in srgb, var(--accent-amber) 80%, var(--text-primary));
   box-shadow:
-    0 10px 22px -18px color-mix(in srgb, #f59e0b 58%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    0 10px 22px -18px color-mix(in srgb, var(--accent-amber) 58%, transparent),
+    inset 0 1px 0 var(--surface-sheen);
 
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, #f59e0b 46%, var(--border-color));
-    background: color-mix(in srgb, #f59e0b 11%, var(--surface-raised-strong));
+    border-color: color-mix(in srgb, var(--accent-amber) 46%, var(--border-color));
+    background: color-mix(in srgb, var(--accent-amber) 11%, var(--surface-raised-strong));
   }
 
   > span {
@@ -442,7 +473,7 @@
   border-radius: 9px;
   border: 1px solid var(--auth-neutral-border);
   background: var(--auth-control-surface);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: var(--control-shadow);
   transition:
     border-color 0.18s ease,
     background 0.18s ease,
@@ -540,7 +571,7 @@
   border: 1px solid var(--auth-neutral-border);
   background: var(--auth-control-surface);
   color: var(--text-secondary);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  box-shadow: var(--control-shadow);
   cursor: pointer;
   transition:
     border-color 0.18s ease,
@@ -581,11 +612,9 @@
   max-width: min(280px, calc(100vw - 32px));
   padding: 8px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
-  background: var(--bg-elevated, var(--bg-primary));
-  box-shadow:
-    0 10px 30px -12px rgba(0, 0, 0, 0.32),
-    0 4px 12px -8px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--floating-border);
+  background: var(--floating-surface);
+  box-shadow: var(--floating-shadow);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -927,6 +956,65 @@
   max-width: 100%;
 }
 
+.compactModeControl {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 3px 8px 3px 10px;
+  border: 1px solid var(--auth-neutral-border);
+  border-radius: $radius-full;
+  background: color-mix(in srgb, var(--auth-control-surface) 78%, transparent);
+  box-shadow: var(--control-shadow);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 34%, var(--border-color));
+  }
+}
+
+.compactModeControlActive {
+  border-color: color-mix(in srgb, var(--info-color) 48%, var(--border-color));
+  background: color-mix(in srgb, var(--info-color) 8%, var(--auth-control-surface));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 62%, transparent),
+    0 6px 14px -12px color-mix(in srgb, var(--info-color) 38%, transparent);
+}
+
+.compactModeSwitch {
+  gap: 7px;
+
+  > span:first-of-type {
+    width: 38px;
+    height: 20px;
+  }
+
+  > span:first-of-type > span:last-child {
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+  }
+
+  > input:checked + span:first-of-type > span:last-child {
+    transform: translateX(18px);
+  }
+}
+
+.compactModeLabel {
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.compactModeControlActive .compactModeLabel {
+  color: color-mix(in srgb, var(--info-color) 76%, var(--text-primary));
+}
+
 .filterChip {
   appearance: none;
   display: inline-flex;
@@ -1045,6 +1133,15 @@
   min-height: 120px;
   padding-top: 2px;
   contain: layout style;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+
+  @include mobile {
+    min-height: auto;
+    contain: none;
+    overflow: visible;
+  }
 }
 
 .listSurface :global(.empty-state) {
@@ -1052,7 +1149,7 @@
   border-radius: 12px;
   border-color: color-mix(in srgb, var(--border-color) 66%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 18%, transparent), transparent 56%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sheen) 42%, transparent), transparent 56%),
     color-mix(in srgb, var(--bg-secondary) 32%, transparent);
   box-shadow: var(--shadow-card);
 }
@@ -1069,6 +1166,14 @@
 .fileGrid {
   // 仅过渡 opacity（合成器属性），保证刷新时切换平滑
   transition: opacity 180ms ease;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+
+  @include mobile {
+    contain: none;
+    overflow: visible;
+  }
 }
 
 .listSurfaceRefreshing .fileGrid {
@@ -1170,25 +1275,51 @@
   }
 }
 
-// 卡片网格
-// gap 使用 clamp 在 1280–1920px 区间平滑过渡，避免大屏间距过窄、小屏过宽
+// 轻量卡片网格：手机单列、中屏双列、桌面固定四列。
 .fileGrid {
   display: grid;
-  column-gap: clamp(10px, 0.6vw + 7px, 14px);
-  row-gap: clamp(12px, 0.7vw + 8px, 16px);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
   // Hint browser to limit reflow scope to this subtree.
   contain: layout style;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
 
   @include mobile {
-    gap: 12px;
+    gap: 10px;
+    grid-template-columns: 1fr;
+    contain: none;
+    overflow: visible;
+  }
+}
+
+.fileGridQuotaManaged {
+  grid-template-columns: minmax(0, 1fr);
+
+  @include mobile {
     grid-template-columns: 1fr;
   }
 }
 
-// 配额视图卡片信息更密集，保留稍宽的最小宽度
-.fileGridQuotaManaged {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+@media (min-width: #{$breakpoint-mobile + 1}) and (max-width: 1279px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.fileGridCompact,
+.fileGridQuotaManaged.fileGridCompact {
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -1202,14 +1333,14 @@
 .fileCardSkeleton {
   position: relative;
   overflow: hidden;
-  min-height: 252px;
-  padding: 14px;
-  border-radius: 14px;
+  min-height: 210px;
+  padding: 11px;
+  border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 38%, transparent), transparent 44%),
+    linear-gradient(180deg, var(--surface-sheen), transparent 44%),
     var(--surface-raised);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
   animation: authFileCardEnter 150ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
   &::after {
@@ -1232,6 +1363,14 @@
   > * {
     position: relative;
     z-index: 1;
+  }
+}
+
+.fileCardSkeletonCompact {
+  min-height: 150px;
+
+  .skeletonMeta {
+    display: none;
   }
 }
 
@@ -1392,9 +1531,7 @@
 .kimiCard {
   --auth-card-border: color-mix(in srgb, var(--provider-accent) 18%, var(--border-color));
   --auth-card-border-hover: color-mix(in srgb, var(--provider-accent) 38%, var(--border-color));
-  --auth-card-tint: color-mix(in srgb, var(--provider-accent) 4%, transparent);
   --auth-card-hover-tint: color-mix(in srgb, var(--provider-accent) 8%, transparent);
-  --auth-card-glow: color-mix(in srgb, var(--provider-accent) 12%, transparent);
 }
 
 .antigravityCard {
@@ -1424,8 +1561,8 @@
 .quotaSection {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  padding-top: 11px;
+  gap: 8px;
+  padding-top: 9px;
   margin-top: 1px;
   border-top: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
 }
@@ -1440,11 +1577,11 @@
 
 .quotaSectionTitle {
   min-width: 0;
-  font-size: 11px;
+  font-size: 9.25px;
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0;
-  color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 64%, var(--text-tertiary));
+  line-height: 1.3;
+  letter-spacing: 0.045em;
+  color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 42%, var(--text-tertiary));
   text-transform: uppercase;
 }
 
@@ -1452,9 +1589,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
   min-width: 0;
-  min-height: 58px;
+  min-height: 48px;
 }
 
 .quotaRefreshIcon {
@@ -1555,7 +1692,7 @@
 .quotaRow {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 4px;
 }
 
 .quotaRowHeader {
@@ -1566,15 +1703,16 @@
   min-width: 0;
 
   @include mobile {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
   }
 }
 
 .quotaModel {
-  font-size: 12px;
-  font-weight: 750;
-  color: var(--text-primary);
+  font-size: 11.5px;
+  font-weight: 620;
+  line-height: 1.3;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1582,13 +1720,13 @@
   min-width: 0;
 
   @include mobile {
-    white-space: normal;
+    white-space: nowrap;
   }
 }
 
 .quotaBar {
   position: relative;
-  height: 10px;
+  height: 7px;
   padding: 1px;
   box-sizing: border-box;
   background: linear-gradient(
@@ -1685,45 +1823,45 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-size: 9.5px;
+  color: var(--text-tertiary);
   white-space: nowrap;
 
   @include mobile {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 }
 
 @media (max-width: 640px) {
   .quotaSection {
-    gap: 14px;
-    padding-top: 16px;
+    gap: 8px;
+    padding-top: 9px;
   }
 
   .quotaSectionTitle {
-    font-size: 14px;
+    font-size: 10px;
   }
 
   .quotaContent {
-    gap: 14px;
-    min-height: 66px;
+    gap: 8px;
+    min-height: 48px;
   }
 
   .quotaRow {
-    gap: 10px;
+    gap: 5px;
   }
 
   .quotaRowHeader {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .quotaModel {
-    font-size: 15px;
+    font-size: 11.5px;
   }
 
   .quotaMeta {
-    gap: 10px;
-    font-size: 13px;
+    gap: 6px;
+    font-size: 10px;
   }
 }
 
@@ -1733,13 +1871,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 42px;
-  height: 20px;
-  padding: 0 7px;
+  min-width: 38px;
+  height: 18px;
+  padding: 0 6px;
   border: 0;
   border-radius: 999px;
   background: var(--quota-percent-bg);
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 760;
   color: var(--quota-percent-text);
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -1868,8 +2007,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  font-size: 12px;
+  gap: 5px;
+  font-size: 10.5px;
   color: var(--text-secondary);
 }
 
@@ -1878,8 +2017,8 @@
 }
 
 .codexPlanValue {
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 650;
+  color: var(--text-secondary);
   text-transform: capitalize;
 }
 
@@ -1915,7 +2054,7 @@
   flex-wrap: wrap;
   gap: 4px;
   min-width: 0;
-  font-size: 11px;
+  font-size: 9.5px;
   line-height: 1;
   white-space: nowrap;
 
@@ -1924,8 +2063,8 @@
   }
 
   .codexPlanValue {
-    font-size: 11px;
-    font-weight: 750;
+    font-size: 10.5px;
+    font-weight: 700;
   }
 }
 
@@ -1933,7 +2072,7 @@
   flex: 0 0 100%;
   overflow: hidden;
   color: var(--text-tertiary);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 500;
   line-height: 1.2;
   text-align: right;
@@ -1948,8 +2087,8 @@
   height: 22px;
   padding: 0 7px;
   border-radius: 6px;
-  font-size: 11px;
-  font-weight: 750;
+  font-size: 10px;
+  font-weight: 700;
   line-height: 1;
   white-space: nowrap;
 
@@ -1961,13 +2100,18 @@
 .premiumPlanValue {
   display: inline-flex;
   align-items: center;
-  font-weight: 700;
-  font-size: 12px;
-  padding: 2px 8px;
+  font-weight: 680;
+  font-size: 10.5px;
+  padding: 2px 7px;
   border-radius: 6px;
-  background: rgba(217, 165, 22, 0.15);
-  border: 1px solid rgba(217, 165, 22, 0.3);
-  color: #e0aa14;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent-amber) 18%, var(--surface-raised)),
+    color-mix(in srgb, var(--accent-amber) 10%, var(--surface-raised))
+  );
+  border: 1px solid color-mix(in srgb, var(--accent-amber) 34%, transparent);
+  color: color-mix(in srgb, var(--accent-amber) 86%, var(--text-primary));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 62%, transparent);
   text-transform: capitalize;
 }
 
@@ -1997,16 +2141,9 @@
     var(--provider-accent, var(--info-color)) 26%,
     var(--auth-neutral-border-strong)
   );
-  --auth-card-sheen: color-mix(in srgb, #ffffff 54%, transparent);
-  --auth-card-tint: color-mix(in srgb, var(--provider-soft, var(--info-color)) 7%, transparent);
   --auth-card-hover-tint: color-mix(
     in srgb,
     var(--provider-soft, var(--primary-color)) 18%,
-    transparent
-  );
-  --auth-card-glow: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 10%,
     transparent
   );
   --auth-card-inner-bg:
@@ -2015,14 +2152,14 @@
       color-mix(in srgb, var(--provider-soft, var(--bg-secondary)) 8%, transparent),
       transparent 70%
     ),
-    color-mix(in srgb, #ffffff 58%, var(--surface-raised));
+    var(--surface-card-muted, var(--surface-raised));
   --auth-card-inner-border: color-mix(
     in srgb,
     var(--provider-accent, var(--border-color)) 7%,
     color-mix(in srgb, var(--border-color) 58%, transparent)
   );
   --auth-card-inner-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    inset 0 1px 0 var(--surface-sheen),
     0 1px 0 color-mix(in srgb, var(--provider-accent, var(--border-color)) 8%, transparent);
   // Plus 套餐：与 cost 同色系（琥珀金）但略浅
   --auth-plan-plus-text: #8c660d;
@@ -2054,7 +2191,7 @@
     var(--text-primary) 88%,
     var(--provider-accent, var(--text-primary))
   );
-  --auth-action-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  --auth-action-shadow: var(--control-shadow);
   --auth-action-hover-border: color-mix(
     in srgb,
     var(--provider-accent, var(--primary-color)) 42%,
@@ -2071,7 +2208,7 @@
     var(--text-primary)
   );
   --auth-action-hover-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 76%, transparent),
     0 8px 16px -14px
       color-mix(in srgb, var(--provider-accent, var(--primary-color)) 44%, transparent);
   --auth-action-group-bg: transparent;
@@ -2101,27 +2238,28 @@
   --auth-toggle-thumb-border: color-mix(in srgb, var(--border-color) 60%, transparent);
   position: relative;
   overflow: hidden;
-  container-type: inline-size;
-  container-name: auth-file-card;
   // 隔离每张卡片的布局与样式作用域，hover/选中态变化时重排重算限制在卡片自身子树，
   // 避免大网格下邻接卡片参与样式重算。
   contain: layout style;
   content-visibility: auto;
-  contain-intrinsic-size: auto 246px;
-  // 静态背景一次绘制，hover 时仅切换 ::after 的 opacity，不再过渡 background
+  contain-intrinsic-size: auto 210px;
   background:
-    linear-gradient(180deg, var(--auth-card-sheen), transparent 38%),
-    linear-gradient(135deg, var(--auth-card-tint), transparent 46%), var(--auth-surface);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 18%, transparent) 0,
+      transparent 54px
+    ),
+    color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
   border: 1px solid var(--auth-card-border);
-  border-radius: 12px;
-  padding: 13px 13px 12px;
+  border-radius: 10px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   min-height: 100%;
   isolation: isolate;
   box-shadow:
-    0 8px 22px -20px rgba(15, 23, 42, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 72%, transparent),
+    0 1px 2px rgb(15 23 42 / 0.045);
   // 卡片本体不再过渡 transform，避免 hover/刷新时产生位移感。
   transition:
     box-shadow 160ms ease,
@@ -2129,11 +2267,19 @@
   animation: authFileCardEnter 150ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
 
+  @include mobile {
+    content-visibility: visible;
+    contain: none;
+    contain-intrinsic-size: auto;
+    overflow: visible;
+    min-height: auto;
+  }
+
   &:hover {
     box-shadow:
-      0 14px 30px -22px rgba(15, 23, 42, 0.28),
-      0 14px 30px -24px var(--auth-card-glow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.52);
+      inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 76%, transparent),
+      0 8px 20px -18px
+        color-mix(in srgb, var(--provider-accent) 38%, rgb(15 23 42 / 0.24));
     border-color: var(--auth-card-border-hover);
 
     &::before {
@@ -2141,14 +2287,14 @@
     }
 
     &::after {
-      opacity: 1;
+      opacity: 0.24;
     }
   }
 
   &:focus-within {
     border-color: color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
     box-shadow:
-      var(--shadow-card-hover),
+      0 4px 14px -12px color-mix(in srgb, var(--primary-color) 32%, transparent),
       0 0 0 2px color-mix(in srgb, var(--primary-color) 22%, transparent);
   }
 
@@ -2156,7 +2302,7 @@
   &::before {
     content: '';
     position: absolute;
-    inset: 0 12px auto;
+    inset: 0 10px auto;
     height: 1px;
     border-radius: 0 0 999px 999px;
     background: linear-gradient(
@@ -2165,13 +2311,12 @@
       color-mix(in srgb, var(--provider-accent, var(--primary-color)) 48%, transparent),
       transparent
     );
-    opacity: 0.68;
+    opacity: 0.62;
     pointer-events: none;
     transition: opacity $transition-fast;
   }
 
-  // hover 渐显的"色调增强层"——替代 background 过渡的廉价方案
-  // 静态预渲染好两层渐变，hover 时仅切换 opacity（合成器属性）
+  // 极轻的提供商色调层，仅在选中或 hover 时显现。
   &::after {
     content: '';
     position: absolute;
@@ -2179,9 +2324,7 @@
     border-radius: inherit;
     pointer-events: none;
     opacity: 0;
-    background:
-      linear-gradient(180deg, color-mix(in srgb, #ffffff 24%, transparent), transparent 48%),
-      linear-gradient(135deg, var(--auth-card-hover-tint), transparent 56%);
+    background: linear-gradient(135deg, var(--auth-card-hover-tint), transparent 58%);
     transition: opacity 160ms ease;
     z-index: 0;
   }
@@ -2193,8 +2336,65 @@
 
   @include mobile {
     width: 100%;
-    padding: 13px 12px 12px;
+    padding: 11px;
     border-radius: 10px;
+  }
+}
+
+.fileCardCompact {
+  padding: 9px;
+
+  .fileCardMain {
+    gap: 6px;
+  }
+
+  .cardHeader {
+    gap: 7px;
+  }
+
+  .cardSelection {
+    margin-top: 0;
+  }
+
+  .providerAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+  }
+
+  .providerAvatarImage {
+    width: 16px;
+    height: 16px;
+  }
+
+  .providerAvatarFallback {
+    font-size: 13px;
+  }
+
+  .cardHeaderContent {
+    gap: 2px;
+  }
+
+  .cardIdentityRow {
+    row-gap: 2px;
+  }
+
+  .fileName {
+    min-height: 20px;
+    font-size: 13.5px;
+  }
+
+  .cardActionsContent,
+  .cardActionCluster {
+    gap: 3px;
+  }
+
+  .cardActions {
+    padding-top: 6px;
+  }
+
+  .statusBlock {
+    height: 5px;
   }
 }
 
@@ -2214,7 +2414,7 @@
 
 @media (max-width: 640px) {
   .fileCard {
-    padding: 13px 12px 12px;
+    padding: 11px;
   }
 }
 
@@ -2222,7 +2422,7 @@
   border-color: color-mix(in srgb, var(--info-color) 58%, var(--auth-neutral-border));
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--info-color) 24%, transparent),
-    var(--shadow-card);
+    0 4px 14px -12px color-mix(in srgb, var(--info-color) 38%, transparent);
 
   // 选中态加强顶部细线，并通过 ::after 提亮卡片底色。
   &::before {
@@ -2237,7 +2437,7 @@
   }
 
   &::after {
-    opacity: 0.55;
+    opacity: 0.32;
     background:
       linear-gradient(
         180deg,
@@ -2255,10 +2455,10 @@
     border-color: color-mix(in srgb, var(--info-color) 66%, var(--auth-neutral-border));
     box-shadow:
       0 0 0 1px color-mix(in srgb, var(--info-color) 30%, transparent),
-      var(--shadow-card-hover);
+      0 6px 16px -13px color-mix(in srgb, var(--info-color) 46%, transparent);
 
     &::after {
-      opacity: 1;
+      opacity: 0.42;
     }
   }
 }
@@ -2270,7 +2470,7 @@
 
   &:hover {
     transform: none;
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
     border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
     opacity: 0.85;
   }
@@ -2279,7 +2479,7 @@
 .fileCardLayout {
   display: flex;
   align-items: stretch;
-  gap: $spacing-md;
+  gap: 0;
   min-height: 100%;
   position: relative;
   z-index: 1;
@@ -2292,7 +2492,7 @@
 .fileCardMain {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   flex: 1;
   min-width: 0;
 
@@ -2304,9 +2504,9 @@
 .cardHeader {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
-  padding: 1px 1px 2px 0;
+  padding: 0;
 
   @include mobile {
     gap: 8px;
@@ -2412,35 +2612,45 @@
 }
 
 .cardSelection {
+  position: static;
+  align-self: flex-start;
   flex-shrink: 0;
-  margin-top: 6px;
+  margin: 2px 0 0;
+  padding: 2px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--auth-surface) 92%, transparent);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.1);
 
   > span {
-    width: 18px;
-    height: 18px;
-    border-radius: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
     border-color: color-mix(in srgb, #cbd5e1 90%, transparent);
     background: rgba(255, 255, 255, 0.8);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.72),
       0 1px 2px rgba(15, 23, 42, 0.06);
   }
+
+  > input:checked + span {
+    border-color: color-mix(in srgb, var(--primary-color) 86%, var(--border-color));
+    background: var(--primary-color);
+    color: var(--primary-contrast, #fff);
+  }
 }
 
 .providerAvatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
+  border-radius: 8px;
   // 边框跟随 provider 色 (currentColor)，让头像与服务类型形成视觉关联
   // background 由 inline style (typeColor.bg) 控制
   border: 1px solid color-mix(in srgb, currentColor 24%, var(--border-color));
-  box-shadow:
-    0 8px 18px -14px color-mix(in srgb, currentColor 54%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 52%, transparent);
   // 仅过渡 border-color（廉价），其他效果由静态 ::before 提供
   transition: border-color $transition-fast;
   // 头像内部用一层柔和白色高光增加立体感（不影响 inline bg）
@@ -2469,8 +2679,8 @@
   }
 
   @include mobile {
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
   }
 }
@@ -2484,8 +2694,8 @@
 }
 
 .providerAvatarImage {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 
   @include mobile {
@@ -2503,7 +2713,7 @@
 .cardHeaderContent {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   flex: 1;
   min-width: 0;
 
@@ -2516,11 +2726,11 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'name priority'
-    'type type';
+    'name name'
+    'type priority';
   align-items: center;
-  column-gap: 8px;
-  row-gap: 3px;
+  column-gap: 6px;
+  row-gap: 4px;
   min-width: 0;
   max-width: 100%;
 }
@@ -2528,8 +2738,8 @@
 .cardIdentityRowWithWarning {
   grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-areas:
-    'name priority warning'
-    'type type type';
+    'name name warning'
+    'type priority priority';
 }
 
 .cardIdentityRowNoBadges {
@@ -2561,7 +2771,9 @@
   gap: 4px;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  flex-wrap: wrap;
+  row-gap: 3px;
+  overflow: visible;
   padding: 1px 0;
 }
 
@@ -2592,8 +2804,8 @@
   .cardIdentityRow {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      'name priority'
-      'type type';
+      'name name'
+      'type priority';
     column-gap: 6px;
     row-gap: 3px;
   }
@@ -2601,8 +2813,8 @@
   .cardIdentityRowWithWarning {
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas:
-      'name priority warning'
-      'type type type';
+      'name name warning'
+      'type priority priority';
   }
 
   .cardIdentityRowNoBadges {
@@ -2752,12 +2964,12 @@
   display: inline-flex;
   align-items: center;
   max-width: 11ch;
-  height: 20px;
-  padding: 0 7px;
+  height: 18px;
+  padding: 0 6px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 5px;
   font-size: 9.5px;
-  font-weight: 750;
+  font-weight: 700;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -2770,12 +2982,12 @@
   align-items: center;
   justify-content: center;
   max-width: 100%;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 7px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 650;
   line-height: 1;
   white-space: nowrap;
   letter-spacing: 0;
@@ -2791,11 +3003,11 @@
 }
 
 .featureBadgeIconOnly {
-  width: 20px;
-  min-width: 20px;
-  max-width: 20px;
+  width: 18px;
+  min-width: 18px;
+  max-width: 18px;
   padding: 0;
-  flex: 0 0 20px;
+  flex: 0 0 18px;
 
   svg {
     width: 12px;
@@ -2820,15 +3032,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
   border-radius: 999px;
   border: 1px solid var(--auth-refresh-border);
   background: var(--auth-refresh-bg);
   color: var(--auth-refresh-text);
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 9.5px;
+  font-weight: 750;
   line-height: 1;
   letter-spacing: 0;
   box-shadow:
@@ -2848,15 +3060,15 @@
   min-width: 0;
   max-width: 100%;
   min-height: 23px;
-  padding: 2px 6px 1px;
-  margin-left: -6px;
+  padding: 1px 5px;
+  margin-left: -5px;
   box-sizing: border-box;
   border: 0;
   border-radius: 6px;
   appearance: none;
   background: transparent;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 14.5px;
+  font-weight: 720;
   font-family: inherit;
   color: var(--text-primary);
   line-height: 1.25;
@@ -2868,7 +3080,7 @@
   text-align: left;
   white-space: nowrap;
   overflow-wrap: anywhere;
-  letter-spacing: 0;
+  letter-spacing: -0.018em;
   cursor: copy;
   transition:
     color 0.18s ease,
@@ -2876,8 +3088,8 @@
     text-shadow 0.18s ease;
 
   @include mobile {
-    font-size: 14px;
-    line-height: 1.35;
+    font-size: 15px;
+    line-height: 1.3;
   }
 }
 
@@ -2922,8 +3134,8 @@
 
   .fileName {
     display: inline-flex;
-    font-size: 13px;
-    line-height: 1.25;
+    font-size: 15px;
+    line-height: 1.3;
     white-space: nowrap;
   }
 
@@ -3065,10 +3277,10 @@
   min-height: 21px;
   min-width: 0;
   padding: 0;
-  border: 1px solid var(--auth-card-inner-border);
+  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
   border-radius: 7px;
-  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
-  box-shadow: var(--auth-card-inner-shadow);
+  background: color-mix(in srgb, var(--bg-secondary) 26%, transparent);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -3095,7 +3307,7 @@
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  background: transparent;
   box-shadow: none;
 }
 
@@ -3142,7 +3354,7 @@
   border-right: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
   padding: 0 3px;
   text-align: center;
-  background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
+  background: transparent;
   color: var(--text-primary);
   font-size: 10.5px;
   font-weight: 700;
@@ -3168,16 +3380,17 @@
 }
 
 .noteText {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  line-height: 1.35;
   display: flex;
-  gap: 6px;
+  gap: 5px;
   align-items: flex-start;
   min-width: 0;
   padding: 1px 0 0;
 
   @include mobile {
+    font-size: 11px;
     gap: 4px;
     flex-wrap: wrap;
   }
@@ -3185,12 +3398,19 @@
 
 .noteLabel {
   flex: 0 0 auto;
-  color: var(--text-tertiary);
-  font-weight: 600;
+  color: color-mix(in srgb, var(--text-secondary) 82%, var(--provider-accent));
+  font-weight: 620;
+
+  &::after {
+    content: '·';
+    margin-left: 5px;
+    color: var(--text-quaternary);
+  }
 }
 
 .noteValue {
   @include text-ellipsis-multiline(2);
+  -webkit-line-clamp: 1;
   min-width: 0;
   word-break: break-word;
 }
@@ -3204,28 +3424,60 @@
   display: flex;
   flex-direction: column;
   gap: 9px;
-  padding: 9px 10px;
+  padding: 10px 0 0;
   border: 0;
-  border-radius: 6px;
-  background: var(--auth-surface-muted);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 36%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 
   @include mobile {
     gap: 8px;
-    padding: 8px;
-    border-radius: 9px;
+    padding: 9px 0 0;
+    border-radius: 0;
   }
+}
+
+.cardInsightsCompact {
+  gap: 4px;
+  padding-top: 6px;
 }
 
 .statusPanel {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   padding-top: 1px;
 
   @include mobile {
     gap: 3px;
+  }
+}
+
+.statusPanelCompact {
+  gap: 3px;
+
+  .statusPanelLabel {
+    display: none;
+  }
+
+  .statusBar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .statusBlocks {
+    gap: 2px;
+  }
+
+  .statusRate {
+    min-width: 46px;
+    height: 20px;
+    padding: 0 5px;
+    font-size: 10px;
   }
 }
 
@@ -3235,8 +3487,8 @@
   justify-content: space-between;
   gap: 8px;
   min-width: 0;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 9.5px;
+  font-weight: 600;
   color: var(--text-tertiary);
   text-transform: none;
   letter-spacing: 0;
@@ -3249,18 +3501,57 @@
   }
 }
 
+.statusPanelTitle {
+  color: color-mix(in srgb, var(--text-tertiary) 88%, var(--provider-accent));
+  font-weight: 680;
+  letter-spacing: 0.04em;
+}
+
 .statusTokens {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
   margin-left: auto;
   min-width: max-content;
   max-width: none;
   overflow: visible;
   text-overflow: clip;
   white-space: nowrap;
-  color: color-mix(in srgb, var(--provider-accent, var(--text-tertiary)) 42%, var(--text-tertiary));
-  font-size: 10px;
-  font-weight: 700;
+  color: var(--text-tertiary);
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+.statusTokensLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-quaternary);
+  font-size: 9px;
+  font-weight: 550;
+}
+
+.statusTokensValue {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 740;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .statusPanelLabel {
+    font-size: 10px;
+  }
+
+  .statusTokensLabel {
+    font-size: 9.5px;
+  }
+
+  .statusTokensValue {
+    font-size: 11.5px;
+  }
 }
 
 // 状态监测栏
@@ -3298,7 +3589,7 @@
 
 .statusBlock {
   width: 100%;
-  height: 8px;
+  height: 7px;
   border-radius: 999px;
   transform-origin: center center;
   transition: transform 140ms ease;
@@ -3406,11 +3697,11 @@
   justify-content: center;
   gap: 4px;
   min-width: 34px;
-  height: 26px;
-  font-size: 11px;
-  font-weight: 700;
+  height: 22px;
+  font-size: 10.5px;
+  font-weight: 760;
   white-space: nowrap;
-  padding: 0 8px;
+  padding: 0 6px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--provider-accent, var(--border-color)) 12%, transparent);
   background: color-mix(in srgb, var(--bg-tertiary) 74%, transparent);
@@ -3450,7 +3741,7 @@
     min-width: 44px;
     height: 24px;
     padding: 0 7px;
-    font-size: 10px;
+    font-size: 10.5px;
   }
 }
 
@@ -4239,9 +4530,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   margin-top: auto;
-  padding-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid
     color-mix(in srgb, var(--provider-accent, var(--border-color)) 8%, var(--border-color));
   min-width: 0;
@@ -4249,37 +4540,34 @@
 }
 
 .cardActionsMain {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
   flex: 1;
-  justify-content: space-between;
   width: 100%;
 }
 
 .cardActionsContent {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 4px;
   min-width: 0;
   flex: 1 1 auto;
   justify-content: flex-start;
-  flex-wrap: nowrap;
-}
-
-.mobileActionsToggle:global(.btn.btn-sm) {
-  display: none;
+  flex-wrap: wrap;
+  overflow: visible;
 }
 
 .cardActionCluster {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
-  flex: 0 1 auto;
+  flex: 1 1 118px;
   justify-content: flex-start;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -4320,8 +4608,8 @@
 .cardUtilityActions {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 0 0 6px;
+  gap: 4px;
+  padding: 0 0 0 4px;
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
   border-radius: 0;
@@ -4333,10 +4621,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  flex: 0 0 62px;
+  flex: 0 0 54px;
   justify-content: flex-start;
-  min-width: 62px;
-  max-width: 62px;
+  min-width: 54px;
+  max-width: 54px;
   margin-left: 0;
   padding-top: 0;
   flex-wrap: nowrap;
@@ -4348,7 +4636,8 @@
   justify-content: flex-end;
   flex: 0 0 auto;
   min-width: 0;
-  margin-left: auto;
+  margin-left: 0;
+  align-self: start;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -4358,16 +4647,16 @@
 .statusToggle {
   display: inline-flex;
   align-items: center;
-  flex: 0 0 62px;
-  min-width: 62px;
+  flex: 0 0 54px;
+  min-width: 54px;
 }
 
 .cardToggleSwitch > span:first-of-type {
-  width: 62px;
-  min-width: 62px;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 8px 0 31px;
+  width: 54px;
+  min-width: 54px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 7px 0 27px;
   border: 1px solid var(--auth-toggle-off-border);
   background: var(--auth-toggle-off-bg);
   box-shadow:
@@ -4377,7 +4666,7 @@
 }
 
 .cardToggleSwitch > input:checked + span:first-of-type {
-  padding: 0 31px 0 8px;
+  padding: 0 27px 0 7px;
   background: var(--auth-toggle-on-bg);
   border-color: var(--auth-toggle-on-border);
   box-shadow:
@@ -4409,8 +4698,8 @@
   top: 3px;
   left: 3px;
   right: auto;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   background: var(--auth-toggle-thumb-bg);
   border: 1px solid var(--auth-toggle-thumb-border);
   box-shadow:
@@ -4420,9 +4709,9 @@
   transition: transform $transition-fast;
 }
 
-// 62px - 26px - 3px*2 = 30px
+// 54px - 22px - 3px*2 = 26px
 .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-  transform: translate3d(30px, 0, 0);
+  transform: translate3d(26px, 0, 0);
 }
 
 .cardToggleSwitch:hover > span:first-of-type {
@@ -4435,13 +4724,13 @@
 }
 
 .iconButton:global(.btn.btn-sm) {
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  min-width: 32px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  min-width: 28px;
   padding: 0;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: 7px;
   gap: 0;
   border-color: var(--auth-action-border);
   border-width: 1px;
@@ -4516,13 +4805,13 @@
 }
 
 .refreshActionButton .quotaRefreshIcon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .refreshActionButton .quotaRefreshIcon svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   stroke-width: 2.45;
 }
 
@@ -4530,319 +4819,17 @@
 .iconButton:global(.btn.btn-sm) .quotaButtonSpinner,
 .iconButton:global(.btn.btn-sm) :global(.loading-spinner),
 .iconButton:global(.btn.btn-sm) svg {
-  width: 18px !important;
-  height: 18px !important;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .actionIcon {
   display: block;
   flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: currentColor;
   stroke-width: 2.4;
-}
-
-@include mobile {
-  .cardActions {
-    gap: 8px;
-    padding-top: 10px;
-  }
-
-  // 中等宽度移动端保持底部按钮单行，避免操作区散成多排。
-  .cardActionsMain {
-    gap: 8px;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .cardActionCluster {
-    gap: 6px;
-    flex-wrap: nowrap;
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: visible;
-
-    > * {
-      flex: 0 0 auto;
-    }
-  }
-
-  .cardUtilityActions {
-    gap: 6px;
-    flex-wrap: nowrap;
-    flex: 0 0 auto;
-    padding-left: 6px;
-  }
-
-  .cardStatusActions {
-    gap: 6px;
-    margin-left: 0;
-    flex: 0 0 auto;
-    justify-content: flex-start;
-    padding-top: 0;
-    border-top: none;
-    flex-wrap: nowrap;
-  }
-
-  .cardRefreshActions {
-    margin-left: auto;
-    flex: 0 0 auto;
-  }
-
-  .statusToggle {
-    padding-left: 0;
-    flex: 0 0 auto;
-  }
-}
-
-@media (max-width: 640px) {
-  .cardActions {
-    gap: 8px;
-    padding-top: 10px;
-  }
-
-  .cardActionsMain {
-    gap: 8px;
-  }
-
-  .cardActionCluster {
-    gap: 6px;
-  }
-
-  .cardUtilityActions {
-    gap: 6px;
-  }
-
-  .cardStatusActions {
-    gap: 6px;
-  }
-
-  // 图标按钮在移动端使用统一触控尺寸，避免不同断点下忽大忽小。
-  .iconButton:global(.btn.btn-sm) {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    border-radius: 10px;
-  }
-
-  .actionIcon {
-    width: 18px;
-    height: 18px;
-  }
-
-  // 状态开关更紧凑
-  .cardToggleSwitch > span:first-of-type {
-    width: 60px;
-    min-width: 60px;
-    height: 34px;
-    min-height: 34px;
-    padding: 0 7px 0 32px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type {
-    padding: 0 32px 0 7px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:first-child {
-    font-size: 9px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:last-child {
-    top: 3px;
-    left: 3px;
-    right: auto;
-    width: 28px;
-    height: 28px;
-  }
-
-  // 60px - 28px - 3px*2 = 26px
-  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    transform: translate3d(26px, 0, 0);
-  }
-}
-
-@media (max-width: 520px) {
-  .cardActionsMain {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  .cardActionCluster {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow: visible;
-    width: auto;
-    flex: 0 0 auto;
-    min-width: max-content;
-  }
-
-  .cardActionCluster > :not(.cardUtilityActions),
-  .cardUtilityActions > * {
-    flex: 0 0 40px;
-    width: 40px;
-    min-width: 40px;
-  }
-
-  .cardUtilityActions {
-    display: flex;
-    flex: 0 0 auto;
-    width: auto;
-    min-width: 0;
-  }
-
-  .iconButton:global(.btn.btn-sm) {
-    flex: 0 0 40px;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    min-height: 40px;
-  }
-
-  .cardStatusActions {
-    width: auto;
-    flex: 0 0 auto;
-    margin-left: 0;
-    padding-top: 0;
-    border-top: 0;
-    justify-content: flex-start;
-  }
-
-  .cardRefreshActions {
-    flex: 0 0 auto;
-    margin-left: 0;
-  }
-
-  .refreshActionButton:global(.btn.btn-sm) {
-    flex: 0 0 40px;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    min-height: 40px;
-  }
-
-  .statusToggle {
-    margin-left: 0;
-  }
-}
-
-@media (max-width: 420px) {
-  .cardActionsMain {
-    gap: 3px;
-  }
-
-  .cardActionCluster {
-    gap: 3px;
-  }
-
-  .cardStatusActions {
-    gap: 3px;
-    justify-content: flex-start;
-  }
-
-  .cardRefreshActions {
-    margin-left: 0;
-  }
-
-  .cardUtilityActions {
-    gap: 3px;
-  }
-}
-
-@media (max-width: 360px) {
-  .cardActionsMain,
-  .cardActionCluster,
-  .cardUtilityActions,
-  .cardStatusActions,
-  .cardRefreshActions {
-    gap: 3px;
-  }
-}
-
-// 仅在手机视口内按卡片自身宽度收纳操作。桌面多列卡片即使宽度较窄，
-// 也应直接展示完整操作集，不能误触发移动端的“更多”按钮。
-@include mobile {
-  @container auth-file-card (max-width: 390px) {
-    .cardActionsMain {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 7px;
-      overflow: visible;
-    }
-
-    .mobileActionsToggle:global(.btn.btn-sm) {
-      display: inline-flex;
-      flex: 0 0 38px;
-      width: 38px;
-      min-width: 38px;
-      height: 38px;
-      min-height: 38px;
-    }
-
-    .cardActionsContent {
-      display: none;
-      min-width: 0;
-    }
-
-    .cardActionsMainExpanded {
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-
-    .cardActionsMainExpanded .cardActionsContent {
-      display: flex;
-      flex: 1 1 calc(100% - 45px);
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .cardActionsMainExpanded .cardActionCluster,
-    .cardActionsMainExpanded .cardUtilityActions {
-      flex-wrap: wrap;
-      width: auto;
-      min-width: 0;
-    }
-
-    .cardActionsMainExpanded .cardStatusActions {
-      flex: 0 0 60px;
-      min-width: 60px;
-      max-width: 60px;
-    }
-
-    .cardRefreshActions {
-      margin-left: auto;
-    }
-
-    .iconButton:global(.btn.btn-sm),
-    .refreshActionButton:global(.btn.btn-sm) {
-      flex: 0 0 38px;
-      width: 38px;
-      min-width: 38px;
-      height: 38px;
-      min-height: 38px;
-    }
-  }
 }
 
 :global([data-theme='dark']) {
@@ -4853,25 +4840,22 @@
   }
 
   .searchToolbarField,
-  .searchToolbarIconButton,
-  .pageInfo {
+  .searchToolbarIconButton {
     background: var(--auth-control-surface);
     border-color: var(--auth-neutral-border);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .searchToolbarPopover {
-    border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
-    background: color-mix(in srgb, var(--bg-primary) 96%, var(--bg-secondary));
-    box-shadow:
-      0 18px 42px -18px rgba(0, 0, 0, 0.72),
-      0 4px 14px -10px rgba(0, 0, 0, 0.58);
+    border-color: var(--floating-border);
+    background: var(--floating-surface-material, var(--floating-surface));
+    box-shadow: var(--floating-shadow), var(--surface-inner-highlight);
   }
 
   .pagination {
-    border-color: var(--auth-neutral-border);
-    background: var(--auth-surface-muted);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
   }
 
   .batchActionBar {
@@ -4889,8 +4873,8 @@
     border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 56%),
-      color-mix(in srgb, var(--bg-secondary) 42%, transparent);
-    box-shadow: var(--shadow-card);
+      var(--surface-card-muted, var(--bg-secondary));
+    box-shadow: var(--shadow-card), var(--surface-inner-highlight);
   }
 
   .fileCard {
@@ -4900,16 +4884,9 @@
       var(--provider-accent, var(--info-color)) 28%,
       var(--auth-neutral-border-strong)
     );
-    --auth-card-sheen: color-mix(in srgb, #ffffff 16%, transparent);
-    --auth-card-tint: color-mix(in srgb, var(--provider-soft, var(--info-color)) 4%, transparent);
     --auth-card-hover-tint: color-mix(
       in srgb,
       var(--provider-soft, var(--primary-active)) 7%,
-      transparent
-    );
-    --auth-card-glow: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-active)) 18%,
       transparent
     );
     --auth-card-inner-bg:
@@ -4918,7 +4895,7 @@
         color-mix(in srgb, var(--provider-soft, var(--bg-secondary)) 6%, transparent),
         transparent 76%
       ),
-      color-mix(in srgb, var(--surface-raised-strong) 64%, transparent);
+      var(--surface-card-muted, var(--surface-raised));
     --auth-card-inner-border: color-mix(
       in srgb,
       var(--provider-accent, var(--border-color)) 12%,
@@ -4957,7 +4934,7 @@
       var(--text-primary) 88%,
       var(--provider-accent, var(--text-primary))
     );
-    --auth-action-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --auth-action-shadow: var(--control-shadow);
     --auth-action-hover-border: color-mix(
       in srgb,
       var(--provider-accent, var(--primary-active)) 44%,
@@ -4974,7 +4951,7 @@
       var(--text-primary)
     );
     --auth-action-hover-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 82%, transparent),
       0 8px 18px -14px
         color-mix(in srgb, var(--provider-accent, var(--primary-active)) 46%, transparent);
     --auth-action-group-bg: transparent;
@@ -5007,12 +4984,16 @@
     );
     --auth-toggle-thumb-border: rgba(255, 255, 255, 0.18);
     background:
-      linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
-      linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--auth-surface);
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
+        transparent 54px
+      ),
+      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
     border-color: var(--auth-card-border);
     box-shadow:
-      var(--shadow-card),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 1px 2px rgba(0, 0, 0, 0.24);
 
     &::before {
       background: linear-gradient(
@@ -5025,7 +5006,9 @@
 
     &:hover {
       border-color: var(--auth-card-border-hover);
-      box-shadow: 0 10px 28px -20px rgba(0, 0, 0, 0.58);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.055),
+        0 8px 20px -16px rgba(0, 0, 0, 0.56);
     }
   }
 
@@ -5037,9 +5020,15 @@
   .fileCard.kiroCard,
   .fileCard.kimiCard {
     background:
-      linear-gradient(180deg, var(--auth-card-sheen), transparent 42%),
-      linear-gradient(135deg, var(--auth-card-tint), transparent 50%), var(--auth-surface);
-    box-shadow: var(--shadow-card);
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
+        transparent 54px
+      ),
+      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 1px 2px rgba(0, 0, 0, 0.24);
   }
 
   .fileCard.antigravityCard {
@@ -5070,8 +5059,7 @@
     border-color: color-mix(in srgb, var(--info-color) 62%, var(--auth-neutral-border));
     box-shadow:
       0 0 0 1px color-mix(in srgb, var(--info-color) 30%, transparent),
-      0 14px 36px -22px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      0 6px 16px -14px rgba(0, 0, 0, 0.72);
   }
 
   .fileCardDisabled {
@@ -5079,9 +5067,7 @@
 
     &:hover {
       border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
-      box-shadow:
-        0 12px 30px -22px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
     }
   }
 
@@ -5096,9 +5082,7 @@
   .providerAvatar {
     // 深色下边框降低强度，避免过亮；底色由 inline typeColor.bg (dark) 控制
     border-color: color-mix(in srgb, currentColor 28%, rgba(255, 255, 255, 0.06));
-    box-shadow:
-      0 6px 16px -10px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
     &::before {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 65%);
@@ -5181,7 +5165,7 @@
   }
 
   .noteValue {
-    color: var(--text-primary);
+    color: var(--text-secondary);
   }
 
   .cardActions,
@@ -5192,13 +5176,13 @@
   .quotaSectionTitle {
     color: color-mix(
       in srgb,
-      var(--provider-accent, var(--primary-active)) 68%,
+      var(--provider-accent, var(--primary-active)) 48%,
       var(--text-tertiary)
     );
   }
 
   .quotaModel {
-    color: var(--text-primary);
+    color: var(--text-secondary);
   }
 
   .quotaBar {
@@ -5430,11 +5414,11 @@
   width: fit-content;
   max-width: 100%;
   margin: 18px auto 0;
-  padding: 8px;
-  border: 1px solid var(--auth-neutral-border);
-  border-radius: 12px;
-  background: var(--auth-surface-muted);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   animation: authFilePaginationEnter 160ms ease-out both;
 
   > :global(.btn.btn-sm) {
@@ -5449,7 +5433,7 @@
     width: 100%;
     gap: 7px;
     margin-top: 14px;
-    padding: 7px;
+    padding: 0;
   }
 
   .pagination > :global(.btn.btn-sm) {
@@ -5602,9 +5586,9 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   padding: 0 12px;
-  background: var(--auth-control-surface);
-  border: 1px solid var(--auth-neutral-border);
-  border-radius: 9px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 @media (max-width: 640px) {
@@ -6088,7 +6072,7 @@
 
   // Insights 区域：更紧凑的纵向间距
   .cardInsights {
-    gap: 10px;
+    gap: 8px;
   }
 
   // -------- 筛选 / 工具条 ---------------------------------------------------
@@ -6345,7 +6329,7 @@
   }
 
   .cardSelection {
-    margin-top: 7px;
+    margin: 0;
   }
 
   .cardHeaderContent {
@@ -6358,8 +6342,8 @@
   .cardIdentityRow {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      'type priority'
-      'name name';
+      'name name'
+      'type priority';
     column-gap: 6px;
     row-gap: 3px;
   }
@@ -6367,8 +6351,8 @@
   .cardIdentityRowWithWarning {
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas:
-      'type priority warning'
-      'name name name';
+      'name name warning'
+      'type priority priority';
   }
 
   .cardIdentityRowNoBadges {
@@ -6422,51 +6406,6 @@
     align-items: center;
     gap: 6px;
   }
-
-  .cardActionsMain {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  .cardActionCluster {
-    display: flex;
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
-    gap: 6px;
-    overflow: visible;
-    min-width: max-content;
-  }
-
-  .cardUtilityActions {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 6px;
-  }
-
-  .cardStatusActions {
-    width: auto;
-    flex: 0 0 auto;
-    margin-left: 0;
-    padding-top: 0;
-    border-top: 0;
-    justify-content: flex-start;
-  }
-
-  .cardRefreshActions {
-    margin-left: 0;
-    flex: 0 0 auto;
-  }
 }
 
 @media (max-width: 420px) {
@@ -6474,19 +6413,11 @@
     gap: 7px;
   }
 
-  .cardActionsMain,
-  .cardActionCluster,
-  .cardUtilityActions,
-  .cardStatusActions,
-  .cardRefreshActions {
-    gap: 3px;
-  }
-
   .cardIdentityRowWithWarning {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      'type warning'
-      'name priority';
+      'name warning'
+      'type priority';
   }
 
   .cardIdentityRowNoBadges.cardIdentityRowWithWarning {
@@ -6504,96 +6435,6 @@
 
   .cardIdentityRow .priorityInlineRow {
     width: auto;
-  }
-
-  .cardStatusActions {
-    flex: 0 0 auto;
-    justify-content: flex-start;
-  }
-
-  .cardRefreshActions {
-    margin-left: 0;
-  }
-}
-
-// 移动端底部操作区：默认只露出“更多”和“刷新”，展开后再显示其它操作。
-@include mobile {
-  .cardActionsMain {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    grid-template-areas:
-      'toggle spacer refresh'
-      'content content content';
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px 6px;
-    overflow: visible;
-  }
-
-  .mobileActionsToggle:global(.btn.btn-sm) {
-    grid-area: toggle;
-    display: inline-flex;
-  }
-
-  .cardActionsContent {
-    grid-area: content;
-    display: none;
-    align-items: center;
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    gap: 6px;
-    width: 100%;
-    min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  .cardActionsMainExpanded .cardActionsContent {
-    display: flex;
-  }
-
-  .cardActionCluster {
-    display: flex;
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
-    gap: 6px;
-    min-width: max-content;
-    overflow: visible;
-  }
-
-  .cardUtilityActions {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 6px;
-  }
-
-  .cardStatusActions {
-    flex: 0 0 62px;
-    min-width: 62px;
-    max-width: 62px;
-  }
-
-  .cardRefreshActions {
-    grid-area: refresh;
-    justify-self: end;
-    margin-left: 0;
-  }
-}
-
-@media (max-width: 420px) {
-  .cardActionsMain,
-  .cardActionsContent,
-  .cardActionCluster,
-  .cardUtilityActions,
-  .cardStatusActions,
-  .cardRefreshActions {
-    gap: 3px;
   }
 }
 
@@ -6621,8 +6462,8 @@
 
   .cardInsights {
     gap: 8px;
-    padding: 8px;
-    border-radius: 10px;
+    padding: 9px 0 0;
+    border-radius: 0;
   }
 
   .cardIdentityRow {
@@ -6818,41 +6659,6 @@
     flex: 0 0 auto;
   }
 
-  .cardActionsContent,
-  .cardActionCluster,
-  .cardUtilityActions,
-  .cardStatusActions,
-  .cardRefreshActions {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .cardActionsContent {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  .cardActionCluster,
-  .cardUtilityActions,
-  .cardStatusActions,
-  .cardRefreshActions {
-    flex-wrap: nowrap;
-  }
-
-  .cardActionCluster {
-    justify-content: flex-start;
-  }
-
-  .cardRefreshActions {
-    margin-left: auto;
-  }
 }
 
 @media (max-width: 380px) {
@@ -6876,14 +6682,14 @@
 // 移动端最终布局约束：认证文件页前面包含多组历史响应式规则，这里统一收口，
 // 避免工具栏、筛选项和卡片操作区在窄屏下互相挤压或覆盖。
 @include mobile {
-  .authFilesCard:global(.card) {
+  .authFilesSection {
     min-width: 0;
     max-width: 100%;
+  }
 
-    :global(.card-header) {
-      align-items: stretch;
-      gap: 10px;
-    }
+  .authFilesHeader {
+    align-items: stretch;
+    gap: 10px;
   }
 
   .titleWrapper,
@@ -6975,28 +6781,9 @@
     overscroll-behavior: contain;
   }
 
-  .cardActionsMainExpanded .cardActionsContent {
-    flex-wrap: wrap;
-    overflow-x: visible;
-  }
-
-  .cardActionsMainExpanded .cardActionCluster,
-  .cardActionsMainExpanded .cardUtilityActions {
-    flex-wrap: wrap;
-    min-width: 0;
-  }
-
-  .cardActionsMainExpanded .cardUtilityActions {
-    padding-left: 0;
-    border-left: 0;
-  }
 }
 
 @media (max-width: 420px) {
-  .authFilesCard:global(.card) {
-    padding-inline: 12px;
-  }
-
   .filterControlsPanel {
     padding: 7px;
     gap: 7px;
@@ -7016,5 +6803,88 @@
 
   .searchToolbarPopoverWrap:last-child .searchToolbarPopover {
     right: 0;
+  }
+}
+
+// 操作按钮始终可见：窄屏和四列窄卡片都通过自然换行承载，不再折叠。
+@include mobile {
+  .cardActionsMain {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 6px;
+    overflow: visible;
+  }
+
+  .cardActionsContent {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .cardActionCluster {
+    flex: 1 1 140px;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .cardStatusActions,
+  .statusToggle {
+    flex-basis: 60px;
+    min-width: 60px;
+    max-width: 60px;
+  }
+
+  .cardUtilityActions {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  .cardRefreshActions {
+    justify-self: end;
+    margin-left: 0;
+  }
+
+  .iconButton:global(.btn.btn-sm),
+  .refreshActionButton:global(.btn.btn-sm) {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .iconButton:global(.btn.btn-sm) .quotaRefreshIcon,
+  .iconButton:global(.btn.btn-sm) .quotaButtonSpinner,
+  .iconButton:global(.btn.btn-sm) :global(.loading-spinner),
+  .iconButton:global(.btn.btn-sm) svg,
+  .actionIcon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .cardToggleSwitch > span:first-of-type {
+    width: 60px;
+    min-width: 60px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 7px 0 33px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type {
+    padding: 0 33px 0 7px;
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:last-child {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
+    transform: translate3d(26px, 0, 0);
   }
 }

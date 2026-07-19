@@ -9,6 +9,17 @@
   gap: 24px;
   position: relative;
   min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+
+  @include mobile {
+    gap: 16px;
+  }
+
+  :global(.card) {
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 .hero {
@@ -17,7 +28,13 @@
   align-items: center;
   gap: 24px;
   padding: 4px 0 20px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
+  min-width: 0;
+  max-width: 100%;
+
+  > * {
+    min-width: 0;
+  }
 
   @include tablet {
     grid-template-columns: 1fr;
@@ -25,6 +42,9 @@
   }
 
   @include mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     padding: 0 0 16px;
     gap: 14px;
   }
@@ -43,6 +63,7 @@
   color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .heroSummary {
@@ -72,7 +93,12 @@
   }
 
   @include mobile {
+    flex-direction: column;
     gap: 4px 12px;
+
+    span + span::before {
+      display: none;
+    }
   }
 }
 
@@ -92,6 +118,9 @@
 
   @include mobile {
     padding-top: 12px;
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
   }
 }
 
@@ -137,12 +166,32 @@
 }
 
 .pageTitleIcon {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   width: 36px;
   height: 36px;
-  border-radius: 7px;
+  border-radius: 11px;
   color: var(--primary-color);
-  background: color-mix(in srgb, var(--primary-color) 10%, var(--bg-secondary));
-  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, var(--border-color));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--primary-color) 15%, var(--surface-raised)),
+    color-mix(in srgb, var(--accent-blue) 7%, var(--surface-raised))
+  );
+  border: 1px solid color-mix(in srgb, var(--primary-color) 26%, var(--border-color));
+  box-shadow:
+    0 10px 22px -17px color-mix(in srgb, var(--primary-color) 62%, transparent),
+    inset 0 1px 0 var(--surface-sheen);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -45% 42% -45% -18%;
+    z-index: -1;
+    background: linear-gradient(105deg, rgb(255 255 255 / 0.42), transparent 72%);
+    transform: skewX(-14deg);
+    pointer-events: none;
+  }
 }
 
 .section {
@@ -150,19 +199,34 @@
   flex-direction: column;
   gap: 18px;
   scroll-margin-top: calc(var(--header-height, 72px) + 20px);
+  min-width: 0;
+  max-width: 100%;
+
+  @include mobile {
+    gap: 14px;
+  }
 }
 
 .anchorBlock {
   min-width: 0;
+  max-width: 100%;
   scroll-margin-top: calc(var(--header-height, 72px) + 20px);
 }
 
 .overviewPanel {
   padding: clamp(16px, 1.2vw + 8px, 22px);
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-card);
+  border-radius: $radius-lg;
+  border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
+  background:
+    radial-gradient(circle at 92% -16%, color-mix(in srgb, var(--primary-color) 7%, transparent), transparent 34%),
+    var(--surface-card, var(--surface-raised));
+  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
+  min-width: 0;
+  max-width: 100%;
+
+  @include mobile {
+    padding: 12px;
+  }
 }
 
 .sectionHeader {
@@ -213,7 +277,7 @@
   font-size: 21px;
   font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
 }
 
 .sectionDescription {
@@ -231,19 +295,15 @@
   gap: 8px;
   min-height: 36px;
   padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 94%, var(--bg-secondary) 6%),
-    color-mix(in srgb, var(--bg-primary) 88%, var(--bg-secondary) 12%)
-  );
+  border-radius: $radius-md;
+  border: 1px solid var(--border-primary);
+  background: var(--control-surface, var(--bg-primary));
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--control-shadow, var(--shadow));
   transition:
     color $transition-fast,
     border-color $transition-fast,
@@ -254,13 +314,13 @@
   &:hover {
     color: var(--text-primary);
     border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-primary) 88%, var(--bg-secondary) 12%),
-      color-mix(in srgb, var(--bg-primary) 82%, var(--bg-secondary) 18%)
-    );
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    background: color-mix(in srgb, var(--primary-color) 5%, var(--control-surface));
+    box-shadow: var(--shadow-card-hover);
     transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:focus-visible {
@@ -388,7 +448,7 @@
     var(--bg-primary)
   );
   border-color: color-mix(in srgb, var(--border-color) 85%, transparent);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .deferredChartShell {
@@ -475,7 +535,8 @@
 }
 
 .pageTitle {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 14px;
   font-size: 28px;
@@ -483,9 +544,15 @@
   color: var(--text-primary);
   margin: 0;
   letter-spacing: 0;
+  min-width: 0;
+
+  > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 
   @include mobile {
-    font-size: 26px;
+    font-size: clamp(22px, 7vw, 26px);
     line-height: 1.2;
     gap: 10px;
   }
@@ -496,6 +563,8 @@
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 18px;
   align-items: start;
+  min-width: 0;
+  max-width: 100%;
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -513,9 +582,12 @@
   display: grid;
   gap: 18px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  min-width: 0;
+  max-width: 100%;
 
   > * {
     min-width: 0;
+    max-width: 100%;
     content-visibility: auto;
     contain-intrinsic-size: 360px;
   }
@@ -529,9 +601,12 @@
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 18px;
+  min-width: 0;
+  max-width: 100%;
 
   > * {
     min-width: 0;
+    max-width: 100%;
     content-visibility: auto;
     contain-intrinsic-size: 380px;
   }
@@ -554,9 +629,12 @@
   display: grid;
   gap: 20px;
   grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  max-width: 100%;
 
   > * {
     min-width: 0;
+    max-width: 100%;
     content-visibility: auto;
     contain-intrinsic-size: 360px;
   }
@@ -642,6 +720,8 @@
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+  max-width: 100%;
 
   @include tablet {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -657,16 +737,16 @@
   --accent: var(--success-color);
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --accent-border: color-mix(in srgb, var(--accent) 32%, transparent);
-  --stat-card-sheen: color-mix(in srgb, #ffffff 46%, transparent);
+  --stat-card-sheen: var(--surface-sheen);
 
   position: relative;
   padding: 14px 15px;
   background:
     linear-gradient(180deg, var(--stat-card-sheen), transparent 46%),
     linear-gradient(135deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 58%),
-    var(--surface-raised);
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
+    var(--surface-card, var(--surface-raised));
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 8%, var(--surface-card-border));
   display: flex;
   flex-direction: column;
   gap: 9px;
@@ -674,13 +754,15 @@
   box-shadow:
     var(--shadow-card),
     0 10px 24px -22px color-mix(in srgb, var(--accent) 36%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    var(--surface-inner-highlight);
   // hover 上浮用 transform（合成器属性），配合 box-shadow 过渡形成立体反馈
   transition:
     transform $transition-fast,
     box-shadow $transition-fast,
     border-color $transition-fast;
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   will-change: transform;
 
   &::before {
@@ -691,6 +773,26 @@
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
     opacity: 0.42;
     pointer-events: none;
+    z-index: 2;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -56px;
+    right: -38px;
+    width: 136px;
+    height: 136px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent), transparent 68%);
+    opacity: 0.72;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
   }
 
   &:hover {
@@ -698,7 +800,8 @@
     transform: translateY(-2px);
     box-shadow:
       var(--shadow-card-hover),
-      0 14px 30px -22px color-mix(in srgb, var(--accent) 48%, transparent);
+      0 14px 30px -22px color-mix(in srgb, var(--accent) 48%, transparent),
+      var(--surface-inner-highlight);
   }
 
   @include mobile {
@@ -712,12 +815,14 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
 }
 
 .statLabelGroup {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  min-width: 0;
 }
 
 .statIconBadge {
@@ -735,7 +840,8 @@
   );
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 72%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--accent) 8%, transparent),
     0 2px 6px color-mix(in srgb, var(--accent) 10%, transparent);
   flex-shrink: 0;
   svg {
@@ -776,6 +882,10 @@
   align-items: flex-end;
   gap: 12px;
   min-width: 0;
+
+  @include mobile {
+    gap: 8px;
+  }
 }
 
 .statSplitItem {
@@ -810,6 +920,11 @@
 .statValueRow {
   display: flex;
   gap: $spacing-lg;
+
+  @include mobile {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
 }
 
 .statValueSmall {
@@ -1071,10 +1186,12 @@
   flex-direction: column;
   height: 520px;
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   border-radius: $radius-lg;
   border-color: color-mix(in srgb, var(--border-color) 74%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 38%),
+    linear-gradient(180deg, var(--surface-sheen), transparent 38%),
     var(--surface-raised);
   box-shadow:
     var(--shadow-card),
@@ -1090,6 +1207,8 @@
 .detailsScroll {
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -1122,6 +1241,7 @@
 // Table (80%比例)
 .tableWrapper {
   width: 100%;
+  min-width: 0;
   max-width: 100%;
   overflow: auto;
   overscroll-behavior-x: contain;
@@ -1182,7 +1302,7 @@
   }
 
   @include mobile {
-    min-width: 860px;
+    min-width: 680px;
     font-size: 11px;
 
     th,
@@ -1252,6 +1372,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .priceForm {
@@ -1259,6 +1381,8 @@
   background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
   border-radius: $radius-md;
   border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .formRow {
@@ -1279,6 +1403,11 @@
   gap: 3px;
   flex: 1;
   min-width: 120px;
+
+  @include mobile {
+    min-width: 0;
+    width: 100%;
+  }
 
   label,
   .formLabel {
@@ -1389,6 +1518,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .chartControls {
@@ -1406,22 +1537,23 @@
 .chartWrapper {
   padding: 18px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 42%),
+    linear-gradient(180deg, var(--surface-sheen), transparent 42%),
     var(--surface-raised);
   border-radius: $radius-lg;
   border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow:
-    0 14px 34px rgba(15, 23, 42, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  min-width: 0;
+  max-width: 100%;
+  box-shadow: var(--shadow-card), inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 38%, transparent);
 }
 
 .chartSummaryRow {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  min-width: 0;
 }
 
 .chartSummaryPill {
@@ -1436,10 +1568,13 @@
 }
 
 .chartSummaryLabel {
+  min-width: 0;
   font-size: 11px;
   font-weight: 700;
   color: var(--text-tertiary);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chartSummaryValue {
@@ -1514,6 +1649,8 @@
     100% 25%,
     100% 100%;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  min-width: 0;
+  max-width: 100%;
 
   @include mobile {
     height: 260px;
@@ -1523,6 +1660,7 @@
 
 .chartScroller {
   width: 100%;
+  max-width: 100%;
   height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1538,6 +1676,7 @@
   position: relative;
   height: 100%;
   width: 100%;
+  max-width: none;
 }
 
 .periodButtons {
@@ -1582,9 +1721,12 @@
   display: grid;
   gap: 20px;
   grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  max-width: 100%;
 
   > * {
     min-width: 0;
+    max-width: 100%;
     content-visibility: auto;
     contain-intrinsic-size: 360px;
   }
@@ -1596,14 +1738,14 @@
 
 .chartCard {
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 40%),
+    linear-gradient(180deg, var(--surface-sheen), transparent 40%),
     var(--surface-raised);
   border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
   border-radius: $radius-lg;
-  box-shadow:
-    0 18px 36px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card);
 
   :global(.card-header) {
     margin-bottom: 18px;
@@ -1624,6 +1766,8 @@
 
 .secondaryChartCard {
   min-height: 380px;
+  min-width: 0;
+  max-width: 100%;
 
   :global(.title) {
     font-size: 16px;
@@ -1634,9 +1778,12 @@
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  max-width: 100%;
 
   > * {
     min-width: 0;
+    max-width: 100%;
     content-visibility: auto;
     contain-intrinsic-size: 520px;
   }
@@ -1649,9 +1796,12 @@
 .supportStack {
   display: grid;
   gap: 18px;
+  min-width: 0;
+  max-width: 100%;
 
   > * {
     min-width: 0;
+    max-width: 100%;
   }
 }
 
@@ -1765,6 +1915,7 @@
 
 .requestEventsTableWrapper {
   width: 100%;
+  min-width: 0;
   max-width: 100%;
   overflow: auto;
   overscroll-behavior-x: contain;
@@ -1820,6 +1971,10 @@
 
   @include mobile {
     max-height: clamp(320px, calc(100vh - 220px), 800px);
+
+    .table {
+      min-width: 720px;
+    }
   }
 }
 
@@ -2130,9 +2285,7 @@
   );
   border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
   border-radius: $radius-lg;
-  box-shadow:
-    0 16px 30px rgba(0, 0, 0, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card);
 
   :global(.card-header) {
     margin-bottom: 18px;
@@ -2216,7 +2369,7 @@
 // Service Health Card
 .healthCard {
   background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 34%, transparent), transparent 40%),
+    linear-gradient(180deg, var(--surface-sheen), transparent 40%),
     var(--surface-raised);
   border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
   border-radius: $radius-lg;
@@ -2224,10 +2377,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow:
-    var(--shadow-card),
-    0 16px 34px -28px rgba(15, 23, 42, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
 .healthHeader {
@@ -2504,11 +2654,11 @@
   .chartWrapper,
   .chartCard,
   .healthCard {
-    background: var(--surface-raised);
+    background: var(--surface-card, var(--surface-raised));
     box-shadow:
       var(--shadow-card),
       0 16px 34px -26px rgba(0, 0, 0, 0.62),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      var(--surface-inner-highlight);
   }
 
   .statCard {
@@ -2516,11 +2666,11 @@
     background:
       linear-gradient(180deg, var(--stat-card-sheen), transparent 42%),
       linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 54%),
-      var(--surface-raised);
+      var(--surface-card, var(--surface-raised));
     box-shadow:
       var(--shadow-card),
       0 14px 30px -24px rgba(0, 0, 0, 0.64),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      var(--surface-inner-highlight);
   }
 
   .priceForm,

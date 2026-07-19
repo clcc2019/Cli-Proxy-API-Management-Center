@@ -13,8 +13,6 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
-  IconChevronDown,
-  IconChevronUp,
   IconCopy,
   IconDownload,
   IconKey,
@@ -82,6 +80,7 @@ const maskAuthFileDisplayName = (value: string): string => {
 
 export type AuthFileCardProps = {
   file: AuthFileItem;
+  compact: boolean;
   selected: boolean;
   resolvedTheme: ResolvedTheme;
   disableControls: boolean;
@@ -145,6 +144,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const { t } = useTranslation();
   const {
     file,
+    compact,
     selected,
     resolvedTheme,
     disableControls,
@@ -200,7 +200,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     return resolveQuotaType(file) === quotaFilterType ? quotaFilterType : null;
   }, [file, quotaFilterType]);
 
-  const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly;
+  const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly && !compact;
 
   const providerCardClass =
     quotaType === 'claude'
@@ -226,7 +226,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     sourcePriority: currentPriority,
     value: String(currentPriority),
   }));
-  const [actionsExpanded, setActionsExpanded] = useState(false);
   const priorityDraft =
     priorityDraftState.sourcePriority === currentPriority
       ? priorityDraftState.value
@@ -267,9 +266,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
   const handleStepDecrement = useCallback(() => stepPriority(-1), [stepPriority]);
   const handleStepIncrement = useCallback(() => stepPriority(1), [stepPriority]);
-  const handleToggleActionsExpanded = useCallback(() => {
-    setActionsExpanded((expanded) => !expanded);
-  }, []);
   const preventBlur = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
   }, []);
@@ -357,11 +353,12 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
   const cardClassName = useMemo(() => {
     const cls = [styles.fileCard];
+    if (compact) cls.push(styles.fileCardCompact);
     if (providerCardClass) cls.push(providerCardClass);
     if (selected) cls.push(styles.fileCardSelected);
     if (file.disabled) cls.push(styles.fileCardDisabled);
     return cls.join(' ');
-  }, [providerCardClass, selected, file.disabled]);
+  }, [compact, providerCardClass, selected, file.disabled]);
   const cardIdentityRowClassName = useMemo(
     () =>
       [styles.cardIdentityRow, hasStatusWarning ? styles.cardIdentityRowWithWarning : '']
@@ -373,7 +370,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const checkboxLabel = selected
     ? t('auth_files.batch_deselect')
     : t('auth_files.batch_select_all');
-  const actionsToggleLabel = actionsExpanded ? t('common.collapse') : t('common.expand');
 
   return (
     <div className={cardClassName} style={cardStyle}>
@@ -510,7 +506,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </div>
                 )}
               </div>
-              {noteValue && (
+              {!compact && noteValue && (
                 <div className={styles.noteText} title={noteValue}>
                   <span className={styles.noteLabel}>{t('auth_files.note_display')}</span>
                   <span className={styles.noteValue}>{noteValue}</span>
@@ -519,15 +515,20 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
             </div>
           </div>
 
-          <div className={styles.cardInsights}>
-            <div className={styles.statusPanel}>
+          <div className={`${styles.cardInsights} ${compact ? styles.cardInsightsCompact : ''}`}>
+            <div className={`${styles.statusPanel} ${compact ? styles.statusPanelCompact : ''}`}>
               <div className={styles.statusPanelLabel}>
-                <span>{t('auth_files.health_status_label')}</span>
+                <span className={styles.statusPanelTitle}>
+                  {t('auth_files.health_status_label')}
+                </span>
                 <span
                   className={styles.statusTokens}
                   title={fileUsageStats.totalTokens.toLocaleString()}
                 >
-                  {t('auth_files.tokens_stat_label')} {tokenDisplay}
+                  <span className={styles.statusTokensLabel}>
+                    {t('auth_files.tokens_stat_label')}
+                  </span>
+                  <strong className={styles.statusTokensValue}>{tokenDisplay}</strong>
                 </span>
               </div>
               <ProviderStatusBar statusData={statusData} styles={styles} />
@@ -544,25 +545,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           </div>
 
           <div className={styles.cardActions}>
-            <div
-              className={`${styles.cardActionsMain} ${actionsExpanded ? styles.cardActionsMainExpanded : ''}`}
-            >
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleToggleActionsExpanded}
-                className={`${styles.iconButton} ${styles.mobileActionsToggle}`}
-                title={actionsToggleLabel}
-                aria-label={actionsToggleLabel}
-                aria-expanded={actionsExpanded}
-              >
-                {actionsExpanded ? (
-                  <IconChevronUp className={styles.actionIcon} size={18} />
-                ) : (
-                  <IconChevronDown className={styles.actionIcon} size={18} />
-                )}
-              </Button>
-
+            <div className={styles.cardActionsMain}>
               <div className={styles.cardActionsContent}>
                 {!isRuntimeOnly && (
                   <div className={styles.cardStatusActions}>

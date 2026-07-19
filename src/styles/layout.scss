@@ -36,13 +36,15 @@
   justify-content: space-between;
   gap: $spacing-md;
   padding: 12px 20px;
-  background: color-mix(in srgb, var(--surface-overlay) 88%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  background: var(--header-surface, var(--surface-overlay));
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
   position: sticky;
   top: 0;
   z-index: 10;
   width: 100%;
-  box-shadow: var(--header-shadow);
+  box-shadow:
+    var(--header-shadow),
+    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 68%, transparent);
   backdrop-filter: var(--glass-backdrop-filter);
   -webkit-backdrop-filter: var(--glass-backdrop-filter);
 
@@ -77,9 +79,11 @@
       flex-shrink: 0;
       padding: 2px;
       border-radius: 11px;
-      border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-      background: var(--surface-raised-strong);
-      box-shadow: 0 8px 20px -12px rgb(35 48 78 / 0.42);
+      border: 1px solid color-mix(in srgb, var(--primary-color) 16%, var(--border-color));
+      background: var(--surface-card, var(--surface-raised-strong));
+      box-shadow:
+        0 10px 24px -16px color-mix(in srgb, var(--primary-color) 46%, transparent),
+        inset 0 1px 0 var(--surface-sheen);
 
       @media (max-width: $breakpoint-mobile) {
         display: none;
@@ -105,8 +109,8 @@
 
   .sidebar-toggle-header {
     padding: 0;
-    background: var(--surface-raised);
-    border: 1px solid var(--border-color);
+    background: var(--control-surface-gradient, var(--control-surface));
+    border: 1px solid var(--border-primary);
     border-radius: $radius-md;
     color: var(--text-secondary);
     cursor: pointer;
@@ -114,7 +118,10 @@
     font-weight: bold;
     transition:
       background $transition-fast,
-      color $transition-fast;
+      border-color $transition-fast,
+      color $transition-fast,
+      box-shadow $transition-fast,
+      transform $transition-fast;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -122,13 +129,17 @@
     height: 36px;
     flex-shrink: 0;
     line-height: 1;
-    box-shadow: var(--shadow);
+    box-shadow: var(--control-shadow, var(--shadow));
 
     &:hover {
       background: var(--surface-raised-strong);
       color: var(--primary-color);
       border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
       transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
 
     @media (max-width: $breakpoint-mobile) {
@@ -437,9 +448,9 @@
     overflow: hidden;
     padding: 6px 10px 6px 7px;
     border-radius: $radius-full;
-    background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
-    border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-    box-shadow: var(--shadow);
+    background: var(--control-surface-gradient, var(--control-surface));
+    border: 1px solid color-mix(in srgb, var(--border-primary) 88%, transparent);
+    box-shadow: var(--control-shadow, var(--shadow));
 
     .status-badge {
       flex-shrink: 0;
@@ -527,7 +538,9 @@
   border: 0;
   padding: 0;
   margin: 0;
-  background: rgb(15 23 42 / 0.18);
+  background: rgb(8 13 25 / 0.28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   opacity: 0;
   pointer-events: none;
   transition: opacity $transition-fast;
@@ -546,28 +559,30 @@
 }
 
 .sidebar {
-  width: 232px;
-  background: color-mix(in srgb, var(--surface-overlay) 86%, transparent);
-  border-right: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
-  padding: 14px 12px;
+  width: 200px;
+  background: var(--sidebar-surface, var(--surface-overlay));
+  border-right: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 20px;
   transition:
     width $transition-normal,
     transform $transition-normal;
   overflow-y: auto;
   flex-shrink: 0;
   height: 100%;
-  box-shadow: var(--sidebar-shadow);
+  box-shadow:
+    var(--sidebar-shadow),
+    inset 1px 0 0 color-mix(in srgb, var(--surface-sheen) 42%, transparent);
 
   &.collapsed {
-    width: 72px;
-    padding: 14px 10px;
+    width: 64px;
+    padding: 12px 8px;
 
     .nav-item {
       justify-content: center;
-      padding: 8px;
+      padding: 6px;
     }
   }
 
@@ -580,12 +595,12 @@
 
   .nav-item {
     position: relative;
-    padding: 8px 10px;
-    border-radius: 12px;
+    padding: 7px 8px;
+    border-radius: 10px;
     border: 1px solid transparent;
     color: var(--text-secondary);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     display: flex;
     align-items: center;
     gap: $spacing-sm;
@@ -593,21 +608,20 @@
     transition:
       background $transition-fast,
       border-color $transition-fast,
-      color $transition-fast,
-      transform $transition-fast;
+      color $transition-fast;
 
     .nav-icon {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       opacity: 0.96;
-      border-radius: 9px;
-      background: color-mix(in srgb, var(--surface-raised) 86%, transparent);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--panel-surface-muted) 84%, transparent);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 var(--surface-sheen),
         inset 0 0 0 1px color-mix(in srgb, var(--border-primary) 86%, transparent);
       transition:
         background $transition-fast,
@@ -615,8 +629,8 @@
         color $transition-fast;
 
       svg {
-        width: 18px;
-        height: 18px;
+        width: 17px;
+        height: 17px;
         display: block;
       }
     }
@@ -628,10 +642,9 @@
     }
 
     &:hover {
-      background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
-      border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+      background: var(--surface-card-muted, var(--surface-raised));
+      border-color: color-mix(in srgb, var(--border-primary) 82%, transparent);
       color: var(--text-primary);
-      transform: translateX(1px);
 
       .nav-icon {
         background: color-mix(in srgb, var(--surface-raised-strong) 92%, transparent);
@@ -642,12 +655,15 @@
     &.active {
       background: linear-gradient(
         100deg,
-        color-mix(in srgb, var(--primary-color) 16%, transparent),
-        color-mix(in srgb, var(--primary-color) 7%, transparent)
+        color-mix(in srgb, var(--primary-color) 15%, transparent),
+        color-mix(in srgb, var(--primary-color) 6%, transparent)
       );
       color: var(--primary-color);
-      border: 1px solid color-mix(in srgb, var(--primary-color) 26%, transparent);
-      box-shadow: 0 10px 26px -22px color-mix(in srgb, var(--primary-color) 72%, transparent);
+      border: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
+      box-shadow:
+        0 12px 28px -24px color-mix(in srgb, var(--primary-color) 76%, transparent),
+        inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 82%, transparent),
+        inset 0 -1px 0 color-mix(in srgb, var(--primary-color) 8%, transparent);
 
       &::before {
         content: '';
@@ -663,8 +679,10 @@
       }
 
       .nav-icon {
-        background: color-mix(in srgb, var(--primary-color) 16%, var(--surface-raised));
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 28%, transparent);
+        background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-raised));
+        box-shadow:
+          inset 0 1px 0 var(--surface-sheen),
+          inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 30%, transparent);
       }
     }
 
@@ -677,7 +695,7 @@
   @media (max-width: $breakpoint-mobile) {
     position: fixed;
     z-index: $z-dropdown;
-    width: min(86vw, 280px);
+    width: min(82vw, 260px);
     left: 0;
     top: var(--header-height);
     bottom: 0;
@@ -702,6 +720,14 @@
   height: 100%;
   position: relative;
 
+  @media (max-width: $breakpoint-mobile) {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    overscroll-behavior: auto;
+    scrollbar-gutter: auto;
+  }
+
   &.content-logs {
     overflow: hidden;
 
@@ -716,13 +742,16 @@
 .main-content {
   flex: 1 0 auto;
   width: 100%;
+  min-width: 0;
   max-width: min(1680px, 100%);
   margin: 0 auto;
   padding: clamp(20px, 2.2vw, 36px);
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: clamp(18px, 1.6vw, 26px);
   overflow-x: hidden;
+  position: relative;
+  isolation: isolate;
 
   &.main-content-logs {
     flex: 1 1 auto;

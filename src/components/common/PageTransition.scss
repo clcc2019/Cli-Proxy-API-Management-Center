@@ -9,12 +9,29 @@
   min-height: 0;
   overflow: hidden;
 
+  @media (max-width: $breakpoint-mobile) {
+    min-height: auto;
+    overflow: visible;
+  }
+
   &__layer {
     display: flex;
     flex-direction: column;
     gap: $spacing-lg;
+    width: 100%;
+    min-width: 0;
     min-height: 0;
     flex: 1;
+
+    > * {
+      width: 100%;
+      min-width: 0;
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+      min-height: auto;
+      flex: 0 0 auto;
+    }
 
     // During animation, exit layer uses absolute positioning
     &--exit {

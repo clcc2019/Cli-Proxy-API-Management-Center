@@ -1,4 +1,3 @@
-@use 'sass:color';
 @use './variables.scss' as *;
 
 .btn {
@@ -10,7 +9,13 @@
   border: 1px solid transparent;
   border-radius: $radius-md;
   padding: 10px 14px;
+  font: inherit;
   font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   transition:
     border-color $transition-fast,
@@ -18,38 +23,59 @@
     color $transition-fast,
     box-shadow $transition-fast,
     transform $transition-fast;
-  background-color: var(--surface-raised);
+  background-color: var(--control-surface, var(--surface-raised));
   color: var(--text-primary);
-  box-shadow: var(--shadow);
+  box-shadow: var(--control-shadow, var(--shadow));
 
   &:focus-visible {
     outline: none;
-    box-shadow: var(--shadow), 0 0 0 3px var(--focus-ring);
+    box-shadow: var(--control-shadow, var(--shadow)), 0 0 0 3px var(--focus-ring);
   }
 
   &.btn-primary {
-    background-color: var(--primary-color);
+    background: var(--brand-gradient, var(--primary-color));
     color: var(--primary-contrast, #fff);
-    border-color: var(--primary-color);
+    border-color: color-mix(in srgb, var(--primary-color) 82%, var(--primary-active));
     box-shadow:
-      0 10px 24px rgba($primary-color, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      var(--primary-shadow),
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      inset 0 -1px 0 rgb(24 24 92 / 0.14);
 
-    &:hover {
-      background-color: var(--primary-hover);
+    &:hover:not(:disabled) {
+      background: var(--brand-gradient-hover, var(--primary-hover));
       border-color: var(--primary-hover);
+      box-shadow:
+        var(--primary-shadow-hover),
+        inset 0 1px 0 rgb(255 255 255 / 0.25),
+        inset 0 -1px 0 rgb(24 24 92 / 0.16);
       transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--primary-active);
+      border-color: var(--primary-active);
+      box-shadow: 0 5px 16px -10px color-mix(in srgb, var(--primary-active) 72%, transparent);
+      transform: translateY(0);
     }
   }
 
   &.btn-secondary {
-    background-color: var(--surface-raised);
-    border-color: var(--border-color);
+    background: var(--control-surface-gradient, var(--control-surface));
+    border-color: var(--border-primary);
     color: var(--text-primary);
 
-    &:hover {
-      background-color: var(--bg-hover, var(--bg-tertiary));
-      border-color: var(--border-hover);
+    &:hover:not(:disabled) {
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--primary-color) 4%, var(--control-surface)) 0%,
+        color-mix(in srgb, var(--primary-color) 6%, var(--bg-secondary)) 100%
+      );
+      border-color: color-mix(in srgb, var(--primary-color) 20%, var(--border-hover));
+    }
+
+    &:active:not(:disabled) {
+      background: var(--bg-hover, var(--bg-tertiary));
+      box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.08);
     }
   }
 
@@ -59,19 +85,26 @@
     color: var(--text-secondary);
     box-shadow: none;
 
-    &:hover {
-      color: var(--text-primary);
-      background: var(--surface-overlay);
+    &:hover:not(:disabled) {
+      color: var(--primary-color);
+      background: var(--primary-soft);
     }
   }
 
   &.btn-danger {
-    background-color: $error-color;
-    border-color: $error-color;
-    color: #fff;
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+    color: var(--danger-contrast, #fff);
+    box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--danger-color) 70%, transparent);
 
-    &:hover {
-      background-color: color.adjust($error-color, $lightness: -5%);
+    &:hover:not(:disabled) {
+      background-color: var(--danger-hover, var(--danger-color));
+      border-color: var(--danger-hover, var(--danger-color));
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
     }
   }
 
@@ -86,19 +119,10 @@
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.48;
     cursor: not-allowed;
-  }
-}
-
-[data-theme='dark'] {
-  .btn {
-    color: #fff;
-  }
-
-  .btn.btn-secondary,
-  .btn.btn-ghost {
-    color: #fff;
+    box-shadow: none;
+    transform: none;
   }
 }
 
@@ -109,18 +133,48 @@ textarea {
   border-radius: $radius-md;
   padding: 10px 12px;
   min-height: 40px;
-  background-color: var(--surface-raised);
+  background-color: var(--control-surface, var(--surface-raised));
   color: var(--text-primary);
-  transition: border-color $transition-fast, box-shadow $transition-fast;
+  caret-color: var(--primary-color);
+  box-shadow: var(--control-shadow);
+  transition:
+    border-color $transition-fast,
+    background-color $transition-fast,
+    box-shadow $transition-fast;
+
+  &::placeholder {
+    color: var(--text-tertiary);
+    opacity: 1;
+  }
+
+  &:hover:not(:disabled):not(:focus) {
+    border-color: var(--border-hover);
+  }
 
   &:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    background-color: var(--surface-raised-strong);
+    box-shadow: var(--control-shadow), 0 0 0 3px var(--focus-ring);
   }
 
   &[aria-invalid='true'] {
     border-color: var(--error-color);
+  }
+
+  &[aria-invalid='true']:focus {
+    box-shadow: var(--control-shadow), 0 0 0 3px color-mix(in srgb, var(--error-color) 20%, transparent);
+  }
+
+  &:disabled,
+  &[readonly] {
+    color: var(--text-secondary);
+    background-color: color-mix(in srgb, var(--bg-tertiary) 72%, var(--control-surface));
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.68;
   }
 }
 
@@ -188,24 +242,28 @@ textarea {
   .form-label {
     font-weight: 600;
     color: var(--text-primary);
+    line-height: 1.35;
   }
 
   .hint {
     color: var(--text-secondary);
     font-size: 13px;
+    line-height: 1.5;
   }
 }
 
 .card {
-  background-color: var(--surface-raised);
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  min-width: 0;
+  background: var(--surface-card, var(--surface-raised));
+  border: 1px solid var(--surface-card-border, var(--border-color));
   border-radius: $radius-lg;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
   padding: clamp(14px, 1.2vw + 8px, 20px);
   transition: border-color $transition-fast, box-shadow $transition-fast;
 
   &:hover {
-    box-shadow: var(--shadow-soft);
+    border-color: var(--surface-card-border-hover, var(--border-hover));
+    box-shadow: var(--shadow-card-hover), var(--surface-inner-highlight);
   }
 }
 
@@ -240,7 +298,7 @@ textarea {
   flex-wrap: wrap;
   margin-bottom: $spacing-sm;
   padding-bottom: $spacing-sm;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
 
   > * {
     min-width: 0;
@@ -267,7 +325,7 @@ textarea {
   margin: calc(clamp(14px, 1.2vw + 8px, 20px) * -1) calc(clamp(14px, 1.2vw + 8px, 20px) * -1)
     $spacing-sm;
   padding: $spacing-sm clamp(14px, 1.2vw + 8px, 20px);
-  background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
+  background: var(--surface-card-muted, var(--bg-secondary));
 }
 
 .status-badge {
@@ -279,6 +337,7 @@ textarea {
   font-size: 13px;
   border: 1px solid var(--border-color);
   margin-bottom: $spacing-md;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 58%, transparent);
 
   // 确保后续内容换行显示
   + * {
@@ -286,21 +345,21 @@ textarea {
   }
 
   &.success {
-    color: $success-color;
-    border-color: rgba($success-color, 0.35);
-    background: rgba($success-color, 0.08);
+    color: var(--success-badge-text);
+    border-color: var(--success-badge-border);
+    background: var(--success-badge-bg);
   }
 
   &.warning {
-    color: $warning-color;
-    border-color: rgba($warning-color, 0.35);
-    background: rgba($warning-color, 0.08);
+    color: var(--warning-text);
+    border-color: var(--warning-border);
+    background: var(--warning-bg);
   }
 
   &.error {
-    color: $error-color;
-    border-color: rgba($error-color, 0.35);
-    background: rgba($error-color, 0.08);
+    color: var(--failure-badge-text);
+    border-color: var(--failure-badge-border);
+    background: var(--failure-badge-bg);
   }
 
   &.muted {
@@ -346,7 +405,7 @@ textarea {
   border-radius: $radius-md;
   box-shadow: var(--shadow-soft);
   border: 1px solid var(--border-color);
-  background: var(--floating-surface);
+  background: var(--floating-surface-material, var(--floating-surface));
   color: var(--text-primary);
   display: flex;
   justify-content: space-between;
@@ -363,13 +422,16 @@ textarea {
   }
 
   &.success {
-    border-color: rgba($success-color, 0.4);
+    border-color: var(--success-badge-border);
+    box-shadow: var(--shadow-soft), inset 3px 0 0 var(--success-color);
   }
   &.warning {
-    border-color: rgba($warning-color, 0.4);
+    border-color: var(--warning-border);
+    box-shadow: var(--shadow-soft), inset 3px 0 0 var(--warning-color);
   }
   &.error {
-    border-color: rgba($error-color, 0.4);
+    border-color: var(--failure-badge-border);
+    box-shadow: var(--shadow-soft), inset 3px 0 0 var(--error-color);
   }
 
   .message {
@@ -419,7 +481,8 @@ textarea {
   .track {
     width: 44px;
     height: 24px;
-    background: var(--border-color);
+    background: color-mix(in srgb, var(--neutral-accent) 30%, var(--bg-tertiary));
+    border: 1px solid color-mix(in srgb, var(--border-hover) 78%, transparent);
     border-radius: $radius-full;
     position: relative;
     transition: background $transition-fast;
@@ -432,13 +495,15 @@ textarea {
     width: 18px;
     height: 18px;
     background: #fff;
+    border: 1px solid rgb(15 23 42 / 0.08);
     border-radius: $radius-full;
     box-shadow: $shadow-sm;
     transition: transform $transition-fast;
   }
 
   input:checked + .track {
-    background: var(--primary-color);
+    background: var(--brand-gradient, var(--primary-color));
+    border-color: color-mix(in srgb, var(--primary-color) 62%, transparent);
   }
 
   input:checked + .track .thumb {
@@ -460,10 +525,11 @@ textarea {
 .pill {
   padding: 4px 10px;
   border-radius: $radius-full;
-  background: var(--bg-secondary);
+  background: color-mix(in srgb, var(--bg-secondary) 82%, var(--surface-raised));
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
   font-size: 12px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 56%, transparent);
 }
 
 .loading-spinner {
@@ -500,9 +566,9 @@ textarea {
   position: fixed;
   inset: 0;
   // 深色遮罩 + 模糊，让背景的视觉噪音消减，更聚焦弹窗内容
-  background: rgba(8, 12, 24, 0.42);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgb(7 11 22 / 0.48);
+  backdrop-filter: blur(4px) saturate(0.9);
+  -webkit-backdrop-filter: blur(4px) saturate(0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -537,10 +603,10 @@ textarea {
 }
 
 .modal {
-  background: var(--bg-primary);
+  background: var(--floating-surface-material, var(--floating-surface));
   border-radius: $radius-lg;
-  border: 1px solid var(--border-color);
-  box-shadow: $shadow-lg;
+  border: 1px solid var(--floating-border);
+  box-shadow: var(--floating-shadow), var(--surface-inner-highlight);
   max-width: 100%;
   max-height: 90vh;
   overflow: hidden;
@@ -642,7 +708,7 @@ textarea {
   display: flex;
   align-items: center;
   padding: $spacing-md $spacing-lg;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
 
   .modal-title {
     font-weight: 700;
@@ -659,11 +725,11 @@ textarea {
 
 .modal-footer {
   padding: $spacing-md $spacing-lg;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
   display: flex;
   justify-content: flex-end;
   gap: $spacing-sm;
-  background: var(--bg-primary);
+  background: color-mix(in srgb, var(--bg-secondary) 52%, var(--floating-surface));
 }
 
 @media (max-width: $breakpoint-mobile) {
@@ -724,12 +790,14 @@ textarea {
   border: 1px dashed color-mix(in srgb, var(--border-color) 82%, transparent);
   border-radius: $radius-lg;
   padding: $spacing-lg;
-  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 3%, transparent), transparent 56%),
+    var(--surface-card-muted, color-mix(in srgb, var(--surface-raised) 92%, transparent));
   display: flex;
   justify-content: space-between;
   gap: $spacing-md;
   align-items: center;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
 
   .empty-content {
     display: flex;
@@ -793,15 +861,15 @@ textarea {
 
 .item-row {
   border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-radius: 8px;
+  border-radius: $radius-md;
   padding: $spacing-md;
-  background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+  background: var(--surface-card, var(--surface-raised));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: $spacing-md;
   flex-wrap: wrap;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
   transition:
     border-color $transition-fast,
     box-shadow $transition-fast,
@@ -809,8 +877,7 @@ textarea {
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 22%, var(--border-color));
-    box-shadow: var(--shadow-soft);
-    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
   }
 
   .item-meta {
@@ -840,11 +907,11 @@ textarea {
 }
 
 .error-box {
-  background: rgba($error-color, 0.1);
-  border: 1px solid rgba($error-color, 0.4);
+  background: var(--failure-badge-bg);
+  border: 1px solid var(--failure-badge-border);
   border-radius: $radius-md;
   padding: $spacing-sm $spacing-md;
-  color: $error-color;
+  color: var(--failure-badge-text);
 }
 
 .stack {
@@ -869,9 +936,11 @@ textarea {
 .table {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
   border-radius: $radius-md;
   overflow: hidden;
+  background: var(--surface-card, var(--surface-raised));
+  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
 
   .table-header,
   .table-row {
@@ -883,13 +952,19 @@ textarea {
   }
 
   .table-header {
-    background: var(--bg-secondary);
+    background: color-mix(in srgb, var(--panel-surface-muted) 88%, var(--surface-raised));
     font-weight: 700;
     color: var(--text-primary);
+    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border-color) 72%, transparent);
   }
 
   .table-row {
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+    transition: background-color $transition-fast;
+
+    &:hover {
+      background: color-mix(in srgb, var(--primary-color) 5%, var(--surface-raised));
+    }
   }
 
   .cell {
@@ -908,13 +983,22 @@ textarea {
 }
 
 .stat-card {
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
   border-radius: $radius-md;
   padding: $spacing-md;
-  background: var(--bg-primary);
+  background: var(--surface-card, var(--surface-raised));
+  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
   display: flex;
   flex-direction: column;
   gap: $spacing-xs;
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
+    box-shadow: var(--shadow-card-hover), var(--surface-inner-highlight);
+  }
 
   .stat-label {
     color: var(--text-secondary);
@@ -929,8 +1013,8 @@ textarea {
 }
 
 .log-viewer {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-secondary) 86%, var(--bg-primary));
+  border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
   border-radius: $radius-md;
   padding: $spacing-md;
   max-height: 520px;

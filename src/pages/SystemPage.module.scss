@@ -1,18 +1,14 @@
+@use '../styles/mixins' as *;
+
 .container {
   width: 100%;
+  min-width: 0;
+  position: relative;
+  isolation: isolate;
 }
 
 .pageTitle {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: var(--text-primary);
-  margin: 0 0 $spacing-md 0;
-  line-height: 1.2;
-
-  @media (max-width: 768px) {
-    font-size: 20px;
-  }
+  @include page-heading;
 }
 
 .content {
@@ -73,8 +69,9 @@
   min-height: 120px;
   padding: $spacing-md $spacing-lg;
   border-radius: $radius-lg;
-  border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: var(--surface-card-muted, color-mix(in srgb, var(--bg-secondary) 82%, transparent));
+  box-shadow: var(--surface-inner-highlight);
   text-align: left;
 }
 

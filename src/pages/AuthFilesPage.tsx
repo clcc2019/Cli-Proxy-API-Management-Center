@@ -18,9 +18,9 @@ import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } from '@/hooks';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
@@ -105,7 +105,8 @@ const OAuthModelAliasCard = lazy(() =>
 );
 
 const DEFAULT_REGULAR_PAGE_SIZE = 12;
-const PAGE_SIZE_PRESETS = [3, 6, 9, 12, 15, 18];
+const DEFAULT_COMPACT_PAGE_SIZE = 16;
+const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const AUTH_FILE_SKELETON_MAX = 12;
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
 
@@ -179,10 +180,12 @@ const filterSelectableAuthFiles = (files: AuthFileItem[]): AuthFileItem[] => {
 function AuthFilesSkeletonGrid({
   count,
   quotaManaged,
+  compact,
   loadingLabel,
 }: {
   count: number;
   quotaManaged: boolean;
+  compact: boolean;
   loadingLabel: string;
 }) {
   const items = useMemo(
@@ -196,13 +199,13 @@ function AuthFilesSkeletonGrid({
         {loadingLabel}
       </span>
       <div
-        className={`${styles.fileGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''} ${styles.skeletonGrid}`}
+        className={`${styles.fileGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''} ${compact ? styles.fileGridCompact : ''} ${styles.skeletonGrid}`}
         aria-hidden="true"
       >
         {items.map((_, index) => (
           <div
             key={index}
-            className={styles.fileCardSkeleton}
+            className={`${styles.fileCardSkeleton} ${compact ? styles.fileCardSkeletonCompact : ''}`}
             style={getAuthFileCardEnterStyle(index)}
           >
             <div className={styles.skeletonHeader}>
@@ -396,7 +399,11 @@ export function AuthFilesPage() {
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_REGULAR_PAGE_SIZE);
+  const [compactMode, setCompactMode] = useState(false);
+  const [pageSizeByMode, setPageSizeByMode] = useState({
+    regular: DEFAULT_REGULAR_PAGE_SIZE,
+    compact: DEFAULT_COMPACT_PAGE_SIZE,
+  });
   const [viewMode, setViewMode] = useState<'diagram' | 'list'>('list');
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
@@ -428,6 +435,7 @@ export function AuthFilesPage() {
   const deferredNormalizedSearch = deferredSearch.trim();
   const debouncedSearch = useDebounce(normalizedSearch, 280);
   const serverPaginationEnabled = true;
+  const pageSize = compactMode ? pageSizeByMode.compact : pageSizeByMode.regular;
   const serverSearchPending = serverPaginationEnabled && normalizedSearch !== debouncedSearch;
   const serverListPage = serverPaginationEnabled ? page : undefined;
   const serverListPageSize = serverPaginationEnabled ? pageSize : undefined;
@@ -443,12 +451,26 @@ export function AuthFilesPage() {
       problemOnly,
       disabledOnly,
       premiumOnly,
+      compactMode,
       search,
       page,
       pageSize,
+      regularPageSize: pageSizeByMode.regular,
+      compactPageSize: pageSizeByMode.compact,
       sortMode,
     }),
-    [disabledOnly, filter, page, pageSize, premiumOnly, problemOnly, search, sortMode]
+    [
+      compactMode,
+      disabledOnly,
+      filter,
+      page,
+      pageSize,
+      pageSizeByMode,
+      premiumOnly,
+      problemOnly,
+      search,
+      sortMode,
+    ]
   );
   const debouncedAuthFilesUiState = useDebounce<AuthFilesUiState | null>(
     uiStateHydrated ? authFilesUiState : null,
@@ -625,6 +647,9 @@ export function AuthFilesPage() {
       if (typeof persisted.premiumOnly === 'boolean') {
         setPremiumOnly(persisted.premiumOnly);
       }
+      if (typeof persisted.compactMode === 'boolean') {
+        setCompactMode(persisted.compactMode);
+      }
       if (typeof persisted.search === 'string') {
         setSearch(persisted.search);
       }
@@ -635,7 +660,15 @@ export function AuthFilesPage() {
         typeof persisted.pageSize === 'number' && Number.isFinite(persisted.pageSize)
           ? clampCardPageSize(persisted.pageSize)
           : null;
-      setPageSize(legacyPageSize ?? DEFAULT_REGULAR_PAGE_SIZE);
+      const regularPageSize =
+        typeof persisted.regularPageSize === 'number' && Number.isFinite(persisted.regularPageSize)
+          ? clampCardPageSize(persisted.regularPageSize)
+          : (legacyPageSize ?? DEFAULT_REGULAR_PAGE_SIZE);
+      const compactPageSize =
+        typeof persisted.compactPageSize === 'number' && Number.isFinite(persisted.compactPageSize)
+          ? clampCardPageSize(persisted.compactPageSize)
+          : DEFAULT_COMPACT_PAGE_SIZE;
+      setPageSizeByMode({ regular: regularPageSize, compact: compactPageSize });
       if (isAuthFilesSortMode(persisted.sortMode)) {
         setSortMode(persisted.sortMode);
       }
@@ -730,11 +763,17 @@ export function AuthFilesPage() {
     (next: number) => {
       const clamped = clampCardPageSize(next);
       if (clamped === pageSize) return;
-      setPageSize(clamped);
+      setPageSizeByMode((current) =>
+        compactMode ? { ...current, compact: clamped } : { ...current, regular: clamped }
+      );
       setPage(1);
     },
-    [pageSize]
+    [compactMode, pageSize]
   );
+  const handleCompactModeChange = useCallback((value: boolean) => {
+    setCompactMode(value);
+    setPage(1);
+  }, []);
 
   useHeaderRefresh(handleHeaderRefresh);
 
@@ -1486,10 +1525,10 @@ export function AuthFilesPage() {
 
   const titleNode = useMemo(
     () => (
-      <div className={styles.titleWrapper}>
+      <h2 className={styles.titleWrapper}>
         <span>{t('auth_files.title_section')}</span>
         {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
-      </div>
+      </h2>
     ),
     [listTotal, showTitleCountBadge, t]
   );
@@ -1574,6 +1613,7 @@ export function AuthFilesPage() {
           <AuthFileCard
             key={file.name}
             file={file}
+            compact={compactMode}
             selected={selectedFiles.has(file.name)}
             resolvedTheme={resolvedTheme}
             disableControls={disableControls || listUpdating}
@@ -1603,6 +1643,7 @@ export function AuthFilesPage() {
     [
       accessTokenCopying,
       copyTextWithNotification,
+      compactMode,
       deleting,
       disableControls,
       fileUsageStatsByName,
@@ -1630,10 +1671,9 @@ export function AuthFilesPage() {
 
   return (
     <div className={styles.container}>
-      <Card
-        className={styles.authFilesCard}
-        title={titleNode}
-        extra={
+      <section className={styles.authFilesSection}>
+        <header className={styles.authFilesHeader}>
+          {titleNode}
           <div className={styles.headerActions}>
             <Button
               variant="secondary"
@@ -1677,8 +1717,8 @@ export function AuthFilesPage() {
               onChange={handleFileChange}
             />
           </div>
-        }
-      >
+        </header>
+
         {error && (
           <div className={styles.errorBox} role="alert">
             {error}
@@ -1742,6 +1782,23 @@ export function AuthFilesPage() {
                     {t('auth_files.premium_filter_only')}
                   </button>
                 </div>
+                <div
+                  className={`${styles.compactModeControl} ${compactMode ? styles.compactModeControlActive : ''}`}
+                  title={t('auth_files.compact_mode_hint')}
+                >
+                  <ToggleSwitch
+                    checked={compactMode}
+                    onChange={handleCompactModeChange}
+                    ariaLabel={t('auth_files.compact_mode_label')}
+                    className={styles.compactModeSwitch}
+                    label={
+                      <span className={styles.compactModeLabel}>
+                        {t('auth_files.compact_mode_label')}
+                      </span>
+                    }
+                    labelPosition="left"
+                  />
+                </div>
                 {hasActiveFilters && (
                   <button
                     type="button"
@@ -1787,6 +1844,7 @@ export function AuthFilesPage() {
                 <AuthFilesSkeletonGrid
                   count={pageSize}
                   quotaManaged={Boolean(quotaFilterType)}
+                  compact={compactMode}
                   loadingLabel={t('common.loading')}
                 />
               ) : pageItems.length === 0 ? (
@@ -1796,7 +1854,7 @@ export function AuthFilesPage() {
                 />
               ) : (
                 <div
-                  className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
+                  className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''} ${compactMode ? styles.fileGridCompact : ''}`}
                 >
                   {authFileCardNodes}
                 </div>
@@ -1832,7 +1890,7 @@ export function AuthFilesPage() {
             )}
           </div>
         </div>
-      </Card>
+      </section>
 
       {belowFoldCardsReady && (
         <Suspense fallback={null}>

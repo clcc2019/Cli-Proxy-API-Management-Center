@@ -27,10 +27,15 @@
 .track {
   width: 44px;
   height: 24px;
-  background: var(--border-color);
+  background: color-mix(in srgb, var(--neutral-accent) 30%, var(--bg-tertiary));
+  border: 1px solid color-mix(in srgb, var(--border-hover) 78%, transparent);
   border-radius: $radius-full;
   position: relative;
-  transition: background $transition-fast;
+  box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.08);
+  transition:
+    background $transition-fast,
+    border-color $transition-fast,
+    box-shadow $transition-fast;
 }
 
 .thumb {
@@ -40,13 +45,16 @@
   width: 18px;
   height: 18px;
   background: #fff;
+  border: 1px solid rgb(15 23 42 / 0.08);
   border-radius: $radius-full;
   box-shadow: $shadow-sm;
   transition: transform $transition-fast;
 }
 
 .root input:checked + .track {
-  background: var(--primary-color);
+  background: var(--brand-gradient, var(--primary-color));
+  border-color: color-mix(in srgb, var(--primary-color) 62%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14);
 }
 
 .root input:focus-visible + .track {
@@ -63,7 +71,7 @@
 }
 
 .label {
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
