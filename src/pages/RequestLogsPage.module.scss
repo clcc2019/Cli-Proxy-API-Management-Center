@@ -8,14 +8,10 @@
   --request-success-bg: color-mix(in srgb, var(--success-color) 13%, transparent);
   --request-success-border: color-mix(in srgb, var(--success-color) 30%, transparent);
   --request-success-text: color-mix(in srgb, var(--success-color) 74%, var(--text-primary));
-  --request-info-bg: color-mix(in srgb, var(--info-color) 12%, transparent);
-  --request-info-border: color-mix(in srgb, var(--info-color) 28%, transparent);
-  --request-info-text: color-mix(in srgb, var(--info-color) 78%, var(--text-primary));
-  --request-panel-border: color-mix(in srgb, var(--neutral-accent) 28%, var(--border-color));
-  --request-panel-bg: color-mix(in srgb, var(--panel-surface) 72%, var(--surface-raised));
-  --request-panel-muted: color-mix(in srgb, var(--panel-surface-muted) 68%, var(--bg-secondary));
-  --request-control-bg: color-mix(in srgb, var(--control-surface) 76%, var(--bg-primary));
-  --request-panel-gloss: var(--surface-sheen);
+  --request-panel-border: var(--border-color);
+  --request-panel-bg: var(--bg-primary);
+  --request-panel-muted: var(--bg-secondary);
+  --request-control-bg: var(--surface-raised-strong);
   --request-row-grid: 4px minmax(120px, 150px) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 200px)
     minmax(0, 1fr) minmax(80px, 110px);
   width: 100%;
@@ -32,13 +28,130 @@
 }
 
 // =============================================================================
+// Page introduction and summary
+// =============================================================================
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 2px 2px 0;
+}
+
+.pageEyebrow {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(25px, 2vw, 30px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.pageSubtitle {
+  max-width: 720px;
+  margin: 1px 0 0;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--request-panel-border);
+  border-radius: 10px;
+  background: var(--request-panel-bg);
+  box-shadow: 0 1px 2px color-mix(in srgb, #000000 5%, transparent);
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summaryItem {
+  display: flex;
+  min-width: 0;
+  min-height: 112px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 20px;
+  border-right: 1px solid var(--request-panel-border);
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  @include mobile {
+    min-height: 94px;
+    padding: 15px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--request-panel-border);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
+
+.summaryLabel {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.summaryValueRow {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.summaryValue {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 25px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summaryUnit,
+.summaryHint {
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.summaryHint {
+  min-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// =============================================================================
 // Toolbar refresh
 // =============================================================================
 .refreshButton:global(.btn.btn-sm) {
   min-height: 34px;
-  border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: color-mix(in srgb, var(--surface-raised-strong) 82%, transparent);
-  box-shadow: 0 10px 22px -18px color-mix(in srgb, var(--primary-color) 42%, transparent);
+  border-color: var(--request-panel-border);
+  background: var(--request-control-bg);
+  box-shadow: none;
   flex: 0 0 auto;
 
   > span {
@@ -86,19 +199,10 @@
   gap: 10px 12px;
   padding: 10px 12px;
   min-width: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--request-panel-border);
-  background: var(--request-panel-muted);
-  box-shadow:
-    var(--shadow-card),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition:
-    border-color $transition-fast,
-    box-shadow $transition-fast;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
-  }
+  background: var(--request-panel-bg);
+  box-shadow: none;
 
   @include tablet {
     grid-template-columns: 1fr;
@@ -140,9 +244,9 @@
   padding: 3px;
   max-width: 100%;
   min-width: 0;
-  border-radius: 8px;
+  border-radius: 7px;
   border: 1px solid var(--request-panel-border);
-  background: color-mix(in srgb, var(--request-control-bg) 72%, transparent);
+  background: var(--request-panel-muted);
   gap: 0;
   align-self: stretch;
   justify-self: start;
@@ -178,8 +282,7 @@
   transition:
     background-color $transition-fast,
     color $transition-fast,
-    box-shadow $transition-fast,
-    transform $transition-fast;
+    box-shadow $transition-fast;
   white-space: nowrap;
   min-width: 0;
   position: relative;
@@ -187,11 +290,7 @@
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
-    background: color-mix(in srgb, var(--bg-tertiary) 50%, transparent);
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.97);
+    background: var(--bg-tertiary);
   }
 
   &:focus-visible {
@@ -206,11 +305,6 @@
 
   svg {
     flex-shrink: 0;
-    transition: transform $transition-fast;
-  }
-
-  &:hover:not(:disabled) svg {
-    transform: scale(1.08);
   }
 
   @include mobile {
@@ -238,28 +332,7 @@
 .statusFilterButtonActive {
   background: var(--request-control-bg);
   color: var(--text-primary);
-  box-shadow:
-    var(--shadow-card),
-    inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent);
-  animation: requestLogsFilterPop 240ms cubic-bezier(0.34, 1.3, 0.64, 1) both;
-}
-
-@keyframes requestLogsFilterPop {
-  0% {
-    transform: scale(0.94);
-  }
-  60% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .statusFilterButtonActive {
-    animation: none;
-  }
+  box-shadow: 0 1px 2px color-mix(in srgb, #000000 8%, transparent);
 }
 
 .statusFilterCount {
@@ -281,8 +354,8 @@
     color $transition-fast;
 
   .statusFilterButtonActive & {
-    background: color-mix(in srgb, var(--primary-color) 18%, transparent);
-    color: var(--primary-active);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
   }
 }
 
@@ -320,9 +393,8 @@
     box-shadow $transition-fast;
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
-    background: color-mix(in srgb, var(--surface-raised-strong) 78%, transparent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 18%, transparent);
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 2px var(--focus-ring);
   }
 
   svg {
@@ -357,21 +429,16 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent);
+  background: var(--bg-tertiary);
   color: var(--text-secondary);
   cursor: pointer;
   transition:
     background-color $transition-fast,
-    color $transition-fast,
-    transform $transition-fast;
+    color $transition-fast;
 
   &:hover {
     color: var(--text-primary);
-    background: color-mix(in srgb, var(--bg-tertiary) 92%, transparent);
-  }
-
-  &:active {
-    transform: scale(0.96);
+    background: var(--bg-hover);
   }
 
   &:focus-visible {
@@ -408,9 +475,9 @@
 // =============================================================================
 .eventTableShell {
   border: 1px solid var(--request-panel-border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--request-panel-bg);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   overflow: hidden;
   min-width: 0;
   contain: layout style;
@@ -439,7 +506,7 @@
   align-items: center;
   min-height: 38px;
   padding: 9px 16px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
+  border-bottom: 1px solid var(--request-panel-border);
   background: var(--request-panel-muted);
   font-size: 11.5px;
   font-weight: 600;
@@ -464,13 +531,11 @@
   align-items: center;
   padding: 12px 16px;
   border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  border-bottom: 1px solid var(--request-panel-border);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  transition:
-    background-color $transition-fast,
-    box-shadow $transition-fast;
+  transition: background-color $transition-fast;
   content-visibility: auto;
   contain-intrinsic-size: 64px;
 
@@ -483,8 +548,7 @@
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--request-panel-muted) 72%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
+    background: var(--request-panel-muted);
   }
 
   &:focus-within {
@@ -515,7 +579,7 @@
     contain-intrinsic-size: 118px;
 
     &:hover {
-      background: color-mix(in srgb, var(--bg-secondary) 54%, transparent);
+      background: var(--request-panel-muted);
     }
   }
 }
@@ -652,11 +716,11 @@
   align-self: flex-start;
   font-size: 11px;
   font-weight: 500;
-  color: var(--primary-active);
+  color: var(--text-secondary);
   padding: 2px 8px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
+  background: var(--request-panel-muted);
+  border: 1px solid var(--request-panel-border);
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -888,8 +952,8 @@
   font-variant-numeric: tabular-nums;
   padding: 2px 8px;
   border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+  border: 1px solid var(--request-panel-border);
+  background: var(--request-panel-muted);
   white-space: nowrap;
 
   @include mobile {
@@ -991,8 +1055,8 @@
   min-height: 18px;
   padding: 1px 5px;
   border-radius: 5px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 54%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
+  border: 1px solid var(--request-panel-border);
+  background: var(--request-panel-muted);
 
   @include mobile {
     min-height: 17px;
@@ -1024,8 +1088,8 @@
     min-height: 24px;
     padding: 3px 8px;
     border-radius: 6px;
-    border: 1px solid color-mix(in srgb, var(--border-color) 54%, transparent);
-    background: color-mix(in srgb, var(--bg-secondary) 48%, transparent);
+    border: 1px solid var(--request-panel-border);
+    background: var(--request-panel-muted);
   }
 
   @include tablet {
@@ -1048,9 +1112,9 @@
   flex-direction: column;
   gap: 0;
   border: 1px solid var(--request-panel-border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--request-panel-bg);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   overflow: hidden;
 
   @include mobile {
@@ -1066,7 +1130,7 @@
   gap: 16px;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
+  border-bottom: 1px solid var(--request-panel-border);
   background: transparent;
 
   &:last-child {
@@ -1165,17 +1229,6 @@
   }
 }
 
-@keyframes requestLogsEmptyEnter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -1183,28 +1236,15 @@
   justify-content: center;
   min-height: 220px;
   padding: 48px 24px;
-  border-radius: 8px;
-  border: 1px dashed color-mix(in srgb, var(--border-color) 82%, transparent);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--surface-raised-strong) 50%, transparent),
-      transparent 72%
-    ),
-    color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+  border-radius: 10px;
+  border: 1px dashed var(--request-panel-border);
+  background: var(--request-panel-bg);
   text-align: center;
   gap: 10px;
-  animation: requestLogsEmptyEnter 320ms ease-out both;
 
   @include mobile {
     padding: 36px 16px;
     border-radius: 8px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .emptyState {
-    animation: none;
   }
 }
 
@@ -1216,15 +1256,12 @@
   align-items: center;
   justify-content: center;
   color: var(--text-tertiary);
-  background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  transition:
-    transform $transition-fast,
-    color $transition-fast;
+  background: var(--request-panel-muted);
+  border: 1px solid var(--request-panel-border);
+  transition: color $transition-fast;
 
   .emptyState:hover & {
     color: var(--text-secondary);
-    transform: rotate(-4deg) scale(1.04);
   }
 }
 
@@ -1341,17 +1378,10 @@
     --request-success-bg: color-mix(in srgb, var(--success-color) 16%, transparent);
     --request-success-border: color-mix(in srgb, var(--success-color) 34%, transparent);
     --request-success-text: color-mix(in srgb, var(--success-color) 86%, var(--text-primary));
-    --request-info-bg: color-mix(in srgb, var(--info-color) 14%, transparent);
-    --request-info-border: color-mix(in srgb, var(--info-color) 32%, transparent);
-    --request-panel-border: color-mix(
-      in srgb,
-      var(--neutral-accent-strong) 34%,
-      var(--border-color)
-    );
-    --request-panel-bg: color-mix(in srgb, var(--panel-surface) 76%, var(--surface-raised));
-    --request-panel-muted: color-mix(in srgb, var(--panel-surface-muted) 72%, var(--bg-secondary));
-    --request-control-bg: color-mix(in srgb, var(--control-surface) 68%, var(--bg-primary));
-    --request-panel-gloss: var(--surface-sheen);
+    --request-panel-border: var(--border-color);
+    --request-panel-bg: var(--bg-primary);
+    --request-panel-muted: var(--bg-secondary);
+    --request-control-bg: var(--bg-tertiary);
   }
 
   .eventListHeader,
@@ -1361,10 +1391,6 @@
   .eventTokensPart,
   .eventCost {
     border-color: var(--request-panel-border);
-  }
-
-  .eventRow:hover {
-    box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
   }
 
   .eventStatusBadgeSuccess {

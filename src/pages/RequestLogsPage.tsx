@@ -323,10 +323,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
             {row.source}
           </span>
           {row.sourceType && credentialTypeStyle && (
-            <span
-              className={styles.eventCredentialType}
-              style={credentialTypeStyle}
-            >
+            <span className={styles.eventCredentialType} style={credentialTypeStyle}>
               {row.sourceType}
             </span>
           )}
@@ -334,10 +331,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
         {(hasAuthIndex || hasApiKey) && (
           <div className={styles.eventCredentialMeta}>
             {hasAuthIndex && (
-              <span
-                className={styles.eventCredentialMetaItem}
-                title={row.authIndex}
-              >
+              <span className={styles.eventCredentialMetaItem} title={row.authIndex}>
                 {labels.authShort} #{row.authIndex}
               </span>
             )}
@@ -359,9 +353,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
             type="button"
             className={`${styles.eventStatusBadge} ${styles.eventStatusBadgeFailed}`}
             title={
-              row.errorMessage
-                ? `${labels.errorCopyHint}\n${row.errorMessage}`
-                : labels.errorEmpty
+              row.errorMessage ? `${labels.errorCopyHint}\n${row.errorMessage}` : labels.errorEmpty
             }
             onClick={handleCopyError}
             disabled={!row.errorMessage}
@@ -370,9 +362,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
             {labels.failure}
           </button>
         ) : (
-          <span
-            className={`${styles.eventStatusBadge} ${styles.eventStatusBadgeSuccess}`}
-          >
+          <span className={`${styles.eventStatusBadge} ${styles.eventStatusBadgeSuccess}`}>
             <IconCheck size={12} aria-hidden="true" />
             {labels.success}
           </span>
@@ -380,9 +370,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
         {hasLatencyData && row.latencyMs !== null && (
           <span
             className={
-              latencyClassName
-                ? `${styles.eventLatency} ${latencyClassName}`
-                : styles.eventLatency
+              latencyClassName ? `${styles.eventLatency} ${latencyClassName}` : styles.eventLatency
             }
             title={latencyHint}
           >
@@ -403,16 +391,12 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
       </div>
 
       <div className={styles.eventTokens}>
-        <span className={styles.eventTokensTotal}>
-          {row.totalTokens.toLocaleString()}
-        </span>
+        <span className={styles.eventTokensTotal}>{row.totalTokens.toLocaleString()}</span>
         {row.tokenParts.length > 0 && (
           <span className={styles.eventTokensBreakdown}>
             {row.tokenParts.map((part) => (
               <span key={part.kind} className={styles.eventTokensPart}>
-                <span className={styles.eventTokensPartLabel}>
-                  {tokenLabels[part.kind]}
-                </span>
+                <span className={styles.eventTokensPartLabel}>{tokenLabels[part.kind]}</span>
                 {part.value.toLocaleString()}
               </span>
             ))}
@@ -422,9 +406,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
 
       <div
         className={
-          row.totalCost > 0
-            ? styles.eventCost
-            : `${styles.eventCost} ${styles.eventCostMuted}`
+          row.totalCost > 0 ? styles.eventCost : `${styles.eventCost} ${styles.eventCostMuted}`
         }
       >
         {row.totalCost > 0 ? formatUsd(row.totalCost) : '--'}
@@ -437,11 +419,7 @@ const SkeletonList = memo(function SkeletonList() {
   return (
     <div className={styles.skeletonGrid} role="status" aria-busy="true">
       {Array.from({ length: SKELETON_COUNT }).map((_, idx) => (
-        <div
-          key={idx}
-          className={styles.skeletonRow}
-          style={{ animationDelay: `${idx * 60}ms` }}
-        >
+        <div key={idx} className={styles.skeletonRow} style={{ animationDelay: `${idx * 60}ms` }}>
           <div className={styles.skeletonStripe} />
           <div>
             <div
@@ -484,9 +462,7 @@ const SkeletonList = memo(function SkeletonList() {
 export function RequestLogsPage() {
   const { t, i18n } = useTranslation();
   const config = useConfigStore((state) => state.config);
-  const showNotification = useNotificationStore(
-    (state) => state.showNotification
-  );
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
 
@@ -523,13 +499,30 @@ export function RequestLogsPage() {
     };
   }, [rows]);
 
+  const requestSummary = useMemo(() => {
+    let latencyTotal = 0;
+    let latencySamples = 0;
+    let totalCost = 0;
+
+    rows.forEach((row) => {
+      totalCost += row.totalCost;
+      if (row.latencyMs !== null) {
+        latencyTotal += row.latencyMs;
+        latencySamples += 1;
+      }
+    });
+
+    return {
+      averageLatencyMs: latencySamples > 0 ? latencyTotal / latencySamples : null,
+      totalCost,
+    };
+  }, [rows]);
+
   const filteredRows = useMemo(() => {
     const baseRows =
       statusFilter === 'all'
         ? rows
-        : rows.filter((row) =>
-            statusFilter === 'success' ? !row.failed : row.failed
-          );
+        : rows.filter((row) => (statusFilter === 'success' ? !row.failed : row.failed));
     if (!deferredSearchQuery) return baseRows;
     return baseRows.filter((row) => row.searchText.includes(deferredSearchQuery));
   }, [deferredSearchQuery, rows, statusFilter]);
@@ -563,10 +556,7 @@ export function RequestLogsPage() {
     [showNotification, t]
   );
 
-  const tokenLabels = useMemo(
-    () => buildRequestEventTokenLabels(t),
-    [t]
-  );
+  const tokenLabels = useMemo(() => buildRequestEventTokenLabels(t), [t]);
 
   const relativeLabels = useMemo<RelativeLabels>(
     () => ({
@@ -580,9 +570,7 @@ export function RequestLogsPage() {
   );
 
   const isZh = useMemo(
-    () =>
-      typeof i18n.language === 'string' &&
-      i18n.language.toLowerCase().startsWith('zh'),
+    () => typeof i18n.language === 'string' && i18n.language.toLowerCase().startsWith('zh'),
     [i18n.language]
   );
 
@@ -624,17 +612,11 @@ export function RequestLogsPage() {
   const showEmptyFiltered = !showEmptyAll && filteredRows.length === 0;
 
   const handleSelectAll = useCallback(() => setStatusFilter('all'), []);
-  const handleSelectSuccess = useCallback(
-    () => setStatusFilter('success'),
-    []
-  );
+  const handleSelectSuccess = useCallback(() => setStatusFilter('success'), []);
   const handleSelectFailed = useCallback(() => setStatusFilter('failed'), []);
-  const handleSearchChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setSearchQuery(event.target.value);
-    },
-    []
-  );
+  const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  }, []);
   const handleClearSearch = useCallback(() => setSearchQuery(''), []);
   const handleClearFilters = useCallback(() => {
     setStatusFilter('all');
@@ -651,16 +633,68 @@ export function RequestLogsPage() {
       {showInitialLoadingOverlay && (
         <div className={styles.loadingOverlay} role="status" aria-busy="true">
           <div className={styles.loadingOverlayContent}>
-            <LoadingSpinner
-              size={20}
-              className={styles.loadingOverlaySpinner}
-            />
-            <span className={styles.loadingOverlayText}>
-              {t('common.loading')}
-            </span>
+            <LoadingSpinner size={20} className={styles.loadingOverlaySpinner} />
+            <span className={styles.loadingOverlayText}>{t('common.loading')}</span>
           </div>
         </div>
       )}
+
+      <header className={styles.pageHeader}>
+        <span className={styles.pageEyebrow}>{t('usage_stats.request_events_eyebrow')}</span>
+        <h1 className={styles.pageTitle}>{t('nav.request_logs')}</h1>
+        <p className={styles.pageSubtitle}>
+          {t('usage_stats.request_events_page_subtitle', {
+            limit: REQUEST_EVENT_ROWS_LIMIT,
+          })}
+        </p>
+      </header>
+
+      <section className={styles.summaryGrid} aria-label={t('usage_stats.request_events_title')}>
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>{t('usage_stats.request_events_kpi_total')}</span>
+          <div className={styles.summaryValueRow}>
+            <strong className={styles.summaryValue}>{counts.total}</strong>
+            <span className={styles.summaryUnit}>
+              {t('usage_stats.request_events_kpi_total_unit')}
+            </span>
+          </div>
+          <span className={styles.summaryHint}>
+            {t('usage_stats.request_events_kpi_total_hint', {
+              limit: REQUEST_EVENT_ROWS_LIMIT,
+            })}
+          </span>
+        </div>
+
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>
+            {t('usage_stats.request_events_kpi_avg_latency')}
+          </span>
+          <div className={styles.summaryValueRow}>
+            <strong className={styles.summaryValue}>
+              {requestSummary.averageLatencyMs === null
+                ? '--'
+                : formatDurationMs(requestSummary.averageLatencyMs)}
+            </strong>
+          </div>
+          <span className={styles.summaryHint}>
+            {requestSummary.averageLatencyMs === null
+              ? t('usage_stats.request_events_kpi_avg_latency_empty')
+              : latencyHint}
+          </span>
+        </div>
+
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>
+            {t('usage_stats.request_events_kpi_total_cost')}
+          </span>
+          <div className={styles.summaryValueRow}>
+            <strong className={styles.summaryValue}>{formatUsd(requestSummary.totalCost)}</strong>
+          </div>
+          <span className={styles.summaryHint} aria-hidden="true">
+            &nbsp;
+          </span>
+        </div>
+      </section>
 
       {error && (
         <div className={styles.errorBanner} role="alert">
@@ -743,9 +777,7 @@ export function RequestLogsPage() {
               className={loading ? styles.refreshIconSpinning : undefined}
               aria-hidden="true"
             />
-            {loading
-              ? requestEventLabels.refreshing
-              : requestEventLabels.refresh}
+            {loading ? requestEventLabels.refreshing : requestEventLabels.refresh}
           </Button>
         </div>
       </div>
@@ -777,9 +809,7 @@ export function RequestLogsPage() {
             <span>{requestEventLabels.columns.credential}</span>
             <span>{requestEventLabels.columns.status}</span>
             <span>{requestEventLabels.columns.tokens}</span>
-            <span style={{ textAlign: 'right' }}>
-              {requestEventLabels.columns.cost}
-            </span>
+            <span style={{ textAlign: 'right' }}>{requestEventLabels.columns.cost}</span>
           </div>
           <div className={styles.eventList}>
             {filteredRows.map((row) => (

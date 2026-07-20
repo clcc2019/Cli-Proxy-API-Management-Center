@@ -1532,7 +1532,7 @@
     "request_events_eyebrow": "实时请求流",
     "request_events_page_subtitle": "查看最近 {{limit}} 条请求事件，了解模型、凭证、延迟、Token 与费用。",
     "request_events_kpi_total": "近期请求",
-    "request_events_kpi_total_unit": "/ 条",
+    "request_events_kpi_total_unit": "条",
     "request_events_kpi_total_hint": "展示最近 {{limit}} 条事件",
     "request_events_kpi_avg_latency": "平均延迟",
     "request_events_kpi_avg_latency_empty": "本时间窗口内暂无延迟数据",

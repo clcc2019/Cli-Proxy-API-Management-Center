@@ -1532,7 +1532,7 @@
     "request_events_eyebrow": "Live request stream",
     "request_events_page_subtitle": "Inspect the latest {{limit}} request events with model, credential, latency, tokens and cost at a glance.",
     "request_events_kpi_total": "Recent requests",
-    "request_events_kpi_total_unit": "/ events",
+    "request_events_kpi_total_unit": "events",
     "request_events_kpi_total_hint": "Showing the latest {{limit}} events",
     "request_events_kpi_avg_latency": "Avg latency",
     "request_events_kpi_avg_latency_empty": "No latency reported in this window",

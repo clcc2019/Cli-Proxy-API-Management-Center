@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authFilesApi } from '@/services/api/authFiles';
 import type { ProviderKeyConfig } from '@/types';
@@ -140,55 +140,6 @@ const buildRequestEventTokenParts = ({
   return parts;
 };
 
-const areTokenPartsEqual = (
-  left: RequestEventTokenPart[],
-  right: RequestEventTokenPart[]
-): boolean =>
-  left === right ||
-  (left.length === right.length &&
-    left.every(
-      (part, index) =>
-        part.kind === right[index]?.kind && part.value === right[index]?.value
-    ));
-
-const areRequestEventRowsEqual = (
-  left: RequestEventRow,
-  right: RequestEventRow
-): boolean =>
-  left.id === right.id &&
-  left.timestampLabel === right.timestampLabel &&
-  left.timeOfDay === right.timeOfDay &&
-  left.model === right.model &&
-  left.modelReasoningEffort === right.modelReasoningEffort &&
-  left.source === right.source &&
-  left.sourceType === right.sourceType &&
-  left.authIndex === right.authIndex &&
-  left.apiKeyMasked === right.apiKeyMasked &&
-  left.failed === right.failed &&
-  left.errorMessage === right.errorMessage &&
-  left.latencyMs === right.latencyMs &&
-  left.totalTokens === right.totalTokens &&
-  left.totalCost === right.totalCost &&
-  left.searchText === right.searchText &&
-  areTokenPartsEqual(left.tokenParts, right.tokenParts);
-
-const reuseRequestEventRowReferences = (
-  previousRows: RequestEventRow[],
-  nextRows: RequestEventRow[]
-): RequestEventRow[] => {
-  if (previousRows.length === 0) return nextRows;
-
-  const previousById = new Map(previousRows.map((row) => [row.id, row]));
-  let changed = previousRows.length !== nextRows.length;
-  const reused = nextRows.map((row, index) => {
-    const previous = previousById.get(row.id);
-    const next = previous && areRequestEventRowsEqual(previous, row) ? previous : row;
-    if (next !== previousRows[index]) changed = true;
-    return next;
-  });
-  return changed ? reused : previousRows;
-};
-
 const formatTimeOfDay = (date: Date | null, locale: string): string => {
   if (!date) return '';
   try {
@@ -282,7 +233,6 @@ export function useRequestEventRows({
     authFileMapState.scopeKey === authScopeKey
       ? authFileMapState.map
       : (authFileMapCache.get(authScopeKey)?.map ?? EMPTY_CREDENTIAL_INFO_MAP);
-  const previousRowsRef = useRef<RequestEventRow[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -324,7 +274,7 @@ export function useRequestEventRows({
     );
 
     const idOccurrences = new Map<string, number>();
-    const nextRows = details.map((detail) => {
+    return details.map((detail) => {
       const timestamp = detail.timestamp;
       const timestampMs =
         typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
@@ -424,12 +374,6 @@ export function useRequestEventRows({
         searchText,
       };
     });
-    const rowsWithStableReferences = reuseRequestEventRowReferences(
-      previousRowsRef.current,
-      nextRows
-    );
-    previousRowsRef.current = rowsWithStableReferences;
-    return rowsWithStableReferences;
   }, [authFileMap, i18n.language, modelPrices, sourceInfoMap, usage]);
 
   const hasLatencyData = useMemo(
