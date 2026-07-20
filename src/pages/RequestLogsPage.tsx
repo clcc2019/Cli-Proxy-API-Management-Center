@@ -291,8 +291,6 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
 
   return (
     <div className={rowClassName}>
-      <span className={styles.eventStripe} aria-hidden="true" />
-
       <div className={styles.eventTime}>
         <span className={styles.eventTimePrimary} title={row.timestampLabel}>
           {row.timeOfDay || row.timestampLabel}
@@ -420,7 +418,6 @@ const SkeletonList = memo(function SkeletonList() {
     <div className={styles.skeletonGrid} role="status" aria-busy="true">
       {Array.from({ length: SKELETON_COUNT }).map((_, idx) => (
         <div key={idx} className={styles.skeletonRow} style={{ animationDelay: `${idx * 60}ms` }}>
-          <div className={styles.skeletonStripe} />
           <div>
             <div
               className={`${styles.skeletonBlock} ${styles.skeletonBlockTall}`}
@@ -803,7 +800,6 @@ export function RequestLogsPage() {
       ) : (
         <div className={styles.eventTableShell}>
           <div className={styles.eventListHeader} aria-hidden="true">
-            <span />
             <span>{requestEventLabels.columns.time}</span>
             <span>{requestEventLabels.columns.model}</span>
             <span>{requestEventLabels.columns.credential}</span>

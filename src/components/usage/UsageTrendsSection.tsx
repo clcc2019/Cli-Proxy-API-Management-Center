@@ -104,7 +104,7 @@ const UsageTrendsContent = memo(function UsageTrendsContent({
             loading={loading}
             isMobile={isMobile}
             emptyText={t('usage_stats.no_data')}
-            tone="violet"
+            tone="neutral"
           />
         </Suspense>
       </div>

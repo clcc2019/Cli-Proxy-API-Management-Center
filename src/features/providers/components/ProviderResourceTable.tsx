@@ -28,7 +28,7 @@ interface ProviderResourceTableProps {
   onToggleDisabled?: (resource: ProviderResource, disabled: boolean) => void;
 }
 
-const columnWidths = ['180px', '220px', '72px', '138px', '174px', '176px'];
+const columnWidths = ['120px', '145px', '68px', '105px', '112px', '176px'];
 
 export function ProviderResourceTable({
   resources,
@@ -105,10 +105,10 @@ export function ProviderResourceTable({
                 </span>
                 <span className={styles.primarySub}>
                   {resource.brand === 'openaiCompatibility'
-                    ? resource.apiKeyPreview ?? '—'
+                    ? (resource.apiKeyPreview ?? '—')
                     : resource.authIndex
                       ? `auth: ${resource.authIndex}`
-                      : resource.apiKeyPreview ?? '—'}
+                      : (resource.apiKeyPreview ?? '—')}
                 </span>
               </div>
             </TableCell>

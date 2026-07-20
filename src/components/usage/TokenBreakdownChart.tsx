@@ -123,7 +123,7 @@ export const TokenBreakdownChart = memo(function TokenBreakdownChart({
       isMobile={isMobile}
       emptyText={t('usage_stats.no_data')}
       summaryItems={summaryItems}
-      tone="violet"
+      tone="neutral"
       hasData={hasData}
     />
   );

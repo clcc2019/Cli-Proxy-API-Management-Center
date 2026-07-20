@@ -260,7 +260,9 @@ export function OAuthPage() {
                     <img
                       src={getIcon(provider.icon, resolvedTheme)}
                       alt=""
-                      className={styles.cardTitleIcon}
+                      className={`${styles.cardTitleIcon} ${
+                        provider.id === 'xai' ? styles.cardTitleIconDarkInvert : ''
+                      }`}
                     />
                     {t(provider.titleKey)}
                   </span>
@@ -271,7 +273,7 @@ export function OAuthPage() {
                   </Button>
                 }
               >
-                  <div className={styles.cardContent}>
+                <div className={styles.cardContent}>
                   <div className={styles.cardHint}>{t(provider.hintKey)}</div>
                   {state.url && (
                     <div className={styles.authUrlBox}>

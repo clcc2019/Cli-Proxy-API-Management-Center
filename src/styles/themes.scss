@@ -18,10 +18,12 @@
   --floating-border: #e3e1db;
   --floating-shadow: 0 12px 26px rgb(0 0 0 / 0.14);
 
-  --text-primary: #2d2a26;
-  --text-secondary: #6d6760;
-  --text-tertiary: #a29c95;
-  --text-quaternary: #c0bab3;
+  // Primary through tertiary remain readable on both warm paper surfaces;
+  // quaternary is reserved for disabled and deliberately low-emphasis content.
+  --text-primary: #26231f;
+  --text-secondary: #5b5650;
+  --text-tertiary: #716b65;
+  --text-quaternary: #8b857e;
   --text-muted: var(--text-tertiary);
 
   --border-color: #e3e1db;
@@ -29,18 +31,18 @@
   --border-primary: #d5d2cb;
   --border-hover: #cecac4;
 
-  --primary-color: #8b8680;
-  --primary-hover: #7f7a74;
-  --primary-active: #726d67;
+  --primary-color: #6f6a64;
+  --primary-hover: #625d58;
+  --primary-active: #57524d;
   --primary-contrast: #ffffff;
-  --primary-soft: rgb(139 134 128 / 0.12);
-  --focus-ring: rgb(139 134 128 / 0.24);
+  --primary-soft: rgb(111 106 100 / 0.12);
+  --focus-ring: rgb(111 106 100 / 0.26);
   --primary-shadow: 0 10px 22px -14px rgb(72 67 62 / 0.48);
   --primary-shadow-hover: 0 14px 28px -16px rgb(72 67 62 / 0.54);
 
   // Shared page accents. Page modules consume these instead of owning separate palettes.
-  --accent-blue: #8b8680;
-  --accent-violet: #7f7a74;
+  --accent-blue: #6f6a64;
+  --accent-violet: #625d58;
   --accent-cyan: #75827c;
   --accent-amber: #b88926;
   --accent-orange: #bd6a4d;
@@ -124,10 +126,10 @@
   --floating-surface: #ffffff;
   --floating-border: #e5e5e5;
 
-  --text-primary: #2d2a26;
-  --text-secondary: #6d6760;
-  --text-tertiary: #a29c95;
-  --text-quaternary: #c0bab3;
+  --text-primary: #26231f;
+  --text-secondary: #5b5650;
+  --text-tertiary: #716b65;
+  --text-quaternary: #8b857e;
 
   --border-color: #e5e5e5;
   --border-primary: #d9d9d9;
@@ -170,10 +172,10 @@
   --floating-border: #3a3530;
   --floating-shadow: 0 14px 30px rgb(0 0 0 / 0.4);
 
-  --text-primary: #f6f4f1;
-  --text-secondary: #c9c3bb;
-  --text-tertiary: #9c958d;
-  --text-quaternary: #6f6962;
+  --text-primary: #faf8f4;
+  --text-secondary: #d8d2ca;
+  --text-tertiary: #b4ada5;
+  --text-quaternary: #918a82;
   --text-muted: var(--text-tertiary);
 
   --border-color: #3a3530;
@@ -181,17 +183,17 @@
   --border-primary: #4a453f;
   --border-hover: #5a544d;
 
-  --primary-color: #8b8680;
-  --primary-hover: #9a948e;
-  --primary-active: #a6a099;
-  --primary-contrast: #ffffff;
-  --primary-soft: rgb(139 134 128 / 0.18);
-  --focus-ring: rgb(139 134 128 / 0.3);
+  --primary-color: #c4beb6;
+  --primary-hover: #d0cac2;
+  --primary-active: #ddd7cf;
+  --primary-contrast: #1d1b18;
+  --primary-soft: rgb(196 190 182 / 0.16);
+  --focus-ring: rgb(196 190 182 / 0.32);
   --primary-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.7);
   --primary-shadow-hover: 0 14px 28px -14px rgb(0 0 0 / 0.74);
 
-  --accent-blue: #a6a099;
-  --accent-violet: #9a948e;
+  --accent-blue: #c4beb6;
+  --accent-violet: #b4ada5;
   --accent-cyan: #93a09a;
   --accent-amber: #ffd862;
   --accent-orange: #d67b5f;

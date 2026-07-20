@@ -2,15 +2,11 @@
 @use '../styles/mixins' as *;
 
 .container {
-  --auth-surface: color-mix(in srgb, var(--panel-surface) 76%, var(--surface-raised));
-  --auth-surface-muted: color-mix(in srgb, var(--panel-surface-muted) 72%, var(--bg-secondary));
-  --auth-control-surface: color-mix(in srgb, var(--control-surface) 84%, var(--bg-primary));
-  --auth-neutral-border: color-mix(in srgb, var(--neutral-accent) 22%, var(--border-color));
-  --auth-neutral-border-strong: color-mix(
-    in srgb,
-    var(--neutral-accent-strong) 34%,
-    var(--border-color)
-  );
+  --auth-surface: var(--bg-primary);
+  --auth-surface-muted: var(--bg-secondary);
+  --auth-control-surface: var(--surface-raised-strong);
+  --auth-neutral-border: var(--border-color);
+  --auth-neutral-border-strong: var(--border-hover);
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
@@ -19,6 +15,8 @@
   max-width: 100%;
   min-height: 0;
   overflow: visible;
+  container-name: auth-files-page;
+  container-type: inline-size;
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
@@ -35,6 +33,11 @@
 .belowFoldCard {
   content-visibility: auto;
   contain-intrinsic-size: 1px 240px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--auth-neutral-border);
+  border-radius: 8px;
+  background: var(--bg-primary);
 }
 
 .authFilesSection {
@@ -48,6 +51,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 14px;
   min-width: 0;
   margin-bottom: 14px;
@@ -146,10 +150,10 @@
   min-width: 0;
   margin: 0;
   color: var(--text-primary);
-  font-size: 17px;
-  font-weight: 760;
-  line-height: 1.35;
-  letter-spacing: -0.015em;
+  font-size: var(--page-title-size, clamp(24px, 2vw, 30px));
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
 }
 
 .countBadge {
@@ -956,65 +960,6 @@
   max-width: 100%;
 }
 
-.compactModeControl {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  min-height: 34px;
-  padding: 3px 8px 3px 10px;
-  border: 1px solid var(--auth-neutral-border);
-  border-radius: $radius-full;
-  background: color-mix(in srgb, var(--auth-control-surface) 78%, transparent);
-  box-shadow: var(--control-shadow);
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 34%, var(--border-color));
-  }
-}
-
-.compactModeControlActive {
-  border-color: color-mix(in srgb, var(--info-color) 48%, var(--border-color));
-  background: color-mix(in srgb, var(--info-color) 8%, var(--auth-control-surface));
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 62%, transparent),
-    0 6px 14px -12px color-mix(in srgb, var(--info-color) 38%, transparent);
-}
-
-.compactModeSwitch {
-  gap: 7px;
-
-  > span:first-of-type {
-    width: 38px;
-    height: 20px;
-  }
-
-  > span:first-of-type > span:last-child {
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-  }
-
-  > input:checked + span:first-of-type > span:last-child {
-    transform: translateX(18px);
-  }
-}
-
-.compactModeLabel {
-  color: var(--text-secondary);
-  font-size: 11.5px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.compactModeControlActive .compactModeLabel {
-  color: color-mix(in srgb, var(--info-color) 76%, var(--text-primary));
-}
-
 .filterChip {
   appearance: none;
   display: inline-flex;
@@ -1149,7 +1094,11 @@
   border-radius: 12px;
   border-color: color-mix(in srgb, var(--border-color) 66%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-sheen) 42%, transparent), transparent 56%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-sheen) 42%, transparent),
+      transparent 56%
+    ),
     color-mix(in srgb, var(--bg-secondary) 32%, transparent);
   box-shadow: var(--shadow-card);
 }
@@ -1275,11 +1224,14 @@
   }
 }
 
-// 轻量卡片网格：手机单列、中屏双列、桌面固定四列。
+// 卡片列数完全由页面容器宽度决定。auto-fill 保留潜在空列，
+// 避免搜索结果较少时现有卡片被拉伸到整行。
 .fileGrid {
+  --auth-file-card-min-width: 280px;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--auth-file-card-min-width)), 1fr));
+  align-items: start;
   // Hint browser to limit reflow scope to this subtree.
   contain: layout style;
   min-width: 0;
@@ -1295,31 +1247,7 @@
 }
 
 .fileGridQuotaManaged {
-  grid-template-columns: minmax(0, 1fr);
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: #{$breakpoint-mobile + 1}) and (max-width: 1279px) {
-  .fileGrid,
-  .fileGridQuotaManaged {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1280px) {
-  .fileGrid,
-  .fileGridQuotaManaged {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.fileGridCompact,
-.fileGridQuotaManaged.fileGridCompact {
-  gap: 8px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  --auth-file-card-min-width: 300px;
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -1337,9 +1265,7 @@
   padding: 11px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
-  background:
-    linear-gradient(180deg, var(--surface-sheen), transparent 44%),
-    var(--surface-raised);
+  background: linear-gradient(180deg, var(--surface-sheen), transparent 44%), var(--surface-raised);
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
   animation: authFileCardEnter 150ms ease-out both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
@@ -1363,14 +1289,6 @@
   > * {
     position: relative;
     z-index: 1;
-  }
-}
-
-.fileCardSkeletonCompact {
-  min-height: 150px;
-
-  .skeletonMeta {
-    display: none;
   }
 }
 
@@ -2278,8 +2196,7 @@
   &:hover {
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 76%, transparent),
-      0 8px 20px -18px
-        color-mix(in srgb, var(--provider-accent) 38%, rgb(15 23 42 / 0.24));
+      0 8px 20px -18px color-mix(in srgb, var(--provider-accent) 38%, rgb(15 23 42 / 0.24));
     border-color: var(--auth-card-border-hover);
 
     &::before {
@@ -2338,63 +2255,6 @@
     width: 100%;
     padding: 11px;
     border-radius: 10px;
-  }
-}
-
-.fileCardCompact {
-  padding: 9px;
-
-  .fileCardMain {
-    gap: 6px;
-  }
-
-  .cardHeader {
-    gap: 7px;
-  }
-
-  .cardSelection {
-    margin-top: 0;
-  }
-
-  .providerAvatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-  }
-
-  .providerAvatarImage {
-    width: 16px;
-    height: 16px;
-  }
-
-  .providerAvatarFallback {
-    font-size: 13px;
-  }
-
-  .cardHeaderContent {
-    gap: 2px;
-  }
-
-  .cardIdentityRow {
-    row-gap: 2px;
-  }
-
-  .fileName {
-    min-height: 20px;
-    font-size: 13.5px;
-  }
-
-  .cardActionsContent,
-  .cardActionCluster {
-    gap: 3px;
-  }
-
-  .cardActions {
-    padding-top: 6px;
-  }
-
-  .statusBlock {
-    height: 5px;
   }
 }
 
@@ -3438,11 +3298,6 @@
   }
 }
 
-.cardInsightsCompact {
-  gap: 4px;
-  padding-top: 6px;
-}
-
 .statusPanel {
   display: flex;
   flex-direction: column;
@@ -3452,32 +3307,6 @@
 
   @include mobile {
     gap: 3px;
-  }
-}
-
-.statusPanelCompact {
-  gap: 3px;
-
-  .statusPanelLabel {
-    display: none;
-  }
-
-  .statusBar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) max-content;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .statusBlocks {
-    gap: 2px;
-  }
-
-  .statusRate {
-    min-width: 46px;
-    height: 20px;
-    padding: 0 5px;
-    font-size: 10px;
   }
 }
 
@@ -3752,46 +3581,104 @@
 .prefixProxyEditor {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
   max-height: none;
   overflow: visible;
 }
 
 .prefixProxyModal {
-  border-color: color-mix(in srgb, var(--border-color) 52%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 97%, transparent),
-    color-mix(in srgb, var(--bg-secondary) 32%, var(--bg-primary))
-  );
-  box-shadow:
-    0 24px 56px rgba(15, 23, 42, 0.16),
-    0 2px 6px rgba(15, 23, 42, 0.04);
+  --prefix-proxy-border: var(--border-color);
+  --prefix-proxy-border-strong: var(--border-hover);
+  --prefix-proxy-surface: var(--bg-primary);
+  --prefix-proxy-surface-muted: var(--bg-secondary);
+  --prefix-proxy-control: var(--surface-raised-strong);
+  border-color: var(--prefix-proxy-border);
+  border-radius: 12px;
+  background: var(--prefix-proxy-surface);
+  box-shadow: var(--shadow-soft);
 
   :global(.modal-header) {
-    padding-right: 56px;
-    border-bottom-color: color-mix(in srgb, var(--border-color) 46%, transparent);
-    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+    min-height: 64px;
+    padding: 16px 60px 16px 20px;
+    border-bottom-color: var(--prefix-proxy-border);
+    background: var(--prefix-proxy-surface);
+  }
+
+  :global(.modal-title) {
+    min-width: 0;
+    width: 100%;
+    font-size: 17px;
   }
 
   :global(.modal-body) {
-    padding: 16px;
+    padding: 0;
     max-height: min(78vh, calc(100vh - 156px));
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-primary) 96%, transparent),
-      color-mix(in srgb, var(--bg-secondary) 20%, var(--bg-primary))
-    );
+    background: var(--prefix-proxy-surface);
   }
 
   :global(.modal-footer) {
     position: sticky;
     bottom: 0;
     z-index: 2;
-    border-top-color: color-mix(in srgb, var(--border-color) 42%, transparent);
-    background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    padding: 14px 20px;
+    border-top-color: var(--prefix-proxy-border);
+    background: var(--prefix-proxy-surface);
+  }
+
+  :global(.modal-close-floating) {
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-color: transparent;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+
+    &:hover:not(:disabled) {
+      border-color: var(--prefix-proxy-border);
+      background: var(--prefix-proxy-surface-muted);
+      color: var(--text-primary);
+      transform: none;
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    &:focus-visible {
+      outline-color: var(--focus-ring);
+    }
+  }
+
+  :global(.btn) {
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  :global(.btn.btn-primary) {
+    border-color: var(--text-primary);
+    background: var(--text-primary);
+    color: var(--bg-primary);
+
+    &:hover:not(:disabled) {
+      border-color: var(--text-secondary);
+      background: var(--text-secondary);
+      color: var(--bg-primary);
+      box-shadow: none;
+    }
+  }
+
+  :global(.btn.btn-secondary) {
+    border-color: var(--prefix-proxy-border);
+    background: var(--prefix-proxy-control);
+    color: var(--text-primary);
+
+    &:hover:not(:disabled) {
+      border-color: var(--prefix-proxy-border-strong);
+      background: var(--prefix-proxy-surface-muted);
+      box-shadow: none;
+    }
   }
 
   @supports (height: 100dvh) {
@@ -3802,10 +3689,15 @@
 
   @include mobile {
     width: 100%;
-    border-radius: $radius-md;
+    border-radius: 10px;
+
+    :global(.modal-header) {
+      min-height: 58px;
+      padding: 14px 52px 14px 16px;
+    }
 
     :global(.modal-body) {
-      padding: $spacing-md;
+      padding: 0;
       max-height: calc(100vh - 148px);
     }
 
@@ -3816,7 +3708,7 @@
     }
 
     :global(.modal-footer) {
-      padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     }
   }
 }
@@ -3847,10 +3739,10 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 9px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-secondary));
-  color: color-mix(in srgb, var(--primary-color) 76%, var(--text-primary));
+  border-radius: 6px;
+  border: 1px solid var(--prefix-proxy-border);
+  background: var(--prefix-proxy-surface-muted);
+  color: var(--text-secondary);
   font-family: $font-mono;
   font-size: 12px;
   font-weight: 600;
@@ -3882,24 +3774,7 @@
     height: 6px;
     border-radius: 50%;
     background: var(--quota-medium-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--quota-medium-color) 24%, transparent);
-    animation: prefixProxyDirtyPulse 1.6s ease-in-out infinite;
-  }
-}
-
-@keyframes prefixProxyDirtyPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .prefixProxyDirtyBadge::before {
-    animation: none;
+    box-shadow: none;
   }
 }
 
@@ -3914,13 +3789,14 @@
   gap: $spacing-sm;
   font-size: 12px;
   color: var(--text-secondary);
-  padding: 24px 0;
-  min-height: 200px;
+  padding: 48px 20px;
+  min-height: 280px;
 }
 
 .prefixProxyError {
-  padding: 10px 14px;
-  border-radius: $radius-md;
+  margin: 16px 20px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--danger-color) 32%, transparent);
   border-left-width: 3px;
   background: color-mix(in srgb, var(--danger-color) 8%, var(--surface-raised));
@@ -3934,25 +3810,32 @@
 // -----------------------------------------------------------------------------
 
 .prefixProxyLayout {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
+  align-items: stretch;
+  gap: 0;
   min-width: 0;
 }
 
 .prefixProxyPanel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   min-width: 0;
-  padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
-  border-radius: $radius-md;
-  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+  padding: 20px;
+  border: 0;
+  border-radius: 0;
+  background: var(--prefix-proxy-surface);
 }
 
 .prefixProxyPanelMuted {
-  background: color-mix(in srgb, var(--bg-secondary) 24%, transparent);
+  min-height: 100%;
+  border-left: 1px solid var(--prefix-proxy-border);
+  background: color-mix(
+    in srgb,
+    var(--prefix-proxy-surface-muted) 52%,
+    var(--prefix-proxy-surface)
+  );
 }
 
 .prefixProxyPanelHeader {
@@ -3961,7 +3844,8 @@
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
-  padding-bottom: 2px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--prefix-proxy-border);
 }
 
 .prefixProxyPanelTitleGroup {
@@ -3974,31 +3858,31 @@
 .prefixProxyPanelTitle {
   margin: 0;
   color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 1.25;
 }
 
 .prefixProxyPanelHint {
   color: var(--text-tertiary);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.45;
 }
 
 .prefixProxyForm {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   min-width: 0;
 }
 
 .prefixProxyInfoStack {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
-  padding-top: 2px;
+  padding-top: 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -4008,11 +3892,21 @@
 .prefixProxySection {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 44%, transparent);
-  border-radius: $radius-sm;
-  background: color-mix(in srgb, var(--bg-secondary) 28%, transparent);
+  gap: 10px;
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--prefix-proxy-border);
+  border-radius: 0;
+  background: transparent;
+
+  &:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
 }
 
 .prefixProxySectionHeader {
@@ -4025,24 +3919,12 @@
 
 .prefixProxySectionTitle {
   margin: 0;
-  font-size: 12px;
-  font-weight: 800;
-  color: color-mix(in srgb, var(--primary-color) 50%, var(--text-primary));
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
   line-height: 1.2;
-  position: relative;
-  padding-left: 9px;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 3px;
-    height: 11px;
-    border-radius: 2px;
-    background: color-mix(in srgb, var(--primary-color) 72%, transparent);
-    transform: translateY(-50%);
-  }
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 // -----------------------------------------------------------------------------
@@ -4056,26 +3938,17 @@
 }
 
 .prefixProxyJsonDetails {
-  border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
-  border-radius: $radius-sm;
-  background: color-mix(in srgb, var(--bg-secondary) 22%, transparent);
+  border: 1px solid var(--prefix-proxy-border);
+  border-radius: 8px;
+  background: var(--prefix-proxy-surface);
   overflow: hidden;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
 
   &[open] {
-    background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
-  }
-}
-
-.prefixProxyJsonDetailsPrimary {
-  border-color: color-mix(in srgb, var(--primary-color) 30%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 5%, var(--bg-secondary));
-
-  &[open] {
-    background: color-mix(in srgb, var(--primary-color) 7%, var(--bg-secondary));
-  }
-
-  .prefixProxyJsonSummary {
-    color: color-mix(in srgb, var(--primary-color) 58%, var(--text-primary));
+    border-color: var(--prefix-proxy-border-strong);
+    background: var(--prefix-proxy-surface);
   }
 }
 
@@ -4084,11 +3957,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 38px;
-  padding: 0 12px;
+  min-height: 42px;
+  padding: 0 12px 0 14px;
   cursor: pointer;
   color: var(--text-secondary);
   list-style: none;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease;
+
+  &:hover {
+    background: var(--prefix-proxy-surface-muted);
+    color: var(--text-primary);
+  }
 
   &::-webkit-details-marker {
     display: none;
@@ -4109,7 +3990,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--primary-color) 48%, transparent);
+    outline: 2px solid var(--focus-ring);
     outline-offset: -2px;
   }
 }
@@ -4119,7 +4000,8 @@
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  padding: 0 12px 12px;
+  padding: 12px;
+  border-top: 1px solid var(--prefix-proxy-border);
 }
 
 .prefixProxyJsonActions {
@@ -4131,7 +4013,7 @@
 .prefixProxyLabel {
   font-size: 12px;
   color: var(--text-secondary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .prefixProxyLabelGroup {
@@ -4145,7 +4027,7 @@
   display: inline-flex;
   align-items: center;
   padding: 1px 7px;
-  border-radius: 999px;
+  border-radius: 5px;
   border: 1px solid color-mix(in srgb, var(--quota-medium-color) 42%, transparent);
   background: color-mix(in srgb, var(--quota-medium-color) 14%, var(--surface-raised));
   color: color-mix(in srgb, var(--quota-medium-color) 88%, var(--text-primary));
@@ -4177,9 +4059,9 @@
 .prefixProxyTextarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
-  border-radius: $radius-sm;
-  background-color: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+  border: 1px solid var(--prefix-proxy-border);
+  border-radius: 7px;
+  background-color: var(--prefix-proxy-surface);
   color: var(--text-primary);
   font-size: 12px;
   line-height: 1.55;
@@ -4189,15 +4071,15 @@
   resize: none;
   min-height: min(240px, calc(78vh - 238px));
   box-sizing: border-box;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease;
 
   &:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 12%, transparent);
+    border-color: var(--prefix-proxy-border-strong);
+    box-shadow: 0 0 0 2px var(--focus-ring);
   }
 
   // 自定义滚动条（细且不打扰）
@@ -4233,9 +4115,9 @@
   margin: 0;
   padding: 10px 12px;
   overflow: auto;
-  border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
-  border-radius: $radius-sm;
-  background-color: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+  border: 1px solid var(--prefix-proxy-border);
+  border-radius: 7px;
+  background-color: var(--prefix-proxy-surface);
   color: var(--text-primary);
   font-family: $font-mono;
   font-size: 12px;
@@ -4279,7 +4161,7 @@
 .prefixProxyFields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 12px;
+  gap: 12px 14px;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -4310,8 +4192,10 @@
 
   :global(.input),
   :global(textarea.input) {
-    border-color: color-mix(in srgb, var(--border-color) 38%, transparent);
-    background-color: color-mix(in srgb, var(--bg-primary) 86%, transparent);
+    border-color: var(--prefix-proxy-border);
+    border-radius: 7px;
+    background-color: var(--prefix-proxy-control);
+    box-shadow: none;
     font-size: 12px;
     transition:
       border-color 140ms ease,
@@ -4332,12 +4216,13 @@
 
   :global(.input:hover:not(:disabled):not(:focus)),
   :global(textarea.input:hover:not(:disabled):not(:focus)) {
-    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+    border-color: var(--prefix-proxy-border-strong);
   }
 
   :global(.input:focus),
   :global(textarea.input:focus) {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 12%, transparent);
+    border-color: var(--prefix-proxy-border-strong);
+    box-shadow: 0 0 0 2px var(--focus-ring);
   }
 
   :global(.hint) {
@@ -4384,11 +4269,15 @@
 .prefixProxySelect {
   button {
     height: 34px;
-    border-color: color-mix(in srgb, var(--border-color) 38%, transparent);
-    border-radius: $radius-sm;
-    background-color: color-mix(in srgb, var(--bg-primary) 86%, transparent);
+    border-color: var(--prefix-proxy-border);
+    border-radius: 7px;
+    background-color: var(--prefix-proxy-control);
     box-shadow: none;
     font-size: 12px;
+
+    &:hover:not(:disabled) {
+      border-color: var(--prefix-proxy-border-strong);
+    }
   }
 }
 
@@ -4426,18 +4315,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 38px;
-  padding: 7px 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 38%, transparent);
-  border-radius: $radius-sm;
-  background: color-mix(in srgb, var(--bg-primary) 70%, transparent);
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--prefix-proxy-border);
+  border-radius: 7px;
+  background: var(--prefix-proxy-surface-muted);
   transition:
     border-color 140ms ease,
     background-color 140ms ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
-    background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+    border-color: var(--prefix-proxy-border-strong);
+    background: var(--prefix-proxy-surface-muted);
   }
 }
 
@@ -4477,9 +4366,14 @@
 // 响应式
 // -----------------------------------------------------------------------------
 
-@media (max-width: 840px) {
+@media (max-width: 900px) {
   .prefixProxyLayout {
     grid-template-columns: 1fr;
+  }
+
+  .prefixProxyPanelMuted {
+    border-top: 1px solid var(--prefix-proxy-border);
+    border-left: 0;
   }
 
   .prefixProxyPreviewPane {
@@ -4491,7 +4385,15 @@
   }
 
   .prefixProxySection {
-    padding: 11px 11px 12px;
+    padding: 16px 0;
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+    }
   }
 }
 
@@ -4516,11 +4418,21 @@
     font-size: 11px;
   }
 
+  .prefixProxyPanel {
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .prefixProxyPanelHeader {
+    padding-bottom: 10px;
+  }
+
   .prefixProxyTitleGroup {
     gap: 6px;
   }
 
   .prefixProxyTitleName {
+    max-width: min(100%, 220px);
     font-size: 11px;
     padding: 1px 7px;
   }
@@ -5604,18 +5516,23 @@
 .excludedList {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: 0;
 }
 
 .excludedItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $spacing-md;
-  background-color: var(--bg-secondary);
-  border-radius: $radius-md;
-  border: 1px solid var(--border-color);
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--auth-neutral-border);
+  border-radius: 0;
   gap: $spacing-md;
+
+  &:last-child {
+    border-bottom: 0;
+  }
 
   @include mobile {
     flex-direction: column;
@@ -5707,9 +5624,9 @@
 
 // OAuth 模型别名 - 映射概览
 .aliasChartSection {
-  margin-bottom: $spacing-lg;
-  padding-bottom: $spacing-lg;
-  border-bottom: 1px solid var(--border-color);
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .aliasChartHeader {
@@ -5717,7 +5634,9 @@
   align-items: center;
   justify-content: space-between;
   gap: $spacing-sm;
-  margin-bottom: $spacing-sm;
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--auth-neutral-border);
 }
 
 .aliasChartTitle {
@@ -5730,6 +5649,7 @@
 .aliasChart {
   width: 100%;
   min-height: 120px;
+  padding: 0 16px;
 }
 
 .cardExtraButtons {
@@ -5744,14 +5664,14 @@
 .viewModeSwitch {
   display: inline-flex;
   align-items: center;
-  gap: $spacing-xs;
+  gap: 2px;
   flex-wrap: wrap;
   min-width: 0;
   max-width: 100%;
-  padding: 2px;
-  border-radius: $radius-md;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 
   :global(.btn.btn-sm) {
     min-width: 0;
@@ -6658,7 +6578,6 @@
   .quotaPercent {
     flex: 0 0 auto;
   }
-
 }
 
 @media (max-width: 380px) {
@@ -6780,7 +6699,6 @@
     overflow-y: auto;
     overscroll-behavior: contain;
   }
-
 }
 
 @media (max-width: 420px) {
@@ -6886,5 +6804,463 @@
 
   .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
     transform: translate3d(26px, 0, 0);
+  }
+}
+
+// =============================================================================
+// Request details visual alignment
+// Keep semantic provider/status colors, while using neutral surfaces and borders
+// for structure so the page reads as one system instead of nested decorated cards.
+// =============================================================================
+.container :global(.btn),
+.batchActionBar :global(.btn) {
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.container :global(.btn.btn-primary),
+.batchActionBar :global(.btn.btn-primary) {
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--text-secondary);
+    background: var(--text-secondary);
+    color: var(--bg-primary);
+    box-shadow: none;
+  }
+}
+
+.container :global(.btn.btn-secondary),
+.batchActionBar :global(.btn.btn-secondary) {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-control-surface);
+  color: var(--text-primary);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-hover);
+    background: var(--bg-secondary);
+    box-shadow: none;
+  }
+}
+
+.container :global(.btn.btn-ghost),
+.batchActionBar :global(.btn.btn-ghost) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-neutral-border);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+}
+
+.container :global(.btn.btn-danger),
+.batchActionBar :global(.btn.btn-danger) {
+  border-color: color-mix(in srgb, var(--danger-color) 34%, var(--auth-neutral-border));
+  background: color-mix(in srgb, var(--danger-color) 8%, var(--auth-control-surface));
+  color: color-mix(in srgb, var(--danger-color) 84%, var(--text-primary));
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--danger-color) 52%, var(--auth-neutral-border));
+    background: color-mix(in srgb, var(--danger-color) 12%, var(--auth-control-surface));
+    color: var(--danger-color);
+    box-shadow: none;
+  }
+}
+
+.authFilesHeader {
+  border-bottom-color: var(--auth-neutral-border);
+}
+
+.countBadge {
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-color: var(--auth-neutral-border);
+}
+
+.filterAllIconWrap,
+.filterTagIconWrap {
+  border-color: var(--auth-neutral-border);
+  background: var(--bg-secondary);
+  box-shadow: none;
+}
+
+.filterAllIcon {
+  color: var(--text-secondary);
+}
+
+.filterTag {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+
+  &:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+}
+
+.filterTagActive {
+  border-color: var(--border-hover);
+  background: var(--auth-control-surface);
+  color: var(--text-primary);
+  box-shadow: none;
+
+  &::after {
+    content: none;
+  }
+
+  .filterTagIconWrap {
+    border-color: var(--auth-neutral-border);
+    background: var(--bg-secondary);
+  }
+}
+
+.filterTagCount,
+.filterTagActive .filterTagCount {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.filterControlsPanel {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.searchToolbarField,
+.searchToolbarIconButton,
+.filterChip {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: var(--auth-control-surface);
+  box-shadow: none;
+}
+
+.searchToolbarField {
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &:focus-within {
+    border-color: var(--border-hover);
+    background: var(--auth-control-surface);
+    box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+}
+
+.searchToolbarIconButton,
+.filterChip {
+  &:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+}
+
+.searchToolbarIconButtonActive,
+.filterChipActive {
+  border-color: var(--border-hover);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  box-shadow: none;
+
+  &:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+}
+
+.pageQuotaRefreshButton:global(.btn.btn-sm) {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: var(--auth-control-surface);
+  color: var(--text-secondary);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-hover);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+}
+
+.searchToolbarOptionActive,
+.searchToolbarPresetActive {
+  border-color: var(--border-hover);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.fileCard,
+.fileCardSkeleton {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  box-shadow: none;
+}
+
+.fileCard {
+  --auth-card-border: var(--auth-neutral-border);
+  --auth-card-border-hover: var(--border-hover);
+  --auth-card-hover-tint: transparent;
+  --auth-card-inner-bg: var(--bg-secondary);
+  --auth-card-inner-border: var(--auth-neutral-border);
+  --auth-card-inner-shadow: none;
+  --auth-action-border: var(--auth-neutral-border);
+  --auth-action-bg: var(--auth-control-surface);
+  --auth-action-text: var(--text-secondary);
+  --auth-action-shadow: none;
+  --auth-action-hover-border: var(--border-hover);
+  --auth-action-hover-bg: var(--bg-secondary);
+  --auth-action-hover-text: var(--text-primary);
+  --auth-action-hover-shadow: none;
+  --auth-toggle-off-border: var(--auth-neutral-border);
+  --auth-toggle-off-bg: var(--bg-secondary);
+  --auth-toggle-on-bg: color-mix(in srgb, var(--success-color) 72%, var(--surface-raised));
+  background: var(--bg-primary);
+  box-shadow: none;
+
+  &::before,
+  &::after {
+    content: none;
+  }
+
+  &:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-secondary);
+    box-shadow: none;
+  }
+
+  &:focus-within {
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+}
+
+.fileCardSelected,
+.fileCardSelected:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-secondary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-tertiary) 24%, transparent);
+}
+
+.fileCardDisabled:hover {
+  border-color: var(--auth-neutral-border);
+  background: var(--bg-primary);
+  box-shadow: none;
+}
+
+.cardSelection {
+  background: transparent;
+  box-shadow: none;
+}
+
+.providerAvatar {
+  border-color: var(--auth-neutral-border);
+  box-shadow: none;
+
+  &::before {
+    content: none;
+  }
+
+  .fileCard:hover & {
+    border-color: var(--border-hover);
+  }
+}
+
+.stateBadge,
+.planBadge,
+.featureBadge,
+.refreshTokenBadge,
+.statusRate,
+.quotaPercent {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.cardInsights,
+.quotaSection,
+.cardActions {
+  border-color: var(--auth-neutral-border);
+}
+
+.cardToggleSwitch > span:first-of-type,
+.cardToggleSwitch > input:checked + span:first-of-type,
+.cardToggleSwitch > span:first-of-type > span:last-child {
+  box-shadow: none;
+}
+
+.iconButton:global(.btn.btn-sm),
+.refreshActionButton:global(.btn.btn-sm),
+.modelsActionButton:global(.btn.btn-sm),
+.websocketActionButton:global(.btn.btn-sm) {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-control-surface);
+  color: var(--text-secondary);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-hover);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+}
+
+.websocketActionButtonActive:global(.btn.btn-sm) {
+  border-color: var(--border-hover);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.iconButton:global(.btn.btn-danger.btn-sm) {
+  border-color: color-mix(in srgb, var(--danger-color) 34%, var(--auth-neutral-border));
+  background: color-mix(in srgb, var(--danger-color) 8%, var(--auth-control-surface));
+  color: color-mix(in srgb, var(--danger-color) 84%, var(--text-primary));
+  box-shadow: none;
+}
+
+.quotaBar {
+  border: 1px solid var(--auth-neutral-border);
+  background: var(--bg-tertiary);
+  box-shadow: none;
+}
+
+.quotaBarFill {
+  background: var(--quota-fill-mid);
+  box-shadow: none;
+
+  &::before,
+  &::after {
+    content: none;
+  }
+}
+
+.quotaMessageAction {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-hover);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+}
+
+.listSurface :global(.empty-state) {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.belowFoldCard > :global(.card),
+.oauthConfigCard {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.belowFoldCard :global(.card-header) {
+  margin: 0;
+  padding: 14px 16px;
+  border-bottom-color: var(--auth-neutral-border);
+}
+
+.belowFoldCard :global(.empty-state) {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.excludedItem {
+  border-color: var(--auth-neutral-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.viewModeSwitch {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.batchActionBar {
+  --auth-control-surface: var(--surface-raised-strong);
+  --auth-neutral-border: var(--border-color);
+  --auth-neutral-border-strong: var(--border-hover);
+  border-color: var(--auth-neutral-border-strong);
+  border-radius: 10px;
+  background: var(--floating-surface);
+  box-shadow: var(--shadow-soft);
+
+  &::before {
+    content: none;
+  }
+}
+
+.batchSelectionText {
+  border-color: var(--auth-neutral-border);
+  border-radius: 7px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+:global([data-theme='dark']) {
+  .filterControlsPanel {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .fileCard,
+  .fileCardSkeleton {
+    background: var(--bg-primary);
+    box-shadow: none;
+  }
+}
+
+@container auth-files-page (max-width: 920px) {
+  .filterToolbarRow {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filterControlsPanel {
+    padding: 0;
   }
 }

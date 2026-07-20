@@ -138,7 +138,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
       onClose={onClose}
       closeDisabled={editor?.saving === true}
       className={styles.prefixProxyModal}
-      width={820}
+      width={960}
       title={
         <span className={styles.prefixProxyTitleGroup}>
           <span className={styles.prefixProxyTitleMain}>{t('auth_files.prefix_proxy_button')}</span>
@@ -386,10 +386,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
 
                   <div className={styles.prefixProxyInfoStack}>
                     {fileInfoText && (
-                      <details
-                        className={`${styles.prefixProxyJsonDetails} ${styles.prefixProxyJsonDetailsPrimary}`}
-                        open
-                      >
+                      <details className={styles.prefixProxyJsonDetails}>
                         <summary className={styles.prefixProxyJsonSummary}>
                           <span className={styles.prefixProxyLabelGroup}>
                             <span className={styles.prefixProxyLabel}>

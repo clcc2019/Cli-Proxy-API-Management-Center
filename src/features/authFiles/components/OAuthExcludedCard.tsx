@@ -23,6 +23,8 @@ export const OAuthExcludedCard = memo(function OAuthExcludedCard(props: OAuthExc
 
   return (
     <Card
+      flush
+      className={styles.oauthConfigCard}
       title={t('oauth_excluded.title')}
       extra={
         <Button

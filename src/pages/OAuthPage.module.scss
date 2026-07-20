@@ -18,6 +18,12 @@
   height: 24px;
 }
 
+.cardTitleIconDarkInvert {
+  [data-theme='dark'] & {
+    filter: invert(1);
+  }
+}
+
 .pageTitle {
   @include page-heading;
 }

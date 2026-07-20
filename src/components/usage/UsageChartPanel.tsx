@@ -32,7 +32,7 @@ ChartJS.register(
   Decimation
 );
 
-export type UsageChartTone = 'neutral' | 'success' | 'warning' | 'danger' | 'violet';
+export type UsageChartTone = 'neutral' | 'success' | 'warning' | 'danger';
 
 export interface UsageChartSummaryItem {
   label: string;
@@ -61,7 +61,6 @@ const toneClassMap: Record<UsageChartTone, string> = {
   success: styles.toneSuccess,
   warning: styles.toneWarning,
   danger: styles.toneDanger,
-  violet: styles.toneViolet,
 };
 
 const resolveLegendLabel = (label: string, allModelsLabel: string) =>

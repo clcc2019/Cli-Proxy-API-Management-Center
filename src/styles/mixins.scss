@@ -65,28 +65,16 @@
 // Standard heading treatment for conventional management pages.
 // Hero-style pages keep their own typography and do not consume this mixin.
 @mixin page-heading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: block;
   min-width: 0;
   margin: 0 0 $spacing-md;
   color: var(--text-primary);
-  font-size: clamp(22px, 1.45vw, 26px);
-  font-weight: 800;
+  font-size: var(--page-title-size, clamp(24px, 2vw, 30px));
+  font-weight: 700;
   line-height: 1.2;
-  letter-spacing: -0.022em;
-
-  &::before {
-    content: '';
-    width: 4px;
-    height: 0.92em;
-    flex: 0 0 4px;
-    border-radius: $radius-full;
-    background: var(--brand-gradient, var(--primary-color));
-    box-shadow: 0 5px 14px -6px color-mix(in srgb, var(--primary-color) 78%, transparent);
-  }
+  letter-spacing: -0.025em;
 
   @include mobile {
-    font-size: 21px;
+    font-size: 24px;
   }
 }

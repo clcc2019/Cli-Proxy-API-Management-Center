@@ -1,4 +1,3 @@
-@use 'sass:color';
 @use '../styles/variables.scss' as *;
 
 // ─── Container ──────────────────────────────────────────
@@ -6,10 +5,9 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: clamp(24px, 2.3vw, 36px);
+  gap: clamp(18px, 1.6vw, 24px);
   width: 100%;
-  max-width: 1680px;
-  margin: 0 auto;
+  min-width: 0;
   position: relative;
 }
 
@@ -21,54 +19,21 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: clamp(28px, 4vw, 64px);
-  min-height: 232px;
-  padding: clamp(32px, 4vw, 58px);
-  border-radius: 24px;
-  --glass-blur: 20px;
-  background: var(--surface-hero);
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  gap: clamp(24px, 3vw, 48px);
+  min-height: 184px;
+  padding: clamp(26px, 3vw, 38px);
+  border-radius: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   overflow: hidden;
-  animation: heroEnter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  box-shadow:
-    var(--shadow-soft),
-    inset 0 1px 0 color-mix(in srgb, var(--text-primary) 10%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, #000000 5%, transparent);
 
   &::before {
-    content: '';
-    position: absolute;
-    width: min(42vw, 560px);
-    aspect-ratio: 1;
-    right: clamp(-220px, -12vw, -100px);
-    top: clamp(-340px, -22vw, -190px);
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--primary-color) 22%, transparent),
-      color-mix(in srgb, var(--info-color) 8%, transparent) 48%,
-      transparent 72%
-    );
-    pointer-events: none;
+    content: none;
   }
 
   &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0.34;
-    background-image:
-      linear-gradient(
-        color-mix(in srgb, var(--primary-color) 8%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--primary-color) 8%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 38px 38px;
-    mask-image: linear-gradient(90deg, transparent 36%, black);
-    pointer-events: none;
+    content: none;
   }
 
   @media (max-width: $breakpoint-mobile) {
@@ -83,61 +48,44 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: 6px;
 }
 
 .heroGreeting {
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  gap: 8px;
-  padding: 6px 10px;
-  border: 1px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
-  border-radius: $radius-full;
-  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--primary-color);
-  animation: fadeSlideUp 300ms cubic-bezier(0.22, 1, 0.36, 1) 40ms both;
+  color: var(--text-tertiary);
 
   &::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 12%, transparent);
+    content: none;
   }
 }
 
 .heroTitle {
   margin: 0;
-  font-size: clamp(40px, 4.4vw, 64px);
-  font-weight: 820;
-  line-height: 1.02;
-  letter-spacing: -0.045em;
+  font-size: clamp(34px, 3.5vw, 48px);
+  font-weight: 750;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
   color: var(--text-primary);
-  background: linear-gradient(
-    112deg,
-    var(--text-primary) 26%,
-    color-mix(in srgb, var(--primary-color) 78%, var(--text-primary)) 84%
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: fadeSlideUp 320ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
   text-wrap: balance;
 }
 
 .heroCaring {
   margin: 0;
   max-width: 620px;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.5;
-  animation: fadeSlideUp 320ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
 }
 
 // ─── Hero Meta (right side) ─────────────────────────────
@@ -150,15 +98,12 @@
   align-items: flex-start;
   gap: 10px;
   flex-shrink: 0;
-  animation: fadeSlideUp 340ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
-  min-width: 224px;
-  padding: 18px;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  box-shadow:
-    var(--shadow),
-    inset 0 1px 0 color-mix(in srgb, var(--text-primary) 6%, transparent);
+  min-width: 214px;
+  padding: 15px 16px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
 
   @media (max-width: $breakpoint-mobile) {
     flex-direction: row;
@@ -176,8 +121,8 @@
 }
 
 .time {
-  font-size: 32px;
-  font-weight: 760;
+  font-size: 28px;
+  font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
@@ -196,15 +141,12 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 11px;
+  padding: 5px 9px;
   border-radius: $radius-full;
-  --glass-blur: 8px;
-  background: color-mix(in srgb, var(--surface-raised-strong) 84%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   font-size: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 
 .statusDot {
@@ -219,7 +161,7 @@
 
   &.connected {
     background: var(--success-color, $success-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-color, $success-color) 24%, transparent);
+    box-shadow: none;
   }
 
   &.connecting {
@@ -253,30 +195,23 @@
 .sectionHeading {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.13em;
   color: var(--text-tertiary);
-  margin: 0 0 $spacing-md;
+  margin: 0 0 12px;
 
   &::after {
-    content: '';
-    width: 56px;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--border-color) 80%, transparent),
-      transparent
-    );
+    content: none;
   }
 }
 
 .bentoGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(12px, 1.4vw, 20px);
+  gap: 12px;
 
   @media (max-width: 1180px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -288,39 +223,25 @@
 }
 
 .bentoCard {
-  --stat-accent: var(--primary-color);
-
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 22px;
-  min-height: 178px;
-  padding: 22px;
+  gap: 18px;
+  min-height: 154px;
+  padding: 18px;
   overflow: hidden;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--stat-accent) 6%, var(--surface-raised)),
-    var(--surface-raised) 58%
-  );
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  border-radius: 18px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
   text-decoration: none;
   transition:
-    border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
-  animation: cardEnter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  box-shadow: var(--shadow-card);
+    border-color $transition-fast,
+    background-color $transition-fast;
+  box-shadow: none;
 
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: 2px;
-    background: linear-gradient(90deg, var(--stat-accent), transparent 72%);
-    opacity: 0.72;
+    content: none;
   }
 
   &::after {
@@ -328,48 +249,29 @@
     position: absolute;
     top: 18px;
     right: 20px;
-    color: color-mix(in srgb, var(--stat-accent) 58%, var(--text-tertiary));
+    color: var(--text-tertiary);
     font-size: 15px;
     font-weight: 700;
     opacity: 0.62;
-    transition:
-      opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  &:nth-child(2) {
-    --stat-accent: var(--accent-violet);
-  }
-
-  &:nth-child(3) {
-    --stat-accent: var(--accent-cyan);
-  }
-
-  &:nth-child(4) {
-    --stat-accent: var(--accent-amber);
+    transition: opacity $transition-fast;
   }
 
   &:hover {
-    border-color: color-mix(in srgb, var(--stat-accent) 42%, var(--border-color));
-    box-shadow: 0 22px 42px -30px color-mix(in srgb, var(--stat-accent) 58%, transparent);
-    transform: translateY(-4px);
+    border-color: var(--border-hover);
+    background: var(--surface-raised-strong);
 
     &::after {
       opacity: 1;
-      transform: translate(2px, -2px);
     }
   }
 
   &:active {
-    transform: translateY(0);
-    transition-duration: 80ms;
+    background: var(--bg-tertiary);
   }
 
   &:focus-visible {
     outline: none;
-    box-shadow:
-      var(--shadow-soft),
-      0 0 0 3px var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
@@ -377,20 +279,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
-  background: color-mix(in srgb, var(--stat-accent) 11%, var(--surface-raised-strong));
-  color: var(--stat-accent);
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
   transition:
-    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    background-color $transition-fast,
+    color $transition-fast;
 }
 
 .bentoCard:hover .bentoIcon {
-  background: color-mix(in srgb, var(--stat-accent) 18%, var(--surface-raised-strong));
-  transform: translateY(-2px) rotate(-2deg);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .bentoContent {
@@ -400,8 +302,8 @@
 }
 
 .bentoValue {
-  font-size: 34px;
-  font-weight: 780;
+  font-size: 30px;
+  font-weight: 720;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.035em;
@@ -410,7 +312,7 @@
 
 .bentoLabel {
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 0;
 }
@@ -428,13 +330,12 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  animation: cardEnter 300ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
-  padding: clamp(20px, 2vw, 28px);
-  background: color-mix(in srgb, var(--surface-overlay) 90%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  border-radius: 20px;
-  box-shadow: var(--shadow-card);
+  gap: 16px;
+  padding: clamp(18px, 2vw, 24px);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: none;
   // 浏览器在滚动时自动跳过离屏渲染，首屏下移时也不会和其它区域互相 reflow
   contain: content;
   content-visibility: auto;
@@ -470,9 +371,9 @@
   min-width: 0;
   min-height: 48px;
   padding: 11px 13px;
-  background: var(--surface-raised);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   font-size: 13px;
   transition:
     border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -480,7 +381,7 @@
 
   &:hover {
     border-color: var(--border-hover);
-    background: color-mix(in srgb, var(--surface-raised-strong) 90%, var(--surface-raised));
+    background: var(--surface-raised-strong);
   }
 }
 
@@ -557,29 +458,26 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--text-secondary);
   text-decoration: none;
   padding: 7px 11px;
   width: fit-content;
-  border-radius: $radius-full;
-  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   transition:
-    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    color $transition-fast,
+    background-color $transition-fast,
+    border-color $transition-fast;
 
   &:hover {
-    color: var(--primary-hover);
-    background: color-mix(in srgb, var(--primary-color) 18%, transparent);
-    border-color: color-mix(in srgb, var(--primary-color) 36%, transparent);
-    transform: translateY(-1px);
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    border-color: var(--border-hover);
   }
 
   &:active {
-    transform: translateY(0);
-    transition-duration: 80ms;
+    background: var(--bg-primary);
   }
 
   &:focus-visible {
@@ -595,12 +493,12 @@
 
   .hero {
     min-height: 0;
-    padding: 24px 18px;
-    border-radius: 18px;
+    padding: 20px 16px;
+    border-radius: 10px;
   }
 
   .heroTitle {
-    font-size: clamp(34px, 12vw, 44px);
+    font-size: clamp(31px, 10vw, 40px);
   }
 
   .heroCaring {
@@ -631,8 +529,8 @@
   }
 
   .bentoCard {
-    min-height: 152px;
-    padding: 18px;
+    min-height: 136px;
+    padding: 16px;
   }
 
   .bentoValue {
@@ -645,7 +543,7 @@
 
   .configSection {
     padding: $spacing-md;
-    border-radius: 18px;
+    border-radius: 10px;
   }
 
   .configPill {
@@ -662,41 +560,6 @@
     white-space: normal;
   }
 }
-// ─── Animations ─────────────────────────────────────────
-
-@keyframes heroEnter {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes cardEnter {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 @keyframes pulse {
   0%,
   100% {
@@ -708,22 +571,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero,
-  .heroGreeting,
-  .heroTitle,
-  .heroCaring,
-  .heroMeta,
-  .bentoCard,
-  .configSection {
-    animation: none !important;
-  }
-
-  .bentoCard:hover,
-  .viewMoreLink:hover,
-  .bentoCard:hover .bentoIcon {
-    transform: none;
-  }
-
   .statusDot.connecting {
     animation: none;
   }

@@ -7,12 +7,9 @@ export type AuthFilesUiState = {
   problemOnly?: boolean;
   disabledOnly?: boolean;
   premiumOnly?: boolean;
-  compactMode?: boolean;
   search?: string;
   page?: number;
   pageSize?: number;
-  regularPageSize?: number;
-  compactPageSize?: number;
   sortMode?: AuthFilesSortMode;
 };
 

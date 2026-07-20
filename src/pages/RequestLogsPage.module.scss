@@ -9,10 +9,9 @@
   --request-success-border: color-mix(in srgb, var(--success-color) 30%, transparent);
   --request-success-text: color-mix(in srgb, var(--success-color) 74%, var(--text-primary));
   --request-panel-border: var(--border-color);
-  --request-panel-bg: var(--bg-primary);
   --request-panel-muted: var(--bg-secondary);
   --request-control-bg: var(--surface-raised-strong);
-  --request-row-grid: 4px minmax(120px, 150px) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 200px)
+  --request-row-grid: minmax(120px, 150px) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 200px)
     minmax(0, 1fr) minmax(80px, 110px);
   width: 100%;
   min-height: 100%;
@@ -21,6 +20,8 @@
   gap: clamp(14px, 1.4vw + 6px, 22px);
   position: relative;
   min-width: 0;
+  container-name: request-page;
+  container-type: inline-size;
 
   @include mobile {
     gap: 12px;
@@ -67,11 +68,8 @@
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
   border: 1px solid var(--request-panel-border);
-  border-radius: 10px;
-  background: var(--request-panel-bg);
-  box-shadow: 0 1px 2px color-mix(in srgb, #000000 5%, transparent);
+  background: transparent;
 
   @include mobile {
     grid-template-columns: 1fr;
@@ -197,12 +195,10 @@
   grid-template-columns: max-content minmax(220px, 1fr) minmax(170px, auto);
   align-items: center;
   gap: 10px 12px;
-  padding: 10px 12px;
+  padding: 0;
   min-width: 0;
-  border-radius: 10px;
-  border: 1px solid var(--request-panel-border);
-  background: var(--request-panel-bg);
-  box-shadow: none;
+  border: 0;
+  background: transparent;
 
   @include tablet {
     grid-template-columns: 1fr;
@@ -211,8 +207,7 @@
   @include mobile {
     grid-template-columns: 1fr;
     gap: 10px;
-    padding: 10px;
-    border-radius: 8px;
+    padding: 0;
   }
 }
 
@@ -475,16 +470,11 @@
 // =============================================================================
 .eventTableShell {
   border: 1px solid var(--request-panel-border);
-  border-radius: 10px;
-  background: var(--request-panel-bg);
+  background: transparent;
   box-shadow: none;
   overflow: hidden;
   min-width: 0;
   contain: layout style;
-
-  @include mobile {
-    border-radius: 8px;
-  }
 }
 
 .eventList {
@@ -556,22 +546,22 @@
   }
 
   @include tablet {
-    grid-template-columns: 4px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      'stripe time status'
-      'stripe model tokens'
-      'stripe credential cost';
+      'time status'
+      'model tokens'
+      'credential cost';
     gap: 8px 14px;
     padding: 12px 14px;
     contain-intrinsic-size: 132px;
   }
 
   @include mobile {
-    grid-template-columns: 3px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      'stripe time status'
-      'stripe model tokens'
-      'stripe credential cost';
+      'time status'
+      'model tokens'
+      'credential cost';
     align-items: start;
     gap: 7px 8px;
     padding: 10px;
@@ -590,33 +580,8 @@
   }
 }
 
-.eventStripe {
-  align-self: stretch;
-  width: 4px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary-color) 30%, transparent);
-  transition: background-color $transition-fast;
-
-  @include tablet {
-    grid-area: stripe;
-  }
-
-  @include mobile {
-    grid-area: stripe;
-    width: 3px;
-  }
-}
-
-.eventRowSuccess .eventStripe {
-  background: color-mix(in srgb, var(--success-color) 72%, transparent);
-}
-
 .eventRowSuccess {
   background: transparent;
-}
-
-.eventRowFailed .eventStripe {
-  background: color-mix(in srgb, var(--danger-color) 84%, transparent);
 }
 
 .eventRowFailed {
@@ -1085,11 +1050,6 @@
     align-self: start;
     justify-self: end;
     text-align: right;
-    min-height: 24px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    border: 1px solid var(--request-panel-border);
-    background: var(--request-panel-muted);
   }
 
   @include tablet {
@@ -1112,14 +1072,9 @@
   flex-direction: column;
   gap: 0;
   border: 1px solid var(--request-panel-border);
-  border-radius: 10px;
-  background: var(--request-panel-bg);
+  background: transparent;
   box-shadow: none;
   overflow: hidden;
-
-  @include mobile {
-    border-radius: 8px;
-  }
 }
 
 .skeletonRow {
@@ -1138,35 +1093,40 @@
   }
 
   @include tablet {
-    grid-template-columns: 4px minmax(0, 1fr) minmax(72px, auto);
+    grid-template-columns: minmax(0, 1fr) minmax(72px, auto);
     grid-auto-rows: minmax(14px, auto);
     gap: 8px 14px;
 
-    > :nth-child(1) {
-      grid-column: 1;
-      grid-row: 1 / 4;
-      height: auto;
-      align-self: stretch;
-    }
-
+    > :nth-child(1),
     > :nth-child(2),
-    > :nth-child(3),
-    > :nth-child(4) {
-      grid-column: 2;
+    > :nth-child(3) {
+      grid-column: 1;
     }
 
+    > :nth-child(4),
     > :nth-child(5),
-    > :nth-child(6),
-    > :nth-child(7) {
-      grid-column: 3;
+    > :nth-child(6) {
+      grid-column: 2;
     }
   }
 
   @include mobile {
-    grid-template-columns: 3px minmax(0, 1fr) minmax(64px, auto);
+    grid-template-columns: minmax(0, 1fr) minmax(64px, auto);
     grid-auto-rows: minmax(14px, auto);
     gap: 7px 8px;
     padding: 10px;
+
+    > :nth-child(1),
+    > :nth-child(2),
+    > :nth-child(3) {
+      grid-column: 1;
+    }
+
+    > :nth-child(4),
+    > :nth-child(5),
+    > :nth-child(6) {
+      grid-column: 2;
+    }
   }
 
   > * {
@@ -1204,18 +1164,6 @@
   width: 50%;
 }
 
-.skeletonStripe {
-  width: 4px;
-  height: 36px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
-
-  @include mobile {
-    width: 3px;
-    height: 100%;
-  }
-}
-
 @keyframes requestLogsSkeletonSweep {
   to {
     transform: translate3d(120%, 0, 0);
@@ -1236,15 +1184,13 @@
   justify-content: center;
   min-height: 220px;
   padding: 48px 24px;
-  border-radius: 10px;
   border: 1px dashed var(--request-panel-border);
-  background: var(--request-panel-bg);
+  background: transparent;
   text-align: center;
   gap: 10px;
 
   @include mobile {
     padding: 36px 16px;
-    border-radius: 8px;
   }
 }
 
@@ -1277,6 +1223,160 @@
   color: var(--text-secondary);
   max-width: 42ch;
   line-height: 1.55;
+}
+
+// Respond to the actual content width so the sidebar does not leave the table
+// squeezed in its desktop column layout.
+@container request-page (max-width: 1040px) {
+  .eventListHeader {
+    display: none;
+  }
+
+  .eventRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'time status'
+      'model tokens'
+      'credential cost';
+    gap: 8px 14px;
+    padding: 12px 14px;
+    contain-intrinsic-size: 132px;
+  }
+
+  .eventTime {
+    grid-area: time;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .eventModel {
+    grid-area: model;
+  }
+
+  .eventCredential {
+    grid-area: credential;
+  }
+
+  .eventStatus {
+    grid-area: status;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    justify-self: end;
+    flex-wrap: wrap;
+    max-width: min(280px, 38cqi);
+  }
+
+  .eventTokens {
+    grid-area: tokens;
+    align-items: flex-end;
+    justify-self: end;
+    max-width: min(260px, 42cqi);
+  }
+
+  .eventCost {
+    grid-area: cost;
+    justify-self: end;
+    text-align: right;
+  }
+
+  .skeletonRow {
+    grid-template-columns: minmax(0, 1fr) minmax(72px, auto);
+    grid-auto-rows: minmax(14px, auto);
+    gap: 8px 14px;
+
+    > :nth-child(1),
+    > :nth-child(2),
+    > :nth-child(3) {
+      grid-column: 1;
+    }
+
+    > :nth-child(4),
+    > :nth-child(5),
+    > :nth-child(6) {
+      grid-column: 2;
+    }
+  }
+}
+
+@container request-page (max-width: 820px) {
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbarActions {
+    width: 100%;
+    justify-content: space-between;
+    justify-self: stretch;
+  }
+
+  .resultMeta {
+    text-align: left;
+    justify-self: start;
+  }
+}
+
+@container request-page (max-width: 620px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryItem {
+    min-height: 94px;
+    padding: 15px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--request-panel-border);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .statusFilter {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible;
+  }
+
+  .statusFilterButton {
+    width: 100%;
+    justify-content: center;
+    gap: 4px;
+    padding-inline: 5px;
+  }
+
+  .eventRow {
+    align-items: start;
+    gap: 7px 8px;
+    padding: 10px;
+    overflow: visible;
+    contain-intrinsic-size: 118px;
+  }
+
+  .eventTime {
+    flex-wrap: wrap;
+    gap: 3px 7px;
+  }
+
+  .eventModelMeta,
+  .eventCredentialMeta,
+  .eventErrorPreview {
+    display: none;
+  }
+
+  .eventStatus,
+  .eventTokens {
+    max-width: 48cqi;
+  }
+
+  .skeletonRow {
+    grid-template-columns: minmax(0, 1fr) minmax(64px, auto);
+    gap: 7px 8px;
+    padding: 10px;
+  }
 }
 
 .errorBanner {
@@ -1379,7 +1479,6 @@
     --request-success-border: color-mix(in srgb, var(--success-color) 34%, transparent);
     --request-success-text: color-mix(in srgb, var(--success-color) 86%, var(--text-primary));
     --request-panel-border: var(--border-color);
-    --request-panel-bg: var(--bg-primary);
     --request-panel-muted: var(--bg-secondary);
     --request-control-bg: var(--bg-tertiary);
   }

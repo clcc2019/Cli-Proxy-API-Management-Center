@@ -28,9 +28,10 @@
 
 .title {
   margin: 0;
-  font-size: 30px;
+  font-size: var(--page-title-size, 30px);
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
 }
 
@@ -73,11 +74,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 34px;
+  min-height: 36px;
   padding: 0 14px;
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition:
     background-color $transition-fast,
@@ -143,7 +144,7 @@
 .chipPrimary {
   border-color: var(--primary-30);
   background: var(--primary-10);
-  color: var(--primary-color);
+  color: var(--primary-active);
 }
 
 .chipAmber {

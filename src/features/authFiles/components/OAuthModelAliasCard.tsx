@@ -60,6 +60,8 @@ export const OAuthModelAliasCard = memo(function OAuthModelAliasCard(
 
   return (
     <Card
+      flush
+      className={styles.oauthConfigCard}
       title={t('oauth_model_alias.title')}
       extra={
         <div className={styles.cardExtraButtons}>

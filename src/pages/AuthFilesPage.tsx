@@ -20,7 +20,6 @@ import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } fr
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
@@ -104,8 +103,7 @@ const OAuthModelAliasCard = lazy(() =>
   }))
 );
 
-const DEFAULT_REGULAR_PAGE_SIZE = 12;
-const DEFAULT_COMPACT_PAGE_SIZE = 16;
+const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const AUTH_FILE_SKELETON_MAX = 12;
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
@@ -180,12 +178,10 @@ const filterSelectableAuthFiles = (files: AuthFileItem[]): AuthFileItem[] => {
 function AuthFilesSkeletonGrid({
   count,
   quotaManaged,
-  compact,
   loadingLabel,
 }: {
   count: number;
   quotaManaged: boolean;
-  compact: boolean;
   loadingLabel: string;
 }) {
   const items = useMemo(
@@ -199,13 +195,13 @@ function AuthFilesSkeletonGrid({
         {loadingLabel}
       </span>
       <div
-        className={`${styles.fileGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''} ${compact ? styles.fileGridCompact : ''} ${styles.skeletonGrid}`}
+        className={`${styles.fileGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''} ${styles.skeletonGrid}`}
         aria-hidden="true"
       >
         {items.map((_, index) => (
           <div
             key={index}
-            className={`${styles.fileCardSkeleton} ${compact ? styles.fileCardSkeletonCompact : ''}`}
+            className={styles.fileCardSkeleton}
             style={getAuthFileCardEnterStyle(index)}
           >
             <div className={styles.skeletonHeader}>
@@ -399,11 +395,7 @@ export function AuthFilesPage() {
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [compactMode, setCompactMode] = useState(false);
-  const [pageSizeByMode, setPageSizeByMode] = useState({
-    regular: DEFAULT_REGULAR_PAGE_SIZE,
-    compact: DEFAULT_COMPACT_PAGE_SIZE,
-  });
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [viewMode, setViewMode] = useState<'diagram' | 'list'>('list');
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
@@ -435,7 +427,6 @@ export function AuthFilesPage() {
   const deferredNormalizedSearch = deferredSearch.trim();
   const debouncedSearch = useDebounce(normalizedSearch, 280);
   const serverPaginationEnabled = true;
-  const pageSize = compactMode ? pageSizeByMode.compact : pageSizeByMode.regular;
   const serverSearchPending = serverPaginationEnabled && normalizedSearch !== debouncedSearch;
   const serverListPage = serverPaginationEnabled ? page : undefined;
   const serverListPageSize = serverPaginationEnabled ? pageSize : undefined;
@@ -451,26 +442,12 @@ export function AuthFilesPage() {
       problemOnly,
       disabledOnly,
       premiumOnly,
-      compactMode,
       search,
       page,
       pageSize,
-      regularPageSize: pageSizeByMode.regular,
-      compactPageSize: pageSizeByMode.compact,
       sortMode,
     }),
-    [
-      compactMode,
-      disabledOnly,
-      filter,
-      page,
-      pageSize,
-      pageSizeByMode,
-      premiumOnly,
-      problemOnly,
-      search,
-      sortMode,
-    ]
+    [disabledOnly, filter, page, pageSize, premiumOnly, problemOnly, search, sortMode]
   );
   const debouncedAuthFilesUiState = useDebounce<AuthFilesUiState | null>(
     uiStateHydrated ? authFilesUiState : null,
@@ -647,28 +624,15 @@ export function AuthFilesPage() {
       if (typeof persisted.premiumOnly === 'boolean') {
         setPremiumOnly(persisted.premiumOnly);
       }
-      if (typeof persisted.compactMode === 'boolean') {
-        setCompactMode(persisted.compactMode);
-      }
       if (typeof persisted.search === 'string') {
         setSearch(persisted.search);
       }
       if (typeof persisted.page === 'number' && Number.isFinite(persisted.page)) {
         setPage(Math.max(1, Math.round(persisted.page)));
       }
-      const legacyPageSize =
-        typeof persisted.pageSize === 'number' && Number.isFinite(persisted.pageSize)
-          ? clampCardPageSize(persisted.pageSize)
-          : null;
-      const regularPageSize =
-        typeof persisted.regularPageSize === 'number' && Number.isFinite(persisted.regularPageSize)
-          ? clampCardPageSize(persisted.regularPageSize)
-          : (legacyPageSize ?? DEFAULT_REGULAR_PAGE_SIZE);
-      const compactPageSize =
-        typeof persisted.compactPageSize === 'number' && Number.isFinite(persisted.compactPageSize)
-          ? clampCardPageSize(persisted.compactPageSize)
-          : DEFAULT_COMPACT_PAGE_SIZE;
-      setPageSizeByMode({ regular: regularPageSize, compact: compactPageSize });
+      if (typeof persisted.pageSize === 'number' && Number.isFinite(persisted.pageSize)) {
+        setPageSize(clampCardPageSize(persisted.pageSize));
+      }
       if (isAuthFilesSortMode(persisted.sortMode)) {
         setSortMode(persisted.sortMode);
       }
@@ -763,17 +727,11 @@ export function AuthFilesPage() {
     (next: number) => {
       const clamped = clampCardPageSize(next);
       if (clamped === pageSize) return;
-      setPageSizeByMode((current) =>
-        compactMode ? { ...current, compact: clamped } : { ...current, regular: clamped }
-      );
+      setPageSize(clamped);
       setPage(1);
     },
-    [compactMode, pageSize]
+    [pageSize]
   );
-  const handleCompactModeChange = useCallback((value: boolean) => {
-    setCompactMode(value);
-    setPage(1);
-  }, []);
 
   useHeaderRefresh(handleHeaderRefresh);
 
@@ -1613,7 +1571,6 @@ export function AuthFilesPage() {
           <AuthFileCard
             key={file.name}
             file={file}
-            compact={compactMode}
             selected={selectedFiles.has(file.name)}
             resolvedTheme={resolvedTheme}
             disableControls={disableControls || listUpdating}
@@ -1643,7 +1600,6 @@ export function AuthFilesPage() {
     [
       accessTokenCopying,
       copyTextWithNotification,
-      compactMode,
       deleting,
       disableControls,
       fileUsageStatsByName,
@@ -1782,23 +1738,6 @@ export function AuthFilesPage() {
                     {t('auth_files.premium_filter_only')}
                   </button>
                 </div>
-                <div
-                  className={`${styles.compactModeControl} ${compactMode ? styles.compactModeControlActive : ''}`}
-                  title={t('auth_files.compact_mode_hint')}
-                >
-                  <ToggleSwitch
-                    checked={compactMode}
-                    onChange={handleCompactModeChange}
-                    ariaLabel={t('auth_files.compact_mode_label')}
-                    className={styles.compactModeSwitch}
-                    label={
-                      <span className={styles.compactModeLabel}>
-                        {t('auth_files.compact_mode_label')}
-                      </span>
-                    }
-                    labelPosition="left"
-                  />
-                </div>
                 {hasActiveFilters && (
                   <button
                     type="button"
@@ -1844,7 +1783,6 @@ export function AuthFilesPage() {
                 <AuthFilesSkeletonGrid
                   count={pageSize}
                   quotaManaged={Boolean(quotaFilterType)}
-                  compact={compactMode}
                   loadingLabel={t('common.loading')}
                 />
               ) : pageItems.length === 0 ? (
@@ -1854,7 +1792,7 @@ export function AuthFilesPage() {
                 />
               ) : (
                 <div
-                  className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''} ${compactMode ? styles.fileGridCompact : ''}`}
+                  className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
                 >
                   {authFileCardNodes}
                 </div>

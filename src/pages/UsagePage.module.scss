@@ -24,10 +24,11 @@
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(480px, 0.9fr);
+  grid-template-columns: minmax(280px, 1fr) minmax(520px, 680px);
   align-items: center;
-  gap: 24px;
-  padding: 4px 0 20px;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 64px);
+  padding: 2px 0 18px;
   border-bottom: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
   min-width: 0;
   max-width: 100%;
@@ -107,26 +108,19 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
-  padding-left: 24px;
-  border-left: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
 
   @include tablet {
-    padding: 16px 0 0;
-    border-left: 0;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+    padding-top: 2px;
   }
 
   @include mobile {
-    padding-top: 12px;
-    padding-left: 0;
-    border-left: 0;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+    padding-top: 0;
   }
 }
 
 .actionGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   gap: 8px;
 
   :global(.btn) {
@@ -153,9 +147,7 @@
 }
 
 .heroActionPrimary {
-  box-shadow:
-    0 12px 24px -18px color-mix(in srgb, var(--primary-color) 70%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  box-shadow: none;
 }
 
 .pageTitleIcon,
@@ -166,32 +158,12 @@
 }
 
 .pageTitleIcon {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
   width: 36px;
   height: 36px;
-  border-radius: 11px;
-  color: var(--primary-color);
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--primary-color) 15%, var(--surface-raised)),
-    color-mix(in srgb, var(--accent-blue) 7%, var(--surface-raised))
-  );
-  border: 1px solid color-mix(in srgb, var(--primary-color) 26%, var(--border-color));
-  box-shadow:
-    0 10px 22px -17px color-mix(in srgb, var(--primary-color) 62%, transparent),
-    inset 0 1px 0 var(--surface-sheen);
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: -45% 42% -45% -18%;
-    z-index: -1;
-    background: linear-gradient(105deg, rgb(255 255 255 / 0.42), transparent 72%);
-    transform: skewX(-14deg);
-    pointer-events: none;
-  }
+  border-radius: 10px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .section {
@@ -214,18 +186,16 @@
 }
 
 .overviewPanel {
-  padding: clamp(16px, 1.2vw + 8px, 22px);
-  border-radius: $radius-lg;
-  border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
-  background:
-    radial-gradient(circle at 92% -16%, color-mix(in srgb, var(--primary-color) 7%, transparent), transparent 34%),
-    var(--surface-card, var(--surface-raised));
-  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   min-width: 0;
   max-width: 100%;
 
   @include mobile {
-    padding: 12px;
+    padding: 0;
   }
 }
 
@@ -241,19 +211,10 @@
   gap: 8px;
   width: fit-content;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--primary-color, var(--text-secondary));
-
-  &::after {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--primary-color) 50%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 10%, transparent);
-  }
+  color: var(--text-tertiary);
 }
 
 .sectionHeaderRow {
@@ -274,8 +235,8 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
@@ -294,33 +255,25 @@
   justify-content: center;
   gap: 8px;
   min-height: 36px;
-  padding: 8px 16px;
-  border-radius: $radius-md;
-  border: 1px solid var(--border-primary);
-  background: var(--control-surface, var(--bg-primary));
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  box-shadow: var(--control-shadow, var(--shadow));
+  box-shadow: none;
   transition:
     color $transition-fast,
     border-color $transition-fast,
-    background $transition-fast,
-    box-shadow $transition-fast,
-    transform $transition-fast;
+    background $transition-fast;
 
   &:hover {
     color: var(--text-primary);
-    border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
-    background: color-mix(in srgb, var(--primary-color) 5%, var(--control-surface));
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
+    border-color: var(--border-primary);
+    background: var(--bg-secondary);
   }
 
   &:focus-visible {
@@ -337,26 +290,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary-color) 16%, transparent);
-  color: var(--primary-color);
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 800;
   // chevron 展开时旋转 180deg，配合 transition 实现平滑切换
   transition: transform $transition-fast;
 
-  .sectionToggle:hover & {
-    transform: scale(1.1);
-  }
-
   &.sectionToggleIconExpanded {
     transform: rotate(180deg);
-  }
-
-  &.sectionToggleIconExpanded.sectionToggle:hover & {
-    transform: rotate(180deg) scale(1.1);
   }
 }
 
@@ -442,13 +385,9 @@
 
 .deferredCard {
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 96%, white 4%),
-    var(--bg-primary)
-  );
-  border-color: color-mix(in srgb, var(--border-color) 85%, transparent);
-  box-shadow: var(--shadow-card);
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  box-shadow: none;
 }
 
 .deferredChartShell {
@@ -467,11 +406,7 @@
   height: 28px;
   width: 88px;
   border-radius: $radius-full;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--bg-secondary) 86%, white 14%),
-    color-mix(in srgb, var(--bg-tertiary) 94%, transparent)
-  );
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
 }
 
@@ -485,13 +420,7 @@
   overflow: hidden;
   border-radius: $radius-lg;
   border: 1px solid var(--border-color);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0)),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-secondary) 84%, white 16%),
-      var(--bg-secondary)
-    );
+  background: var(--bg-secondary);
 
   &::before {
     content: '';
@@ -499,9 +428,7 @@
     inset: auto 18px 22px;
     height: 62%;
     border-radius: $radius-md;
-    background:
-      linear-gradient(180deg, rgba($primary-color, 0.08), rgba($success-color, 0.03)),
-      linear-gradient(135deg, rgba($primary-color, 0.28), rgba($success-color, 0.18));
+    background: color-mix(in srgb, var(--text-tertiary) 16%, transparent);
     clip-path: polygon(
       0% 86%,
       10% 78%,
@@ -516,14 +443,14 @@
       100% 100%,
       0% 100%
     );
-    opacity: 0.8;
+    opacity: 0.65;
   }
 }
 
 .deferredChartGlow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.24), transparent);
+  background: linear-gradient(90deg, transparent, var(--surface-sheen), transparent);
   transform: translateX(-100%);
   animation: deferredShimmer 2.4s ease-in-out infinite;
 }
@@ -539,7 +466,7 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 14px;
-  font-size: 28px;
+  font-size: clamp(24px, 2vw, 28px);
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
@@ -719,12 +646,12 @@
 .statsGrid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 248px), 1fr));
   min-width: 0;
   max-width: 100%;
 
   @include tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
   }
 
   @include mobile {
@@ -737,71 +664,23 @@
   --accent: var(--success-color);
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --accent-border: color-mix(in srgb, var(--accent) 32%, transparent);
-  --stat-card-sheen: var(--surface-sheen);
-
   position: relative;
   padding: 14px 15px;
-  background:
-    linear-gradient(180deg, var(--stat-card-sheen), transparent 46%),
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 58%),
-    var(--surface-card, var(--surface-raised));
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--accent) 8%, var(--surface-card-border));
+  background: var(--bg-primary);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 9px;
   min-height: 124px;
-  box-shadow:
-    var(--shadow-card),
-    0 10px 24px -22px color-mix(in srgb, var(--accent) 36%, transparent),
-    var(--surface-inner-highlight);
-  // hover 上浮用 transform（合成器属性），配合 box-shadow 过渡形成立体反馈
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast,
-    border-color $transition-fast;
+  box-shadow: none;
+  transition: border-color $transition-fast;
   overflow: hidden;
   min-width: 0;
   max-width: 100%;
-  will-change: transform;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0.42;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: -56px;
-    right: -38px;
-    width: 136px;
-    height: 136px;
-    border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent), transparent 68%);
-    opacity: 0.72;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
 
   &:hover {
-    border-color: color-mix(in srgb, var(--accent) 26%, var(--border-color));
-    transform: translateY(-2px);
-    box-shadow:
-      var(--shadow-card-hover),
-      0 14px 30px -22px color-mix(in srgb, var(--accent) 48%, transparent),
-      var(--surface-inner-highlight);
+    border-color: var(--border-primary);
   }
 
   @include mobile {
@@ -833,16 +712,9 @@
   place-items: center;
   color: var(--accent);
   font-size: 13px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent) 16%, transparent),
-    color-mix(in srgb, var(--accent) 7%, transparent)
-  );
+  background: var(--accent-soft);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 72%, transparent),
-    inset 0 -1px 0 color-mix(in srgb, var(--accent) 8%, transparent),
-    0 2px 6px color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: none;
   flex-shrink: 0;
   svg {
     display: block;
@@ -861,7 +733,7 @@
 
 .statLabel {
   font-size: 12px;
-  color: var(--accent);
+  color: var(--text-secondary);
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.25;
@@ -1021,9 +893,9 @@
 
 .apiSortBtn {
   padding: 5px 10px;
-  border-radius: $radius-full;
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
+  border-radius: 7px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
   color: var(--text-secondary);
   font-size: 11px;
   font-weight: 500;
@@ -1045,9 +917,9 @@
 }
 
 .apiSortBtnActive {
-  border-color: color-mix(in srgb, var(--primary-color) 48%, transparent);
-  background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-secondary));
-  color: var(--primary-color);
+  border-color: var(--border-primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -1058,18 +930,14 @@
 }
 
 .apiItem {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-secondary) 88%, transparent),
-    color-mix(in srgb, var(--bg-secondary) 70%, transparent)
-  );
-  border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
   overflow: hidden;
   transition: border-color $transition-fast;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 20%, var(--border-color));
+    border-color: var(--border-primary);
   }
 }
 
@@ -1121,8 +989,8 @@
 .apiBadge {
   font-size: 11px;
   color: var(--text-secondary);
-  background-color: color-mix(in srgb, var(--surface-raised) 84%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   padding: 2px 8px;
   border-radius: $radius-full;
 }
@@ -1188,15 +1056,10 @@
   overflow: hidden;
   min-width: 0;
   max-width: 100%;
-  border-radius: $radius-lg;
-  border-color: color-mix(in srgb, var(--border-color) 74%, transparent);
-  background:
-    linear-gradient(180deg, var(--surface-sheen), transparent 38%),
-    var(--surface-raised);
-  box-shadow:
-    var(--shadow-card),
-    0 14px 32px -26px rgba(15, 23, 42, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  border-color: var(--border-color);
+  background: var(--bg-primary);
+  box-shadow: none;
 
   @include mobile {
     height: auto;
@@ -1246,9 +1109,9 @@
   overflow: auto;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-radius: $radius-md;
-  background: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
 
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--text-tertiary) 38%, transparent) transparent;
@@ -1280,7 +1143,7 @@
   th {
     font-weight: 600;
     color: var(--text-tertiary);
-    background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+    background: var(--bg-secondary);
     white-space: nowrap;
   }
 
@@ -1378,9 +1241,9 @@
 
 .priceForm {
   padding: 12px;
-  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
-  border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
   min-width: 0;
   max-width: 100%;
 }
@@ -1451,21 +1314,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-secondary) 88%, transparent),
-    color-mix(in srgb, var(--bg-secondary) 72%, transparent)
-  );
-  border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
   gap: 10px;
   transition:
     border-color $transition-fast,
     background-color $transition-fast;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 16%, var(--border-color));
-    background-color: color-mix(in srgb, var(--bg-secondary) 94%, var(--bg-tertiary) 6%);
+    border-color: var(--border-primary);
+    background-color: var(--bg-tertiary);
   }
 
   @include mobile {
@@ -1536,17 +1395,15 @@
 
 .chartWrapper {
   padding: 18px;
-  background:
-    linear-gradient(180deg, var(--surface-sheen), transparent 42%),
-    var(--surface-raised);
-  border-radius: $radius-lg;
-  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
+  background: var(--bg-primary);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 0;
   max-width: 100%;
-  box-shadow: var(--shadow-card), inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 38%, transparent);
+  box-shadow: none;
 }
 
 .chartSummaryRow {
@@ -1562,9 +1419,9 @@
   align-items: baseline;
   gap: 8px;
   padding: 5px 8px;
-  border-radius: $radius-full;
-  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 56%, transparent);
+  border-radius: 7px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
 .chartSummaryLabel {
@@ -1636,19 +1493,10 @@
   position: relative;
   height: 300px;
   padding: 10px 8px 4px;
-  border-radius: $radius-md;
-  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
-  background:
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--border-color) 36%, transparent) 1px,
-      transparent 1px
-    ),
-    color-mix(in srgb, var(--bg-secondary) 38%, transparent);
-  background-size:
-    100% 25%,
-    100% 100%;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  box-shadow: none;
   min-width: 0;
   max-width: 100%;
 
@@ -1683,9 +1531,9 @@
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  border-radius: $radius-md;
-  background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 
   :global(.btn) {
     min-width: 62px;
@@ -1740,12 +1588,10 @@
   overflow: hidden;
   min-width: 0;
   max-width: 100%;
-  background:
-    linear-gradient(180deg, var(--surface-sheen), transparent 40%),
-    var(--surface-raised);
-  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
-  border-radius: $radius-lg;
-  box-shadow: var(--shadow-card);
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  border-radius: 10px;
+  box-shadow: none;
 
   :global(.card-header) {
     margin-bottom: 18px;
@@ -1922,9 +1768,9 @@
   // 自适应高度：随视口扩展，预留 ~280px 给页头/卡头/计数行/页边距
   // 同时设置 min/max 边界，避免在超小或超大屏上变形
   max-height: clamp(360px, calc(100vh - 280px), 1200px);
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-radius: $radius-md;
-  background: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--text-tertiary) 38%, transparent) transparent;
@@ -1961,7 +1807,6 @@
 
     tbody tr:hover {
       background-color: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
-      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--primary-color) 60%, transparent);
     }
 
     tbody tr:last-child td {
@@ -2278,14 +2123,10 @@
 }
 
 .chartLineCard {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-primary) 96%, white 4%),
-    var(--bg-primary)
-  );
-  border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-radius: $radius-lg;
-  box-shadow: var(--shadow-card);
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  border-radius: 10px;
+  box-shadow: none;
 
   :global(.card-header) {
     margin-bottom: 18px;
@@ -2315,17 +2156,13 @@
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg-secondary) 92%, white 8%),
-    var(--bg-secondary)
-  );
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-radius: $radius-md;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   transition: border-color $transition-fast;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
+    border-color: var(--border-primary);
   }
 
   @include mobile {
@@ -2368,16 +2205,14 @@
 
 // Service Health Card
 .healthCard {
-  background:
-    linear-gradient(180deg, var(--surface-sheen), transparent 40%),
-    var(--surface-raised);
-  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
-  border-radius: $radius-lg;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
 }
 
 .healthHeader {
@@ -2649,40 +2484,29 @@
 }
 
 :global([data-theme='dark']) {
-  .overviewPanel,
   .detailsFixedCard,
   .chartWrapper,
   .chartCard,
   .healthCard {
-    background: var(--surface-card, var(--surface-raised));
-    box-shadow:
-      var(--shadow-card),
-      0 16px 34px -26px rgba(0, 0, 0, 0.62),
-      var(--surface-inner-highlight);
+    background: var(--bg-primary);
+    box-shadow: none;
   }
 
   .statCard {
-    --stat-card-sheen: color-mix(in srgb, #ffffff 5%, transparent);
-    background:
-      linear-gradient(180deg, var(--stat-card-sheen), transparent 42%),
-      linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 54%),
-      var(--surface-card, var(--surface-raised));
-    box-shadow:
-      var(--shadow-card),
-      0 14px 30px -24px rgba(0, 0, 0, 0.64),
-      var(--surface-inner-highlight);
+    background: var(--bg-primary);
+    box-shadow: none;
   }
 
   .priceForm,
   .priceItem,
   .apiItem {
-    background-color: color-mix(in srgb, var(--bg-secondary) 62%, transparent);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background-color: var(--bg-secondary);
+    box-shadow: none;
   }
 
   .chartArea,
   .tableWrapper,
   .requestEventsTableWrapper {
-    background-color: color-mix(in srgb, var(--bg-secondary) 42%, transparent);
+    background-color: var(--bg-secondary);
   }
 }

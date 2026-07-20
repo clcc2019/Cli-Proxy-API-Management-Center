@@ -135,3 +135,26 @@
     padding: 8px 10px;
   }
 }
+
+@media (max-width: 560px) {
+  .topBar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .topBarTitle {
+    width: 100%;
+    font-size: 15px;
+  }
+
+  .backButton {
+    min-width: 34px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .backText {
+    display: none;
+  }
+}

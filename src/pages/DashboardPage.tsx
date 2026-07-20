@@ -356,13 +356,8 @@ export function DashboardPage() {
       <section className={styles.statsSection}>
         <h2 className={styles.sectionHeading}>{t('dashboard.system_overview')}</h2>
         <div className={styles.bentoGrid}>
-          {quickStats.map((stat, index) => (
-            <Link
-              key={stat.path}
-              to={stat.path}
-              className={styles.bentoCard}
-              style={{ animationDelay: `${index * 45}ms` }}
-            >
+          {quickStats.map((stat) => (
+            <Link key={stat.path} to={stat.path} className={styles.bentoCard}>
               <div className={styles.bentoIcon}>{stat.icon}</div>
               <div className={styles.bentoContent}>
                 <span className={styles.bentoValue}>{stat.loading ? '…' : stat.value}</span>

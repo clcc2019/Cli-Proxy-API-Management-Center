@@ -2,6 +2,10 @@
 
 :root {
   --header-height: 64px;
+  --page-padding-inline: clamp(20px, 1.5vw, 24px);
+  --page-padding-block: clamp(20px, 2vw, 28px);
+  --page-content-gap: clamp(16px, 1.4vw, 24px);
+  --page-title-size: clamp(24px, 2vw, 30px);
 }
 
 .app-shell {
@@ -561,7 +565,7 @@
 .sidebar {
   width: 200px;
   background: var(--sidebar-surface, var(--surface-overlay));
-  border-right: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  border-right: 1px solid var(--border-color);
   padding: 12px 10px;
   display: flex;
   flex-direction: column;
@@ -572,9 +576,7 @@
   overflow-y: auto;
   flex-shrink: 0;
   height: 100%;
-  box-shadow:
-    var(--sidebar-shadow),
-    inset 1px 0 0 color-mix(in srgb, var(--surface-sheen) 42%, transparent);
+  box-shadow: var(--sidebar-shadow);
 
   &.collapsed {
     width: 64px;
@@ -599,8 +601,9 @@
     border-radius: 10px;
     border: 1px solid transparent;
     color: var(--text-secondary);
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 620;
+    font-size: 13.5px;
+    line-height: 1.35;
     display: flex;
     align-items: center;
     gap: $spacing-sm;
@@ -617,7 +620,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      opacity: 0.96;
+      color: var(--text-secondary);
       border-radius: 8px;
       background: color-mix(in srgb, var(--panel-surface-muted) 84%, transparent);
       box-shadow:
@@ -636,6 +639,7 @@
     }
 
     .nav-label {
+      color: inherit;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -647,23 +651,18 @@
       color: var(--text-primary);
 
       .nav-icon {
+        color: var(--text-primary);
         background: color-mix(in srgb, var(--surface-raised-strong) 92%, transparent);
         box-shadow: inset 0 0 0 1px var(--border-hover);
       }
     }
 
     &.active {
-      background: linear-gradient(
-        100deg,
-        color-mix(in srgb, var(--primary-color) 15%, transparent),
-        color-mix(in srgb, var(--primary-color) 6%, transparent)
-      );
-      color: var(--primary-color);
-      border: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
-      box-shadow:
-        0 12px 28px -24px color-mix(in srgb, var(--primary-color) 76%, transparent),
-        inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 82%, transparent),
-        inset 0 -1px 0 color-mix(in srgb, var(--primary-color) 8%, transparent);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-weight: 700;
+      border-color: var(--border-primary);
+      box-shadow: none;
 
       &::before {
         content: '';
@@ -673,16 +672,14 @@
         width: 3px;
         height: 18px;
         border-radius: 0 $radius-full $radius-full 0;
-        background: var(--primary-color);
+        background: var(--text-primary);
         transform: translateY(-50%);
-        box-shadow: 0 0 14px color-mix(in srgb, var(--primary-color) 55%, transparent);
       }
 
       .nav-icon {
-        background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-raised));
-        box-shadow:
-          inset 0 1px 0 var(--surface-sheen),
-          inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 30%, transparent);
+        color: var(--text-primary);
+        background: var(--bg-tertiary);
+        box-shadow: inset 0 0 0 1px var(--border-primary);
       }
     }
 
@@ -745,10 +742,10 @@
   min-width: 0;
   max-width: none;
   margin: 0;
-  padding: clamp(20px, 2.2vw, 36px) clamp(20px, 1.5vw, 24px);
+  padding: var(--page-padding-block) var(--page-padding-inline);
   display: flex;
   flex-direction: column;
-  gap: clamp(18px, 1.6vw, 26px);
+  gap: var(--page-content-gap);
   overflow-x: hidden;
   position: relative;
   isolation: isolate;
@@ -768,9 +765,9 @@
   }
 
   @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-md max(#{$spacing-sm}, env(safe-area-inset-right))
+    padding: $spacing-md max(#{$spacing-md}, env(safe-area-inset-right))
       calc(#{$spacing-md} + env(safe-area-inset-bottom))
-      max(#{$spacing-sm}, env(safe-area-inset-left));
+      max(#{$spacing-md}, env(safe-area-inset-left));
   }
 }
 

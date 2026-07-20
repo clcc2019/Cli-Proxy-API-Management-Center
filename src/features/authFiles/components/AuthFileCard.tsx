@@ -80,7 +80,6 @@ const maskAuthFileDisplayName = (value: string): string => {
 
 export type AuthFileCardProps = {
   file: AuthFileItem;
-  compact: boolean;
   selected: boolean;
   resolvedTheme: ResolvedTheme;
   disableControls: boolean;
@@ -144,7 +143,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const { t } = useTranslation();
   const {
     file,
-    compact,
     selected,
     resolvedTheme,
     disableControls,
@@ -200,7 +198,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     return resolveQuotaType(file) === quotaFilterType ? quotaFilterType : null;
   }, [file, quotaFilterType]);
 
-  const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly && !compact;
+  const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly;
 
   const providerCardClass =
     quotaType === 'claude'
@@ -353,12 +351,11 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
   const cardClassName = useMemo(() => {
     const cls = [styles.fileCard];
-    if (compact) cls.push(styles.fileCardCompact);
     if (providerCardClass) cls.push(providerCardClass);
     if (selected) cls.push(styles.fileCardSelected);
     if (file.disabled) cls.push(styles.fileCardDisabled);
     return cls.join(' ');
-  }, [compact, providerCardClass, selected, file.disabled]);
+  }, [providerCardClass, selected, file.disabled]);
   const cardIdentityRowClassName = useMemo(
     () =>
       [styles.cardIdentityRow, hasStatusWarning ? styles.cardIdentityRowWithWarning : '']
@@ -506,7 +503,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </div>
                 )}
               </div>
-              {!compact && noteValue && (
+              {noteValue && (
                 <div className={styles.noteText} title={noteValue}>
                   <span className={styles.noteLabel}>{t('auth_files.note_display')}</span>
                   <span className={styles.noteValue}>{noteValue}</span>
@@ -515,8 +512,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
             </div>
           </div>
 
-          <div className={`${styles.cardInsights} ${compact ? styles.cardInsightsCompact : ''}`}>
-            <div className={`${styles.statusPanel} ${compact ? styles.statusPanelCompact : ''}`}>
+          <div className={styles.cardInsights}>
+            <div className={styles.statusPanel}>
               <div className={styles.statusPanelLabel}>
                 <span className={styles.statusPanelTitle}>
                   {t('auth_files.health_status_label')}
