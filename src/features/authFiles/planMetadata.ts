@@ -3,6 +3,7 @@ import { normalizePlanType, normalizeUnixTimestampSeconds } from '@/utils/quota/
 import { resolveCodexPlanType, resolveCodexSubscriptionActiveUntil } from '@/utils/quota/resolvers';
 import { normalizeProviderKey } from './constants';
 
+const PLUS_CODEX_PLAN_TYPES = new Set(['plus', 'k12']);
 const PREMIUM_CODEX_PLAN_TYPES = new Set(['pro', 'prolite', 'pro-lite', 'pro_lite']);
 
 export type AuthFilePlanBadgeInfo = {
@@ -20,10 +21,10 @@ type CodexPlanSignal = {
   subscriptionUntil: string | number | null;
 };
 
-const isCodexPremiumPlanType = (
-  planType: string | null | undefined
-): planType is string =>
-  Boolean(planType && (planType === 'plus' || PREMIUM_CODEX_PLAN_TYPES.has(planType)));
+const isCodexPremiumPlanType = (planType: string | null | undefined): planType is string =>
+  Boolean(
+    planType && (PLUS_CODEX_PLAN_TYPES.has(planType) || PREMIUM_CODEX_PLAN_TYPES.has(planType))
+  );
 
 const isFutureTimestamp = (value: unknown, nowMs = Date.now()) => {
   const timestampSec = normalizeUnixTimestampSeconds(value);
@@ -40,7 +41,10 @@ const resolveActiveCodexPlanType = (
   nowMs = Date.now()
 ): string | null => {
   for (const signal of signals) {
-    if (isCodexPremiumPlanType(signal.planType) && isFutureTimestamp(signal.subscriptionUntil, nowMs)) {
+    if (
+      isCodexPremiumPlanType(signal.planType) &&
+      isFutureTimestamp(signal.subscriptionUntil, nowMs)
+    ) {
       return signal.planType;
     }
   }
@@ -82,7 +86,7 @@ export const resolveAuthFilePlanBadge = (
         subscriptionUntil: sources.codexQuota[file.name]?.subscriptionUntil ?? null,
       },
     ]);
-    if (planType === 'plus') {
+    if (PLUS_CODEX_PLAN_TYPES.has(planType ?? '')) {
       return { kind: 'plus', labelKey: 'codex_quota.plan_plus' };
     }
     if (PREMIUM_CODEX_PLAN_TYPES.has(planType ?? '')) {
@@ -101,7 +105,5 @@ export const resolveAuthFilePlanBadge = (
   return null;
 };
 
-export const hasPremiumAuthFilePlan = (
-  file: AuthFileItem,
-  sources: AuthFilePlanSources
-): boolean => resolveAuthFilePlanBadge(file, sources) !== null;
+export const hasPremiumAuthFilePlan = (file: AuthFileItem, sources: AuthFilePlanSources): boolean =>
+  resolveAuthFilePlanBadge(file, sources) !== null;
