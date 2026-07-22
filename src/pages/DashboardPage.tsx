@@ -15,7 +15,6 @@ interface QuickStat {
   value: number | string;
   icon: React.ReactNode;
   path: string;
-  tone: 'keys' | 'providers' | 'credentials' | 'models';
   loading?: boolean;
   sublabel?: string;
 }
@@ -382,7 +381,6 @@ export function DashboardPage() {
         value: stats.apiKeys ?? '-',
         icon: <IconKey size={24} />,
         path: '/config',
-        tone: 'keys',
         loading: isStatsLoading && stats.apiKeys === null,
         sublabel: t('nav.config_management'),
       },
@@ -391,7 +389,6 @@ export function DashboardPage() {
         value: isStatsLoading ? '-' : providerStatsReady ? totalProviderKeys : '-',
         icon: <IconBot size={24} />,
         path: '/ai-providers',
-        tone: 'providers',
         loading: isStatsLoading,
         sublabel: hasProviderStats
           ? t('dashboard.provider_keys_detail', {
@@ -405,7 +402,6 @@ export function DashboardPage() {
         value: stats.authFiles ?? '-',
         icon: <IconFileText size={24} />,
         path: '/auth-files',
-        tone: 'credentials',
         loading: isStatsLoading && stats.authFiles === null,
         sublabel: t('dashboard.oauth_credentials'),
       },
@@ -414,7 +410,6 @@ export function DashboardPage() {
         value: modelsLoading ? '-' : models.length,
         icon: <IconSatellite size={24} />,
         path: '/system',
-        tone: 'models',
         loading: modelsLoading,
         sublabel: t('dashboard.available_models_desc'),
       },
@@ -464,8 +459,16 @@ export function DashboardPage() {
 
   return (
     <div className={styles.dashboard}>
+      <div className={styles.backgroundOrbs} aria-hidden="true">
+        <div className={styles.orb1} />
+        <div className={styles.orb2} />
+      </div>
+
       {/* Hero welcome section */}
       <section className={styles.hero}>
+        <span className={styles.heroWatermark} aria-hidden="true">
+          OVERVIEW
+        </span>
         <div className={styles.heroContent}>
           <HeroGreeting />
         </div>
@@ -493,19 +496,15 @@ export function DashboardPage() {
       <section className={styles.statsSection}>
         <h2 className={styles.sectionHeading}>{t('dashboard.system_overview')}</h2>
         <div className={styles.bentoGrid}>
-          {quickStats.map((stat) => (
+          {quickStats.map((stat, index) => (
             <Link
               key={stat.path}
               to={stat.path}
-              className={`${styles.bentoCard} ${styles[`bentoCard${stat.tone}`]}`}
+              className={`${styles.bentoCard} ${index === 0 ? styles.bentoLarge : ''}`}
               aria-label={`${stat.label}: ${stat.loading ? '…' : stat.value}`}
+              style={{ animationDelay: `${index * 80}ms` }}
             >
-              <div className={styles.bentoCardHeader}>
-                <div className={styles.bentoIcon}>{stat.icon}</div>
-                <span className={styles.bentoCardArrow} aria-hidden="true">
-                  ↗
-                </span>
-              </div>
+              <div className={styles.bentoIcon}>{stat.icon}</div>
               <div className={styles.bentoContent}>
                 <span className={styles.bentoValue}>{stat.loading ? '…' : stat.value}</span>
                 <span className={styles.bentoLabel}>{stat.label}</span>
@@ -521,12 +520,7 @@ export function DashboardPage() {
       {/* Config pills section */}
       {config && (
         <section className={styles.configSection}>
-          <div className={styles.configHeader}>
-            <h2 className={styles.sectionHeading}>{t('dashboard.current_config')}</h2>
-            <Link to="/config" className={styles.viewMoreLink}>
-              {t('dashboard.edit_settings')} <span aria-hidden="true">→</span>
-            </Link>
-          </div>
+          <h2 className={styles.sectionHeading}>{t('dashboard.current_config')}</h2>
           <div className={styles.configPillGrid}>
             <div className={styles.configPill}>
               <span className={styles.configPillLabel}>{t('basic_settings.debug_enable')}</span>
@@ -589,6 +583,9 @@ export function DashboardPage() {
               </div>
             )}
           </div>
+          <Link to="/config" className={styles.viewMoreLink}>
+            {t('dashboard.edit_settings')} →
+          </Link>
         </section>
       )}
     </div>

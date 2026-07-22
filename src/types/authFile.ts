@@ -12,6 +12,8 @@ export type AuthFileType =
   | 'empty'
   | 'unknown';
 
+export type CodexAuthMode = 'access_token' | 'agent_identity';
+
 export interface AuthFileItem {
   id?: string;
   name: string;
@@ -49,6 +51,12 @@ export interface AuthFileItem {
   runtimeMetadata?: Record<string, unknown>;
   client_profile?: Record<string, unknown>;
   clientProfile?: Record<string, unknown>;
+  auth_mode?: CodexAuthMode;
+  authMode?: CodexAuthMode;
+  has_access_token?: boolean;
+  hasAccessToken?: boolean;
+  has_agent_identity?: boolean;
+  hasAgentIdentity?: boolean;
   next_retry_after?: string | number;
   modified?: number;
   email?: string;

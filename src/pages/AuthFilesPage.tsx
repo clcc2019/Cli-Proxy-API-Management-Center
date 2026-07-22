@@ -79,7 +79,12 @@ import {
   type AuthFilesUiState,
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
-import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
+import type {
+  AuthFileItem,
+  ClaudeQuotaState,
+  CodexAuthMode,
+  CodexQuotaState,
+} from '@/types';
 import styles from './AuthFilesPage.module.scss';
 
 const AuthFileModelsModal = lazy(() =>
@@ -400,8 +405,8 @@ export function AuthFilesPage() {
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
+  const [authModeUpdating, setAuthModeUpdating] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
-  const [websocketsUpdating, setWebsocketsUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
   const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
@@ -1183,6 +1188,45 @@ export function AuthFilesPage() {
     }
   });
 
+  const handleCodexAuthModeChange = useEventCallback(
+    async (file: AuthFileItem, mode: CodexAuthMode) => {
+      const fileName = file.name;
+      if (disableControls || authModeUpdating[fileName]) return;
+
+      setAuthModeUpdating((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
+      try {
+        const response = await authFilesApi.setCodexAuthMode(fileName, mode);
+        if (!pageMountedRef.current) return;
+        applyLocalFilePatch(fileName, {
+          ...response.file,
+          auth_mode: response.file?.auth_mode ?? response.mode ?? mode,
+        });
+        await refreshFilesFromServer();
+        if (!pageMountedRef.current) return;
+        const messageKey =
+          mode === 'access_token'
+            ? 'auth_files.auth_mode_access_token_success'
+            : response.created
+              ? 'auth_files.auth_mode_agent_identity_created_success'
+              : 'auth_files.auth_mode_agent_identity_success';
+        showNotification(t(messageKey, { name: fileName }), 'success');
+      } catch (error) {
+        if (!pageMountedRef.current) return;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        showNotification(`${t('auth_files.auth_mode_update_failed')}: ${errorMessage}`, 'error');
+      } finally {
+        if (pageMountedRef.current) {
+          setAuthModeUpdating((prev) => {
+            if (!prev[fileName]) return prev;
+            const next = { ...prev };
+            delete next[fileName];
+            return next;
+          });
+        }
+      }
+    }
+  );
+
   const handlePriorityChange = useEventCallback(async (file: AuthFileItem, priority: number) => {
     const fileName = file.name;
     if (disableControls || priorityUpdating[fileName]) return;
@@ -1205,45 +1249,6 @@ export function AuthFilesPage() {
     } finally {
       if (pageMountedRef.current) {
         setPriorityUpdating((prev) => {
-          if (!prev[fileName]) return prev;
-          const next = { ...prev };
-          delete next[fileName];
-          return next;
-        });
-      }
-    }
-  });
-
-  const handleWebsocketsChange = useEventCallback(async (file: AuthFileItem, enabled: boolean) => {
-    const fileName = file.name;
-    if (disableControls || websocketsUpdating[fileName]) return;
-
-    setWebsocketsUpdating((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
-    try {
-      const response = await authFilesApi.patchFields({
-        name: fileName,
-        websockets: enabled,
-      });
-      if (!pageMountedRef.current) return;
-      applyLocalFilePatch(fileName, {
-        ...response.file,
-        websockets: response.file?.websockets ?? response.file?.websocket ?? enabled,
-      });
-      await refreshFilesFromServer();
-      if (!pageMountedRef.current) return;
-      showNotification(
-        enabled
-          ? t('auth_files.websockets_enabled_success', { name: fileName })
-          : t('auth_files.websockets_disabled_success', { name: fileName }),
-        'success'
-      );
-    } catch (error) {
-      if (!pageMountedRef.current) return;
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      showNotification(`${t('notification.update_failed')}: ${errorMessage}`, 'error');
-    } finally {
-      if (pageMountedRef.current) {
-        setWebsocketsUpdating((prev) => {
           if (!prev[fileName]) return prev;
           const next = { ...prev };
           delete next[fileName];
@@ -1577,8 +1582,8 @@ export function AuthFilesPage() {
             deleting={deleting === file.name}
             statusUpdating={statusUpdating[file.name] === true}
             accessTokenCopying={accessTokenCopying[file.name] === true}
+            authModeUpdating={authModeUpdating[file.name] === true}
             priorityUpdating={priorityUpdating[file.name] === true}
-            websocketsUpdating={websocketsUpdating[file.name] === true}
             quotaFilterType={quotaFilterType}
             fileUsageStats={fileUsageStats}
             statusData={statusData}
@@ -1587,8 +1592,8 @@ export function AuthFilesPage() {
             onCopyName={copyTextWithNotification}
             onDownload={handleDownload}
             onCopyAccessToken={handleCopyAccessToken}
+            onAuthModeChange={handleCodexAuthModeChange}
             onPriorityChange={handlePriorityChange}
-            onWebsocketsChange={handleWebsocketsChange}
             onOpenPrefixProxyEditor={openPrefixProxyEditor}
             onAuthFileUpdated={handleAuthFileUpdated}
             onDelete={handleDelete}
@@ -1599,17 +1604,18 @@ export function AuthFilesPage() {
       }),
     [
       accessTokenCopying,
+      authModeUpdating,
       copyTextWithNotification,
       deleting,
       disableControls,
       fileUsageStatsByName,
       handleAuthFileUpdated,
       handleCopyAccessToken,
+      handleCodexAuthModeChange,
       handleDelete,
       handleDownload,
       handlePriorityChange,
       handleStatusToggle,
-      handleWebsocketsChange,
       listUpdating,
       openPrefixProxyEditor,
       pageItems,
@@ -1621,7 +1627,6 @@ export function AuthFilesPage() {
       statusBarCache,
       statusUpdating,
       toggleSelect,
-      websocketsUpdating,
     ]
   );
 

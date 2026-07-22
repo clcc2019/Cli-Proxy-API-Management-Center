@@ -6,6 +6,7 @@ import { apiClient, type ApiRequestConfig } from './client';
 import type { AuthFilesResponse } from '@/types/authFile';
 import { normalizeOAuthReasoningEffort } from '@/utils/oauthModelAlias';
 import type {
+  CodexAuthMode,
   CodexRateLimitResetConsumePayload,
   CodexRateLimitResetCreditsPayload,
   CodexUsagePayload,
@@ -62,6 +63,12 @@ export type PatchAuthFileFieldsPayload = {
 };
 type PatchAuthFileFieldsResponse = {
   status?: string;
+  file?: AuthFileEntry;
+};
+type PatchCodexAuthModeResponse = {
+  status?: string;
+  mode: CodexAuthMode;
+  created?: boolean;
   file?: AuthFileEntry;
 };
 export type AuthFilesListCodexSubscriptionMode = 'cache' | 'refresh' | 'skip';
@@ -649,6 +656,9 @@ export const authFilesApi = {
 
   patchFields: (payload: PatchAuthFileFieldsPayload) =>
     apiClient.patch<PatchAuthFileFieldsResponse>('/auth-files/fields', payload),
+
+  setCodexAuthMode: (name: string, mode: CodexAuthMode) =>
+    apiClient.patch<PatchCodexAuthModeResponse>('/auth-files/codex-auth-mode', { name, mode }),
 
   uploadFiles: async (files: File[]): Promise<AuthFileBatchUploadResult> => {
     const requestedNames = files.map((file) => file.name);

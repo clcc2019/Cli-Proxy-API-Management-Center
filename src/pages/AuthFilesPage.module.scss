@@ -2270,6 +2270,7 @@
       transform: none;
     }
   }
+
 }
 
 @media (max-width: 640px) {
@@ -2835,6 +2836,58 @@
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: 0;
+}
+
+.authModeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  max-width: 112px;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 720;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  svg {
+    flex: 0 0 auto;
+  }
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.authModeBadgeToken {
+  color: var(--auth-stat-token-text);
+  background: var(--auth-stat-token-bg);
+  border-color: var(--auth-stat-token-border);
+}
+
+.authModeBadgeAgent {
+  color: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 82%,
+    var(--text-primary)
+  );
+  background: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 13%,
+    var(--surface-raised)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 34%,
+    transparent
+  );
 }
 
 .featureBadge {
@@ -4498,23 +4551,40 @@
   color: var(--auth-action-hover-text);
 }
 
-.websocketActionButton:global(.btn.btn-sm) {
-  background: var(--auth-action-bg);
-  border-color: var(--auth-action-border);
-  color: var(--auth-action-text);
-}
+.authModeActionButton:global(.btn.btn-sm) {
+  border-color: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 28%,
+    var(--auth-action-border)
+  );
+  background: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 8%,
+    var(--auth-action-bg)
+  );
+  color: color-mix(
+    in srgb,
+    var(--provider-accent, var(--primary-color)) 74%,
+    var(--auth-action-text)
+  );
 
-.websocketActionButtonActive:global(.btn.btn-sm) {
-  background: color-mix(in srgb, var(--info-color) 14%, var(--surface-raised));
-  border-color: color-mix(in srgb, var(--info-color) 46%, var(--border-color));
-  color: color-mix(in srgb, var(--info-color) 88%, var(--text-primary));
-}
-
-.websocketActionButton:global(.btn.btn-sm):hover:not(:disabled),
-.websocketActionButtonActive:global(.btn.btn-sm):hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--info-color) 54%, var(--auth-action-hover-border));
-  background: color-mix(in srgb, var(--info-color) 12%, var(--auth-action-hover-bg));
-  color: color-mix(in srgb, var(--info-color) 82%, var(--auth-action-hover-text));
+  &:hover:not(:disabled) {
+    border-color: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-color)) 46%,
+      var(--auth-action-hover-border)
+    );
+    background: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-color)) 14%,
+      var(--auth-action-hover-bg)
+    );
+    color: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-color)) 86%,
+      var(--auth-action-hover-text)
+    );
+  }
 }
 
 .cardUtilityActions {
@@ -7110,10 +7180,9 @@
   box-shadow: none;
 }
 
-.iconButton:global(.btn.btn-sm),
+.iconButton:not(.authModeActionButton):global(.btn.btn-sm),
 .refreshActionButton:global(.btn.btn-sm),
-.modelsActionButton:global(.btn.btn-sm),
-.websocketActionButton:global(.btn.btn-sm) {
+.modelsActionButton:global(.btn.btn-sm) {
   border-color: var(--auth-neutral-border);
   background: var(--auth-control-surface);
   color: var(--text-secondary);
@@ -7125,12 +7194,6 @@
     color: var(--text-primary);
     box-shadow: none;
   }
-}
-
-.websocketActionButtonActive:global(.btn.btn-sm) {
-  border-color: var(--border-hover);
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
 }
 
 .iconButton:global(.btn.btn-danger.btn-sm) {

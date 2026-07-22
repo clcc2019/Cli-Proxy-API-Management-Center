@@ -105,7 +105,7 @@ export function UsagePage() {
         </div>
       )}
 
-      <div id="usage-actions" className={styles.anchorBlock}>
+      <div id="usage-actions" className={`${styles.anchorBlock} ${styles.introBlock}`}>
         <UsagePageHero
           timeRange={timeRange}
           timeRangeOptions={timeRangeOptions}
@@ -132,7 +132,10 @@ export function UsagePage() {
         </div>
       )}
 
-      <section id="usage-overview" className={`${styles.section} ${styles.overviewPanel}`}>
+      <section
+        id="usage-overview"
+        className={`${styles.section} ${styles.overviewPanel} ${styles.motionSection}`}
+      >
         <UsageSectionIntro
           title={t('usage_stats.overview_title')}
           description={t('usage_stats.overview_desc')}
@@ -158,7 +161,7 @@ export function UsagePage() {
         onChartLinesChange={handleChartLinesChange}
       />
 
-      <div id="usage-analysis" className={styles.anchorBlock}>
+      <div id="usage-analysis" className={`${styles.anchorBlock} ${styles.motionSection}`}>
         <UsageAnalysisSection
           window={deferredWindow}
           loading={loading}

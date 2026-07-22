@@ -15,6 +15,28 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
+
+  > :global(.card) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: systemCardEnter var(--motion-duration-slow) var(--motion-ease-out) both;
+    }
+  }
+
+  > :global(.card):nth-child(1) {
+    animation-delay: 20ms;
+  }
+
+  > :global(.card):nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  > :global(.card):nth-child(3) {
+    animation-delay: 120ms;
+  }
+
+  > :global(.card):nth-child(4) {
+    animation-delay: 170ms;
+  }
 }
 
 .aboutCard {
@@ -37,6 +59,13 @@
   border-radius: 12px;
   object-fit: cover;
   box-shadow: 0 8px 24px -16px rgba(0, 0, 0, 0.28);
+  transition: transform var(--motion-duration-base) var(--motion-ease-out);
+
+  @media (hover: hover) and (pointer: fine) {
+    .aboutCard:hover & {
+      transform: scale(1.025);
+    }
+  }
 }
 
 .aboutTitle {
@@ -73,6 +102,11 @@
   background: var(--surface-card-muted, color-mix(in srgb, var(--bg-secondary) 82%, transparent));
   box-shadow: var(--surface-inner-highlight);
   text-align: left;
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease-out),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .tapTile {
@@ -81,15 +115,13 @@
   color: inherit;
   padding: $spacing-md $spacing-lg;
   cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
 
-  &:hover {
-    transform: translateY(-1px);
-    border-color: var(--primary-color);
-    box-shadow: 0 8px 18px rgba($primary-color, 0.18);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-1px);
+      border-color: var(--primary-color);
+      box-shadow: 0 8px 18px rgba($primary-color, 0.18);
+    }
   }
 
   &:active {
@@ -229,6 +261,18 @@
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease-out),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--primary-color) 38%, var(--border-color));
+      background-color: color-mix(in srgb, var(--primary-color) 6%, var(--bg-secondary));
+    }
+  }
 }
 
 .modelName {
@@ -288,13 +332,23 @@
   border-radius: $radius-lg;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s ease;
+  transition:
+    transform var(--motion-duration-base) var(--motion-ease-out),
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    background-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard);
 
-  &:hover {
-    background-color: var(--bg-hover);
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: var(--bg-hover);
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &:hover .linkIcon {
+      transform: scale(1.04);
+    }
   }
 
   &:active {
@@ -312,6 +366,7 @@
   background-color: var(--primary-color);
   color: white;
   flex-shrink: 0;
+  transition: transform var(--motion-duration-base) var(--motion-ease-out);
 
   &.github {
     background-color: #24292f;
@@ -350,6 +405,18 @@
   text-overflow: ellipsis;
 }
 
+@keyframes systemCardEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (max-width: 768px) {
   .aboutLogo {
     width: 92px;
@@ -373,5 +440,19 @@
     font-weight: 600;
     line-height: 1.22;
     letter-spacing: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content > :global(.card) {
+    animation: none;
+  }
+
+  .aboutLogo,
+  .infoTile,
+  .modelTag,
+  .linkCard,
+  .linkIcon {
+    transition: none;
   }
 }

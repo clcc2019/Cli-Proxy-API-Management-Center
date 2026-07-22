@@ -14,6 +14,7 @@ import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconCopy,
+  IconBot,
   IconDownload,
   IconKey,
   IconModelCluster,
@@ -22,7 +23,7 @@ import {
   IconTrash2,
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
-import type { AuthFileItem } from '@/types';
+import type { AuthFileItem, CodexAuthMode } from '@/types';
 import { resolveAuthProvider } from '@/utils/quota';
 import { formatMillionTokens, type KeyUsageBucket } from '@/utils/usage';
 import {
@@ -86,8 +87,8 @@ export type AuthFileCardProps = {
   deleting: boolean;
   statusUpdating: boolean;
   accessTokenCopying: boolean;
+  authModeUpdating: boolean;
   priorityUpdating: boolean;
-  websocketsUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
   // 由父组件预计算并按文件名缓存，usage stats 不变时引用稳定，避免列表大规模重渲染
   fileUsageStats: KeyUsageBucket;
@@ -97,8 +98,8 @@ export type AuthFileCardProps = {
   onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
   onCopyAccessToken: (file: AuthFileItem) => void;
+  onAuthModeChange: (file: AuthFileItem, mode: CodexAuthMode) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
-  onWebsocketsChange: (file: AuthFileItem, enabled: boolean) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
   onDelete: (name: string) => void;
@@ -139,6 +140,17 @@ const authFileHasRefreshToken = (file: AuthFileItem): boolean => {
   return false;
 };
 
+const resolveCodexAuthMode = (file: AuthFileItem): CodexAuthMode => {
+  const rawMode = String(
+    file.auth_mode ?? file.authMode ?? file['auth_kind'] ?? file['authKind'] ?? ''
+  )
+    .trim()
+    .toLowerCase();
+  return rawMode === 'agent_identity' || rawMode === 'agentidentity'
+    ? 'agent_identity'
+    : 'access_token';
+};
+
 export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps) {
   const { t } = useTranslation();
   const {
@@ -149,8 +161,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     deleting,
     statusUpdating,
     accessTokenCopying,
+    authModeUpdating,
     priorityUpdating,
-    websocketsUpdating,
     quotaFilterType,
     fileUsageStats,
     statusData,
@@ -159,8 +171,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onCopyName,
     onDownload,
     onCopyAccessToken,
+    onAuthModeChange,
     onPriorityChange,
-    onWebsocketsChange,
     onOpenPrefixProxyEditor,
     onAuthFileUpdated,
     onDelete,
@@ -189,6 +201,40 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     [file]
   );
   const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
+  const codexAuthMode = useMemo(() => resolveCodexAuthMode(file), [file]);
+  const hasAccessTokenCapability =
+    file.has_access_token !== undefined || file.hasAccessToken !== undefined;
+  const hasAgentIdentityCapability =
+    file.has_agent_identity !== undefined || file.hasAgentIdentity !== undefined;
+  const hasAccessToken = useMemo(
+    () =>
+      isTruthyFlag(file.has_access_token) ||
+      isTruthyFlag(file.hasAccessToken) ||
+      (!hasAccessTokenCapability && codexAuthMode === 'access_token'),
+    [codexAuthMode, file.hasAccessToken, file.has_access_token, hasAccessTokenCapability]
+  );
+  const hasAgentIdentity = useMemo(
+    () =>
+      isTruthyFlag(file.has_agent_identity) ||
+      isTruthyFlag(file.hasAgentIdentity) ||
+      (!hasAgentIdentityCapability && codexAuthMode === 'agent_identity'),
+    [codexAuthMode, file.hasAgentIdentity, file.has_agent_identity, hasAgentIdentityCapability]
+  );
+  const showCodexAuthModeSwitch = isCodexFile && (hasAccessToken || hasAgentIdentity);
+  const nextCodexAuthMode: CodexAuthMode =
+    codexAuthMode === 'agent_identity' ? 'access_token' : 'agent_identity';
+  const canSwitchCodexAuthMode =
+    nextCodexAuthMode === 'access_token'
+      ? hasAccessToken
+      : hasAgentIdentity || hasAccessToken;
+  const authModeDisplayLabel =
+    codexAuthMode === 'agent_identity'
+      ? t('auth_files.auth_mode_badge_agent_identity')
+      : t('auth_files.auth_mode_badge_access_token');
+  const authModeSwitchLabel =
+    nextCodexAuthMode === 'agent_identity'
+      ? t('auth_files.auth_mode_agent_identity_hint')
+      : t('auth_files.auth_mode_access_token_hint');
   const serviceTierPassthroughBadgeLabel = useMemo(
     () => (serviceTierPassthroughEnabled ? t('auth_files.service_tier_passthrough_badge') : null),
     [serviceTierPassthroughEnabled, t]
@@ -296,10 +342,12 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleShowModels = useEventCallback(() => onShowModels(file));
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
-  const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
-  const handleToggleWebsockets = useEventCallback(() => {
-    onWebsocketsChange(file, !websocketsEnabled);
+  const handleToggleAuthMode = useEventCallback(() => {
+    if (!authModeUpdating && canSwitchCodexAuthMode) {
+      onAuthModeChange(file, nextCodexAuthMode);
+    }
   });
+  const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
   const handleDelete = useEventCallback(() => onDelete(file.name));
   const handleToggleStatus = useEventCallback((value: boolean) => onToggleStatus(file, value));
 
@@ -414,6 +462,29 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   >
                     {typeLabel}
                   </span>
+                  {showCodexAuthModeSwitch && (
+                    <span
+                      className={`${styles.authModeBadge} ${
+                        codexAuthMode === 'agent_identity'
+                          ? styles.authModeBadgeAgent
+                          : styles.authModeBadgeToken
+                      }`}
+                      title={t('auth_files.auth_mode_current_hint', {
+                        mode: authModeDisplayLabel,
+                      })}
+                      role="status"
+                      aria-label={t('auth_files.auth_mode_current_hint', {
+                        mode: authModeDisplayLabel,
+                      })}
+                    >
+                      {codexAuthMode === 'agent_identity' ? (
+                        <IconBot size={11} aria-hidden="true" />
+                      ) : (
+                        <IconKey size={11} aria-hidden="true" />
+                      )}
+                      <span>{authModeDisplayLabel}</span>
+                    </span>
+                  )}
                   {hasRefreshToken && (
                     <span
                       className={styles.refreshTokenBadge}
@@ -574,21 +645,24 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       <IconSettings className={styles.actionIcon} size={18} />
                     </Button>
                   )}
-                  {!isRuntimeOnly && isCodexFile && (
+                  {!isRuntimeOnly && showCodexAuthModeSwitch && (
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={handleToggleWebsockets}
-                      className={`${styles.iconButton} ${websocketsEnabled ? styles.websocketActionButtonActive : styles.websocketActionButton}`}
-                      title={t('ai_providers.codex_websockets_hint')}
-                      aria-label={t('ai_providers.codex_websockets_label')}
-                      aria-pressed={Boolean(websocketsEnabled)}
-                      disabled={disableControls || websocketsUpdating}
+                      onClick={handleToggleAuthMode}
+                      className={`${styles.iconButton} ${styles.authModeActionButton}`}
+                      title={authModeSwitchLabel}
+                      aria-label={authModeSwitchLabel}
+                      disabled={
+                        disableControls || authModeUpdating || !canSwitchCodexAuthMode
+                      }
                     >
-                      {websocketsUpdating ? (
+                      {authModeUpdating ? (
                         <LoadingSpinner size={18} />
+                      ) : nextCodexAuthMode === 'agent_identity' ? (
+                        <IconBot className={styles.actionIcon} size={18} />
                       ) : (
-                        <IconSatellite className={styles.actionIcon} size={18} />
+                        <IconKey className={styles.actionIcon} size={18} />
                       )}
                     </Button>
                   )}
