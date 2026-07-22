@@ -4,6 +4,7 @@
 
 import { apiClient, type ApiRequestConfig } from './client';
 import type { AuthFilesResponse } from '@/types/authFile';
+import { normalizeOAuthReasoningEffort } from '@/utils/oauthModelAlias';
 import type {
   CodexRateLimitResetConsumePayload,
   CodexRateLimitResetCreditsPayload,
@@ -600,7 +601,14 @@ const normalizeOauthModelAlias = (payload: unknown): Record<string, OAuthModelAl
         const alias = String(entry.alias ?? '').trim();
         if (!name || !alias) return null;
         const fork = entry.fork === true;
-        return fork ? { name, alias, fork } : { name, alias };
+        const reasoningEffort = normalizeOAuthReasoningEffort(
+          entry.reasoning_effort ?? entry.reasoningEffort ?? entry['reasoning-effort']
+        );
+        const normalizedEntry: OAuthModelAliasEntry = fork ? { name, alias, fork } : { name, alias };
+        if (reasoningEffort) {
+          normalizedEntry.reasoningEffort = reasoningEffort;
+        }
+        return normalizedEntry;
       })
       .filter(Boolean)
       .filter((entry) => {
@@ -620,6 +628,12 @@ const normalizeOauthModelAlias = (payload: unknown): Record<string, OAuthModelAl
 };
 
 const OAUTH_MODEL_ALIAS_ENDPOINT = '/oauth-model-alias';
+
+const serializeOauthModelAlias = (aliases: OAuthModelAliasEntry[]) =>
+  aliases.map(({ reasoningEffort, ...entry }) => ({
+    ...entry,
+    ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
+  }));
 
 export const authFilesApi = {
   list: async (options: AuthFilesListOptions = {}, config?: ApiRequestConfig) =>
@@ -753,7 +767,7 @@ export const authFilesApi = {
       normalizeOauthModelAlias({ [normalizedChannel]: aliases })[normalizedChannel] ?? [];
     await apiClient.patch(OAUTH_MODEL_ALIAS_ENDPOINT, {
       channel: normalizedChannel,
-      aliases: normalizedAliases,
+      aliases: serializeOauthModelAlias(normalizedAliases),
     });
   },
 

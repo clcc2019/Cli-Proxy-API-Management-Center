@@ -6,6 +6,8 @@ import { useAlignedInterval } from '@/hooks/useAlignedInterval';
 import { useInterval } from '@/hooks/useInterval';
 import { useAuthStore, useConfigStore, useModelsStore } from '@/stores';
 import { apiKeysApi, providersApi, authFilesApi } from '@/services/api';
+import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
+import type { Config } from '@/types';
 import styles from './DashboardPage.module.scss';
 
 interface QuickStat {
@@ -13,6 +15,7 @@ interface QuickStat {
   value: number | string;
   icon: React.ReactNode;
   path: string;
+  tone: 'keys' | 'providers' | 'credentials' | 'models';
   loading?: boolean;
   sublabel?: string;
 }
@@ -26,6 +29,90 @@ type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
 const MINUTE_INTERVAL_MS = 60_000;
 const GREETING_REFRESH_INTERVAL_MS = 5 * 60_000;
+const MODELS_IDLE_LOAD_DELAY_MS = 320;
+const MODELS_IDLE_LOAD_TIMEOUT_MS = 1_500;
+const DASHBOARD_STATS_CACHE_TTL_MS = 1_000;
+
+const getConfiguredItemCount = (items: unknown): number | null =>
+  Array.isArray(items) ? items.length : null;
+
+interface DashboardStatsData {
+  apiKeys: number | null;
+  authFiles: number | null;
+  providers: ProviderStats;
+}
+
+type DashboardStatsCacheEntry = {
+  data: DashboardStatsData;
+  timestamp: number;
+};
+
+const dashboardStatsCache = new Map<string, DashboardStatsCacheEntry>();
+const dashboardStatsRequests = new Map<string, Promise<DashboardStatsData>>();
+
+const getDashboardStatsCacheKey = (apiBase: string, config: Config | null) =>
+  [
+    apiBase,
+    getConfiguredItemCount(config?.apiKeys) ?? 'api-keys-pending',
+    getConfiguredItemCount(config?.codexApiKeys) ?? 'codex-pending',
+    getConfiguredItemCount(config?.claudeApiKeys) ?? 'claude-pending',
+  ].join('|');
+
+const loadDashboardStats = (
+  apiBase: string,
+  config: Config | null,
+  loadApiKeys: () => ReturnType<typeof apiKeysApi.list>
+): Promise<DashboardStatsData> => {
+  const cacheKey = getDashboardStatsCacheKey(apiBase, config);
+  const now = Date.now();
+  const cached = dashboardStatsCache.get(cacheKey);
+  if (cached && now - cached.timestamp < DASHBOARD_STATS_CACHE_TTL_MS) {
+    return Promise.resolve(cached.data);
+  }
+
+  const existingRequest = dashboardStatsRequests.get(cacheKey);
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const configuredApiKeyCount = getConfiguredItemCount(config?.apiKeys);
+  const configuredCodexCount = getConfiguredItemCount(config?.codexApiKeys);
+  const configuredClaudeCount = getConfiguredItemCount(config?.claudeApiKeys);
+  const request = Promise.allSettled([
+    authFilesApi.list({ codexSubscription: 'skip', summary: true, page: 1, pageSize: 1 }),
+    configuredApiKeyCount === null ? loadApiKeys() : Promise.resolve(null),
+    configuredCodexCount === null ? providersApi.getCodexConfigs() : Promise.resolve(null),
+    configuredClaudeCount === null ? providersApi.getClaudeConfigs() : Promise.resolve(null),
+  ]).then(([filesRes, keysRes, codexRes, claudeRes]): DashboardStatsData => {
+    const data = {
+      apiKeys:
+        configuredApiKeyCount ??
+        (keysRes.status === 'fulfilled' && keysRes.value ? keysRes.value.length : null),
+      authFiles:
+        filesRes.status === 'fulfilled'
+          ? (filesRes.value.total ?? filesRes.value.files.length)
+          : null,
+      providers: {
+        codex:
+          configuredCodexCount ??
+          (codexRes.status === 'fulfilled' && codexRes.value ? codexRes.value.length : null),
+        claude:
+          configuredClaudeCount ??
+          (claudeRes.status === 'fulfilled' && claudeRes.value ? claudeRes.value.length : null),
+      },
+    };
+    dashboardStatsCache.set(cacheKey, { data, timestamp: Date.now() });
+    return data;
+  });
+
+  dashboardStatsRequests.set(cacheKey, request);
+  void request.finally(() => {
+    if (dashboardStatsRequests.get(cacheKey) === request) {
+      dashboardStatsRequests.delete(cacheKey);
+    }
+  });
+  return request;
+};
 
 function getTimeOfDay(date = new Date()): TimeOfDay {
   const hour = date.getHours();
@@ -98,6 +185,8 @@ export function DashboardPage() {
   const serverBuildDate = useAuthStore((state) => state.serverBuildDate);
   const apiBase = useAuthStore((state) => state.apiBase);
   const config = useConfigStore((state) => state.config);
+  const configError = useConfigStore((state) => state.error);
+  const fetchConfig = useConfigStore((state) => state.fetchConfig);
 
   const models = useModelsStore((state) => state.models);
   const modelsLoading = useModelsStore((state) => state.loading);
@@ -119,10 +208,38 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const apiKeysCache = useRef<string[]>([]);
+  const apiKeysRequestRef = useRef<ReturnType<typeof apiKeysApi.list> | null>(null);
+  const configRef = useRef(config);
+
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
 
   useEffect(() => {
     apiKeysCache.current = [];
   }, [apiBase, config?.apiKeys]);
+
+  const loadApiKeys = useCallback(() => {
+    if (apiKeysRequestRef.current) {
+      return apiKeysRequestRef.current;
+    }
+
+    const request = apiKeysApi.list();
+    apiKeysRequestRef.current = request;
+    void request.then(
+      () => {
+        if (apiKeysRequestRef.current === request) {
+          apiKeysRequestRef.current = null;
+        }
+      },
+      () => {
+        if (apiKeysRequestRef.current === request) {
+          apiKeysRequestRef.current = null;
+        }
+      }
+    );
+    return request;
+  }, []);
 
   const normalizeApiKeyList = useCallback((input: unknown): string[] => {
     if (!Array.isArray(input)) return [];
@@ -168,14 +285,14 @@ export function DashboardPage() {
       return apiKeysCache.current;
     }
 
-    const configKeys = normalizeApiKeyList(config?.apiKeys);
+    const configKeys = normalizeApiKeyList(configRef.current?.apiKeys);
     if (configKeys.length) {
       apiKeysCache.current = configKeys;
       return configKeys;
     }
 
     try {
-      const list = await apiKeysApi.list();
+      const list = await loadApiKeys();
       const normalized = normalizeApiKeyList(list);
       if (normalized.length) {
         apiKeysCache.current = normalized;
@@ -184,7 +301,7 @@ export function DashboardPage() {
     } catch {
       return [];
     }
-  }, [config?.apiKeys, normalizeApiKeyList]);
+  }, [loadApiKeys, normalizeApiKeyList]);
 
   const fetchModels = useCallback(async () => {
     if (connectionStatus !== 'connected' || !apiBase) {
@@ -201,41 +318,57 @@ export function DashboardPage() {
   }, [connectionStatus, apiBase, resolveApiKeysForModels, fetchModelsFromStore]);
 
   useEffect(() => {
+    if (connectionStatus !== 'connected') {
+      return undefined;
+    }
+
+    // Login and the main layout both populate this shared store. Waiting for that request prevents
+    // a transient config-less dashboard from fetching the same summary a second time with a
+    // different cache key. If configuration fails, retain the endpoint fallbacks below.
+    if (!config && !configError) {
+      void fetchConfig().catch(() => {
+        // The next render receives configError and falls back to the dedicated summary endpoints.
+      });
+      return undefined;
+    }
+
+    let active = true;
     const fetchStats = async () => {
       setLoading(true);
-      try {
-        const [keysRes, filesRes, codexRes, claudeRes] = await Promise.allSettled([
-          apiKeysApi.list(),
-          authFilesApi.list({ codexSubscription: 'skip', summary: true, page: 1, pageSize: 1 }),
-          providersApi.getCodexConfigs(),
-          providersApi.getClaudeConfigs(),
-        ]);
+      const data = await loadDashboardStats(apiBase, configRef.current, loadApiKeys);
 
-        setStats({
-          apiKeys: keysRes.status === 'fulfilled' ? keysRes.value.length : null,
-          authFiles:
-            filesRes.status === 'fulfilled'
-              ? (filesRes.value.total ?? filesRes.value.files.length)
-              : null,
-        });
+      if (!active) return;
 
-        setProviderStats({
-          codex: codexRes.status === 'fulfilled' ? codexRes.value.length : null,
-          claude: claudeRes.status === 'fulfilled' ? claudeRes.value.length : null,
-        });
-      } finally {
-        setLoading(false);
-      }
+      setStats({
+        apiKeys: data.apiKeys,
+        authFiles: data.authFiles,
+      });
+      setProviderStats(data.providers);
+      setLoading(false);
     };
 
-    if (connectionStatus === 'connected') {
-      fetchStats();
-      fetchModels();
-    } else {
-      setLoading(false);
-    }
-  }, [connectionStatus, fetchModels]);
+    void fetchStats();
 
+    // The model endpoint can call through to an upstream provider. It is useful but non-critical
+    // for the dashboard, so leave network and parsing capacity to the initial management requests.
+    const cancelIdleModelsLoad = scheduleIdleTask(
+      () => {
+        void fetchModels();
+      },
+      {
+        delayMs: MODELS_IDLE_LOAD_DELAY_MS,
+        fallbackDelayMs: MODELS_IDLE_LOAD_DELAY_MS,
+        timeoutMs: MODELS_IDLE_LOAD_TIMEOUT_MS,
+      }
+    );
+
+    return () => {
+      active = false;
+      cancelIdleModelsLoad();
+    };
+  }, [apiBase, config, configError, connectionStatus, fetchConfig, fetchModels, loadApiKeys]);
+
+  const isStatsLoading = connectionStatus === 'connected' && loading;
   const providerStatsReady = providerStats.codex !== null && providerStats.claude !== null;
   const hasProviderStats = providerStats.codex !== null || providerStats.claude !== null;
   const totalProviderKeys = providerStatsReady
@@ -249,15 +382,17 @@ export function DashboardPage() {
         value: stats.apiKeys ?? '-',
         icon: <IconKey size={24} />,
         path: '/config',
-        loading: loading && stats.apiKeys === null,
+        tone: 'keys',
+        loading: isStatsLoading && stats.apiKeys === null,
         sublabel: t('nav.config_management'),
       },
       {
         label: t('nav.ai_providers'),
-        value: loading ? '-' : providerStatsReady ? totalProviderKeys : '-',
+        value: isStatsLoading ? '-' : providerStatsReady ? totalProviderKeys : '-',
         icon: <IconBot size={24} />,
         path: '/ai-providers',
-        loading: loading,
+        tone: 'providers',
+        loading: isStatsLoading,
         sublabel: hasProviderStats
           ? t('dashboard.provider_keys_detail', {
               codex: providerStats.codex ?? '-',
@@ -270,7 +405,8 @@ export function DashboardPage() {
         value: stats.authFiles ?? '-',
         icon: <IconFileText size={24} />,
         path: '/auth-files',
-        loading: loading && stats.authFiles === null,
+        tone: 'credentials',
+        loading: isStatsLoading && stats.authFiles === null,
         sublabel: t('dashboard.oauth_credentials'),
       },
       {
@@ -278,6 +414,7 @@ export function DashboardPage() {
         value: modelsLoading ? '-' : models.length,
         icon: <IconSatellite size={24} />,
         path: '/system',
+        tone: 'models',
         loading: modelsLoading,
         sublabel: t('dashboard.available_models_desc'),
       },
@@ -286,7 +423,7 @@ export function DashboardPage() {
       t,
       stats.apiKeys,
       stats.authFiles,
-      loading,
+      isStatsLoading,
       providerStatsReady,
       totalProviderKeys,
       hasProviderStats,
@@ -357,8 +494,18 @@ export function DashboardPage() {
         <h2 className={styles.sectionHeading}>{t('dashboard.system_overview')}</h2>
         <div className={styles.bentoGrid}>
           {quickStats.map((stat) => (
-            <Link key={stat.path} to={stat.path} className={styles.bentoCard}>
-              <div className={styles.bentoIcon}>{stat.icon}</div>
+            <Link
+              key={stat.path}
+              to={stat.path}
+              className={`${styles.bentoCard} ${styles[`bentoCard${stat.tone}`]}`}
+              aria-label={`${stat.label}: ${stat.loading ? '…' : stat.value}`}
+            >
+              <div className={styles.bentoCardHeader}>
+                <div className={styles.bentoIcon}>{stat.icon}</div>
+                <span className={styles.bentoCardArrow} aria-hidden="true">
+                  ↗
+                </span>
+              </div>
               <div className={styles.bentoContent}>
                 <span className={styles.bentoValue}>{stat.loading ? '…' : stat.value}</span>
                 <span className={styles.bentoLabel}>{stat.label}</span>

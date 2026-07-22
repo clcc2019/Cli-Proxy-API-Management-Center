@@ -12,6 +12,12 @@ const DEFAULT_GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com';
 const DEFAULT_ANTHROPIC_VERSION = '2023-06-01';
 const CLAUDE_MODELS_IN_FLIGHT = new Map<string, Promise<ReturnType<typeof normalizeModelList>>>();
 const GEMINI_MODELS_IN_FLIGHT = new Map<string, Promise<ReturnType<typeof normalizeModelList>>>();
+const DIRECT_MODELS_CACHE_TTL_MS = 1_000;
+const DIRECT_MODELS_IN_FLIGHT = new Map<string, Promise<ReturnType<typeof normalizeModelList>>>();
+const DIRECT_MODELS_CACHE = new Map<
+  string,
+  { data: ReturnType<typeof normalizeModelList>; timestamp: number }
+>();
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -83,7 +89,12 @@ export const modelsApi = {
   /**
    * Fetch available models from /v1/models endpoint (for system info page)
    */
-  async fetchModels(baseUrl: string, apiKey?: string, headers: Record<string, string> = {}) {
+  async fetchModels(
+    baseUrl: string,
+    apiKey?: string,
+    headers: Record<string, string> = {},
+    forceRefresh = false
+  ) {
     const endpoint = buildV1ModelsEndpoint(baseUrl);
     if (!endpoint) {
       throw new Error('Invalid base url');
@@ -94,11 +105,36 @@ export const modelsApi = {
       resolvedHeaders.Authorization = `Bearer ${apiKey}`;
     }
 
-    const response = await axios.get(endpoint, {
-      headers: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined
-    });
-    const payload = response.data?.data ?? response.data?.models ?? response.data;
-    return normalizeModelList(payload, { dedupe: true });
+    const signature = buildRequestSignature(endpoint, resolvedHeaders);
+    const cached = DIRECT_MODELS_CACHE.get(signature);
+    if (!forceRefresh && cached && Date.now() - cached.timestamp < DIRECT_MODELS_CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const existingRequest = DIRECT_MODELS_IN_FLIGHT.get(signature);
+    if (!forceRefresh && existingRequest) {
+      return existingRequest;
+    }
+
+    const request = axios
+      .get(endpoint, {
+        headers: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,
+      })
+      .then((response) => {
+        const payload = response.data?.data ?? response.data?.models ?? response.data;
+        const models = normalizeModelList(payload, { dedupe: true });
+        DIRECT_MODELS_CACHE.set(signature, { data: models, timestamp: Date.now() });
+        return models;
+      });
+
+    DIRECT_MODELS_IN_FLIGHT.set(signature, request);
+    try {
+      return await request;
+    } finally {
+      if (DIRECT_MODELS_IN_FLIGHT.get(signature) === request) {
+        DIRECT_MODELS_IN_FLIGHT.delete(signature);
+      }
+    }
   },
 
   /**
@@ -124,7 +160,7 @@ export const modelsApi = {
       provider: 'codex',
       method: 'GET',
       url: endpoint,
-      header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined
+      header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,
     });
 
     if (result.statusCode < 200 || result.statusCode >= 300) {
@@ -156,7 +192,7 @@ export const modelsApi = {
     const result = await apiCallApi.request({
       method: 'GET',
       url: endpoint,
-      header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined
+      header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,
     });
 
     if (result.statusCode < 200 || result.statusCode >= 300) {
@@ -215,7 +251,7 @@ export const modelsApi = {
         provider: 'claude',
         method: 'GET',
         url: endpoint,
-        header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined
+        header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,
       });
 
       if (result.statusCode < 200 || result.statusCode >= 300) {
@@ -272,7 +308,7 @@ export const modelsApi = {
         const result = await apiCallApi.request({
           method: 'GET',
           url: url.toString(),
-          header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined
+          header: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,
         });
 
         if (result.statusCode < 200 || result.statusCode >= 300) {
@@ -294,7 +330,9 @@ export const modelsApi = {
         });
 
         const nextToken =
-          isRecord(payload) && typeof payload.nextPageToken === 'string' ? payload.nextPageToken : '';
+          isRecord(payload) && typeof payload.nextPageToken === 'string'
+            ? payload.nextPageToken
+            : '';
         if (!nextToken) {
           break;
         }

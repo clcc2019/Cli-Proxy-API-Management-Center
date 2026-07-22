@@ -35,10 +35,13 @@ export interface OAuthExcludedModels {
 }
 
 // OAuth 模型别名
+export type OAuthReasoningEffort = Record<string, string>;
+
 export interface OAuthModelAliasEntry {
   name: string;
   alias: string;
   fork?: boolean;
+  reasoningEffort?: OAuthReasoningEffort;
 }
 
 export type OAuthModelAlias = Record<string, OAuthModelAliasEntry[]>;

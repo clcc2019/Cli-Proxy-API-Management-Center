@@ -13,13 +13,22 @@ import { useAuthStore, useNotificationStore } from '@/stores';
 import { authFilesApi } from '@/services/api';
 import type { AuthFileItem, OAuthModelAliasEntry } from '@/types';
 import { generateId } from '@/utils/helpers';
+import {
+  formatOAuthReasoningEffort,
+  parseOAuthReasoningEffortText,
+} from '@/utils/oauthModelAlias';
 import styles from './AuthFilesOAuthModelAliasEditPage.module.scss';
 
 type AuthFileModelItem = { id: string; display_name?: string; type?: string; owned_by?: string };
 
 type LocationState = { fromAuthFiles?: boolean } | null;
 
-type OAuthModelMappingFormEntry = OAuthModelAliasEntry & { id: string };
+type OAuthModelMappingFormEntry = Omit<OAuthModelAliasEntry, 'reasoningEffort'> & {
+  id: string;
+  reasoningEffortText: string;
+};
+
+type OAuthModelMappingFormField = 'name' | 'alias' | 'fork' | 'reasoningEffortText';
 
 const OAUTH_PROVIDER_PRESETS = ['claude', 'codex', 'xai', 'qwen', 'kimi'];
 
@@ -32,6 +41,7 @@ const buildEmptyMappingEntry = (): OAuthModelMappingFormEntry => ({
   name: '',
   alias: '',
   fork: true,
+  reasoningEffortText: '',
 });
 
 const normalizeMappingEntries = (
@@ -45,6 +55,7 @@ const normalizeMappingEntries = (
     name: entry.name ?? '',
     alias: entry.alias ?? '',
     fork: Boolean(entry.fork),
+    reasoningEffortText: formatOAuthReasoningEffort(entry.reasoningEffort),
   }));
 };
 
@@ -69,6 +80,7 @@ export function AuthFilesOAuthModelAliasEditPage() {
   const [mappings, setMappings] = useState<OAuthModelMappingFormEntry[]>([
     buildEmptyMappingEntry(),
   ]);
+  const [mappingErrors, setMappingErrors] = useState<Record<string, string>>({});
   const [modelsList, setModelsList] = useState<AuthFileModelItem[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsError, setModelsError] = useState<'unsupported' | null>(null);
@@ -208,10 +220,12 @@ export function AuthFilesOAuthModelAliasEditPage() {
   useEffect(() => {
     if (!resolvedProviderKey) {
       setMappings([buildEmptyMappingEntry()]);
+      setMappingErrors({});
       return;
     }
     const existing = modelAlias[resolvedProviderKey] ?? [];
     setMappings(normalizeMappingEntries(existing));
+    setMappingErrors({});
   }, [modelAlias, resolvedProviderKey]);
 
   useEffect(() => {
@@ -274,16 +288,30 @@ export function AuthFilesOAuthModelAliasEditPage() {
   );
 
   const updateMappingEntry = useCallback(
-    (index: number, field: keyof OAuthModelAliasEntry, value: string | boolean) => {
+    (index: number, field: OAuthModelMappingFormField, value: string | boolean) => {
+      const entryID = mappings[index]?.id;
       setMappings((prev) =>
-        prev.map((entry, idx) => (idx === index ? { ...entry, [field]: value } : entry))
+        prev.map((entry, idx) => {
+          if (idx !== index) return entry;
+          if (field === 'fork') return { ...entry, fork: Boolean(value) };
+          return { ...entry, [field]: String(value) };
+        })
       );
+      if (entryID) {
+        setMappingErrors((prev) => {
+          if (!prev[entryID]) return prev;
+          const next = { ...prev };
+          delete next[entryID];
+          return next;
+        });
+      }
     },
-    []
+    [mappings]
   );
 
   const addMappingEntry = useCallback(() => {
     setMappings((prev) => [...prev, buildEmptyMappingEntry()]);
+    setMappingErrors({});
   }, []);
 
   const removeMappingEntry = useCallback((index: number) => {
@@ -291,6 +319,7 @@ export function AuthFilesOAuthModelAliasEditPage() {
       const next = prev.filter((_, idx) => idx !== index);
       return next.length ? next : [buildEmptyMappingEntry()];
     });
+    setMappingErrors({});
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -301,17 +330,45 @@ export function AuthFilesOAuthModelAliasEditPage() {
     }
 
     const seen = new Set<string>();
-    const normalized = mappings
-      .map((entry) => {
-        const name = String(entry.name ?? '').trim();
-        const alias = String(entry.alias ?? '').trim();
-        if (!name || !alias) return null;
-        const key = `${name.toLowerCase()}::${alias.toLowerCase()}::${entry.fork ? '1' : '0'}`;
-        if (seen.has(key)) return null;
-        seen.add(key);
-        return entry.fork ? { name, alias, fork: true } : { name, alias };
-      })
-      .filter(Boolean) as OAuthModelAliasEntry[];
+    const errors: Record<string, string> = {};
+    const normalized: OAuthModelAliasEntry[] = [];
+
+    mappings.forEach((entry) => {
+      const name = String(entry.name ?? '').trim();
+      const alias = String(entry.alias ?? '').trim();
+      if (!name || !alias) return;
+
+      const parsedReasoningEffort = parseOAuthReasoningEffortText(entry.reasoningEffortText);
+      if (parsedReasoningEffort.error) {
+        errors[entry.id] =
+          parsedReasoningEffort.error.kind === 'invalid-line'
+            ? t('oauth_model_alias.reasoning_effort_invalid_line', {
+                line: parsedReasoningEffort.error.line,
+              })
+            : t('oauth_model_alias.reasoning_effort_duplicate_source', {
+                source: parsedReasoningEffort.error.source,
+              });
+        return;
+      }
+
+      const key = `${name.toLowerCase()}::${alias.toLowerCase()}::${entry.fork ? '1' : '0'}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      const normalizedEntry: OAuthModelAliasEntry = entry.fork
+        ? { name, alias, fork: true }
+        : { name, alias };
+      if (parsedReasoningEffort.value) {
+        normalizedEntry.reasoningEffort = parsedReasoningEffort.value;
+      }
+      normalized.push(normalizedEntry);
+    });
+
+    setMappingErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      showNotification(t('oauth_model_alias.reasoning_effort_invalid'), 'error');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -473,6 +530,47 @@ export function AuthFilesOAuthModelAliasEditPage() {
                   >
                     <IconX size={14} />
                   </Button>
+                  {resolvedProviderKey === 'codex' && (
+                    <div className={styles.reasoningEffortField}>
+                      <label
+                        className={styles.reasoningEffortLabel}
+                        htmlFor={`oauth-model-alias-reasoning-effort-${entry.id}`}
+                      >
+                        {t('oauth_model_alias.reasoning_effort_label')}
+                      </label>
+                      <textarea
+                        id={`oauth-model-alias-reasoning-effort-${entry.id}`}
+                        className={`input ${styles.reasoningEffortTextarea}`}
+                        aria-describedby={`oauth-model-alias-reasoning-effort-hint-${entry.id}${
+                          mappingErrors[entry.id]
+                            ? ` oauth-model-alias-reasoning-effort-error-${entry.id}`
+                            : ''
+                        }`}
+                        aria-invalid={Boolean(mappingErrors[entry.id])}
+                        placeholder={t('oauth_model_alias.reasoning_effort_placeholder')}
+                        value={entry.reasoningEffortText}
+                        onChange={(event) =>
+                          updateMappingEntry(index, 'reasoningEffortText', event.target.value)
+                        }
+                        disabled={disableControls || saving}
+                        rows={3}
+                      />
+                      <div
+                        id={`oauth-model-alias-reasoning-effort-hint-${entry.id}`}
+                        className={styles.reasoningEffortHint}
+                      >
+                        {t('oauth_model_alias.reasoning_effort_hint')}
+                      </div>
+                      {mappingErrors[entry.id] && (
+                        <div
+                          id={`oauth-model-alias-reasoning-effort-error-${entry.id}`}
+                          className={styles.reasoningEffortError}
+                        >
+                          {mappingErrors[entry.id]}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

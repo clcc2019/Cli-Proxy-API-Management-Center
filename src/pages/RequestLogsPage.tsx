@@ -637,18 +637,11 @@ export function RequestLogsPage() {
       )}
 
       <header className={styles.pageHeader}>
-        <span className={styles.pageEyebrow}>{t('usage_stats.request_events_eyebrow')}</span>
         <h1 className={styles.pageTitle}>{t('nav.request_logs')}</h1>
-        <p className={styles.pageSubtitle}>
-          {t('usage_stats.request_events_page_subtitle', {
-            limit: REQUEST_EVENT_ROWS_LIMIT,
-          })}
-        </p>
       </header>
 
       <section className={styles.summaryGrid} aria-label={t('usage_stats.request_events_title')}>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('usage_stats.request_events_kpi_total')}</span>
           <div className={styles.summaryValueRow}>
             <strong className={styles.summaryValue}>{counts.total}</strong>
             <span className={styles.summaryUnit}>
@@ -663,9 +656,7 @@ export function RequestLogsPage() {
         </div>
 
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>
-            {t('usage_stats.request_events_kpi_avg_latency')}
-          </span>
+
           <div className={styles.summaryValueRow}>
             <strong className={styles.summaryValue}>
               {requestSummary.averageLatencyMs === null
@@ -681,9 +672,7 @@ export function RequestLogsPage() {
         </div>
 
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>
-            {t('usage_stats.request_events_kpi_total_cost')}
-          </span>
+
           <div className={styles.summaryValueRow}>
             <strong className={styles.summaryValue}>{formatUsd(requestSummary.totalCost)}</strong>
           </div>

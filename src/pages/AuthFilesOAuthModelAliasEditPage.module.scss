@@ -228,8 +228,43 @@
 
 .mappingRemove {
   @include mobile {
-    grid-column: 1;
-    grid-row: 3;
+    grid-column: auto;
+    grid-row: auto;
     justify-self: end;
   }
+}
+
+.reasoningEffortField {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: $spacing-xs;
+
+  @include mobile {
+    grid-column: 1;
+  }
+}
+
+.reasoningEffortLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reasoningEffortTextarea {
+  min-height: 78px;
+  resize: vertical;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  line-height: 1.45;
+}
+
+.reasoningEffortHint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.reasoningEffortError {
+  font-size: 12px;
+  color: var(--error-color);
 }

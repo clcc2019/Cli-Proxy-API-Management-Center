@@ -25,6 +25,10 @@ interface ModelsState {
   isCacheValid: (apiBase: string, apiKey?: string) => boolean;
 }
 
+const inFlightModelRequests = new Map<string, Promise<ModelInfo[]>>();
+
+const getModelsRequestKey = (apiBase: string, apiKey: string) => `${apiBase}\u0000${apiKey}`;
+
 export const useModelsStore = create<ModelsState>((set, get) => ({
   models: [],
   loading: false,
@@ -37,32 +41,58 @@ export const useModelsStore = create<ModelsState>((set, get) => ({
 
     // 检查缓存
     if (!forceRefresh && isCacheValid(apiBase, apiKeyScope) && cache) {
-      set({ models: cache.data, error: null });
+      set({ models: cache.data, loading: false, error: null });
       return cache.data;
+    }
+
+    const requestKey = getModelsRequestKey(apiBase, apiKeyScope);
+    const existingRequest = inFlightModelRequests.get(requestKey);
+    if (existingRequest) {
+      return existingRequest;
     }
 
     set({ loading: true, error: null });
 
+    const request = (async () => {
+      try {
+        const list = await modelsApi.fetchModels(
+          apiBase,
+          apiKeyScope || undefined,
+          {},
+          forceRefresh
+        );
+        const now = Date.now();
+
+        set({
+          models: list,
+          loading: false,
+          cache: { data: list, timestamp: now, apiBase, apiKey: apiKeyScope },
+        });
+
+        return list;
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+              ? error
+              : 'Failed to fetch models';
+        set({
+          error: message,
+          loading: false,
+          models: [],
+        });
+        throw error;
+      }
+    })();
+
+    inFlightModelRequests.set(requestKey, request);
     try {
-      const list = await modelsApi.fetchModels(apiBase, apiKeyScope || undefined);
-      const now = Date.now();
-
-      set({
-        models: list,
-        loading: false,
-        cache: { data: list, timestamp: now, apiBase, apiKey: apiKeyScope }
-      });
-
-      return list;
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : typeof error === 'string' ? error : 'Failed to fetch models';
-      set({
-        error: message,
-        loading: false,
-        models: []
-      });
-      throw error;
+      return await request;
+    } finally {
+      if (inFlightModelRequests.get(requestKey) === request) {
+        inFlightModelRequests.delete(requestKey);
+      }
     }
   },
 
@@ -77,5 +107,5 @@ export const useModelsStore = create<ModelsState>((set, get) => ({
     const apiKeyScope = apiKey?.trim() || '';
     if ((cache.apiKey || '') !== apiKeyScope) return false;
     return Date.now() - cache.timestamp < CACHE_EXPIRY_MS;
-  }
+  },
 }));

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authFilesApi } from '@/services/api';
 import { useNotificationStore } from '@/stores';
-import type { AuthFileItem, OAuthModelAliasEntry } from '@/types';
+import type { AuthFileItem, OAuthModelAliasEntry, OAuthReasoningEffort } from '@/types';
 import type { AuthFileModelItem } from '@/features/authFiles/constants';
 import { normalizeProviderKey } from '@/features/authFiles/constants';
 
@@ -31,6 +31,19 @@ const areExcludedRecordsEqual = (
   return Object.keys(left).every((key) => areStringArraysEqual(left[key] ?? [], right[key] ?? []));
 };
 
+const areReasoningEffortsEqual = (
+  left?: OAuthReasoningEffort,
+  right?: OAuthReasoningEffort
+): boolean => {
+  if (left === right) return true;
+  const leftKeys = Object.keys(left ?? {});
+  const rightKeys = Object.keys(right ?? {});
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every((key) => left?.[key] === right?.[key])
+  );
+};
+
 const areModelAliasEntriesEqual = (
   left: OAuthModelAliasEntry[],
   right: OAuthModelAliasEntry[]
@@ -39,7 +52,12 @@ const areModelAliasEntriesEqual = (
   if (left.length !== right.length) return false;
   return left.every((entry, index) => {
     const other = right[index];
-    return entry.name === other?.name && entry.alias === other.alias && entry.fork === other.fork;
+    return (
+      entry.name === other?.name &&
+      entry.alias === other.alias &&
+      entry.fork === other.fork &&
+      areReasoningEffortsEqual(entry.reasoningEffort, other.reasoningEffort)
+    );
   });
 };
 
@@ -447,7 +465,7 @@ export function useAuthFilesOauth(options: UseAuthFilesOauthOptions): UseAuthFil
         const mAlias = (m.alias ?? '').trim().toLowerCase();
         if (mName === nameKey && mAlias === aliasKey) {
           changed = true;
-          return fork ? { ...m, fork: true } : { name: m.name, alias: m.alias };
+          return fork ? { ...m, fork: true } : { ...m, fork: undefined };
         }
         return m;
       });
