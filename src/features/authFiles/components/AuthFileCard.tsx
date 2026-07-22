@@ -202,26 +202,13 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   );
   const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
   const codexAuthMode = useMemo(() => resolveCodexAuthMode(file), [file]);
-  const hasAccessTokenCapability =
-    file.has_access_token !== undefined || file.hasAccessToken !== undefined;
-  const hasAccessToken = useMemo(
-    () =>
-      isTruthyFlag(file.has_access_token) ||
-      isTruthyFlag(file.hasAccessToken) ||
-      (!hasAccessTokenCapability && codexAuthMode === 'access_token'),
-    [codexAuthMode, file.hasAccessToken, file.has_access_token, hasAccessTokenCapability]
-  );
   // Agent Identity may be registered by the server on the first switch.  Do not
-  // use the optional capability flags to decide whether to render the control:
-  // older list responses (and an unregistered identity) report both flags as
-  // false, which previously hid the only way to create/switch the mode.
+  // use optional capability flags to decide whether the control is usable:
+  // a management-summary refresh can omit them temporarily.  The API owns the
+  // authoritative validation for either direction of the mode switch.
   const showCodexAuthModeSwitch = isCodexFile;
   const nextCodexAuthMode: CodexAuthMode =
     codexAuthMode === 'agent_identity' ? 'access_token' : 'agent_identity';
-  const canSwitchCodexAuthMode =
-    nextCodexAuthMode === 'access_token'
-      ? hasAccessToken
-      : true;
   const authModeDisplayLabel =
     codexAuthMode === 'agent_identity'
       ? t('auth_files.auth_mode_badge_agent_identity')
@@ -338,7 +325,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
   const handleToggleAuthMode = useEventCallback(() => {
-    if (!authModeUpdating && canSwitchCodexAuthMode) {
+    if (!authModeUpdating) {
       onAuthModeChange(file, nextCodexAuthMode);
     }
   });
@@ -650,9 +637,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       className={`${styles.iconButton} ${styles.authModeActionButton}`}
                       title={authModeSwitchLabel}
                       aria-label={authModeSwitchLabel}
-                      disabled={
-                        disableControls || authModeUpdating || !canSwitchCodexAuthMode
-                      }
+                      disabled={disableControls || authModeUpdating}
                     >
                       {authModeUpdating ? (
                         <LoadingSpinner size={18} />
