@@ -204,8 +204,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const codexAuthMode = useMemo(() => resolveCodexAuthMode(file), [file]);
   const hasAccessTokenCapability =
     file.has_access_token !== undefined || file.hasAccessToken !== undefined;
-  const hasAgentIdentityCapability =
-    file.has_agent_identity !== undefined || file.hasAgentIdentity !== undefined;
   const hasAccessToken = useMemo(
     () =>
       isTruthyFlag(file.has_access_token) ||
@@ -213,20 +211,17 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
       (!hasAccessTokenCapability && codexAuthMode === 'access_token'),
     [codexAuthMode, file.hasAccessToken, file.has_access_token, hasAccessTokenCapability]
   );
-  const hasAgentIdentity = useMemo(
-    () =>
-      isTruthyFlag(file.has_agent_identity) ||
-      isTruthyFlag(file.hasAgentIdentity) ||
-      (!hasAgentIdentityCapability && codexAuthMode === 'agent_identity'),
-    [codexAuthMode, file.hasAgentIdentity, file.has_agent_identity, hasAgentIdentityCapability]
-  );
-  const showCodexAuthModeSwitch = isCodexFile && (hasAccessToken || hasAgentIdentity);
+  // Agent Identity may be registered by the server on the first switch.  Do not
+  // use the optional capability flags to decide whether to render the control:
+  // older list responses (and an unregistered identity) report both flags as
+  // false, which previously hid the only way to create/switch the mode.
+  const showCodexAuthModeSwitch = isCodexFile;
   const nextCodexAuthMode: CodexAuthMode =
     codexAuthMode === 'agent_identity' ? 'access_token' : 'agent_identity';
   const canSwitchCodexAuthMode =
     nextCodexAuthMode === 'access_token'
       ? hasAccessToken
-      : hasAgentIdentity || hasAccessToken;
+      : true;
   const authModeDisplayLabel =
     codexAuthMode === 'agent_identity'
       ? t('auth_files.auth_mode_badge_agent_identity')
@@ -482,7 +477,9 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       ) : (
                         <IconKey size={11} aria-hidden="true" />
                       )}
-                      <span>{authModeDisplayLabel}</span>
+                      {codexAuthMode !== 'agent_identity' && (
+                        <span>{authModeDisplayLabel}</span>
+                      )}
                     </span>
                   )}
                   {hasRefreshToken && (

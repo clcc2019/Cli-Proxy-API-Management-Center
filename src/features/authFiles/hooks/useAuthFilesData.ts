@@ -162,6 +162,8 @@ const DEFAULT_AUTH_FILES_LIST_OPTIONS: AuthFilesListOptions = {
 
 type LoadFilesBehaviorOptions = {
   silent?: boolean;
+  /** Cancel a same-query request that may contain an older server snapshot. */
+  force?: boolean;
 };
 
 const isCanceledRequestError = (err: unknown): boolean => {
@@ -193,7 +195,7 @@ export type UseAuthFilesDataResult = {
     overrideOptions?: Partial<AuthFilesListOptions>,
     behaviorOptions?: LoadFilesBehaviorOptions
   ) => Promise<void>;
-  refreshFilesFromServer: () => Promise<void>;
+  refreshFilesFromServer: (force?: boolean) => Promise<void>;
   handleUploadClick: () => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleDelete: (name: string) => void;
@@ -468,6 +470,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       behaviorOptions?: LoadFilesBehaviorOptions
     ) => {
       const silent = behaviorOptions?.silent === true;
+      const force = behaviorOptions?.force === true;
       const showFullLoading = !silent && visibleFileCountRef.current === 0;
       const showRefreshing = !silent && !showFullLoading;
       const effectiveListOptions = overrideOptions
@@ -477,7 +480,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         ? getAuthFilesListOptionsKey(effectiveListOptions)
         : listOptionsKey;
 
-      if (loadFilesInFlightRef.current?.key === effectiveListOptionsKey) {
+      if (!force && loadFilesInFlightRef.current?.key === effectiveListOptionsKey) {
         await loadFilesInFlightRef.current.request;
         return;
       }
@@ -579,7 +582,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   }, [listUsesServerPagination, loadFiles]);
 
   const refreshFilesFromServer = useCallback(
-    () => loadFiles(undefined, { silent: true }),
+    (force = false) => loadFiles(undefined, { silent: true, force }),
     [loadFiles]
   );
 

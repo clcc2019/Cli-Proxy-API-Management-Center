@@ -1201,8 +1201,6 @@ export function AuthFilesPage() {
           ...response.file,
           auth_mode: response.file?.auth_mode ?? response.mode ?? mode,
         });
-        await refreshFilesFromServer();
-        if (!pageMountedRef.current) return;
         const messageKey =
           mode === 'access_token'
             ? 'auth_files.auth_mode_access_token_success'
@@ -1210,6 +1208,11 @@ export function AuthFilesPage() {
               ? 'auth_files.auth_mode_agent_identity_created_success'
               : 'auth_files.auth_mode_agent_identity_success';
         showNotification(t(messageKey, { name: fileName }), 'success');
+
+        // The patch response is authoritative. Refresh in the background and
+        // cancel any list request that started before the mode change, so an
+        // older snapshot cannot immediately overwrite the new badge/button.
+        void refreshFilesFromServer(true);
       } catch (error) {
         if (!pageMountedRef.current) return;
         const errorMessage = error instanceof Error ? error.message : String(error);
