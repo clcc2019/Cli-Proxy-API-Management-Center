@@ -23,6 +23,7 @@ import {
   IconTrash2,
   IconX,
 } from '@/components/ui/icons';
+import { useEventCallback } from '@/hooks/useEventCallback';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
@@ -32,7 +33,15 @@ import { copyToClipboard } from '@/utils/clipboard';
 import { downloadBlob } from '@/utils/download';
 import { MANAGEMENT_API_PREFIX } from '@/utils/constants';
 import { formatUnixTimestamp } from '@/utils/format';
-import { HTTP_METHODS, STATUS_GROUPS, resolveStatusGroup, type LogState } from './hooks/logTypes';
+import { getErrorMessage } from '@/utils/error';
+import { LogRow } from './components/LogRow';
+import {
+  HTTP_METHODS,
+  STATUS_GROUPS,
+  resolveStatusGroup,
+  type LogState,
+  type ParsedLogLine,
+} from './hooks/logTypes';
 import { parseLogLine } from './hooks/logParsing';
 import { useLogFilters } from './hooks/useLogFilters';
 import { isNearBottom, useLogScroller } from './hooks/useLogScroller';
@@ -48,21 +57,20 @@ interface ErrorLogItem {
 // 初始只渲染最近 100 行，滚动到顶部再逐步加载更多（避免一次性渲染过多导致卡顿）
 const INITIAL_DISPLAY_LINES = 100;
 const MAX_BUFFER_LINES = 10000;
+// 搜索时最多解析多少条命中行（parseLogLine 每行十余个正则，全量解析
+// 10000 行会让每次按键都卡顿）。超出部分保留最近的若干行并提示用户。
+const SEARCH_PARSE_LIMIT = 500;
 const AUTO_REFRESH_INTERVAL_MS = 8_000;
 const LONG_PRESS_MS = 650;
 const LONG_PRESS_MOVE_THRESHOLD = 10;
 
-const getErrorMessage = (err: unknown): string => {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  if (typeof err !== 'object' || err === null) return '';
-  if (!('message' in err)) return '';
-
-  const message = (err as { message?: unknown }).message;
-  return typeof message === 'string' ? message : '';
-};
-
 type TabType = 'logs' | 'errors';
+
+const LOGS_TAB_ID_PREFIX = 'logs';
+const TAB_ITEMS: ReadonlyArray<{ id: TabType; labelKey: string }> = [
+  { id: 'logs', labelKey: 'logs.log_content' },
+  { id: 'errors', labelKey: 'logs.error_logs_modal_title' },
+];
 
 export function LogsPage() {
   const { t } = useTranslation();
@@ -298,20 +306,41 @@ export function LogsPage() {
   const isSearching = trimmedSearchQuery.length > 0;
   const baseLines = isSearching ? logState.buffer : visibleLines;
 
-  const parsedSearchLines = useMemo(() => {
-    let working = baseLines;
+  // 搜索时 baseLines 是整个 10000 行缓冲（绕开可见窗口），而 parseLogLine
+  // 每行要跑十余个正则。这里先按文本过滤，再对参与解析的行数设上限，
+  // 把每次按键的正则开销从约 13 万次压到可控范围。超出的部分只保留最近的
+  // SEARCH_PARSE_LIMIT 行，并通过 searchTruncatedCount 显式告知用户。
+  const { parsedSearchLines, matchedLineCount, searchTruncatedCount } = useMemo(() => {
+    // 记录每行在 buffer 中的绝对下标：滚动加载更多时 visibleFrom 会整体位移、
+    // 过滤又让渲染下标与 buffer 下标脱钩，只有绝对下标能作为稳定且唯一的
+    // React key（否则每次 load-more 都整列表卸载重建）。
+    const offset = isSearching ? 0 : logState.visibleFrom;
+    let working = baseLines.map((line, i) => ({ line, bufferIndex: offset + i }));
 
     if (hideManagementLogs) {
-      working = working.filter((line) => !line.includes(MANAGEMENT_API_PREFIX));
+      working = working.filter((entry) => !entry.line.includes(MANAGEMENT_API_PREFIX));
     }
 
     if (trimmedSearchQuery) {
       const queryLowered = trimmedSearchQuery.toLowerCase();
-      working = working.filter((line) => line.toLowerCase().includes(queryLowered));
+      working = working.filter((entry) => entry.line.toLowerCase().includes(queryLowered));
     }
 
-    return working.map((line) => parseLogLine(line));
-  }, [baseLines, hideManagementLogs, trimmedSearchQuery]);
+    const matchedCount = working.length;
+    const truncatedCount = Math.max(matchedCount - SEARCH_PARSE_LIMIT, 0);
+    // 只在搜索态截断：非搜索态本身已受可见窗口约束。
+    const limited =
+      trimmedSearchQuery && truncatedCount > 0 ? working.slice(-SEARCH_PARSE_LIMIT) : working;
+
+    return {
+      parsedSearchLines: limited.map((entry) => ({
+        ...parseLogLine(entry.line),
+        bufferIndex: entry.bufferIndex,
+      })),
+      matchedLineCount: matchedCount,
+      searchTruncatedCount: trimmedSearchQuery ? truncatedCount : 0,
+    };
+  }, [baseLines, hideManagementLogs, isSearching, logState.visibleFrom, trimmedSearchQuery]);
 
   const filters = useLogFilters({ parsedLines: parsedSearchLines });
   const structuredFiltersPanelId = 'logs-structured-filters';
@@ -345,10 +374,12 @@ export function LogsPage() {
     return {
       filteredParsedLines: filteredParsed,
       filteredLines: filteredParsed.map((line) => line.raw),
-      removedCount: Math.max(baseLines.length - filteredParsed.length, 0),
+      removedCount: Math.max(matchedLineCount - filteredParsed.length, 0),
     };
+    // 依赖 matchedLineCount（数字）而非 baseLines（每次渲染都是新数组），
+    // 否则 visibleFrom 一变就要重跑整趟过滤。
   }, [
-    baseLines,
+    matchedLineCount,
     filters.methodFilterSet,
     filters.pathFilterSet,
     filters.statusFilterSet,
@@ -362,6 +393,10 @@ export function LogsPage() {
 
   const rawVisibleText = useMemo(() => filteredLines.join('\n'), [filteredLines]);
 
+  // 提到循环外：避免每行都调一次 t()
+  const copyHintLabel = t('logs.double_click_copy_hint');
+  const traceButtonLabel = t('logs.trace_button');
+
   const scroller = useLogScroller({
     logState,
     setLogState,
@@ -374,20 +409,28 @@ export function LogsPage() {
 
   logScrollerRef.current = scroller;
 
-  const copyLogLine = async (raw: string) => {
+  // 以下几个 handler 会传给 memo 化的 LogRow：必须保持引用稳定，
+  // 否则每次渲染新建的函数会让 memo 完全失效。
+  const copyLogLine = useEventCallback(async (raw: string) => {
     const ok = await copyToClipboard(raw);
     if (ok) {
       showNotification(t('logs.copy_success'), 'success');
     } else {
       showNotification(t('logs.copy_failed'), 'error');
     }
-  };
+  });
 
-  const handleLogRowKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>, raw: string) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    event.preventDefault();
+  const handleRowCopy = useEventCallback((raw: string) => {
     void copyLogLine(raw);
-  };
+  });
+
+  const handleLogRowKeyDown = useEventCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>, raw: string) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      void copyLogLine(raw);
+    }
+  );
 
   const clearLongPressTimer = () => {
     if (longPressRef.current?.timer) {
@@ -396,7 +439,7 @@ export function LogsPage() {
     }
   };
 
-  const startLongPress = (event: ReactPointerEvent<HTMLDivElement>, id?: string) => {
+  const startLongPress = useEventCallback((event: ReactPointerEvent<HTMLDivElement>, id?: string) => {
     if (!requestLogEnabled) return;
     if (!id) return;
     if (requestLogId) return;
@@ -413,14 +456,14 @@ export function LogsPage() {
       startY: event.clientY,
       fired: false,
     };
-  };
+  });
 
-  const cancelLongPress = () => {
+  const cancelLongPress = useEventCallback(() => {
     clearLongPressTimer();
     longPressRef.current = null;
-  };
+  });
 
-  const handleLongPressMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+  const handleLongPressMove = useEventCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     const current = longPressRef.current;
     if (!current || current.timer === null || current.fired) return;
     const deltaX = Math.abs(event.clientX - current.startX);
@@ -428,7 +471,29 @@ export function LogsPage() {
     if (deltaX > LONG_PRESS_MOVE_THRESHOLD || deltaY > LONG_PRESS_MOVE_THRESHOLD) {
       cancelLongPress();
     }
-  };
+  });
+
+  const handleRowTrace = useEventCallback((line: ParsedLogLine) => {
+    trace.openTraceModal(line);
+  });
+
+  // tablist 内用左右/Home/End 移动，并把焦点带到新选中的 tab 上
+  const handleTabKeyDown = useEventCallback((event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    const currentIndex = TAB_ITEMS.findIndex((tab) => tab.id === activeTab);
+    let nextIndex: number | null = null;
+
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % TAB_ITEMS.length;
+    else if (event.key === 'ArrowLeft')
+      nextIndex = (currentIndex - 1 + TAB_ITEMS.length) % TAB_ITEMS.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = TAB_ITEMS.length - 1;
+
+    if (nextIndex === null) return;
+    event.preventDefault();
+    const nextTab = TAB_ITEMS[nextIndex];
+    setActiveTab(nextTab.id);
+    document.getElementById(`${LOGS_TAB_ID_PREFIX}-tab-${nextTab.id}`)?.focus();
+  });
 
   const closeRequestLogModal = () => {
     if (requestLogDownloading) return;
@@ -469,25 +534,39 @@ export function LogsPage() {
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>{t('logs.title')}</h1>
 
-      <div className={styles.tabBar}>
-        <button
-          type="button"
-          className={`${styles.tabItem} ${activeTab === 'logs' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('logs')}
-        >
-          {t('logs.log_content')}
-        </button>
-        <button
-          type="button"
-          className={`${styles.tabItem} ${activeTab === 'errors' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('errors')}
-        >
-          {t('logs.error_logs_modal_title')}
-        </button>
+      {/* role=tablist + 方向键切换：否则屏幕阅读器只能听到两个普通按钮，
+          无法得知当前处于哪个视图 */}
+      <div className={styles.tabBar} role="tablist" aria-label={t('logs.title')}>
+        {TAB_ITEMS.map((tab) => {
+          const selected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              id={`${LOGS_TAB_ID_PREFIX}-tab-${tab.id}`}
+              aria-selected={selected}
+              aria-controls={`${LOGS_TAB_ID_PREFIX}-panel-${tab.id}`}
+              // 未选中的 tab 从 Tab 键序列中移除，改由方向键在 tablist 内移动
+              tabIndex={selected ? 0 : -1}
+              className={`${styles.tabItem} ${selected ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+              onKeyDown={handleTabKeyDown}
+            >
+              {t(tab.labelKey)}
+            </button>
+          );
+        })}
       </div>
 
       <div className={styles.content}>
         {activeTab === 'logs' && (
+          // Card 不转发任意 DOM 属性，tabpanel 语义放在外层容器上
+          <div
+            role="tabpanel"
+            id={`${LOGS_TAB_ID_PREFIX}-panel-logs`}
+            aria-labelledby={`${LOGS_TAB_ID_PREFIX}-tab-logs`}
+          >
           <Card className={styles.logCard}>
             {error && (
               <div className="error-box" role="alert">
@@ -735,141 +814,40 @@ export function LogsPage() {
                     </div>
                   </div>
                 )}
+                {/* 搜索命中被截断时必须显式告知，避免让用户以为这就是全部结果 */}
+                {searchTruncatedCount > 0 && (
+                  <div className={styles.loadMoreBanner} role="status">
+                    <span className={styles.loadMoreCount}>
+                      {t('logs.search_truncated', {
+                        count: searchTruncatedCount,
+                        limit: SEARCH_PARSE_LIMIT,
+                      })}
+                    </span>
+                  </div>
+                )}
                 {showRawLogs ? (
                   <pre className={styles.rawLog} spellCheck={false}>
                     {rawVisibleText}
                   </pre>
                 ) : (
                   <div className={styles.logList}>
-                    {parsedVisibleLines.map((line, index) => {
-                      const canTraceRequest = isTraceableRequestPath(line.path);
-                      const hasMeta = Boolean(
-                        line.level ||
-                        line.method ||
-                        typeof line.statusCode === 'number' ||
-                        line.path ||
-                        line.source ||
-                        line.requestId ||
-                        line.latency ||
-                        line.ip ||
-                        canTraceRequest
-                      );
-                      const rowClassNames = [styles.logRow];
-                      if (line.level === 'warn') rowClassNames.push(styles.rowWarn);
-                      if (line.level === 'error' || line.level === 'fatal')
-                        rowClassNames.push(styles.rowError);
-                      return (
-                        <div
-                          key={`${logState.visibleFrom + index}-${line.raw}`}
-                          className={rowClassNames.join(' ')}
-                          tabIndex={0}
-                          aria-label={t('logs.double_click_copy_hint')}
-                          onDoubleClick={() => {
-                            void copyLogLine(line.raw);
-                          }}
-                          onKeyDown={(event) => handleLogRowKeyDown(event, line.raw)}
-                          onPointerDown={(event) => startLongPress(event, line.requestId)}
-                          onPointerUp={cancelLongPress}
-                          onPointerLeave={cancelLongPress}
-                          onPointerCancel={cancelLongPress}
-                          onPointerMove={handleLongPressMove}
-                          title={t('logs.double_click_copy_hint')}
-                        >
-                          <div className={styles.timestamp}>{line.timestamp || ''}</div>
-                          <div className={styles.rowMain}>
-                            {hasMeta && (
-                              <div className={styles.rowMeta}>
-                                {line.level && (
-                                  <span
-                                    className={[
-                                      styles.badge,
-                                      line.level === 'info' ? styles.levelInfo : '',
-                                      line.level === 'warn' ? styles.levelWarn : '',
-                                      line.level === 'error' || line.level === 'fatal'
-                                        ? styles.levelError
-                                        : '',
-                                      line.level === 'debug' ? styles.levelDebug : '',
-                                      line.level === 'trace' ? styles.levelTrace : '',
-                                    ]
-                                      .filter(Boolean)
-                                      .join(' ')}
-                                  >
-                                    {line.level.toUpperCase()}
-                                  </span>
-                                )}
-
-                                {line.method && (
-                                  <span className={[styles.badge, styles.methodBadge].join(' ')}>
-                                    {line.method}
-                                  </span>
-                                )}
-
-                                {typeof line.statusCode === 'number' && (
-                                  <span
-                                    className={[
-                                      styles.badge,
-                                      styles.statusBadge,
-                                      line.statusCode >= 200 && line.statusCode < 300
-                                        ? styles.statusSuccess
-                                        : line.statusCode >= 300 && line.statusCode < 400
-                                          ? styles.statusInfo
-                                          : line.statusCode >= 400 && line.statusCode < 500
-                                            ? styles.statusWarn
-                                            : styles.statusError,
-                                    ].join(' ')}
-                                  >
-                                    {line.statusCode}
-                                  </span>
-                                )}
-
-                                {line.path && (
-                                  <span className={styles.path} title={line.path}>
-                                    {line.path}
-                                  </span>
-                                )}
-
-                                {line.source && (
-                                  <span className={styles.source} title={line.source}>
-                                    {line.source}
-                                  </span>
-                                )}
-
-                                {line.requestId && (
-                                  <span
-                                    className={[styles.badge, styles.requestIdBadge].join(' ')}
-                                    title={line.requestId}
-                                  >
-                                    {line.requestId}
-                                  </span>
-                                )}
-
-                                {line.latency && (
-                                  <span className={styles.pill}>{line.latency}</span>
-                                )}
-                                {line.ip && <span className={styles.pill}>{line.ip}</span>}
-
-                                {canTraceRequest && (
-                                  <button
-                                    type="button"
-                                    className={styles.traceButton}
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      cancelLongPress();
-                                      trace.openTraceModal(line);
-                                    }}
-                                    title={t('logs.trace_button')}
-                                  >
-                                    {t('logs.trace_button')}
-                                  </button>
-                                )}
-                              </div>
-                            )}
-
-                            {line.message && <div className={styles.message}>{line.message}</div>}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {parsedVisibleLines.map((line) => (
+                      <LogRow
+                        // buffer 绝对下标：跨 load-more 保持不变，且天然唯一
+                        key={line.bufferIndex}
+                        line={line}
+                        canTraceRequest={isTraceableRequestPath(line.path)}
+                        copyHint={copyHintLabel}
+                        traceLabel={traceButtonLabel}
+                        styles={styles}
+                        onCopy={handleRowCopy}
+                        onKeyDown={handleLogRowKeyDown}
+                        onPointerDown={startLongPress}
+                        onPointerUp={cancelLongPress}
+                        onPointerMove={handleLongPressMove}
+                        onTrace={handleRowTrace}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
@@ -882,9 +860,15 @@ export function LogsPage() {
               <EmptyState title={t('logs.empty_title')} description={t('logs.empty_desc')} />
             )}
           </Card>
+          </div>
         )}
 
         {activeTab === 'errors' && (
+          <div
+            role="tabpanel"
+            id={`${LOGS_TAB_ID_PREFIX}-panel-errors`}
+            aria-labelledby={`${LOGS_TAB_ID_PREFIX}-tab-errors`}
+          >
           <Card
             extra={
               <Button
@@ -950,6 +934,7 @@ export function LogsPage() {
               </div>
             </div>
           </Card>
+          </div>
         )}
       </div>
 

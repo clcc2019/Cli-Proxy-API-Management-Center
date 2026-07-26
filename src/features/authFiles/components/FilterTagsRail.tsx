@@ -47,6 +47,8 @@ const FilterTagButton = memo(function FilterTagButton({
       type="button"
       className={`${styles.filterTag} ${active ? styles.filterTagActive : ''}`}
       style={style}
+      // 选中态此前仅靠配色与 2px 下划线表达，读屏器无法感知当前筛选项。
+      aria-pressed={active}
       onClick={handleClick}
     >
       <span className={styles.filterTagLabel}>

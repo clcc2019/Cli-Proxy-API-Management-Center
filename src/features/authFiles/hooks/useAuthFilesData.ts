@@ -19,7 +19,7 @@ import { apiClient } from '@/services/api/client';
 import { useNotificationStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import { formatFileSize } from '@/utils/format';
-import { MAX_AUTH_FILE_SIZE } from '@/utils/constants';
+import { AUTH_FILES_REFRESH_EVENT, MAX_AUTH_FILE_SIZE } from '@/utils/constants';
 import { downloadBlob } from '@/utils/download';
 import {
   getTypeLabel,
@@ -585,6 +585,18 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     (force = false) => loadFiles(undefined, { silent: true, force }),
     [loadFiles]
   );
+
+  // OAuth 登录成功后由 useOAuthFlow 广播。页面切换时本页面可能仍被
+  // page-transition 的 stacked-keep 层保留挂载，此时返回不会重新拉取列表，
+  // 所以需要这个显式信号，否则刚认证成功的凭据不会出现。
+  useEffect(() => {
+    const handleExternalRefresh = () => {
+      void refreshFilesFromServer(true);
+    };
+
+    window.addEventListener(AUTH_FILES_REFRESH_EVENT, handleExternalRefresh);
+    return () => window.removeEventListener(AUTH_FILES_REFRESH_EVENT, handleExternalRefresh);
+  }, [refreshFilesFromServer]);
 
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();

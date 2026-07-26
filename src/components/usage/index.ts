@@ -5,13 +5,7 @@ export type { UsagePayload, UseUsageDataReturn } from './hooks/useUsageData';
 export { useUsageAggregateData } from './hooks/useUsageAggregateData';
 export type { UseUsageAggregateDataReturn } from './hooks/useUsageAggregateData';
 
-export { useSparklines } from './hooks/useSparklines';
-export type {
-  SparklineData,
-  SparklineBundle,
-  UseSparklinesOptions,
-  UseSparklinesReturn,
-} from './hooks/useSparklines';
+export type { SparklineData, SparklineBundle } from './hooks/sparklineTypes';
 
 export { useUsageAggregateSparklines } from './hooks/useUsageAggregateSparklines';
 export type {

@@ -1,350 +1,91 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { useNotificationStore, useThemeStore } from '@/stores';
-import { oauthApi, type OAuthProvider } from '@/services/api/oauth';
-import { copyToClipboard } from '@/utils/clipboard';
+import { useNavigate } from 'react-router-dom';
+import { useThemeStore } from '@/stores';
+import type { OAuthProvider } from '@/services/api/oauth';
+import { OAUTH_PROVIDERS, getOAuthProviderDescriptor } from '@/features/oauthLogin/providers';
+import { useOAuthFlow } from '@/features/oauthLogin/useOAuthFlow';
+import { OAuthProviderCard } from '@/features/oauthLogin/components/OAuthProviderCard';
+import { OAuthLoginModal } from '@/features/oauthLogin/components/OAuthLoginModal';
 import styles from './OAuthPage.module.scss';
-import iconCodex from '@/assets/icons/codex.svg';
-import iconClaude from '@/assets/icons/claude.svg';
-import iconGrok from '@/assets/icons/grok.svg';
-import iconKimiLight from '@/assets/icons/kimi-light.svg';
-import iconKimiDark from '@/assets/icons/kimi-dark.svg';
-import iconQwen from '@/assets/icons/qwen.svg';
-
-interface ProviderState {
-  url?: string;
-  state?: string;
-  status?: 'idle' | 'waiting' | 'success' | 'error';
-  error?: string;
-  polling?: boolean;
-  callbackUrl?: string;
-  callbackSubmitting?: boolean;
-  callbackStatus?: 'success' | 'error';
-  callbackError?: string;
-}
-
-type ProviderStateMap = Partial<Record<OAuthProvider, ProviderState>>;
-type ProviderTimerMap = Partial<Record<OAuthProvider, number>>;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object';
-}
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (isRecord(error) && typeof error.message === 'string') return error.message;
-  return typeof error === 'string' ? error : '';
-}
-
-const PROVIDERS: {
-  id: OAuthProvider;
-  titleKey: string;
-  hintKey: string;
-  urlLabelKey: string;
-  icon: string | { light: string; dark: string };
-}[] = [
-  {
-    id: 'codex',
-    titleKey: 'auth_login.codex_oauth_title',
-    hintKey: 'auth_login.codex_oauth_hint',
-    urlLabelKey: 'auth_login.codex_oauth_url_label',
-    icon: iconCodex,
-  },
-  {
-    id: 'anthropic',
-    titleKey: 'auth_login.anthropic_oauth_title',
-    hintKey: 'auth_login.anthropic_oauth_hint',
-    urlLabelKey: 'auth_login.anthropic_oauth_url_label',
-    icon: iconClaude,
-  },
-  {
-    id: 'kimi',
-    titleKey: 'auth_login.kimi_oauth_title',
-    hintKey: 'auth_login.kimi_oauth_hint',
-    urlLabelKey: 'auth_login.kimi_oauth_url_label',
-    icon: { light: iconKimiLight, dark: iconKimiDark },
-  },
-  {
-    id: 'qwen',
-    titleKey: 'auth_login.qwen_oauth_title',
-    hintKey: 'auth_login.qwen_oauth_hint',
-    urlLabelKey: 'auth_login.qwen_oauth_url_label',
-    icon: iconQwen,
-  },
-  {
-    id: 'xai',
-    titleKey: 'auth_login.xai_oauth_title',
-    hintKey: 'auth_login.xai_oauth_hint',
-    urlLabelKey: 'auth_login.xai_oauth_url_label',
-    icon: iconGrok,
-  },
-];
-
-const CALLBACK_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'xai'];
-const OAUTH_POLL_INTERVAL_MS = 3_000;
-const getProviderI18nPrefix = (provider: OAuthProvider) => provider.replace('-', '_');
-const getAuthKey = (provider: OAuthProvider, suffix: string) =>
-  `auth_login.${getProviderI18nPrefix(provider)}_${suffix}`;
-
-const getIcon = (icon: string | { light: string; dark: string }, theme: 'light' | 'dark') => {
-  return typeof icon === 'string' ? icon : icon[theme];
-};
 
 export function OAuthPage() {
   const { t } = useTranslation();
-  const showNotification = useNotificationStore((state) => state.showNotification);
+  const navigate = useNavigate();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
-  const [states, setStates] = useState<ProviderStateMap>({});
-  const timers = useRef<ProviderTimerMap>({});
-  const pollingRequestsInFlight = useRef<ProviderTimerMap>({});
+  const { getState, start, submitCallback, cancel, now } = useOAuthFlow();
+  const [activeProvider, setActiveProvider] = useState<OAuthProvider | null>(null);
 
-  const clearTimers = useCallback(() => {
-    Object.values(timers.current).forEach((timer) => window.clearInterval(timer));
-    timers.current = {};
-    pollingRequestsInFlight.current = {};
+  const activeDescriptor = activeProvider ? getOAuthProviderDescriptor(activeProvider) : undefined;
+  const activeState = activeProvider ? getState(activeProvider) : { phase: 'idle' as const };
+
+  const handleStart = useCallback(
+    (provider: OAuthProvider) => {
+      setActiveProvider(provider);
+      void start(provider);
+    },
+    [start]
+  );
+
+  // 关闭弹窗不影响轮询：授权在外部浏览器完成，用户可能关掉弹窗去别处等待，
+  // 卡片上的状态徽标会继续反映进度。
+  const handleClose = useCallback(() => {
+    setActiveProvider(null);
   }, []);
 
-  const stopPolling = useCallback((provider: OAuthProvider, expectedTimer?: number) => {
-    const timer = timers.current[provider];
-    if (!timer || (expectedTimer !== undefined && timer !== expectedTimer)) {
-      return;
-    }
+  const handleCancel = useCallback(() => {
+    if (activeProvider) cancel(activeProvider);
+    setActiveProvider(null);
+  }, [activeProvider, cancel]);
 
-    window.clearInterval(timer);
-    delete timers.current[provider];
-    if (
-      expectedTimer === undefined ||
-      pollingRequestsInFlight.current[provider] === expectedTimer
-    ) {
-      delete pollingRequestsInFlight.current[provider];
-    }
-  }, []);
+  const handleRestart = useCallback(() => {
+    if (activeProvider) void start(activeProvider);
+  }, [activeProvider, start]);
 
-  useEffect(() => {
-    return () => {
-      clearTimers();
-    };
-  }, [clearTimers]);
+  const handleSubmitCallback = useCallback(
+    (redirectUrl: string) => {
+      if (activeProvider) void submitCallback(activeProvider, redirectUrl);
+    },
+    [activeProvider, submitCallback]
+  );
 
-  const updateProviderState = (provider: OAuthProvider, next: Partial<ProviderState>) => {
-    setStates((prev) => ({
-      ...prev,
-      [provider]: { ...(prev[provider] ?? {}), ...next },
-    }));
-  };
-
-  const startPolling = (provider: OAuthProvider, state: string) => {
-    stopPolling(provider);
-
-    const timer = window.setInterval(async () => {
-      if (pollingRequestsInFlight.current[provider] === timer) {
-        return;
-      }
-
-      pollingRequestsInFlight.current[provider] = timer;
-      try {
-        const res = await oauthApi.getAuthStatus(state);
-        if (res.status === 'ok') {
-          updateProviderState(provider, { status: 'success', polling: false });
-          showNotification(t(getAuthKey(provider, 'oauth_status_success')), 'success');
-          stopPolling(provider, timer);
-        } else if (res.status === 'error') {
-          updateProviderState(provider, { status: 'error', error: res.error, polling: false });
-          showNotification(
-            `${t(getAuthKey(provider, 'oauth_status_error'))} ${res.error || ''}`,
-            'error'
-          );
-          stopPolling(provider, timer);
-        }
-      } catch (err: unknown) {
-        updateProviderState(provider, {
-          status: 'error',
-          error: getErrorMessage(err),
-          polling: false,
-        });
-        stopPolling(provider, timer);
-      } finally {
-        if (pollingRequestsInFlight.current[provider] === timer) {
-          delete pollingRequestsInFlight.current[provider];
-        }
-      }
-    }, OAUTH_POLL_INTERVAL_MS);
-    timers.current[provider] = timer;
-  };
-
-  const startAuth = async (provider: OAuthProvider) => {
-    updateProviderState(provider, {
-      status: 'waiting',
-      polling: true,
-      error: undefined,
-      callbackStatus: undefined,
-      callbackError: undefined,
-      callbackUrl: '',
-    });
-    try {
-      const res = await oauthApi.startAuth(provider);
-      updateProviderState(provider, {
-        url: res.url,
-        state: res.state,
-        status: 'waiting',
-        polling: true,
-      });
-      if (res.state) {
-        startPolling(provider, res.state);
-      }
-    } catch (err: unknown) {
-      const message = getErrorMessage(err);
-      updateProviderState(provider, { status: 'error', error: message, polling: false });
-      showNotification(
-        `${t(getAuthKey(provider, 'oauth_start_error'))}${message ? ` ${message}` : ''}`,
-        'error'
-      );
-    }
-  };
-
-  const copyLink = async (url?: string) => {
-    if (!url) return;
-    const copied = await copyToClipboard(url);
-    showNotification(
-      t(copied ? 'notification.link_copied' : 'notification.copy_failed'),
-      copied ? 'success' : 'error'
-    );
-  };
-
-  const submitCallback = async (provider: OAuthProvider) => {
-    const redirectUrl = (states[provider]?.callbackUrl || '').trim();
-    if (!redirectUrl) {
-      showNotification(t('auth_login.oauth_callback_required'), 'warning');
-      return;
-    }
-    updateProviderState(provider, {
-      callbackSubmitting: true,
-      callbackStatus: undefined,
-      callbackError: undefined,
-    });
-    try {
-      await oauthApi.submitCallback(provider, redirectUrl);
-      updateProviderState(provider, { callbackSubmitting: false, callbackStatus: 'success' });
-      showNotification(t('auth_login.oauth_callback_success'), 'success');
-    } catch (err: unknown) {
-      const message = getErrorMessage(err);
-      const errorMessage = message || undefined;
-      updateProviderState(provider, {
-        callbackSubmitting: false,
-        callbackStatus: 'error',
-        callbackError: errorMessage,
-      });
-      const notificationMessage = errorMessage
-        ? `${t('auth_login.oauth_callback_error')} ${errorMessage}`
-        : t('auth_login.oauth_callback_error');
-      showNotification(notificationMessage, 'error');
-    }
-  };
+  const handleGotoAuthFiles = useCallback(() => {
+    setActiveProvider(null);
+    navigate('/auth-files');
+  }, [navigate]);
 
   return (
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>{t('nav.oauth')}</h1>
 
       <div className={styles.content}>
-        {PROVIDERS.map((provider) => {
-          const state = states[provider.id] || {};
-          const canSubmitCallback = CALLBACK_SUPPORTED.includes(provider.id) && Boolean(state.url);
-          return (
-            <div key={provider.id}>
-              <Card
-                title={
-                  <span className={styles.cardTitle}>
-                    <img
-                      src={getIcon(provider.icon, resolvedTheme)}
-                      alt=""
-                      className={`${styles.cardTitleIcon} ${
-                        provider.id === 'xai' ? styles.cardTitleIconDarkInvert : ''
-                      }`}
-                    />
-                    {t(provider.titleKey)}
-                  </span>
-                }
-                extra={
-                  <Button onClick={() => startAuth(provider.id)} loading={state.polling}>
-                    {t('common.login')}
-                  </Button>
-                }
-              >
-                <div className={styles.cardContent}>
-                  <div className={styles.cardHint}>{t(provider.hintKey)}</div>
-                  {state.url && (
-                    <div className={styles.authUrlBox}>
-                      <div className={styles.authUrlLabel}>{t(provider.urlLabelKey)}</div>
-                      <div className={styles.authUrlValue}>{state.url}</div>
-                      <div className={styles.authUrlActions}>
-                        <Button variant="secondary" size="sm" onClick={() => copyLink(state.url!)}>
-                          {t(getAuthKey(provider.id, 'copy_link'))}
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => window.open(state.url, '_blank', 'noopener,noreferrer')}
-                        >
-                          {t(getAuthKey(provider.id, 'open_link'))}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                  {canSubmitCallback && (
-                    <div className={styles.callbackSection}>
-                      <Input
-                        label={t('auth_login.oauth_callback_label')}
-                        hint={t('auth_login.oauth_callback_hint')}
-                        value={state.callbackUrl || ''}
-                        onChange={(e) =>
-                          updateProviderState(provider.id, {
-                            callbackUrl: e.target.value,
-                            callbackStatus: undefined,
-                            callbackError: undefined,
-                          })
-                        }
-                        placeholder={t('auth_login.oauth_callback_placeholder')}
-                      />
-                      <div className={styles.callbackActions}>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => submitCallback(provider.id)}
-                          loading={state.callbackSubmitting}
-                        >
-                          {t('auth_login.oauth_callback_button')}
-                        </Button>
-                      </div>
-                      {state.callbackStatus === 'success' && state.status === 'waiting' && (
-                        <div className="status-badge success">
-                          {t('auth_login.oauth_callback_status_success')}
-                        </div>
-                      )}
-                      {state.callbackStatus === 'error' && (
-                        <div className="status-badge error">
-                          {t('auth_login.oauth_callback_status_error')} {state.callbackError || ''}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {state.status && state.status !== 'idle' && (
-                    <div className="status-badge">
-                      {state.status === 'success'
-                        ? t(getAuthKey(provider.id, 'oauth_status_success'))
-                        : state.status === 'error'
-                          ? `${t(getAuthKey(provider.id, 'oauth_status_error'))} ${state.error || ''}`
-                          : t(getAuthKey(provider.id, 'oauth_status_waiting'))}
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          );
-        })}
+        <div className={styles.providerGrid}>
+          {OAUTH_PROVIDERS.map((provider) => (
+            <OAuthProviderCard
+              key={provider.id}
+              provider={provider}
+              state={getState(provider.id)}
+              theme={resolvedTheme}
+              onStart={() => handleStart(provider.id)}
+              onOpen={() => setActiveProvider(provider.id)}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* key 绑定 provider：切换 provider 时重新挂载，回调输入框的草稿自然清空 */}
+      <OAuthLoginModal
+        key={activeProvider ?? 'none'}
+        open={activeProvider !== null}
+        provider={activeDescriptor ?? null}
+        state={activeState}
+        now={now}
+        onClose={handleClose}
+        onCancel={handleCancel}
+        onRestart={handleRestart}
+        onSubmitCallback={handleSubmitCallback}
+        onGotoAuthFiles={handleGotoAuthFiles}
+      />
     </div>
   );
 }

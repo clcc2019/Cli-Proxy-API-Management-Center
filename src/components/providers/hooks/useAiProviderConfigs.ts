@@ -14,18 +14,13 @@ import {
   withDisableAllModelsRule,
   withoutDisableAllModelsRule,
 } from '../utils';
+import { getErrorMessage } from '@/utils/error';
 
 type ConfigSection = 'codex-api-key' | 'claude-api-key';
 
 const providerConfigSections: Record<ProviderKind, ConfigSection> = {
   codex: 'codex-api-key',
   claude: 'claude-api-key',
-};
-
-const getErrorMessage = (err: unknown) => {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  return '';
 };
 
 interface UseAiProviderConfigsOptions {

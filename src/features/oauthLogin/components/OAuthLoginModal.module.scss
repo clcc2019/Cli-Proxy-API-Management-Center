@@ -1,0 +1,249 @@
+@use '../../../styles/mixins' as *;
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-width: 0;
+
+  :global(.form-group) {
+    margin-bottom: 0;
+  }
+}
+
+.providerHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+// 步骤列表：每一步是「序号 + 标题 + 该步内容」
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-width: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  min-width: 0;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  min-width: 0;
+}
+
+.stepIndex {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: $radius-full;
+  background: var(--primary-soft);
+  color: var(--primary-active);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+// 已完成：实心对勾，与「当前」形成对比，让进度一眼可读
+.stepIndexDone {
+  background: var(--success-badge-bg);
+  color: var(--success-badge-text);
+  border: 1px solid var(--success-badge-border);
+}
+
+// 未开始：降到中性色，避免和当前步争夺注意力
+.stepIndexPending {
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-color);
+}
+
+.stepTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.stepTitlePending {
+  color: var(--text-secondary);
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  min-width: 0;
+  // 与序号圆点左对齐后缩进，形成视觉上的「归属这一步」
+  padding-left: calc(20px + #{$spacing-sm});
+}
+
+.urlBox {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  min-width: 0;
+}
+
+.urlValue {
+  color: var(--text-secondary);
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+  max-width: 100%;
+  // 等宽字体便于逐字核对 URL；限高避免超长 URL 把弹窗撑得过高
+  font-family: $font-mono;
+  font-size: 12px;
+  max-height: 4.5em;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+// 等待态：转圈 + 已等待时长
+.waiting {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.waitingIcon {
+  flex: none;
+  color: var(--primary-color);
+  animation: oauthSpin 900ms linear infinite;
+}
+
+.elapsed {
+  font-variant-numeric: tabular-nums;
+  font-family: $font-mono;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.waitingHint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+}
+
+// 结果面板（成功 / 超时 / 失败）
+.resultPanel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  min-width: 0;
+}
+
+.resultSuccess {
+  background: var(--success-badge-bg);
+  border: 1px solid var(--success-badge-border);
+}
+
+.resultWarning {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+}
+
+.resultError {
+  background: var(--failure-badge-bg);
+  border: 1px solid var(--failure-badge-border);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.resultSuccess .resultHeader {
+  color: var(--success-badge-text);
+}
+
+.resultWarning .resultHeader {
+  color: var(--warning-text);
+}
+
+.resultError .resultHeader {
+  color: var(--failure-badge-text);
+}
+
+.resultIcon {
+  flex: none;
+}
+
+// 回调提交失败的内联提示：轮询仍在继续，所以不占用整块结果面板
+.inlineError {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: var(--failure-badge-bg);
+  border: 1px solid var(--failure-badge-border);
+  color: var(--failure-badge-text);
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.resultMessage {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+// 主操作靠右，与「取消」分开，避免误点
+.footerSpacer {
+  margin-left: auto;
+}
+
+@keyframes oauthSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waitingIcon {
+    animation: none;
+  }
+}

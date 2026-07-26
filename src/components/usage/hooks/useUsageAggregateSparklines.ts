@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { USAGE_CHART_COLORS, withUsageColorAlpha } from '@/utils/usage/chartConfig';
 import { buildAggregateSparklines } from '@/utils/usageAggregate';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
-import type { SparklineBundle } from './useSparklines';
+import type { SparklineBundle } from './sparklineTypes';
 
 export interface UseUsageAggregateSparklinesOptions {
   window: UsageAggregateWindow | null;

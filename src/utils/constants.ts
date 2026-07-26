@@ -32,6 +32,10 @@ export const MIN_AUTH_FILES_PAGE_SIZE = 10;
 export const MAX_AUTH_FILES_PAGE_SIZE = 100;
 export const MAX_AUTH_FILE_SIZE = 10 * 1024 * 1024;
 
+// 跨页面刷新信号：OAuth 认证成功后广播，已挂载的认证文件页面据此静默刷新。
+// 放在这里而不是某个 feature 内，避免 authFiles 与 oauthLogin 互相引用。
+export const AUTH_FILES_REFRESH_EVENT = 'auth-files-refresh';
+
 // 本地存储键名
 export const STORAGE_KEY_AUTH = 'cli-proxy-auth';
 export const STORAGE_KEY_AUTH_SESSION = 'cli-proxy-auth-session';

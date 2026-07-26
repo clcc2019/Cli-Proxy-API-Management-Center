@@ -70,11 +70,6 @@ function resolveManualChunk(id: string) {
     return 'editor';
   }
 
-  // motion 只有 PageTransition 用得到，独立一个 chunk 便于被首屏之外懒加载
-  if (id.includes('/motion/') || id.includes('/motion-dom/')) {
-    return 'motion';
-  }
-
   // yaml 仅 ConfigPage 使用，走独立 chunk
   if (id.includes('/yaml/')) {
     return 'yaml';
@@ -85,14 +80,14 @@ function resolveManualChunk(id: string) {
     return 'http';
   }
 
+  // 注意：这里必须用带边界的匹配。早先的 `id.includes('/react')` 会同时命中
+  // react-chartjs-2 / @uiw/react-codemirror / react-i18next，只是靠上面的
+  // charts / editor 判断先返回才没出事 —— 一旦调整顺序，chart.js 就会被
+  // 悄悄并进 framework 从而进入首屏。改成精确匹配包目录名，不再依赖顺序。
   if (
-    id.includes('react-router-dom') ||
-    id.includes('react-dom') ||
-    id.includes('react/') ||
-    id.includes('/react') ||
-    id.includes('i18next') ||
-    id.includes('react-i18next') ||
-    id.includes('zustand')
+    /node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|i18next|react-i18next|zustand)\//.test(
+      id
+    )
   ) {
     return 'framework';
   }

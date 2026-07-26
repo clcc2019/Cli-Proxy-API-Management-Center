@@ -284,10 +284,10 @@
   cursor: pointer;
   white-space: nowrap;
   transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     border-color: color-mix(in srgb, var(--filter-color) 38%, var(--border-color));
@@ -307,8 +307,8 @@
 
   .filterTagIconWrap {
     transition:
-      border-color 0.18s ease,
-      background-color 0.18s ease;
+      border-color var(--motion-duration-fast) var(--motion-ease-standard),
+      background-color var(--motion-duration-fast) var(--motion-ease-standard);
   }
 }
 
@@ -479,9 +479,9 @@
   background: var(--auth-control-surface);
   box-shadow: var(--control-shadow);
   transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
@@ -550,8 +550,8 @@
   flex: 0 0 auto;
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background: color-mix(in srgb, var(--text-tertiary) 22%, transparent);
@@ -578,10 +578,10 @@
   box-shadow: var(--control-shadow);
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
@@ -622,7 +622,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  animation: searchToolbarPopoverIn 0.12s ease-out;
+  animation: searchToolbarPopoverIn var(--motion-duration-fast) var(--motion-ease-out);
 }
 
 @keyframes searchToolbarPopoverIn {
@@ -669,7 +669,7 @@
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background: color-mix(in srgb, var(--text-tertiary) 12%, transparent);
@@ -715,9 +715,9 @@
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition:
-    border-color 0.15s ease,
-    color 0.15s ease,
-    background 0.15s ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    background var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     color: var(--text-primary);
@@ -855,101 +855,6 @@
   opacity: 0.86;
 }
 
-.filterControls {
-  display: grid;
-  grid-template-columns: minmax(240px, 1.4fr) repeat(2, minmax(120px, 0.72fr)) minmax(220px, auto);
-  gap: $spacing-md;
-  align-items: flex-end;
-
-  // 修复 Input 组件在 filterItem 中的嵌套样式
-  :global(.form-group) {
-    margin: 0;
-  }
-
-  :global(.input) {
-    height: 40px;
-    box-sizing: border-box;
-  }
-
-  @include tablet {
-    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(140px, 0.8fr));
-  }
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-.filterItem {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-
-  label {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    font-weight: 600;
-    letter-spacing: 0;
-    text-transform: uppercase;
-    white-space: nowrap;
-    opacity: 0.86;
-  }
-}
-
-.filterToggleItem {
-  min-width: 0;
-
-  @include tablet {
-    grid-column: 1 / -1;
-  }
-}
-
-.filterToggleGroup {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  min-height: 40px;
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-.filterToggleCard {
-  display: flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 10px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
-  transition:
-    border-color $transition-fast,
-    background-color $transition-fast;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
-    background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
-  }
-}
-
-.filterToggle {
-  display: flex;
-  align-items: center;
-  min-height: 40px;
-  padding-inline: 2px;
-}
-
-.filterToggleLabel {
-  display: inline-flex;
-  align-items: center;
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
 .filterChipGroup {
   display: inline-flex;
   flex-wrap: nowrap;
@@ -981,10 +886,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
@@ -1024,9 +929,9 @@
   text-overflow: ellipsis;
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     border-color: color-mix(in srgb, var(--danger-color) 48%, var(--border-color));
@@ -1051,25 +956,6 @@
   &:hover {
     color: color-mix(in srgb, var(--info-color) 92%, var(--text-primary));
     background: color-mix(in srgb, var(--info-color) 16%, var(--auth-control-surface));
-  }
-}
-
-.pageSizeSelect {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-  border-radius: 8px;
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  font-size: 14px;
-  cursor: text;
-  height: 40px;
-  box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 12%, transparent);
   }
 }
 
@@ -1112,21 +998,11 @@
   overflow-wrap: anywhere;
 }
 
-.fileGrid {
-  // 仅过渡 opacity（合成器属性），保证刷新时切换平滑
-  transition: opacity 180ms ease;
-  min-width: 0;
-  max-width: 100%;
-  overflow: visible;
-
-  @include mobile {
-    contain: none;
-    overflow: visible;
-  }
-}
-
+// .fileGrid 的完整定义在下方“卡片网格”一节，此处只保留刷新态的视觉反馈。
 .listSurfaceRefreshing .fileGrid {
   opacity: 0.94;
+  // 刷新期间网格被置为 inert，光标同步提示不可交互。
+  cursor: progress;
 }
 
 .visuallyHidden {
@@ -1154,7 +1030,7 @@
   pointer-events: none;
   box-shadow: 0 4px 14px -10px color-mix(in srgb, var(--primary-color) 70%, transparent);
   opacity: 0;
-  transition: opacity 180ms ease;
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-standard);
 
   &.listProgressBarActive {
     opacity: 1;
@@ -1231,7 +1107,12 @@
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--auth-file-card-min-width)), 1fr));
-  align-items: start;
+  // stretch 让同一行的卡片等高：卡片内容项数不一（配额区、备注、警告、
+  // 最多 5 枚徽章都是可选的），用 start 会让同行卡片高低参差。
+  // 配合 .fileCard 的 min-height:100% 才真正生效。
+  align-items: stretch;
+  // 仅过渡 opacity（合成器属性），保证刷新时切换平滑
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-standard);
   // Hint browser to limit reflow scope to this subtree.
   contain: layout style;
   min-width: 0;
@@ -1267,7 +1148,7 @@
   border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
   background: linear-gradient(180deg, var(--surface-sheen), transparent 44%), var(--surface-raised);
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-  animation: authFileCardEnter 150ms ease-out both;
+  animation: authFileCardEnter var(--motion-duration-fast) var(--motion-ease-out) both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
   &::after {
     content: '';
@@ -1381,79 +1262,17 @@
   }
 }
 
-:global([data-theme='dark']) .fileCardSkeleton {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 5%, transparent), transparent 44%),
-    var(--surface-raised);
-
-  &::after {
-    background: linear-gradient(
-      105deg,
-      transparent 0%,
-      transparent 36%,
-      color-mix(in srgb, #ffffff 10%, transparent) 50%,
-      transparent 64%,
-      transparent 100%
-    );
-  }
-}
-
-// provider grids/controls —— 6 种提供商共用同一套样式（结构相同，视觉差异只在卡片色带）
-.antigravityGrid,
-.codexGrid,
-.geminiCliGrid {
-  display: grid;
-  gap: $spacing-md;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  @include tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-.antigravityControls,
-.codexControls,
-.geminiCliControls {
-  display: flex;
-  gap: $spacing-md;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  margin-bottom: $spacing-md;
-}
-
-.antigravityControl,
-.codexControl,
-.geminiCliControl {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-}
+// 深色骨架屏的表面与扫光已合并进文件末尾唯一的 [data-theme='dark'] 块。
+// 原本放在这里会被后面 .fileCard/.fileCardSkeleton 的中性化重置（background:
+// var(--bg-primary)）按源码顺序覆盖掉，导致深色下扫光不可见。
 
 // 配额提供商复用同一套色彩变量，左侧色标仍由基础卡片样式统一绘制。
-.antigravityCard,
 .claudeCard,
 .codexCard,
-.geminiCliCard,
-.kiroCard,
 .kimiCard {
   --auth-card-border: color-mix(in srgb, var(--provider-accent) 18%, var(--border-color));
   --auth-card-border-hover: color-mix(in srgb, var(--provider-accent) 38%, var(--border-color));
   --auth-card-hover-tint: color-mix(in srgb, var(--provider-accent) 8%, transparent);
-}
-
-.antigravityCard {
-  --provider-accent: var(--accent-cyan);
 }
 
 .claudeCard {
@@ -1462,14 +1281,6 @@
 
 .codexCard {
   --provider-accent: var(--primary-color);
-}
-
-.geminiCliCard {
-  --provider-accent: var(--accent-blue);
-}
-
-.kiroCard {
-  --provider-accent: var(--accent-amber);
 }
 
 .kimiCard {
@@ -1559,7 +1370,7 @@
 
 .pageQuotaRefreshButton .quotaButtonSpinner,
 .refreshActionButton .quotaButtonSpinner {
-  color: color-mix(in srgb, #f59e0b 82%, var(--text-secondary));
+  color: color-mix(in srgb, var(--quota-medium-color) 82%, var(--text-secondary));
 }
 
 .quotaRefreshIconSpinning .quotaRefreshIconSvg,
@@ -1569,8 +1380,8 @@
 }
 
 .quotaRefreshButtonSpinning {
-  border-color: color-mix(in srgb, #f59e0b 48%, var(--border-color));
-  color: color-mix(in srgb, #f59e0b 86%, var(--text-secondary));
+  border-color: color-mix(in srgb, var(--quota-medium-color) 48%, var(--border-color));
+  color: color-mix(in srgb, var(--quota-medium-color) 86%, var(--text-secondary));
   animation: quotaRefreshButtonPulse 1.1s ease-in-out infinite;
 }
 
@@ -1647,12 +1458,8 @@
   height: 7px;
   padding: 1px;
   box-sizing: border-box;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, #ffffff 90%, var(--surface-raised)) 0%,
-    color-mix(in srgb, #eef2f7 58%, var(--bg-tertiary)) 100%
-  );
-  border: 0;
+  // 背景/边框/阴影由后面“Request details visual alignment”一节统一接管
+  // （中性化为 --bg-tertiary），此处不再重复声明冷色渐变。
   border-radius: 999px;
   overflow: hidden;
   box-shadow:
@@ -1666,11 +1473,12 @@
   height: 100%;
   border-radius: 999px;
   overflow: hidden;
-  // 通过 --quota-fill-start/mid/end 变量驱动渐变色，3 种变体共用同一组规则
-  --quota-fill-start: #16a34a;
-  --quota-fill-mid: #22c55e;
-  --quota-fill-end: #86efac;
-  --quota-fill-glow: rgba(34, 197, 94, 0.22);
+  // 通过 --quota-fill-start/mid/end 变量驱动渐变色，3 种变体共用同一组规则。
+  // 默认档与 .quotaBarFillHigh 同值，色阶由主题令牌派生，避免硬编码 Tailwind 色。
+  --quota-fill-start: color-mix(in srgb, var(--success-color) 82%, #000);
+  --quota-fill-mid: var(--success-color);
+  --quota-fill-end: color-mix(in srgb, var(--success-color) 48%, #fff);
+  --quota-fill-glow: color-mix(in srgb, var(--success-color) 22%, transparent);
   background: linear-gradient(
     90deg,
     var(--quota-fill-start),
@@ -1683,9 +1491,9 @@
     0 0 7px var(--quota-fill-glow);
   transition:
     width 0.36s cubic-bezier(0.32, 0.72, 0.2, 1),
-    background-color 0.22s ease,
-    box-shadow 0.22s ease,
-    filter 0.22s ease;
+    background-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
+    filter var(--motion-duration-base) var(--motion-ease-standard);
 
   &::before,
   &::after {
@@ -1710,24 +1518,24 @@
 }
 
 .quotaBarFillHigh {
-  --quota-fill-start: #16a34a;
-  --quota-fill-mid: #22c55e;
-  --quota-fill-end: #86efac;
-  --quota-fill-glow: rgba(34, 197, 94, 0.22);
+  --quota-fill-start: color-mix(in srgb, var(--success-color) 82%, #000);
+  --quota-fill-mid: var(--success-color);
+  --quota-fill-end: color-mix(in srgb, var(--success-color) 48%, #fff);
+  --quota-fill-glow: color-mix(in srgb, var(--success-color) 22%, transparent);
 }
 
 .quotaBarFillMedium {
-  --quota-fill-start: #eab308;
-  --quota-fill-mid: #facc15;
-  --quota-fill-end: #fef08a;
-  --quota-fill-glow: rgba(234, 179, 8, 0.24);
+  --quota-fill-start: color-mix(in srgb, var(--quota-medium-color) 86%, #000);
+  --quota-fill-mid: var(--quota-medium-color);
+  --quota-fill-end: color-mix(in srgb, var(--quota-medium-color) 44%, #fff);
+  --quota-fill-glow: color-mix(in srgb, var(--quota-medium-color) 24%, transparent);
 }
 
 .quotaBarFillLow {
-  --quota-fill-start: #dc2626;
-  --quota-fill-mid: #ef4444;
-  --quota-fill-end: #fca5a5;
-  --quota-fill-glow: rgba(239, 68, 68, 0.24);
+  --quota-fill-start: color-mix(in srgb, var(--error-color) 84%, #000);
+  --quota-fill-mid: var(--error-color);
+  --quota-fill-end: color-mix(in srgb, var(--error-color) 46%, #fff);
+  --quota-fill-glow: color-mix(in srgb, var(--error-color) 24%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1802,8 +1610,8 @@
   font-variant-numeric: tabular-nums;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
   transition:
-    color 0.22s ease,
-    background-color 0.22s ease;
+    color var(--motion-duration-base) var(--motion-ease-standard),
+    background-color var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .quotaRowHigh .quotaPercent {
@@ -1841,7 +1649,7 @@
   gap: 8px;
   min-height: 58px;
   padding: 12px 0;
-  color: color-mix(in srgb, #f59e0b 78%, var(--text-secondary));
+  color: color-mix(in srgb, var(--quota-medium-color) 78%, var(--text-secondary));
   font-size: 12px;
   font-weight: 700;
 
@@ -2161,6 +1969,20 @@
   contain: layout style;
   content-visibility: auto;
   contain-intrinsic-size: auto 210px;
+
+  // 警告浮层与状态浮层都是绝对定位、且会溢出卡片边界的。上面的
+  // overflow:hidden + contain + content-visibility 会把它们裁掉，
+  // 因此仅在浮层真正打开的那一瞬解除裁切，平时保留隔离带来的性能收益。
+  // 两种浮层都是条件渲染，:has() 只在打开时命中。
+  &:has(.cardWarningTooltip),
+  &:has(.statusTooltip) {
+    overflow: visible;
+    contain: none;
+    content-visibility: visible;
+    // 每张卡片因 isolation:isolate 自成层叠上下文，浮层内部的 z-index 无法
+    // 越过相邻卡片，必须把卡片本身抬起来。
+    z-index: 3;
+  }
   background:
     linear-gradient(
       180deg,
@@ -2180,9 +2002,9 @@
     0 1px 2px rgb(15 23 42 / 0.045);
   // 卡片本体不再过渡 transform，避免 hover/刷新时产生位移感。
   transition:
-    box-shadow 160ms ease,
-    border-color 160ms ease;
-  animation: authFileCardEnter 150ms ease-out both;
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
+  animation: authFileCardEnter var(--motion-duration-fast) var(--motion-ease-out) both;
   animation-delay: var(--auth-file-card-enter-delay, 0ms);
 
   @include mobile {
@@ -2242,7 +2064,7 @@
     pointer-events: none;
     opacity: 0;
     background: linear-gradient(135deg, var(--auth-card-hover-tint), transparent 58%);
-    transition: opacity 160ms ease;
+    transition: opacity var(--motion-duration-fast) var(--motion-ease-standard);
     z-index: 0;
   }
 
@@ -2411,7 +2233,7 @@
   justify-content: center;
   padding: 0;
   cursor: pointer;
-  color: #fff;
+  color: var(--danger-contrast);
   background: color-mix(in srgb, var(--danger-color) 88%, transparent);
   box-shadow: 0 4px 14px -8px color-mix(in srgb, var(--danger-color) 70%, transparent);
   transition:
@@ -2441,6 +2263,8 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
+  // 与 .statusTooltip 取齐：浮层会越出卡片，需高于同层相邻卡片内容。
+  z-index: $z-dropdown;
   width: min(280px, calc(100vw - 52px));
   padding: 10px 12px;
   border-radius: 9px;
@@ -2603,14 +2427,6 @@
     'type priority priority';
 }
 
-.cardIdentityRowNoBadges {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.cardIdentityRowNoBadges.cardIdentityRowWithWarning {
-  grid-template-columns: minmax(0, 1fr) auto auto;
-}
-
 .cardIdentityWarning {
   grid-area: warning;
   justify-self: end;
@@ -2646,21 +2462,6 @@
   grid-area: priority;
 }
 
-.cardBadgeRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  row-gap: 4px;
-  min-width: 0;
-  max-width: 100%;
-  overflow: visible;
-
-  @include mobile {
-    gap: 4px;
-  }
-}
-
 @media (max-width: 640px) {
   .cardIdentityRow {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -2676,16 +2477,6 @@
     grid-template-areas:
       'name name warning'
       'type priority priority';
-  }
-
-  .cardIdentityRowNoBadges {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'name priority';
-  }
-
-  .cardIdentityRowNoBadges.cardIdentityRowWithWarning {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas: 'name priority warning';
   }
 
   .cardTypeGroup {
@@ -2709,8 +2500,6 @@
     grid-area: warning;
   }
 
-  .stateBadge,
-  .planBadge,
   .providerTypeBadge,
   .featureBadge {
     min-height: 18px;
@@ -2723,10 +2512,6 @@
     text-overflow: ellipsis;
   }
 
-  .cardBadgeRow {
-    row-gap: 3px;
-  }
-
   .refreshTokenBadge {
     width: 18px;
     height: 18px;
@@ -2735,96 +2520,12 @@
   }
 }
 
-.stateBadge {
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  min-height: 22px;
-  padding: 0 9px;
-  border-radius: 999px;
-  font-size: 10.5px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-  letter-spacing: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
-    0 1px 0 rgba(15, 23, 42, 0.04);
-  transition:
-    background-color $transition-fast,
-    border-color $transition-fast,
-    color $transition-fast;
-}
-
-.stateBadgeActive {
-  color: color-mix(in srgb, var(--success-badge-text, #065f46) 98%, var(--text-primary));
-  background: color-mix(in srgb, var(--success-badge-bg, #d1fae5) 94%, var(--surface-raised));
-  border: 1px solid color-mix(in srgb, var(--success-badge-border, #6ee7b7) 88%, transparent);
-}
-
-.stateBadgeWarning {
-  color: var(--warning-text);
-  background: var(--warning-bg);
-  border: 1px solid var(--warning-border);
-}
-
-.stateBadgeDisabled {
-  color: var(--text-secondary);
-  background: color-mix(in srgb, var(--bg-tertiary) 86%, transparent);
-  border: 1px solid var(--border-color);
-}
-
-.stateBadgeVirtual {
-  color: var(--text-secondary);
-  background: color-mix(in srgb, var(--bg-tertiary) 82%, transparent);
-  border: 1px dashed color-mix(in srgb, var(--border-primary) 90%, transparent);
-}
-
-.planBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 100%;
-  min-height: 20px;
-  padding: 0 7px;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-  letter-spacing: 0;
-  border: 1px solid transparent;
-  overflow: hidden;
-}
-
-.planBadgePlus {
-  color: var(--auth-plan-plus-text);
-  background: var(--auth-plan-plus-bg);
-  border-color: var(--auth-plan-plus-border);
-}
-
-.planBadgePro {
-  color: var(--auth-plan-pro-text);
-  background: var(--auth-plan-pro-bg);
-  border-color: var(--auth-plan-pro-border);
-}
-
-.planBadgeIcon {
-  flex: 0 0 auto;
-}
-
-.planBadgeText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .providerTypeBadge {
   display: inline-flex;
   align-items: center;
-  max-width: 11ch;
+  // 11ch 会把 "Antigravity"(11) / "Gemini CLI"(10) 这类真实供应商名恒定截断。
+  // 放宽到 16ch，既容纳现有名称，也仍为超长自定义名保留省略号兜底。
+  max-width: 16ch;
   height: 18px;
   padding: 0 6px;
   border: 1px solid transparent;
@@ -2843,8 +2544,11 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  max-width: 112px;
+  // 用 ch 而非固定 px：不同语言下的模式名长度差异很大，px 上限在中文/德文下会误截。
+  max-width: 18ch;
   height: 18px;
+  // 图标模式与文字模式宽度差异大，加 min-width 收敛切换时的抖动。
+  min-width: 0;
   padding: 0 6px;
   border: 1px solid transparent;
   border-radius: 5px;
@@ -2935,12 +2639,6 @@
   border-color: color-mix(in srgb, var(--warning-border) 88%, transparent);
 }
 
-.featureBadgeWarning {
-  color: var(--auth-warning-text);
-  background: var(--auth-warning-bg);
-  border-color: var(--auth-warning-border);
-}
-
 .refreshTokenBadge {
   display: inline-flex;
   align-items: center;
@@ -2996,9 +2694,9 @@
   letter-spacing: -0.018em;
   cursor: copy;
   transition:
-    color 0.18s ease,
-    background-color 0.18s ease,
-    text-shadow 0.18s ease;
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    text-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   @include mobile {
     font-size: 15px;
@@ -3018,8 +2716,8 @@
   opacity: 0;
   color: var(--text-tertiary);
   transition:
-    opacity 140ms ease,
-    color 140ms ease;
+    opacity var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .fileName:hover .fileNameCopyIcon,
@@ -3056,10 +2754,6 @@
     opacity: 0.62;
   }
 
-  .metaLabel {
-    font-size: 11px;
-  }
-
   .metaValue {
     font-size: 12px;
   }
@@ -3082,44 +2776,6 @@
   }
 }
 
-.cardMeta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 3px 12px;
-  padding: 0;
-
-  @include mobile {
-    gap: 4px 10px;
-    padding: 0;
-  }
-}
-
-.metaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  padding: 0;
-  border: none;
-  background: none;
-}
-
-.metaLabel {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  line-height: 1;
-  letter-spacing: 0;
-  white-space: nowrap;
-
-  &::after {
-    content: ':';
-    margin-left: 1px;
-    opacity: 0.7;
-  }
-}
-
 .metaValue {
   min-width: 0;
   max-width: 100%;
@@ -3134,27 +2790,6 @@
 }
 
 @media (max-width: 520px) {
-  .cardMeta {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .metaItem {
-    min-height: 32px;
-    padding: 6px 8px;
-    border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
-    border-radius: 9px;
-    background: color-mix(in srgb, var(--bg-secondary) 58%, transparent);
-  }
-
-  .priorityControlItem {
-    justify-content: space-between;
-  }
-
-  .metaLabel {
-    font-size: 10px;
-  }
 
   .metaValue {
     margin-left: auto;
@@ -3163,21 +2798,10 @@
 }
 
 @media (max-width: 380px) {
-  .cardMeta {
-    grid-template-columns: 1fr;
-  }
-}
-
-.priorityBadge {
-  min-width: 0;
 }
 
 .priorityValue {
   font-variant-numeric: tabular-nums;
-}
-
-.priorityControlItem {
-  gap: 6px;
 }
 
 .priorityInlineRow {
@@ -3260,7 +2884,11 @@
 }
 
 .priorityInput {
-  width: 29px;
+  // 固定 29px 只够 2 位数；优先级可为多位或负数，改为按内容下限增长。
+  width: auto;
+  min-width: 29px;
+  field-sizing: content;
+  max-width: 56px;
   height: 21px;
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
@@ -3326,11 +2954,6 @@
   -webkit-line-clamp: 1;
   min-width: 0;
   word-break: break-word;
-}
-
-.sortSelect {
-  width: 100%;
-  min-width: 0;
 }
 
 .cardInsights {
@@ -3467,6 +3090,17 @@
   position: relative;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+
+  // 这些 block 可键盘聚焦（roving tabindex），必须有可见焦点环
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 .statusBlock {
@@ -3474,7 +3108,7 @@
   height: 7px;
   border-radius: 999px;
   transform-origin: center center;
-  transition: transform 140ms ease;
+  transition: transform var(--motion-duration-fast) var(--motion-ease-standard);
 
   .statusBlockWrapper:hover &,
   .statusBlockWrapper.statusBlockActive & {
@@ -3561,11 +3195,11 @@
 }
 
 .tooltipSuccess {
-  color: var(--success-color, #22c55e);
+  color: var(--success-color);
 }
 
 .tooltipFailure {
-  color: var(--danger-color, #ef4444);
+  color: var(--danger-color);
 }
 
 .tooltipRate {
@@ -3984,20 +3618,14 @@
 // 右侧 JSON 预览面板
 // -----------------------------------------------------------------------------
 
-.prefixProxyPreviewPane {
-  position: sticky;
-  top: 0;
-  min-width: 0;
-}
-
 .prefixProxyJsonDetails {
   border: 1px solid var(--prefix-proxy-border);
   border-radius: 8px;
   background: var(--prefix-proxy-surface);
   overflow: hidden;
   transition:
-    border-color 140ms ease,
-    background-color 140ms ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &[open] {
     border-color: var(--prefix-proxy-border-strong);
@@ -4016,8 +3644,8 @@
   color: var(--text-secondary);
   list-style: none;
   transition:
-    color 140ms ease,
-    background-color 140ms ease;
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background: var(--prefix-proxy-surface-muted);
@@ -4035,7 +3663,7 @@
     border-right: 2px solid currentColor;
     border-bottom: 2px solid currentColor;
     transform: rotate(45deg) translateY(-2px);
-    transition: transform 140ms ease;
+    transition: transform var(--motion-duration-fast) var(--motion-ease-standard);
   }
 
   .prefixProxyJsonDetails[open] &::after {
@@ -4126,8 +3754,8 @@
   box-sizing: border-box;
   box-shadow: none;
   transition:
-    border-color 140ms ease,
-    box-shadow 140ms ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:focus {
     outline: none;
@@ -4251,8 +3879,8 @@
     box-shadow: none;
     font-size: 12px;
     transition:
-      border-color 140ms ease,
-      box-shadow 140ms ease;
+      border-color var(--motion-duration-fast) var(--motion-ease-standard),
+      box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
   }
 
   :global(.input-control-sm .input) {
@@ -4374,8 +4002,8 @@
   border-radius: 7px;
   background: var(--prefix-proxy-surface-muted);
   transition:
-    border-color 140ms ease,
-    background-color 140ms ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     border-color: var(--prefix-proxy-border-strong);
@@ -4427,10 +4055,6 @@
   .prefixProxyPanelMuted {
     border-top: 1px solid var(--prefix-proxy-border);
     border-left: 0;
-  }
-
-  .prefixProxyPreviewPane {
-    position: static;
   }
 
   .prefixProxyTextarea {
@@ -4633,9 +4257,16 @@
   min-width: 54px;
 }
 
+// 轨道与滑块尺寸集中在这两个变量，移动端只需覆盖变量本身，
+// 位移量会自动跟随，不必再逐条重写几何值。
+.cardToggleSwitch {
+  --auth-toggle-track-width: 54px;
+  --auth-toggle-thumb-size: 22px;
+}
+
 .cardToggleSwitch > span:first-of-type {
-  width: 54px;
-  min-width: 54px;
+  width: var(--auth-toggle-track-width);
+  min-width: var(--auth-toggle-track-width);
   height: 28px;
   min-height: 28px;
   padding: 0 7px 0 27px;
@@ -4680,20 +4311,24 @@
   top: 3px;
   left: 3px;
   right: auto;
-  width: 22px;
-  height: 22px;
+  width: var(--auth-toggle-thumb-size);
+  height: var(--auth-toggle-thumb-size);
   background: var(--auth-toggle-thumb-bg);
   border: 1px solid var(--auth-toggle-thumb-border);
   box-shadow:
     0 6px 12px -8px rgba(15, 23, 42, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
   // 显式过渡 transform 让 thumb 切换平滑（继承自 ToggleSwitch 基础组件）
-  transition: transform $transition-fast;
+  transition: transform var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
-// 54px - 22px - 3px*2 = 26px
+// 位移由轨道宽度推导，改尺寸时无需再手算：轨道 - 滑块 - 两侧 3px 内边距。
 .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-  transform: translate3d(26px, 0, 0);
+  transform: translate3d(
+    calc(var(--auth-toggle-track-width) - var(--auth-toggle-thumb-size) - 6px),
+    0,
+    0
+  );
 }
 
 .cardToggleSwitch:hover > span:first-of-type {
@@ -4721,10 +4356,10 @@
   box-shadow: var(--auth-action-shadow);
   // 仅过渡颜色与阴影，避免 hover/active 造成卡片区域位移感。
   transition:
-    color 140ms ease,
-    border-color 140ms ease,
-    background-color 140ms ease,
-    box-shadow 140ms ease;
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   > span {
     display: flex;
@@ -4780,9 +4415,9 @@
 }
 
 .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
-  border-color: color-mix(in srgb, #f59e0b 50%, var(--border-color));
+  border-color: color-mix(in srgb, var(--quota-medium-color) 50%, var(--border-color));
   background: transparent;
-  color: color-mix(in srgb, #f59e0b 82%, var(--text-secondary));
+  color: color-mix(in srgb, var(--quota-medium-color) 82%, var(--text-secondary));
   box-shadow: none;
 }
 
@@ -4814,2069 +4449,13 @@
   stroke-width: 2.4;
 }
 
-:global([data-theme='dark']) {
-  .filterControlsPanel {
-    border-color: var(--auth-neutral-border);
-    background: var(--auth-surface-muted);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  .searchToolbarField,
-  .searchToolbarIconButton {
-    background: var(--auth-control-surface);
-    border-color: var(--auth-neutral-border);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  }
-
-  .searchToolbarPopover {
-    border-color: var(--floating-border);
-    background: var(--floating-surface-material, var(--floating-surface));
-    box-shadow: var(--floating-shadow), var(--surface-inner-highlight);
-  }
-
-  .pagination {
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .batchActionBar {
-    border-color: var(--auth-neutral-border-strong);
-    background: color-mix(in srgb, var(--auth-surface) 94%, transparent);
-    box-shadow: 0 20px 46px -22px rgba(0, 0, 0, 0.72);
-  }
-
-  .batchSelectionText {
-    border-color: color-mix(in srgb, var(--info-color) 38%, var(--auth-neutral-border));
-    background: color-mix(in srgb, var(--info-color) 14%, transparent);
-  }
-
-  .listSurface :global(.empty-state) {
-    border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 56%),
-      var(--surface-card-muted, var(--bg-secondary));
-    box-shadow: var(--shadow-card), var(--surface-inner-highlight);
-  }
-
-  .fileCard {
-    --auth-card-border: var(--auth-neutral-border);
-    --auth-card-border-hover: color-mix(
-      in srgb,
-      var(--provider-accent, var(--info-color)) 28%,
-      var(--auth-neutral-border-strong)
-    );
-    --auth-card-hover-tint: color-mix(
-      in srgb,
-      var(--provider-soft, var(--primary-active)) 7%,
-      transparent
-    );
-    --auth-card-inner-bg:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--provider-soft, var(--bg-secondary)) 6%, transparent),
-        transparent 76%
-      ),
-      var(--surface-card-muted, var(--surface-raised));
-    --auth-card-inner-border: color-mix(
-      in srgb,
-      var(--provider-accent, var(--border-color)) 12%,
-      color-mix(in srgb, var(--border-color) 78%, transparent)
-    );
-    --auth-card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 0 rgba(0, 0, 0, 0.18);
-    // Plus 琥珀金（与 --quota-medium-color #eac45a 协调）
-    --auth-plan-plus-text: #eac45a;
-    --auth-plan-plus-bg: color-mix(in srgb, var(--quota-medium-color) 22%, transparent);
-    --auth-plan-plus-border: color-mix(in srgb, var(--quota-medium-color) 50%, transparent);
-    --auth-plan-pro-text: #cfd6e3;
-    --auth-plan-pro-bg: rgba(120, 132, 150, 0.22);
-    --auth-plan-pro-border: rgba(120, 132, 150, 0.5);
-    // websockets 青蓝色
-    --auth-feature-text: #76c8d4;
-    --auth-feature-bg: rgba(57, 150, 168, 0.22);
-    --auth-feature-border: rgba(57, 150, 168, 0.46);
-    --auth-warning-text: #f0c896;
-    --auth-warning-bg: rgba(217, 160, 90, 0.2);
-    --auth-warning-border: rgba(217, 160, 90, 0.45);
-    // R 徽章靛蓝
-    --auth-refresh-text: #9aafe6;
-    --auth-refresh-bg: rgba(79, 110, 192, 0.22);
-    --auth-refresh-border: rgba(79, 110, 192, 0.48);
-    // 成功：贴合 dark --success-color (#5cb88a)
-    --auth-stat-success-text: #6dc89b;
-    --auth-stat-success-bg: color-mix(in srgb, var(--success-color) 22%, transparent);
-    --auth-stat-token-text: #93b0d6;
-    --auth-stat-token-bg: rgba(85, 119, 163, 0.22);
-    --auth-stat-token-border: rgba(85, 119, 163, 0.46);
-    --auth-stat-token-icon: #a8c0de;
-    --auth-action-border: var(--auth-neutral-border);
-    --auth-action-bg: color-mix(in srgb, var(--auth-control-surface) 84%, transparent);
-    --auth-action-text: color-mix(
-      in srgb,
-      var(--text-primary) 88%,
-      var(--provider-accent, var(--text-primary))
-    );
-    --auth-action-shadow: var(--control-shadow);
-    --auth-action-hover-border: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-active)) 44%,
-      var(--border-color)
-    );
-    --auth-action-hover-bg: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-active)) 12%,
-      var(--bg-secondary)
-    );
-    --auth-action-hover-text: color-mix(
-      in srgb,
-      var(--provider-accent, var(--text-primary)) 30%,
-      var(--text-primary)
-    );
-    --auth-action-hover-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 82%, transparent),
-      0 8px 18px -14px
-        color-mix(in srgb, var(--provider-accent, var(--primary-active)) 46%, transparent);
-    --auth-action-group-bg: transparent;
-    --auth-action-group-border: transparent;
-    --auth-danger-text: #f1b0a6;
-    --auth-danger-bg: color-mix(in srgb, var(--danger-color) 8%, var(--auth-action-bg));
-    --auth-danger-border: rgba(198, 87, 70, 0.58);
-    --auth-danger-shadow: var(--auth-action-shadow);
-    --auth-danger-hover-bg: color-mix(in srgb, var(--danger-color) 12%, var(--bg-secondary));
-    --auth-danger-hover-border: rgba(241, 176, 166, 0.68);
-    --auth-toggle-off-border: color-mix(in srgb, var(--border-color) 90%, transparent);
-    --auth-toggle-off-bg: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
-      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
-    );
-    --auth-toggle-off-label: var(--text-tertiary);
-    --auth-toggle-on-border: color-mix(in srgb, var(--success-color) 68%, transparent);
-    --auth-toggle-on-bg: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--success-color) 88%, white),
-      var(--success-color) 56%,
-      color-mix(in srgb, var(--success-color) 76%, black)
-    );
-    --auth-toggle-on-label: #fff;
-    --auth-toggle-thumb-bg: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--text-primary) 92%, transparent),
-      color-mix(in srgb, var(--text-secondary) 88%, transparent)
-    );
-    --auth-toggle-thumb-border: rgba(255, 255, 255, 0.18);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
-        transparent 54px
-      ),
-      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
-    border-color: var(--auth-card-border);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.045),
-      0 1px 2px rgba(0, 0, 0, 0.24);
-
-    &::before {
-      background: linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in srgb, var(--provider-accent, var(--primary-active)) 34%, transparent),
-        transparent
-      );
-    }
-
-    &:hover {
-      border-color: var(--auth-card-border-hover);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.055),
-        0 8px 20px -16px rgba(0, 0, 0, 0.56);
-    }
-  }
-
-  // 深色模式下，6 种 provider 卡片共用相同的表面色，顶部色带由 ::before 渐变实现，色值更亮一档
-  .fileCard.antigravityCard,
-  .fileCard.claudeCard,
-  .fileCard.codexCard,
-  .fileCard.geminiCliCard,
-  .fileCard.kiroCard,
-  .fileCard.kimiCard {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
-        transparent 54px
-      ),
-      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.045),
-      0 1px 2px rgba(0, 0, 0, 0.24);
-  }
-
-  .fileCard.antigravityCard {
-    --provider-accent: rgba(45, 212, 191, 0.92);
-  }
-
-  .fileCard.claudeCard {
-    --provider-accent: rgba(251, 146, 60, 0.92);
-  }
-
-  .fileCard.codexCard {
-    --provider-accent: rgba(165, 180, 252, 0.92);
-  }
-
-  .fileCard.geminiCliCard {
-    --provider-accent: rgba(56, 189, 248, 0.92);
-  }
-
-  .fileCard.kiroCard {
-    --provider-accent: rgba(251, 191, 36, 0.94);
-  }
-
-  .fileCard.kimiCard {
-    --provider-accent: rgba(34, 211, 238, 0.94);
-  }
-
-  .fileCardSelected {
-    border-color: color-mix(in srgb, var(--info-color) 62%, var(--auth-neutral-border));
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--info-color) 30%, transparent),
-      0 6px 16px -14px rgba(0, 0, 0, 0.72);
-  }
-
-  .fileCardDisabled {
-    opacity: 0.6;
-
-    &:hover {
-      border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
-    }
-  }
-
-  .cardSelection > span {
-    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
-    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 1px 2px rgba(0, 0, 0, 0.22);
-  }
-
-  .providerAvatar {
-    // 深色下边框降低强度，避免过亮；底色由 inline typeColor.bg (dark) 控制
-    border-color: color-mix(in srgb, currentColor 28%, rgba(255, 255, 255, 0.06));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-
-    &::before {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 65%);
-    }
-  }
-
-  .stateBadge,
-  .planBadge,
-  .refreshTokenBadge,
-  .featureBadge {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 1px 0 rgba(0, 0, 0, 0.18);
-  }
-
-  .stateBadgeActive {
-    color: var(--auth-stat-success-text);
-    background: var(--auth-stat-success-bg);
-    border-color: var(--auth-stat-success-border);
-  }
-
-  .stateBadgeWarning {
-    color: var(--auth-warning-text);
-    background: var(--auth-warning-bg);
-    border-color: var(--auth-warning-border);
-  }
-
-  .stateBadgeDisabled,
-  .stateBadgeVirtual {
-    color: #b4aca3;
-    background: rgba(45, 41, 37, 0.88);
-    border-color: rgba(88, 80, 72, 0.84);
-  }
-
-  .featureBadgeEnabled {
-    color: var(--auth-feature-text);
-    background: var(--auth-feature-bg);
-    border-color: var(--auth-feature-border);
-  }
-
-  .featureBadgeWarning {
-    color: var(--auth-warning-text);
-    background: var(--auth-warning-bg);
-    border-color: var(--auth-warning-border);
-  }
-
-  .refreshTokenBadge {
-    color: var(--auth-refresh-text);
-    background: var(--auth-refresh-bg);
-    border-color: var(--auth-refresh-border);
-  }
-
-  .planBadgePlus {
-    color: var(--auth-plan-plus-text);
-    background: var(--auth-plan-plus-bg);
-    border-color: var(--auth-plan-plus-border);
-  }
-
-  .planBadgePro {
-    color: var(--auth-plan-pro-text);
-    background: var(--auth-plan-pro-bg);
-    border-color: var(--auth-plan-pro-border);
-  }
-
-  .fileName {
-    color: var(--text-primary);
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
-  }
-
-  .metaLabel,
-  .noteLabel,
-  .statusPanelLabel {
-    color: var(--text-tertiary);
-  }
-
-  .metaValue,
-  .noteText,
-  .quotaAmount {
-    color: var(--text-secondary);
-  }
-
-  .noteValue {
-    color: var(--text-secondary);
-  }
-
-  .cardActions,
-  .quotaSection {
-    border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
-  }
-
-  .quotaSectionTitle {
-    color: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-active)) 48%,
-      var(--text-tertiary)
-    );
-  }
-
-  .quotaModel {
-    color: var(--text-secondary);
-  }
-
-  .quotaBar {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, #334155 22%, var(--bg-primary)),
-      color-mix(in srgb, #0f172a 16%, var(--bg-secondary))
-    );
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--border-color) 84%, transparent),
-      inset 0 1px 2px rgba(0, 0, 0, 0.34),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
-  }
-
-  .quotaBarFill {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.28),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-      0 0 8px var(--quota-fill-glow);
-  }
-
-  .quotaBarFillHigh {
-    --quota-fill-start: #16a34a;
-    --quota-fill-mid: #22c55e;
-    --quota-fill-end: #86efac;
-    --quota-fill-glow: rgba(34, 197, 94, 0.3);
-  }
-
-  .quotaBarFillMedium {
-    --quota-fill-start: #eab308;
-    --quota-fill-mid: #facc15;
-    --quota-fill-end: #fef08a;
-    --quota-fill-glow: rgba(250, 204, 21, 0.32);
-  }
-
-  .quotaBarFillLow {
-    --quota-fill-start: #dc2626;
-    --quota-fill-mid: #ef4444;
-    --quota-fill-end: #fca5a5;
-    --quota-fill-glow: rgba(239, 68, 68, 0.32);
-  }
-
-  .quotaPercent {
-    --quota-percent-text: #bbf7d0;
-    --quota-percent-bg: rgba(34, 197, 94, 0.18);
-    color: var(--quota-percent-text);
-    background: var(--quota-percent-bg);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 1px 0 rgba(0, 0, 0, 0.16);
-  }
-
-  .quotaRowHigh .quotaPercent {
-    --quota-percent-text: #bbf7d0;
-    --quota-percent-bg: rgba(34, 197, 94, 0.18);
-  }
-
-  .quotaRowMedium .quotaPercent {
-    --quota-percent-text: #fef9c3;
-    --quota-percent-bg: rgba(250, 204, 21, 0.18);
-  }
-
-  .quotaRowLow .quotaPercent {
-    --quota-percent-text: #fecaca;
-    --quota-percent-bg: rgba(239, 68, 68, 0.18);
-  }
-
-  .quotaRowUnknown .quotaPercent {
-    --quota-percent-text: var(--text-secondary);
-    --quota-percent-bg: color-mix(in srgb, var(--bg-tertiary) 58%, transparent);
-  }
-
-  .quotaReset {
-    color: var(--text-tertiary);
-  }
-
-  .quotaLoadingState {
-    color: color-mix(in srgb, #d8ad6b 84%, var(--text-secondary));
-  }
-
-  .quotaMessageAction {
-    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
-    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
-    color: var(--text-secondary);
-
-    &:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
-      border-color: color-mix(in srgb, var(--primary-active) 50%, var(--border-color));
-      color: var(--text-primary);
-      box-shadow: 0 8px 18px -16px rgba(0, 0, 0, 0.7);
-    }
-  }
-
-  .quotaError {
-    color: #f1b0a6;
-    background: rgba(198, 87, 70, 0.14);
-    border-color: rgba(198, 87, 70, 0.42);
-  }
-
-  .statusBlockIdle {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-tertiary) 90%, var(--bg-secondary)),
-      color-mix(in srgb, var(--bg-tertiary) 70%, var(--bg-primary))
-    );
-  }
-
-  .statusRate {
-    color: var(--text-secondary);
-    background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
-  }
-
-  .statusRateHigh {
-    color: var(--auth-stat-success-text);
-    background: var(--auth-stat-success-bg);
-  }
-
-  .statusRateMedium {
-    color: var(--auth-warning-text);
-    background: var(--auth-warning-bg);
-  }
-
-  .statusRateLow {
-    color: var(--auth-stat-failure-text);
-    background: var(--auth-stat-failure-bg);
-  }
-
-  .statusTooltip {
-    color: var(--text-primary);
-    background: var(--surface-raised);
-    border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-
-    &::after {
-      border-top-color: var(--surface-raised);
-    }
-
-    &::before {
-      border-top-color: color-mix(in srgb, var(--border-color) 86%, transparent);
-    }
-  }
-
-  .modelsActionButton:global(.btn.btn-sm),
-  .iconButton:global(.btn.btn-sm),
-  .refreshActionButton:global(.btn.btn-sm) {
-    background: var(--auth-action-bg);
-    border-color: var(--auth-action-border);
-    color: var(--auth-action-text);
-    box-shadow: var(--auth-action-shadow);
-
-    &:hover:not(:disabled) {
-      background: var(--auth-action-hover-bg);
-      border-color: var(--auth-action-hover-border);
-      color: var(--auth-action-hover-text);
-      box-shadow: var(--auth-action-hover-shadow);
-    }
-  }
-
-  .iconButton:global(.btn.btn-danger.btn-sm) {
-    background: var(--auth-danger-bg);
-    border-color: var(--auth-danger-border);
-    color: var(--auth-danger-text);
-    box-shadow: var(--auth-danger-shadow);
-
-    &:hover:not(:disabled) {
-      background: var(--auth-danger-hover-bg);
-      border-color: var(--auth-danger-hover-border);
-    }
-  }
-
-  .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
-    background: transparent;
-    border-color: color-mix(in srgb, #d8ad6b 44%, var(--border-color));
-    color: color-mix(in srgb, #d8ad6b 86%, var(--text-secondary));
-    box-shadow: none;
-  }
-
-  .pageQuotaRefreshButton .quotaButtonSpinner,
-  .refreshActionButton .quotaButtonSpinner {
-    color: color-mix(in srgb, #d8ad6b 84%, var(--text-secondary));
-  }
-
-  .quotaRefreshButtonSpinning {
-    border-color: color-mix(in srgb, #d8ad6b 44%, var(--border-color));
-    color: color-mix(in srgb, #d8ad6b 86%, var(--text-secondary));
-  }
-
-  .cardToggleSwitch > span:first-of-type {
-    border-color: var(--auth-toggle-off-border);
-    background: var(--auth-toggle-off-bg);
-    box-shadow:
-      0 10px 22px -18px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.28);
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:first-child {
-    color: var(--auth-toggle-off-label);
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:last-child {
-    background: var(--auth-toggle-thumb-bg);
-    border-color: var(--auth-toggle-thumb-border);
-    box-shadow:
-      0 6px 12px -8px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type {
-    background: var(--auth-toggle-on-bg);
-    border-color: var(--auth-toggle-on-border);
-    box-shadow:
-      0 12px 26px -18px color-mix(in srgb, var(--primary-active) 70%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type > span:first-child {
-    color: #fff;
-  }
-}
-
-// 分页
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  width: fit-content;
-  max-width: 100%;
-  margin: 18px auto 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  animation: authFilePaginationEnter 160ms ease-out both;
-
-  > :global(.btn.btn-sm) {
-    min-width: 74px;
-  }
-}
-
-@media (max-width: 640px) {
-  .pagination {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
-    gap: 7px;
-    margin-top: 14px;
-    padding: 0;
-  }
-
-  .pagination > :global(.btn.btn-sm) {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .pagination > :global(.btn.btn-sm):first-child {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .pagination > :global(.btn.btn-sm):last-child {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .pageInfo {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    min-width: 0;
-    min-height: 30px;
-    padding-inline: 8px;
-    font-size: 12px;
-  }
-}
-
-@keyframes authFilePaginationEnter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pagination {
-    animation: none;
-  }
-}
-
-.batchActionContainer {
-  position: fixed;
-  left: var(--content-center-x, 50%);
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  z-index: 50;
-  width: min(960px, calc(100vw - 24px));
-  max-width: calc(100vw - 24px);
-  box-sizing: border-box;
-  // 隔离浮动操作栏的布局/样式作用域，原生合成动画时避免触发整页样式重算。
-  contain: layout style;
-}
-
-.batchActionBar {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-sm;
-  padding: 10px 12px;
-  border-radius: $radius-lg;
-  border: 1px solid var(--auth-neutral-border-strong);
-  background: color-mix(in srgb, var(--auth-surface) 92%, transparent);
-  --glass-blur: 12px;
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  box-shadow: var(--shadow-lg);
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--primary-color) 34%, transparent),
-      transparent
-    );
-    pointer-events: none;
-  }
-
-  :global(.btn.btn-sm) {
-    min-height: 34px;
-  }
-}
-
-.batchActionLeft,
-.batchActionRight {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  flex-wrap: wrap;
-  min-width: 0;
-
-  > * {
-    flex: 0 0 auto;
-  }
-}
-
-.batchActionRight {
-  justify-content: flex-end;
-}
-
-.batchSelectionText {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--info-color) 30%, var(--auth-neutral-border));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--info-color) 10%, transparent);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-right: 2px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-@include mobile {
-  .batchActionContainer {
-    width: calc(100vw - 16px);
-    max-width: calc(100vw - 16px);
-    bottom: calc(12px + env(safe-area-inset-bottom));
-  }
-
-  .batchActionBar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .batchActionLeft,
-  .batchActionRight {
-    justify-content: center;
-  }
-}
-
-.pageInfo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 34px;
-  min-width: 138px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  padding: 0 12px;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-}
-
-@media (max-width: 640px) {
-  .pageInfo {
-    min-width: 0;
-    min-height: 30px;
-    padding-inline: 8px;
-    font-size: 12px;
-  }
-}
-
-// OAuth 模型禁用
-.excludedList {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.excludedItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--auth-neutral-border);
-  border-radius: 0;
-  gap: $spacing-md;
-
-  &:last-child {
-    border-bottom: 0;
-  }
-
-  @include mobile {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.excludedInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
-}
-
-.excludedProvider {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-.excludedModels {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.excludedActions {
-  display: flex;
-  gap: $spacing-xs;
-  flex-shrink: 0;
-}
-
-// OAuth 模型禁用表单：提供商快捷标签
-.providerField {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-
-  :global(.form-group) {
-    margin-bottom: 0;
-  }
-}
-
-.providerTagList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-xs;
-}
-
-.providerTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: $radius-full;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
-  color: var(--text-secondary);
-  font-size: 12px;
-  cursor: pointer;
-  transition:
-    background-color $transition-fast,
-    border-color $transition-fast,
-    color $transition-fast;
-
-  &:hover {
-    border-color: var(--primary-color);
-    color: var(--text-primary);
-    background-color: var(--bg-hover);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.providerTagActive {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #fff;
-
-  &:hover {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: #fff;
-  }
-}
-
-// OAuth 模型别名 - 映射概览
-.aliasChartSection {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.aliasChartHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-sm;
-  margin: 0;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--auth-neutral-border);
-}
-
-.aliasChartTitle {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.aliasChart {
-  width: 100%;
-  min-height: 120px;
-  padding: 0 16px;
-}
-
-.cardExtraButtons {
-  display: flex;
-  gap: $spacing-sm;
-  align-items: center;
-  flex-wrap: wrap;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.viewModeSwitch {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  flex-wrap: wrap;
-  min-width: 0;
-  max-width: 100%;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-
-  :global(.btn.btn-sm) {
-    min-width: 0;
-  }
-}
-
-@include mobile {
-  .cardExtraButtons {
-    width: 100%;
-  }
-
-  .viewModeSwitch {
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .viewModeSwitch :global(.btn.btn-sm) {
-    flex: 1 1 0;
-  }
-}
-
-// OAuth 模型映射表单
-.mappingRow {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto auto;
-  align-items: center;
-  gap: $spacing-sm;
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-.mappingSeparator {
-  color: var(--text-secondary);
-  text-align: center;
-
-  @include mobile {
-    display: none;
-  }
-}
-
-.mappingFork {
-  display: flex;
-  align-items: center;
-}
-
-// 详情弹窗
-.detailContent {
-  max-height: 400px;
-  overflow: auto;
-}
-
-.jsonContent {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-md;
-  font-family: monospace;
-  font-size: 12px;
-  white-space: pre-wrap;
-  word-break: break-all;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-// 表单
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-  margin-top: $spacing-md;
-
-  label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-}
-
-.textarea {
-  width: 100%;
-  padding: $spacing-sm $spacing-md;
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-family: monospace;
-  resize: vertical;
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-  }
-
-  &::placeholder {
-    color: var(--text-tertiary);
-  }
-}
-
-.hint {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-style: italic;
-  text-align: center;
-  padding: $spacing-lg;
-}
-
-// 模型列表弹窗
-.modelsList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-.modelItem {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-md;
-  appearance: none;
-  font: inherit;
-  text-align: left;
-  background-color: var(--bg-secondary);
-  border-radius: $radius-md;
-  border: 1px solid var(--border-color);
-  flex-wrap: wrap;
-  cursor: pointer;
-  transition:
-    background-color $transition-fast,
-    border-color $transition-fast;
-
-  &:hover {
-    background-color: var(--bg-hover);
-    border-color: var(--primary-color);
-  }
-
-  &:active {
-    border-color: color-mix(in srgb, var(--primary-color) 72%, var(--border-color));
-  }
-
-  &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--primary-color) 46%, transparent);
-    outline-offset: 2px;
-    border-color: var(--primary-color);
-  }
-}
-
-.modelId {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  word-break: break-all;
-}
-
-.modelDisplayName {
-  font-size: 12px;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.modelType {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  background-color: var(--bg-tertiary);
-  padding: 2px 8px;
-  border-radius: 10px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.modelItemExcluded {
-  opacity: 0.6;
-  background-color: var(--bg-tertiary);
-  border-style: dashed;
-
-  .modelId {
-    text-decoration: line-through;
-    color: var(--text-tertiary);
-  }
-
-  &:hover {
-    border-color: var(--danger-color);
-  }
-}
-
-.modelExcludedBadge {
-  font-size: 10px;
-  color: var(--danger-color);
-  background-color: rgba($error-color, 0.1);
-  padding: 2px 6px;
-  border-radius: 8px;
-  border: 1px solid var(--danger-color);
-  flex-shrink: 0;
-}
-
-// 排除模型勾选列表
-.excludedCheckList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-  max-height: 280px;
-  overflow-y: auto;
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-sm;
-  background-color: var(--bg-secondary);
-}
-
-.excludedCheckItem {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-xs $spacing-sm;
-  border-radius: $radius-sm;
-  cursor: pointer;
-  transition: background-color $transition-fast;
-
-  &:hover {
-    background-color: var(--bg-hover);
-  }
-
-  input[type='checkbox'] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    accent-color: var(--primary-color);
-  }
-}
-
-.excludedCheckLabel {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  font-size: 13px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  color: var(--text-primary);
-  word-break: break-all;
-}
-
-.excludedCheckDisplayName {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-family: inherit;
-}
-
 // =============================================================================
-// 移动端精修 (<= 768px)
-// 集中处理触控目标、横滑手势、行内紧凑布局；一处调整全页生效
+// NOTE: 下面这段“Request details visual alignment”原本位于文件末尾，也就是
+// [data-theme='dark'] 覆盖块之后。由于它在顶层重新声明了 .fileCard /
+// .quotaBar / .cardSelection / .iconButton 等选择器的同名属性（含 19 个驱动
+// 整张卡片的自定义属性），靠源码顺序把暗色覆盖整体击穿了 —— 写在暗色块里的
+// 修复会变成死代码。现已整体前移到暗色块之前，保持块内相对顺序不变。
 // =============================================================================
-@include mobile {
-  .titleWrapper {
-    gap: 8px;
-    line-height: 22px;
-  }
-
-  .countBadge {
-    height: 22px;
-    min-width: 22px;
-    padding: 0 7px;
-    font-size: 12px;
-  }
-
-  // 卡片头部：把警告按钮挪到badge 行末尾，避免抢占首行空间
-  .cardHeader {
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .cardWarningIndicator {
-    align-self: flex-start;
-    margin-top: 2px;
-  }
-
-  // 卡片元信息：在小屏从 4 列流式 → 2 列网格，可读性更稳
-  .cardMeta {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px 12px;
-  }
-
-  .metaItem {
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .metaValue {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .priorityControlItem {
-    grid-column: 1 / -1; // 优先级单独占整行，避免被压窄
-  }
-
-  .priorityStepper {
-    height: 24px;
-  }
-
-  .priorityStepButton {
-    width: 21px;
-    height: 24px;
-    font-size: 13px;
-  }
-
-  .priorityInput {
-    width: 30px;
-    height: 24px;
-    font-size: 11px;
-  }
-
-  // 卡片操作区相关样式集中在上方 `@include mobile` / `@media (max-width: 640px)` /
-  // `@media (max-width: 420px)` / `@media (max-width: 360px)` 块中处理，这里不再重复。
-
-  // Insights 区域：更紧凑的纵向间距
-  .cardInsights {
-    gap: 8px;
-  }
-
-  // -------- 筛选 / 工具条 ---------------------------------------------------
-  .filterRail {
-    margin: 0 -4px;
-    padding: 0 4px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scroll-padding: 4px;
-    scroll-snap-type: x proximity;
-    // 边缘渐隐提示可滑动
-    mask-image: linear-gradient(
-      90deg,
-      transparent 0,
-      #000 12px,
-      #000 calc(100% - 12px),
-      transparent 100%
-    );
-    -webkit-mask-image: linear-gradient(
-      90deg,
-      transparent 0,
-      #000 12px,
-      #000 calc(100% - 12px),
-      transparent 100%
-    );
-
-    // 隐藏滚动条更"原生"
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    scrollbar-width: none;
-  }
-
-  .filterTags {
-    flex-wrap: nowrap;
-  }
-
-  .filterTag {
-    scroll-snap-align: start;
-    flex: 0 0 auto;
-  }
-
-  .filterTagText {
-    max-width: 11ch;
-  }
-
-  .filterChipRow {
-    flex: 1 0 100%;
-    justify-content: flex-start;
-    gap: 8px;
-    max-width: 100%;
-    margin-left: 0;
-  }
-
-  .filterControlsPanel {
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-  }
-
-  .searchToolbar {
-    flex: 1 1 0;
-    min-width: 0;
-    gap: 6px;
-  }
-
-  .searchToolbarField {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 36px;
-    padding-left: 32px;
-    padding-right: 8px;
-  }
-
-  .searchToolbarFieldIcon {
-    left: 10px;
-  }
-
-  .searchToolbarInput {
-    min-width: 0;
-    font-size: 12.5px;
-  }
-
-  .searchToolbarIconButton {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-    flex: 0 0 36px;
-  }
-
-  .pageQuotaRefreshButton:global(.btn.btn-sm) {
-    flex: 0 0 36px;
-    width: 36px;
-    min-width: 36px;
-    min-height: 36px;
-    height: 36px;
-  }
-
-  .filterChipGroup {
-    gap: 6px;
-  }
-
-  .filterChip {
-    height: 34px;
-    padding: 0 12px;
-    font-size: 12.5px;
-  }
-
-  .filterResetButton {
-    height: 34px;
-    padding: 0 12px;
-    font-size: 12.5px;
-  }
-
-  // -------- 分页 -----------------------------------------------------------
-  .pagination {
-    display: grid;
-    width: 100%;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      'info info'
-      'prev next';
-    gap: 10px;
-    margin-top: 16px;
-    padding: 8px;
-
-    > :global(.btn):first-of-type {
-      grid-area: prev;
-    }
-
-    > :global(.btn):last-of-type {
-      grid-area: next;
-    }
-  }
-
-  .pageInfo {
-    grid-area: info;
-    text-align: center;
-    font-size: 12.5px;
-    min-width: 0;
-    width: 100%;
-  }
-
-  .listSurface :global(.empty-state) {
-    min-height: 148px;
-    padding: 16px;
-  }
-
-  .listSurface :global(.empty-content) {
-    gap: 10px;
-  }
-
-  // -------- 批量操作栏 -----------------------------------------------------
-  .batchActionContainer {
-    width: calc(100vw - 12px);
-    max-width: calc(100vw - 12px);
-    bottom: calc(10px + env(safe-area-inset-bottom));
-  }
-
-  .batchActionBar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 10px;
-    border-radius: 14px;
-  }
-
-  .batchActionLeft {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
-    margin-bottom: -4px; // 抵消 padding，避免占多余高度
-    scroll-padding: 10px;
-    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
-    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
-
-    > * {
-      flex: 0 0 auto;
-    }
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    scrollbar-width: none;
-  }
-
-  .batchActionRight {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
-    margin-bottom: -4px;
-    justify-content: flex-start;
-    scroll-padding: 10px;
-    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
-    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
-
-    > * {
-      flex: 0 0 auto;
-    }
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    scrollbar-width: none;
-  }
-
-  .batchSelectionText {
-    font-size: 12.5px;
-    margin-right: 6px;
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-
-  // -------- OAuth 排除列表 -------------------------------------------------
-  .excludedItem {
-    padding: 12px;
-    gap: 8px;
-  }
-}
-
-// 极窄屏 (<=380px)：再压一档
-@media (max-width: 380px) {
-  // 仅做布局层调整：按钮 / toggle 尺寸已在 420px / 360px 块中精细处理
-  .cardMeta {
-    grid-template-columns: 1fr;
-  }
-
-  .priorityControlItem {
-    grid-column: auto;
-  }
-
-  .filterChip,
-  .filterResetButton {
-    flex: 1 1 calc(50% - 6px);
-    justify-content: center;
-  }
-
-  // 卡片头部允许换行：avatar + content + warning 流式排
-  .cardHeaderContent {
-    flex-basis: 100%;
-  }
-}
-
-// 移动端认证卡片收敛：保持图标视觉与桌面一致，避免多层移动端覆盖造成错位。
-@include mobile {
-  .cardHeader {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-    gap: 8px;
-    min-width: 0;
-  }
-
-  .cardSelection {
-    margin: 0;
-  }
-
-  .cardHeaderContent {
-    flex: 1 1 auto;
-    flex-basis: auto;
-    gap: 3px;
-    min-width: 0;
-  }
-
-  .cardIdentityRow {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'name name'
-      'type priority';
-    column-gap: 6px;
-    row-gap: 3px;
-  }
-
-  .cardIdentityRowWithWarning {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      'name name warning'
-      'type priority priority';
-  }
-
-  .cardIdentityRowNoBadges {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'name priority';
-  }
-
-  .cardIdentityRowNoBadges.cardIdentityRowWithWarning {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas: 'name priority warning';
-  }
-
-  .cardTypeGroup {
-    grid-area: type;
-  }
-
-  .cardIdentityRow .fileNameRow {
-    grid-area: name;
-  }
-
-  .cardIdentityRow .priorityInlineRow {
-    grid-area: priority;
-    justify-self: end;
-    width: auto;
-  }
-
-  .cardIdentityWarning {
-    grid-area: warning;
-  }
-
-  .cardBadgeRow {
-    gap: 5px;
-    row-gap: 4px;
-  }
-
-  .featureBadge {
-    min-height: 20px;
-    padding: 0 7px;
-    border-radius: 7px;
-    font-size: 10px;
-  }
-
-  .refreshTokenBadge {
-    width: 20px;
-    height: 20px;
-    flex-basis: 20px;
-    font-size: 10px;
-  }
-
-  .fileNameRow {
-    align-items: center;
-    gap: 6px;
-  }
-}
-
-@media (max-width: 420px) {
-  .cardHeader {
-    gap: 7px;
-  }
-
-  .cardIdentityRowWithWarning {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'name warning'
-      'type priority';
-  }
-
-  .cardIdentityRowNoBadges.cardIdentityRowWithWarning {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas: 'name priority warning';
-  }
-
-  .cardIdentityRowWithWarning .priorityInlineRow {
-    justify-self: end;
-  }
-
-  .priorityInlineRow {
-    width: fit-content;
-  }
-
-  .cardIdentityRow .priorityInlineRow {
-    width: auto;
-  }
-}
-
-// 手机端文字与胶囊溢出保护：后置覆盖前面多段移动端规则，避免窄屏互相顶住或遮挡。
-@media (max-width: 640px) {
-  .fileCard,
-  .fileCardLayout,
-  .fileCardMain,
-  .cardHeader,
-  .cardHeaderContent,
-  .cardIdentityRow,
-  .cardTypeGroup,
-  .fileNameRow,
-  .cardInsights,
-  .statusPanel,
-  .cardActions,
-  .cardActionsMain {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .cardHeaderContent {
-    overflow: visible;
-  }
-
-  .cardInsights {
-    gap: 8px;
-    padding: 9px 0 0;
-    border-radius: 0;
-  }
-
-  .cardIdentityRow {
-    align-items: start;
-  }
-
-  .cardTypeGroup {
-    align-self: start;
-    flex-wrap: wrap;
-    gap: 4px;
-    row-gap: 3px;
-    overflow: visible;
-  }
-
-  .stateBadge,
-  .planBadge,
-  .featureBadge {
-    box-sizing: border-box;
-    flex: 0 1 auto;
-    min-width: 0;
-    max-width: min(100%, 108px);
-    height: 20px;
-    min-height: 20px;
-    padding: 0 7px;
-    line-height: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .featureBadge {
-    max-width: 78px;
-  }
-
-  .featureBadgeIconOnly {
-    width: 20px;
-    min-width: 20px;
-    max-width: 20px;
-    flex-basis: 20px;
-    padding: 0;
-  }
-
-  .stateBadge,
-  .planBadge {
-    max-width: 72px;
-  }
-
-  .planBadgeIcon {
-    flex: 0 0 auto;
-  }
-
-  .planBadgeText {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .refreshTokenBadge {
-    flex: 0 0 20px;
-    width: 20px;
-    min-width: 20px;
-    height: 20px;
-  }
-
-  .fileNameRow {
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .fileName {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    margin-left: 0;
-    padding-inline: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .priorityInlineRow {
-    min-width: 0;
-    max-width: 100%;
-    gap: 0;
-    overflow: hidden;
-  }
-
-  .priorityStepper {
-    flex: 0 0 auto;
-  }
-
-  .noteText {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
-    column-gap: 4px;
-    row-gap: 2px;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  .noteLabel {
-    min-width: 0;
-    white-space: nowrap;
-  }
-
-  .noteValue {
-    min-width: 0;
-    max-width: 100%;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .statusPanelLabel {
-    min-width: 0;
-    max-width: 100%;
-    flex-wrap: wrap;
-    row-gap: 2px;
-    overflow: visible;
-  }
-
-  .statusPanelLabel > span:first-child {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .statusTokens {
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    margin-left: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .statusBar {
-    min-width: 0;
-    max-width: 100%;
-    overflow: visible;
-  }
-
-  .statusBlocks {
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: 100%;
-    overflow: visible;
-  }
-
-  .statusBlockWrapper {
-    min-width: 3px;
-  }
-
-  .statusRate {
-    flex: 0 0 auto;
-    min-width: 42px;
-    max-width: 58px;
-    height: 24px;
-    padding: 0 6px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    line-height: 1;
-  }
-
-  .quotaRow,
-  .quotaRowHeader,
-  .quotaMeta {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .quotaMeta {
-    flex-wrap: wrap;
-    white-space: normal;
-    row-gap: 4px;
-  }
-
-  .quotaModel,
-  .quotaAmount,
-  .quotaReset,
-  .quotaLoadingState {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .quotaPercent {
-    flex: 0 0 auto;
-  }
-}
-
-@media (max-width: 380px) {
-  .stateBadge,
-  .planBadge {
-    max-width: 84px;
-  }
-
-  .featureBadge:not(.featureBadgeIconOnly) {
-    max-width: 96px;
-  }
-
-  .statusRate {
-    min-width: 40px;
-    max-width: 52px;
-    padding: 0 5px;
-    font-size: 9.5px;
-  }
-}
-
-// 移动端最终布局约束：认证文件页前面包含多组历史响应式规则，这里统一收口，
-// 避免工具栏、筛选项和卡片操作区在窄屏下互相挤压或覆盖。
-@include mobile {
-  .authFilesSection {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .authFilesHeader {
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .titleWrapper,
-  .headerActions,
-  .filterSection,
-  .filterToolbarRow,
-  .filterControlsPanel,
-  .searchToolbar,
-  .filterChipRow,
-  .filterChipGroup {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .headerActions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
-    gap: 7px;
-
-    .headerActionMain:global(.btn.btn-sm),
-    .headerActionDanger:global(.btn.btn-sm) {
-      width: 100%;
-      max-width: none;
-      min-width: 0;
-    }
-
-    .headerActionDanger:global(.btn.btn-sm) {
-      grid-column: 1 / -1;
-    }
-  }
-
-  .filterControlsPanel {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 36px;
-    align-items: center;
-    padding: 8px;
-  }
-
-  .searchToolbar {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .pageQuotaRefreshButton:global(.btn.btn-sm) {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .filterChipRow {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    width: 100%;
-    flex-wrap: wrap;
-    align-items: stretch;
-  }
-
-  .filterChipGroup {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    flex: 1 1 100%;
-    width: 100%;
-  }
-
-  .filterChip,
-  .filterResetButton {
-    width: 100%;
-    min-width: 0;
-    white-space: normal;
-    line-height: 1.15;
-    text-align: center;
-  }
-
-  .filterResetButton {
-    flex: 1 1 100%;
-  }
-
-  .searchToolbarPopoverWrap {
-    flex: 0 0 auto;
-    min-width: 0;
-  }
-
-  .searchToolbarPopover {
-    width: min(260px, calc(100vw - 24px));
-    min-width: 0;
-    max-width: calc(100vw - 24px);
-    max-height: min(420px, calc(100dvh - 96px));
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-}
-
-@media (max-width: 420px) {
-  .filterControlsPanel {
-    padding: 7px;
-    gap: 7px;
-  }
-
-  .filterChipGroup {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .filterChip:last-child {
-    grid-column: 1 / -1;
-  }
-
-  .searchToolbarPopover {
-    right: -43px;
-  }
-
-  .searchToolbarPopoverWrap:last-child .searchToolbarPopover {
-    right: 0;
-  }
-}
-
-// 操作按钮始终可见：窄屏和四列窄卡片都通过自然换行承载，不再折叠。
-@include mobile {
-  .cardActionsMain {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 6px;
-    overflow: visible;
-  }
-
-  .cardActionsContent {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 5px;
-    width: 100%;
-    min-width: 0;
-    overflow: visible;
-  }
-
-  .cardActionCluster {
-    flex: 1 1 140px;
-    min-width: 0;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .cardStatusActions,
-  .statusToggle {
-    flex-basis: 60px;
-    min-width: 60px;
-    max-width: 60px;
-  }
-
-  .cardUtilityActions {
-    flex-wrap: nowrap;
-    gap: 5px;
-  }
-
-  .cardRefreshActions {
-    justify-self: end;
-    margin-left: 0;
-  }
-
-  .iconButton:global(.btn.btn-sm),
-  .refreshActionButton:global(.btn.btn-sm) {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-  }
-
-  .iconButton:global(.btn.btn-sm) .quotaRefreshIcon,
-  .iconButton:global(.btn.btn-sm) .quotaButtonSpinner,
-  .iconButton:global(.btn.btn-sm) :global(.loading-spinner),
-  .iconButton:global(.btn.btn-sm) svg,
-  .actionIcon {
-    width: 18px !important;
-    height: 18px !important;
-  }
-
-  .cardToggleSwitch > span:first-of-type {
-    width: 60px;
-    min-width: 60px;
-    height: 34px;
-    min-height: 34px;
-    padding: 0 7px 0 33px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type {
-    padding: 0 33px 0 7px;
-  }
-
-  .cardToggleSwitch > span:first-of-type > span:last-child {
-    width: 28px;
-    height: 28px;
-  }
-
-  .cardToggleSwitch > input:checked + span:first-of-type > span:last-child {
-    transform: translate3d(26px, 0, 0);
-  }
-}
-
 // =============================================================================
 // Request details visual alignment
 // Keep semantic provider/status colors, while using neutral surfaces and borders
@@ -7158,8 +4737,6 @@
   }
 }
 
-.stateBadge,
-.planBadge,
 .featureBadge,
 .refreshTokenBadge,
 .statusRate,
@@ -7296,20 +4873,6 @@
   color: var(--text-primary);
 }
 
-:global([data-theme='dark']) {
-  .filterControlsPanel {
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .fileCard,
-  .fileCardSkeleton {
-    background: var(--bg-primary);
-    box-shadow: none;
-  }
-}
-
 @container auth-files-page (max-width: 920px) {
   .filterToolbarRow {
     grid-template-columns: minmax(0, 1fr);
@@ -7325,5 +4888,1923 @@
 
   .filterControlsPanel {
     padding: 0;
+  }
+}
+
+
+:global([data-theme='dark']) {
+  .filterControlsPanel {
+    border-color: var(--auth-neutral-border);
+    background: var(--auth-surface-muted);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  // 骨架屏：--surface-sheen 已随主题切换，无需硬编码 #ffffff。
+  .fileCardSkeleton {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface-sheen) 60%, transparent), transparent 44%),
+      var(--surface-raised);
+
+    &::after {
+      background: linear-gradient(
+        105deg,
+        transparent 0%,
+        transparent 36%,
+        color-mix(in srgb, var(--surface-sheen) 100%, transparent) 50%,
+        transparent 64%,
+        transparent 100%
+      );
+    }
+  }
+
+  .searchToolbarField,
+  .searchToolbarIconButton {
+    background: var(--auth-control-surface);
+    border-color: var(--auth-neutral-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .searchToolbarPopover {
+    border-color: var(--floating-border);
+    background: var(--floating-surface-material, var(--floating-surface));
+    box-shadow: var(--floating-shadow), var(--surface-inner-highlight);
+  }
+
+  .pagination {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  // 这两条的基础样式定义在本块之后（.batchActionBar 约 :5944、
+  // .batchSelectionText 约 :5996），同名属性会靠源码顺序覆盖掉这里的暗色值。
+  // 用 .batchActionContainer 作为父级提高特异性，使暗色覆盖不依赖顺序生效。
+  .batchActionContainer .batchActionBar {
+    border-color: var(--auth-neutral-border-strong);
+    background: color-mix(in srgb, var(--auth-surface) 94%, transparent);
+    box-shadow: 0 20px 46px -22px rgba(0, 0, 0, 0.72);
+  }
+
+  .batchActionContainer .batchSelectionText {
+    border-color: color-mix(in srgb, var(--info-color) 38%, var(--auth-neutral-border));
+    background: color-mix(in srgb, var(--info-color) 14%, transparent);
+  }
+
+  .listSurface :global(.empty-state) {
+    border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 56%),
+      var(--surface-card-muted, var(--bg-secondary));
+    box-shadow: var(--shadow-card), var(--surface-inner-highlight);
+  }
+
+  .fileCard {
+    --auth-card-border: var(--auth-neutral-border);
+    --auth-card-border-hover: color-mix(
+      in srgb,
+      var(--provider-accent, var(--info-color)) 28%,
+      var(--auth-neutral-border-strong)
+    );
+    --auth-card-hover-tint: color-mix(
+      in srgb,
+      var(--provider-soft, var(--primary-active)) 7%,
+      transparent
+    );
+    --auth-card-inner-bg:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--provider-soft, var(--bg-secondary)) 6%, transparent),
+        transparent 76%
+      ),
+      var(--surface-card-muted, var(--surface-raised));
+    --auth-card-inner-border: color-mix(
+      in srgb,
+      var(--provider-accent, var(--border-color)) 12%,
+      color-mix(in srgb, var(--border-color) 78%, transparent)
+    );
+    --auth-card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 0 rgba(0, 0, 0, 0.18);
+    // Plus 琥珀金（与 --quota-medium-color #eac45a 协调）
+    --auth-plan-plus-text: #eac45a;
+    --auth-plan-plus-bg: color-mix(in srgb, var(--quota-medium-color) 22%, transparent);
+    --auth-plan-plus-border: color-mix(in srgb, var(--quota-medium-color) 50%, transparent);
+    --auth-plan-pro-text: #cfd6e3;
+    --auth-plan-pro-bg: rgba(120, 132, 150, 0.22);
+    --auth-plan-pro-border: rgba(120, 132, 150, 0.5);
+    // websockets 青蓝色
+    --auth-feature-text: #76c8d4;
+    --auth-feature-bg: rgba(57, 150, 168, 0.22);
+    --auth-feature-border: rgba(57, 150, 168, 0.46);
+    --auth-warning-text: #f0c896;
+    --auth-warning-bg: rgba(217, 160, 90, 0.2);
+    --auth-warning-border: rgba(217, 160, 90, 0.45);
+    // R 徽章靛蓝
+    --auth-refresh-text: #9aafe6;
+    --auth-refresh-bg: rgba(79, 110, 192, 0.22);
+    --auth-refresh-border: rgba(79, 110, 192, 0.48);
+    // 成功：贴合 dark --success-color (#5cb88a)
+    --auth-stat-success-text: #6dc89b;
+    --auth-stat-success-bg: color-mix(in srgb, var(--success-color) 22%, transparent);
+    --auth-stat-token-text: #93b0d6;
+    --auth-stat-token-bg: rgba(85, 119, 163, 0.22);
+    --auth-stat-token-border: rgba(85, 119, 163, 0.46);
+    --auth-stat-token-icon: #a8c0de;
+    --auth-action-border: var(--auth-neutral-border);
+    --auth-action-bg: color-mix(in srgb, var(--auth-control-surface) 84%, transparent);
+    --auth-action-text: color-mix(
+      in srgb,
+      var(--text-primary) 88%,
+      var(--provider-accent, var(--text-primary))
+    );
+    --auth-action-shadow: var(--control-shadow);
+    --auth-action-hover-border: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-active)) 44%,
+      var(--border-color)
+    );
+    --auth-action-hover-bg: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-active)) 12%,
+      var(--bg-secondary)
+    );
+    --auth-action-hover-text: color-mix(
+      in srgb,
+      var(--provider-accent, var(--text-primary)) 30%,
+      var(--text-primary)
+    );
+    --auth-action-hover-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 82%, transparent),
+      0 8px 18px -14px
+        color-mix(in srgb, var(--provider-accent, var(--primary-active)) 46%, transparent);
+    --auth-action-group-bg: transparent;
+    --auth-action-group-border: transparent;
+    --auth-danger-text: #f1b0a6;
+    --auth-danger-bg: color-mix(in srgb, var(--danger-color) 8%, var(--auth-action-bg));
+    --auth-danger-border: rgba(198, 87, 70, 0.58);
+    --auth-danger-shadow: var(--auth-action-shadow);
+    --auth-danger-hover-bg: color-mix(in srgb, var(--danger-color) 12%, var(--bg-secondary));
+    --auth-danger-hover-border: rgba(241, 176, 166, 0.68);
+    --auth-toggle-off-border: color-mix(in srgb, var(--border-color) 90%, transparent);
+    --auth-toggle-off-bg: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 80%, var(--bg-secondary)) 0%,
+      color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)) 100%
+    );
+    --auth-toggle-off-label: var(--text-tertiary);
+    --auth-toggle-on-border: color-mix(in srgb, var(--success-color) 68%, transparent);
+    --auth-toggle-on-bg: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--success-color) 88%, white),
+      var(--success-color) 56%,
+      color-mix(in srgb, var(--success-color) 76%, black)
+    );
+    --auth-toggle-on-label: #fff;
+    --auth-toggle-thumb-bg: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--text-primary) 92%, transparent),
+      color-mix(in srgb, var(--text-secondary) 88%, transparent)
+    );
+    --auth-toggle-thumb-border: rgba(255, 255, 255, 0.18);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
+        transparent 54px
+      ),
+      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
+    border-color: var(--auth-card-border);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 1px 2px rgba(0, 0, 0, 0.24);
+
+    &::before {
+      background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--provider-accent, var(--primary-active)) 34%, transparent),
+        transparent
+      );
+    }
+
+    &:hover {
+      border-color: var(--auth-card-border-hover);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.055),
+        0 8px 20px -16px rgba(0, 0, 0, 0.56);
+    }
+  }
+
+  // 深色模式下，6 种 provider 卡片共用相同的表面色，顶部色带由 ::before 渐变实现，色值更亮一档
+  .fileCard.claudeCard,
+  .fileCard.codexCard,
+  .fileCard.kimiCard {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
+        transparent 54px
+      ),
+      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+
+  .fileCard.claudeCard {
+    --provider-accent: rgba(251, 146, 60, 0.92);
+  }
+
+  .fileCard.codexCard {
+    --provider-accent: rgba(165, 180, 252, 0.92);
+  }
+
+  .fileCard.kimiCard {
+    --provider-accent: rgba(34, 211, 238, 0.94);
+  }
+
+  .fileCardSelected {
+    border-color: color-mix(in srgb, var(--info-color) 62%, var(--auth-neutral-border));
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--info-color) 30%, transparent),
+      0 6px 16px -14px rgba(0, 0, 0, 0.72);
+  }
+
+  .fileCardDisabled {
+    opacity: 0.6;
+
+    &:hover {
+      border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+  }
+
+  .cardSelection > span {
+    border-color: color-mix(in srgb, var(--border-color) 90%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 1px 2px rgba(0, 0, 0, 0.22);
+  }
+
+  .providerAvatar {
+    // 深色下边框降低强度，避免过亮；底色由 inline typeColor.bg (dark) 控制
+    border-color: color-mix(in srgb, currentColor 28%, rgba(255, 255, 255, 0.06));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    &::before {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 65%);
+    }
+  }
+
+  .refreshTokenBadge,
+  .featureBadge {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 1px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .featureBadgeEnabled {
+    color: var(--auth-feature-text);
+    background: var(--auth-feature-bg);
+    border-color: var(--auth-feature-border);
+  }
+
+  .refreshTokenBadge {
+    color: var(--auth-refresh-text);
+    background: var(--auth-refresh-bg);
+    border-color: var(--auth-refresh-border);
+  }
+
+  .fileName {
+    color: var(--text-primary);
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .noteLabel,
+  .statusPanelLabel {
+    color: var(--text-tertiary);
+  }
+
+  .metaValue,
+  .noteText,
+  .quotaAmount {
+    color: var(--text-secondary);
+  }
+
+  .noteValue {
+    color: var(--text-secondary);
+  }
+
+  .cardActions,
+  .quotaSection {
+    border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
+  }
+
+  .quotaSectionTitle {
+    color: color-mix(
+      in srgb,
+      var(--provider-accent, var(--primary-active)) 48%,
+      var(--text-tertiary)
+    );
+  }
+
+  .quotaModel {
+    color: var(--text-secondary);
+  }
+
+  .quotaBar {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, #334155 22%, var(--bg-primary)),
+      color-mix(in srgb, #0f172a 16%, var(--bg-secondary))
+    );
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--border-color) 84%, transparent),
+      inset 0 1px 2px rgba(0, 0, 0, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .quotaBarFill {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+      0 0 8px var(--quota-fill-glow);
+  }
+
+  // 深色下色阶与浅色一致，只需把辉光调强一档，故仅覆盖 --quota-fill-glow。
+  .quotaBarFillHigh {
+    --quota-fill-glow: color-mix(in srgb, var(--success-color) 30%, transparent);
+  }
+
+  .quotaBarFillMedium {
+    --quota-fill-glow: color-mix(in srgb, var(--quota-medium-color) 32%, transparent);
+  }
+
+  .quotaBarFillLow {
+    --quota-fill-glow: color-mix(in srgb, var(--error-color) 32%, transparent);
+  }
+
+  .quotaPercent {
+    --quota-percent-text: #bbf7d0;
+    --quota-percent-bg: rgba(34, 197, 94, 0.18);
+    color: var(--quota-percent-text);
+    background: var(--quota-percent-bg);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 1px 0 rgba(0, 0, 0, 0.16);
+  }
+
+  .quotaRowHigh .quotaPercent {
+    --quota-percent-text: #bbf7d0;
+    --quota-percent-bg: rgba(34, 197, 94, 0.18);
+  }
+
+  .quotaRowMedium .quotaPercent {
+    --quota-percent-text: #fef9c3;
+    --quota-percent-bg: rgba(250, 204, 21, 0.18);
+  }
+
+  .quotaRowLow .quotaPercent {
+    --quota-percent-text: #fecaca;
+    --quota-percent-bg: rgba(239, 68, 68, 0.18);
+  }
+
+  .quotaRowUnknown .quotaPercent {
+    --quota-percent-text: var(--text-secondary);
+    --quota-percent-bg: color-mix(in srgb, var(--bg-tertiary) 58%, transparent);
+  }
+
+  .quotaReset {
+    color: var(--text-tertiary);
+  }
+
+  .quotaLoadingState {
+    color: color-mix(in srgb, #d8ad6b 84%, var(--text-secondary));
+  }
+
+  .quotaMessageAction {
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+    color: var(--text-secondary);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+      border-color: color-mix(in srgb, var(--primary-active) 50%, var(--border-color));
+      color: var(--text-primary);
+      box-shadow: 0 8px 18px -16px rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  .quotaError {
+    color: #f1b0a6;
+    background: rgba(198, 87, 70, 0.14);
+    border-color: rgba(198, 87, 70, 0.42);
+  }
+
+  .statusBlockIdle {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-tertiary) 90%, var(--bg-secondary)),
+      color-mix(in srgb, var(--bg-tertiary) 70%, var(--bg-primary))
+    );
+  }
+
+  .statusRate {
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent);
+  }
+
+  .statusRateHigh {
+    color: var(--auth-stat-success-text);
+    background: var(--auth-stat-success-bg);
+  }
+
+  .statusRateMedium {
+    color: var(--auth-warning-text);
+    background: var(--auth-warning-bg);
+  }
+
+  .statusRateLow {
+    color: var(--auth-stat-failure-text);
+    background: var(--auth-stat-failure-bg);
+  }
+
+  .statusTooltip {
+    color: var(--text-primary);
+    background: var(--surface-raised);
+    border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+
+    &::after {
+      border-top-color: var(--surface-raised);
+    }
+
+    &::before {
+      border-top-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+    }
+  }
+
+  .modelsActionButton:global(.btn.btn-sm),
+  .iconButton:global(.btn.btn-sm),
+  .refreshActionButton:global(.btn.btn-sm) {
+    background: var(--auth-action-bg);
+    border-color: var(--auth-action-border);
+    color: var(--auth-action-text);
+    box-shadow: var(--auth-action-shadow);
+
+    &:hover:not(:disabled) {
+      background: var(--auth-action-hover-bg);
+      border-color: var(--auth-action-hover-border);
+      color: var(--auth-action-hover-text);
+      box-shadow: var(--auth-action-hover-shadow);
+    }
+  }
+
+  .iconButton:global(.btn.btn-danger.btn-sm) {
+    background: var(--auth-danger-bg);
+    border-color: var(--auth-danger-border);
+    color: var(--auth-danger-text);
+    box-shadow: var(--auth-danger-shadow);
+
+    &:hover:not(:disabled) {
+      background: var(--auth-danger-hover-bg);
+      border-color: var(--auth-danger-hover-border);
+    }
+  }
+
+  .refreshActionButton.quotaRefreshButtonSpinning:global(.btn.btn-sm) {
+    background: transparent;
+    border-color: color-mix(in srgb, #d8ad6b 44%, var(--border-color));
+    color: color-mix(in srgb, #d8ad6b 86%, var(--text-secondary));
+    box-shadow: none;
+  }
+
+  .pageQuotaRefreshButton .quotaButtonSpinner,
+  .refreshActionButton .quotaButtonSpinner {
+    color: color-mix(in srgb, #d8ad6b 84%, var(--text-secondary));
+  }
+
+  .quotaRefreshButtonSpinning {
+    border-color: color-mix(in srgb, #d8ad6b 44%, var(--border-color));
+    color: color-mix(in srgb, #d8ad6b 86%, var(--text-secondary));
+  }
+
+  .cardToggleSwitch > span:first-of-type {
+    border-color: var(--auth-toggle-off-border);
+    background: var(--auth-toggle-off-bg);
+    box-shadow:
+      0 10px 22px -18px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:first-child {
+    color: var(--auth-toggle-off-label);
+  }
+
+  .cardToggleSwitch > span:first-of-type > span:last-child {
+    background: var(--auth-toggle-thumb-bg);
+    border-color: var(--auth-toggle-thumb-border);
+    box-shadow:
+      0 6px 12px -8px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type {
+    background: var(--auth-toggle-on-bg);
+    border-color: var(--auth-toggle-on-border);
+    box-shadow:
+      0 12px 26px -18px color-mix(in srgb, var(--primary-active) 70%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type > span:first-child {
+    color: #fff;
+  }
+}
+
+// 分页
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  margin: 18px auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: authFilePaginationEnter var(--motion-duration-fast) var(--motion-ease-out) both;
+
+  > :global(.btn.btn-sm) {
+    min-width: 74px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pagination {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 7px;
+    margin-top: 14px;
+    padding: 0;
+  }
+
+  .pagination > :global(.btn.btn-sm) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pagination > :global(.btn.btn-sm):first-child {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .pagination > :global(.btn.btn-sm):last-child {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .pageInfo {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 30px;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+}
+
+@keyframes authFilePaginationEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagination {
+    animation: none;
+  }
+}
+
+.batchActionContainer {
+  position: fixed;
+  left: var(--content-center-x, 50%);
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(960px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  // 隔离浮动操作栏的布局/样式作用域，原生合成动画时避免触发整页样式重算。
+  contain: layout style;
+}
+
+.batchActionBar {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  padding: 10px 12px;
+  border-radius: $radius-lg;
+  border: 1px solid var(--auth-neutral-border-strong);
+  background: color-mix(in srgb, var(--auth-surface) 92%, transparent);
+  --glass-blur: 12px;
+  backdrop-filter: var(--glass-backdrop-filter);
+  -webkit-backdrop-filter: var(--glass-backdrop-filter);
+  box-shadow: var(--shadow-lg);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--primary-color) 34%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  :global(.btn.btn-sm) {
+    min-height: 34px;
+  }
+}
+
+.batchActionLeft,
+.batchActionRight {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  min-width: 0;
+
+  > * {
+    flex: 0 0 auto;
+  }
+}
+
+.batchActionRight {
+  justify-content: flex-end;
+}
+
+.batchSelectionText {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--info-color) 30%, var(--auth-neutral-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--info-color) 10%, transparent);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-right: 2px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@include mobile {
+  .batchActionContainer {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .batchActionBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .batchActionLeft,
+  .batchActionRight {
+    justify-content: center;
+  }
+}
+
+.pageInfo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 138px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 0 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 640px) {
+  .pageInfo {
+    min-width: 0;
+    min-height: 30px;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+}
+
+// OAuth 模型禁用
+.excludedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.excludedItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--auth-neutral-border);
+  border-radius: 0;
+  gap: $spacing-md;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  @include mobile {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.excludedInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.excludedProvider {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.excludedModels {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.excludedActions {
+  display: flex;
+  gap: $spacing-xs;
+  flex-shrink: 0;
+}
+
+// OAuth 模型禁用表单：提供商快捷标签
+.providerField {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  :global(.form-group) {
+    margin-bottom: 0;
+  }
+}
+
+.providerTagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.providerTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: $radius-full;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+    background-color: var(--bg-hover);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.providerTagActive {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--primary-contrast);
+
+  &:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--primary-contrast);
+  }
+}
+
+// OAuth 模型别名 - 映射概览
+.aliasChartSection {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.aliasChartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--auth-neutral-border);
+}
+
+.aliasChartTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.aliasChart {
+  width: 100%;
+  min-height: 120px;
+  padding: 0 16px;
+}
+
+.cardExtraButtons {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.viewModeSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+
+  :global(.btn.btn-sm) {
+    min-width: 0;
+  }
+}
+
+@include mobile {
+  .cardExtraButtons {
+    width: 100%;
+  }
+
+  .viewModeSwitch {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .viewModeSwitch :global(.btn.btn-sm) {
+    flex: 1 1 0;
+  }
+}
+
+// OAuth 模型映射表单
+.mappingRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto auto;
+  align-items: center;
+  gap: $spacing-sm;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mappingSeparator {
+  color: var(--text-secondary);
+  text-align: center;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.mappingFork {
+  display: flex;
+  align-items: center;
+}
+
+.textarea {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: monospace;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  text-align: center;
+  padding: $spacing-lg;
+}
+
+// 模型列表弹窗
+.modelsList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.modelItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  background-color: var(--bg-secondary);
+  border-radius: $radius-md;
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  cursor: pointer;
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast;
+
+  &:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--primary-color);
+  }
+
+  &:active {
+    border-color: color-mix(in srgb, var(--primary-color) 72%, var(--border-color));
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary-color) 46%, transparent);
+    outline-offset: 2px;
+    border-color: var(--primary-color);
+  }
+}
+
+.modelId {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.modelDisplayName {
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.modelType {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background-color: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.modelItemExcluded {
+  opacity: 0.6;
+  background-color: var(--bg-tertiary);
+  border-style: dashed;
+
+  .modelId {
+    text-decoration: line-through;
+    color: var(--text-tertiary);
+  }
+
+  &:hover {
+    border-color: var(--danger-color);
+  }
+}
+
+.modelExcludedBadge {
+  font-size: 10px;
+  color: var(--danger-color);
+  background-color: rgba($error-color, 0.1);
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--danger-color);
+  flex-shrink: 0;
+}
+
+// 排除模型勾选列表
+.excludedCheckList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  padding: $spacing-sm;
+  background-color: var(--bg-secondary);
+}
+
+.excludedCheckItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: var(--bg-hover);
+  }
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+  }
+}
+
+.excludedCheckLabel {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.excludedCheckDisplayName {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-family: inherit;
+}
+
+// =============================================================================
+// 移动端精修 (<= 768px)
+// 集中处理触控目标、横滑手势、行内紧凑布局；一处调整全页生效
+// =============================================================================
+@include mobile {
+  .titleWrapper {
+    gap: 8px;
+    line-height: 22px;
+  }
+
+  .countBadge {
+    height: 22px;
+    min-width: 22px;
+    padding: 0 7px;
+    font-size: 12px;
+  }
+
+  // 卡片头部：把警告按钮挪到badge 行末尾，避免抢占首行空间
+  .cardHeader {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .cardWarningIndicator {
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .metaValue {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .priorityStepper {
+    height: 24px;
+  }
+
+  .priorityStepButton {
+    width: 21px;
+    height: 24px;
+    font-size: 13px;
+  }
+
+  .priorityInput {
+    width: 30px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  // 卡片操作区相关样式集中在上方 `@include mobile` / `@media (max-width: 640px)` /
+  // `@media (max-width: 420px)` / `@media (max-width: 360px)` 块中处理，这里不再重复。
+
+  // Insights 区域：更紧凑的纵向间距
+  .cardInsights {
+    gap: 8px;
+  }
+
+  // -------- 筛选 / 工具条 ---------------------------------------------------
+  .filterRail {
+    margin: 0 -4px;
+    padding: 0 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding: 4px;
+    scroll-snap-type: x proximity;
+    // 边缘渐隐提示可滑动
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent 100%
+    );
+
+    // 隐藏滚动条更"原生"
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+  }
+
+  .filterTags {
+    flex-wrap: nowrap;
+  }
+
+  .filterTag {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+
+  .filterTagText {
+    max-width: 11ch;
+  }
+
+  .filterChipRow {
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    gap: 8px;
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  .filterControlsPanel {
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .searchToolbar {
+    flex: 1 1 0;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .searchToolbarField {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 36px;
+    padding-left: 32px;
+    padding-right: 8px;
+  }
+
+  .searchToolbarFieldIcon {
+    left: 10px;
+  }
+
+  .searchToolbarInput {
+    min-width: 0;
+    font-size: 12.5px;
+  }
+
+  .searchToolbarIconButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    flex: 0 0 36px;
+  }
+
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    flex: 0 0 36px;
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    height: 36px;
+  }
+
+  .filterChipGroup {
+    gap: 6px;
+  }
+
+  .filterChip {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 12.5px;
+  }
+
+  .filterResetButton {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 12.5px;
+  }
+
+  // -------- 分页 -----------------------------------------------------------
+  .pagination {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'info info'
+      'prev next';
+    gap: 10px;
+    margin-top: 16px;
+    padding: 8px;
+
+    > :global(.btn):first-of-type {
+      grid-area: prev;
+    }
+
+    > :global(.btn):last-of-type {
+      grid-area: next;
+    }
+  }
+
+  .pageInfo {
+    grid-area: info;
+    text-align: center;
+    font-size: 12.5px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .listSurface :global(.empty-state) {
+    min-height: 148px;
+    padding: 16px;
+  }
+
+  .listSurface :global(.empty-content) {
+    gap: 10px;
+  }
+
+  // -------- 批量操作栏 -----------------------------------------------------
+  .batchActionContainer {
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .batchActionBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .batchActionLeft {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: -4px; // 抵消 padding，避免占多余高度
+    scroll-padding: 10px;
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
+
+    > * {
+      flex: 0 0 auto;
+    }
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+  }
+
+  .batchActionRight {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: -4px;
+    justify-content: flex-start;
+    scroll-padding: 10px;
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
+
+    > * {
+      flex: 0 0 auto;
+    }
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+  }
+
+  .batchSelectionText {
+    font-size: 12.5px;
+    margin-right: 6px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  // -------- OAuth 排除列表 -------------------------------------------------
+  .excludedItem {
+    padding: 12px;
+    gap: 8px;
+  }
+}
+
+// 极窄屏 (<=380px)：再压一档
+@media (max-width: 380px) {
+
+  .filterChip,
+  .filterResetButton {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+  }
+
+  // 卡片头部允许换行：avatar + content + warning 流式排
+  .cardHeaderContent {
+    flex-basis: 100%;
+  }
+}
+
+// 移动端认证卡片收敛：保持图标视觉与桌面一致，避免多层移动端覆盖造成错位。
+@include mobile {
+  .cardHeader {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .cardSelection {
+    margin: 0;
+  }
+
+  .cardHeaderContent {
+    flex: 1 1 auto;
+    flex-basis: auto;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .cardIdentityRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name name'
+      'type priority';
+    column-gap: 6px;
+    row-gap: 3px;
+  }
+
+  .cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'name name warning'
+      'type priority priority';
+  }
+
+  .cardTypeGroup {
+    grid-area: type;
+  }
+
+  .cardIdentityRow .fileNameRow {
+    grid-area: name;
+  }
+
+  .cardIdentityRow .priorityInlineRow {
+    grid-area: priority;
+    justify-self: end;
+    width: auto;
+  }
+
+  .cardIdentityWarning {
+    grid-area: warning;
+  }
+
+  .featureBadge {
+    min-height: 20px;
+    padding: 0 7px;
+    border-radius: 7px;
+    font-size: 10px;
+  }
+
+  .refreshTokenBadge {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    font-size: 10px;
+  }
+
+  .fileNameRow {
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 420px) {
+  .cardHeader {
+    gap: 7px;
+  }
+
+  .cardIdentityRowWithWarning {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name warning'
+      'type priority';
+  }
+
+  .cardIdentityRowWithWarning .priorityInlineRow {
+    justify-self: end;
+  }
+
+  .priorityInlineRow {
+    width: fit-content;
+  }
+
+  .cardIdentityRow .priorityInlineRow {
+    width: auto;
+  }
+}
+
+// 手机端文字与胶囊溢出保护：后置覆盖前面多段移动端规则，避免窄屏互相顶住或遮挡。
+@media (max-width: 640px) {
+  .fileCard,
+  .fileCardLayout,
+  .fileCardMain,
+  .cardHeader,
+  .cardHeaderContent,
+  .cardIdentityRow,
+  .cardTypeGroup,
+  .fileNameRow,
+  .cardInsights,
+  .statusPanel,
+  .cardActions,
+  .cardActionsMain {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .cardHeaderContent {
+    overflow: visible;
+  }
+
+  .cardInsights {
+    gap: 8px;
+    padding: 9px 0 0;
+    border-radius: 0;
+  }
+
+  .cardIdentityRow {
+    align-items: start;
+  }
+
+  .cardTypeGroup {
+    align-self: start;
+    flex-wrap: wrap;
+    gap: 4px;
+    row-gap: 3px;
+    overflow: visible;
+  }
+
+  .featureBadge {
+    box-sizing: border-box;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: min(100%, 108px);
+    height: 20px;
+    min-height: 20px;
+    padding: 0 7px;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .featureBadge {
+    max-width: 78px;
+  }
+
+  .featureBadgeIconOnly {
+    width: 20px;
+    min-width: 20px;
+    max-width: 20px;
+    flex-basis: 20px;
+    padding: 0;
+  }
+
+  .refreshTokenBadge {
+    flex: 0 0 20px;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+  }
+
+  .fileNameRow {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .fileName {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin-left: 0;
+    padding-inline: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .priorityInlineRow {
+    min-width: 0;
+    max-width: 100%;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .priorityStepper {
+    flex: 0 0 auto;
+  }
+
+  .noteText {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: 4px;
+    row-gap: 2px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .noteLabel {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .noteValue {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .statusPanelLabel {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    row-gap: 2px;
+    overflow: visible;
+  }
+
+  .statusPanelLabel > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .statusTokens {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    margin-left: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .statusBar {
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .statusBlocks {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .statusBlockWrapper {
+    min-width: 3px;
+  }
+
+  .statusRate {
+    flex: 0 0 auto;
+    min-width: 42px;
+    max-width: 58px;
+    height: 24px;
+    padding: 0 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .quotaRow,
+  .quotaRowHeader,
+  .quotaMeta {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .quotaMeta {
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 4px;
+  }
+
+  .quotaModel,
+  .quotaAmount,
+  .quotaReset,
+  .quotaLoadingState {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .quotaPercent {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .featureBadge:not(.featureBadgeIconOnly) {
+    max-width: 96px;
+  }
+
+  .statusRate {
+    min-width: 40px;
+    max-width: 52px;
+    padding: 0 5px;
+    font-size: 9.5px;
+  }
+}
+
+// 移动端最终布局约束：认证文件页前面包含多组历史响应式规则，这里统一收口，
+// 避免工具栏、筛选项和卡片操作区在窄屏下互相挤压或覆盖。
+@include mobile {
+  .authFilesSection {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .authFilesHeader {
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .titleWrapper,
+  .headerActions,
+  .filterSection,
+  .filterToolbarRow,
+  .filterControlsPanel,
+  .searchToolbar,
+  .filterChipRow,
+  .filterChipGroup {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .headerActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 7px;
+
+    .headerActionMain:global(.btn.btn-sm),
+    .headerActionDanger:global(.btn.btn-sm) {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+    }
+
+    .headerActionDanger:global(.btn.btn-sm) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .filterControlsPanel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    align-items: center;
+    padding: 8px;
+  }
+
+  .searchToolbar {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .filterChipRow {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .filterChipGroup {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .filterChip,
+  .filterResetButton {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .filterResetButton {
+    flex: 1 1 100%;
+  }
+
+  .searchToolbarPopoverWrap {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .searchToolbarPopover {
+    width: min(260px, calc(100vw - 24px));
+    min-width: 0;
+    max-width: calc(100vw - 24px);
+    max-height: min(420px, calc(100dvh - 96px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 420px) {
+  .filterControlsPanel {
+    padding: 7px;
+    gap: 7px;
+  }
+
+  .filterChipGroup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filterChip:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .searchToolbarPopover {
+    right: -43px;
+  }
+
+  .searchToolbarPopoverWrap:last-child .searchToolbarPopover {
+    right: 0;
+  }
+}
+
+// 操作按钮始终可见：窄屏和四列窄卡片都通过自然换行承载，不再折叠。
+@include mobile {
+  .cardActionsMain {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 6px;
+    overflow: visible;
+  }
+
+  .cardActionsContent {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .cardActionCluster {
+    flex: 1 1 140px;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .cardStatusActions,
+  .statusToggle {
+    flex-basis: 60px;
+    min-width: 60px;
+    max-width: 60px;
+  }
+
+  .cardUtilityActions {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  .cardRefreshActions {
+    justify-self: end;
+    margin-left: 0;
+  }
+
+  .iconButton:global(.btn.btn-sm),
+  .refreshActionButton:global(.btn.btn-sm) {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .iconButton:global(.btn.btn-sm) .quotaRefreshIcon,
+  .iconButton:global(.btn.btn-sm) .quotaButtonSpinner,
+  .iconButton:global(.btn.btn-sm) :global(.loading-spinner),
+  .iconButton:global(.btn.btn-sm) svg,
+  .actionIcon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  // 移动端放大到 44px 触控友好尺寸：只改这两个变量，
+  // 滑块位移由基础规则的 calc() 自动跟随。
+  .cardToggleSwitch {
+    --auth-toggle-track-width: 60px;
+    --auth-toggle-thumb-size: 28px;
+  }
+
+  .cardToggleSwitch > span:first-of-type {
+    height: 34px;
+    min-height: 34px;
+    padding: 0 7px 0 33px;
+  }
+
+  .cardToggleSwitch > input:checked + span:first-of-type {
+    padding: 0 33px 0 7px;
   }
 }

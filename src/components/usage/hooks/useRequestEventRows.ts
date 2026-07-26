@@ -22,10 +22,7 @@ import {
 export const REQUEST_EVENT_ROWS_LIMIT = 20;
 const EMPTY_CREDENTIAL_INFO_MAP = new Map<string, CredentialInfo>();
 const AUTH_FILE_MAP_STALE_TIME_MS = 240_000;
-const authFileMapCache = new Map<
-  string,
-  { map: Map<string, CredentialInfo>; fetchedAt: number }
->();
+const authFileMapCache = new Map<string, { map: Map<string, CredentialInfo>; fetchedAt: number }>();
 const authFileMapRequests = new Map<string, Promise<Map<string, CredentialInfo>>>();
 
 export type RequestEventTokenKind = 'in' | 'out' | 'reasoning' | 'cached';
@@ -41,6 +38,8 @@ export interface RequestEventRow {
   timestampMs: number;
   timestampLabel: string;
   timeOfDay: string;
+  endpoint: string;
+  clientIP: string;
   model: string;
   modelReasoningEffort: string;
   sourceRaw: string;
@@ -162,10 +161,7 @@ const getDetailTimestampMs = (detail: UsageDetail): number => {
   return Number.isNaN(timestampMs) ? 0 : timestampMs;
 };
 
-const selectRecentUsageDetails = (
-  details: UsageDetail[],
-  limit: number
-): UsageDetail[] => {
+const selectRecentUsageDetails = (details: UsageDetail[], limit: number): UsageDetail[] => {
   if (limit <= 0) return [];
   // The endpoint may already return a globally bounded recent set, but callers
   // still need a deterministic newest-first order for rendering.
@@ -176,10 +172,7 @@ const selectRecentUsageDetails = (
         timestampMs: getDetailTimestampMs(detail),
         order,
       }))
-      .sort(
-        (left, right) =>
-          right.timestampMs - left.timestampMs || left.order - right.order
-      )
+      .sort((left, right) => right.timestampMs - left.timestampMs || left.order - right.order)
       .map((entry) => entry.detail);
   }
 
@@ -268,10 +261,7 @@ export function useRequestEventRows({
   );
 
   const rows = useMemo<RequestEventRow[]>(() => {
-    const details = selectRecentUsageDetails(
-      collectUsageDetails(usage),
-      REQUEST_EVENT_ROWS_LIMIT
-    );
+    const details = selectRecentUsageDetails(collectUsageDetails(usage), REQUEST_EVENT_ROWS_LIMIT);
 
     const idOccurrences = new Map<string, number>();
     return details.map((detail) => {
@@ -289,26 +279,25 @@ export function useRequestEventRows({
           : String(authIndexRaw);
       const apiKey = String(detail.api_key ?? '').trim();
       const apiKeyMasked = apiKey ? maskApiKey(apiKey) : '-';
-      const sourceInfo = resolveSourceDisplay(
-        sourceRaw,
-        authIndexRaw,
-        sourceInfoMap,
-        authFileMap
-      );
+      const sourceInfo = resolveSourceDisplay(sourceRaw, authIndexRaw, sourceInfoMap, authFileMap);
       const source = sourceInfo.displayName;
       const sourceType = sourceInfo.type;
       const model = String(detail.__modelName ?? '').trim() || '-';
+      const endpoint =
+        typeof detail.endpoint === 'string' && detail.endpoint.trim()
+          ? detail.endpoint.trim()
+          : '-';
+      const clientIP =
+        typeof detail.client_ip === 'string' && detail.client_ip.trim()
+          ? detail.client_ip.trim()
+          : '-';
       const modelReasoningEffort =
-        typeof detail.model_reasoning_effort === 'string' &&
-        detail.model_reasoning_effort.trim()
+        typeof detail.model_reasoning_effort === 'string' && detail.model_reasoning_effort.trim()
           ? detail.model_reasoning_effort.trim()
           : '-';
       const inputTokens = Math.max(toNumber(detail.tokens?.input_tokens), 0);
       const outputTokens = Math.max(toNumber(detail.tokens?.output_tokens), 0);
-      const reasoningTokens = Math.max(
-        toNumber(detail.tokens?.reasoning_tokens),
-        0
-      );
+      const reasoningTokens = Math.max(toNumber(detail.tokens?.reasoning_tokens), 0);
       const cachedTokens = Math.max(
         Math.max(toNumber(detail.tokens?.cached_tokens), 0),
         Math.max(toNumber(detail.tokens?.cache_tokens), 0)
@@ -330,11 +319,21 @@ export function useRequestEventRows({
           ? detail.error_message.trim()
           : '';
       const safeTimestampMs = Number.isNaN(timestampMs) ? 0 : timestampMs;
-      const idBase = [timestamp, model, sourceRaw || source, authIndex, apiKey].join('\u0000');
+      const idBase = [
+        timestamp,
+        endpoint,
+        clientIP,
+        model,
+        sourceRaw || source,
+        authIndex,
+        apiKey,
+      ].join('\u0000');
       const occurrence = idOccurrences.get(idBase) ?? 0;
       idOccurrences.set(idBase, occurrence + 1);
       const searchText = [
         model,
+        endpoint,
+        clientIP,
         modelReasoningEffort,
         source,
         sourceType,
@@ -349,11 +348,11 @@ export function useRequestEventRows({
         id: `${idBase}\u0000${occurrence}`,
         timestamp,
         timestampMs: safeTimestampMs,
-        timestampLabel: date
-          ? date.toLocaleString(i18n.language)
-          : timestamp || '-',
+        timestampLabel: date ? date.toLocaleString(i18n.language) : timestamp || '-',
         timeOfDay: formatTimeOfDay(date, i18n.language),
         model,
+        endpoint,
+        clientIP,
         modelReasoningEffort,
         sourceRaw: sourceRaw || '-',
         source,
@@ -376,10 +375,7 @@ export function useRequestEventRows({
     });
   }, [authFileMap, i18n.language, modelPrices, sourceInfoMap, usage]);
 
-  const hasLatencyData = useMemo(
-    () => rows.some((row) => row.latencyMs !== null),
-    [rows]
-  );
+  const hasLatencyData = useMemo(() => rows.some((row) => row.latencyMs !== null), [rows]);
 
   return { rows, hasLatencyData };
 }

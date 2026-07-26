@@ -24,6 +24,17 @@
   position: absolute;
 }
 
+// 拨杆颜色随主题与选中态变化，不能写死为白色：
+// 亮色下选中态 track 是深色（--primary-color: #6f6a64），白色拨杆对比良好；
+// 暗色下选中态 track 反而是浅色（--primary-color: #c4beb6），
+// 此时白色拨杆几乎不可见，必须换成 --primary-contrast。
+.root {
+  --toggle-thumb-bg: #ffffff;
+  --toggle-thumb-border: rgb(38 35 32 / 0.1);
+  --toggle-thumb-shadow: 0 1px 2px rgb(38 35 32 / 0.16);
+  --toggle-track-inner: inset 0 1px 2px rgb(38 35 32 / 0.08);
+}
+
 .track {
   width: 44px;
   height: 24px;
@@ -31,7 +42,7 @@
   border: 1px solid color-mix(in srgb, var(--border-hover) 78%, transparent);
   border-radius: $radius-full;
   position: relative;
-  box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.08);
+  box-shadow: var(--toggle-track-inner);
   transition:
     background $transition-fast,
     border-color $transition-fast,
@@ -44,11 +55,13 @@
   left: 3px;
   width: 18px;
   height: 18px;
-  background: #fff;
-  border: 1px solid rgb(15 23 42 / 0.08);
+  background: var(--toggle-thumb-bg);
+  border: 1px solid var(--toggle-thumb-border);
   border-radius: $radius-full;
-  box-shadow: $shadow-sm;
-  transition: transform $transition-fast;
+  box-shadow: var(--toggle-thumb-shadow);
+  transition:
+    transform $transition-fast,
+    background $transition-fast;
 }
 
 .root input:checked + .track {
@@ -109,11 +122,31 @@
   }
 }
 
+// 未选中态 label 压在中性灰 track 上；选中态压在主色 track 上，
+// 两者所需前景色不同，见下方 :checked 覆盖。
 .trackLabel {
-  color: #fff;
+  color: var(--text-secondary);
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
-  text-shadow: 0 1px 1px rgb(0 0 0 / 0.18);
+}
+
+.root input:checked + .track .trackLabel {
+  color: var(--primary-contrast);
+}
+
+[data-theme='dark'] {
+  .root {
+    // 暗色下选中态 track 为浅暖灰，拨杆改用深色前景才可见
+    --toggle-thumb-bg: var(--text-secondary);
+    --toggle-thumb-border: rgb(0 0 0 / 0.32);
+    --toggle-thumb-shadow: 0 1px 2px rgb(0 0 0 / 0.44);
+    --toggle-track-inner: inset 0 1px 2px rgb(0 0 0 / 0.32);
+  }
+
+  .root input:checked + .track .thumb {
+    background: var(--primary-contrast);
+    border-color: rgb(0 0 0 / 0.4);
+  }
 }

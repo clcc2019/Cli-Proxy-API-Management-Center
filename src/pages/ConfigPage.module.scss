@@ -248,7 +248,7 @@
   border-radius: 999px;
   background: var(--primary-color);
   border: 1px solid var(--primary-color);
-  color: #fff;
+  color: var(--primary-contrast);
   transition:
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard),

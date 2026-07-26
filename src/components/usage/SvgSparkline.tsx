@@ -1,5 +1,5 @@
 import { memo, useId, useMemo } from 'react';
-import type { SparklineBundle } from './hooks/useSparklines';
+import type { SparklineBundle } from './hooks/sparklineTypes';
 
 export interface SvgSparklineProps {
   sparkline: SparklineBundle;

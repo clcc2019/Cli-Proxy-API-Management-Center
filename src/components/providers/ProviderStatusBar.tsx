@@ -6,6 +6,8 @@ import {
   useEffect,
   useMemo,
   type CSSProperties,
+  type FocusEvent as ReactFocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
@@ -60,17 +62,25 @@ type StatusBlockView = {
   blockClassName: string;
   blockStyle: CSSProperties | undefined;
   tooltipPositionClass: string;
+  // 读屏用的 aria-label 随 blockItems 一起缓存：它需要两次 new Date() 与一次 t()，
+  // 而每张卡片有 20 个块，逐次渲染重算会在整页刷新时产生上千次多余的日期构造。
+  label: string;
 };
 
 interface StatusBlockItemProps {
   item: StatusBlockView;
   index: number;
   active: boolean;
+  tabbable: boolean;
+  label: string;
   wrapperClassName: string;
   activeWrapperClassName: string;
   onPointerEnter: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onPointerLeave: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onFocus: (event: ReactFocusEvent<HTMLDivElement>) => void;
+  onBlur: (event: ReactFocusEvent<HTMLDivElement>) => void;
+  onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
   renderTooltip: (item: StatusBlockView) => ReactNode;
 }
 
@@ -78,20 +88,35 @@ const StatusBlockItem = memo(function StatusBlockItem({
   item,
   index,
   active,
+  tabbable,
+  label,
   wrapperClassName,
   activeWrapperClassName,
   onPointerEnter,
   onPointerLeave,
   onPointerDown,
+  onFocus,
+  onBlur,
+  onKeyDown,
   renderTooltip,
 }: StatusBlockItemProps) {
   return (
+    // tooltip 里的成功/失败/速率是这段数据的唯一呈现，因此每个 block 必须
+    // 可聚焦并带 aria-label。用 roving tabindex（组内只有一个 tab 停靠点，
+    // 方向键移动）避免几十个 block 塞满 Tab 序列。
     <div
       className={`${wrapperClassName} ${active ? activeWrapperClassName : ''}`}
       data-index={index}
+      role="button"
+      tabIndex={tabbable ? 0 : -1}
+      aria-label={label}
+      aria-expanded={active}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
       onPointerDown={onPointerDown}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
     >
       <div className={item.blockClassName} style={item.blockStyle} />
       {active && renderTooltip(item)}
@@ -107,6 +132,8 @@ function ProviderStatusBarImpl({
   const { t } = useTranslation();
   const s = (stylesProp || defaultStyles) as StylesModule;
   const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
+  // roving tabindex 的当前停靠点
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const blocksRef = useRef<HTMLDivElement>(null);
 
   const hasData = statusData.totalSuccess + statusData.totalFailure > 0;
@@ -168,18 +195,78 @@ function ProviderStatusBarImpl({
     [getBlockIndex]
   );
 
+  // 键盘聚焦即展示 tooltip（等价于鼠标 hover）
+  const handleFocus = useCallback(
+    (e: ReactFocusEvent<HTMLDivElement>) => {
+      const index = getBlockIndex(e.currentTarget);
+      if (index !== null) {
+        setFocusedIndex(index);
+        setActiveTooltip((prev) => (prev === index ? prev : index));
+      }
+    },
+    [getBlockIndex]
+  );
+
+  const handleBlur = useCallback((e: ReactFocusEvent<HTMLDivElement>) => {
+    // 焦点仍在同一个 block 内部时不关闭
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setActiveTooltip((prev) => (prev === null ? prev : null));
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLDivElement>) => {
+      const total = statusData.blockDetails.length;
+      if (total === 0) return;
+      const current = getBlockIndex(e.currentTarget) ?? 0;
+      let next: number | null = null;
+
+      if (e.key === 'ArrowRight') next = Math.min(current + 1, total - 1);
+      else if (e.key === 'ArrowLeft') next = Math.max(current - 1, 0);
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = total - 1;
+      else if (e.key === 'Escape') {
+        setActiveTooltip(null);
+        return;
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setActiveTooltip((prev) => (prev === current ? null : current));
+        return;
+      }
+
+      if (next === null || next === current) return;
+      e.preventDefault();
+      setFocusedIndex(next);
+      const container = blocksRef.current;
+      const target = container?.querySelector<HTMLElement>(`[data-index="${next}"]`);
+      target?.focus();
+    },
+    [getBlockIndex, statusData.blockDetails.length]
+  );
+
   const blockItems = useMemo<StatusBlockView[]>(() => {
     const total = statusData.blockDetails.length;
     return statusData.blockDetails.map((detail, idx) => {
       const isIdle = detail.rate === -1;
       const tooltipPositionClass =
         idx <= 2 ? s.statusTooltipLeft : idx >= total - 3 ? s.statusTooltipRight : '';
+      const timeRange = `${formatTime(detail.startTime)} – ${formatTime(detail.endTime)}`;
+      const label =
+        detail.success + detail.failure === 0
+          ? `${timeRange}: ${t('status_bar.no_requests')}`
+          : // 不用 success_short / failure_short：它们是 ✓ / ✗ 符号，读屏无意义
+            t('status_bar.block_label', {
+              range: timeRange,
+              success: detail.success,
+              failure: detail.failure,
+              rate: (detail.rate * 100).toFixed(1),
+            });
 
       return {
         detail,
         blockClassName: `${s.statusBlock} ${isIdle ? s.statusBlockIdle : ''}`,
         blockStyle: isIdle ? undefined : { backgroundColor: rateToColor(detail.rate) },
         tooltipPositionClass,
+        label,
       };
     });
   }, [
@@ -188,6 +275,7 @@ function ProviderStatusBarImpl({
     s.statusTooltipLeft,
     s.statusTooltipRight,
     statusData.blockDetails,
+    t,
   ]);
 
   const renderTooltip = useCallback(
@@ -226,20 +314,28 @@ function ProviderStatusBarImpl({
     ]
   );
 
+  // tooltip 内容的等价文本，供屏幕阅读器读取
+  const rovingIndex = Math.min(focusedIndex, Math.max(blockItems.length - 1, 0));
+
   return (
     <div className={s.statusBar}>
-      <div className={s.statusBlocks} ref={blocksRef}>
+      <div className={s.statusBlocks} ref={blocksRef} role="group" aria-label={t('status_bar.label')}>
         {blockItems.map((item, idx) => (
           <StatusBlockItem
             key={idx}
             item={item}
             index={idx}
             active={activeTooltip === idx}
+            tabbable={idx === rovingIndex}
+            label={item.label}
             wrapperClassName={s.statusBlockWrapper}
             activeWrapperClassName={s.statusBlockActive}
             onPointerEnter={handlePointerEnter}
             onPointerLeave={handlePointerLeave}
             onPointerDown={handlePointerDown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
             renderTooltip={renderTooltip}
           />
         ))}

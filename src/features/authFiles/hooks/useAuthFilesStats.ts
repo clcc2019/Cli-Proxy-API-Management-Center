@@ -264,18 +264,11 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
     ]);
   }, [applyAuthFileUsageStats, loadUsageStats]);
 
+  // 只刷新 auth-file 维度的用量聚合。usage details 由 refreshStatusDetails
+  // 以更短间隔单独轮询，这里不再重复请求同一份 1000 行明细。
   const refreshKeyStats = useCallback(async () => {
-    await Promise.all([
-      loadUsageStats({
-        force: true,
-        detailsLimit: AUTH_FILE_STATUS_DETAILS_LIMIT,
-        compactDetails: true,
-        includeAggregated: false,
-        staleTimeMs: USAGE_STATS_STALE_TIME_MS,
-      }),
-      applyAuthFileUsageStats(true),
-    ]);
-  }, [applyAuthFileUsageStats, loadUsageStats]);
+    await applyAuthFileUsageStats(true);
+  }, [applyAuthFileUsageStats]);
 
   const refreshStatusDetails = useCallback(async () => {
     await loadUsageStats({

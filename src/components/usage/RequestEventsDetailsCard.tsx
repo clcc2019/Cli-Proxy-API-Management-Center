@@ -152,14 +152,14 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
               </caption>
               <thead>
                 <tr>
-                  <th>{t('usage_stats.request_events_col_time')}</th>
-                  <th>{t('usage_stats.request_events_col_model')}</th>
-                  <th>{t('usage_stats.request_events_col_credential')}</th>
-                  <th title={hasLatencyData ? latencyHint : undefined}>
+                  <th scope="col">{t('usage_stats.request_events_col_time')}</th>
+                  <th scope="col">{t('usage_stats.request_events_col_model')}</th>
+                  <th scope="col">{t('usage_stats.request_events_col_credential')}</th>
+                  <th scope="col" title={hasLatencyData ? latencyHint : undefined}>
                     {t('usage_stats.request_events_col_status')}
                   </th>
-                  <th>{t('usage_stats.request_events_col_tokens')}</th>
-                  <th>{t('usage_stats.request_events_col_cost')}</th>
+                  <th scope="col">{t('usage_stats.request_events_col_tokens')}</th>
+                  <th scope="col">{t('usage_stats.request_events_col_cost')}</th>
                 </tr>
               </thead>
               <tbody>

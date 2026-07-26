@@ -73,6 +73,8 @@ export interface ModelPrice {
 export interface UsageDetail {
   timestamp: string;
   api_key?: string;
+  endpoint?: string;
+  client_ip?: string;
   source: string;
   auth_index: number;
   model_reasoning_effort?: string;
@@ -1070,9 +1072,19 @@ export function collectUsageDetails(usageData: unknown): UsageDetail[] {
             : looksLikeRawSecret(apiName)
               ? apiName.trim()
               : undefined;
+        const endpoint =
+          typeof detailRaw.endpoint === 'string' && detailRaw.endpoint.trim()
+            ? detailRaw.endpoint.trim()
+            : undefined;
+        const clientIP =
+          typeof detailRaw.client_ip === 'string' && detailRaw.client_ip.trim()
+            ? detailRaw.client_ip.trim()
+            : undefined;
         details.push({
           timestamp,
           api_key: apiKeyRaw,
+          endpoint,
+          client_ip: clientIP,
           source: normalizeSource(detailRaw.source),
           auth_index: detailRaw.auth_index as unknown as number,
           model_reasoning_effort:
@@ -1136,10 +1148,6 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
     const models = isRecord(modelsRaw) ? modelsRaw : null;
     if (!models) return;
 
-    const endpointMatch = endpoint.match(USAGE_ENDPOINT_METHOD_REGEX);
-    const endpointMethod = endpointMatch?.[1]?.toUpperCase();
-    const endpointPath = endpointMatch?.[2];
-
     Object.entries(models).forEach(([modelName, modelEntry]) => {
       if (!isRecord(modelEntry)) return;
       const modelDetailsRaw = modelEntry.details;
@@ -1157,9 +1165,22 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
             : looksLikeRawSecret(endpoint)
               ? endpoint.trim()
               : undefined;
+        const detailEndpoint =
+          typeof detailRaw.endpoint === 'string' && detailRaw.endpoint.trim()
+            ? detailRaw.endpoint.trim()
+            : endpoint;
+        const endpointMatch = detailEndpoint.match(USAGE_ENDPOINT_METHOD_REGEX);
+        const endpointMethod = endpointMatch?.[1]?.toUpperCase();
+        const endpointPath = endpointMatch?.[2];
+        const clientIP =
+          typeof detailRaw.client_ip === 'string' && detailRaw.client_ip.trim()
+            ? detailRaw.client_ip.trim()
+            : undefined;
         details.push({
           timestamp,
           api_key: apiKeyRaw,
+          endpoint: detailEndpoint,
+          client_ip: clientIP,
           source: normalizeSource(detailRaw.source),
           auth_index: detailRaw.auth_index as unknown as number,
           model_reasoning_effort:
@@ -1173,7 +1194,7 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
           tokens: tokensRaw as unknown as UsageDetail['tokens'],
           failed: detailRaw.failed === true,
           __modelName: modelName,
-          __endpoint: endpoint,
+          __endpoint: detailEndpoint,
           __endpointMethod: endpointMethod,
           __endpointPath: endpointPath,
           __timestampMs: Number.isNaN(timestampMs) ? 0 : timestampMs,

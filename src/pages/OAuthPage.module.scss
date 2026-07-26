@@ -13,6 +13,13 @@
   gap: $spacing-sm;
 }
 
+// 状态徽标现在放在卡片 header 的 extra 位（flex 行内），
+// 全局 .status-badge 自带 margin-bottom 会让它在行内偏上，这里清掉。
+.statusBadge {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
 .cardTitleIcon {
   width: 24px;
   height: 24px;
@@ -34,10 +41,43 @@
   gap: $spacing-lg;
 }
 
+// 卡片网格：列数由容器宽度决定。min(100%, …) 防止窄容器下出现横向溢出
+// （见 AiProvidersPage / UsagePage 的同一写法）。
+// 只有 5 个 provider，超宽屏下限制整体宽度，避免摊成一行 6 列且留空位。
+.providerGrid {
+  display: grid;
+  gap: $spacing-md;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  // 不用 align-items:start —— 折叠态需要同行卡片等高，
+  // 否则卡片内的「登录」按钮无法对齐成一条线。
+  align-items: stretch;
+  max-width: 1680px;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+// stretch（默认值，显式写出以示意）让同行卡片等高，
+// 卡片内的 margin-top:auto 才能把按钮压到底部对齐。
+.providerCell {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.providerCard {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .cardContent {
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
+  flex: 1;
 
   :global(.form-group) {
     margin-bottom: 0;
@@ -54,210 +94,19 @@
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-secondary);
+  // 不加 flex:1 —— 撑开提示文字会把它自身拉高，
+  // 底部对齐交给 .cardFooter 的 margin-top:auto。
 }
 
-.cardHintSecondary {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text-tertiary);
-}
-
-.oauthSection {
+// 把底部按钮压在卡片底部，让同行按钮对齐成一条线
+.cardFooter {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: $spacing-xs;
 }
 
-.oauthGrid {
-  display: grid;
-  gap: $spacing-md;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-.oauthCard {
-  position: relative;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-.oauthStatus {
-  padding: $spacing-md;
-  border-radius: $radius-md;
-  font-size: 14px;
-
-  &.success {
-    border: 1px solid var(--success-badge-border);
-    background: var(--success-badge-bg);
-    color: var(--success-badge-text);
-  }
-
-  &.error {
-    border: 1px solid var(--failure-badge-border);
-    background: var(--failure-badge-bg);
-    color: var(--failure-badge-text);
-  }
-
-  &.waiting {
-    border: 1px solid color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
-    background: var(--primary-soft);
-    color: color-mix(in srgb, var(--primary-color) 82%, var(--text-primary));
-  }
-}
-
-.callbackSection {
-  margin-top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-.callbackActions {
-  display: flex;
-  gap: $spacing-md;
-}
-
-.authUrlBox {
-  background: var(--bg-secondary);
-  border: 1px dashed var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-md;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-.authUrlLabel {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.authUrlValue {
-  font-weight: 700;
-  color: var(--text-primary);
-  word-break: break-all;
-  overflow-wrap: anywhere;
-  line-height: 1.5;
-  max-width: 100%;
-}
-
-.authUrlActions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
-}
-
-.geminiProjectField {
-  :global(.form-group) {
-    margin-top: 0;
-    margin-bottom: 0;
-    gap: $spacing-sm;
-  }
-
-  :global(.input:disabled) {
-    background-color: var(--bg-tertiary);
-    border-color: var(--border-color);
-    color: var(--text-tertiary);
-    cursor: not-allowed;
-  }
-}
-
-.kiroOptions {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-
-  :global(.form-group) {
-    margin-top: 0;
-    margin-bottom: 0;
-    gap: $spacing-sm;
-  }
-}
-
-.formItem {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-.formItemLabel {
-  margin: 0;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.filePicker {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  flex-wrap: wrap;
-}
-
-.fileName {
-  flex: 1;
-  min-width: 220px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-.fileNamePlaceholder {
-  color: var(--text-secondary);
-}
-
-.connectionBox {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-md;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-.connectionLabel {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.keyValueList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.keyValueItem {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 10px;
-  align-items: start;
-
-  @include mobile {
-    grid-template-columns: 1fr;
-    gap: 2px;
-  }
-}
-
-.keyValueKey {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.keyValueValue {
-  color: var(--text-primary);
-  word-break: break-all;
-  overflow-wrap: anywhere;
+// 轮询等待中：给卡片一个进行中的视觉提示
+.providerCardWaiting {
+  border-color: color-mix(in srgb, var(--primary-color) 34%, var(--border-color));
 }

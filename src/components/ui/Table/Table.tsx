@@ -77,11 +77,14 @@ export function TableHead({
   children,
   className,
   alignRight,
+  scope = 'col',
   ...rest
 }: PropsWithChildren<TableHeadProps>) {
   const cls = [alignRight ? styles.alignRight : null, className].filter(Boolean).join(' ');
+  // 默认 scope="col"：屏幕阅读器靠它把单元格关联到列头。
+  // 行头场景可显式传 scope="row" 覆盖。
   return (
-    <th className={cls || undefined} {...rest}>
+    <th className={cls || undefined} scope={scope} {...rest}>
       {children}
     </th>
   );

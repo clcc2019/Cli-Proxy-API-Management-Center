@@ -114,31 +114,6 @@ type StatusBarCacheEntry = {
 
 const FILE_STATUS_CACHE = new WeakMap<AuthFileItem, StatusBarCacheEntry>();
 const EMPTY_DETAILS_BY_AUTH_INDEX = new Map<string, UsageDetail[]>();
-let previousStatusBarCacheMap: Map<string, AuthFileStatusBarData> | null = null;
-
-const statusBarCacheMapsEqual = (
-  left: Map<string, AuthFileStatusBarData>,
-  right: Map<string, AuthFileStatusBarData>
-): boolean => {
-  if (left.size !== right.size) return false;
-
-  for (const [key, value] of left) {
-    if (right.get(key) !== value) return false;
-  }
-
-  return true;
-};
-
-const reuseStatusBarCacheMap = (
-  cache: Map<string, AuthFileStatusBarData>
-): Map<string, AuthFileStatusBarData> => {
-  if (previousStatusBarCacheMap && statusBarCacheMapsEqual(cache, previousStatusBarCacheMap)) {
-    return previousStatusBarCacheMap;
-  }
-
-  previousStatusBarCacheMap = cache;
-  return cache;
-};
 
 const getRecentRequestsSignature = (buckets: AuthFileRecentRequestBucketLike[]): string =>
   buckets
@@ -191,6 +166,14 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
 
   const detailsBySource = useMemo(() => indexUsageDetailsBySource(usageDetails), [usageDetails]);
 
+  // 这里不再对整个 Map 做「内容相等则复用旧引用」的处理。
+  //
+  // 真正决定卡片是否重渲染的是每个 statusData 的引用，而它已由
+  // FILE_STATUS_CACHE（WeakMap，按 file 对象缓存）保证稳定：内容没变时
+  // 取到的是同一个对象，AuthFileCard 的 memo 依旧命中。Map 自身的引用只
+  // 影响 authFileCardNodes 那一层 useMemo 是否重建 —— 那只是重新创建
+  // 十几个廉价的 React element，代价远小于为此在渲染期读写 ref
+  // （React 纯度规则不允许，eslint react-hooks/refs 会直接报错）。
   return useMemo(() => {
     const cache = new Map<string, AuthFileStatusBarData>();
 
@@ -228,6 +211,6 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
       }
     });
 
-    return reuseStatusBarCacheMap(cache);
+    return cache;
   }, [detailsByAuthIndex, detailsBySource, files]);
 }

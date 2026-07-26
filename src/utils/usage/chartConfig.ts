@@ -92,17 +92,6 @@ export const buildUsageAreaGradient = (
   return gradient;
 };
 
-/**
- * Static sparkline chart options (no dependencies on theme/mobile)
- */
-export const sparklineOptions: ChartOptions<'line'> = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false }, tooltip: { enabled: false } },
-  scales: { x: { display: false }, y: { display: false } },
-  elements: { line: { tension: 0.3 }, point: { radius: 0 } },
-};
-
 export interface ChartConfigOptions {
   period: 'hour' | 'day';
   labels: string[];

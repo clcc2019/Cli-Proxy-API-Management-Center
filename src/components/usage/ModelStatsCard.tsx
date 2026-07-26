@@ -95,7 +95,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                 <caption className={styles.visuallyHidden}>{t('usage_stats.models')}</caption>
                 <thead>
                   <tr>
-                    <th className={styles.sortableHeader} aria-sort={ariaSort('model')}>
+                    <th scope="col" className={styles.sortableHeader} aria-sort={ariaSort('model')}>
                       <button
                         type="button"
                         className={styles.sortHeaderButton}
@@ -105,7 +105,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                         {arrow('model')}
                       </button>
                     </th>
-                    <th className={styles.sortableHeader} aria-sort={ariaSort('requests')}>
+                    <th scope="col" className={styles.sortableHeader} aria-sort={ariaSort('requests')}>
                       <button
                         type="button"
                         className={styles.sortHeaderButton}
@@ -115,7 +115,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                         {arrow('requests')}
                       </button>
                     </th>
-                    <th className={styles.sortableHeader} aria-sort={ariaSort('tokens')}>
+                    <th scope="col" className={styles.sortableHeader} aria-sort={ariaSort('tokens')}>
                       <button
                         type="button"
                         className={styles.sortHeaderButton}
@@ -125,7 +125,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                         {arrow('tokens')}
                       </button>
                     </th>
-                    <th className={styles.sortableHeader} aria-sort={ariaSort('averageLatencyMs')}>
+                    <th scope="col" className={styles.sortableHeader} aria-sort={ariaSort('averageLatencyMs')}>
                       <button
                         type="button"
                         className={styles.sortHeaderButton}
@@ -136,7 +136,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                         {arrow('averageLatencyMs')}
                       </button>
                     </th>
-                    <th className={styles.sortableHeader} aria-sort={ariaSort('totalLatencyMs')}>
+                    <th scope="col" className={styles.sortableHeader} aria-sort={ariaSort('totalLatencyMs')}>
                       <button
                         type="button"
                         className={styles.sortHeaderButton}
@@ -147,7 +147,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                         {arrow('totalLatencyMs')}
                       </button>
                     </th>
-                    <th className={styles.sortableHeader} aria-sort={ariaSort('successRate')}>
+                    <th scope="col" className={styles.sortableHeader} aria-sort={ariaSort('successRate')}>
                       <button
                         type="button"
                         className={styles.sortHeaderButton}
@@ -158,7 +158,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                       </button>
                     </th>
                     {hasPrices && (
-                      <th className={styles.sortableHeader} aria-sort={ariaSort('cost')}>
+                      <th scope="col" className={styles.sortableHeader} aria-sort={ariaSort('cost')}>
                         <button
                           type="button"
                           className={styles.sortHeaderButton}

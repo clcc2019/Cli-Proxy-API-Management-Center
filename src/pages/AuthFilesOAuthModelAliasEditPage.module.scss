@@ -132,7 +132,7 @@
 .tagActive {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
-  color: #fff;
+  color: var(--primary-contrast);
 
   &:hover {
     background-color: var(--primary-color);

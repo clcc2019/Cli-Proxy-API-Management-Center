@@ -27,6 +27,7 @@ import {
   type HeaderEntry,
 } from '@/utils/headers';
 import { isProviderPrefixValid, normalizeProviderPrefix } from '@/components/providers/utils';
+import { getErrorMessage } from '@/utils/error';
 import styles from './AiProvidersPage.module.scss';
 
 type LocationState = { fromAiProviders?: boolean } | null;
@@ -83,12 +84,6 @@ const parseIndexParam = (value: string | undefined) => {
   if (!value) return null;
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : null;
-};
-
-const getErrorMessage = (err: unknown) => {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  return '';
 };
 
 const normalizeApiKeyEntries = (entries: ApiKeyEntryForm[]) =>

@@ -372,16 +372,26 @@
   }
 }
 
+// 以 --danger-color 派生，避免硬编码的饱和红渐变在暗色下与主题脱节
 .deleteButton:global(.btn.btn-sm.btn-danger) {
   border-color: color-mix(in srgb, var(--danger-color) 56%, transparent);
-  background: linear-gradient(135deg, #f05252, #dc2626 62%, #d52b2b);
-  color: #fff;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--danger-color) 88%, white),
+    var(--danger-color) 62%,
+    color-mix(in srgb, var(--danger-color) 88%, black)
+  );
+  color: var(--danger-contrast);
   box-shadow:
-    0 14px 26px -17px rgba(220, 38, 38, 0.72),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    0 14px 26px -17px color-mix(in srgb, var(--danger-color) 72%, transparent),
+    var(--surface-inner-highlight);
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #f05252, #b91c1c);
-    border-color: color-mix(in srgb, #b91c1c 82%, transparent);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--danger-color) 88%, white),
+      var(--danger-hover)
+    );
+    border-color: color-mix(in srgb, var(--danger-hover) 82%, transparent);
   }
 }

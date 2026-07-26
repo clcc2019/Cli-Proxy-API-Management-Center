@@ -1,6 +1,10 @@
 /**
  * 通知状态管理
- * 当前全局关闭操作反馈弹窗与提示通知，仅保留兼容调用接口。
+ *
+ * toast 提示通知全局关闭，`showNotification` 仅保留兼容调用接口（无副作用）。
+ * 确认弹窗保持启用：破坏性操作（清空日志、覆盖未保存配置、丢弃未保存更改）
+ * 必须经用户确认，因此 `showConfirmation` 只置起弹窗状态，
+ * 由 ConfirmationModal 在用户确认后才执行 `onConfirm`。
  */
 
 import { create } from 'zustand';
@@ -60,17 +64,11 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   showConfirmation: (options) => {
     set({
       confirmation: {
-        isOpen: false,
+        isOpen: true,
         isLoading: false,
-        options: null
+        options
       }
     });
-
-    void Promise.resolve()
-      .then(() => options.onConfirm())
-      .catch((error: unknown) => {
-        console.error('Confirmation action failed:', error);
-      });
   },
 
   hideConfirmation: () => {

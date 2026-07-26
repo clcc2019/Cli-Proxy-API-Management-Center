@@ -338,6 +338,12 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     () => formatMillionTokens(fileUsageStats.totalTokens),
     [fileUsageStats.totalTokens]
   );
+  // toLocaleString 走 ICU 数字格式化，是较慢的内建方法；它只用于 title，
+  // 没有理由每次渲染重算。
+  const tokenExactLabel = useMemo(
+    () => fileUsageStats.totalTokens.toLocaleString(),
+    [fileUsageStats.totalTokens]
+  );
   const authFileDisplayName = useMemo(() => file.name.replace(/\.json$/i, ''), [file.name]);
   const maskedAuthFileDisplayName = useMemo(
     () => maskAuthFileDisplayName(authFileDisplayName),
@@ -454,7 +460,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       title={t('auth_files.auth_mode_current_hint', {
                         mode: authModeDisplayLabel,
                       })}
-                      role="status"
+                      // 这里是静态标签而非动态播报：用 role="status" 会让每张 Codex
+                      // 卡片都变成 live region，任何重渲染都重复播报一次。
                       aria-label={t('auth_files.auth_mode_current_hint', {
                         mode: authModeDisplayLabel,
                       })}
@@ -575,7 +582,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 </span>
                 <span
                   className={styles.statusTokens}
-                  title={fileUsageStats.totalTokens.toLocaleString()}
+                  title={tokenExactLabel}
                 >
                   <span className={styles.statusTokensLabel}>
                     {t('auth_files.tokens_stat_label')}

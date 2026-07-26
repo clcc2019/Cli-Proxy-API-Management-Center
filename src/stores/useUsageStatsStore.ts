@@ -8,6 +8,7 @@ import {
   type UsageDetail,
 } from '@/utils/usage';
 import i18n from '@/i18n';
+import { getErrorMessageOr } from '@/utils/error';
 
 export const USAGE_STATS_STALE_TIME_MS = 240_000;
 
@@ -73,12 +74,10 @@ let inFlightUsageRequest: {
   promise: Promise<void>;
 } | null = null;
 
+// 复用共享实现（额外支持解包 `{ message }` 形状的错误体），
+// 取不到时回落到本地化文案。
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error
-    ? error.message
-    : typeof error === 'string'
-      ? error
-      : i18n.t('usage_stats.loading_error');
+  getErrorMessageOr(error, i18n.t('usage_stats.loading_error'));
 
 const normalizeDetailsLimit = (value: unknown): number | null => {
   return normalizeUsageDetailsRecentLimit(value) ?? null;

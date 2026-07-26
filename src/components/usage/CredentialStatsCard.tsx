@@ -262,10 +262,10 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
               </caption>
               <thead>
                 <tr>
-                  <th>{t('usage_stats.credential_name')}</th>
-                  <th>{t('usage_stats.requests_count')}</th>
-                  <th>{t('usage_stats.total_tokens')}</th>
-                  <th>{t('usage_stats.success_rate')}</th>
+                  <th scope="col">{t('usage_stats.credential_name')}</th>
+                  <th scope="col">{t('usage_stats.requests_count')}</th>
+                  <th scope="col">{t('usage_stats.total_tokens')}</th>
+                  <th scope="col">{t('usage_stats.success_rate')}</th>
                 </tr>
               </thead>
               <tbody>

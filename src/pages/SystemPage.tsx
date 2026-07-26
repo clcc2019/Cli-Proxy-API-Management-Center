@@ -75,7 +75,13 @@ export function SystemPage() {
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
-  const auth = useAuthStore();
+  // 窄选择器：整店订阅会让任何无关字段变化（如全局 unauthorized 事件
+  // 翻转 connectionStatus 之外的状态）都重渲染整个 SystemPage。
+  const connectionStatus = useAuthStore((state) => state.connectionStatus);
+  const serverVersion = useAuthStore((state) => state.serverVersion);
+  const serverBuildDate = useAuthStore((state) => state.serverBuildDate);
+  const apiBase = useAuthStore((state) => state.apiBase);
+  const logout = useAuthStore((state) => state.logout);
   const config = useConfigStore((state) => state.config);
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
   const clearCache = useConfigStore((state) => state.clearCache);
@@ -108,12 +114,12 @@ export function SystemPage() {
   const groupedModels = useMemo(() => classifyModels(models, { otherLabel }), [models, otherLabel]);
   const requestLogEnabled = config?.requestLog ?? false;
   const requestLogDirty = requestLogDraft !== requestLogEnabled;
-  const canEditRequestLog = auth.connectionStatus === 'connected' && Boolean(config);
+  const canEditRequestLog = connectionStatus === 'connected' && Boolean(config);
 
   const appVersion = __APP_VERSION__ || t('system_info.version_unknown');
-  const apiVersion = auth.serverVersion || t('system_info.version_unknown');
-  const buildTime = auth.serverBuildDate
-    ? new Date(auth.serverBuildDate).toLocaleString(i18n.language)
+  const apiVersion = serverVersion || t('system_info.version_unknown');
+  const buildTime = serverBuildDate
+    ? new Date(serverBuildDate).toLocaleString(i18n.language)
     : t('system_info.version_unknown');
 
   const getIconForCategory = (categoryId: string): string | null => {
@@ -187,7 +193,7 @@ export function SystemPage() {
   }, [config?.apiKeys]);
 
   const fetchModels = async ({ forceRefresh = false }: { forceRefresh?: boolean } = {}) => {
-    if (auth.connectionStatus !== 'connected') {
+    if (connectionStatus !== 'connected') {
       setModelStatus({
         type: 'warning',
         message: t('notification.connection_required'),
@@ -195,7 +201,7 @@ export function SystemPage() {
       return;
     }
 
-    if (!auth.apiBase) {
+    if (!apiBase) {
       showNotification(t('notification.connection_required'), 'warning');
       return;
     }
@@ -208,7 +214,7 @@ export function SystemPage() {
     try {
       const apiKeys = await resolveApiKeysForModels();
       const primaryKey = apiKeys[0];
-      const list = await fetchModelsFromStore(auth.apiBase, primaryKey, forceRefresh);
+      const list = await fetchModelsFromStore(apiBase, primaryKey, forceRefresh);
       const hasModels = list.length > 0;
       setModelStatus({
         type: hasModels ? 'success' : 'warning',
@@ -231,7 +237,7 @@ export function SystemPage() {
       variant: 'danger',
       confirmText: t('common.confirm'),
       onConfirm: () => {
-        auth.logout();
+        logout();
         if (typeof localStorage === 'undefined') return;
         const keysToRemove = [
           STORAGE_KEY_AUTH,
@@ -317,7 +323,7 @@ export function SystemPage() {
       const data = await versionApi.checkLatest();
       const latestRaw = data?.['latest-version'] ?? data?.latest_version ?? data?.latest ?? '';
       const latest = typeof latestRaw === 'string' ? latestRaw : String(latestRaw ?? '');
-      const comparison = compareVersions(latest, auth.serverVersion);
+      const comparison = compareVersions(latest, serverVersion);
 
       if (!latest) {
         showNotification(t('system_info.version_check_error'), 'error');
@@ -342,7 +348,7 @@ export function SystemPage() {
     } finally {
       setCheckingVersion(false);
     }
-  }, [auth.serverVersion, showNotification, t]);
+  }, [serverVersion, showNotification, t]);
 
   useEffect(() => {
     fetchConfig().catch(() => {
@@ -359,7 +365,7 @@ export function SystemPage() {
   useEffect(() => {
     fetchModels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.connectionStatus, auth.apiBase]);
+  }, [connectionStatus, apiBase]);
 
   return (
     <div className={styles.container}>
@@ -409,8 +415,8 @@ export function SystemPage() {
 
             <div className={styles.infoTile}>
               <div className={styles.tileLabel}>{t('connection.status')}</div>
-              <div className={styles.tileValue}>{t(`common.${auth.connectionStatus}_status`)}</div>
-              <div className={styles.tileSub}>{auth.apiBase || '-'}</div>
+              <div className={styles.tileValue}>{t(`common.${connectionStatus}_status`)}</div>
+              <div className={styles.tileSub}>{apiBase || '-'}</div>
             </div>
           </div>
         </Card>

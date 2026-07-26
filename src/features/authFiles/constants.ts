@@ -343,10 +343,33 @@ export function resolveAuthFileStats(file: AuthFileItem, stats: KeyStats): KeySt
   return hasAuthFileRequestStats(listStats) ? listStats : matched;
 }
 
+export type AuthFileUsageBucketCache = WeakMap<
+  AuthFileItem,
+  { stats: KeyUsageStats; bucket: KeyUsageBucket }
+>;
+
+/**
+ * @param cache 可选的按文件对象缓存。下面有两条分支会新建对象（全零默认值、
+ *   以及合并列表统计的 `{ ...matched }`），不缓存的话即使统计毫无变化，
+ *   每次渲染也会产出新引用，令 AuthFileCard 的 memo 失效、连带重算整页
+ *   的状态块。传入 cache 后，只要 file 与 stats 引用都没变就复用旧 bucket。
+ */
 export function resolveAuthFileUsageStats(
   file: AuthFileItem,
-  stats: KeyUsageStats
+  stats: KeyUsageStats,
+  cache?: AuthFileUsageBucketCache
 ): KeyUsageBucket {
+  const cached = cache?.get(file);
+  if (cached && cached.stats === stats) {
+    return cached.bucket;
+  }
+
+  const bucket = computeAuthFileUsageStats(file, stats);
+  cache?.set(file, { stats, bucket });
+  return bucket;
+}
+
+function computeAuthFileUsageStats(file: AuthFileItem, stats: KeyUsageStats): KeyUsageBucket {
   const matched = resolveAuthFileBucket(
     file,
     stats,

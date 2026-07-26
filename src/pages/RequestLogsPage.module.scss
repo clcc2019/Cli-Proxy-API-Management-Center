@@ -11,8 +11,32 @@
   --request-panel-border: var(--border-color);
   --request-panel-muted: var(--bg-secondary);
   --request-control-bg: var(--surface-raised-strong);
-  --request-row-grid: minmax(120px, 150px) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 200px)
-    minmax(0, 1fr) minmax(80px, 110px);
+  // Column widths are fixed per column so every row lines up and each field gets
+  // a guaranteed slot wide enough for its full value. Text-heavy columns may grow
+  // into leftover space on wide viewports, but never shrink below their floor —
+  // narrower containers scroll the table horizontally instead of clipping values.
+  --request-col-time: 92px;
+  --request-col-endpoint: 140px;
+  // Wide enough that a full 39-char IPv6 address fits within two wrapped lines.
+  --request-col-client-ip: 148px;
+  --request-col-api-key: 78px;
+  --request-col-model: 188px;
+  --request-col-credential: 188px;
+  --request-col-status: 152px;
+  --request-col-tokens: 88px;
+  --request-col-cost: 80px;
+  --request-row-gap: 12px;
+  --request-row-padding-x: 16px;
+  --request-row-grid: var(--request-col-time) minmax(var(--request-col-endpoint), 1fr)
+    var(--request-col-client-ip) var(--request-col-api-key) minmax(var(--request-col-model), 1.15fr)
+    minmax(var(--request-col-credential), 1.1fr) var(--request-col-status) var(--request-col-tokens)
+    var(--request-col-cost);
+  --request-row-min-width: calc(
+    var(--request-col-time) + var(--request-col-endpoint) + var(--request-col-client-ip) +
+      var(--request-col-api-key) + var(--request-col-model) + var(--request-col-credential) +
+      var(--request-col-status) + var(--request-col-tokens) + var(--request-col-cost) +
+      var(--request-row-gap) * 8 + var(--request-row-padding-x) * 2
+  );
   width: 100%;
   min-height: 100%;
   display: flex;
@@ -472,9 +496,11 @@
   border: 1px solid var(--request-panel-border);
   background: transparent;
   box-shadow: none;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   min-width: 0;
   contain: layout style;
+  scrollbar-width: thin;
 }
 
 .eventList {
@@ -489,13 +515,22 @@
   contain: layout style;
 }
 
+.eventList,
+.eventListHeader,
+.eventRow,
+.skeletonRow {
+  // Fixed column track list shared by header, rows and skeletons. The shell
+  // scrolls horizontally once the container is narrower than the sum of tracks.
+  min-width: var(--request-row-min-width);
+}
+
 .eventListHeader {
   display: grid;
   grid-template-columns: var(--request-row-grid);
-  gap: 16px;
+  gap: var(--request-row-gap);
   align-items: center;
   min-height: 38px;
-  padding: 9px 16px;
+  padding: 9px var(--request-row-padding-x);
   border-bottom: 1px solid var(--request-panel-border);
   background: var(--request-panel-muted);
   font-size: 11.5px;
@@ -504,12 +539,9 @@
   text-transform: none;
   color: var(--text-tertiary);
 
-  @include tablet {
-    display: none;
-  }
-
-  @include mobile {
-    display: none;
+  > span {
+    @include text-ellipsis;
+    min-width: 0;
   }
 }
 
@@ -517,9 +549,9 @@
   position: relative;
   display: grid;
   grid-template-columns: var(--request-row-grid);
-  gap: 16px;
+  gap: var(--request-row-gap);
   align-items: center;
-  padding: 12px 16px;
+  padding: 12px var(--request-row-padding-x);
   border: 0;
   border-bottom: 1px solid var(--request-panel-border);
   border-radius: 0;
@@ -545,32 +577,8 @@
     box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-color) 26%, transparent);
   }
 
-  @include tablet {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'time status'
-      'model tokens'
-      'credential cost';
-    gap: 8px 14px;
-    padding: 12px 14px;
-    contain-intrinsic-size: 132px;
-  }
-
-  @include mobile {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'time status'
-      'model tokens'
-      'credential cost';
-    align-items: start;
-    gap: 7px 8px;
-    padding: 10px;
-    overflow: visible;
-    contain-intrinsic-size: 118px;
-
-    &:hover {
-      background: var(--request-panel-muted);
-    }
+  > * {
+    min-width: 0;
   }
 }
 
@@ -591,184 +599,134 @@
 .eventTime {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
   min-width: 0;
   overflow: hidden;
-
-  @include tablet {
-    grid-area: time;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 8px;
-    overflow: visible;
-  }
-
-  @include mobile {
-    grid-area: time;
-    flex-direction: row;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 3px 7px;
-    overflow: visible;
-  }
 }
 
 .eventTimePrimary {
-  font-size: 14px;
+  @include text-ellipsis;
+  max-width: 100%;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-
-  @include mobile {
-    font-size: 13px;
-  }
+  line-height: 1.3;
 }
 
 .eventTimeSecondary {
-  font-size: 11.5px;
+  @include text-ellipsis;
+  max-width: 100%;
+  font-size: 11px;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-
-  @include mobile {
-    font-size: 11px;
-  }
+  line-height: 1.3;
 }
 
-.eventModel {
+.eventEndpoint,
+.eventClientIP,
+.eventApiKey {
+  min-width: 0;
+  font-family: $font-mono;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.eventEndpointValue,
+.eventApiKeyValue {
+  @include text-ellipsis;
+  display: block;
+}
+
+// A full IPv6 address does not fit on one line at a sane column width, so this
+// column wraps to a second line rather than getting a fixed 280px track.
+.eventClientIPValue {
+  @include text-ellipsis-multiline(2);
+  overflow-wrap: anywhere;
+}
+
+.eventEndpointValue {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.eventClientIPValue {
+  color: var(--text-tertiary);
+}
+
+.eventApiKeyValue {
+  color: var(--text-secondary);
+}
+
+// Model and credential are the two identifier-heavy columns. Their fixed track is
+// sized for typical values, and the value itself wraps to a second line instead of
+// being cut off, so long names like `claude-sonnet-4-5-20250929` stay readable.
+.eventModel,
+.eventCredentialMain {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 5px;
   min-width: 0;
-
-  @include tablet {
-    grid-area: model;
-  }
-
-  @include mobile {
-    grid-area: model;
-  }
 }
 
-.eventModelName {
-  font-size: 13.5px;
+.eventModelName,
+.eventCredentialName {
+  @include text-ellipsis-multiline(2);
+  min-width: 0;
+  max-width: 100%;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  word-break: break-all;
-  overflow-wrap: anywhere;
   line-height: 1.3;
-
-  @include mobile {
-    font-size: 13px;
-    line-height: 1.25;
-    @include text-ellipsis-multiline(2);
-    word-break: normal;
-    overflow-wrap: anywhere;
-  }
+  overflow-wrap: anywhere;
 }
 
 .eventModelMeta {
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
   align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--request-panel-muted);
+  padding: 2px 5px;
   border: 1px solid var(--request-panel-border);
-  max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
-
-  @include mobile {
-    display: none;
-  }
-}
-
-.eventCredential {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-
-  @include tablet {
-    grid-area: credential;
-  }
-
-  @include mobile {
-    grid-area: credential;
-  }
-}
-
-.eventCredentialMain {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.eventCredentialName {
-  font-size: 13.5px;
+  border-radius: 4px;
+  background: var(--request-panel-muted);
+  color: var(--text-secondary);
+  font-size: 10px;
   font-weight: 600;
-  color: var(--text-primary);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
+}
 
-  @include mobile {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 12px;
-    min-width: 0;
-  }
+.eventCredential {
+  display: block;
+  min-width: 0;
 }
 
 .eventCredentialType {
+  @include text-ellipsis;
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 6px;
   border: 1px solid transparent;
   text-transform: lowercase;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  @include mobile {
-    font-size: 10px;
-    padding: 1px 6px;
-  }
 }
 
 .eventCredentialMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  font-size: 11.5px;
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-
-  @include mobile {
-    display: none;
-  }
+  display: none;
 }
 
 .eventCredentialMetaItem {
@@ -779,46 +737,20 @@
   max-width: 100%;
 }
 
-.eventCredentialKey {
-  font-family: $font-mono;
-  font-size: 11px;
-  color: var(--text-tertiary);
-  overflow-wrap: anywhere;
-}
-
 .eventStatus {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-start;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: nowrap;
   min-width: 0;
-
-  @include tablet {
-    grid-area: status;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    justify-self: end;
-    flex-wrap: wrap;
-    max-width: min(280px, 38vw);
-  }
-
-  @include mobile {
-    grid-area: status;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    justify-self: end;
-    flex-wrap: wrap;
-    gap: 4px;
-    max-width: 48vw;
-  }
 }
 
 .eventStatusBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  flex: 0 0 auto;
   min-height: 24px;
   padding: 3px 9px;
   border-radius: 6px;
@@ -832,13 +764,8 @@
     color $transition-fast,
     border-color $transition-fast;
 
-  @include mobile {
-    gap: 4px;
-    padding: 2px 7px;
-    font-size: 11px;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  svg {
+    flex-shrink: 0;
   }
 }
 
@@ -869,48 +796,14 @@
 }
 
 .eventErrorPreview {
-  appearance: none;
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  margin: -1px 0 0 -5px;
-  padding: 3px 5px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background: transparent;
-  color: color-mix(in srgb, var(--danger-color) 82%, var(--text-primary));
-  font: inherit;
-  font-size: 11.5px;
-  line-height: 1.35;
-  text-align: left;
-  cursor: pointer;
-  @include text-ellipsis-multiline(2);
-  transition:
-    background-color $transition-fast,
-    border-color $transition-fast,
-    color $transition-fast;
-
-  &:hover,
-  &:focus-visible {
-    color: var(--danger-color);
-    background: color-mix(in srgb, var(--danger-color) 8%, transparent);
-    border-color: color-mix(in srgb, var(--danger-color) 24%, transparent);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger-color) 24%, transparent);
-  }
-
-  @include mobile {
-    display: none;
-  }
+  display: none;
 }
 
 .eventLatency {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  flex: 0 0 auto;
   min-height: 24px;
   font-size: 11.5px;
   color: var(--text-secondary);
@@ -920,12 +813,6 @@
   border: 1px solid var(--request-panel-border);
   background: var(--request-panel-muted);
   white-space: nowrap;
-
-  @include mobile {
-    gap: 4px;
-    padding: 1px 6px;
-    font-size: 11px;
-  }
 }
 
 .eventLatencyDot {
@@ -959,58 +846,25 @@
 
 .eventTokens {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
   min-width: 0;
-
-  @include tablet {
-    grid-area: tokens;
-    align-items: flex-end;
-    justify-self: end;
-    max-width: min(260px, 42vw);
-  }
-
-  @include mobile {
-    grid-area: tokens;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-self: end;
-    flex-wrap: wrap;
-    gap: 4px;
-    min-width: 0;
-    max-width: 48vw;
-  }
+  white-space: nowrap;
 }
 
 .eventTokensTotal {
-  font-size: 14px;
+  @include text-ellipsis;
+  min-width: 0;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
-
-  @include mobile {
-    font-size: 12.5px;
-  }
 }
 
 .eventTokensBreakdown {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  font-size: 11px;
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-
-  @include mobile {
-    display: flex;
-    justify-content: flex-end;
-    gap: 3px 5px;
-    max-width: 100%;
-    font-size: 10px;
-    line-height: 1.1;
-  }
+  display: none;
 }
 
 .eventTokensPart {
@@ -1036,27 +890,14 @@
 }
 
 .eventCost {
-  font-size: 14px;
+  @include text-ellipsis;
+  min-width: 0;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-primary);
   text-align: right;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  justify-self: end;
-
-  @include mobile {
-    font-size: 12.5px;
-    grid-area: cost;
-    align-self: start;
-    justify-self: end;
-    text-align: right;
-  }
-
-  @include tablet {
-    grid-area: cost;
-    justify-self: end;
-    text-align: right;
-  }
+  justify-self: stretch;
 }
 
 .eventCostMuted {
@@ -1082,51 +923,14 @@
   overflow: hidden;
   display: grid;
   grid-template-columns: var(--request-row-grid);
-  gap: 16px;
+  gap: var(--request-row-gap);
   align-items: center;
-  padding: 12px 16px;
+  padding: 12px var(--request-row-padding-x);
   border-bottom: 1px solid var(--request-panel-border);
   background: transparent;
 
   &:last-child {
     border-bottom: 0;
-  }
-
-  @include tablet {
-    grid-template-columns: minmax(0, 1fr) minmax(72px, auto);
-    grid-auto-rows: minmax(14px, auto);
-    gap: 8px 14px;
-
-    > :nth-child(1),
-    > :nth-child(2),
-    > :nth-child(3) {
-      grid-column: 1;
-    }
-
-    > :nth-child(4),
-    > :nth-child(5),
-    > :nth-child(6) {
-      grid-column: 2;
-    }
-  }
-
-  @include mobile {
-    grid-template-columns: minmax(0, 1fr) minmax(64px, auto);
-    grid-auto-rows: minmax(14px, auto);
-    gap: 7px 8px;
-    padding: 10px;
-
-    > :nth-child(1),
-    > :nth-child(2),
-    > :nth-child(3) {
-      grid-column: 1;
-    }
-
-    > :nth-child(4),
-    > :nth-child(5),
-    > :nth-child(6) {
-      grid-column: 2;
-    }
   }
 
   > * {
@@ -1226,78 +1030,17 @@
 }
 
 // Respond to the actual content width so the sidebar does not leave the table
-// squeezed in its desktop column layout.
+// squeezed. The track list never changes — only the padding tightens, and the
+// shell scrolls horizontally once the tracks no longer fit.
 @container request-page (max-width: 1040px) {
-  .eventListHeader {
-    display: none;
+  .page {
+    --request-row-gap: 10px;
+    --request-row-padding-x: 14px;
   }
 
-  .eventRow {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'time status'
-      'model tokens'
-      'credential cost';
-    gap: 8px 14px;
-    padding: 12px 14px;
-    contain-intrinsic-size: 132px;
-  }
-
-  .eventTime {
-    grid-area: time;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 8px;
-    overflow: visible;
-  }
-
-  .eventModel {
-    grid-area: model;
-  }
-
-  .eventCredential {
-    grid-area: credential;
-  }
-
-  .eventStatus {
-    grid-area: status;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    justify-self: end;
-    flex-wrap: wrap;
-    max-width: min(280px, 38cqi);
-  }
-
-  .eventTokens {
-    grid-area: tokens;
-    align-items: flex-end;
-    justify-self: end;
-    max-width: min(260px, 42cqi);
-  }
-
-  .eventCost {
-    grid-area: cost;
-    justify-self: end;
-    text-align: right;
-  }
-
+  .eventRow,
   .skeletonRow {
-    grid-template-columns: minmax(0, 1fr) minmax(72px, auto);
-    grid-auto-rows: minmax(14px, auto);
-    gap: 8px 14px;
-
-    > :nth-child(1),
-    > :nth-child(2),
-    > :nth-child(3) {
-      grid-column: 1;
-    }
-
-    > :nth-child(4),
-    > :nth-child(5),
-    > :nth-child(6) {
-      grid-column: 2;
-    }
+    padding-block: 10px;
   }
 }
 
@@ -1348,34 +1091,60 @@
     padding-inline: 5px;
   }
 
-  .eventRow {
-    align-items: start;
-    gap: 7px 8px;
-    padding: 10px;
+  .page {
+    --request-row-gap: 8px;
+    --request-row-padding-x: 10px;
+  }
+
+  .eventRow,
+  .skeletonRow {
+    padding-block: 9px;
+  }
+
+  .eventList {
     overflow: visible;
-    contain-intrinsic-size: 118px;
+  }
+
+  .eventListHeader {
+    min-height: 34px;
+    padding-block: 8px;
+    font-size: 10.5px;
+  }
+
+  .eventTableShell {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .eventListHeader > :first-child,
+  .eventTime {
+    position: sticky;
+    left: 0;
+    box-shadow: 8px 0 10px -10px color-mix(in srgb, var(--text-primary) 72%, transparent);
+  }
+
+  .eventListHeader > :first-child {
+    z-index: 3;
+    background: var(--request-panel-muted);
   }
 
   .eventTime {
-    flex-wrap: wrap;
-    gap: 3px 7px;
+    z-index: 2;
+    background: var(--bg-primary);
   }
 
-  .eventModelMeta,
+  .eventRowFailed .eventTime {
+    background: color-mix(in srgb, var(--danger-color) 4%, var(--bg-primary));
+  }
+
+  .eventRow:hover .eventTime {
+    background: var(--request-panel-muted);
+  }
+
   .eventCredentialMeta,
   .eventErrorPreview {
     display: none;
-  }
-
-  .eventStatus,
-  .eventTokens {
-    max-width: 48cqi;
-  }
-
-  .skeletonRow {
-    grid-template-columns: minmax(0, 1fr) minmax(64px, auto);
-    gap: 7px 8px;
-    padding: 10px;
   }
 }
 

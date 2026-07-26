@@ -10,14 +10,9 @@ import iconClaude from '@/assets/icons/claude.svg';
 import { modelsApi } from '@/services/api';
 import type { ModelInfo } from '@/utils/models';
 import { buildHeaderObject } from '@/utils/headers';
+import { getErrorMessage } from '@/utils/error';
 import type { ClaudeEditOutletContext } from './AiProvidersClaudeEditLayout';
 import styles from './AiProvidersPage.module.scss';
-
-const getErrorMessage = (err: unknown) => {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  return '';
-};
 
 export function AiProvidersClaudeModelsPage() {
   const { t } = useTranslation();

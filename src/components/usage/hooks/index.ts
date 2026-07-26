@@ -4,13 +4,7 @@ export type { UsagePayload, UseUsageDataReturn } from './useUsageData';
 export { useUsageAggregateData } from './useUsageAggregateData';
 export type { UseUsageAggregateDataReturn } from './useUsageAggregateData';
 
-export { useSparklines } from './useSparklines';
-export type {
-  SparklineData,
-  SparklineBundle,
-  UseSparklinesOptions,
-  UseSparklinesReturn,
-} from './useSparklines';
+export type { SparklineData, SparklineBundle } from './sparklineTypes';
 
 export { useUsageAggregateSparklines } from './useUsageAggregateSparklines';
 export type {

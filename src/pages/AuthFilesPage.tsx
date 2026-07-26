@@ -13,7 +13,6 @@ import {
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useInterval } from '@/hooks/useInterval';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } from '@/hooks';
@@ -47,6 +46,7 @@ import {
   normalizeProviderKey,
   parsePriorityValue,
   resolveAuthFileUsageStats,
+  type AuthFileUsageBucketCache,
   type QuotaProviderType,
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
@@ -134,31 +134,18 @@ const ALL_AUTH_FILE_TYPES = ['all'];
 const QUOTA_REFRESH_SPINNER_STYLE = { width: 15, height: 15 } as const;
 const EMPTY_CLAUDE_QUOTA: Record<string, ClaudeQuotaState> = {};
 const EMPTY_CODEX_QUOTA: Record<string, CodexQuotaState> = {};
-let previousFileUsageStatsByName: Map<string, KeyUsageBucket> | null = null;
-
-const keyUsageBucketMapsEqual = (
-  left: Map<string, KeyUsageBucket>,
-  right: Map<string, KeyUsageBucket>
-): boolean => {
-  if (left.size !== right.size) return false;
-
-  for (const [key, value] of left) {
-    if (right.get(key) !== value) return false;
-  }
-
-  return true;
-};
-
-const reuseFileUsageStatsByName = (
-  map: Map<string, KeyUsageBucket>
-): Map<string, KeyUsageBucket> => {
-  if (previousFileUsageStatsByName && keyUsageBucketMapsEqual(map, previousFileUsageStatsByName)) {
-    return previousFileUsageStatsByName;
-  }
-
-  previousFileUsageStatsByName = map;
-  return map;
-};
+/**
+ * 按文件对象缓存 usage bucket，保证统计未变时引用稳定，
+ * 让 AuthFileCard 的 memo 命中。
+ *
+ * 用 WeakMap 而不是「比较整个 Map 再复用旧引用」：后者需要在渲染期读写 ref，
+ * 违反 React 纯度规则（eslint react-hooks/refs 会直接报错）。WeakMap 以 file
+ * 对象为键，读写都是纯操作；文件被回收后条目自动释放，也不会泄漏。
+ *
+ * 键是对象而非文件名，因此天然按实例隔离 —— 页面切换动画期间新旧两层同时
+ * 挂载也不会互相顶掉结果（这正是原先模块级缓存的隐患）。
+ */
+const FILE_USAGE_BUCKET_CACHE: AuthFileUsageBucketCache = new WeakMap();
 
 const escapeWildcardSearchSegment = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -431,7 +418,11 @@ export function AuthFilesPage() {
   const normalizedSearch = search.trim();
   const deferredNormalizedSearch = deferredSearch.trim();
   const debouncedSearch = useDebounce(normalizedSearch, 280);
-  const serverPaginationEnabled = true;
+  // Plus/Pro is resolved from the client-side quota and subscription data.  Do not
+  // filter an already paginated server result here: one server page can contain a
+  // different number of matching files than the next.  Load the complete set for
+  // this view, then apply the same filter and pagination locally.
+  const serverPaginationEnabled = !premiumOnly;
   const serverSearchPending = serverPaginationEnabled && normalizedSearch !== debouncedSearch;
   const serverListPage = serverPaginationEnabled ? page : undefined;
   const serverListPageSize = serverPaginationEnabled ? pageSize : undefined;
@@ -440,7 +431,6 @@ export function AuthFilesPage() {
   const serverListSort = serverPaginationEnabled ? sortMode : undefined;
   const serverListProblemOnly = serverPaginationEnabled ? problemOnly : undefined;
   const serverListDisabledOnly = serverPaginationEnabled ? disabledOnly : undefined;
-  const serverListPremiumOnly = serverPaginationEnabled ? premiumOnly : undefined;
   const authFilesUiState = useMemo<AuthFilesUiState>(
     () => ({
       filter,
@@ -460,6 +450,9 @@ export function AuthFilesPage() {
   );
   const authFilesListOptions = useMemo<AuthFilesListOptions>(() => {
     if (!serverPaginationEnabled) {
+      // Keep premiumOnly out of this request. The backend only has the auth-file
+      // snapshot, while the Plus/Pro badge also incorporates the latest quota
+      // data stored on the client.
       return { codexSubscription: 'cache', summary: true };
     }
     return {
@@ -472,13 +465,11 @@ export function AuthFilesPage() {
       sort: serverListSort,
       problemOnly: serverListProblemOnly,
       disabledOnly: serverListDisabledOnly,
-      premiumOnly: serverListPremiumOnly,
     };
   }, [
     serverListDisabledOnly,
     serverListPage,
     serverListPageSize,
-    serverListPremiumOnly,
     serverListProblemOnly,
     serverListSearch,
     serverListSort,
@@ -789,7 +780,8 @@ export function AuthFilesPage() {
     );
   }, [isCurrentLayer, loadExcluded, loadKeyStats, loadModelAlias, uiStateHydrated]);
 
-  useInterval(
+  // 改用 useVisibleInterval：标签页隐藏时不必继续拉取用量聚合
+  useVisibleInterval(
     () => {
       void refreshKeyStats().catch(() => {});
     },
@@ -822,22 +814,26 @@ export function AuthFilesPage() {
     return Array.from(types);
   }, [existingTypesFromListMeta, files]);
 
+  // A previous server-page response can remain in state for one render while the
+  // full Plus/Pro collection is loading. It must not control the visible count,
+  // sorting, or slicing in client-pagination mode.
+  const serverPaginated = serverPaginationEnabled && listMeta.paginated;
   const sortSnapshotByName = useMemo(() => {
     // 服务端分页时排序由后端完成，本地不调用 compareAuthFiles，跳过全量 snapshot 计算。
-    if (listMeta.paginated) return EMPTY_SORT_SNAPSHOT;
+    if (serverPaginated) return EMPTY_SORT_SNAPSHOT;
     const snapshot: Record<string, AuthFileSortSnapshot> = {};
     files.forEach((file) => {
       snapshot[file.name] = getAuthFileSortSnapshot(file, planSources);
     });
     return snapshot;
-  }, [files, planSources, listMeta.paginated]);
+  }, [files, planSources, serverPaginated]);
 
   const matchesSupplementalDisplayFilters = useCallback(
     (file: (typeof files)[number]) => {
       if (disabledOnly && file.disabled !== true) {
         return false;
       }
-      // 服务端 premium_only 结果可能落后于认证文件最新状态，本地再兜底过滤一次。
+      // Plus/Pro 由认证文件与本地最新额度共同判定，始终在前端完成筛选。
       if (premiumOnly && !hasPremiumAuthFilePlan(file, planSources)) {
         return false;
       }
@@ -857,7 +853,6 @@ export function AuthFilesPage() {
     },
     [matchesSupplementalDisplayFilters, problemOnly]
   );
-  const serverPaginated = listMeta.paginated;
   const serverPageResultSettled = serverPaginated && !refreshing && !serverSearchPending;
   const shouldApplyLocalDisplayFilters =
     displayOptionsActive && (!serverPageResultSettled || premiumOnly);
@@ -867,13 +862,13 @@ export function AuthFilesPage() {
   );
   const currentDisplayFilterNames = useMemo(
     () =>
-      displayOptionsActive && !serverPaginated
+      displayOptionsActive && !serverPaginated && !premiumOnly
         ? currentFilesMatchingDisplayFilters.map((file) => file.name)
         : EMPTY_AUTH_FILE_NAMES,
-    [currentFilesMatchingDisplayFilters, displayOptionsActive, serverPaginated]
+    [currentFilesMatchingDisplayFilters, displayOptionsActive, premiumOnly, serverPaginated]
   );
   const currentDisplayFilterSortSnapshot = useMemo(() => {
-    if (!displayOptionsActive || serverPaginated) return EMPTY_SORT_SNAPSHOT;
+    if (!displayOptionsActive || serverPaginated || premiumOnly) return EMPTY_SORT_SNAPSHOT;
     return Object.fromEntries(
       currentFilesMatchingDisplayFilters.map((file) => [
         file.name,
@@ -884,6 +879,7 @@ export function AuthFilesPage() {
     currentFilesMatchingDisplayFilters,
     displayOptionsActive,
     planSources,
+    premiumOnly,
     serverPaginated,
     sortSnapshotByName,
   ]);
@@ -891,7 +887,9 @@ export function AuthFilesPage() {
   const currentDisplayFilterSortSnapshotRef = useRef<Record<string, AuthFileSortSnapshot>>({});
   currentDisplayFilterNamesRef.current = currentDisplayFilterNames;
   currentDisplayFilterSortSnapshotRef.current = currentDisplayFilterSortSnapshot;
-  const shouldSnapshotDisplayFilters = displayOptionsActive && !serverPaginated;
+  // Plan membership is derived from live quota data. Retaining a name snapshot
+  // here would keep files in (or out of) the Plus/Pro view after a quota refresh.
+  const shouldSnapshotDisplayFilters = displayOptionsActive && !serverPaginated && !premiumOnly;
   const fileByName = useMemo(
     () =>
       shouldSnapshotDisplayFilters
@@ -947,7 +945,20 @@ export function AuthFilesPage() {
   );
 
   const displaySearch = serverPaginationEnabled ? debouncedSearch : deferredNormalizedSearch;
+  const normalizedDisplaySearch = displaySearch.toLowerCase();
   const wildcardSearch = useMemo(() => buildWildcardSearch(displaySearch), [displaySearch]);
+  const matchesDisplaySearch = useCallback(
+    (item: AuthFileItem) => {
+      if (!displaySearch) return true;
+      return [item.name, item.type, item.provider].some((value) => {
+        const content = (value || '').toString();
+        return wildcardSearch
+          ? wildcardSearch.test(content)
+          : content.toLowerCase().includes(normalizedDisplaySearch);
+      });
+    },
+    [displaySearch, normalizedDisplaySearch, wildcardSearch]
+  );
   const scopedTypeCountsKey = useMemo(() => {
     if (!serverPaginationEnabled || !isCurrentLayer || !uiStateHydrated) return null;
     if (!displayOptionsActive && displaySearch.length === 0) return null;
@@ -1046,28 +1057,26 @@ export function AuthFilesPage() {
         : EMPTY_AUTH_FILE_TYPE_COUNTS,
     [filesMatchingDisplayFilters, needsLocalTypeCounts]
   );
-  const typeCounts = scopedTypeCountsKey
-    ? (currentScopedServerTypeCounts ?? currentScopedFallbackTypeCounts ?? localTypeCounts)
-    : (listMeta.typeCounts ?? localTypeCounts);
+  const premiumTypeCounts = useMemo(
+    () =>
+      premiumOnly
+        ? countAuthFilesByType(filesMatchingDisplayFilters.filter(matchesDisplaySearch))
+        : EMPTY_AUTH_FILE_TYPE_COUNTS,
+    [filesMatchingDisplayFilters, matchesDisplaySearch, premiumOnly]
+  );
+  const typeCounts = premiumOnly
+    ? premiumTypeCounts
+    : scopedTypeCountsKey
+      ? (currentScopedServerTypeCounts ?? currentScopedFallbackTypeCounts ?? localTypeCounts)
+      : (listMeta.typeCounts ?? localTypeCounts);
 
   const filtered = useMemo(() => {
     if (serverPageResultSettled) return filesMatchingDisplayFilters;
-
-    const normalizedTerm = displaySearch.toLowerCase();
-
     return filesMatchingDisplayFilters.filter((item) => {
       const matchType = filter === 'all' || item.type === filter;
-      const matchSearch =
-        !displaySearch ||
-        [item.name, item.type, item.provider].some((value) => {
-          const content = (value || '').toString();
-          return wildcardSearch
-            ? wildcardSearch.test(content)
-            : content.toLowerCase().includes(normalizedTerm);
-        });
-      return matchType && matchSearch;
+      return matchType && matchesDisplaySearch(item);
     });
-  }, [displaySearch, filesMatchingDisplayFilters, filter, serverPageResultSettled, wildcardSearch]);
+  }, [filesMatchingDisplayFilters, filter, matchesDisplaySearch, serverPageResultSettled]);
 
   const sorted = useMemo(() => {
     if (serverPaginated) return filtered;
@@ -1114,10 +1123,10 @@ export function AuthFilesPage() {
   const fileUsageStatsByName = useMemo(() => {
     const map = new Map<string, KeyUsageBucket>();
     pageItems.forEach((file) => {
-      map.set(file.name, resolveAuthFileUsageStats(file, keyUsageStats));
+      map.set(file.name, resolveAuthFileUsageStats(file, keyUsageStats, FILE_USAGE_BUCKET_CACHE));
     });
 
-    return reuseFileUsageStatsByName(map);
+    return map;
   }, [pageItems, keyUsageStats]);
   useEffect(() => {
     if (page > totalPages) {
@@ -1581,7 +1590,10 @@ export function AuthFilesPage() {
             file={file}
             selected={selectedFiles.has(file.name)}
             resolvedTheme={resolvedTheme}
-            disableControls={disableControls || listUpdating}
+            // 只传连接状态这一真正的“单卡片”维度。列表刷新中的禁用改由
+            // .fileGrid 上的 inert 统一处理：listUpdating 每次搜索都会翻转两次，
+            // 若混进 props 会让整页卡片的 memo 全部失效、连带重算 20 个状态块。
+            disableControls={disableControls}
             deleting={deleting === file.name}
             statusUpdating={statusUpdating[file.name] === true}
             accessTokenCopying={accessTokenCopying[file.name] === true}
@@ -1619,7 +1631,6 @@ export function AuthFilesPage() {
       handleDownload,
       handlePriorityChange,
       handleStatusToggle,
-      listUpdating,
       openPrefixProxyEditor,
       pageItems,
       priorityUpdating,
@@ -1794,13 +1805,40 @@ export function AuthFilesPage() {
                   loadingLabel={t('common.loading')}
                 />
               ) : pageItems.length === 0 ? (
-                <EmptyState
-                  title={t('auth_files.search_empty_title')}
-                  description={t('auth_files.search_empty_desc')}
-                />
+                // 区分「筛选无结果」与「一个文件都没有」：此前两种情况都显示
+                // 搜索无结果的文案，在全新实例上会误导用户以为是筛选没选对。
+                hasActiveFilters ? (
+                  <EmptyState
+                    title={t('auth_files.search_empty_title')}
+                    description={t('auth_files.search_empty_desc')}
+                    action={
+                      <Button variant="secondary" size="sm" onClick={handleClearFilters}>
+                        {t('auth_files.clear_filters')}
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <EmptyState
+                    title={t('auth_files.empty_title')}
+                    description={t('auth_files.empty_desc')}
+                    action={
+                      <Button
+                        size="sm"
+                        onClick={handleUploadClick}
+                        disabled={disableControls || uploading}
+                        loading={uploading}
+                      >
+                        {t('auth_files.upload_button')}
+                      </Button>
+                    }
+                  />
+                )
               ) : (
                 <div
                   className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
+                  // 列表刷新期间整体屏蔽交互（含键盘焦点），等价于此前逐张卡片
+                  // 传 disableControls，但不会触碰任何卡片的 props。
+                  inert={listUpdating}
                 >
                   {authFileCardNodes}
                 </div>
@@ -1808,7 +1846,7 @@ export function AuthFilesPage() {
             </div>
 
             {!showInitialLoading && listTotal > pageSize && (
-              <div className={styles.pagination}>
+              <nav className={styles.pagination} aria-label={t('auth_files.pagination_aria')}>
                 <Button
                   variant="secondary"
                   size="sm"
@@ -1817,7 +1855,8 @@ export function AuthFilesPage() {
                 >
                   {t('auth_files.pagination_prev')}
                 </Button>
-                <div className={styles.pageInfo}>
+                {/* 翻页后焦点常留在已禁用的按钮上，靠 live region 播报当前页 */}
+                <div className={styles.pageInfo} role="status" aria-live="polite">
                   {t('auth_files.pagination_info', {
                     current: currentPage,
                     total: totalPages,
@@ -1832,7 +1871,7 @@ export function AuthFilesPage() {
                 >
                   {t('auth_files.pagination_next')}
                 </Button>
-              </div>
+              </nav>
             )}
           </div>
         </div>
@@ -1905,10 +1944,18 @@ export function AuthFilesPage() {
 
       {batchActionBarVisible && typeof document !== 'undefined'
         ? createPortal(
-            <div className={styles.batchActionContainer} ref={floatingBatchActionsRef}>
+            <div
+              className={styles.batchActionContainer}
+              ref={floatingBatchActionsRef}
+              // 该栏 portal 到 body，脱离了页面语义结构；补 region + 标签，
+              // 读屏器才能把它作为一块可导航的区域列出。
+              role="region"
+              aria-label={t('auth_files.batch_actions_aria')}
+            >
               <div className={styles.batchActionBar}>
                 <div className={styles.batchActionLeft}>
-                  <span className={styles.batchSelectionText}>
+                  {/* 选中数量会随勾选变化，用 live region 播报，否则读屏用户无从感知 */}
+                  <span className={styles.batchSelectionText} role="status" aria-live="polite">
                     {t('auth_files.batch_selected', { count: selectionCount })}
                   </span>
                   <Button

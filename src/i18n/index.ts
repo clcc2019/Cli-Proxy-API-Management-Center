@@ -6,15 +6,17 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import type { Language } from '@/types';
 import { getInitialLanguage } from '@/utils/language';
-import zhCN from './locales/zh-CN.json';
+import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 
 type TranslationResource = Record<string, unknown>;
 
 const FALLBACK_LANGUAGE: Language = 'zh-CN';
-const fallbackResource = zhCN as TranslationResource;
 
+// 两份 locale 各约 105KB。zh-CN 曾是静态导入，会被打进入口 chunk，
+// 且初始化时连同 fallback 一起解析 —— 对只用英文的用户等于白付 105KB
+// 的阻塞 JSON.parse。改为全部动态导入，首屏只加载当前语言。
 const localeLoaders: Record<Language, () => Promise<{ default: TranslationResource }>> = {
-  'zh-CN': () => Promise.resolve({ default: fallbackResource }),
+  'zh-CN': () => import('./locales/zh-CN.json'),
   en: () => import('./locales/en.json'),
 };
 
@@ -48,14 +50,20 @@ export const initializeI18n = () => {
 
   initializePromise = (async () => {
     const initialLanguage = getInitialLanguage();
-    const languagesToLoad = Array.from(new Set([initialLanguage, FALLBACK_LANGUAGE]));
-    const resourceEntries = await Promise.all(
-      languagesToLoad.map(async (language) => {
-        const resource = await loadLocaleResource(language);
-        loadedLanguages.add(language);
-        return [language, { translation: resource }] as const;
-      })
-    );
+    // 关键路径上只加载当前语言；fallback 语言（若不同）挪到空闲时补齐，
+    // 以免 createRoot 之前多解析一份约 105KB 的 JSON。
+    const resource = await loadLocaleResource(initialLanguage);
+    loadedLanguages.add(initialLanguage);
+    const resourceEntries = [[initialLanguage, { translation: resource }]] as const;
+
+    if (initialLanguage !== FALLBACK_LANGUAGE) {
+      scheduleIdleTask(
+        () => {
+          void ensureLanguageResource(FALLBACK_LANGUAGE).catch(() => {});
+        },
+        { fallbackDelayMs: 1_000 }
+      );
+    }
 
     if (!i18n.isInitialized) {
       await i18n.use(initReactI18next).init({

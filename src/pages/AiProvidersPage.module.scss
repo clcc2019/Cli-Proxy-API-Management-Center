@@ -842,8 +842,7 @@
   }
 
   > input:checked + span:first-of-type > span:first-child {
-    color: #fff;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.16);
+    color: var(--primary-contrast);
   }
 
   > span:first-of-type > span:last-child {
@@ -1414,6 +1413,17 @@
   position: relative;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+
+  // 这些 block 可键盘聚焦（roving tabindex），必须有可见焦点环
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 .statusBlock {

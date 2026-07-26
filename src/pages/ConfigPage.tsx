@@ -14,7 +14,6 @@ import {
   IconSearch,
 } from '@/components/ui/icons';
 import { VisualConfigEditor } from '@/components/config/VisualConfigEditor';
-import { DiffModal } from '@/components/config/DiffModal';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useVisualConfig } from '@/hooks/useVisualConfig';
 import { useNotificationStore, useAuthStore, useThemeStore, useConfigStore } from '@/stores';
@@ -24,6 +23,13 @@ import styles from './ConfigPage.module.scss';
 type ConfigEditorTab = 'visual' | 'source';
 
 const LazyConfigSourceEditor = lazy(() => import('@/components/config/ConfigSourceEditor'));
+
+// DiffModal 以值方式引入 @codemirror/merge 与 @codemirror/state（diff 引擎），
+// 但它只在保存确认时才打开。改为 lazy + 按 open 挂载，避免一进 /config
+// 就下载 merge 引擎。
+const LazyDiffModal = lazy(() =>
+  import('@/components/config/DiffModal').then((m) => ({ default: m.DiffModal }))
+);
 
 function readCommercialModeFromYaml(yamlContent: string): boolean {
   try {
@@ -638,14 +644,18 @@ export function ConfigPage() {
       {shouldRenderFloatingActions && typeof document !== 'undefined'
         ? createPortal(floatingActions, document.body)
         : null}
-      <DiffModal
-        open={diffModalOpen}
-        original={serverYaml}
-        modified={mergedYaml}
-        onConfirm={handleConfirmSave}
-        onCancel={() => setDiffModalOpen(false)}
-        loading={saving}
-      />
+      {diffModalOpen && (
+        <Suspense fallback={null}>
+          <LazyDiffModal
+            open={diffModalOpen}
+            original={serverYaml}
+            modified={mergedYaml}
+            onConfirm={handleConfirmSave}
+            onCancel={() => setDiffModalOpen(false)}
+            loading={saving}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
