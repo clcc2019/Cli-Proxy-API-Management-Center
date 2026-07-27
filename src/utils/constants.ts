@@ -40,7 +40,6 @@ export const AUTH_FILES_REFRESH_EVENT = 'auth-files-refresh';
 export const STORAGE_KEY_AUTH = 'cli-proxy-auth';
 export const STORAGE_KEY_AUTH_SESSION = 'cli-proxy-auth-session';
 export const STORAGE_KEY_QUOTA_CACHE = 'cli-proxy-quota-cache';
-export const STORAGE_KEY_THEME = 'cli-proxy-theme';
 export const STORAGE_KEY_LANGUAGE = 'cli-proxy-language';
 export const STORAGE_KEY_SIDEBAR = 'cli-proxy-sidebar-collapsed';
 export const STORAGE_KEY_AUTH_FILES_PAGE_SIZE = 'cli-proxy-auth-files-page-size';
@@ -49,7 +48,7 @@ export const STORAGE_KEY_AUTH_FILES_PAGE_SIZE = 'cli-proxy-auth-files-page-size'
 export const LANGUAGE_ORDER = defineLanguageOrder(['zh-CN', 'en'] as const);
 export const LANGUAGE_LABEL_KEYS: Record<Language, string> = {
   'zh-CN': 'language.chinese',
-  en: 'language.english'
+  en: 'language.english',
 };
 export const SUPPORTED_LANGUAGES = LANGUAGE_ORDER;
 
@@ -62,14 +61,14 @@ export const OAUTH_CARD_IDS = [
   'anthropic-oauth-card',
   'kimi-oauth-card',
   'qwen-oauth-card',
-  'xai-oauth-card'
+  'xai-oauth-card',
 ];
 export const OAUTH_PROVIDERS = {
   CODEX: 'codex',
   ANTHROPIC: 'anthropic',
   KIMI: 'kimi',
   QWEN: 'qwen',
-  XAI: 'xai'
+  XAI: 'xai',
 } as const;
 
 // API 端点
@@ -81,5 +80,5 @@ export const API_ENDPOINTS = {
   AUTH_FILES: '/auth-files',
   OAUTH: '/oauth',
   USAGE: '/usage',
-  LOGS: '/logs'
+  LOGS: '/logs',
 } as const;

@@ -1,39 +1,38 @@
 <!doctype html>
-<html lang="zh-CN" translate="no" class="notranslate">
+<html lang="zh-CN" translate="no" class="notranslate" data-theme="white">
   <head>
     <meta charset="UTF-8" />
     <meta name="google" content="notranslate" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%238b8680%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2015a2%202%200%200%201-2%202H7l-4%204V5a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202z%22%2F%3E%3C%2Fsvg%3E" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%238b8680%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2015a2%202%200%200%201-2%202H7l-4%204V5a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202z%22%2F%3E%3C%2Fsvg%3E"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light" />
     <meta name="format-detection" content="telephone=no" />
-    <meta name="description" content="CLI Proxy API Management Center - 统一管理 CLI 代理 API 的可视化控制台" />
+    <meta
+      name="description"
+      content="CLI Proxy API Management Center - 统一管理 CLI 代理 API 的可视化控制台"
+    />
     <meta name="robots" content="noindex" />
     <title>CLI Proxy API Management Center</title>
     <style>
       /* Critical CSS: 首屏 loading 占位，避免 React hydration 前的白屏 */
       :root {
-        color-scheme: light dark;
+        color-scheme: light;
       }
       html,
       body {
         margin: 0;
         padding: 0;
-        background: #faf9f5;
+        background: #ffffff;
         color: #2d2a26;
         font-family:
           -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-      }
-      @media (prefers-color-scheme: dark) {
-        html,
-        body {
-          background: #151412;
-          color: #f6f4f1;
-        }
       }
       #root {
         min-height: 100vh;

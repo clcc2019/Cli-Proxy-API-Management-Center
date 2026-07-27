@@ -3,7 +3,7 @@ import { Outlet, RouterProvider, createHashRouter } from 'react-router-dom';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { ProtectedRoute } from '@/router/ProtectedRoute';
 import { fullScreenRouteFallback, lazyNamed, renderLazyPage } from '@/router/lazyRoute';
-import { useLanguageStore, useThemeStore } from '@/stores';
+import { useLanguageStore } from '@/stores';
 
 const LazyLoginPage = lazyNamed(() => import('@/pages/LoginPage'), 'LoginPage');
 const LazyMainLayout = lazyNamed(() => import('@/components/layout/MainLayout'), 'MainLayout');
@@ -42,9 +42,7 @@ const router = createHashRouter([
       {
         path: '/*',
         element: (
-          <ProtectedRoute>
-            {renderLazyPage(LazyMainLayout, fullScreenRouteFallback)}
-          </ProtectedRoute>
+          <ProtectedRoute>{renderLazyPage(LazyMainLayout, fullScreenRouteFallback)}</ProtectedRoute>
         ),
       },
     ],
@@ -52,13 +50,7 @@ const router = createHashRouter([
 ]);
 
 function App() {
-  const initializeTheme = useThemeStore((state) => state.initializeTheme);
   const language = useLanguageStore((state) => state.language);
-
-  useEffect(() => {
-    const cleanupTheme = initializeTheme();
-    return cleanupTheme;
-  }, [initializeTheme]);
 
   useEffect(() => {
     document.documentElement.lang = language;

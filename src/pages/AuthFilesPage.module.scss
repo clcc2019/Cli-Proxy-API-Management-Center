@@ -2092,7 +2092,6 @@
       transform: none;
     }
   }
-
 }
 
 @media (max-width: 640px) {
@@ -2577,21 +2576,13 @@
 }
 
 .authModeBadgeAgent {
-  color: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 82%,
-    var(--text-primary)
-  );
+  color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 82%, var(--text-primary));
   background: color-mix(
     in srgb,
     var(--provider-accent, var(--primary-color)) 13%,
     var(--surface-raised)
   );
-  border-color: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 34%,
-    transparent
-  );
+  border-color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 34%, transparent);
 }
 
 .featureBadge {
@@ -2790,7 +2781,6 @@
 }
 
 @media (max-width: 520px) {
-
   .metaValue {
     margin-left: auto;
     text-align: right;
@@ -4665,12 +4655,16 @@
   border-color: var(--auth-neutral-border);
   border-radius: 8px;
   background: var(--bg-primary);
-  box-shadow: none;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
 }
 
 .fileCard {
   --auth-card-border: var(--auth-neutral-border);
-  --auth-card-border-hover: var(--border-hover);
+  --auth-card-border-hover: color-mix(
+    in srgb,
+    var(--provider-accent, var(--border-hover)) 26%,
+    var(--border-hover)
+  );
   --auth-card-hover-tint: transparent;
   --auth-card-inner-bg: var(--bg-secondary);
   --auth-card-inner-border: var(--auth-neutral-border);
@@ -4687,17 +4681,35 @@
   --auth-toggle-off-bg: var(--bg-secondary);
   --auth-toggle-on-bg: color-mix(in srgb, var(--success-color) 72%, var(--surface-raised));
   background: var(--bg-primary);
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 44%, transparent),
+    0 1px 2px rgb(15 23 42 / 0.025);
 
-  &::before,
+  // 保留低装饰基调，只以一条细窄色轨标记提供商；不再使用整卡铺色或渐变。
+  &::before {
+    content: '';
+    inset: 12px auto 12px -1px;
+    width: 2px;
+    height: auto;
+    border-radius: 0 999px 999px 0;
+    background: var(--provider-accent, var(--text-tertiary));
+    opacity: 0.58;
+  }
+
   &::after {
     content: none;
   }
 
   &:hover {
-    border-color: var(--border-hover);
-    background: var(--bg-secondary);
-    box-shadow: none;
+    border-color: var(--auth-card-border-hover);
+    background: var(--bg-primary);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 52%, transparent),
+      0 10px 22px -22px color-mix(in srgb, var(--provider-accent, #0f172a) 42%, transparent);
+
+    &::before {
+      opacity: 0.9;
+    }
   }
 
   &:focus-within {
@@ -4708,15 +4720,22 @@
 
 .fileCardSelected,
 .fileCardSelected:hover {
-  border-color: var(--border-hover);
-  background: var(--bg-secondary);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-tertiary) 24%, transparent);
+  border-color: color-mix(in srgb, var(--info-color) 52%, var(--border-hover));
+  background: color-mix(in srgb, var(--info-color) 3%, var(--bg-primary));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--info-color) 18%, transparent),
+    0 10px 22px -22px color-mix(in srgb, var(--info-color) 44%, transparent);
+
+  &::before {
+    background: var(--info-color);
+    opacity: 0.96;
+  }
 }
 
 .fileCardDisabled:hover {
   border-color: var(--auth-neutral-border);
   background: var(--bg-primary);
-  box-shadow: none;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
 }
 
 .cardSelection {
@@ -4725,15 +4744,15 @@
 }
 
 .providerAvatar {
-  border-color: var(--auth-neutral-border);
-  box-shadow: none;
+  border-color: color-mix(in srgb, currentColor 22%, var(--auth-neutral-border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 34%, transparent);
 
   &::before {
     content: none;
   }
 
   .fileCard:hover & {
-    border-color: var(--border-hover);
+    border-color: color-mix(in srgb, currentColor 42%, var(--border-hover));
   }
 }
 
@@ -4766,10 +4785,19 @@
   box-shadow: none;
 
   &:hover:not(:disabled) {
-    border-color: var(--border-hover);
-    background: var(--bg-secondary);
+    border-color: color-mix(
+      in srgb,
+      var(--provider-accent, var(--border-hover)) 30%,
+      var(--border-hover)
+    );
+    background: color-mix(
+      in srgb,
+      var(--provider-soft, var(--bg-secondary)) 36%,
+      var(--auth-control-surface)
+    );
     color: var(--text-primary);
-    box-shadow: none;
+    box-shadow: 0 6px 14px -14px
+      color-mix(in srgb, var(--provider-accent, #0f172a) 44%, transparent);
   }
 }
 
@@ -4891,7 +4919,6 @@
   }
 }
 
-
 :global([data-theme='dark']) {
   .filterControlsPanel {
     border-color: var(--auth-neutral-border);
@@ -4902,7 +4929,11 @@
   // 骨架屏：--surface-sheen 已随主题切换，无需硬编码 #ffffff。
   .fileCardSkeleton {
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--surface-sheen) 60%, transparent), transparent 44%),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-sheen) 60%, transparent),
+        transparent 44%
+      ),
       var(--surface-raised);
 
     &::after {
@@ -5064,25 +5095,14 @@
       color-mix(in srgb, var(--text-secondary) 88%, transparent)
     );
     --auth-toggle-thumb-border: rgba(255, 255, 255, 0.18);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
-        transparent 54px
-      ),
-      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
+    background: var(--bg-primary);
     border-color: var(--auth-card-border);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.045),
-      0 1px 2px rgba(0, 0, 0, 0.24);
+      0 1px 2px rgba(0, 0, 0, 0.2);
 
     &::before {
-      background: linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in srgb, var(--provider-accent, var(--primary-active)) 34%, transparent),
-        transparent
-      );
+      background: var(--provider-accent, var(--text-tertiary));
     }
 
     &:hover {
@@ -5093,20 +5113,14 @@
     }
   }
 
-  // 深色模式下，6 种 provider 卡片共用相同的表面色，顶部色带由 ::before 渐变实现，色值更亮一档
+  // 深色模式同样使用统一表面，提供商仅通过左侧细色轨区分。
   .fileCard.claudeCard,
   .fileCard.codexCard,
   .fileCard.kimiCard {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--provider-soft, var(--surface-sheen)) 8%, transparent) 0,
-        transparent 54px
-      ),
-      color-mix(in srgb, var(--auth-surface) 94%, var(--bg-primary));
+    background: var(--bg-primary);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.045),
-      0 1px 2px rgba(0, 0, 0, 0.24);
+      0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   .fileCard.claudeCard {
@@ -5420,6 +5434,164 @@
   .cardToggleSwitch > input:checked + span:first-of-type > span:first-child {
     color: #fff;
   }
+}
+
+// 认证文件卡片固定为纯白中性表面，不再跟随提供商或全局深浅主题铺色。
+// 告警、配额和开关等功能状态仍保留自身语义色，以免降低可读性。
+.fileCard,
+.fileCard.claudeCard,
+.fileCard.codexCard,
+.fileCard.kimiCard,
+.fileCardSkeleton {
+  --auth-card-border: #e5e7eb;
+  --auth-card-border-hover: #cbd5e1;
+  --auth-card-inner-bg: #fff;
+  --auth-card-inner-border: #e5e7eb;
+  --auth-action-border: #e5e7eb;
+  --auth-action-bg: #fff;
+  --auth-action-text: #64748b;
+  --auth-action-hover-border: #cbd5e1;
+  --auth-action-hover-bg: #f8fafc;
+  --auth-action-hover-text: #1e293b;
+  --auth-toggle-off-border: #dbe2ea;
+  --auth-toggle-off-bg: #fff;
+  background: #fff;
+  border-color: #e5e7eb;
+  color: #1e293b;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+}
+
+.fileCard {
+  &::before,
+  &::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  &:hover {
+    background: #fff;
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 22px -22px rgb(15 23 42 / 0.2);
+  }
+
+  &:focus-within {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 2px rgb(148 163 184 / 0.24);
+  }
+}
+
+.fileCard.fileCardSelected,
+.fileCard.fileCardSelected:hover {
+  background: #fff;
+  border-color: #94a3b8;
+  box-shadow:
+    inset 0 0 0 1px rgb(148 163 184 / 0.14),
+    0 10px 22px -22px rgb(15 23 42 / 0.2);
+}
+
+.fileCard,
+.fileCard.fileCardSelected,
+.fileCard.fileCardSelected:hover,
+.fileCard.fileCardDisabled:hover {
+  border-left-color: #e5e7eb !important;
+}
+
+.fileCard.fileCardDisabled:hover {
+  background: #fff;
+  border-color: #e5e7eb;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+}
+
+.fileCard .providerAvatar {
+  background: #fff !important;
+  border-color: #e5e7eb !important;
+  color: #64748b !important;
+  box-shadow: none;
+
+  &::before {
+    content: none;
+  }
+}
+
+.fileCard:hover .providerAvatar {
+  border-color: #cbd5e1 !important;
+}
+
+.fileCard .providerTypeBadge,
+.fileCard .authModeBadgeToken,
+.fileCard .authModeBadgeAgent,
+.fileCard .featureBadge,
+.fileCard .refreshTokenBadge {
+  background: #fff !important;
+  border-color: #e5e7eb !important;
+  color: #64748b !important;
+  box-shadow: none;
+}
+
+.fileCard .fileName {
+  color: #111827;
+  text-shadow: none;
+}
+
+.fileCard .fileName:hover {
+  color: #111827;
+  background: #f8fafc;
+}
+
+.fileCard .noteLabel,
+.fileCard .noteText,
+.fileCard .noteValue,
+.fileCard .statusPanelLabel,
+.fileCard .statusPanelTitle,
+.fileCard .metaValue,
+.fileCard .quotaAmount,
+.fileCard .quotaModel,
+.fileCard .quotaReset {
+  color: #64748b;
+}
+
+.fileCard .cardInsights,
+.fileCard .quotaSection,
+.fileCard .cardActions {
+  border-color: #edf0f3;
+}
+
+.fileCard .cardSelection > input:not(:checked) + span {
+  background: #fff;
+  border-color: #dbe2ea;
+  box-shadow: none;
+}
+
+.fileCard .cardToggleSwitch > input:not(:checked) + span:first-of-type,
+.fileCard .cardToggleSwitch > input:not(:checked) + span:first-of-type > span:last-child {
+  background: #fff;
+  border-color: #dbe2ea;
+  box-shadow: none;
+}
+
+.fileCard .iconButton:global(.btn.btn-sm),
+.fileCard .modelsActionButton:global(.btn.btn-sm),
+.fileCard .refreshActionButton:global(.btn.btn-sm) {
+  background: #fff;
+  border-color: #e5e7eb;
+  color: #64748b;
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
+    box-shadow: none;
+  }
+}
+
+.fileCard .iconButton:global(.btn.btn-danger.btn-sm) {
+  background: #fff;
+}
+
+.fileCard .quotaBar {
+  background: #fff;
+  border-color: #e5e7eb;
 }
 
 // 分页
@@ -6274,7 +6446,6 @@
 
 // 极窄屏 (<=380px)：再压一档
 @media (max-width: 380px) {
-
   .filterChip,
   .filterResetButton {
     flex: 1 1 calc(50% - 6px);
