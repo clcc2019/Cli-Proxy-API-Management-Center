@@ -37,13 +37,9 @@ const LazyAiProvidersOpenAIEditPage = lazyNamed(
   'AiProvidersOpenAIEditPage'
 );
 const LazyAuthFilesPage = lazyNamed(loadAuthFilesPage, 'AuthFilesPage');
-const LazyAuthFilesOAuthExcludedEditPage = lazyNamed(
-  () => import('@/pages/AuthFilesOAuthExcludedEditPage'),
-  'AuthFilesOAuthExcludedEditPage'
-);
-const LazyAuthFilesOAuthModelAliasEditPage = lazyNamed(
-  () => import('@/pages/AuthFilesOAuthModelAliasEditPage'),
-  'AuthFilesOAuthModelAliasEditPage'
+const LazyAuthFilesOAuthModelRulesPage = lazyNamed(
+  () => import('@/pages/AuthFilesOAuthModelRulesPage'),
+  'AuthFilesOAuthModelRulesPage'
 );
 const LazyOAuthPage = lazyNamed(loadOAuthPage, 'OAuthPage');
 const LazyRequestLogsPage = lazyNamed(loadRequestLogsPage, 'RequestLogsPage');
@@ -81,12 +77,16 @@ const mainRoutes = [
   { path: '/ai-providers/*', element: renderLazyPage(LazyAiProvidersPage) },
   { path: '/auth-files', element: renderLazyPage(LazyAuthFilesPage) },
   {
+    path: '/auth-files/oauth-model-rules',
+    element: renderLazyPage(LazyAuthFilesOAuthModelRulesPage),
+  },
+  {
     path: '/auth-files/oauth-excluded',
-    element: renderLazyPage(LazyAuthFilesOAuthExcludedEditPage),
+    element: renderLazyPage(LazyAuthFilesOAuthModelRulesPage),
   },
   {
     path: '/auth-files/oauth-model-alias',
-    element: renderLazyPage(LazyAuthFilesOAuthModelAliasEditPage),
+    element: renderLazyPage(LazyAuthFilesOAuthModelRulesPage),
   },
   { path: '/oauth', element: renderLazyPage(LazyOAuthPage) },
   { path: '/usage', element: renderLazyPage(LazyUsagePage) },

@@ -733,6 +733,47 @@ textarea {
 }
 
 @media (max-width: $breakpoint-mobile) {
+  .modal-overlay.modal-overlay-fullscreen-mobile {
+    padding: 0;
+  }
+
+  .modal.modal-fullscreen-mobile {
+    width: 100% !important;
+    height: 100vh;
+    max-height: 100vh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  @supports (height: 100dvh) {
+    .modal.modal-fullscreen-mobile {
+      height: 100dvh;
+      max-height: 100dvh;
+    }
+  }
+
+  .modal-fullscreen-mobile .modal-body {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .modal-fullscreen-mobile .modal-footer {
+    padding-bottom: max($spacing-md, env(safe-area-inset-bottom));
+  }
+
+  .modal-fullscreen-mobile .modal-header {
+    padding-top: max($spacing-md, env(safe-area-inset-top));
+  }
+
+  .modal-fullscreen-mobile .modal-close-floating {
+    top: max(6px, env(safe-area-inset-top));
+    right: max(6px, env(safe-area-inset-right));
+    width: 44px;
+    height: 44px;
+  }
+
   .modal-overlay {
     padding: $spacing-md;
   }

@@ -5705,7 +5705,60 @@
   }
 }
 
-// OAuth 模型禁用
+// OAuth 模型规则概览
+.modelRulesNotice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--auth-neutral-border);
+  background: color-mix(in srgb, var(--warning-color, #b7791f) 7%, transparent);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modelRulesList {
+  display: flex;
+  flex-direction: column;
+}
+
+.modelRulesItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--auth-neutral-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.modelRulesInfo {
+  min-width: 0;
+}
+
+.modelRulesStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  margin-top: 4px;
+}
+
+.modelRulesStat {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+
+  & + &::before {
+    content: '·';
+    margin-right: 8px;
+    color: var(--text-tertiary);
+  }
+}
+
 .excludedList {
   display: flex;
   flex-direction: column;
@@ -6353,6 +6406,15 @@
   }
 
   // -------- OAuth 排除列表 -------------------------------------------------
+  .modelRulesNotice {
+    padding-inline: 12px;
+  }
+
+  .modelRulesItem {
+    padding: 12px;
+    gap: 8px;
+  }
+
   .excludedItem {
     padding: 12px;
     gap: 8px;

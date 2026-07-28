@@ -12,7 +12,6 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } from '@/hooks';
@@ -92,14 +91,14 @@ const AuthFilesPrefixProxyEditorModal = lazy(() =>
     default: module.AuthFilesPrefixProxyEditorModal,
   }))
 );
-const OAuthExcludedCard = lazy(() =>
-  import('@/features/authFiles/components/OAuthExcludedCard').then((module) => ({
-    default: module.OAuthExcludedCard,
+const OAuthModelRulesCard = lazy(() =>
+  import('@/features/authFiles/components/OAuthModelRulesCard').then((module) => ({
+    default: module.OAuthModelRulesCard,
   }))
 );
-const OAuthModelAliasCard = lazy(() =>
-  import('@/features/authFiles/components/OAuthModelAliasCard').then((module) => ({
-    default: module.OAuthModelAliasCard,
+const OAuthModelRulesEditorModal = lazy(() =>
+  import('@/pages/AuthFilesOAuthModelRulesPage').then((module) => ({
+    default: module.OAuthModelRulesEditorModal,
   }))
 );
 
@@ -377,7 +376,6 @@ export function AuthFilesPage() {
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
   const prefersReducedMotion = useReducedMotion();
-  const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | string>('all');
   const [problemOnly, setProblemOnly] = useState(false);
   const [disabledOnly, setDisabledOnly] = useState(false);
@@ -388,7 +386,6 @@ export function AuthFilesPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [viewMode, setViewMode] = useState<'diagram' | 'list'>('list');
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
@@ -396,6 +393,7 @@ export function AuthFilesPage() {
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
   const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
+  const [modelRulesEditor, setModelRulesEditor] = useState({ open: false, provider: '' });
   const [scopedTypeCounts, setScopedTypeCounts] = useState<{
     key: string;
     counts: Record<string, number>;
@@ -557,28 +555,8 @@ export function AuthFilesPage() {
         : EMPTY_AUTH_FILE_PROVIDER_TYPES,
     [providerTypesFromListMetaKey]
   );
-  const oauthViewMode = belowFoldCardsReady ? viewMode : 'list';
-
-  const {
-    excluded,
-    excludedError,
-    modelAlias,
-    modelAliasError,
-    allProviderModels,
-    loadExcluded,
-    loadModelAlias,
-    deleteExcluded,
-    deleteModelAlias,
-    handleMappingUpdate,
-    handleDeleteLink,
-    handleToggleFork,
-    handleRenameAlias,
-    handleDeleteAlias,
-  } = useAuthFilesOauth({
-    viewMode: oauthViewMode,
-    files,
-    providerTypes: providerTypesFromListMeta,
-  });
+  const { excluded, excludedError, modelAlias, modelAliasError, loadExcluded, loadModelAlias } =
+    useAuthFilesOauth();
 
   const {
     modelsModalOpen,
@@ -1446,43 +1424,21 @@ export function AuthFilesPage() {
     void handlePageRefreshQuota();
   }, [handlePageRefreshQuota]);
 
-  const openExcludedEditor = useCallback(
+  const openModelRulesEditor = useCallback(
     (provider?: string) => {
       const providerValue = (provider || (filter !== 'all' ? String(filter) : '')).trim();
-      const params = new URLSearchParams();
-      if (providerValue) {
-        params.set('provider', providerValue);
-      }
-      const nextSearch = params.toString();
-      navigate(`/auth-files/oauth-excluded${nextSearch ? `?${nextSearch}` : ''}`, {
-        state: { fromAuthFiles: true },
-      });
+      setModelRulesEditor({ open: true, provider: providerValue });
     },
-    [filter, navigate]
+    [filter]
   );
 
-  const handleAddExcluded = useCallback(() => {
-    openExcludedEditor();
-  }, [openExcludedEditor]);
+  const closeModelRulesEditor = useCallback(() => {
+    setModelRulesEditor((current) => ({ ...current, open: false }));
+  }, []);
 
-  const openModelAliasEditor = useCallback(
-    (provider?: string) => {
-      const providerValue = (provider || (filter !== 'all' ? String(filter) : '')).trim();
-      const params = new URLSearchParams();
-      if (providerValue) {
-        params.set('provider', providerValue);
-      }
-      const nextSearch = params.toString();
-      navigate(`/auth-files/oauth-model-alias${nextSearch ? `?${nextSearch}` : ''}`, {
-        state: { fromAuthFiles: true },
-      });
-    },
-    [filter, navigate]
-  );
-
-  const handleAddModelAlias = useCallback(() => {
-    openModelAliasEditor();
-  }, [openModelAliasEditor]);
+  const refreshModelRules = useCallback(async () => {
+    await Promise.all([loadExcluded(), loadModelAlias()]);
+  }, [loadExcluded, loadModelAlias]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1987,34 +1943,26 @@ export function AuthFilesPage() {
       {belowFoldCardsReady && (
         <Suspense fallback={null}>
           <div className={styles.belowFoldCard}>
-            <OAuthExcludedCard
+            <OAuthModelRulesCard
               disableControls={disableControls}
               excludedError={excludedError}
-              excluded={excluded}
-              onAdd={handleAddExcluded}
-              onEdit={openExcludedEditor}
-              onDelete={deleteExcluded}
-            />
-          </div>
-
-          <div className={styles.belowFoldCard}>
-            <OAuthModelAliasCard
-              disableControls={disableControls}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              onAdd={handleAddModelAlias}
-              onEditProvider={openModelAliasEditor}
-              onDeleteProvider={deleteModelAlias}
               modelAliasError={modelAliasError}
+              excluded={excluded}
               modelAlias={modelAlias}
-              allProviderModels={allProviderModels}
-              onUpdate={handleMappingUpdate}
-              onDeleteLink={handleDeleteLink}
-              onToggleFork={handleToggleFork}
-              onRenameAlias={handleRenameAlias}
-              onDeleteAlias={handleDeleteAlias}
+              onManage={openModelRulesEditor}
             />
           </div>
+        </Suspense>
+      )}
+
+      {modelRulesEditor.open && (
+        <Suspense fallback={null}>
+          <OAuthModelRulesEditorModal
+            open
+            initialProvider={modelRulesEditor.provider}
+            onClose={closeModelRulesEditor}
+            onSaved={refreshModelRules}
+          />
         </Suspense>
       )}
 

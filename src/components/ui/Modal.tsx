@@ -18,6 +18,7 @@ interface ModalProps {
   footer?: ReactNode;
   width?: number | string;
   className?: string;
+  fullScreenOnMobile?: boolean;
   closeDisabled?: boolean;
   ariaDescribedBy?: string;
 }
@@ -124,6 +125,7 @@ export function Modal({
   footer,
   width = 520,
   className,
+  fullScreenOnMobile = false,
   closeDisabled = false,
   ariaDescribedBy,
   children,
@@ -271,8 +273,21 @@ export function Modal({
 
   if (!open && !isVisible) return null;
 
-  const overlayClass = `modal-overlay ${isClosing ? 'modal-overlay-closing' : 'modal-overlay-entering'}`;
-  const modalClass = `modal ${isClosing ? 'modal-closing' : 'modal-entering'}${className ? ` ${className}` : ''}`;
+  const overlayClass = [
+    'modal-overlay',
+    isClosing ? 'modal-overlay-closing' : 'modal-overlay-entering',
+    fullScreenOnMobile ? 'modal-overlay-fullscreen-mobile' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const modalClass = [
+    'modal',
+    isClosing ? 'modal-closing' : 'modal-entering',
+    fullScreenOnMobile ? 'modal-fullscreen-mobile' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const modalContent = (
     <div className={overlayClass}>
