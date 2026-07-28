@@ -137,17 +137,6 @@ const authFileHasRefreshToken = (file: AuthFileItem): boolean => {
   return false;
 };
 
-const readPlusOneMonthFreeEligibility = (file: AuthFileItem): boolean | null => {
-  const value = file.plus_one_month_free_eligible ?? file.plusOneMonthFreeEligible;
-  if (typeof value === 'boolean') return value;
-  if (typeof value !== 'string') return null;
-
-  const normalized = value.trim().toLowerCase();
-  if (normalized === 'true') return true;
-  if (normalized === 'false') return false;
-  return null;
-};
-
 export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps) {
   const { t } = useTranslation();
   const {
@@ -195,7 +184,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     [file]
   );
   const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
-  const plusOneMonthFreeEligible = useMemo(() => readPlusOneMonthFreeEligibility(file), [file]);
   const serviceTierPassthroughBadgeLabel = useMemo(
     () => (serviceTierPassthroughEnabled ? t('auth_files.service_tier_passthrough_badge') : null),
     [serviceTierPassthroughEnabled, t]
@@ -450,24 +438,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       title={t('auth_files.service_tier_passthrough_hint')}
                     >
                       {serviceTierPassthroughBadgeLabel}
-                    </span>
-                  )}
-                  {plusOneMonthFreeEligible !== null && (
-                    <span
-                      className={`${styles.featureBadge} ${
-                        plusOneMonthFreeEligible ? styles.featureBadgeEnabled : ''
-                      }`}
-                      title={t(
-                        plusOneMonthFreeEligible
-                          ? 'auth_files.plus_one_month_free_eligible_hint'
-                          : 'auth_files.plus_one_month_free_ineligible_hint'
-                      )}
-                    >
-                      {t(
-                        plusOneMonthFreeEligible
-                          ? 'auth_files.plus_one_month_free_eligible'
-                          : 'auth_files.plus_one_month_free_ineligible'
-                      )}
                     </span>
                   )}
                 </div>

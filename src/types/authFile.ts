@@ -130,8 +130,6 @@ export interface AuthFileItem {
   planType?: string;
   chatgpt_plan_type?: string;
   chatgptPlanType?: string;
-  plus_one_month_free_eligible?: boolean | string | null;
-  plusOneMonthFreeEligible?: boolean | string | null;
   plan_snapshot?: AuthFilePlanSnapshot | null;
   planSnapshot?: AuthFilePlanSnapshot | null;
   has_refresh_token?: boolean;
