@@ -2538,53 +2538,6 @@
   letter-spacing: 0;
 }
 
-.authModeBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  // 用 ch 而非固定 px：不同语言下的模式名长度差异很大，px 上限在中文/德文下会误截。
-  max-width: 18ch;
-  height: 18px;
-  // 图标模式与文字模式宽度差异大，加 min-width 收敛切换时的抖动。
-  min-width: 0;
-  padding: 0 6px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  font-size: 9px;
-  font-weight: 720;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  svg {
-    flex: 0 0 auto;
-  }
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
-.authModeBadgeToken {
-  color: var(--auth-stat-token-text);
-  background: var(--auth-stat-token-bg);
-  border-color: var(--auth-stat-token-border);
-}
-
-.authModeBadgeAgent {
-  color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 82%, var(--text-primary));
-  background: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 13%,
-    var(--surface-raised)
-  );
-  border-color: color-mix(in srgb, var(--provider-accent, var(--primary-color)) 34%, transparent);
-}
-
 .featureBadge {
   display: inline-flex;
   align-items: center;
@@ -4165,42 +4118,6 @@
   color: var(--auth-action-hover-text);
 }
 
-.authModeActionButton:global(.btn.btn-sm) {
-  border-color: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 28%,
-    var(--auth-action-border)
-  );
-  background: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 8%,
-    var(--auth-action-bg)
-  );
-  color: color-mix(
-    in srgb,
-    var(--provider-accent, var(--primary-color)) 74%,
-    var(--auth-action-text)
-  );
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-color)) 46%,
-      var(--auth-action-hover-border)
-    );
-    background: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-color)) 14%,
-      var(--auth-action-hover-bg)
-    );
-    color: color-mix(
-      in srgb,
-      var(--provider-accent, var(--primary-color)) 86%,
-      var(--auth-action-hover-text)
-    );
-  }
-}
-
 .cardUtilityActions {
   display: flex;
   align-items: center;
@@ -4776,7 +4693,7 @@
   box-shadow: none;
 }
 
-.iconButton:not(.authModeActionButton):global(.btn.btn-sm),
+.iconButton:global(.btn.btn-sm),
 .refreshActionButton:global(.btn.btn-sm),
 .modelsActionButton:global(.btn.btn-sm) {
   border-color: var(--auth-neutral-border);
@@ -5518,8 +5435,6 @@
 }
 
 .fileCard .providerTypeBadge,
-.fileCard .authModeBadgeToken,
-.fileCard .authModeBadgeAgent,
 .fileCard .featureBadge,
 .fileCard .refreshTokenBadge {
   background: #fff !important;

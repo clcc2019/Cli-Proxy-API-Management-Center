@@ -93,6 +93,8 @@ export type AuthFilesListMeta = {
   paginated: boolean;
   hasMore: boolean;
   typeCounts?: Record<string, number>;
+  /** Whether this response was filtered by the server's cached premium-plan snapshot. */
+  premiumOnlyApplied?: boolean;
   dataKey?: string;
   resolvedDataKey?: string;
   typeCountsKey?: string;
@@ -150,6 +152,7 @@ const areAuthFilesListMetaEqual = (left: AuthFilesListMeta, right: AuthFilesList
   left.pageSize === right.pageSize &&
   left.paginated === right.paginated &&
   left.hasMore === right.hasMore &&
+  left.premiumOnlyApplied === right.premiumOnlyApplied &&
   left.dataKey === right.dataKey &&
   left.resolvedDataKey === right.resolvedDataKey &&
   left.typeCountsKey === right.typeCountsKey &&
@@ -175,6 +178,13 @@ const isCanceledRequestError = (err: unknown): boolean => {
     record.name === 'AbortError' ||
     record.message === 'canceled'
   );
+};
+
+const isUnsupportedPremiumFilterError = (err: unknown): boolean => {
+  if (!err || typeof err !== 'object') return false;
+  const response = (err as { response?: { status?: unknown } }).response;
+  const status = response?.status;
+  return status === 400 || status === 404 || status === 405 || status === 422 || status === 501;
 };
 
 export type UseAuthFilesDataResult = {
@@ -530,6 +540,10 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             paginated: Boolean(effectiveListOptions.pageSize),
             hasMore: data?.has_more === true,
             typeCounts: data?.type_counts,
+            premiumOnlyApplied:
+              effectiveListOptions.premiumOnly === true
+                ? data?.premium_only_applied === true
+                : undefined,
             dataKey: effectiveListOptionsKey,
             resolvedDataKey,
             typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
@@ -540,6 +554,29 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         } catch (err: unknown) {
           if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
           if (isCanceledRequestError(err)) return;
+          // Servers that reject an unknown query parameter take the same graceful
+          // path as servers that omit `premium_only_applied` from a successful
+          // response. AuthFilesPage will immediately request its compatible
+          // unpaginated view after it observes this capability marker.
+          if (effectiveListOptions.premiumOnly && isUnsupportedPremiumFilterError(err)) {
+            const unsupportedPremiumListMeta: AuthFilesListMeta = {
+              total: 0,
+              page: Math.max(1, Math.round(effectiveListOptions.page ?? 1)),
+              pageSize: Math.max(0, Math.round(effectiveListOptions.pageSize ?? 0)),
+              paginated: Boolean(effectiveListOptions.pageSize),
+              hasMore: false,
+              premiumOnlyApplied: false,
+              dataKey: effectiveListOptionsKey,
+              resolvedDataKey: effectiveListOptionsKey,
+              typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
+            };
+            setListMeta((prev) =>
+              areAuthFilesListMetaEqual(prev, unsupportedPremiumListMeta)
+                ? prev
+                : unsupportedPremiumListMeta
+            );
+            return;
+          }
           if (silent) return;
           const errorMessage =
             err instanceof Error ? err.message : t('notification.refresh_failed');

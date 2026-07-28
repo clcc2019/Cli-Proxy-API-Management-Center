@@ -79,12 +79,7 @@ import {
   type AuthFilesUiState,
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
-import type {
-  AuthFileItem,
-  ClaudeQuotaState,
-  CodexAuthMode,
-  CodexQuotaState,
-} from '@/types';
+import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
 import styles from './AuthFilesPage.module.scss';
 
 const AuthFileModelsModal = lazy(() =>
@@ -112,6 +107,8 @@ const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const AUTH_FILE_SKELETON_MAX = 12;
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
+const AUTH_FILE_GRID_MOTION_DURATION_MS = 260;
+const AUTH_FILE_GRID_MOTION_SNAPSHOT_TTL_MS = 1_500;
 
 const getAuthFileCardEnterStyle = (index: number): CSSProperties =>
   ({
@@ -385,6 +382,9 @@ export function AuthFilesPage() {
   const [problemOnly, setProblemOnly] = useState(false);
   const [disabledOnly, setDisabledOnly] = useState(false);
   const [premiumOnly, setPremiumOnly] = useState(false);
+  const [premiumServerFilterSupported, setPremiumServerFilterSupported] = useState<boolean | null>(
+    null
+  );
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -392,7 +392,6 @@ export function AuthFilesPage() {
   const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
-  const [authModeUpdating, setAuthModeUpdating] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
@@ -408,7 +407,11 @@ export function AuthFilesPage() {
     sortSnapshot: Record<string, AuthFileSortSnapshot>;
   } | null>(null);
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
+  const authFileGridRef = useRef<HTMLDivElement>(null);
   const batchActionAnimationRef = useRef<Animation | null>(null);
+  const authFileGridMotionSnapshotRef = useRef<Map<string, DOMRect> | null>(null);
+  const authFileGridMotionAnimationsRef = useRef<Animation[]>([]);
+  const authFileGridMotionSnapshotTimeoutRef = useRef<number | null>(null);
   const previousSelectionActiveRef = useRef(false);
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
@@ -418,11 +421,12 @@ export function AuthFilesPage() {
   const normalizedSearch = search.trim();
   const deferredNormalizedSearch = deferredSearch.trim();
   const debouncedSearch = useDebounce(normalizedSearch, 280);
-  // Plus/Pro is resolved from the client-side quota and subscription data.  Do not
-  // filter an already paginated server result here: one server page can contain a
-  // different number of matching files than the next.  Load the complete set for
-  // this view, then apply the same filter and pagination locally.
-  const serverPaginationEnabled = !premiumOnly;
+  // Newer servers classify subscriptions from their cache and acknowledge the
+  // filter in the response. Until that capability is confirmed, request one
+  // paginated probe; an older server then falls back to the established local
+  // full-list path without ever filtering a partial server page client-side.
+  const requestServerPremiumFilter = premiumOnly && premiumServerFilterSupported !== false;
+  const serverPaginationEnabled = !premiumOnly || requestServerPremiumFilter;
   const serverSearchPending = serverPaginationEnabled && normalizedSearch !== debouncedSearch;
   const serverListPage = serverPaginationEnabled ? page : undefined;
   const serverListPageSize = serverPaginationEnabled ? pageSize : undefined;
@@ -465,6 +469,7 @@ export function AuthFilesPage() {
       sort: serverListSort,
       problemOnly: serverListProblemOnly,
       disabledOnly: serverListDisabledOnly,
+      premiumOnly: requestServerPremiumFilter || undefined,
     };
   }, [
     serverListDisabledOnly,
@@ -474,6 +479,7 @@ export function AuthFilesPage() {
     serverListSearch,
     serverListSort,
     serverListType,
+    requestServerPremiumFilter,
     serverPaginationEnabled,
   ]);
   const authFilesListOptionsKey = useMemo(
@@ -515,6 +521,29 @@ export function AuthFilesPage() {
     batchDelete,
     applyLocalFileUpdates,
   } = useAuthFilesData({ refreshKeyStats, listOptions: authFilesListOptions });
+
+  useEffect(() => {
+    if (!premiumOnly) {
+      setPremiumServerFilterSupported((current) => (current === null ? current : null));
+      return;
+    }
+    if (!requestServerPremiumFilter) return;
+    if (
+      listMeta.dataKey !== authFilesListOptionsKey &&
+      listMeta.resolvedDataKey !== authFilesListOptionsKey
+    ) {
+      return;
+    }
+
+    setPremiumServerFilterSupported(listMeta.premiumOnlyApplied === true);
+  }, [
+    authFilesListOptionsKey,
+    listMeta.dataKey,
+    listMeta.premiumOnlyApplied,
+    listMeta.resolvedDataKey,
+    premiumOnly,
+    requestServerPremiumFilter,
+  ]);
 
   const statusBarCache = useAuthFilesStatusBarCache(files, usageDetails);
   const providerTypesFromListMetaKey = useMemo(
@@ -577,8 +606,10 @@ export function AuthFilesPage() {
   });
 
   const disableControls = connectionStatus !== 'connected';
+  const premiumFilterServerSide = premiumOnly && premiumServerFilterSupported === true;
   const needsPlanSources =
-    premiumOnly || (!listMeta.paginated && sortMode === 'subscription_expiry');
+    !premiumFilterServerSide &&
+    (premiumOnly || (!listMeta.paginated && sortMode === 'subscription_expiry'));
   const selectClaudeQuotaForPlanSources = useCallback(
     (state: ReturnType<typeof useQuotaStore.getState>) =>
       needsPlanSources ? state.claudeQuota : EMPTY_CLAUDE_QUOTA,
@@ -645,6 +676,39 @@ export function AuthFilesPage() {
   const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
   const listUpdating = refreshing || serverSearchPending;
 
+  const captureAuthFileGridLayout = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    if (authFileGridMotionSnapshotTimeoutRef.current !== null) {
+      window.clearTimeout(authFileGridMotionSnapshotTimeoutRef.current);
+      authFileGridMotionSnapshotTimeoutRef.current = null;
+    }
+
+    const grid = authFileGridRef.current;
+    if (prefersReducedMotion || !grid) {
+      authFileGridMotionSnapshotRef.current = null;
+      return;
+    }
+
+    const snapshot = new Map<string, DOMRect>();
+    grid.querySelectorAll<HTMLElement>('[data-auth-file-name]').forEach((card) => {
+      const name = card.dataset.authFileName;
+      if (name) snapshot.set(name, card.getBoundingClientRect());
+    });
+
+    if (snapshot.size === 0) {
+      authFileGridMotionSnapshotRef.current = null;
+      return;
+    }
+
+    authFileGridMotionSnapshotRef.current = snapshot;
+    // A slow or failed request should not let an old layout influence a later update.
+    authFileGridMotionSnapshotTimeoutRef.current = window.setTimeout(() => {
+      authFileGridMotionSnapshotRef.current = null;
+      authFileGridMotionSnapshotTimeoutRef.current = null;
+    }, AUTH_FILE_GRID_MOTION_SNAPSHOT_TTL_MS);
+  }, [prefersReducedMotion]);
+
   useEffect(() => {
     const listBusy = loading || refreshing;
     if (displayOptionsActive && !listMeta.paginated && previousListBusyRef.current && !listBusy) {
@@ -656,10 +720,11 @@ export function AuthFilesPage() {
   const handleSortModeChange = useCallback(
     (value: string) => {
       if (!isAuthFilesSortMode(value) || value === sortMode) return;
+      captureAuthFileGridLayout();
       setSortMode(value);
       setPage(1);
     },
-    [sortMode]
+    [captureAuthFileGridLayout, sortMode]
   );
 
   const handleHeaderRefresh = useCallback(async () => {
@@ -674,24 +739,28 @@ export function AuthFilesPage() {
   }, [loadFiles, refreshKeyStats, loadExcluded, loadModelAlias]);
 
   const handleToggleProblemOnly = useCallback(() => {
+    captureAuthFileGridLayout();
     setProblemOnly((prev) => !prev);
     setPage(1);
-  }, []);
+  }, [captureAuthFileGridLayout]);
   const handleToggleDisabledOnly = useCallback(() => {
+    captureAuthFileGridLayout();
     setDisabledOnly((prev) => !prev);
     setPage(1);
-  }, []);
+  }, [captureAuthFileGridLayout]);
   const handleTogglePremiumOnly = useCallback(() => {
+    captureAuthFileGridLayout();
     setPremiumOnly((prev) => !prev);
     setPage(1);
-  }, []);
+  }, [captureAuthFileGridLayout]);
   const handleSearchValue = useCallback(
     (value: string) => {
       if (value === search) return;
+      captureAuthFileGridLayout();
       setSearch(value);
       setPage(1);
     },
-    [search]
+    [captureAuthFileGridLayout, search]
   );
   const handleClearFilters = useCallback(() => {
     if (
@@ -704,29 +773,32 @@ export function AuthFilesPage() {
     ) {
       return;
     }
+    captureAuthFileGridLayout();
     setFilter('all');
     setProblemOnly(false);
     setDisabledOnly(false);
     setPremiumOnly(false);
     setSearch('');
     setPage(1);
-  }, [disabledOnly, filter, page, premiumOnly, problemOnly, search]);
+  }, [captureAuthFileGridLayout, disabledOnly, filter, page, premiumOnly, problemOnly, search]);
   const handleFilterTagSelect = useCallback(
     (value: string) => {
       if (value === filter) return;
+      captureAuthFileGridLayout();
       setFilter(value);
       setPage(1);
     },
-    [filter]
+    [captureAuthFileGridLayout, filter]
   );
   const handlePageSizeCommit = useCallback(
     (next: number) => {
       const clamped = clampCardPageSize(next);
       if (clamped === pageSize) return;
+      captureAuthFileGridLayout();
       setPageSize(clamped);
       setPage(1);
     },
-    [pageSize]
+    [captureAuthFileGridLayout, pageSize]
   );
 
   useHeaderRefresh(handleHeaderRefresh);
@@ -833,13 +905,14 @@ export function AuthFilesPage() {
       if (disabledOnly && file.disabled !== true) {
         return false;
       }
-      // Plus/Pro 由认证文件与本地最新额度共同判定，始终在前端完成筛选。
-      if (premiumOnly && !hasPremiumAuthFilePlan(file, planSources)) {
+      // Older servers do not expose cached plan filtering. Only that compatibility
+      // path needs the complete client-side plan check.
+      if (premiumOnly && !premiumFilterServerSide && !hasPremiumAuthFilePlan(file, planSources)) {
         return false;
       }
       return true;
     },
-    [disabledOnly, planSources, premiumOnly]
+    [disabledOnly, planSources, premiumFilterServerSide, premiumOnly]
   );
   const matchesDisplayFilters = useCallback(
     (file: (typeof files)[number]) => {
@@ -855,7 +928,7 @@ export function AuthFilesPage() {
   );
   const serverPageResultSettled = serverPaginated && !refreshing && !serverSearchPending;
   const shouldApplyLocalDisplayFilters =
-    displayOptionsActive && (!serverPageResultSettled || premiumOnly);
+    displayOptionsActive && (!serverPageResultSettled || (premiumOnly && !premiumFilterServerSide));
   const currentFilesMatchingDisplayFilters = useMemo(
     () => (shouldApplyLocalDisplayFilters ? files.filter(matchesDisplayFilters) : files),
     [files, matchesDisplayFilters, shouldApplyLocalDisplayFilters]
@@ -1059,16 +1132,17 @@ export function AuthFilesPage() {
   );
   const premiumTypeCounts = useMemo(
     () =>
-      premiumOnly
+      premiumOnly && !premiumFilterServerSide
         ? countAuthFilesByType(filesMatchingDisplayFilters.filter(matchesDisplaySearch))
         : EMPTY_AUTH_FILE_TYPE_COUNTS,
-    [filesMatchingDisplayFilters, matchesDisplaySearch, premiumOnly]
+    [filesMatchingDisplayFilters, matchesDisplaySearch, premiumFilterServerSide, premiumOnly]
   );
-  const typeCounts = premiumOnly
-    ? premiumTypeCounts
-    : scopedTypeCountsKey
-      ? (currentScopedServerTypeCounts ?? currentScopedFallbackTypeCounts ?? localTypeCounts)
-      : (listMeta.typeCounts ?? localTypeCounts);
+  const typeCounts =
+    premiumOnly && !premiumFilterServerSide
+      ? premiumTypeCounts
+      : scopedTypeCountsKey
+        ? (currentScopedServerTypeCounts ?? currentScopedFallbackTypeCounts ?? localTypeCounts)
+        : (listMeta.typeCounts ?? localTypeCounts);
 
   const filtered = useMemo(() => {
     if (serverPageResultSettled) return filesMatchingDisplayFilters;
@@ -1116,6 +1190,76 @@ export function AuthFilesPage() {
   );
   const showInitialLoading = loading && pageItems.length === 0;
   const showListProgress = listUpdating && pageItems.length > 0;
+
+  useLayoutEffect(() => {
+    const snapshot = authFileGridMotionSnapshotRef.current;
+    const grid = authFileGridRef.current;
+    if (!snapshot || !grid) return;
+
+    if (prefersReducedMotion) {
+      authFileGridMotionSnapshotRef.current = null;
+      if (authFileGridMotionSnapshotTimeoutRef.current !== null) {
+        window.clearTimeout(authFileGridMotionSnapshotTimeoutRef.current);
+        authFileGridMotionSnapshotTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-auth-file-name]'));
+    const cardNames = new Set(
+      cards.map((card) => card.dataset.authFileName).filter((name): name is string => Boolean(name))
+    );
+    const listMembershipChanged =
+      cardNames.size !== snapshot.size || Array.from(cardNames).some((name) => !snapshot.has(name));
+    const moves = cards.flatMap((card) => {
+      const name = card.dataset.authFileName;
+      const previousRect = name ? snapshot.get(name) : undefined;
+      if (!previousRect) return [];
+
+      const nextRect = card.getBoundingClientRect();
+      const translateX = previousRect.left - nextRect.left;
+      const translateY = previousRect.top - nextRect.top;
+      return Math.abs(translateX) > 0.5 || Math.abs(translateY) > 0.5
+        ? [[card, translateX, translateY] as const]
+        : [];
+    });
+
+    // The first render after a server-side filter change can still contain the old
+    // page. Retain the snapshot in that case so the eventual response can animate.
+    if (moves.length === 0 && !listMembershipChanged) return;
+
+    authFileGridMotionSnapshotRef.current = null;
+    if (authFileGridMotionSnapshotTimeoutRef.current !== null) {
+      window.clearTimeout(authFileGridMotionSnapshotTimeoutRef.current);
+      authFileGridMotionSnapshotTimeoutRef.current = null;
+    }
+
+    authFileGridMotionAnimationsRef.current.forEach((animation) => animation.cancel());
+    authFileGridMotionAnimationsRef.current = [];
+
+    const animations = moves.map(([card, translateX, translateY]) => {
+      card.style.willChange = 'transform';
+      return card.animate(
+        [
+          { transform: `translate3d(${translateX}px, ${translateY}px, 0)` },
+          { transform: 'translate3d(0, 0, 0)' },
+        ],
+        {
+          duration: AUTH_FILE_GRID_MOTION_DURATION_MS,
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          fill: 'both',
+        }
+      );
+    });
+    authFileGridMotionAnimationsRef.current = animations;
+
+    void Promise.allSettled(animations.map((animation) => animation.finished)).then(() => {
+      if (authFileGridMotionAnimationsRef.current !== animations) return;
+      animations.forEach((animation) => animation.cancel());
+      cards.forEach((card) => card.style.removeProperty('will-change'));
+      authFileGridMotionAnimationsRef.current = [];
+    });
+  }, [pageItems, prefersReducedMotion]);
 
   // 一次性按文件名预计算 usage buckets。
   // 仅当 keyUsageStats / pageItems 任一变化时重算，
@@ -1196,48 +1340,6 @@ export function AuthFilesPage() {
       }
     }
   });
-
-  const handleCodexAuthModeChange = useEventCallback(
-    async (file: AuthFileItem, mode: CodexAuthMode) => {
-      const fileName = file.name;
-      if (disableControls || authModeUpdating[fileName]) return;
-
-      setAuthModeUpdating((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
-      try {
-        const response = await authFilesApi.setCodexAuthMode(fileName, mode);
-        if (!pageMountedRef.current) return;
-        applyLocalFilePatch(fileName, {
-          ...response.file,
-          auth_mode: response.file?.auth_mode ?? response.mode ?? mode,
-        });
-        const messageKey =
-          mode === 'access_token'
-            ? 'auth_files.auth_mode_access_token_success'
-            : response.created
-              ? 'auth_files.auth_mode_agent_identity_created_success'
-              : 'auth_files.auth_mode_agent_identity_success';
-        showNotification(t(messageKey, { name: fileName }), 'success');
-
-        // The patch response is authoritative. Refresh in the background and
-        // cancel any list request that started before the mode change, so an
-        // older snapshot cannot immediately overwrite the new badge/button.
-        void refreshFilesFromServer(true);
-      } catch (error) {
-        if (!pageMountedRef.current) return;
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        showNotification(`${t('auth_files.auth_mode_update_failed')}: ${errorMessage}`, 'error');
-      } finally {
-        if (pageMountedRef.current) {
-          setAuthModeUpdating((prev) => {
-            if (!prev[fileName]) return prev;
-            const next = { ...prev };
-            delete next[fileName];
-            return next;
-          });
-        }
-      }
-    }
-  );
 
   const handlePriorityChange = useEventCallback(async (file: AuthFileItem, priority: number) => {
     const fileName = file.name;
@@ -1491,6 +1593,12 @@ export function AuthFilesPage() {
     () => () => {
       batchActionAnimationRef.current?.cancel();
       batchActionAnimationRef.current = null;
+      authFileGridMotionAnimationsRef.current.forEach((animation) => animation.cancel());
+      authFileGridMotionAnimationsRef.current = [];
+      if (authFileGridMotionSnapshotTimeoutRef.current !== null) {
+        window.clearTimeout(authFileGridMotionSnapshotTimeoutRef.current);
+        authFileGridMotionSnapshotTimeoutRef.current = null;
+      }
     },
     []
   );
@@ -1539,12 +1647,14 @@ export function AuthFilesPage() {
   ]);
 
   const handlePreviousPage = useCallback(() => {
+    captureAuthFileGridLayout();
     setPage((prev) => Math.max(1, Math.min(prev, currentPage) - 1));
-  }, [currentPage]);
+  }, [captureAuthFileGridLayout, currentPage]);
 
   const handleNextPage = useCallback(() => {
+    captureAuthFileGridLayout();
     setPage((prev) => Math.min(totalPages, Math.max(prev, currentPage) + 1));
-  }, [currentPage, totalPages]);
+  }, [captureAuthFileGridLayout, currentPage, totalPages]);
 
   const handleSelectPageItems = useCallback(() => {
     selectAllVisible(pageItems);
@@ -1597,7 +1707,6 @@ export function AuthFilesPage() {
             deleting={deleting === file.name}
             statusUpdating={statusUpdating[file.name] === true}
             accessTokenCopying={accessTokenCopying[file.name] === true}
-            authModeUpdating={authModeUpdating[file.name] === true}
             priorityUpdating={priorityUpdating[file.name] === true}
             quotaFilterType={quotaFilterType}
             fileUsageStats={fileUsageStats}
@@ -1607,7 +1716,6 @@ export function AuthFilesPage() {
             onCopyName={copyTextWithNotification}
             onDownload={handleDownload}
             onCopyAccessToken={handleCopyAccessToken}
-            onAuthModeChange={handleCodexAuthModeChange}
             onPriorityChange={handlePriorityChange}
             onOpenPrefixProxyEditor={openPrefixProxyEditor}
             onAuthFileUpdated={handleAuthFileUpdated}
@@ -1619,14 +1727,12 @@ export function AuthFilesPage() {
       }),
     [
       accessTokenCopying,
-      authModeUpdating,
       copyTextWithNotification,
       deleting,
       disableControls,
       fileUsageStatsByName,
       handleAuthFileUpdated,
       handleCopyAccessToken,
-      handleCodexAuthModeChange,
       handleDelete,
       handleDownload,
       handlePriorityChange,
@@ -1836,6 +1942,7 @@ export function AuthFilesPage() {
               ) : (
                 <div
                   className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
+                  ref={authFileGridRef}
                   // 列表刷新期间整体屏蔽交互（含键盘焦点），等价于此前逐张卡片
                   // 传 disableControls，但不会触碰任何卡片的 props。
                   inert={listUpdating}

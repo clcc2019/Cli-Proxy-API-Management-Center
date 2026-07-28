@@ -3,16 +3,22 @@
  * 基于原项目 src/modules/auth-files.js
  */
 
-export type AuthFileType =
-  | 'qwen'
-  | 'kimi'
-  | 'claude'
-  | 'codex'
-  | 'xai'
-  | 'empty'
-  | 'unknown';
+export type AuthFileType = 'qwen' | 'kimi' | 'claude' | 'codex' | 'xai' | 'empty' | 'unknown';
 
 export type CodexAuthMode = 'access_token' | 'agent_identity';
+
+/**
+ * Cached subscription classification returned with an auth-file list item.
+ * The list endpoint owns this value when it applies `premium_only`, so the
+ * browser never needs to load every credential just to classify its plan.
+ */
+export type AuthFilePlanSnapshotKind = 'none' | 'plus' | 'pro' | 'prolite';
+
+export interface AuthFilePlanSnapshot {
+  kind: AuthFilePlanSnapshotKind;
+  source?: 'cache';
+  cached_at?: string | number;
+}
 
 export interface AuthFileItem {
   id?: string;
@@ -124,6 +130,8 @@ export interface AuthFileItem {
   planType?: string;
   chatgpt_plan_type?: string;
   chatgptPlanType?: string;
+  plan_snapshot?: AuthFilePlanSnapshot | null;
+  planSnapshot?: AuthFilePlanSnapshot | null;
   has_refresh_token?: boolean;
   hasRefreshToken?: boolean;
   last_error?: unknown;
@@ -162,4 +170,6 @@ export interface AuthFilesResponse {
   page_size?: number;
   has_more?: boolean;
   type_counts?: Record<string, number>;
+  /** Present only when the server has applied the requested `premium_only` filter. */
+  premium_only_applied?: boolean;
 }

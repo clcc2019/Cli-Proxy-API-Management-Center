@@ -67,10 +67,33 @@ const resolveActiveCodexPlanType = (
   return null;
 };
 
+const resolveCachedPlanSnapshotBadge = (
+  file: AuthFileItem
+): AuthFilePlanBadgeInfo | null | undefined => {
+  const snapshot = file.plan_snapshot ?? file.planSnapshot;
+  if (!snapshot) return undefined;
+
+  switch (snapshot.kind) {
+    case 'plus':
+      return { kind: 'plus', labelKey: 'codex_quota.plan_plus' };
+    case 'pro':
+      return { kind: 'pro', labelKey: 'codex_quota.plan_pro' };
+    case 'prolite':
+      return { kind: 'pro', labelKey: 'codex_quota.plan_prolite' };
+    case 'none':
+      return null;
+    default:
+      return undefined;
+  }
+};
+
 export const resolveAuthFilePlanBadge = (
   file: AuthFileItem,
   sources: AuthFilePlanSources
 ): AuthFilePlanBadgeInfo | null => {
+  const cachedPlanBadge = resolveCachedPlanSnapshotBadge(file);
+  if (cachedPlanBadge !== undefined) return cachedPlanBadge;
+
   const providerKey = normalizeProviderKey(String(file.type ?? file.provider ?? ''));
 
   if (providerKey === 'codex') {

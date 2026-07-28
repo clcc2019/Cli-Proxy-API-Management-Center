@@ -14,7 +14,6 @@ import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconCopy,
-  IconBot,
   IconDownload,
   IconKey,
   IconModelCluster,
@@ -23,7 +22,7 @@ import {
   IconTrash2,
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
-import type { AuthFileItem, CodexAuthMode } from '@/types';
+import type { AuthFileItem } from '@/types';
 import { resolveAuthProvider } from '@/utils/quota';
 import { formatMillionTokens, type KeyUsageBucket } from '@/utils/usage';
 import {
@@ -87,7 +86,6 @@ export type AuthFileCardProps = {
   deleting: boolean;
   statusUpdating: boolean;
   accessTokenCopying: boolean;
-  authModeUpdating: boolean;
   priorityUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
   // 由父组件预计算并按文件名缓存，usage stats 不变时引用稳定，避免列表大规模重渲染
@@ -98,7 +96,6 @@ export type AuthFileCardProps = {
   onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
   onCopyAccessToken: (file: AuthFileItem) => void;
-  onAuthModeChange: (file: AuthFileItem, mode: CodexAuthMode) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
@@ -140,17 +137,6 @@ const authFileHasRefreshToken = (file: AuthFileItem): boolean => {
   return false;
 };
 
-const resolveCodexAuthMode = (file: AuthFileItem): CodexAuthMode => {
-  const rawMode = String(
-    file.auth_mode ?? file.authMode ?? file['auth_kind'] ?? file['authKind'] ?? ''
-  )
-    .trim()
-    .toLowerCase();
-  return rawMode === 'agent_identity' || rawMode === 'agentidentity'
-    ? 'agent_identity'
-    : 'access_token';
-};
-
 export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps) {
   const { t } = useTranslation();
   const {
@@ -161,7 +147,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     deleting,
     statusUpdating,
     accessTokenCopying,
-    authModeUpdating,
     priorityUpdating,
     quotaFilterType,
     fileUsageStats,
@@ -171,7 +156,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onCopyName,
     onDownload,
     onCopyAccessToken,
-    onAuthModeChange,
     onPriorityChange,
     onOpenPrefixProxyEditor,
     onAuthFileUpdated,
@@ -183,7 +167,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   // fileUsageStats 已由父组件预计算（按文件名稳定引用）
   const isRuntimeOnly = useMemo(() => isRuntimeOnlyAuthFile(file), [file]);
   const fileType = (file.type || 'unknown').toLowerCase();
-  const isCodexFile = fileType === 'codex' || String(file.provider ?? '').toLowerCase() === 'codex';
   const isAistudio = fileType === 'aistudio';
   const showModelsButton = !isRuntimeOnly || isAistudio;
 
@@ -201,22 +184,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     [file]
   );
   const hasRefreshToken = useMemo(() => authFileHasRefreshToken(file), [file]);
-  const codexAuthMode = useMemo(() => resolveCodexAuthMode(file), [file]);
-  // Agent Identity may be registered by the server on the first switch.  Do not
-  // use optional capability flags to decide whether the control is usable:
-  // a management-summary refresh can omit them temporarily.  The API owns the
-  // authoritative validation for either direction of the mode switch.
-  const showCodexAuthModeSwitch = isCodexFile;
-  const nextCodexAuthMode: CodexAuthMode =
-    codexAuthMode === 'agent_identity' ? 'access_token' : 'agent_identity';
-  const authModeDisplayLabel =
-    codexAuthMode === 'agent_identity'
-      ? t('auth_files.auth_mode_badge_agent_identity')
-      : t('auth_files.auth_mode_badge_access_token');
-  const authModeSwitchLabel =
-    nextCodexAuthMode === 'agent_identity'
-      ? t('auth_files.auth_mode_agent_identity_hint')
-      : t('auth_files.auth_mode_access_token_hint');
   const serviceTierPassthroughBadgeLabel = useMemo(
     () => (serviceTierPassthroughEnabled ? t('auth_files.service_tier_passthrough_badge') : null),
     [serviceTierPassthroughEnabled, t]
@@ -324,11 +291,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleShowModels = useEventCallback(() => onShowModels(file));
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
-  const handleToggleAuthMode = useEventCallback(() => {
-    if (!authModeUpdating) {
-      onAuthModeChange(file, nextCodexAuthMode);
-    }
-  });
   const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
   const handleDelete = useEventCallback(() => onDelete(file.name));
   const handleToggleStatus = useEventCallback((value: boolean) => onToggleStatus(file, value));
@@ -405,7 +367,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     : t('auth_files.batch_select_all');
 
   return (
-    <div className={cardClassName} style={cardStyle}>
+    <div className={cardClassName} style={cardStyle} data-auth-file-name={file.name}>
       <div className={styles.fileCardLayout}>
         <div className={styles.fileCardMain}>
           <div className={styles.cardHeader}>
@@ -450,32 +412,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   >
                     {typeLabel}
                   </span>
-                  {showCodexAuthModeSwitch && (
-                    <span
-                      className={`${styles.authModeBadge} ${
-                        codexAuthMode === 'agent_identity'
-                          ? styles.authModeBadgeAgent
-                          : styles.authModeBadgeToken
-                      }`}
-                      title={t('auth_files.auth_mode_current_hint', {
-                        mode: authModeDisplayLabel,
-                      })}
-                      // 这里是静态标签而非动态播报：用 role="status" 会让每张 Codex
-                      // 卡片都变成 live region，任何重渲染都重复播报一次。
-                      aria-label={t('auth_files.auth_mode_current_hint', {
-                        mode: authModeDisplayLabel,
-                      })}
-                    >
-                      {codexAuthMode === 'agent_identity' ? (
-                        <IconBot size={11} aria-hidden="true" />
-                      ) : (
-                        <IconKey size={11} aria-hidden="true" />
-                      )}
-                      {codexAuthMode !== 'agent_identity' && (
-                        <span>{authModeDisplayLabel}</span>
-                      )}
-                    </span>
-                  )}
                   {hasRefreshToken && (
                     <span
                       className={styles.refreshTokenBadge}
@@ -580,10 +516,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 <span className={styles.statusPanelTitle}>
                   {t('auth_files.health_status_label')}
                 </span>
-                <span
-                  className={styles.statusTokens}
-                  title={tokenExactLabel}
-                >
+                <span className={styles.statusTokens} title={tokenExactLabel}>
                   <span className={styles.statusTokensLabel}>
                     {t('auth_files.tokens_stat_label')}
                   </span>
@@ -634,25 +567,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       disabled={disableControls}
                     >
                       <IconSettings className={styles.actionIcon} size={18} />
-                    </Button>
-                  )}
-                  {!isRuntimeOnly && showCodexAuthModeSwitch && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleToggleAuthMode}
-                      className={`${styles.iconButton} ${styles.authModeActionButton}`}
-                      title={authModeSwitchLabel}
-                      aria-label={authModeSwitchLabel}
-                      disabled={disableControls || authModeUpdating}
-                    >
-                      {authModeUpdating ? (
-                        <LoadingSpinner size={18} />
-                      ) : nextCodexAuthMode === 'agent_identity' ? (
-                        <IconBot className={styles.actionIcon} size={18} />
-                      ) : (
-                        <IconKey className={styles.actionIcon} size={18} />
-                      )}
                     </Button>
                   )}
                   {!isRuntimeOnly && (
