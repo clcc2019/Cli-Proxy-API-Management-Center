@@ -713,14 +713,12 @@ export function AuthFilesPage() {
     manualRefreshInFlightRef.current = true;
     setManualRefreshPending(true);
     try {
-      await loadFiles({ codexSubscription: 'cache' });
-      scheduleIdleTask(
-        () => {
-          if (!pageMountedRef.current) return;
-          void Promise.allSettled([refreshKeyStats(), loadExcluded(), loadModelAlias()]);
-        },
-        { fallbackDelayMs: 400 }
-      );
+      await Promise.allSettled([
+        loadFiles({ codexSubscription: 'cache' }),
+        refreshKeyStats(),
+        loadExcluded(),
+        loadModelAlias(),
+      ]);
     } finally {
       manualRefreshInFlightRef.current = false;
       if (pageMountedRef.current) {
@@ -810,17 +808,7 @@ export function AuthFilesPage() {
       return;
     }
 
-    // Defer the initial list request by one task so StrictMode's development
-    // effect preflight can clean it up before any network request is started.
-    // The same cleanup also discards an obsolete request when filters change
-    // before the initial task runs.
-    const loadTimer = window.setTimeout(() => {
-      void loadFiles();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(loadTimer);
-    };
+    void loadFiles();
   }, [
     authFilesListOptionsKey,
     isCurrentLayer,
@@ -844,14 +832,9 @@ export function AuthFilesPage() {
   }, [belowFoldCardsReady, isCurrentLayer, uiStateHydrated]);
 
   useEffect(() => {
-    if (!isCurrentLayer || !uiStateHydrated) return undefined;
+    if (!isCurrentLayer || !uiStateHydrated) return;
 
-    return scheduleIdleTask(
-      () => {
-        void Promise.allSettled([loadKeyStats(), loadExcluded(), loadModelAlias()]);
-      },
-      { fallbackDelayMs: 400 }
-    );
+    void Promise.allSettled([loadKeyStats(), loadExcluded(), loadModelAlias()]);
   }, [isCurrentLayer, loadExcluded, loadKeyStats, loadModelAlias, uiStateHydrated]);
 
   // 改用 useVisibleInterval：标签页隐藏时不必继续拉取用量聚合
