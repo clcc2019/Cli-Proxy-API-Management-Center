@@ -391,6 +391,7 @@ export function AuthFilesPage() {
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
+  const [manualRefreshPending, setManualRefreshPending] = useState(false);
   const [uiStateHydrated, setUiStateHydrated] = useState(false);
   const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
   const [modelRulesEditor, setModelRulesEditor] = useState({ open: false, provider: '' });
@@ -413,6 +414,7 @@ export function AuthFilesPage() {
   const previousSelectionActiveRef = useRef(false);
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
+  const manualRefreshInFlightRef = useRef(false);
   const pageQuotaRefreshInFlightRef = useRef(false);
   const pageMountedRef = useRef(true);
   const deferredSearch = useDeferredValue(search);
@@ -706,14 +708,25 @@ export function AuthFilesPage() {
   );
 
   const handleHeaderRefresh = useCallback(async () => {
-    await loadFiles({ codexSubscription: 'cache' });
-    scheduleIdleTask(
-      () => {
-        if (!pageMountedRef.current) return;
-        void Promise.allSettled([refreshKeyStats(), loadExcluded(), loadModelAlias()]);
-      },
-      { fallbackDelayMs: 400 }
-    );
+    if (manualRefreshInFlightRef.current) return;
+
+    manualRefreshInFlightRef.current = true;
+    setManualRefreshPending(true);
+    try {
+      await loadFiles({ codexSubscription: 'cache' });
+      scheduleIdleTask(
+        () => {
+          if (!pageMountedRef.current) return;
+          void Promise.allSettled([refreshKeyStats(), loadExcluded(), loadModelAlias()]);
+        },
+        { fallbackDelayMs: 400 }
+      );
+    } finally {
+      manualRefreshInFlightRef.current = false;
+      if (pageMountedRef.current) {
+        setManualRefreshPending(false);
+      }
+    }
   }, [loadFiles, refreshKeyStats, loadExcluded, loadModelAlias]);
 
   const handleToggleProblemOnly = useCallback(() => {
@@ -796,7 +809,18 @@ export function AuthFilesPage() {
     ) {
       return;
     }
-    void loadFiles();
+
+    // Defer the initial list request by one task so StrictMode's development
+    // effect preflight can clean it up before any network request is started.
+    // The same cleanup also discards an obsolete request when filters change
+    // before the initial task runs.
+    const loadTimer = window.setTimeout(() => {
+      void loadFiles();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimer);
+    };
   }, [
     authFilesListOptionsKey,
     isCurrentLayer,
@@ -1717,8 +1741,8 @@ export function AuthFilesPage() {
               size="sm"
               className={`${styles.headerActionButton} ${styles.headerActionMain}`}
               onClick={handleHeaderRefresh}
-              disabled={loading || refreshing}
-              loading={refreshing}
+              disabled={loading || refreshing || manualRefreshPending}
+              loading={manualRefreshPending}
             >
               <IconRefreshCw className={styles.headerActionIcon} size={15} />
               <span className={styles.headerActionText}>{t('common.refresh')}</span>
