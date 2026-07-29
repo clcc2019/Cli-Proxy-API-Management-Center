@@ -178,6 +178,8 @@ export function MainLayout() {
   const fullBrandName = 'CLI Proxy API Management Center';
   const abbrBrandName = t('title.abbr');
   const isLogsPage = location.pathname.startsWith('/logs');
+  const isAuthFilesPage =
+    location.pathname === '/auth-files' || location.pathname.startsWith('/auth-files/');
 
   // 将顶栏高度写入 CSS 变量，确保侧栏/内容区计算一致，防止滚动时抖动
   useLayoutEffect(() => {
@@ -438,7 +440,9 @@ export function MainLayout() {
     clearCache();
     const results = await Promise.allSettled([
       fetchConfig(undefined, true),
-      triggerHeaderRefresh(),
+      // Auth files has a dedicated, potentially expensive refresh. The global refresh
+      // already updates the shared configuration, so do not run that page action again.
+      isAuthFilesPage ? Promise.resolve() : triggerHeaderRefresh(),
     ]);
     const rejected = results.find((result) => result.status === 'rejected');
     if (rejected && rejected.status === 'rejected') {

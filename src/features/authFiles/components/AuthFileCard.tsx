@@ -523,7 +523,11 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   <strong className={styles.statusTokensValue}>{tokenDisplay}</strong>
                 </span>
               </div>
-              <ProviderStatusBar statusData={statusData} styles={styles} />
+              <ProviderStatusBar
+                statusData={statusData}
+                styles={styles}
+                interactionMode="summary"
+              />
             </div>
 
             {showQuotaLayout && quotaType && (

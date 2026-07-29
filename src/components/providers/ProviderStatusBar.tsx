@@ -55,6 +55,11 @@ interface ProviderStatusBarProps {
   statusData: StatusBarData;
   styles?: StylesModule;
   showRateLabel?: boolean;
+  /**
+   * 列表卡片有大量同构的状态条时，将 20 个可聚焦 block 合并为一个时间线控件。
+   * 视觉、鼠标提示和方向键浏览保持不变；供应商详情页仍使用逐块交互。
+   */
+  interactionMode?: 'individual' | 'summary';
 }
 
 type StatusBlockView = {
@@ -128,6 +133,7 @@ function ProviderStatusBarImpl({
   statusData,
   styles: stylesProp,
   showRateLabel = false,
+  interactionMode = 'individual',
 }: ProviderStatusBarProps) {
   const { t } = useTranslation();
   const s = (stylesProp || defaultStyles) as StylesModule;
@@ -159,6 +165,13 @@ function ProviderStatusBarImpl({
 
   const getBlockIndex = useCallback((target: EventTarget & HTMLDivElement): number | null => {
     const index = Number(target.dataset.index);
+    return Number.isInteger(index) && index >= 0 ? index : null;
+  }, []);
+
+  const getSummaryBlockIndex = useCallback((target: EventTarget | null): number | null => {
+    if (!(target instanceof Element)) return null;
+    const block = target.closest<HTMLElement>('[data-status-block-index]');
+    const index = Number(block?.dataset.statusBlockIndex);
     return Number.isInteger(index) && index >= 0 ? index : null;
   }, []);
 
@@ -243,6 +256,64 @@ function ProviderStatusBarImpl({
     [getBlockIndex, statusData.blockDetails.length]
   );
 
+  const handleSummaryPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.pointerType !== 'mouse') return;
+      const index = getSummaryBlockIndex(e.target);
+      if (index === null) return;
+      setFocusedIndex((previous) => (previous === index ? previous : index));
+      setActiveTooltip((previous) => (previous === index ? previous : index));
+    },
+    [getSummaryBlockIndex]
+  );
+
+  const handleSummaryClick = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      const index = getSummaryBlockIndex(e.target);
+      if (index === null) return;
+      setFocusedIndex((previous) => (previous === index ? previous : index));
+      setActiveTooltip((previous) => (previous === index ? null : index));
+    },
+    [getSummaryBlockIndex]
+  );
+
+  const handleSummaryFocus = useCallback(() => {
+    const total = statusData.blockDetails.length;
+    if (total === 0) return;
+    const index = Math.min(focusedIndex, total - 1);
+    setFocusedIndex(index);
+    setActiveTooltip((previous) => (previous === index ? previous : index));
+  }, [focusedIndex, statusData.blockDetails.length]);
+
+  const handleSummaryKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLDivElement>) => {
+      const total = statusData.blockDetails.length;
+      if (total === 0) return;
+
+      const current = Math.min(focusedIndex, total - 1);
+      let next: number | null = null;
+
+      if (e.key === 'ArrowRight') next = Math.min(current + 1, total - 1);
+      else if (e.key === 'ArrowLeft') next = Math.max(current - 1, 0);
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = total - 1;
+      else if (e.key === 'Escape') {
+        setActiveTooltip(null);
+        return;
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setActiveTooltip((previous) => (previous === current ? null : current));
+        return;
+      }
+
+      if (next === null || next === current) return;
+      e.preventDefault();
+      setFocusedIndex(next);
+      setActiveTooltip((previous) => (previous === next ? previous : next));
+    },
+    [focusedIndex, statusData.blockDetails.length]
+  );
+
   const blockItems = useMemo<StatusBlockView[]>(() => {
     const total = statusData.blockDetails.length;
     return statusData.blockDetails.map((detail, idx) => {
@@ -316,30 +387,66 @@ function ProviderStatusBarImpl({
 
   // tooltip 内容的等价文本，供屏幕阅读器读取
   const rovingIndex = Math.min(focusedIndex, Math.max(blockItems.length - 1, 0));
+  const summaryActiveItem =
+    activeTooltip === null ? null : blockItems[Math.min(activeTooltip, blockItems.length - 1)];
+  const summaryLabel = summaryActiveItem
+    ? `${t('status_bar.label')}: ${summaryActiveItem.label}`
+    : `${t('status_bar.label')}: ${rateText}`;
 
   return (
     <div className={s.statusBar}>
-      <div className={s.statusBlocks} ref={blocksRef} role="group" aria-label={t('status_bar.label')}>
-        {blockItems.map((item, idx) => (
-          <StatusBlockItem
-            key={idx}
-            item={item}
-            index={idx}
-            active={activeTooltip === idx}
-            tabbable={idx === rovingIndex}
-            label={item.label}
-            wrapperClassName={s.statusBlockWrapper}
-            activeWrapperClassName={s.statusBlockActive}
-            onPointerEnter={handlePointerEnter}
-            onPointerLeave={handlePointerLeave}
-            onPointerDown={handlePointerDown}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            renderTooltip={renderTooltip}
-          />
-        ))}
-      </div>
+      {interactionMode === 'summary' ? (
+        <div
+          className={s.statusBlocks}
+          ref={blocksRef}
+          role="button"
+          tabIndex={0}
+          aria-label={summaryLabel}
+          aria-expanded={activeTooltip !== null}
+          onPointerMove={handleSummaryPointerMove}
+          onPointerLeave={handlePointerLeave}
+          onClick={handleSummaryClick}
+          onFocus={handleSummaryFocus}
+          onBlur={handleBlur}
+          onKeyDown={handleSummaryKeyDown}
+        >
+          {blockItems.map((item, idx) => (
+            <div
+              key={idx}
+              className={`${s.statusBlockWrapper} ${
+                activeTooltip === idx ? s.statusBlockActive : ''
+              }`}
+              data-status-block-index={idx}
+              aria-hidden="true"
+            >
+              <div className={item.blockClassName} style={item.blockStyle} />
+              {activeTooltip === idx && renderTooltip(item)}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={s.statusBlocks} ref={blocksRef} role="group" aria-label={t('status_bar.label')}>
+          {blockItems.map((item, idx) => (
+            <StatusBlockItem
+              key={idx}
+              item={item}
+              index={idx}
+              active={activeTooltip === idx}
+              tabbable={idx === rovingIndex}
+              label={item.label}
+              wrapperClassName={s.statusBlockWrapper}
+              activeWrapperClassName={s.statusBlockActive}
+              onPointerEnter={handlePointerEnter}
+              onPointerLeave={handlePointerLeave}
+              onPointerDown={handlePointerDown}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              renderTooltip={renderTooltip}
+            />
+          ))}
+        </div>
+      )}
       <span className={`${s.statusRate} ${rateClass}`}>
         {showRateLabel ? (
           <>
