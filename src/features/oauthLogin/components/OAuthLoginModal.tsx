@@ -3,7 +3,7 @@
  *
  * 支持两种形态：
  * - 支持回调回填的 provider（codex / anthropic / xai）：3 步
- * - 设备码流程（kimi / qwen）：2 步，没有回调粘贴步
+ * - 设备码流程（kimi）：2 步，没有回调粘贴步
  *
  * 反馈全部内联——本项目的 toast 已全局关闭。
  */
@@ -155,7 +155,8 @@ export function OAuthLoginModal({
   return (
     <Modal
       open={open}
-      width={640}
+      width={680}
+      className={styles.oauthModal}
       onClose={onClose}
       title={t('auth_login.modal_title', { provider: t(provider.titleKey) })}
       footer={

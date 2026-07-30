@@ -56,10 +56,13 @@ export function OAuthPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.pageTitle}>{t('nav.oauth')}</h1>
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t('nav.oauth')}</h1>
+        <p className={styles.pageSubtitle}>{t('auth_login.page_subtitle')}</p>
+      </header>
 
-      <div className={styles.content}>
-        <div className={styles.providerGrid}>
+      <section className={styles.content} aria-label={t('nav.oauth')}>
+        <div className={styles.providerGrid} role="list">
           {OAUTH_PROVIDERS.map((provider) => (
             <OAuthProviderCard
               key={provider.id}
@@ -71,7 +74,7 @@ export function OAuthPage() {
             />
           ))}
         </div>
-      </div>
+      </section>
 
       {/* key 绑定 provider：切换 provider 时重新挂载，回调输入框的草稿自然清空 */}
       <OAuthLoginModal

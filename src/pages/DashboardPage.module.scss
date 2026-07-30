@@ -1,64 +1,87 @@
 @use '../styles/variables.scss' as *;
 
-// ─── Container ──────────────────────────────────────────
+// Merge Gateway-inspired management overview: quiet editorial hierarchy,
+// hairline structure, product-like data surfaces, and semantic color only.
 
 .dashboard {
+  --dashboard-surface: #ffffff;
+  --dashboard-surface-subtle: #f4f4f4;
+  --dashboard-surface-warm: #faf8f5;
+  --dashboard-border: #eaeae9;
+  --dashboard-text: var(--text-primary, #2c2a25);
+  --dashboard-text-secondary: var(--text-secondary, #565551);
+  --dashboard-text-tertiary: var(--text-tertiary, #807f7c);
+  --dashboard-sage: #96a58d;
+  --dashboard-sage-strong: #63725a;
+  --dashboard-sage-soft: #e1e2d9;
+  --dashboard-orange: #ff6e06;
+  --dashboard-success: #407345;
+  --dashboard-warning: #e5a947;
+  --dashboard-danger: #a53830;
+  --dashboard-radius: 15px;
+  --dashboard-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xl;
+  gap: 40px;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1196px;
   margin: 0 auto;
+  color: var(--dashboard-text);
 }
 
-// ─── Decorative background ──────────────────────────────
+// ─── Quiet sage atmosphere and contour lines ───────────
 
 .backgroundOrbs {
   position: absolute;
   z-index: 0;
-  inset: -72px -48px;
+  top: -64px;
+  right: -72px;
+  left: -72px;
+  height: 420px;
   overflow: hidden;
   pointer-events: none;
-  opacity: 0.42;
-  filter: blur(16px);
+  background: radial-gradient(
+    68% 86% at 50% 0%,
+    rgb(150 165 141 / 0.16),
+    rgb(150 165 141 / 0.04) 48%,
+    transparent 78%
+  );
 }
 
 .orb1,
 .orb2 {
   position: absolute;
-  border-radius: 50%;
-  animation: orbFloat 22s ease-in-out infinite alternate;
+  border: 1px solid rgb(99 114 90 / 0.08);
+  background: transparent;
+  box-shadow:
+    0 0 0 18px rgb(99 114 90 / 0.045),
+    0 0 0 38px rgb(99 114 90 / 0.035),
+    0 0 0 62px rgb(99 114 90 / 0.025),
+    0 0 0 90px rgb(99 114 90 / 0.018);
 }
 
 .orb1 {
-  top: -68px;
-  right: -24px;
-  width: 420px;
-  height: 420px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--primary-color) 6%, transparent),
-    transparent 70%
-  );
+  top: -252px;
+  right: -156px;
+  width: 480px;
+  height: 480px;
+  border-radius: 45% 55% 48% 52%;
+  transform: rotate(-12deg);
 }
 
 .orb2 {
-  bottom: 12%;
-  left: -72px;
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--success-color) 4%, transparent),
-    transparent 70%
-  );
-  animation-duration: 28s;
-  animation-direction: alternate-reverse;
+  bottom: -276px;
+  left: -196px;
+  width: 460px;
+  height: 460px;
+  border-radius: 53% 47% 57% 43%;
+  transform: rotate(16deg);
 }
 
-// ─── Hero welcome section ───────────────────────────────
+// ─── Editorial welcome hero ─────────────────────────────
 
 .hero {
   position: relative;
@@ -66,68 +89,53 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: $spacing-lg;
-  min-height: 210px;
-  padding: $spacing-2xl $spacing-xl;
+  gap: 48px;
+  min-height: 272px;
+  padding: 48px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  border-radius: $radius-lg;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--bg-primary) 92%, transparent),
-    color-mix(in srgb, var(--bg-secondary) 80%, transparent)
-  );
-  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  animation: heroEnter 0.6s ease-out both;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-    align-items: flex-start;
-    min-height: 0;
-    padding: $spacing-xl $spacing-lg;
-  }
+  border: 1px solid var(--dashboard-border);
+  border-radius: 16px;
+  background:
+    radial-gradient(78% 120% at 92% 0%, rgb(150 165 141 / 0.28), transparent 66%),
+    linear-gradient(135deg, #f3f3f0 0%, #ffffff 70%);
+  box-shadow: 0 20px 65px rgb(0 0 0 / 0.055);
+  animation: heroEnter 500ms var(--dashboard-ease) 100ms both;
 }
 
 .heroWatermark {
   position: absolute;
-  top: 50%;
-  left: $spacing-xl;
+  right: 28px;
+  bottom: -15px;
   pointer-events: none;
   user-select: none;
-  color: var(--text-primary);
-  font-size: 104px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0;
+  color: var(--dashboard-sage-strong);
+  font-size: clamp(68px, 8vw, 108px);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
   text-transform: uppercase;
   white-space: nowrap;
-  opacity: 0.04;
-  transform: translateY(-50%);
-  animation: watermarkEnter 0.8s ease-out 0.1s both;
-
-  @media (max-width: $breakpoint-mobile) {
-    left: $spacing-lg;
-    font-size: 58px;
-  }
+  opacity: 0.055;
+  animation: watermarkEnter 600ms var(--dashboard-ease) 200ms both;
 }
 
 .heroContent {
   position: relative;
   z-index: 1;
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: 8px;
 }
 
 .heroGreeting {
-  color: var(--primary-color);
+  color: var(--dashboard-orange);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  animation: fadeSlideUp 0.5s ease-out 0.1s both;
+  animation: fadeSlideUp 500ms var(--dashboard-ease) 150ms both;
 }
 
 .heroGreeting::before {
@@ -135,125 +143,115 @@
 }
 
 .heroTitle {
+  max-width: 14ch;
   margin: 0;
-  color: var(--text-primary);
-  font-size: 44px;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: 0;
-  animation: fadeSlideUp 0.5s ease-out 0.2s both;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 34px;
-  }
+  color: var(--dashboard-text);
+  font-size: clamp(42px, 5vw, 64px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+  animation: fadeSlideUp 500ms var(--dashboard-ease) 250ms both;
 }
 
 .heroCaring {
-  max-width: 620px;
-  margin: $spacing-xs 0 0;
-  color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1.5;
-  animation: fadeSlideUp 0.5s ease-out 0.3s both;
+  max-width: 56ch;
+  margin: 12px 0 0;
+  color: var(--dashboard-text-secondary);
+  font-size: 16px;
+  line-height: 1.55;
+  text-wrap: pretty;
+  animation: fadeSlideUp 500ms var(--dashboard-ease) 350ms both;
 }
 
-// ─── Hero meta ──────────────────────────────────────────
+// ─── Hero status panel ──────────────────────────────────
 
 .heroMeta {
   position: relative;
   z-index: 1;
   display: flex;
-  flex-shrink: 0;
+  min-width: 244px;
+  flex: 0 0 auto;
   flex-direction: column;
-  align-items: flex-end;
-  gap: $spacing-sm;
-  animation: fadeSlideUp 0.5s ease-out 0.35s both;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: $spacing-sm;
-  }
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  background: rgb(255 255 255 / 0.9);
+  box-shadow: 0 2px 18px rgb(0 0 0 / 0.045);
+  animation: fadeSlideUp 500ms var(--dashboard-ease) 400ms both;
 }
 
 .dateTimeBlock {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-
-  @media (max-width: $breakpoint-mobile) {
-    align-items: flex-start;
-  }
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .time {
-  color: var(--text-primary);
-  font-size: 22px;
-  font-weight: 700;
+  color: var(--dashboard-text);
+  font-size: 36px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .date {
-  color: var(--text-secondary);
+  color: var(--dashboard-text-tertiary);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  line-height: 1.5;
 }
 
 .connectionPill {
   display: inline-flex;
+  min-height: 34px;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border: 1px solid var(--glass-border);
+  gap: 8px;
+  padding: 6px 11px;
+  border: 1px solid var(--dashboard-border);
   border-radius: $radius-full;
-  background: var(--glass-bg-secondary);
-  color: var(--text-primary);
+  background: var(--dashboard-surface-subtle);
+  color: var(--dashboard-text);
   font-size: 12px;
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
 }
 
 .statusDot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: $gray-400;
+  background: var(--dashboard-text-muted, #abaaa8);
 
   &.connected {
-    background: var(--success-color, $success-color);
-    box-shadow: 0 0 6px color-mix(in srgb, var(--success-color, $success-color) 50%, transparent);
+    background: var(--dashboard-success);
   }
 
   &.connecting {
-    background: var(--warning-color, $warning-color);
+    background: var(--dashboard-warning);
     animation: pulse 1s ease-in-out infinite;
   }
 
   &.disconnected {
-    background: var(--error-color, $error-color);
+    background: var(--dashboard-danger);
   }
 }
 
 .pillText {
-  color: var(--text-primary);
+  color: var(--dashboard-text);
   font-weight: 600;
 }
 
 .buildDate {
-  color: var(--text-tertiary);
+  color: var(--dashboard-text-tertiary);
   font-size: 11px;
-  text-align: right;
-
-  @media (max-width: $breakpoint-mobile) {
-    text-align: left;
-  }
+  font-variant-numeric: tabular-nums;
 }
 
-// ─── Bento stats grid ───────────────────────────────────
+// ─── Shared section heading ─────────────────────────────
 
 .statsSection,
 .configSection {
@@ -262,151 +260,152 @@
 }
 
 .sectionHeading {
-  margin: 0 0 $spacing-md;
-  color: var(--text-tertiary);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 16px;
+  color: var(--dashboard-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
   text-transform: uppercase;
+
+  &::after {
+    content: '';
+    height: 1px;
+    flex: 1 1 auto;
+    background: linear-gradient(90deg, var(--dashboard-border), rgb(171 170 168 / 0.18));
+  }
 }
+
+// ─── Joined system metrics panel ────────────────────────
 
 .bentoGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: auto auto;
-  gap: $spacing-md;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (max-width: 500px) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  overflow: hidden;
+  border-radius: var(--dashboard-radius);
+  background: var(--dashboard-border);
+  box-shadow: 0 20px 65px rgb(0 0 0 / 0.045);
 }
 
 .bentoCard {
+  position: relative;
   display: flex;
+  min-width: 0;
+  min-height: 180px;
   flex-direction: column;
-  gap: $spacing-md;
-  min-height: 156px;
-  padding: $spacing-lg;
-  border: 1px solid color-mix(in srgb, var(--border-color) 66%, transparent);
-  border-radius: $radius-lg;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--bg-primary) 86%, transparent),
-    color-mix(in srgb, var(--bg-secondary) 72%, transparent)
-  );
-  box-shadow:
-    0 18px 42px rgb(0 0 0 / 0.12),
-    inset 0 1px 0 rgb(255 255 255 / 0.03);
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+  border: 0;
+  border-radius: 0;
+  background: var(--dashboard-surface);
+  box-shadow: none;
   color: inherit;
   text-decoration: none;
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
   transition:
-    border-color $transition-fast,
-    box-shadow $transition-fast,
-    transform $transition-fast;
-  animation: cardEnter 0.4s ease-out both;
+    background-color 300ms ease,
+    color 300ms ease;
+  animation: cardEnter 500ms var(--dashboard-ease) both;
+
+  &::after {
+    content: '↗';
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    color: var(--dashboard-text-tertiary);
+    font-size: 17px;
+    line-height: 1;
+    transition:
+      color 300ms ease,
+      transform 300ms var(--dashboard-ease);
+  }
 
   &:hover {
-    border-color: color-mix(in srgb, var(--border-hover) 82%, transparent);
-    box-shadow:
-      0 22px 48px rgb(0 0 0 / 0.16),
-      inset 0 1px 0 rgb(255 255 255 / 0.04);
-    transform: translateY(-2px);
+    background: var(--dashboard-surface-warm);
+
+    &::after {
+      color: var(--dashboard-sage-strong);
+      transform: translate(2px, -2px);
+    }
   }
 
   &:focus-visible {
+    z-index: 1;
     outline: none;
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    box-shadow: inset 0 0 0 2px var(--dashboard-sage);
   }
 }
 
-// The first overview metric is deliberately the visual anchor.
 .bentoLarge {
-  grid-row: 1 / 3;
-  justify-content: center;
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--primary-color) 8%, var(--bg-primary)),
-    color-mix(in srgb, var(--bg-primary) 84%, transparent)
-  );
+  background: linear-gradient(150deg, rgb(225 226 217 / 0.66), #ffffff 70%);
 
   .bentoValue {
-    font-size: 44px;
-  }
-
-  .bentoIcon {
-    width: 56px;
-    height: 56px;
-  }
-
-  @media (max-width: 900px) {
-    grid-row: auto;
-
-    .bentoValue {
-      font-size: 32px;
-    }
-
-    .bentoIcon {
-      width: 44px;
-      height: 44px;
-    }
+    font-size: 46px;
   }
 }
 
 .bentoIcon {
   display: flex;
-  align-items: center;
-  justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: $radius-md;
-  background: color-mix(in srgb, var(--primary-color) 10%, var(--bg-secondary));
-  color: var(--primary-color);
-  transition: background-color $transition-fast;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  background: var(--dashboard-surface-subtle);
+  color: var(--dashboard-sage-strong);
+  transition: background-color 300ms ease;
 }
 
 .bentoCard:hover .bentoIcon {
-  background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-secondary));
+  background: var(--dashboard-sage-soft);
 }
 
 .bentoContent {
   display: flex;
+  min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
 }
 
 .bentoValue {
-  color: var(--text-primary);
-  font-size: 28px;
-  font-weight: 800;
+  color: var(--dashboard-text);
+  font-size: 40px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .bentoLabel {
-  color: var(--text-secondary);
-  font-size: 13px;
+  color: var(--dashboard-text);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .bentoSublabel {
-  margin-top: 2px;
-  color: var(--text-secondary);
-  font-size: 11px;
-  opacity: 0.7;
+  color: var(--dashboard-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-// ─── Current config ─────────────────────────────────────
+// ─── Current configuration surface ─────────────────────
 
 .configSection {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
-  animation: cardEnter 0.4s ease-out 0.5s both;
+  gap: 20px;
+  padding: 28px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  background: var(--dashboard-surface);
+  animation: cardEnter 500ms var(--dashboard-ease) 400ms both;
 }
 
 .configSection .sectionHeading {
@@ -414,145 +413,282 @@
 }
 
 .configPillGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--dashboard-border);
 }
 
 .configPill {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-sm;
-  padding: 6px 14px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
-  border-radius: $radius-full;
-  background: color-mix(in srgb, var(--bg-primary) 68%, transparent);
-  color: var(--text-primary);
+  display: flex;
+  min-width: 0;
+  min-height: 72px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 7px;
+  padding: 15px 17px;
+  border: 0;
+  border-radius: 0;
+  background: var(--dashboard-surface);
+  color: var(--dashboard-text);
   font-size: 13px;
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  transition: border-color $transition-fast;
+  transition: background-color 300ms ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--border-hover) 82%, transparent);
+    background: var(--dashboard-surface-warm);
   }
 }
 
 .configPillWide {
-  flex-basis: 100%;
-  border-radius: $radius-md;
+  grid-column: 1 / -1;
+  min-height: 68px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .configPillLabel {
-  color: var(--text-secondary);
-  white-space: nowrap;
+  color: var(--dashboard-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .configPillValue {
-  color: var(--text-primary);
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 9px;
+  border-radius: $radius-full;
+  background: var(--dashboard-surface-subtle);
+  color: var(--dashboard-text);
+  font-size: 12px;
   font-weight: 600;
+  line-height: 1.4;
+
+  &.on,
+  &.off {
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.72;
+    }
+  }
 
   &.on {
-    color: var(--success-color, $success-color);
+    background: rgb(150 165 141 / 0.22);
+    color: var(--dashboard-sage-strong);
   }
 
   &.off {
-    color: var(--text-secondary);
+    color: var(--dashboard-text-secondary);
   }
 }
 
 .configPillMono {
-  color: var(--text-secondary);
+  min-width: 0;
+  color: var(--dashboard-text-secondary);
   font-family: $font-mono;
   font-size: 12px;
+  line-height: 1.5;
   word-break: break-all;
 }
 
 .configBadge {
   display: inline-flex;
+  min-height: 24px;
+  max-width: 100%;
   align-items: center;
   justify-content: center;
-  max-width: 100%;
-  padding: 2px 8px;
+  padding: 3px 9px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--dashboard-border);
   border-radius: $radius-full;
   font-size: 11px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .configBadgeRoundRobin {
-  border-color: color-mix(in srgb, var(--primary-color) 24%, transparent);
-  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
-  color: var(--primary-color);
+  border-color: rgb(99 114 90 / 0.2);
+  background: rgb(150 165 141 / 0.22);
+  color: var(--dashboard-sage-strong);
 }
 
 .configBadgeFillFirst {
-  border-color: color-mix(in srgb, var(--success-color, $success-color) 30%, transparent);
-  background: color-mix(in srgb, var(--success-color, $success-color) 12%, transparent);
-  color: var(--success-color, $success-color);
+  border-color: rgb(64 115 69 / 0.18);
+  background: rgb(64 115 69 / 0.1);
+  color: var(--dashboard-success);
 }
 
 .configBadgeUnknown {
-  background: var(--bg-primary);
-  color: var(--text-secondary);
+  background: var(--dashboard-surface-subtle);
+  color: var(--dashboard-text-secondary);
 }
 
 .viewMoreLink {
   display: inline-flex;
-  align-items: center;
   width: fit-content;
-  margin-top: $spacing-xs;
-  color: var(--primary-color);
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: $radius-full;
+  background: #0e0d0c;
+  color: #ffffff;
   font-size: 13px;
+  line-height: 1.2;
   text-decoration: none;
-  transition: color $transition-fast;
+  transition: background-color 400ms ease;
 
   &:hover {
-    color: var(--primary-hover);
-    text-decoration: underline;
+    background: #565551;
+    color: #ffffff;
+    text-decoration: none;
   }
 
   &:focus-visible {
-    outline: none;
-    border-radius: 4px;
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    outline: 2px solid var(--dashboard-sage-strong);
+    outline-offset: 3px;
+    box-shadow: none;
+  }
+}
+
+// ─── Responsive layout ─────────────────────────────────
+
+@media (max-width: $breakpoint-tablet) {
+  .dashboard {
+    gap: 32px;
+  }
+
+  .hero {
+    gap: 32px;
+    padding: 40px;
+  }
+
+  .bentoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bentoCard {
+    min-height: 164px;
+  }
+
+  .configPillGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: $breakpoint-mobile) {
   .dashboard {
-    gap: $spacing-lg;
+    gap: 24px;
+  }
+
+  .backgroundOrbs {
+    top: -40px;
+    right: -28px;
+    left: -28px;
+    height: 340px;
+  }
+
+  .orb1 {
+    right: -260px;
+  }
+
+  .orb2 {
+    left: -280px;
+  }
+
+  .hero {
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 28px;
+    padding: 30px 24px 24px;
+  }
+
+  .heroWatermark {
+    right: 10px;
+    bottom: -6px;
+    font-size: 58px;
+  }
+
+  .heroTitle {
+    max-width: 16ch;
+    font-size: clamp(38px, 12vw, 48px);
+  }
+
+  .heroCaring {
+    font-size: 15px;
+  }
+
+  .heroMeta {
+    width: 100%;
+    min-width: 0;
+    padding: 18px;
+  }
+
+  .time {
+    font-size: 32px;
+  }
+
+  .bentoGrid,
+  .configPillGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bentoCard {
+    min-height: 138px;
+    gap: 20px;
+    padding: 24px;
+
+    &::after {
+      top: 22px;
+      right: 22px;
+    }
+  }
+
+  .bentoLarge .bentoValue,
+  .bentoValue {
+    font-size: 36px;
+  }
+
+  .configSection {
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .configPill {
+    min-height: 64px;
   }
 
   .configPillWide {
     min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .configPillLabel {
-    white-space: normal;
+  .viewMoreLink {
+    width: 100%;
   }
 }
 
 // ─── Motion ─────────────────────────────────────────────
 
-@keyframes orbFloat {
-  from {
-    transform: translate(0, 0) scale(1);
-  }
-
-  to {
-    transform: translate(30px, -20px) scale(1.1);
-  }
-}
-
 @keyframes heroEnter {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(32px);
   }
 
   to {
@@ -564,19 +700,19 @@
 @keyframes watermarkEnter {
   from {
     opacity: 0;
-    transform: translateY(-50%) translateX(-20px);
+    transform: translateX(20px);
   }
 
   to {
-    opacity: 0.04;
-    transform: translateY(-50%) translateX(0);
+    opacity: 0.055;
+    transform: translateX(0);
   }
 }
 
 @keyframes fadeSlideUp {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(16px);
   }
 
   to {
@@ -588,12 +724,12 @@
 @keyframes cardEnter {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
+    transform: translateY(16px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -604,13 +740,11 @@
   }
 
   50% {
-    opacity: 0.5;
+    opacity: 0.45;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orb1,
-  .orb2,
   .hero,
   .heroWatermark,
   .heroGreeting,
@@ -623,7 +757,11 @@
     animation: none;
   }
 
-  .bentoCard {
+  .bentoCard,
+  .bentoCard::after,
+  .bentoIcon,
+  .configPill,
+  .viewMoreLink {
     transition: none;
   }
 }

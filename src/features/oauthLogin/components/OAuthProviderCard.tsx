@@ -57,7 +57,7 @@ export function OAuthProviderCard({
   })();
 
   return (
-    <div className={styles.providerCell}>
+    <div className={styles.providerCell} role="listitem">
       <Card
         className={`${styles.providerCard} ${isLive ? styles.providerCardWaiting : ''}`}
         title={

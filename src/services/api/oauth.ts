@@ -8,7 +8,6 @@ export type OAuthProvider =
   | 'codex'
   | 'anthropic'
   | 'kimi'
-  | 'qwen'
   | 'xai';
 
 export interface OAuthStartResponse {

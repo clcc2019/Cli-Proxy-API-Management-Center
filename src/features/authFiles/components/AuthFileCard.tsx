@@ -421,6 +421,18 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   >
                     {typeLabel}
                   </span>
+                  <span
+                    className={`${styles.fileStatusBadge} ${
+                      file.disabled ? styles.fileStatusBadgeDisabled : styles.fileStatusBadgeActive
+                    }`}
+                  >
+                    <span className={styles.fileStatusDot} aria-hidden="true" />
+                    {t(
+                      file.disabled
+                        ? 'providersPage.status.disabled'
+                        : 'providersPage.status.active'
+                    )}
+                  </span>
                   {hasRefreshToken && (
                     <span
                       className={styles.refreshTokenBadge}

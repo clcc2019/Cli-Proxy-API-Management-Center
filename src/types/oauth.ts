@@ -8,7 +8,6 @@ export type OAuthProvider =
   | 'codex'
   | 'anthropic'
   | 'kimi'
-  | 'qwen'
   | 'xai';
 
 // OAuth 流程状态

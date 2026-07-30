@@ -1610,10 +1610,13 @@ export function AuthFilesPage() {
 
   const titleNode = useMemo(
     () => (
-      <h2 className={styles.titleWrapper}>
-        <span>{t('auth_files.title_section')}</span>
-        {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
-      </h2>
+      <div className={styles.titleBlock}>
+        <h2 className={styles.titleWrapper}>
+          <span>{t('auth_files.title_section')}</span>
+          {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
+        </h2>
+        <p className={styles.pageDescription}>{t('auth_files.description')}</p>
+      </div>
     ),
     [listTotal, showTitleCountBadge, t]
   );

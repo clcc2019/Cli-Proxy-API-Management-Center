@@ -7101,3 +7101,699 @@
     padding-top: 8px;
   }
 }
+
+// =============================================================================
+// Merge Gateway management surface
+// Treat auth files as one dense management surface: quiet structural borders,
+// a compact two-tier toolbar, and a restrained responsive card grid. Provider
+// and health colors remain semantic accents rather than decoration.
+// =============================================================================
+.container {
+  --auth-surface: #fffefa;
+  --auth-surface-muted: #f6f5f1;
+  --auth-control-surface: #fffefa;
+  --auth-neutral-border: #eaeae9;
+  --auth-neutral-border-strong: #d8d8d3;
+  --auth-text-primary: #292a27;
+  --auth-text-secondary: #555850;
+  --auth-text-muted: #777a72;
+  --auth-status-active: #4f755f;
+  --auth-status-active-bg: #edf4ef;
+  --auth-status-active-border: #cfe0d4;
+  --auth-status-disabled: #74776f;
+  --auth-status-disabled-bg: #f1f1ee;
+  --auth-status-disabled-border: #ddddda;
+  --auth-toolbar-search-max: 480px;
+  gap: 22px;
+}
+
+.titleBlock {
+  display: flex;
+  flex: 1 1 520px;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  max-width: 820px;
+}
+
+.pageDescription {
+  max-width: 74ch;
+  margin: 0;
+  color: var(--auth-text-muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.authFilesHeader {
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 0 0 14px;
+  border-bottom-color: var(--auth-neutral-border);
+}
+
+.titleWrapper {
+  font-size: clamp(25px, 2vw, 30px);
+  font-weight: 680;
+  letter-spacing: -0.025em;
+}
+
+.countBadge {
+  height: 22px;
+  min-width: 22px;
+  padding-inline: 7px;
+  border-color: var(--auth-neutral-border);
+  border-radius: 6px;
+  background: var(--auth-surface-muted);
+  color: var(--auth-text-secondary);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.headerActions {
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.headerActions :global(.btn.btn-sm) {
+  min-height: 38px;
+  border-radius: 8px;
+}
+
+.errorBox {
+  margin-bottom: 12px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.filterSection {
+  gap: 16px;
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.filterToolbarRow {
+  z-index: 4;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--auth-neutral-border);
+  border-radius: 15px;
+  background: var(--auth-surface);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+  contain: none;
+}
+
+.filterRail {
+  gap: 0;
+}
+
+.filterContent {
+  gap: 16px;
+}
+
+.filterTags {
+  gap: 3px;
+  padding: 0 0 2px;
+}
+
+.filterTag {
+  min-height: 34px;
+  padding: 5px 9px 5px 5px;
+  border-color: transparent;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--auth-text-secondary);
+  font-size: 12.5px;
+
+  &:hover {
+    border-color: transparent;
+    background: var(--auth-surface-muted);
+    color: var(--auth-text-primary);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+}
+
+.filterTagActive {
+  border-color: transparent;
+  background: var(--auth-surface-muted);
+  color: var(--auth-text-primary);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--filter-color) 62%, transparent);
+
+  &::after {
+    content: none;
+  }
+}
+
+.filterTagIconWrap,
+.filterAllIconWrap {
+  width: 22px;
+  height: 22px;
+  border-color: color-mix(in srgb, var(--filter-color) 18%, var(--auth-neutral-border));
+  border-radius: 6px;
+  background: var(--filter-surface);
+  box-shadow: none;
+}
+
+.filterTagCount,
+.filterTagActive .filterTagCount {
+  height: 18px;
+  min-width: 18px;
+  padding-inline: 5px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--auth-text-muted) 9%, transparent);
+  color: var(--auth-text-muted);
+  font-size: 10.5px;
+}
+
+.filterControlsPanel {
+  grid-template-columns:
+    minmax(300px, var(--auth-toolbar-search-max))
+    minmax(0, 1fr)
+    38px;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--auth-neutral-border);
+}
+
+.searchToolbar {
+  max-width: var(--auth-toolbar-search-max);
+}
+
+.filterChipRow {
+  justify-content: flex-start;
+}
+
+.searchToolbarField,
+.searchToolbarIconButton,
+.filterChip,
+.pageQuotaRefreshButton:global(.btn.btn-sm) {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: var(--auth-control-surface);
+  box-shadow: none;
+}
+
+.filterChipRowLabel {
+  color: var(--auth-text-muted);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+
+.filterChip {
+  height: 30px;
+  padding-inline: 10px;
+  border-radius: 7px;
+  font-size: 12px;
+
+  &:hover {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-surface-muted);
+    box-shadow: none;
+  }
+}
+
+.filterChipActive {
+  border-color: color-mix(in srgb, var(--info-color) 34%, var(--auth-neutral-border));
+  background: color-mix(in srgb, var(--info-color) 7%, var(--auth-surface-muted));
+  color: color-mix(in srgb, var(--info-color) 78%, var(--auth-text-primary));
+  box-shadow: none;
+}
+
+.filterResetButton {
+  height: 30px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 12px;
+
+  &:hover {
+    border: 0;
+    background: color-mix(in srgb, var(--danger-color) 7%, transparent);
+  }
+}
+
+.searchToolbarPopover {
+  border-color: var(--auth-neutral-border-strong);
+  border-radius: 10px;
+  box-shadow: 0 16px 34px -24px rgb(28 31 26 / 0.34);
+}
+
+.listSurface {
+  min-height: 150px;
+  padding: 0;
+  overflow: visible;
+  contain: none;
+}
+
+.listSurface :global(.empty-state) {
+  min-height: 190px;
+  border: 1px solid var(--auth-neutral-border);
+  border-radius: 15px;
+  background: var(--auth-surface);
+  box-shadow: none;
+}
+
+.listProgressBar {
+  top: -8px;
+  height: 2px;
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.fileGrid,
+.fileGridQuotaManaged {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 16px;
+  overflow: visible;
+  contain: none;
+}
+
+.fileCard,
+.fileCard.claudeCard,
+.fileCard.codexCard,
+.fileCard.kimiCard,
+.fileCardSkeleton {
+  --auth-card-divider: var(--auth-neutral-border);
+  --auth-card-divider-strong: var(--auth-neutral-border);
+  min-height: 0;
+  border: 1px solid var(--auth-neutral-border);
+  border-radius: 15px;
+  background: var(--auth-surface);
+  color: var(--auth-text-primary);
+  box-shadow: none;
+}
+
+.fileCard {
+  overflow: visible;
+  min-height: 100%;
+  padding: 16px;
+  contain: layout style;
+  contain-intrinsic-size: auto 230px;
+  animation: none;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &::before,
+  &::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  &:hover {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-surface);
+    box-shadow: 0 16px 34px -30px rgb(28 31 26 / 0.34);
+  }
+
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--info-color) 42%, var(--auth-neutral-border));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--info-color) 16%, transparent);
+  }
+}
+
+.fileCard.fileCardSelected,
+.fileCard.fileCardSelected:hover {
+  border-color: color-mix(in srgb, var(--info-color) 46%, var(--auth-neutral-border));
+  background: color-mix(in srgb, var(--info-color) 4%, var(--auth-surface));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--info-color) 11%, transparent),
+    0 16px 34px -30px rgb(28 31 26 / 0.34);
+}
+
+.fileCard.fileCardDisabled,
+.fileCard.fileCardDisabled:hover {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface);
+  box-shadow: none;
+  opacity: 0.74;
+}
+
+.fileCardLayout {
+  flex: 1;
+  width: 100%;
+  min-height: 100%;
+}
+
+.fileCardMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHeader {
+  align-items: flex-start;
+}
+
+.cardHeaderContent {
+  gap: 4px;
+}
+
+.fileCard .providerAvatar {
+  background: var(--provider-soft) !important;
+  border-color: color-mix(in srgb, var(--provider-accent) 22%, var(--auth-neutral-border)) !important;
+  color: var(--provider-accent) !important;
+  box-shadow: none;
+}
+
+.fileCard:hover .providerAvatar {
+  border-color: color-mix(in srgb, var(--provider-accent) 38%, var(--auth-neutral-border)) !important;
+}
+
+.fileCard .providerTypeBadge {
+  background: var(--provider-soft) !important;
+  border-color: color-mix(in srgb, var(--provider-accent) 22%, var(--auth-neutral-border)) !important;
+  color: var(--provider-accent) !important;
+}
+
+.fileStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 680;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.fileStatusDot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.fileStatusBadgeActive {
+  border-color: var(--auth-status-active-border);
+  background: var(--auth-status-active-bg);
+  color: var(--auth-status-active);
+}
+
+.fileStatusBadgeDisabled {
+  border-color: var(--auth-status-disabled-border);
+  background: var(--auth-status-disabled-bg);
+  color: var(--auth-status-disabled);
+}
+
+.fileCard .featureBadgeEnabled {
+  border-color: var(--auth-feature-border) !important;
+  background: var(--auth-feature-bg) !important;
+  color: var(--auth-feature-text) !important;
+}
+
+.fileCard .featureBadgeFast {
+  border-color: var(--warning-border) !important;
+  background: var(--warning-bg) !important;
+  color: var(--warning-text) !important;
+}
+
+.fileCard .refreshTokenBadge {
+  border-color: var(--auth-refresh-border) !important;
+  background: var(--auth-refresh-bg) !important;
+  color: var(--auth-refresh-text) !important;
+}
+
+.fileCard .fileName {
+  color: var(--auth-text-primary);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 13.5px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.fileCard .fileName:hover {
+  background: var(--auth-surface-muted);
+  color: var(--auth-text-primary);
+}
+
+.fileCard .noteLabel,
+.fileCard .noteText,
+.fileCard .noteValue,
+.fileCard .statusPanelLabel,
+.fileCard .statusPanelTitle,
+.fileCard .metaValue,
+.fileCard .quotaAmount,
+.fileCard .quotaModel,
+.fileCard .quotaReset {
+  color: var(--auth-text-muted);
+}
+
+.cardInsights {
+  gap: 8px;
+  min-width: 0;
+  padding: 11px 0 0;
+  border-top: 1px solid var(--auth-neutral-border);
+  border-left: 0;
+}
+
+.fileCard .quotaSection {
+  padding-top: 8px;
+}
+
+.fileCard .quotaBar {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface-muted);
+}
+
+.cardActions {
+  align-self: stretch;
+  min-width: 0;
+  width: 100%;
+  margin: auto 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--auth-neutral-border);
+  border-left: 0;
+}
+
+.cardActionsMain {
+  align-self: center;
+}
+
+.cardActionsContent,
+.cardActionCluster {
+  flex-wrap: wrap;
+}
+
+.fileCard .iconButton:global(.btn.btn-sm),
+.fileCard .modelsActionButton:global(.btn.btn-sm),
+.fileCard .refreshActionButton:global(.btn.btn-sm) {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-control-surface);
+  color: var(--auth-text-secondary);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-surface-muted);
+    color: var(--auth-text-primary);
+    box-shadow: none;
+  }
+}
+
+.fileCard .iconButton:global(.btn.btn-danger.btn-sm) {
+  border-color: color-mix(in srgb, var(--danger-color) 26%, var(--auth-neutral-border));
+  background: transparent;
+  color: color-mix(in srgb, var(--danger-color) 76%, var(--auth-text-primary));
+}
+
+.fileCardSkeleton {
+  min-height: 230px;
+  padding: 16px;
+  animation: none;
+}
+
+.pagination {
+  width: fit-content;
+  max-width: 100%;
+  margin: 2px auto 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  animation: none;
+}
+
+.belowFoldCard {
+  border-color: var(--auth-neutral-border);
+  border-radius: 15px;
+  background: var(--auth-surface);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+}
+
+.belowFoldCard :global(.card-header) {
+  padding: 14px 16px;
+  border-bottom-color: var(--auth-neutral-border);
+  background: transparent;
+}
+
+.batchActionBar {
+  border-color: var(--auth-neutral-border-strong);
+  border-radius: 12px;
+  background: var(--surface-raised-strong);
+  box-shadow: 0 18px 44px -28px rgb(15 23 42 / 0.42);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@container auth-files-page (max-width: 1180px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container auth-files-page (max-width: 860px) {
+  .filterControlsPanel {
+    grid-template-columns: minmax(280px, var(--auth-toolbar-search-max)) 38px;
+    justify-content: start;
+  }
+
+  .filterChipRow {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@container auth-files-page (max-width: 720px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container auth-files-page (max-width: 560px) {
+  .authFilesHeader {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .pageDescription {
+    font-size: 13px;
+  }
+
+  .filterSection,
+  .belowFoldCard {
+    border-radius: 12px;
+  }
+
+  .filterToolbarRow {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .filterControlsPanel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 38px;
+    gap: 8px;
+  }
+
+  .searchToolbar {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .filterChipRow {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .filterChipGroup {
+    flex: 0 0 auto;
+  }
+
+  .filterResetButton {
+    flex: 0 0 auto;
+  }
+
+  .fileCard {
+    padding: 14px 12px;
+  }
+
+  .pagination {
+    width: 100%;
+  }
+}
+
+:global([data-theme='dark']) {
+  .container {
+    --auth-surface: #181916;
+    --auth-surface-muted: #20211d;
+    --auth-control-surface: #1b1c19;
+    --auth-neutral-border: #33352f;
+    --auth-neutral-border-strong: #4a4d44;
+    --auth-text-primary: #efeee8;
+    --auth-text-secondary: #c3c5bb;
+    --auth-text-muted: #94978d;
+    --auth-status-active: #9ac2a7;
+    --auth-status-active-bg: #213128;
+    --auth-status-active-border: #395344;
+    --auth-status-disabled: #adafa7;
+    --auth-status-disabled-bg: #242521;
+    --auth-status-disabled-border: #3d3f38;
+  }
+
+  .belowFoldCard,
+  .fileCard,
+  .fileCard.claudeCard,
+  .fileCard.codexCard,
+  .fileCard.kimiCard,
+  .fileCardSkeleton {
+    background: var(--auth-surface);
+    color: var(--auth-text-primary);
+    box-shadow: none;
+  }
+
+  .fileCard:hover {
+    background: color-mix(in srgb, var(--auth-surface-muted) 66%, var(--auth-surface));
+  }
+
+  .fileCard.fileCardSelected,
+  .fileCard.fileCardSelected:hover {
+    background: color-mix(in srgb, var(--info-color) 8%, var(--auth-surface));
+  }
+
+  .fileCard.fileCardDisabled,
+  .fileCard.fileCardDisabled:hover {
+    background: var(--auth-surface);
+  }
+
+  .searchToolbarPopover {
+    background: var(--auth-control-surface);
+    box-shadow: 0 18px 36px -24px rgb(0 0 0 / 0.72);
+  }
+
+  .batchActionBar {
+    border-color: #4a4d44;
+    background: #1b1c19;
+    box-shadow: 0 18px 44px -24px rgb(0 0 0 / 0.72);
+  }
+}

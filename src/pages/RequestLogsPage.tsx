@@ -369,12 +369,12 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
             onClick={handleCopyError}
             disabled={!row.errorMessage}
           >
-            <IconX size={12} aria-hidden="true" />
+            <span className={styles.eventStatusDot} aria-hidden="true" />
             {labels.failure}
           </button>
         ) : (
           <span className={`${styles.eventStatusBadge} ${styles.eventStatusBadgeSuccess}`}>
-            <IconCheck size={12} aria-hidden="true" />
+            <span className={styles.eventStatusDot} aria-hidden="true" />
             {labels.success}
           </span>
         )}
@@ -663,10 +663,18 @@ export function RequestLogsPage() {
 
       <header className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>{t('nav.request_logs')}</h1>
+        <p className={styles.pageSubtitle}>
+          {t('usage_stats.request_events_page_subtitle', {
+            limit: REQUEST_EVENT_ROWS_LIMIT,
+          })}
+        </p>
       </header>
 
       <section className={styles.summaryGrid} aria-label={t('usage_stats.request_events_title')}>
         <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>
+            {t('usage_stats.request_events_kpi_total')}
+          </span>
           <div className={styles.summaryValueRow}>
             <strong className={styles.summaryValue}>{counts.total}</strong>
             <span className={styles.summaryUnit}>
@@ -681,6 +689,9 @@ export function RequestLogsPage() {
         </div>
 
         <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>
+            {t('usage_stats.request_events_kpi_avg_latency')}
+          </span>
           <div className={styles.summaryValueRow}>
             <strong className={styles.summaryValue}>
               {requestSummary.averageLatencyMs === null
@@ -696,6 +707,9 @@ export function RequestLogsPage() {
         </div>
 
         <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>
+            {t('usage_stats.request_events_kpi_total_cost')}
+          </span>
           <div className={styles.summaryValueRow}>
             <strong className={styles.summaryValue}>{formatUsd(requestSummary.totalCost)}</strong>
           </div>
@@ -711,135 +725,137 @@ export function RequestLogsPage() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className={styles.toolbar}>
-        <div
-          className={styles.statusFilter}
-          role="tablist"
-          aria-label={requestEventLabels.columns.status}
-        >
-          <StatusFilterButton
-            active={statusFilter === 'all'}
-            count={counts.total}
-            icon={FILTER_ALL_ICON}
-            label={requestEventLabels.filterAll}
-            onClick={handleSelectAll}
-          />
-          <StatusFilterButton
-            active={statusFilter === 'success'}
-            count={counts.success}
-            disabled={counts.success === 0}
-            icon={FILTER_SUCCESS_ICON}
-            label={requestEventLabels.success}
-            toneClassName={styles.statusFilterSuccess}
-            onClick={handleSelectSuccess}
-          />
-          <StatusFilterButton
-            active={statusFilter === 'failed'}
-            count={counts.failed}
-            disabled={counts.failed === 0}
-            icon={FILTER_FAILED_ICON}
-            label={requestEventLabels.failure}
-            toneClassName={styles.statusFilterFailed}
-            onClick={handleSelectFailed}
-          />
-        </div>
-
-        <label className={styles.searchBox}>
-          <IconSearch size={14} aria-hidden="true" />
-          <input
-            className={styles.searchInput}
-            type="search"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder={searchPlaceholder}
-            aria-label={searchPlaceholder}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              className={styles.searchClearButton}
-              onClick={handleClearSearch}
-              aria-label={t('usage_stats.clear_filters')}
-            >
-              <IconX size={12} aria-hidden="true" />
-            </button>
-          )}
-        </label>
-
-        <div className={styles.toolbarActions}>
-          <span className={styles.resultMeta}>
-            {t('usage_stats.request_events_result_count', {
-              shown: filteredRows.length,
-              total: counts.total,
-            })}
-          </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            className={styles.refreshButton}
-            onClick={handleRefresh}
-            disabled={loading}
-          >
-            <IconRefreshCw
-              size={14}
-              className={loading ? styles.refreshIconSpinning : undefined}
-              aria-hidden="true"
+      <section className={styles.eventsPanel} aria-label={t('usage_stats.request_events_title')}>
+        {/* Filters */}
+        <div className={styles.toolbar}>
+          <label className={styles.searchBox}>
+            <IconSearch size={14} aria-hidden="true" />
+            <input
+              className={styles.searchInput}
+              type="search"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
             />
-            {loading ? requestEventLabels.refreshing : requestEventLabels.refresh}
-          </Button>
-        </div>
-      </div>
+            {searchQuery && (
+              <button
+                type="button"
+                className={styles.searchClearButton}
+                onClick={handleClearSearch}
+                aria-label={t('usage_stats.clear_filters')}
+              >
+                <IconX size={12} aria-hidden="true" />
+              </button>
+            )}
+          </label>
 
-      {/* List / states */}
-      {showSkeleton ? (
-        <SkeletonList />
-      ) : showEmptyAll ? (
-        <RequestEventsEmptyState
-          title={requestEventLabels.empty.title}
-          description={requestEventLabels.empty.description}
-        />
-      ) : showEmptyFiltered ? (
-        <RequestEventsEmptyState
-          title={requestEventLabels.noResult.title}
-          description={requestEventLabels.noResult.description}
-          action={
-            <Button variant="ghost" size="sm" onClick={handleClearFilters}>
-              {requestEventLabels.clearFilters}
-            </Button>
-          }
-        />
-      ) : (
-        <div className={styles.eventTableShell}>
-          <div className={styles.eventListHeader} aria-hidden="true">
-            <span>{requestEventLabels.columns.time}</span>
-            <span>{requestEventLabels.columns.endpoint}</span>
-            <span>{requestEventLabels.columns.clientIP}</span>
-            <span>{requestEventLabels.columns.apiKey}</span>
-            <span>{requestEventLabels.columns.model}</span>
-            <span>{requestEventLabels.columns.credential}</span>
-            <span>{requestEventLabels.columns.status}</span>
-            <span>{requestEventLabels.columns.tokens}</span>
-            <span style={{ textAlign: 'right' }}>{requestEventLabels.columns.cost}</span>
+          <div
+            className={styles.statusFilter}
+            role="tablist"
+            aria-label={requestEventLabels.columns.status}
+          >
+            <StatusFilterButton
+              active={statusFilter === 'all'}
+              count={counts.total}
+              icon={FILTER_ALL_ICON}
+              label={requestEventLabels.filterAll}
+              onClick={handleSelectAll}
+            />
+            <StatusFilterButton
+              active={statusFilter === 'success'}
+              count={counts.success}
+              disabled={counts.success === 0}
+              icon={FILTER_SUCCESS_ICON}
+              label={requestEventLabels.success}
+              toneClassName={styles.statusFilterSuccess}
+              onClick={handleSelectSuccess}
+            />
+            <StatusFilterButton
+              active={statusFilter === 'failed'}
+              count={counts.failed}
+              disabled={counts.failed === 0}
+              icon={FILTER_FAILED_ICON}
+              label={requestEventLabels.failure}
+              toneClassName={styles.statusFilterFailed}
+              onClick={handleSelectFailed}
+            />
           </div>
-          <div className={styles.eventList}>
-            {filteredRows.map((row) => (
-              <RequestEventRowItem
-                key={row.id}
-                row={row}
-                hasLatencyData={hasLatencyData}
-                latencyHint={latencyHint}
-                resolvedTheme={resolvedTheme}
-                onCopyError={handleCopyError}
-                labels={requestEventLabels}
-                tokenLabels={tokenLabels}
-                isZh={isZh}
-                relativeLabels={relativeLabels}
+
+          <div className={styles.toolbarActions}>
+            <span className={styles.resultMeta} aria-live="polite" aria-atomic="true">
+              {t('usage_stats.request_events_result_count', {
+                shown: filteredRows.length,
+                total: counts.total,
+              })}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              className={styles.refreshButton}
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              <IconRefreshCw
+                size={14}
+                className={loading ? styles.refreshIconSpinning : undefined}
+                aria-hidden="true"
               />
-            ))}
+              {loading ? requestEventLabels.refreshing : requestEventLabels.refresh}
+            </Button>
           </div>
         </div>
-      )}
+
+        {/* List / states */}
+        {showSkeleton ? (
+          <SkeletonList />
+        ) : showEmptyAll ? (
+          <RequestEventsEmptyState
+            title={requestEventLabels.empty.title}
+            description={requestEventLabels.empty.description}
+          />
+        ) : showEmptyFiltered ? (
+          <RequestEventsEmptyState
+            title={requestEventLabels.noResult.title}
+            description={requestEventLabels.noResult.description}
+            action={
+              <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+                {requestEventLabels.clearFilters}
+              </Button>
+            }
+          />
+        ) : (
+          <div className={styles.eventTableShell}>
+            <div className={styles.eventListHeader} aria-hidden="true">
+              <span>{requestEventLabels.columns.time}</span>
+              <span>{requestEventLabels.columns.endpoint}</span>
+              <span>{requestEventLabels.columns.clientIP}</span>
+              <span>{requestEventLabels.columns.apiKey}</span>
+              <span>{requestEventLabels.columns.model}</span>
+              <span>{requestEventLabels.columns.credential}</span>
+              <span>{requestEventLabels.columns.status}</span>
+              <span>{requestEventLabels.columns.tokens}</span>
+              <span style={{ textAlign: 'right' }}>{requestEventLabels.columns.cost}</span>
+            </div>
+            <div className={styles.eventList}>
+              {filteredRows.map((row) => (
+                <RequestEventRowItem
+                  key={row.id}
+                  row={row}
+                  hasLatencyData={hasLatencyData}
+                  latencyHint={latencyHint}
+                  resolvedTheme={resolvedTheme}
+                  onCopyError={handleCopyError}
+                  labels={requestEventLabels}
+                  tokenLabels={tokenLabels}
+                  isZh={isZh}
+                  relativeLabels={relativeLabels}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

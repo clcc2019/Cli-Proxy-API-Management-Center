@@ -5,7 +5,7 @@
  * （前提是 src/services/api/oauth.ts 的 OAuthProvider 已包含它）。
  *
  * `supportsCallback` 取代此前散落在页面里的 CALLBACK_SUPPORTED.includes()：
- * 支持回填回调 URL 的 provider 走三步向导，设备码流程（kimi / qwen）走两步。
+ * 支持回填回调 URL 的 provider 走三步向导，设备码流程（kimi）走两步。
  */
 
 import type { OAuthProvider } from '@/services/api/oauth';
@@ -15,7 +15,6 @@ import iconClaude from '@/assets/icons/claude.svg';
 import iconGrok from '@/assets/icons/grok.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
-import iconQwen from '@/assets/icons/qwen.svg';
 
 type ThemedIcon = { light: string; dark: string };
 
@@ -51,13 +50,6 @@ export const OAUTH_PROVIDERS: readonly OAuthProviderDescriptor[] = [
     titleKey: 'auth_login.kimi_oauth_title',
     hintKey: 'auth_login.kimi_oauth_hint',
     icon: { light: iconKimiLight, dark: iconKimiDark },
-    supportsCallback: false,
-  },
-  {
-    id: 'qwen',
-    titleKey: 'auth_login.qwen_oauth_title',
-    hintKey: 'auth_login.qwen_oauth_hint',
-    icon: iconQwen,
     supportsCallback: false,
   },
   {

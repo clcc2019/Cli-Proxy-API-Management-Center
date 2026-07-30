@@ -1,10 +1,99 @@
-@use '../../../styles/mixins' as *;
+@use '../../../styles/variables' as *;
+
+.oauthModal:global(.modal) {
+  --oauth-modal-surface: #ffffff;
+  --oauth-modal-subtle: #f4f4f4;
+  --oauth-modal-warm: #faf8f5;
+  --oauth-modal-text: #2c2a25;
+  --oauth-modal-text-secondary: #565551;
+  --oauth-modal-text-tertiary: #807f7c;
+  --oauth-modal-border: #eaeae9;
+  --oauth-modal-ink: #0e0d0c;
+  --oauth-modal-sage: #96a58d;
+  --oauth-modal-sage-strong: #63725a;
+  --oauth-modal-sage-soft: #e1e2d9;
+  --oauth-modal-success: #407345;
+  --oauth-modal-warning: #a87428;
+  --oauth-modal-danger: #a53830;
+
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 15px;
+  background: var(--oauth-modal-surface);
+  box-shadow: 0 20px 65px rgb(0 0 0 / 0.11);
+
+  &:global(.modal-entering) {
+    animation: oauthModalEnter 180ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  &:global(.modal-closing) {
+    animation: oauthModalExit 150ms ease-in forwards;
+  }
+
+  :global(.modal-header) {
+    min-height: 60px;
+    padding: 17px 56px 17px 24px;
+    border-bottom: 1px solid var(--oauth-modal-border);
+    background: var(--oauth-modal-surface);
+  }
+
+  :global(.modal-title) {
+    color: var(--oauth-modal-text);
+    font-size: 17px;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
+
+  :global(.modal-body) {
+    max-height: min(68vh, 720px);
+    padding: 20px 24px 24px;
+  }
+
+  :global(.modal-footer) {
+    padding: 14px 24px;
+    border-top: 1px solid var(--oauth-modal-border);
+    background: var(--oauth-modal-warm);
+  }
+
+  :global(.modal-close-floating) {
+    top: 14px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--oauth-modal-border);
+    background: var(--oauth-modal-subtle);
+    color: var(--oauth-modal-text-tertiary);
+    transition:
+      background-color $transition-fast,
+      border-color $transition-fast,
+      color $transition-fast;
+
+    &:hover {
+      border-color: color-mix(
+        in srgb,
+        var(--oauth-modal-text-tertiary) 42%,
+        var(--oauth-modal-border)
+      );
+      background: var(--oauth-modal-surface);
+      color: var(--oauth-modal-text);
+      transform: none;
+    }
+
+    &:active {
+      transform: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--oauth-modal-sage-strong) 42%, transparent);
+      outline-offset: 2px;
+    }
+  }
+}
 
 .body {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
   min-width: 0;
+  flex-direction: column;
+  gap: 16px;
 
   :global(.form-group) {
     margin-bottom: 0;
@@ -13,227 +102,323 @@
 
 .providerHint {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-secondary);
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-sage) 20%, var(--oauth-modal-border));
+  border-radius: 10px;
+  background: color-mix(
+    in srgb,
+    var(--oauth-modal-sage-soft) 42%,
+    var(--oauth-modal-surface)
+  );
+  color: var(--oauth-modal-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.55;
 }
 
-// 步骤列表：每一步是「序号 + 标题 + 该步内容」
+// The complete flow reads as one operational rail instead of nested cards.
 .steps {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
   min-width: 0;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 12px;
+  background: var(--oauth-modal-surface);
 }
 
 .step {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
   min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--oauth-modal-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
 }
 
 .stepHeader {
   display: flex;
-  align-items: center;
-  gap: $spacing-sm;
   min-width: 0;
+  align-items: center;
+  gap: 9px;
 }
 
 .stepIndex {
-  flex: none;
   display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  border: 1px solid var(--oauth-modal-ink);
   border-radius: $radius-full;
-  background: var(--primary-soft);
-  color: var(--primary-active);
-  font-size: 11px;
+  background: var(--oauth-modal-ink);
+  color: var(--oauth-modal-surface);
+  font-size: 10.5px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-// 已完成：实心对勾，与「当前」形成对比，让进度一眼可读
 .stepIndexDone {
-  background: var(--success-badge-bg);
-  color: var(--success-badge-text);
-  border: 1px solid var(--success-badge-border);
+  border-color: color-mix(in srgb, var(--oauth-modal-success) 28%, var(--oauth-modal-border));
+  background: color-mix(
+    in srgb,
+    var(--oauth-modal-success) 10%,
+    var(--oauth-modal-surface)
+  );
+  color: var(--oauth-modal-success);
 }
 
-// 未开始：降到中性色，避免和当前步争夺注意力
 .stepIndexPending {
-  background: var(--bg-secondary);
-  color: var(--text-tertiary);
-  border: 1px solid var(--border-color);
+  border-color: var(--oauth-modal-border);
+  background: var(--oauth-modal-subtle);
+  color: var(--oauth-modal-text-tertiary);
 }
 
 .stepTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
   min-width: 0;
+  color: var(--oauth-modal-text);
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .stepTitlePending {
-  color: var(--text-secondary);
+  color: var(--oauth-modal-text-tertiary);
 }
 
 .stepBody {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
   min-width: 0;
-  // 与序号圆点左对齐后缩进，形成视觉上的「归属这一步」
-  padding-left: calc(20px + #{$spacing-sm});
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 31px;
 }
 
 .urlBox {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-sm $spacing-md;
   min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 9px;
+  background: var(--oauth-modal-warm);
 }
 
 .urlValue {
-  color: var(--text-secondary);
-  word-break: break-all;
-  overflow-wrap: anywhere;
-  line-height: 1.5;
   max-width: 100%;
-  // 等宽字体便于逐字核对 URL；限高避免超长 URL 把弹窗撑得过高
-  font-family: $font-mono;
-  font-size: 12px;
   max-height: 4.5em;
   overflow-y: auto;
+  color: var(--oauth-modal-text-secondary);
+  font-family: $font-mono;
+  font-size: 11.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
   overscroll-behavior: contain;
+  word-break: break-all;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: $spacing-sm;
+  gap: 8px;
+
+  :global(.btn) {
+    min-height: 38px;
+    border-radius: $radius-full;
+    box-shadow: none;
+  }
+
+  :global(.btn-primary) {
+    border-color: var(--oauth-modal-ink);
+    background: var(--oauth-modal-ink);
+    color: var(--oauth-modal-surface);
+
+    &:hover:not(:disabled) {
+      border-color: var(--oauth-modal-text-secondary);
+      background: var(--oauth-modal-text-secondary);
+    }
+  }
+
+  :global(.btn-secondary) {
+    border-color: var(--oauth-modal-border);
+    background: var(--oauth-modal-surface);
+    color: var(--oauth-modal-text);
+
+    &:hover:not(:disabled) {
+      border-color: var(--oauth-modal-text-tertiary);
+      background: var(--oauth-modal-subtle);
+    }
+  }
 }
 
-// 等待态：转圈 + 已等待时长
 .waiting {
   display: flex;
-  align-items: center;
-  gap: $spacing-sm;
   flex-wrap: wrap;
-  font-size: 13px;
-  color: var(--text-secondary);
+  align-items: center;
+  gap: 8px;
+  color: var(--oauth-modal-text-secondary);
+  font-size: 12.5px;
 }
 
 .waitingIcon {
   flex: none;
-  color: var(--primary-color);
+  color: var(--oauth-modal-sage-strong);
   animation: oauthSpin 900ms linear infinite;
 }
 
 .elapsed {
-  font-variant-numeric: tabular-nums;
+  color: var(--oauth-modal-text-tertiary);
   font-family: $font-mono;
-  font-size: 12px;
-  color: var(--text-tertiary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }
 
 .waitingHint {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-tertiary);
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 11.5px;
+  line-height: 1.55;
 }
 
-// 结果面板（成功 / 超时 / 失败）
 .resultPanel {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  padding: $spacing-md;
-  border-radius: $radius-md;
   min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  padding: 13px 14px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 10px;
 }
 
 .resultSuccess {
-  background: var(--success-badge-bg);
-  border: 1px solid var(--success-badge-border);
+  border-color: color-mix(in srgb, var(--oauth-modal-success) 24%, var(--oauth-modal-border));
+  background: color-mix(
+    in srgb,
+    var(--oauth-modal-success) 8%,
+    var(--oauth-modal-surface)
+  );
 }
 
 .resultWarning {
-  background: var(--warning-bg);
-  border: 1px solid var(--warning-border);
+  border-color: color-mix(in srgb, var(--oauth-modal-warning) 26%, var(--oauth-modal-border));
+  background: color-mix(
+    in srgb,
+    var(--oauth-modal-warning) 8%,
+    var(--oauth-modal-surface)
+  );
 }
 
 .resultError {
-  background: var(--failure-badge-bg);
-  border: 1px solid var(--failure-badge-border);
+  border-color: color-mix(in srgb, var(--oauth-modal-danger) 24%, var(--oauth-modal-border));
+  background: color-mix(in srgb, var(--oauth-modal-danger) 8%, var(--oauth-modal-surface));
 }
 
 .resultHeader {
   display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  font-size: 13px;
-  font-weight: 600;
   min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: var(--oauth-modal-text);
+  font-size: 12.5px;
+  font-weight: 650;
 }
 
 .resultSuccess .resultHeader {
-  color: var(--success-badge-text);
+  color: var(--oauth-modal-success);
 }
 
 .resultWarning .resultHeader {
-  color: var(--warning-text);
+  color: var(--oauth-modal-warning);
 }
 
 .resultError .resultHeader {
-  color: var(--failure-badge-text);
+  color: var(--oauth-modal-danger);
 }
 
 .resultIcon {
   flex: none;
 }
 
-// 回调提交失败的内联提示：轮询仍在继续，所以不占用整块结果面板
 .inlineError {
   display: flex;
-  align-items: flex-start;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $radius-md;
-  background: var(--failure-badge-bg);
-  border: 1px solid var(--failure-badge-border);
-  color: var(--failure-badge-text);
-  font-size: 12px;
-  line-height: 1.6;
-  word-break: break-word;
-  overflow-wrap: anywhere;
   min-width: 0;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-danger) 24%, var(--oauth-modal-border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--oauth-modal-danger) 8%, var(--oauth-modal-surface));
+  color: var(--oauth-modal-danger);
+  font-size: 11.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .resultMessage {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  word-break: break-word;
+  color: var(--oauth-modal-text-secondary);
+  font-size: 11.5px;
+  line-height: 1.55;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .footer {
   display: flex;
-  align-items: center;
-  gap: $spacing-sm;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+
+  :global(.btn) {
+    min-height: 38px;
+    border-radius: $radius-full;
+    box-shadow: none;
+  }
+
+  :global(.btn-primary) {
+    border-color: var(--oauth-modal-ink);
+    background: var(--oauth-modal-ink);
+    color: var(--oauth-modal-surface);
+  }
+
+  :global(.btn-secondary) {
+    border-color: var(--oauth-modal-border);
+    background: var(--oauth-modal-surface);
+    color: var(--oauth-modal-text);
+  }
 }
 
-// 主操作靠右，与「取消」分开，避免误点
 .footerSpacer {
   margin-left: auto;
+}
+
+@keyframes oauthModalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes oauthModalExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(5px);
+  }
 }
 
 @keyframes oauthSpin {
@@ -242,8 +427,77 @@
   }
 }
 
+@media (max-width: $breakpoint-mobile) {
+  .oauthModal:global(.modal) {
+    :global(.modal-header) {
+      min-height: 56px;
+      padding: 15px 52px 15px 16px;
+    }
+
+    :global(.modal-body) {
+      padding: 16px;
+    }
+
+    :global(.modal-footer) {
+      padding: 14px 16px max(14px, env(safe-area-inset-bottom));
+    }
+  }
+
+  .step {
+    padding: 14px;
+  }
+
+  .stepBody {
+    padding-left: 0;
+  }
+
+  .actions {
+    :global(.btn) {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    :global(.btn) {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .footerSpacer {
+    margin-left: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .oauthModal:global(.modal-entering),
+  .oauthModal:global(.modal-closing),
   .waitingIcon {
     animation: none;
+  }
+}
+
+:global([data-theme='dark']) {
+  .oauthModal:global(.modal) {
+    --oauth-modal-surface: var(--surface-raised, #1d1d1b);
+    --oauth-modal-subtle: var(--bg-secondary, #242421);
+    --oauth-modal-warm: color-mix(in srgb, var(--bg-secondary) 82%, var(--bg-primary));
+    --oauth-modal-text: var(--text-primary, #f3f3f0);
+    --oauth-modal-text-secondary: var(--text-secondary, #c1c0bc);
+    --oauth-modal-text-tertiary: var(--text-tertiary, #92918d);
+    --oauth-modal-border: var(--border-color, #363633);
+    --oauth-modal-ink: #f3f3f0;
+    --oauth-modal-sage: #83947b;
+    --oauth-modal-sage-strong: #b3c0ac;
+    --oauth-modal-sage-soft: #354031;
+    --oauth-modal-success: #72a878;
+    --oauth-modal-warning: #d5a454;
+    --oauth-modal-danger: #d4746b;
+
+    box-shadow: 0 20px 65px rgb(0 0 0 / 0.28);
   }
 }
