@@ -8,14 +8,12 @@ import {
 } from '@/utils/usage';
 import { authFileUsageSourceCandidates } from '@/features/authFiles/constants';
 import {
+  authFileIncludesRecentRequestSummary,
   readAuthFileNumericCount,
   readAuthFileRecentRequestBuckets,
   type AuthFileRecentRequestBucketLike,
 } from '@/features/authFiles/stats';
-import {
-  collectUsageDetailsForCandidates,
-  indexUsageDetailsBySource,
-} from '@/utils/usageIndex';
+import { collectUsageDetailsForCandidates, indexUsageDetailsBySource } from '@/utils/usageIndex';
 
 export type AuthFileStatusBarData = ReturnType<typeof calculateStatusBarData>;
 
@@ -99,9 +97,7 @@ const buildFileStatusBarData = (
   detailsForFile: UsageDetail[] | undefined
 ): AuthFileStatusBarData => {
   const fromDetails =
-    detailsForFile && detailsForFile.length > 0
-      ? calculateStatusBarData(detailsForFile)
-      : null;
+    detailsForFile && detailsForFile.length > 0 ? calculateStatusBarData(detailsForFile) : null;
   const fromRecent = calculateStatusBarDataFromRecentRequests(recentRequestBuckets);
   return chooseStatusBarData(fromDetails, fromRecent);
 };
@@ -145,10 +141,16 @@ const mergeUsageDetails = (
 };
 
 export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: UsageDetail[]) {
+  const needsUsageDetailsFallback = useMemo(
+    () =>
+      usageDetails.length > 0 && files.some((file) => !authFileIncludesRecentRequestSummary(file)),
+    [files, usageDetails.length]
+  );
+
   // usageDetails 引用变化时才重建 auth_index -> details 索引。
   // usageDetails 通常来自 store，引用稳定，避免每次 files 局部更新都重算索引。
   const detailsByAuthIndex = useMemo(() => {
-    if (usageDetails.length === 0) return EMPTY_DETAILS_BY_AUTH_INDEX;
+    if (!needsUsageDetailsFallback) return EMPTY_DETAILS_BY_AUTH_INDEX;
 
     const index = new Map<string, UsageDetail[]>();
     usageDetails.forEach((detail) => {
@@ -162,9 +164,15 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
       }
     });
     return index;
-  }, [usageDetails]);
+  }, [needsUsageDetailsFallback, usageDetails]);
 
-  const detailsBySource = useMemo(() => indexUsageDetailsBySource(usageDetails), [usageDetails]);
+  const detailsBySource = useMemo(
+    () =>
+      needsUsageDetailsFallback
+        ? indexUsageDetailsBySource(usageDetails)
+        : EMPTY_DETAILS_BY_AUTH_INDEX,
+    [needsUsageDetailsFallback, usageDetails]
+  );
 
   // 这里不再对整个 Map 做「内容相等则复用旧引用」的处理。
   //

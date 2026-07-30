@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
 import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
+import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
 type PersistableQuotaState = Pick<QuotaStoreState, 'claudeQuota' | 'codexQuota' | 'kimiQuota'>;
@@ -102,9 +103,67 @@ const mergePersistedQuotaState = (
   kimiQuota: mergeQuotaRecord(previous?.kimiQuota, next?.kimiQuota),
 });
 
+type PendingQuotaCacheWrite = { name: string; value: string };
+
+let pendingQuotaCacheWrite: PendingQuotaCacheWrite | null = null;
+let cancelScheduledQuotaCacheWrite: (() => void) | null = null;
+let quotaCacheFlushListenersInstalled = false;
+
+const getPersistedQuotaCacheValue = (name: string): string | null =>
+  window.localStorage.getItem(name);
+
+const flushPendingQuotaCacheWrite = () => {
+  const pending = pendingQuotaCacheWrite;
+  pendingQuotaCacheWrite = null;
+  const cancelScheduledWrite = cancelScheduledQuotaCacheWrite;
+  cancelScheduledQuotaCacheWrite = null;
+  cancelScheduledWrite?.();
+  if (!pending) return;
+
+  window.localStorage.setItem(pending.name, pending.value);
+};
+
+const ensureQuotaCacheFlushListeners = () => {
+  if (quotaCacheFlushListenersInstalled || typeof window === 'undefined') return;
+  quotaCacheFlushListenersInstalled = true;
+
+  window.addEventListener('pagehide', flushPendingQuotaCacheWrite);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      flushPendingQuotaCacheWrite();
+    }
+  });
+};
+
+const scheduleQuotaCacheWrite = (name: string, value: string) => {
+  const persistedValue = getPersistedQuotaCacheValue(name);
+  if (value === persistedValue) {
+    if (pendingQuotaCacheWrite?.name === name) {
+      pendingQuotaCacheWrite = null;
+      cancelScheduledQuotaCacheWrite?.();
+      cancelScheduledQuotaCacheWrite = null;
+    }
+    return;
+  }
+
+  pendingQuotaCacheWrite = { name, value };
+  ensureQuotaCacheFlushListeners();
+  if (cancelScheduledQuotaCacheWrite) return;
+
+  // 一页配额刷新会在很短时间内产生多次 loading/success 更新。合并后在空闲期只写
+  // 最终快照，避免每次响应都同步序列化并写入整份 localStorage 缓存而阻塞主线程。
+  cancelScheduledQuotaCacheWrite = scheduleIdleTask(flushPendingQuotaCacheWrite, {
+    delayMs: 120,
+    timeoutMs: 1_000,
+  });
+};
+
 const quotaPersistStorage = createJSONStorage<PersistableQuotaState>(() => ({
   getItem: (name) => {
-    const raw = window.localStorage.getItem(name);
+    const raw =
+      pendingQuotaCacheWrite?.name === name
+        ? pendingQuotaCacheWrite.value
+        : getPersistedQuotaCacheValue(name);
     const persisted = readPersistedQuotaEnvelope(raw);
     if (!persisted) return raw;
 
@@ -114,14 +173,18 @@ const quotaPersistStorage = createJSONStorage<PersistableQuotaState>(() => ({
     });
   },
   setItem: (name, value) => {
-    const previous = readPersistedQuotaEnvelope(window.localStorage.getItem(name));
+    const previousRaw =
+      pendingQuotaCacheWrite?.name === name
+        ? pendingQuotaCacheWrite.value
+        : getPersistedQuotaCacheValue(name);
+    const previous = readPersistedQuotaEnvelope(previousRaw);
     const next = readPersistedQuotaEnvelope(value);
     if (!next) {
-      window.localStorage.setItem(name, value);
+      scheduleQuotaCacheWrite(name, value);
       return;
     }
 
-    window.localStorage.setItem(
+    scheduleQuotaCacheWrite(
       name,
       JSON.stringify({
         ...next,
@@ -130,6 +193,11 @@ const quotaPersistStorage = createJSONStorage<PersistableQuotaState>(() => ({
     );
   },
   removeItem: (name) => {
+    if (pendingQuotaCacheWrite?.name === name) {
+      pendingQuotaCacheWrite = null;
+      cancelScheduledQuotaCacheWrite?.();
+      cancelScheduledQuotaCacheWrite = null;
+    }
     window.localStorage.removeItem(name);
   },
 }));

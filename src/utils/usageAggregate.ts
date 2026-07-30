@@ -29,7 +29,6 @@ import type {
   UsageAggregateModelSeries,
   UsageAggregateModelStat,
   UsageAggregateSnapshot,
-  UsageAggregateTokenSeries,
   UsageAggregateTokenStats,
   UsageAggregateTokenBreakdownSeries,
   UsageAggregateWindow,
@@ -162,17 +161,21 @@ const sumNumberArrays = (arrays: number[][], size: number) => {
 const buildPeriodSeries = (
   periodSeries: UsageAggregateModelSeries | undefined,
   selectedModels: string[],
-  metric: UsageChartMetric
+  metric: UsageChartMetric,
+  period: 'hour' | 'day'
 ): ChartData => {
-  const labels = formatPeriodLabels(periodSeries?.timestamps, 'hour');
+  const labels = formatPeriodLabels(periodSeries?.timestamps, period);
   const dataByModel = periodSeries?.series ?? {};
   const modelsToShow = selectedModels.length > 0 ? selectedModels : ['all'];
-  const allSeries = sumNumberArrays(Object.values(dataByModel), labels.length);
+  const includesAllModels = modelsToShow.includes('all');
+  const allSeries = includesAllModels
+    ? sumNumberArrays(Object.values(dataByModel), labels.length)
+    : null;
 
   const datasets: ChartDataset[] = modelsToShow.map((model, index) => {
     const isAll = model === 'all';
     const data = isAll
-      ? allSeries
+      ? (allSeries ?? new Array(labels.length).fill(0))
       : (dataByModel[model] ?? new Array(labels.length).fill(0)).map((value) => asNumber(value));
     const color = getUsageSeriesColor(metric, index);
     const areaFallback = withUsageColorAlpha(color, 0.14);
@@ -225,29 +228,6 @@ const buildLatencySeries = (
   const hasData = data.some((value) => typeof value === 'number' && value >= 0);
 
   return { labels, data, hasData };
-};
-
-const calculateSeriesCost = (
-  series: UsageAggregateTokenSeries | undefined,
-  price: ModelPrice | undefined,
-  length: number
-) => {
-  const input = series?.input ?? [];
-  const output = series?.output ?? [];
-  const cached = series?.cached ?? [];
-  const reasoning = series?.reasoning ?? [];
-
-  return Array.from({ length }, (_, index) =>
-    calculateCostForTokens(
-      {
-        input_tokens: input[index],
-        output_tokens: output[index],
-        cached_tokens: cached[index],
-        reasoning_tokens: reasoning[index],
-      },
-      price
-    )
-  );
 };
 
 export const getAggregateModelNames = (snapshot: UsageAggregateSnapshot | null) =>
@@ -344,13 +324,7 @@ export const buildAggregateChartData = (
 ): ChartData => {
   const metricSeries = metric === 'requests' ? window?.requests : window?.tokens;
   const periodSeries = period === 'hour' ? metricSeries?.hour : metricSeries?.day;
-  const chartData = buildPeriodSeries(periodSeries, selectedModels, metric);
-
-  if (period === 'day') {
-    chartData.labels = formatPeriodLabels(periodSeries?.timestamps, 'day');
-  }
-
-  return chartData;
+  return buildPeriodSeries(periodSeries, selectedModels, metric, period);
 };
 
 export const buildAggregateTokenBreakdown = (
@@ -382,22 +356,36 @@ export const buildAggregateCostTrend = (
   const labels = formatPeriodLabels(timestamps, period);
   const length = timestamps.length;
   const data = new Array(length).fill(0);
+  let hasData = false;
 
   Object.entries(periodSeries?.models ?? {}).forEach(([modelName, series]) => {
-    const modelSeries = calculateSeriesCost(
-      series,
-      lookupModelPrice(modelPrices, modelName),
-      length
-    );
-    modelSeries.forEach((value, index) => {
+    const price = lookupModelPrice(modelPrices, modelName);
+    if (!price) return;
+
+    const input = series.input ?? [];
+    const output = series.output ?? [];
+    const cached = series.cached ?? [];
+    const reasoning = series.reasoning ?? [];
+
+    for (let index = 0; index < length; index += 1) {
+      const value = calculateCostForTokens(
+        {
+          input_tokens: input[index],
+          output_tokens: output[index],
+          cached_tokens: cached[index],
+          reasoning_tokens: reasoning[index],
+        },
+        price
+      );
       data[index] += value;
-    });
+      hasData ||= value > 0;
+    }
   });
 
   return {
     labels,
     data,
-    hasData: data.some((value) => value > 0),
+    hasData,
   };
 };
 

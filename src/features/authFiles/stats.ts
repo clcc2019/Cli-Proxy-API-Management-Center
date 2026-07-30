@@ -36,6 +36,14 @@ export const readAuthFileRecentRequestBuckets = (
   return authFileRecentRequestsTotal(camel) > authFileRecentRequestsTotal(snake) ? camel : snake;
 };
 
+/**
+ * `summary=true` 的新服务端会为每个条目返回 recent_requests（没有请求时为空数组）。
+ * 只有字段本身存在才能视为支持摘要；单纯判断数组非空会让零请求凭据退回到昂贵的
+ * usage/details 请求。
+ */
+export const authFileIncludesRecentRequestSummary = (file: AuthFileItem): boolean =>
+  Array.isArray(file.recent_requests) || Array.isArray(file.recentRequests);
+
 export const sumAuthFileRecentRequestBuckets = (
   buckets: AuthFileRecentRequestBucketLike[]
 ): AuthFileRequestStats =>
@@ -47,9 +55,7 @@ export const sumAuthFileRecentRequestBuckets = (
     { success: 0, failure: 0 }
   );
 
-export const authFileRecentRequestsTotal = (
-  buckets: AuthFileRecentRequestBucketLike[]
-): number => {
+export const authFileRecentRequestsTotal = (buckets: AuthFileRecentRequestBucketLike[]): number => {
   const total = sumAuthFileRecentRequestBuckets(buckets);
   return total.success + total.failure;
 };

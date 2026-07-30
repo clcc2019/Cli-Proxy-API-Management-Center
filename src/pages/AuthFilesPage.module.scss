@@ -6987,3 +6987,117 @@
     padding: 0 33px 0 7px;
   }
 }
+
+// =============================================================================
+// Structural divider refinement
+// Use three neutral divider strengths to separate page sections, content groups,
+// and compact rows without introducing additional nested panels.
+// =============================================================================
+.container {
+  --auth-divider-subtle: color-mix(in srgb, var(--auth-neutral-border) 54%, transparent);
+  --auth-divider: color-mix(in srgb, var(--auth-neutral-border) 82%, transparent);
+  --auth-divider-strong: var(--auth-neutral-border);
+  gap: 24px;
+}
+
+.authFilesHeader {
+  border-bottom-color: var(--auth-divider-strong);
+}
+
+.filterSection {
+  gap: 14px;
+  margin-bottom: 0;
+}
+
+.filterToolbarRow {
+  padding: 1px 0 14px;
+  border-bottom: 1px solid var(--auth-divider);
+}
+
+.listSurface {
+  padding-top: 0;
+}
+
+.belowFoldCard {
+  border-color: var(--auth-divider-strong);
+}
+
+.belowFoldCard :global(.card-header) {
+  border-bottom-color: var(--auth-divider-strong);
+  background: color-mix(in srgb, var(--auth-surface-muted) 34%, transparent);
+}
+
+.modelRulesNotice,
+.aliasChartHeader {
+  border-bottom-color: var(--auth-divider);
+}
+
+.modelRulesItem,
+.excludedItem {
+  border-bottom-color: var(--auth-divider-subtle);
+}
+
+.fileCard,
+.fileCard.claudeCard,
+.fileCard.codexCard,
+.fileCard.kimiCard,
+.fileCardSkeleton {
+  --auth-card-divider: #efede9;
+  --auth-card-divider-strong: #e5e1da;
+}
+
+.fileCard .cardInsights,
+.fileCard .quotaSection {
+  border-color: var(--auth-card-divider);
+}
+
+.fileCard .cardActions {
+  border-color: var(--auth-card-divider-strong);
+}
+
+.fileCard .quotaSection {
+  padding-top: 10px;
+}
+
+.fileCard .cardActions {
+  padding-top: 9px;
+}
+
+.fileCard .noteLabel::after {
+  content: none;
+}
+
+@include mobile {
+  .authFilesHeader {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .filterSection {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filterToolbarRow {
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+
+  .filterControlsPanel {
+    padding: 0;
+  }
+
+  .belowFoldCard :global(.card-header),
+  .modelRulesItem,
+  .excludedItem {
+    padding-inline: 12px;
+  }
+
+  .fileCard .quotaSection {
+    padding-top: 9px;
+  }
+
+  .fileCard .cardActions {
+    padding-top: 8px;
+  }
+}

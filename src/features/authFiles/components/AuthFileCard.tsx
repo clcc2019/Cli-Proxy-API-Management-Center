@@ -1,5 +1,7 @@
 import {
+  lazy,
   memo,
+  Suspense,
   useCallback,
   useMemo,
   useState,
@@ -39,12 +41,19 @@ import {
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
-import {
-  AuthFileQuotaRefreshButton,
-  AuthFileQuotaSection,
-} from '@/features/authFiles/components/AuthFileQuotaSection';
 import { AuthFileWarningIndicator } from '@/features/authFiles/components/AuthFileWarningIndicator';
 import styles from '@/pages/AuthFilesPage.module.scss';
+
+const AuthFileQuotaSection = lazy(() =>
+  import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
+    default: module.AuthFileQuotaSection,
+  }))
+);
+const AuthFileQuotaRefreshButton = lazy(() =>
+  import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
+    default: module.AuthFileQuotaRefreshButton,
+  }))
+);
 
 const HEALTHY_STATUS_MESSAGES = new Set(['ok', 'healthy', 'ready', 'success', 'available']);
 const AUTH_FILE_NAME_MASK = '*';
@@ -531,12 +540,20 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
             </div>
 
             {showQuotaLayout && quotaType && (
-              <AuthFileQuotaSection
-                file={file}
-                quotaType={quotaType}
-                disableControls={disableControls}
-                onAuthFileUpdated={onAuthFileUpdated}
-              />
+              <Suspense
+                fallback={
+                  <div className={styles.quotaSection} aria-hidden="true">
+                    <div className={styles.quotaContent} />
+                  </div>
+                }
+              >
+                <AuthFileQuotaSection
+                  file={file}
+                  quotaType={quotaType}
+                  disableControls={disableControls}
+                  onAuthFileUpdated={onAuthFileUpdated}
+                />
+              </Suspense>
             )}
           </div>
 
@@ -638,15 +655,17 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
               {!isRuntimeOnly && showQuotaLayout && quotaType && (
                 <div className={styles.cardRefreshActions}>
-                  <AuthFileQuotaRefreshButton
-                    file={file}
-                    quotaType={quotaType}
-                    disableControls={disableControls}
-                    onAuthFileUpdated={onAuthFileUpdated}
-                    className={`${styles.iconButton} ${styles.refreshActionButton}`}
-                    iconClassName={styles.actionIcon}
-                    iconSize={18}
-                  />
+                  <Suspense fallback={null}>
+                    <AuthFileQuotaRefreshButton
+                      file={file}
+                      quotaType={quotaType}
+                      disableControls={disableControls}
+                      onAuthFileUpdated={onAuthFileUpdated}
+                      className={`${styles.iconButton} ${styles.refreshActionButton}`}
+                      iconClassName={styles.actionIcon}
+                      iconSize={18}
+                    />
+                  </Suspense>
                 </div>
               )}
             </div>

@@ -57,7 +57,10 @@ import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModel
 import { useAuthFilesOauth } from '@/features/authFiles/hooks/useAuthFilesOauth';
 import { useAuthFilesPrefixProxyEditor } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import { extractAuthFileAccessToken } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
-import { useAuthFilesStats } from '@/features/authFiles/hooks/useAuthFilesStats';
+import {
+  useAuthFilesStats,
+  useAuthFilesStatusDetails,
+} from '@/features/authFiles/hooks/useAuthFilesStats';
 import {
   EMPTY_AUTH_FILE_STATUS_BAR_DATA,
   useAuthFilesStatusBarCache,
@@ -66,10 +69,8 @@ import {
   hasPremiumAuthFilePlan,
   type AuthFilePlanSources,
 } from '@/features/authFiles/planMetadata';
-import {
-  refreshAuthFileQuotasInParallel,
-  type AuthFileQuotaRefreshTarget,
-} from '@/features/authFiles/quotaRefresh';
+import type { AuthFileQuotaRefreshTarget } from '@/features/authFiles/quotaRefresh';
+import { authFileIncludesRecentRequestSummary } from '@/features/authFiles/stats';
 import {
   isAuthFilesSortMode,
   readAuthFilesUiState,
@@ -487,8 +488,7 @@ export function AuthFilesPage() {
     [authFilesListOptions]
   );
 
-  const { keyUsageStats, usageDetails, loadKeyStats, refreshKeyStats, refreshStatusDetails } =
-    useAuthFilesStats();
+  const { keyUsageStats, loadKeyStats, refreshKeyStats } = useAuthFilesStats();
   const {
     files,
     selectedFiles,
@@ -521,6 +521,14 @@ export function AuthFilesPage() {
     batchDelete,
     applyLocalFileUpdates,
   } = useAuthFilesData({ refreshKeyStats, listOptions: authFilesListOptions });
+
+  const authFilesIncludeRecentRequestSummary = useMemo(
+    () => files.length > 0 && files.every((file) => authFileIncludesRecentRequestSummary(file)),
+    [files]
+  );
+  const { usageDetails, loadStatusDetails, refreshStatusDetails } = useAuthFilesStatusDetails(
+    !authFilesIncludeRecentRequestSummary
+  );
 
   useEffect(() => {
     if (!premiumOnly) {
@@ -837,6 +845,31 @@ export function AuthFilesPage() {
     void Promise.allSettled([loadKeyStats(), loadExcluded(), loadModelAlias()]);
   }, [isCurrentLayer, loadExcluded, loadKeyStats, loadModelAlias, uiStateHydrated]);
 
+  useEffect(() => {
+    if (
+      !isCurrentLayer ||
+      !uiStateHydrated ||
+      loading ||
+      refreshing ||
+      serverSearchPending ||
+      files.length === 0 ||
+      authFilesIncludeRecentRequestSummary
+    ) {
+      return;
+    }
+
+    void loadStatusDetails().catch(() => {});
+  }, [
+    authFilesIncludeRecentRequestSummary,
+    files.length,
+    isCurrentLayer,
+    loadStatusDetails,
+    loading,
+    refreshing,
+    serverSearchPending,
+    uiStateHydrated,
+  ]);
+
   // 改用 useVisibleInterval：标签页隐藏时不必继续拉取用量聚合
   useVisibleInterval(
     () => {
@@ -847,9 +880,13 @@ export function AuthFilesPage() {
 
   useVisibleInterval(
     () => {
+      if (authFilesIncludeRecentRequestSummary) {
+        void refreshFilesFromServer().catch(() => {});
+        return;
+      }
       void refreshStatusDetails().catch(() => {});
     },
-    isCurrentLayer ? 60_000 : null
+    isCurrentLayer && files.length > 0 ? 60_000 : null
   );
 
   const hasListMetaTypeCounts = Boolean(listMeta.typeCounts);
@@ -1384,6 +1421,8 @@ export function AuthFilesPage() {
     pageQuotaRefreshInFlightRef.current = true;
     setPageQuotaRefreshing(true);
     try {
+      const { refreshAuthFileQuotasInParallel } = await import('@/features/authFiles/quotaRefresh');
+      if (!pageMountedRef.current) return;
       const skippedBeforeRefresh = Math.max(0, pageItems.length - pageQuotaRefreshItems.length);
       const result = await refreshAuthFileQuotasInParallel({
         targets: pageQuotaRefreshItems,

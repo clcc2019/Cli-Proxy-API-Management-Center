@@ -9,21 +9,24 @@ import type {
 import {
   normalizeAuthIndex,
   normalizeUsageSourceId,
-  type KeyStats,
   type KeyUsageBucket,
   type KeyUsageStats,
   type UsageDetail,
 } from '@/utils/usage';
 
 const EMPTY_KEY_USAGE_STATS: KeyUsageStats = { bySource: {}, byAuthIndex: {} };
+const EMPTY_AUTH_FILE_USAGE_DETAILS: UsageDetail[] = [];
 const AUTH_FILE_STATUS_DETAILS_LIMIT = 1000;
 
 export type UseAuthFilesStatsResult = {
-  keyStats: KeyStats;
   keyUsageStats: KeyUsageStats;
-  usageDetails: UsageDetail[];
   loadKeyStats: () => Promise<void>;
   refreshKeyStats: () => Promise<void>;
+};
+
+export type UseAuthFilesStatusDetailsResult = {
+  usageDetails: UsageDetail[];
+  loadStatusDetails: () => Promise<void>;
   refreshStatusDetails: () => Promise<void>;
 };
 
@@ -204,9 +207,6 @@ const loadAuthFileUsageStats = async (
 export function useAuthFilesStats(): UseAuthFilesStatsResult {
   const apiBase = useAuthStore((state) => state.apiBase);
   const managementKey = useAuthStore((state) => state.managementKey);
-  const keyStats = useUsageStatsStore((state) => state.keyStats);
-  const usageDetails = useUsageStatsStore((state) => state.usageDetails);
-  const loadUsageStats = useUsageStatsStore((state) => state.loadUsageStats);
   const scopeKey = useMemo(
     () => `${apiBase ?? ''}::${managementKey ?? ''}`,
     [apiBase, managementKey]
@@ -253,24 +253,46 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
   );
 
   const loadKeyStats = useCallback(async () => {
-    await Promise.all([
-      loadUsageStats({
-        detailsLimit: AUTH_FILE_STATUS_DETAILS_LIMIT,
-        compactDetails: true,
-        includeAggregated: false,
-        staleTimeMs: USAGE_STATS_STALE_TIME_MS,
-      }),
-      applyAuthFileUsageStats(false),
-    ]);
-  }, [applyAuthFileUsageStats, loadUsageStats]);
+    await applyAuthFileUsageStats(false);
+  }, [applyAuthFileUsageStats]);
 
-  // 只刷新 auth-file 维度的用量聚合。usage details 由 refreshStatusDetails
-  // 以更短间隔单独轮询，这里不再重复请求同一份 1000 行明细。
+  // 只刷新 auth-file 维度的用量聚合。
   const refreshKeyStats = useCallback(async () => {
     await applyAuthFileUsageStats(true);
   }, [applyAuthFileUsageStats]);
 
+  return {
+    keyUsageStats,
+    loadKeyStats,
+    refreshKeyStats,
+  };
+}
+
+/**
+ * 旧服务端兼容层。enabled=false 时 selector 始终返回同一个空数组，因此即使 Usage
+ * 页面更新全局明细，已支持 recent_requests 摘要的认证文件页面也不会被连带重渲染。
+ */
+export function useAuthFilesStatusDetails(enabled: boolean): UseAuthFilesStatusDetailsResult {
+  const selectUsageDetails = useCallback(
+    (state: ReturnType<typeof useUsageStatsStore.getState>) =>
+      enabled ? state.usageDetails : EMPTY_AUTH_FILE_USAGE_DETAILS,
+    [enabled]
+  );
+  const usageDetails = useUsageStatsStore(selectUsageDetails);
+  const loadUsageStats = useUsageStatsStore((state) => state.loadUsageStats);
+
+  const loadStatusDetails = useCallback(async () => {
+    if (!enabled) return;
+    await loadUsageStats({
+      detailsLimit: AUTH_FILE_STATUS_DETAILS_LIMIT,
+      compactDetails: true,
+      includeAggregated: false,
+      staleTimeMs: USAGE_STATS_STALE_TIME_MS,
+    });
+  }, [enabled, loadUsageStats]);
+
   const refreshStatusDetails = useCallback(async () => {
+    if (!enabled) return;
     await loadUsageStats({
       force: true,
       detailsLimit: AUTH_FILE_STATUS_DETAILS_LIMIT,
@@ -278,14 +300,7 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
       includeAggregated: false,
       staleTimeMs: USAGE_STATS_STALE_TIME_MS,
     });
-  }, [loadUsageStats]);
+  }, [enabled, loadUsageStats]);
 
-  return {
-    keyStats,
-    keyUsageStats,
-    usageDetails,
-    loadKeyStats,
-    refreshKeyStats,
-    refreshStatusDetails,
-  };
+  return { usageDetails, loadStatusDetails, refreshStatusDetails };
 }
