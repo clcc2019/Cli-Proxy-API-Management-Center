@@ -1,12 +1,16 @@
 import {
+  useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
+  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { IconChevronDown } from './icons';
 
 interface AutocompleteInputProps {
@@ -19,11 +23,57 @@ interface AutocompleteInputProps {
   hint?: string;
   error?: string;
   className?: string;
+  dropdownClassName?: string;
+  portal?: boolean;
   wrapperClassName?: string;
   wrapperStyle?: React.CSSProperties;
   id?: string;
   rightElement?: ReactNode;
 }
+
+const VIEWPORT_MARGIN = 8;
+const DROPDOWN_OFFSET = 6;
+const DROPDOWN_MAX_HEIGHT = 200;
+const DROPDOWN_Z_INDEX = 2010;
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const resolveDropdownStyle = (element: HTMLElement): CSSProperties => {
+  const rect = element.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const width = Math.min(rect.width, Math.max(0, viewportWidth - VIEWPORT_MARGIN * 2));
+  const left = clamp(
+    rect.left,
+    VIEWPORT_MARGIN,
+    Math.max(VIEWPORT_MARGIN, viewportWidth - width - VIEWPORT_MARGIN)
+  );
+  const spaceBelow = viewportHeight - rect.bottom - VIEWPORT_MARGIN - DROPDOWN_OFFSET;
+  const spaceAbove = rect.top - VIEWPORT_MARGIN - DROPDOWN_OFFSET;
+  const direction = spaceBelow >= DROPDOWN_MAX_HEIGHT || spaceBelow >= spaceAbove ? 'down' : 'up';
+  const maxHeight = Math.max(
+    0,
+    Math.min(DROPDOWN_MAX_HEIGHT, direction === 'down' ? spaceBelow : spaceAbove)
+  );
+
+  return direction === 'down'
+    ? {
+        position: 'fixed',
+        top: rect.bottom + DROPDOWN_OFFSET,
+        left,
+        width,
+        maxHeight,
+        zIndex: DROPDOWN_Z_INDEX,
+      }
+    : {
+        position: 'fixed',
+        bottom: viewportHeight - rect.top + DROPDOWN_OFFSET,
+        left,
+        width,
+        maxHeight,
+        zIndex: DROPDOWN_Z_INDEX,
+      };
+};
 
 export function AutocompleteInput({
   label,
@@ -35,6 +85,8 @@ export function AutocompleteInput({
   hint,
   error,
   className = '',
+  dropdownClassName = '',
+  portal = false,
   wrapperClassName = '',
   wrapperStyle,
   id,
@@ -43,9 +95,13 @@ export function AutocompleteInput({
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<CSSProperties | null>(null);
   const generatedId = useId();
   const inputId = id ?? generatedId;
-  
+
   const normalizedOptions = options.map((opt) =>
     typeof opt === 'string'
       ? { value: opt, label: opt }
@@ -55,8 +111,7 @@ export function AutocompleteInput({
   const filteredOptions = normalizedOptions.filter((opt) => {
     const v = value.toLowerCase();
     return (
-      opt.value.toLowerCase().includes(v) ||
-      (opt.label && opt.label.toLowerCase().includes(v))
+      opt.value.toLowerCase().includes(v) || (opt.label && opt.label.toLowerCase().includes(v))
     );
   });
   const dropdownId = `${inputId}-options`;
@@ -74,13 +129,59 @@ export function AutocompleteInput({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
+      setIsOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const updateDropdownStyle = useCallback(() => {
+    if (!inputRef.current || typeof window === 'undefined') return;
+    setDropdownStyle(resolveDropdownStyle(inputRef.current));
+  }, []);
+
+  const scheduleDropdownStyleUpdate = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = null;
+      updateDropdownStyle();
+    });
+  }, [updateDropdownStyle]);
+
+  useLayoutEffect(() => {
+    if (!portal || !isExpanded) {
+      if (rafRef.current !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      return;
+    }
+
+    updateDropdownStyle();
+
+    const handleViewportChange = () => scheduleDropdownStyleUpdate();
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined' && inputRef.current
+        ? new ResizeObserver(() => scheduleDropdownStyleUpdate())
+        : null;
+
+    if (resizeObserver && inputRef.current) resizeObserver.observe(inputRef.current);
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('scroll', handleViewportChange, true);
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('scroll', handleViewportChange, true);
+      resizeObserver?.disconnect();
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [isExpanded, portal, scheduleDropdownStyleUpdate, updateDropdownStyle]);
 
   useEffect(() => {
     if (!isExpanded || boundedHighlightedIndex < 0) return;
@@ -143,11 +244,82 @@ export function AutocompleteInput({
     }
   };
 
+  const dropdown =
+    isExpanded && (!portal || dropdownStyle) ? (
+      <div
+        ref={dropdownRef}
+        id={dropdownId}
+        className={`autocomplete-dropdown ${dropdownClassName}`.trim()}
+        role="listbox"
+        aria-label={toggleLabel}
+        style={
+          portal
+            ? {
+                ...dropdownStyle,
+                boxSizing: 'border-box',
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                overflowY: 'auto',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              }
+            : {
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                left: 0,
+                right: 0,
+                zIndex: 1000,
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                maxHeight: 200,
+                overflowY: 'auto',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              }
+        }
+      >
+        {filteredOptions.map((opt, index) => (
+          <button
+            type="button"
+            id={`${dropdownId}-option-${index}`}
+            key={`${opt.value}-${index}`}
+            role="option"
+            aria-selected={index === boundedHighlightedIndex}
+            onClick={() => handleSelect(opt.value)}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              border: 0,
+              cursor: 'pointer',
+              backgroundColor:
+                index === boundedHighlightedIndex ? 'var(--bg-tertiary)' : 'transparent',
+              color: 'var(--text-primary)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              font: 'inherit',
+              fontSize: '0.9rem',
+              textAlign: 'left',
+            }}
+            onMouseEnter={() => setHighlightedIndex(index)}
+          >
+            <span style={{ fontWeight: 500 }}>{opt.value}</span>
+            {opt.label && opt.label !== opt.value && (
+              <span style={{ fontSize: '0.85em', color: 'var(--text-secondary)' }}>
+                {opt.label}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    ) : null;
+
   return (
     <div className={`form-group ${wrapperClassName}`} ref={containerRef} style={wrapperStyle}>
       {label && <label htmlFor={inputId}>{label}</label>}
       <div style={{ position: 'relative' }}>
         <input
+          ref={inputRef}
           id={inputId}
           className={`input ${className}`.trim()}
           value={value}
@@ -196,62 +368,10 @@ export function AutocompleteInput({
           <IconChevronDown size={16} style={{ opacity: 0.5, marginLeft: 4 }} />
         </button>
 
-        {isOpen && filteredOptions.length > 0 && !disabled && (
-          <div
-            id={dropdownId}
-            className="autocomplete-dropdown"
-            role="listbox"
-            aria-label={toggleLabel}
-            style={{
-              position: 'absolute',
-              top: 'calc(100% + 4px)',
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              backgroundColor: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-md)',
-              maxHeight: 200,
-              overflowY: 'auto',
-              boxShadow:
-                '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-            }}
-          >
-            {filteredOptions.map((opt, index) => (
-              <button
-                type="button"
-                id={`${dropdownId}-option-${index}`}
-                key={`${opt.value}-${index}`}
-                role="option"
-                aria-selected={index === boundedHighlightedIndex}
-                onClick={() => handleSelect(opt.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: 0,
-                  cursor: 'pointer',
-                  backgroundColor:
-                    index === boundedHighlightedIndex ? 'var(--bg-tertiary)' : 'transparent',
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  font: 'inherit',
-                  fontSize: '0.9rem',
-                  textAlign: 'left',
-                }}
-                onMouseEnter={() => setHighlightedIndex(index)}
-              >
-                <span style={{ fontWeight: 500 }}>{opt.value}</span>
-                {opt.label && opt.label !== opt.value && (
-                  <span style={{ fontSize: '0.85em', color: 'var(--text-secondary)' }}>
-                    {opt.label}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        {dropdown &&
+          (portal && typeof document !== 'undefined'
+            ? createPortal(dropdown, document.body)
+            : dropdown)}
       </div>
       {hint && (
         <div id={hintId} className="hint">

@@ -79,6 +79,8 @@ export function ProviderResourceToolbar({
           options={sortOptions}
           onChange={(value) => onSortBy(value as ProviderSortBy)}
           ariaLabel={t('providersPage.toolbar.sortBy')}
+          className={styles.sortSelect}
+          dropdownClassName={styles.sortDropdown}
           fullWidth={false}
         />
         <button

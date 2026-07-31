@@ -8,10 +8,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useConfigStore, useThemeStore } from '@/stores';
 import { DeferredUsageCard } from '@/components/usage/DeferredUsageCard';
 import { StatCards } from '@/components/usage/StatCards';
-import { UsageAnalysisSection } from '@/components/usage/UsageAnalysisSection';
 import { UsagePageHero } from '@/components/usage/UsagePageHero';
 import { UsageSectionIntro } from '@/components/usage/UsageSectionIntro';
-import { UsageTrendsSection } from '@/components/usage/UsageTrendsSection';
 import { useUsageAggregateData } from '@/components/usage/hooks/useUsageAggregateData';
 import { useUsageViewState } from '@/components/usage/hooks/useUsageViewState';
 import { getAggregateWindowModelNames } from '@/utils/usageAggregate';
@@ -23,6 +21,14 @@ const LazyUsageDetailsSection = lazy(async () => ({
 
 const LazyUsageSupportSection = lazy(async () => ({
   default: (await import('@/components/usage/UsageSupportSection')).UsageSupportSection,
+}));
+
+const LazyUsageTrendsSection = lazy(async () => ({
+  default: (await import('@/components/usage/UsageTrendsSection')).UsageTrendsSection,
+}));
+
+const LazyUsageAnalysisSection = lazy(async () => ({
+  default: (await import('@/components/usage/UsageAnalysisSection')).UsageAnalysisSection,
 }));
 
 const buildDetailsFallback = (apiTitle: string, modelTitle: string, caption: string) => (
@@ -39,6 +45,12 @@ const buildSupportFallback = (credentialTitle: string, pricingTitle: string, cap
     <DeferredUsageCard title={credentialTitle} caption={caption} />
     <DeferredUsageCard title={pricingTitle} caption={caption} />
   </div>
+);
+
+const buildSectionFallback = (title: string, description: string) => (
+  <section className={styles.section} aria-busy="true">
+    <UsageSectionIntro title={title} description={description} />
+  </section>
 );
 
 export function UsagePage() {
@@ -91,6 +103,10 @@ export function UsagePage() {
     [deferredWindow]
   );
   const deferredChartCaption = t('usage_stats.render_on_demand');
+  const trendsTitle = t('usage_stats.trends_title');
+  const trendsDescription = t('usage_stats.trends_desc');
+  const analysisTitle = t('usage_stats.analysis_title');
+  const analysisDescription = t('usage_stats.analysis_desc');
   const handleRefresh = useCallback(() => {
     void loadUsage({ force: true }).catch(() => {});
   }, [loadUsage]);
@@ -149,27 +165,37 @@ export function UsagePage() {
         <StatCards window={deferredWindow} loading={loading} modelPrices={modelPrices} />
       </section>
 
-      <UsageTrendsSection
-        window={deferredWindow}
-        chartLines={chartLines}
-        chartDataLines={deferredChartLines}
-        modelNames={visibleModelNames}
-        isDark={isDark}
-        isMobile={isMobile}
-        loading={loading}
-        preferredPeriod={preferredChartPeriod}
-        onChartLinesChange={handleChartLinesChange}
-      />
-
-      <div id="usage-analysis" className={`${styles.anchorBlock} ${styles.motionSection}`}>
-        <UsageAnalysisSection
+      <Suspense fallback={buildSectionFallback(trendsTitle, trendsDescription)}>
+        <LazyUsageTrendsSection
           window={deferredWindow}
-          loading={loading}
+          chartLines={chartLines}
+          chartDataLines={deferredChartLines}
+          modelNames={visibleModelNames}
           isDark={isDark}
           isMobile={isMobile}
-          hourWindowHours={hourWindowHours}
-          modelPrices={modelPrices}
+          loading={loading}
+          preferredPeriod={preferredChartPeriod}
+          onChartLinesChange={handleChartLinesChange}
         />
+      </Suspense>
+
+      <div id="usage-analysis" className={`${styles.anchorBlock} ${styles.motionSection}`}>
+        <DeferredRender
+          minHeight={132}
+          rootMargin="240px 0px"
+          placeholder={buildSectionFallback(analysisTitle, analysisDescription)}
+        >
+          <Suspense fallback={buildSectionFallback(analysisTitle, analysisDescription)}>
+            <LazyUsageAnalysisSection
+              window={deferredWindow}
+              loading={loading}
+              isDark={isDark}
+              isMobile={isMobile}
+              hourWindowHours={hourWindowHours}
+              modelPrices={modelPrices}
+            />
+          </Suspense>
+        </DeferredRender>
       </div>
 
       <DeferredRender

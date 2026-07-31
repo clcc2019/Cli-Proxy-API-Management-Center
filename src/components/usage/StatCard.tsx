@@ -32,7 +32,7 @@ export const StatCard = memo(function StatCard({
   } as CSSProperties;
 
   return (
-    <div key={cardKey} className={styles.statCard} style={cardStyle}>
+    <div key={cardKey} className={styles.statCard} data-stat-key={cardKey} style={cardStyle}>
       <div className={styles.statCardHeader}>
         <div className={styles.statLabelGroup}>
           <span className={styles.statLabel}>{label}</span>

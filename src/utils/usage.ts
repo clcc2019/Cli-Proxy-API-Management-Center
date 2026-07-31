@@ -2318,17 +2318,19 @@ export interface StatusBarData {
 }
 
 /**
- * 计算状态栏数据（最近200分钟，分为20个10分钟的时间块）
- * 每个时间块代表窗口内的一个等长区间，用于展示成功/失败趋势
+ * 计算状态栏数据（默认最近200分钟，分为20个10分钟的时间块）
+ * 每个时间块代表窗口内的一个等长区间，用于展示成功/失败趋势。
+ * `blockDurationMs` 可供认证文件卡片使用更短的统计间隔。
  */
 export function calculateStatusBarData(
   usageDetails: UsageDetail[],
   sourceFilter?: string,
-  authIndexFilter?: number
+  authIndexFilter?: number,
+  blockDurationMs = 10 * 60 * 1000
 ): StatusBarData {
   const BLOCK_COUNT = 20;
-  const BLOCK_DURATION_MS = 10 * 60 * 1000; // 10 minutes
-  const WINDOW_MS = BLOCK_COUNT * BLOCK_DURATION_MS; // 200 minutes
+  const BLOCK_DURATION_MS = blockDurationMs;
+  const WINDOW_MS = BLOCK_COUNT * BLOCK_DURATION_MS;
 
   const now = Date.now();
   const windowStart = now - WINDOW_MS;

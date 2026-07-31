@@ -560,3 +560,1463 @@
     justify-self: end;
   }
 }
+
+// =============================================================================
+// Credential rules workbench
+// Keep the modal in the same quiet enterprise language as the auth-files page:
+// white surfaces, warm charcoal type, hairline rails, and one dark save action.
+// =============================================================================
+.modal {
+  --oauth-modal-surface: #ffffff;
+  --oauth-modal-surface-subtle: #f4f4f4;
+  --oauth-modal-surface-warm: #faf8f5;
+  --oauth-modal-text: #2c2a25;
+  --oauth-modal-text-secondary: #565551;
+  --oauth-modal-text-tertiary: #807f7c;
+  --oauth-modal-border: #eaeae9;
+  --oauth-modal-border-strong: #d8d8d3;
+  --oauth-modal-ink: #0e0d0c;
+  --oauth-modal-ink-text: #ffffff;
+  --oauth-modal-sage: #96a58d;
+  --oauth-modal-sage-strong: #63725a;
+  --oauth-modal-sage-soft: #e1e2d9;
+  --oauth-modal-success: #407345;
+
+  // Bridge shared form primitives to the Merge Gateway palette. Without this
+  // scope, the portal-rendered Select dropdown and form controls use the old
+  // global border and primary colors even though the modal surface is neutral.
+  --bg-primary: var(--oauth-modal-surface);
+  --bg-secondary: var(--oauth-modal-surface-subtle);
+  --bg-tertiary: var(--oauth-modal-surface-warm);
+  --bg-hover: var(--oauth-modal-surface-subtle);
+  --text-primary: var(--oauth-modal-text);
+  --text-secondary: var(--oauth-modal-text-secondary);
+  --text-tertiary: var(--oauth-modal-text-tertiary);
+  --border-color: var(--oauth-modal-border);
+  --border-primary: var(--oauth-modal-border);
+  --border-hover: var(--oauth-modal-border-strong);
+  --primary-color: var(--oauth-modal-sage-strong);
+  --primary-hover: var(--oauth-modal-text-secondary);
+  --primary-active: var(--oauth-modal-ink);
+  --primary-contrast: #ffffff;
+  --primary-soft: var(--oauth-modal-sage-soft);
+  --focus-ring: rgb(150 165 141 / 0.28);
+  --brand-gradient: var(--oauth-modal-sage-strong);
+  --brand-gradient-hover: var(--oauth-modal-sage);
+  --control-surface: var(--oauth-modal-surface);
+  --control-surface-gradient: var(--oauth-modal-surface);
+  --control-shadow: none;
+  --floating-surface: var(--oauth-modal-surface);
+  --floating-surface-material: var(--oauth-modal-surface);
+  --floating-border: var(--oauth-modal-border);
+  --floating-shadow: 0 16px 34px -24px rgb(44 42 37 / 0.3);
+  --surface-inner-highlight: none;
+  --surface-raised: var(--oauth-modal-surface);
+  --surface-raised-strong: var(--oauth-modal-surface);
+  --surface-card: var(--oauth-modal-surface);
+  --surface-card-muted: var(--oauth-modal-surface-subtle);
+  --neutral-accent: var(--oauth-modal-sage);
+  --neutral-accent-strong: var(--oauth-modal-sage-strong);
+  --success-color: var(--oauth-modal-success);
+  --warning-color: #e5a947;
+  --error-color: #a53830;
+  --danger-color: #a53830;
+  --danger-hover: #8c302a;
+  --info-color: var(--oauth-modal-sage-strong);
+
+  max-height: min(90vh, 860px);
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 16px;
+  background: var(--oauth-modal-surface);
+  color: var(--oauth-modal-text);
+  box-shadow: 0 24px 80px rgb(20 20 17 / 0.16);
+
+  :global(.modal-header) {
+    min-height: 72px;
+    padding: 18px 24px 17px;
+    border-bottom-color: var(--oauth-modal-border);
+    background: var(--oauth-modal-surface);
+  }
+
+  :global(.modal-title) {
+    color: var(--oauth-modal-text);
+    font-size: 20px;
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+
+  :global(.modal-body) {
+    max-height: min(72vh, 700px);
+    padding: 0;
+    overflow: auto;
+    background: var(--oauth-modal-surface);
+    scrollbar-color: var(--oauth-modal-border-strong) transparent;
+    scrollbar-width: thin;
+  }
+
+  :global(.modal-footer) {
+    min-height: 68px;
+    padding: 14px 24px;
+    border-top-color: var(--oauth-modal-border);
+    background: var(--oauth-modal-surface-subtle);
+  }
+
+  :global(.modal-close-floating) {
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-color: var(--oauth-modal-border);
+    background: var(--oauth-modal-surface);
+    color: var(--oauth-modal-text-tertiary);
+
+    &:hover {
+      border-color: var(--oauth-modal-border-strong);
+      background: var(--oauth-modal-surface-subtle);
+      color: var(--oauth-modal-text);
+      transform: none;
+    }
+  }
+
+  :global(.input) {
+    min-height: 40px;
+    border-color: var(--oauth-modal-border);
+    border-radius: 8px;
+    background: var(--oauth-modal-surface);
+    color: var(--oauth-modal-text);
+    box-shadow: none;
+    font-size: 13px;
+
+    &:focus {
+      border-color: var(--oauth-modal-sage);
+      box-shadow: 0 0 0 2px rgb(150 165 141 / 0.2);
+    }
+  }
+
+  :global(.btn.btn-primary) {
+    border-color: var(--oauth-modal-ink);
+    background: var(--oauth-modal-ink);
+    color: var(--oauth-modal-ink-text);
+
+    &:hover:not(:disabled) {
+      border-color: var(--oauth-modal-text-secondary);
+      background: var(--oauth-modal-text-secondary);
+    }
+  }
+
+  :global(.btn.btn-secondary) {
+    border-color: var(--oauth-modal-border);
+    background: var(--oauth-modal-surface);
+    color: var(--oauth-modal-text);
+
+    &:hover:not(:disabled) {
+      border-color: var(--oauth-modal-border-strong);
+      background: var(--oauth-modal-surface-subtle);
+    }
+  }
+}
+
+.editor {
+  background: var(--oauth-modal-surface);
+}
+
+.loadingState {
+  min-height: 300px;
+  color: var(--oauth-modal-text-secondary);
+}
+
+.editor > :global(.empty-state) {
+  min-height: 240px;
+  margin: 24px;
+  border: 1px dashed var(--oauth-modal-border-strong);
+  border-radius: 12px;
+  background: var(--oauth-modal-surface-warm);
+  box-shadow: none;
+}
+
+.modalFooter {
+  flex-direction: row;
+  gap: 8px;
+
+  :global(.btn) {
+    min-height: 40px;
+    border-radius: 999px;
+  }
+}
+
+.providerSection {
+  border-bottom-color: var(--oauth-modal-border);
+  background:
+    radial-gradient(circle at 0 0, rgb(150 165 141 / 0.13), transparent 56%),
+    var(--oauth-modal-surface-warm);
+}
+
+.sectionHeader {
+  gap: 16px;
+  padding: 18px 24px 14px;
+  border-bottom-color: var(--oauth-modal-border);
+
+  h2 {
+    color: var(--oauth-modal-text);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    color: var(--oauth-modal-text-secondary);
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+}
+
+.providerBody {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(230px, auto);
+  align-items: end;
+  gap: 16px;
+  padding: 16px 24px 20px;
+}
+
+.providerTags {
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+
+.providerTag {
+  min-height: 32px;
+  padding: 5px 11px;
+  border-color: var(--oauth-modal-border);
+  background: var(--oauth-modal-surface);
+  color: var(--oauth-modal-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    border-color: var(--oauth-modal-border-strong);
+    background: var(--oauth-modal-surface-subtle);
+    color: var(--oauth-modal-text);
+  }
+
+  &:focus-visible {
+    outline-color: var(--oauth-modal-sage);
+  }
+}
+
+.providerTagActive {
+  border-color: var(--oauth-modal-ink);
+  background: var(--oauth-modal-ink);
+  color: var(--oauth-modal-ink-text);
+
+  &:hover:not(:disabled) {
+    border-color: var(--oauth-modal-text-secondary);
+    background: var(--oauth-modal-text-secondary);
+    color: var(--oauth-modal-ink-text);
+  }
+}
+
+.rulesLayout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: var(--oauth-modal-surface);
+}
+
+.ruleSection {
+  min-width: 0;
+
+  + .ruleSection {
+    border-top: 0;
+    border-left: 1px solid var(--oauth-modal-border);
+  }
+}
+
+.ruleBody,
+.mappingsBody {
+  padding: 18px 24px 22px;
+}
+
+.modelSourceStatus {
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 11.5px;
+}
+
+.modelList {
+  max-height: 304px;
+  margin-top: 0;
+  padding: 0 10px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 10px;
+  background: var(--oauth-modal-surface-subtle);
+}
+
+.modelItem {
+  min-height: 44px;
+  padding: 10px 0;
+  border-bottom-color: var(--oauth-modal-border);
+
+  &:hover {
+    background: var(--oauth-modal-surface);
+  }
+}
+
+.modelId {
+  color: var(--oauth-modal-text);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.modelDisplayName,
+.controlHint,
+.reasoningLabel,
+.reasoningDetails summary,
+.reasoningOverride > span {
+  color: var(--oauth-modal-text-tertiary);
+}
+
+.manualModelDetails {
+  margin-top: 14px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 10px;
+  background: var(--oauth-modal-surface-warm);
+
+  summary {
+    color: var(--oauth-modal-text-secondary);
+    font-weight: 600;
+  }
+
+  .manualModelControl {
+    margin-top: 10px;
+  }
+}
+
+.awaitingProvider,
+.unavailableState,
+.compactEmpty,
+.aliasEmpty {
+  padding: 22px 24px;
+  color: var(--oauth-modal-text-secondary);
+}
+
+.aliasEmpty {
+  background: var(--oauth-modal-surface-warm);
+}
+
+.mappingRow {
+  padding: 16px 0;
+  border-bottom-color: var(--oauth-modal-border);
+}
+
+.mappingInputs {
+  gap: 8px;
+}
+
+.mappingSeparator {
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 13px;
+}
+
+.mappingOptions {
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
+  padding-left: 0;
+  border-top: 1px solid var(--oauth-modal-border);
+}
+
+.reasoningOverrides {
+  border-color: var(--oauth-modal-border);
+  border-radius: 9px;
+  background: var(--oauth-modal-surface-subtle);
+}
+
+// Select renders its menu in a body portal, so restate the scoped token bridge
+// on the portal root instead of allowing the menu to fall back to global colors.
+.reasoningDropdown {
+  --bg-secondary: #f4f4f4;
+  --text-primary: #2c2a25;
+  --text-secondary: #565551;
+  --text-tertiary: #807f7c;
+  --border-color: #eaeae9;
+  --border-primary: #eaeae9;
+  --border-hover: #d8d8d3;
+  --primary-color: #63725a;
+  --primary-soft: #e1e2d9;
+  --focus-ring: rgb(150 165 141 / 0.28);
+  --floating-surface: #ffffff;
+  --floating-surface-material: #ffffff;
+  --floating-border: #eaeae9;
+  --floating-shadow: 0 16px 34px -24px rgb(44 42 37 / 0.3);
+  --surface-inner-highlight: none;
+}
+
+// The original-model autocomplete is portaled out of the scrollable modal body
+// so its menu can clear the footer. Reapply the modal palette on the body-level
+// portal root because it no longer inherits variables from .modal.
+.originalModelDropdown {
+  --bg-secondary: #f4f4f4;
+  --bg-tertiary: #faf8f5;
+  --text-primary: #2c2a25;
+  --text-secondary: #565551;
+  --border-color: #eaeae9;
+  --radius-md: 8px;
+}
+
+:global([data-theme='dark']) .reasoningDropdown {
+  --bg-secondary: #20211d;
+  --text-primary: #efeee8;
+  --text-secondary: #c3c5bb;
+  --text-tertiary: #94978d;
+  --border-color: #33352f;
+  --border-primary: #33352f;
+  --border-hover: #4a4d44;
+  --primary-color: #b3bea9;
+  --primary-soft: #2c3429;
+  --focus-ring: rgb(179 190 169 / 0.28);
+  --floating-surface: #181916;
+  --floating-surface-material: #181916;
+  --floating-border: #33352f;
+  --floating-shadow: 0 16px 34px -24px rgb(0 0 0 / 0.54);
+}
+
+:global([data-theme='dark']) .originalModelDropdown {
+  --bg-secondary: #20211d;
+  --bg-tertiary: #1d1f1a;
+  --text-primary: #efeee8;
+  --text-secondary: #c3c5bb;
+  --border-color: #33352f;
+}
+
+.clearNotice {
+  border-color: rgb(229 169 71 / 0.32);
+  border-radius: 9px;
+  background: rgb(229 169 71 / 0.1);
+  color: var(--oauth-modal-text-secondary);
+}
+
+:global([data-theme='dark']) .modal {
+  --oauth-modal-surface: #181916;
+  --oauth-modal-surface-subtle: #20211d;
+  --oauth-modal-surface-warm: #1d1f1a;
+  --oauth-modal-text: #efeee8;
+  --oauth-modal-text-secondary: #c3c5bb;
+  --oauth-modal-text-tertiary: #94978d;
+  --oauth-modal-border: #33352f;
+  --oauth-modal-border-strong: #4a4d44;
+  --oauth-modal-ink: #efeee8;
+  --oauth-modal-ink-text: #1b1c19;
+  --oauth-modal-sage: #b3bea9;
+  --oauth-modal-sage-strong: #b3bea9;
+  --oauth-modal-sage-soft: #2c3429;
+  --oauth-modal-success: #9ac2a7;
+  --primary-contrast: #1b1c19;
+
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.54);
+}
+
+@media (max-width: 900px) {
+  .providerBody {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .providerTags {
+    justify-content: flex-start;
+  }
+
+  .rulesLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ruleSection + .ruleSection {
+    border-top: 1px solid var(--oauth-modal-border);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .modal {
+    :global(.modal-header) {
+      min-height: 64px;
+      padding: max(16px, env(safe-area-inset-top)) 16px 14px;
+    }
+
+    :global(.modal-footer) {
+      min-height: 0;
+      padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    }
+
+    :global(.modal-body) {
+      max-height: none;
+    }
+  }
+
+  .sectionHeader,
+  .providerBody,
+  .ruleBody,
+  .mappingsBody {
+    padding-inline: 16px;
+  }
+
+  .sectionHeader {
+    padding-top: 16px;
+  }
+
+  .modalFooter {
+    flex-direction: column-reverse;
+
+    :global(.btn) {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .modelList {
+    max-height: min(320px, 38vh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal,
+  .modal :global(.modal-close-floating),
+  .providerTag,
+  .modelItem {
+    transition: none;
+  }
+}
+
+// =============================================================================
+// Editor composition
+// The settings editor is intentionally rebuilt as a provider rail plus one
+// focused rules workspace. This keeps context visible while the form grows,
+// instead of repeating the old full-width stacked card treatment.
+// =============================================================================
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(228px, 268px) minmax(0, 1fr);
+  align-items: stretch;
+  min-width: 0;
+  min-height: 520px;
+  background: var(--oauth-modal-surface);
+}
+
+.providerRail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 24px 20px 26px;
+  border-right: 1px solid var(--oauth-modal-border);
+  background:
+    radial-gradient(circle at 0 0, rgb(150 165 141 / 0.14), transparent 66%),
+    var(--oauth-modal-surface-warm);
+}
+
+.railHeader {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+
+  h2 {
+    margin: 0;
+    color: var(--oauth-modal-text);
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    margin: 0;
+    color: var(--oauth-modal-text-secondary);
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+}
+
+.railEyebrow {
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.providerRail .providerBody {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  padding: 24px 0 0;
+}
+
+.providerRail .providerTags {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.rulesMain {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  background: var(--oauth-modal-surface);
+}
+
+.rulesMain .rulesLayout {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rulesMain .ruleSection {
+  min-width: 0;
+}
+
+.rulesMain .ruleSection + .ruleSection {
+  border-top: 1px solid var(--oauth-modal-border);
+  border-left: 0;
+}
+
+.rulesMain .sectionHeader {
+  padding: 22px 24px 15px;
+  border-bottom-color: var(--oauth-modal-border);
+}
+
+.rulesMain .ruleBody,
+.rulesMain .mappingsBody {
+  padding: 18px 24px 24px;
+}
+
+.rulesMain .modelList {
+  max-height: 300px;
+}
+
+.rulesMain .awaitingProvider {
+  display: grid;
+  min-height: 420px;
+  place-items: center;
+  padding: 32px;
+  background: var(--oauth-modal-surface);
+  color: var(--oauth-modal-text-tertiary);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .providerRail {
+    padding: 20px 24px 22px;
+    border-right: 0;
+    border-bottom: 1px solid var(--oauth-modal-border);
+  }
+
+  .providerRail .providerBody {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(230px, auto);
+    align-items: end;
+    gap: 16px;
+    padding-top: 18px;
+  }
+
+  .providerRail .providerTags {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 767px) {
+  .providerRail {
+    padding: 18px 16px 20px;
+  }
+
+  .providerRail .providerBody {
+    display: flex;
+    gap: 14px;
+    padding-top: 16px;
+  }
+
+  .providerRail .providerTags {
+    justify-content: flex-start;
+  }
+
+  .rulesMain .sectionHeader {
+    padding: 18px 16px 14px;
+  }
+
+  .rulesMain .ruleBody,
+  .rulesMain .mappingsBody {
+    padding: 16px 16px 20px;
+  }
+
+  .rulesMain .awaitingProvider {
+    min-height: 260px;
+    padding: 24px 16px;
+  }
+}
+
+// =============================================================================
+// Alias rule cards
+// Each mapping is a small, self-contained work surface. Keeping the identity
+// row, name pair, and provider-specific settings in separate layers prevents
+// Codex controls from competing for the same grid columns.
+// =============================================================================
+.mappingRow {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 12px;
+  background: var(--oauth-modal-surface);
+  box-shadow: 0 8px 22px rgb(44 42 37 / 0.035);
+
+  &:first-child,
+  &:last-child {
+    padding-block: 16px;
+    border-bottom: 1px solid var(--oauth-modal-border);
+  }
+
+  & + & {
+    margin-top: 12px;
+  }
+}
+
+.mappingRowHeader {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mappingRowIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.mappingRowIndex {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding-inline: 6px;
+  border: 1px solid var(--oauth-modal-sage-soft);
+  border-radius: 999px;
+  background: var(--oauth-modal-surface-warm);
+  color: var(--oauth-modal-sage-strong);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.mappingRowTitle {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--oauth-modal-text);
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mappingRemove {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--oauth-modal-text-tertiary);
+
+  &:hover:not(:disabled) {
+    border-color: rgb(165 56 48 / 0.24);
+    background: rgb(165 56 48 / 0.07);
+    color: var(--oauth-modal-danger, #a53830);
+    transform: none;
+  }
+
+  &:focus-visible {
+    outline-color: var(--oauth-modal-sage);
+  }
+}
+
+.mappingInputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mappingField {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+
+  > :global(.form-group) {
+    min-width: 0;
+    margin: 0;
+  }
+
+  :global(.input) {
+    width: 100%;
+  }
+}
+
+.mappingFieldLabel {
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  line-height: 1.35;
+}
+
+.mappingSeparator {
+  display: inline-flex;
+  width: 24px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 14px;
+}
+
+.mappingAliasInput {
+  width: 100%;
+  min-width: 0;
+}
+
+.mappingOptions {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 0;
+  padding-top: 16px;
+  padding-left: 0;
+  border-top: 1px solid var(--oauth-modal-border);
+}
+
+.forkOption {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 9px;
+  background: var(--oauth-modal-surface-subtle);
+}
+
+.reasoningControl {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 10px;
+  background: var(--oauth-modal-surface-warm);
+}
+
+.reasoningHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 230px);
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.reasoningLabel {
+  min-width: 0;
+  color: var(--oauth-modal-text-secondary);
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.reasoningSelect {
+  display: block;
+  width: 100%;
+  min-width: 0;
+
+  :global(button[role='combobox']) {
+    width: 100%;
+  }
+}
+
+.reasoningDetails {
+  min-width: 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--oauth-modal-border);
+
+  summary {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    color: var(--oauth-modal-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+  }
+}
+
+.reasoningOverrides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 9px;
+  background: var(--oauth-modal-surface-subtle);
+}
+
+.reasoningOverride {
+  display: grid;
+  grid-template-columns: minmax(74px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  > span {
+    min-width: 0;
+    color: var(--oauth-modal-text-tertiary);
+    font-size: 11.5px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+}
+
+.mappingError {
+  margin: 0;
+  color: var(--oauth-modal-danger, #a53830);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 767px) {
+  .mappingRow {
+    gap: 14px;
+    padding: 14px;
+
+    &:first-child,
+    &:last-child {
+      padding-block: 14px;
+    }
+  }
+
+  .mappingInputs {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .mappingSeparator {
+    display: none;
+  }
+
+  .reasoningHeader {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+}
+
+@media (max-width: 560px) {
+  .reasoningOverrides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// =============================================================================
+// Shared rule surfaces
+// Keep the model list and alias list on the same horizontal rails. The alias
+// rows remain separated internally, but no longer add a second inset card
+// around the actual content area.
+// =============================================================================
+.workspace {
+  grid-template-columns: minmax(220px, 240px) minmax(0, 1fr);
+}
+
+.rulesMain .ruleBody,
+.rulesMain .mappingsBody {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 18px 24px 24px;
+}
+
+.rulesMain .modelList,
+.mappingList {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 10px;
+  background: var(--oauth-modal-surface-subtle);
+}
+
+.rulesMain .modelList {
+  padding: 0;
+}
+
+.rulesMain .modelList .modelItem {
+  padding-inline: 16px;
+}
+
+.mappingList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.mappingList .mappingRow {
+  padding: 16px;
+  border: 0;
+  border-bottom: 1px solid var(--oauth-modal-border);
+  border-radius: 0;
+  background: var(--oauth-modal-surface);
+  box-shadow: none;
+}
+
+.mappingList .mappingRow:first-child,
+.mappingList .mappingRow:last-child {
+  padding-block: 16px;
+  border-bottom: 1px solid var(--oauth-modal-border);
+}
+
+.mappingList .mappingRow:last-child {
+  border-bottom: 0;
+}
+
+.mappingList .mappingRow + .mappingRow {
+  margin-top: 0;
+}
+
+.mappingList > .clearNotice {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 767px) {
+  .rulesMain .ruleBody,
+  .rulesMain .mappingsBody {
+    padding-inline: 16px;
+  }
+}
+
+// =============================================================================
+// Codex rules editor — simplified composition
+// A single context bar and two task sections keep the modal readable. The
+// provider rail and nested mapping cards are intentionally no longer part of
+// the active composition.
+// =============================================================================
+.rulesShell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  background: var(--oauth-modal-surface);
+}
+
+.providerContext {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  align-items: center;
+  gap: 28px;
+  min-width: 0;
+  padding: 22px 28px 20px;
+  border-bottom: 1px solid var(--oauth-modal-border);
+  background: var(--oauth-modal-surface-warm);
+}
+
+.providerContextIntro {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+
+  h2 {
+    margin: 0;
+    color: var(--oauth-modal-text);
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    max-width: 42ch;
+    margin: 0;
+    color: var(--oauth-modal-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+.providerContextEyebrow {
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.providerContextControls {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+
+  > :global(.form-group) {
+    min-width: 0;
+    margin: 0;
+  }
+}
+
+.providerContextControls .providerTags {
+  justify-content: flex-start;
+}
+
+.rulesContent {
+  min-width: 0;
+  background: var(--oauth-modal-surface);
+}
+
+.rulesSections {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.rulesSections .ruleSection {
+  min-width: 0;
+  border: 0;
+}
+
+.rulesSections .ruleSection + .ruleSection {
+  border-top: 1px solid var(--oauth-modal-border);
+}
+
+.rulesSections .sectionHeader {
+  padding: 22px 28px 14px;
+  border-bottom-color: var(--oauth-modal-border);
+}
+
+.rulesSections .ruleBody,
+.rulesSections .mappingsBody {
+  padding: 16px 28px 24px;
+}
+
+.rulesSections .modelList,
+.rulesSections .mappingList {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 10px;
+  background: var(--oauth-modal-surface-subtle);
+}
+
+.rulesSections .modelList {
+  max-height: 320px;
+  padding: 0;
+  overflow: auto;
+}
+
+.rulesSections .modelList .modelItem {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-bottom-color: var(--oauth-modal-border);
+}
+
+.rulesSections .mappingList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rulesSections .mappingRow {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 0;
+  border-bottom: 1px solid var(--oauth-modal-border);
+  border-radius: 0;
+  background: var(--oauth-modal-surface);
+  box-shadow: none;
+}
+
+.rulesSections .mappingRow:last-child {
+  border-bottom: 0;
+}
+
+.rulesSections .mappingRowMain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) 36px;
+  align-items: end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rulesSections .mappingField {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rulesSections .mappingField > :global(.form-group) {
+  min-width: 0;
+  margin: 0;
+}
+
+.rulesSections .mappingField :global(.input) {
+  width: 100%;
+  min-width: 0;
+}
+
+.rulesSections .mappingFieldLabel {
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.rulesSections .mappingSeparator {
+  display: inline-flex;
+  width: 24px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 14px;
+}
+
+.rulesSections .mappingAliasInput {
+  width: 100%;
+  min-width: 0;
+}
+
+.rulesSections .mappingRemove {
+  display: inline-flex;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--oauth-modal-text-tertiary);
+
+  &:hover:not(:disabled) {
+    border-color: rgb(165 56 48 / 0.24);
+    background: rgb(165 56 48 / 0.07);
+    color: var(--oauth-modal-danger, #a53830);
+    transform: none;
+  }
+}
+
+.rulesSections .mappingRowSettings {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--oauth-modal-border);
+}
+
+.rulesSections .mappingFork {
+  display: flex;
+  flex: 0 0 auto;
+  min-height: 32px;
+  align-items: center;
+}
+
+.rulesSections .reasoningInline {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 360px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rulesSections .reasoningDefault {
+  display: flex;
+  min-width: 260px;
+  flex: 1 1 300px;
+  align-items: center;
+  gap: 10px;
+}
+
+.rulesSections .reasoningLabel {
+  flex: 0 1 auto;
+  color: var(--oauth-modal-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.rulesSections .reasoningSelect {
+  display: block;
+  min-width: 0;
+  flex: 1 1 190px;
+
+  :global(button[role='combobox']) {
+    width: 100%;
+  }
+}
+
+.rulesSections .reasoningDetails {
+  min-width: 0;
+  flex: 0 1 auto;
+
+  summary {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    color: var(--oauth-modal-text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+  }
+}
+
+.rulesSections .reasoningDetails[open] {
+  flex-basis: 100%;
+}
+
+.rulesSections .reasoningOverrides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--oauth-modal-border);
+  border-radius: 8px;
+  background: var(--oauth-modal-surface-subtle);
+}
+
+.rulesSections .reasoningOverride {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  > span {
+    min-width: 0;
+    color: var(--oauth-modal-text-tertiary);
+    font-size: 11.5px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+}
+
+.rulesSections .mappingError {
+  margin: 0;
+  color: var(--oauth-modal-danger, #a53830);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.rulesSections > .ruleSection .clearNotice {
+  margin-top: 12px;
+}
+
+@media (max-width: 880px) {
+  .providerContext {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .providerContextControls .providerTags {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767px) {
+  .providerContext,
+  .rulesSections .sectionHeader,
+  .rulesSections .ruleBody,
+  .rulesSections .mappingsBody {
+    padding-inline: 16px;
+  }
+
+  .providerContext {
+    padding-block: 18px;
+  }
+
+  .rulesSections .sectionHeader {
+    padding-top: 18px;
+  }
+
+  .rulesSections .mappingRowMain {
+    grid-template-columns: minmax(0, 1fr) 36px;
+  }
+
+  .rulesSections .mappingSeparator {
+    display: none;
+  }
+
+  .rulesSections .mappingField:first-child,
+  .rulesSections .mappingField:nth-of-type(2) {
+    grid-column: 1 / -1;
+  }
+
+  .rulesSections .mappingRemove {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
+
+  .rulesSections .reasoningDefault {
+    min-width: min(100%, 260px);
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .rulesSections .reasoningOverrides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rulesSections .reasoningDefault {
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rulesSections .reasoningLabel {
+    white-space: normal;
+  }
+}

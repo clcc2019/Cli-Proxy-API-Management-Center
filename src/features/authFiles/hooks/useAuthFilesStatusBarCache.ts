@@ -17,10 +17,14 @@ import { collectUsageDetailsForCandidates, indexUsageDetailsBySource } from '@/u
 
 export type AuthFileStatusBarData = ReturnType<typeof calculateStatusBarData>;
 
-export const EMPTY_AUTH_FILE_STATUS_BAR_DATA: AuthFileStatusBarData = calculateStatusBarData([]);
-
 const STATUS_BLOCK_COUNT = 20;
-const STATUS_BLOCK_DURATION_MS = 10 * 60 * 1000;
+const STATUS_BLOCK_DURATION_MS = 5 * 60 * 1000;
+
+const calculateAuthFileStatusBarData = (details: UsageDetail[]): AuthFileStatusBarData =>
+  calculateStatusBarData(details, undefined, undefined, STATUS_BLOCK_DURATION_MS);
+
+export const EMPTY_AUTH_FILE_STATUS_BAR_DATA: AuthFileStatusBarData =
+  calculateAuthFileStatusBarData([]);
 
 const statusBarRequestTotal = (data: AuthFileStatusBarData | null): number =>
   data ? data.totalSuccess + data.totalFailure : 0;
@@ -97,7 +101,9 @@ const buildFileStatusBarData = (
   detailsForFile: UsageDetail[] | undefined
 ): AuthFileStatusBarData => {
   const fromDetails =
-    detailsForFile && detailsForFile.length > 0 ? calculateStatusBarData(detailsForFile) : null;
+    detailsForFile && detailsForFile.length > 0
+      ? calculateAuthFileStatusBarData(detailsForFile)
+      : null;
   const fromRecent = calculateStatusBarDataFromRecentRequests(recentRequestBuckets);
   return chooseStatusBarData(fromDetails, fromRecent);
 };
@@ -109,7 +115,19 @@ type StatusBarCacheEntry = {
 };
 
 const FILE_STATUS_CACHE = new WeakMap<AuthFileItem, StatusBarCacheEntry>();
+// AuthFileItem 在列表更新时按字段变化复用或替换引用，因此可用对象身份缓存
+// 这些稳定的匹配候选，避免每次状态条索引重建都重复规范化文件字段。
+const FILE_USAGE_SOURCE_CANDIDATES_CACHE = new WeakMap<AuthFileItem, string[]>();
 const EMPTY_DETAILS_BY_AUTH_INDEX = new Map<string, UsageDetail[]>();
+
+const getCachedUsageSourceCandidates = (file: AuthFileItem): string[] => {
+  const cached = FILE_USAGE_SOURCE_CANDIDATES_CACHE.get(file);
+  if (cached) return cached;
+
+  const candidates = authFileUsageSourceCandidates(file);
+  FILE_USAGE_SOURCE_CANDIDATES_CACHE.set(file, candidates);
+  return candidates;
+};
 
 const getRecentRequestsSignature = (buckets: AuthFileRecentRequestBucketLike[]): string =>
   buckets
@@ -190,7 +208,7 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
       const authIndexKey = normalizeAuthIndex(rawAuthIndex);
       const detailsForSource = collectUsageDetailsForCandidates(
         detailsBySource,
-        authFileUsageSourceCandidates(file)
+        getCachedUsageSourceCandidates(file)
       );
       const detailsForAuthIndex =
         authIndexKey && authIndexKey !== '0' ? detailsByAuthIndex.get(authIndexKey) : undefined;

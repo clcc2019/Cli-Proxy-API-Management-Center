@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore, useNotificationStore } from '@/stores';
 import { usageApi, type UsageExportPayload } from '@/services/api/usage';
@@ -93,8 +93,11 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
 
   const applyCacheEntry = useCallback((entry: AggregateUsageCacheEntry | undefined) => {
     if (!entry) return;
-    setUsage(entry.snapshot);
-    setLastRefreshedAt(entry.generatedAt ?? new Date(entry.fetchedAt));
+    const refreshedAt = entry.generatedAt ?? new Date(entry.fetchedAt);
+    startTransition(() => {
+      setUsage(entry.snapshot);
+      setLastRefreshedAt(refreshedAt);
+    });
   }, []);
 
   const loadUsage = useCallback(
@@ -119,7 +122,7 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
         try {
           applyCacheEntry(await inFlightAggregateUsageRequest.promise);
         } finally {
-          setLoading(false);
+          startTransition(() => setLoading(false));
         }
         return;
       }
@@ -160,7 +163,7 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
           inFlightAggregateUsageRequest = null;
         }
         if (requestId === aggregateUsageRequestToken) {
-          setLoading(false);
+          startTransition(() => setLoading(false));
         }
       }
     },

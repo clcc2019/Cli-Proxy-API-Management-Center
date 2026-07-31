@@ -8,8 +8,11 @@ import {
   IconCopy,
   IconFileText,
   IconKey,
+  IconPlus,
+  IconSearch,
   IconSettings,
   IconTrash2,
+  IconX,
 } from '@/components/ui/icons';
 import { useAuthStore, useNotificationStore } from '@/stores';
 import styles from './VisualConfigEditor.module.scss';
@@ -50,6 +53,7 @@ import {
 const EXPAND_THRESHOLD = 30;
 
 type QuotaInputValues = Record<ClientApiKeyQuotaField, string>;
+type ApiKeyListFilter = 'all' | 'active' | 'disabled';
 
 const emptyQuotaInputValues = (): QuotaInputValues => ({
   dailyCost: '',
@@ -262,6 +266,29 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const [excludedModelsValue, setExcludedModelsValue] = useState('');
   const [quotaValues, setQuotaValues] = useState<QuotaInputValues>(() => emptyQuotaInputValues());
   const [formError, setFormError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [listFilter, setListFilter] = useState<ApiKeyListFilter>('all');
+
+  const activeCount = apiKeys.filter((entry) => !entry.disabled).length;
+  const disabledCount = apiKeys.length - activeCount;
+  const filteredApiKeys = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return apiKeys
+      .map((entry, index) => ({ entry, index }))
+      .filter(({ entry }) => {
+        if (listFilter === 'active' && entry.disabled) return false;
+        if (listFilter === 'disabled' && !entry.disabled) return false;
+        if (!query) return true;
+
+        return [entry.apiKey, entry.note, ...entry.allowedModels, ...entry.excludedModels].some(
+          (value) =>
+            String(value ?? '')
+              .toLowerCase()
+              .includes(query)
+        );
+      });
+  }, [apiKeys, listFilter, searchQuery]);
 
   function generateSecureApiKey(): string {
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -378,12 +405,15 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   };
 
   return (
-    <div className="form-group" style={{ marginBottom: 0 }}>
+    <section className={apiKeyCardStyles.editor} aria-labelledby="api-key-list-title">
       <div className={apiKeyCardStyles.headerRow}>
         <div className={apiKeyCardStyles.headerCopy}>
-          <span className={apiKeyCardStyles.headerLabel}>
+          <span className={apiKeyCardStyles.headerKicker}>
             {t('config_management.visual.api_keys.label')}
           </span>
+          <h2 id="api-key-list-title" className={apiKeyCardStyles.headerLabel}>
+            {t('api_keys.section_title')}
+          </h2>
           <p className={apiKeyCardStyles.headerHint}>
             {t('config_management.visual.api_keys.hint')}
           </p>
@@ -394,139 +424,246 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
           disabled={disabled}
           className={apiKeyCardStyles.addButton}
         >
+          <IconPlus size={16} aria-hidden="true" />
           {t('config_management.visual.api_keys.add')}
         </Button>
       </div>
 
+      {apiKeys.length > 0 && (
+        <div className={apiKeyCardStyles.toolbar}>
+          <div className={apiKeyCardStyles.searchControl}>
+            <IconSearch size={16} aria-hidden="true" />
+            <input
+              className={apiKeyCardStyles.searchInput}
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={t('api_keys.search_placeholder')}
+              aria-label={t('api_keys.search_label')}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className={apiKeyCardStyles.searchClear}
+                onClick={() => setSearchQuery('')}
+                aria-label={t('common.clear')}
+                title={t('common.clear')}
+              >
+                <IconX size={14} />
+              </button>
+            )}
+          </div>
+
+          <div
+            className={apiKeyCardStyles.filterBar}
+            role="group"
+            aria-label={t('api_keys.filter_label')}
+          >
+            {(
+              [
+                ['all', apiKeys.length, 'api_keys.filter_all'],
+                ['active', activeCount, 'api_keys.filter_active'],
+                ['disabled', disabledCount, 'api_keys.filter_disabled'],
+              ] as const
+            ).map(([filter, count, labelKey]) => (
+              <button
+                key={filter}
+                type="button"
+                className={`${apiKeyCardStyles.filterButton} ${listFilter === filter ? apiKeyCardStyles.filterButtonActive : ''}`}
+                onClick={() => setListFilter(filter)}
+                aria-pressed={listFilter === filter}
+              >
+                {t(labelKey)}
+                <span className={apiKeyCardStyles.filterCount}>{count}</span>
+              </button>
+            ))}
+          </div>
+
+          <span className={apiKeyCardStyles.resultCount}>
+            {t('api_keys.filtered_count', { shown: filteredApiKeys.length, total: apiKeys.length })}
+          </span>
+        </div>
+      )}
+
       {apiKeys.length === 0 ? (
         <div className={apiKeyCardStyles.emptyState}>
-          {t('config_management.visual.api_keys.empty')}
+          <span className={apiKeyCardStyles.emptyIcon} aria-hidden="true">
+            <IconKey size={22} />
+          </span>
+          <div className={apiKeyCardStyles.emptyCopy}>
+            <strong>{t('api_keys.empty_title')}</strong>
+            <p>{t('api_keys.empty_desc')}</p>
+          </div>
+        </div>
+      ) : filteredApiKeys.length === 0 ? (
+        <div className={apiKeyCardStyles.noResults}>
+          <IconSearch size={20} aria-hidden="true" />
+          <div>
+            <strong>{t('api_keys.filter_empty')}</strong>
+            <button
+              type="button"
+              className={apiKeyCardStyles.clearFilters}
+              onClick={() => {
+                setSearchQuery('');
+                setListFilter('all');
+              }}
+            >
+              {t('api_keys.clear_filters')}
+            </button>
+          </div>
         </div>
       ) : (
-        <div className={apiKeyCardStyles.cardList}>
-          {apiKeys.map((entry, index) => {
-            const note = (entry.note ?? '').trim();
-            const isDisabled = Boolean(entry.disabled);
-            const hasRules = entry.allowedModels.length > 0 || entry.excludedModels.length > 0;
-            const hasQuota = hasClientApiKeyQuota(entry.quota);
+        <div className={apiKeyCardStyles.listSurface}>
+          <div className={apiKeyCardStyles.listHeader} role="row">
+            <span>{t('api_keys.column_key')}</span>
+            <span>{t('api_keys.column_scope')}</span>
+            <span>{t('api_keys.column_status')}</span>
+            <span className={apiKeyCardStyles.actionsHeader}>{t('api_keys.column_actions')}</span>
+          </div>
+          <div className={apiKeyCardStyles.cardList} role="rowgroup">
+            {filteredApiKeys.map(({ entry, index }) => {
+              const note = (entry.note ?? '').trim();
+              const isDisabled = Boolean(entry.disabled);
+              const hasRules = entry.allowedModels.length > 0 || entry.excludedModels.length > 0;
+              const hasQuota = hasClientApiKeyQuota(entry.quota);
 
-            return (
-              <div
-                key={entry.id}
-                className={`${apiKeyCardStyles.card} ${isDisabled ? apiKeyCardStyles.cardDisabled : ''}`}
-              >
-                <div className={apiKeyCardStyles.cardHeader}>
-                  <span className={apiKeyCardStyles.avatar}>
-                    <IconKey size={20} />
-                  </span>
-                  <span className={apiKeyCardStyles.indexBadge}>#{index + 1}</span>
-                  <span
-                    className={`${apiKeyCardStyles.statusBadge} ${isDisabled ? apiKeyCardStyles.statusBadgeDisabled : ''}`}
-                  >
-                    {t(
-                      isDisabled
-                        ? 'config_management.visual.api_keys.status_disabled'
-                        : 'config_management.visual.api_keys.status_enabled'
-                    )}
-                  </span>
-                  {note && (
-                    <span className={apiKeyCardStyles.noteBadge} title={note}>
-                      {note}
+              return (
+                <article
+                  key={entry.id}
+                  className={`${apiKeyCardStyles.card} ${isDisabled ? apiKeyCardStyles.cardDisabled : ''}`}
+                >
+                  <div className={apiKeyCardStyles.identityCell}>
+                    <span className={apiKeyCardStyles.avatar} aria-hidden="true">
+                      <IconKey size={18} />
                     </span>
-                  )}
-                </div>
-
-                <div className={apiKeyCardStyles.keyRow}>
-                  <span className={apiKeyCardStyles.keyValue} title={entry.apiKey}>
-                    {maskApiKey(String(entry.apiKey || ''))}
-                  </span>
-                </div>
-
-                {(hasRules || hasQuota) && (
-                  <div className={apiKeyCardStyles.summaryRow}>
-                    {hasRules && (
-                      <span className={apiKeyCardStyles.summaryChip}>
-                        {t('config_management.visual.api_keys.rules_summary', {
-                          allowed: entry.allowedModels.length,
-                          excluded: entry.excludedModels.length,
-                        })}
-                      </span>
-                    )}
-                    {hasQuota && (
-                      <span
-                        className={`${apiKeyCardStyles.summaryChip} ${apiKeyCardStyles.summaryChipQuota}`}
-                      >
-                        {t('config_management.visual.api_keys.quota_summary', {
-                          count: clientApiKeyQuotaLimitCount(entry.quota),
-                        })}
-                      </span>
-                    )}
+                    <div className={apiKeyCardStyles.identityCopy}>
+                      <div className={apiKeyCardStyles.cardTitleRow}>
+                        <strong className={apiKeyCardStyles.cardName}>
+                          {t('api_keys.item_title')} #{index + 1}
+                        </strong>
+                        {note && (
+                          <span className={apiKeyCardStyles.noteBadge} title={note}>
+                            {note}
+                          </span>
+                        )}
+                      </div>
+                      <code className={apiKeyCardStyles.keyValue} title={entry.apiKey}>
+                        {maskApiKey(String(entry.apiKey || ''))}
+                      </code>
+                    </div>
                   </div>
-                )}
 
-                <div className={apiKeyCardStyles.actions}>
-                  <ToggleSwitch
-                    checked={!isDisabled}
-                    onChange={(enabled) => handleToggleDisabled(entry.id, !enabled)}
-                    disabled={disabled}
-                    label={t('config_management.visual.api_keys.enabled_toggle')}
-                    ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
-                    className={apiKeyCardStyles.enabledSwitch}
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleCopyFull(entry.apiKey)}
-                    disabled={disabled}
-                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.copyFullButton}`}
-                    title={t('config_management.visual.api_keys.copy_full_hint')}
-                    aria-label={t('config_management.visual.api_keys.copy_full')}
-                  >
-                    <IconFileText size={18} />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleCopyKey(entry.apiKey)}
-                    disabled={disabled}
-                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.copyKeyButton}`}
-                    title={t('config_management.visual.api_keys.copy_key_only')}
-                    aria-label={t('config_management.visual.api_keys.copy_key_only')}
-                  >
-                    <IconCopy size={18} />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => openEditModal(entry.id)}
-                    disabled={disabled}
-                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.editButton}`}
-                    title={t('config_management.visual.common.edit')}
-                    aria-label={t('config_management.visual.common.edit')}
-                  >
-                    <IconSettings size={18} />
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDelete(entry.id)}
-                    disabled={disabled}
-                    className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.deleteButton}`}
-                    title={t('config_management.visual.common.delete')}
-                    aria-label={t('config_management.visual.common.delete')}
-                  >
-                    <IconTrash2 size={18} />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+                  <div className={apiKeyCardStyles.scopeCell}>
+                    <span className={apiKeyCardStyles.mobileCellLabel}>
+                      {t('api_keys.column_scope')}
+                    </span>
+                    <div className={apiKeyCardStyles.summaryRow}>
+                      {hasRules && (
+                        <span className={apiKeyCardStyles.summaryChip}>
+                          {t('config_management.visual.api_keys.rules_summary', {
+                            allowed: entry.allowedModels.length,
+                            excluded: entry.excludedModels.length,
+                          })}
+                        </span>
+                      )}
+                      {hasQuota && (
+                        <span
+                          className={`${apiKeyCardStyles.summaryChip} ${apiKeyCardStyles.summaryChipQuota}`}
+                        >
+                          {t('config_management.visual.api_keys.quota_summary', {
+                            count: clientApiKeyQuotaLimitCount(entry.quota),
+                          })}
+                        </span>
+                      )}
+                      {!hasRules && !hasQuota && (
+                        <span className={apiKeyCardStyles.noScope}>{t('api_keys.scope_open')}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={apiKeyCardStyles.statusCell}>
+                    <span className={apiKeyCardStyles.mobileCellLabel}>
+                      {t('api_keys.column_status')}
+                    </span>
+                    <span
+                      className={`${apiKeyCardStyles.statusBadge} ${isDisabled ? apiKeyCardStyles.statusBadgeDisabled : ''}`}
+                    >
+                      <span className={apiKeyCardStyles.statusDot} aria-hidden="true" />
+                      {t(
+                        isDisabled
+                          ? 'config_management.visual.api_keys.status_disabled'
+                          : 'config_management.visual.api_keys.status_enabled'
+                      )}
+                    </span>
+                    <ToggleSwitch
+                      checked={!isDisabled}
+                      onChange={(enabled) => handleToggleDisabled(entry.id, !enabled)}
+                      disabled={disabled}
+                      label={t('config_management.visual.api_keys.enabled_toggle')}
+                      ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
+                      className={apiKeyCardStyles.enabledSwitch}
+                    />
+                  </div>
+
+                  <div className={apiKeyCardStyles.actions}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleCopyFull(entry.apiKey)}
+                      disabled={disabled}
+                      className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.copyFullButton}`}
+                      title={t('config_management.visual.api_keys.copy_full_hint')}
+                      aria-label={t('config_management.visual.api_keys.copy_full')}
+                    >
+                      <IconFileText size={17} />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleCopyKey(entry.apiKey)}
+                      disabled={disabled}
+                      className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.copyKeyButton}`}
+                      title={t('config_management.visual.api_keys.copy_key_only')}
+                      aria-label={t('config_management.visual.api_keys.copy_key_only')}
+                    >
+                      <IconCopy size={17} />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => openEditModal(entry.id)}
+                      disabled={disabled}
+                      className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.editButton}`}
+                      title={t('config_management.visual.common.edit')}
+                      aria-label={t('config_management.visual.common.edit')}
+                    >
+                      <IconSettings size={17} />
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(entry.id)}
+                      disabled={disabled}
+                      className={`${apiKeyCardStyles.iconButton} ${apiKeyCardStyles.deleteButton}`}
+                      title={t('config_management.visual.common.delete')}
+                      aria-label={t('config_management.visual.common.delete')}
+                    >
+                      <IconTrash2 size={17} />
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </div>
       )}
 
       <Modal
         open={modalOpen}
         onClose={closeModal}
+        width={680}
+        fullScreenOnMobile
+        className={apiKeyCardStyles.modal}
         title={
           editingApiKeyId !== null
             ? t('config_management.visual.api_keys.edit_title')
@@ -545,130 +682,139 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
           </>
         }
       >
-        <div className="form-group">
-          <label htmlFor={apiKeyInputId}>
-            {t('config_management.visual.api_keys.input_label')}
-          </label>
-          <div className={styles.apiKeyModalInputRow}>
-            <input
-              id={apiKeyInputId}
-              className="input"
-              placeholder={t('config_management.visual.api_keys.input_placeholder')}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={disabled}
-              aria-describedby={formError ? `${apiKeyErrorId} ${apiKeyHintId}` : apiKeyHintId}
-              aria-invalid={Boolean(formError)}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleGenerate}
-              disabled={disabled}
-            >
-              {t('config_management.visual.api_keys.generate')}
-            </Button>
+        <div className={apiKeyCardStyles.modalForm}>
+          <div className={apiKeyCardStyles.modalIntro}>
+            <span>{t('config_management.visual.api_keys.input_hint')}</span>
           </div>
-          <div id={apiKeyHintId} className="hint">
-            {t('config_management.visual.api_keys.input_hint')}
-          </div>
-          {formError && (
-            <div id={apiKeyErrorId} className="error-box" role="alert">
-              {formError}
+          <div className="form-group">
+            <label htmlFor={apiKeyInputId}>
+              {t('config_management.visual.api_keys.input_label')}
+            </label>
+            <div className={styles.apiKeyModalInputRow}>
+              <input
+                id={apiKeyInputId}
+                className="input"
+                placeholder={t('config_management.visual.api_keys.input_placeholder')}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                disabled={disabled}
+                aria-describedby={formError ? `${apiKeyErrorId} ${apiKeyHintId}` : apiKeyHintId}
+                aria-invalid={Boolean(formError)}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleGenerate}
+                disabled={disabled}
+              >
+                {t('config_management.visual.api_keys.generate')}
+              </Button>
             </div>
-          )}
-        </div>
-        <div className="form-group">
-          <label htmlFor={noteInputId}>
-            {t('config_management.visual.api_keys.note_label')}
-          </label>
-          <input
-            id={noteInputId}
-            className="input"
-            placeholder={t('config_management.visual.api_keys.note_placeholder')}
-            value={noteValue}
-            onChange={(e) => setNoteValue(e.target.value)}
-            disabled={disabled}
-            aria-describedby={noteHintId}
-            maxLength={120}
-          />
-          <div id={noteHintId} className="hint">
-            {t('config_management.visual.api_keys.note_hint')}
-          </div>
-        </div>
-        <div className="form-group">
-          <ToggleSwitch
-            checked={!disabledValue}
-            onChange={(enabled) => setDisabledValue(!enabled)}
-            disabled={disabled}
-            label={t('config_management.visual.api_keys.enabled_toggle')}
-            ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
-          />
-          <div className="hint">{t('config_management.visual.api_keys.disabled_hint')}</div>
-        </div>
-        <div className="form-group">
-          <span className="form-label">
-            {t('config_management.visual.api_keys.allowed_models_label')}
-          </span>
-          <textarea
-            className="input"
-            rows={4}
-            aria-label={t('config_management.visual.api_keys.allowed_models_label')}
-            placeholder={t('config_management.visual.api_keys.allowed_models_placeholder')}
-            value={allowedModelsValue}
-            onChange={(e) => setAllowedModelsValue(e.target.value)}
-            disabled={disabled}
-          />
-          <div className="hint">{t('config_management.visual.api_keys.allowed_models_hint')}</div>
-        </div>
-        <div className="form-group">
-          <span className="form-label">
-            {t('config_management.visual.api_keys.excluded_models_label')}
-          </span>
-          <textarea
-            className="input"
-            rows={4}
-            aria-label={t('config_management.visual.api_keys.excluded_models_label')}
-            placeholder={t('config_management.visual.api_keys.excluded_models_placeholder')}
-            value={excludedModelsValue}
-            onChange={(e) => setExcludedModelsValue(e.target.value)}
-            disabled={disabled}
-          />
-          <div className="hint">{t('config_management.visual.api_keys.excluded_models_hint')}</div>
-        </div>
-        <div className="form-group">
-          <span className="form-label">{t('config_management.visual.api_keys.quota_title')}</span>
-          <div className={styles.quotaGrid}>
-            {CLIENT_API_KEY_QUOTA_FIELDS.map(({ field }) => (
-              <div key={field} className={styles.quotaField}>
-                <label className={styles.quotaFieldLabel} htmlFor={`${apiKeyInputId}-${field}`}>
-                  {t(quotaFieldLabelKey(field))}
-                </label>
-                <input
-                  id={`${apiKeyInputId}-${field}`}
-                  className="input"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  inputMode="decimal"
-                  placeholder={t('config_management.visual.api_keys.quota_placeholder')}
-                  value={quotaValues[field]}
-                  aria-describedby={quotaHintId}
-                  onChange={(e) =>
-                    setQuotaValues((current) => ({ ...current, [field]: e.target.value }))
-                  }
-                  disabled={disabled}
-                />
+            <div id={apiKeyHintId} className="hint">
+              {t('config_management.visual.api_keys.input_hint')}
+            </div>
+            {formError && (
+              <div id={apiKeyErrorId} className="error-box" role="alert">
+                {formError}
               </div>
-            ))}
+            )}
           </div>
-          <div id={quotaHintId} className="hint">
-            {t('config_management.visual.api_keys.quota_hint')}
+          <div className="form-group">
+            <label htmlFor={noteInputId}>{t('config_management.visual.api_keys.note_label')}</label>
+            <input
+              id={noteInputId}
+              className="input"
+              placeholder={t('config_management.visual.api_keys.note_placeholder')}
+              value={noteValue}
+              onChange={(e) => setNoteValue(e.target.value)}
+              disabled={disabled}
+              aria-describedby={noteHintId}
+              maxLength={120}
+            />
+            <div id={noteHintId} className="hint">
+              {t('config_management.visual.api_keys.note_hint')}
+            </div>
+          </div>
+          <div className="form-group">
+            <ToggleSwitch
+              checked={!disabledValue}
+              onChange={(enabled) => setDisabledValue(!enabled)}
+              disabled={disabled}
+              label={t('config_management.visual.api_keys.enabled_toggle')}
+              ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
+            />
+            <div className="hint">{t('config_management.visual.api_keys.disabled_hint')}</div>
+          </div>
+          <div className={apiKeyCardStyles.modalColumns}>
+            <div className="form-group">
+              <span className="form-label">
+                {t('config_management.visual.api_keys.allowed_models_label')}
+              </span>
+              <textarea
+                className="input"
+                rows={4}
+                aria-label={t('config_management.visual.api_keys.allowed_models_label')}
+                placeholder={t('config_management.visual.api_keys.allowed_models_placeholder')}
+                value={allowedModelsValue}
+                onChange={(e) => setAllowedModelsValue(e.target.value)}
+                disabled={disabled}
+              />
+              <div className="hint">
+                {t('config_management.visual.api_keys.allowed_models_hint')}
+              </div>
+            </div>
+            <div className="form-group">
+              <span className="form-label">
+                {t('config_management.visual.api_keys.excluded_models_label')}
+              </span>
+              <textarea
+                className="input"
+                rows={4}
+                aria-label={t('config_management.visual.api_keys.excluded_models_label')}
+                placeholder={t('config_management.visual.api_keys.excluded_models_placeholder')}
+                value={excludedModelsValue}
+                onChange={(e) => setExcludedModelsValue(e.target.value)}
+                disabled={disabled}
+              />
+              <div className="hint">
+                {t('config_management.visual.api_keys.excluded_models_hint')}
+              </div>
+            </div>
+          </div>
+          <div className="form-group">
+            <span className="form-label">{t('config_management.visual.api_keys.quota_title')}</span>
+            <div className={styles.quotaGrid}>
+              {CLIENT_API_KEY_QUOTA_FIELDS.map(({ field }) => (
+                <div key={field} className={styles.quotaField}>
+                  <label className={styles.quotaFieldLabel} htmlFor={`${apiKeyInputId}-${field}`}>
+                    {t(quotaFieldLabelKey(field))}
+                  </label>
+                  <input
+                    id={`${apiKeyInputId}-${field}`}
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder={t('config_management.visual.api_keys.quota_placeholder')}
+                    value={quotaValues[field]}
+                    aria-describedby={quotaHintId}
+                    onChange={(e) =>
+                      setQuotaValues((current) => ({ ...current, [field]: e.target.value }))
+                    }
+                    disabled={disabled}
+                  />
+                </div>
+              ))}
+            </div>
+            <div id={quotaHintId} className="hint">
+              {t('config_management.visual.api_keys.quota_hint')}
+            </div>
           </div>
         </div>
       </Modal>
-    </div>
+    </section>
   );
 });
 

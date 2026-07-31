@@ -10,13 +10,20 @@ import styles from './Table.module.scss';
 
 interface TableProps extends TableHTMLAttributes<HTMLTableElement> {
   className?: string;
+  wrapperClassName?: string;
   cols?: ReactNode;
 }
 
-export function Table({ children, cols, className, ...rest }: PropsWithChildren<TableProps>) {
+export function Table({
+  children,
+  cols,
+  className,
+  wrapperClassName,
+  ...rest
+}: PropsWithChildren<TableProps>) {
   const tableCls = [styles.table, className].filter(Boolean).join(' ');
   return (
-    <div className={styles.wrap}>
+    <div className={[styles.wrap, wrapperClassName].filter(Boolean).join(' ')}>
       <div className={styles.scroll}>
         <table className={tableCls} {...rest}>
           {cols ? <colgroup>{cols}</colgroup> : null}

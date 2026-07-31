@@ -1,5 +1,6 @@
 import {
   lazy,
+  memo,
   Suspense,
   useCallback,
   useDeferredValue,
@@ -8,7 +9,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -110,11 +110,6 @@ const LIST_PROGRESS_HIDE_DELAY_MS = 200;
 const AUTH_FILE_GRID_MOTION_DURATION_MS = 260;
 const AUTH_FILE_GRID_MOTION_SNAPSHOT_TTL_MS = 1_500;
 
-const getAuthFileCardEnterStyle = (index: number): CSSProperties =>
-  ({
-    '--auth-file-card-enter-delay': `${Math.min(index, 7) * 12}ms`,
-  }) as CSSProperties;
-
 const EMPTY_AUTH_FILE_USAGE_STATS: KeyUsageBucket = {
   success: 0,
   failure: 0,
@@ -164,7 +159,7 @@ const filterSelectableAuthFiles = (files: AuthFileItem[]): AuthFileItem[] => {
   return selectable.length > 0 ? selectable : EMPTY_AUTH_FILE_ITEMS;
 };
 
-function AuthFilesSkeletonGrid({
+const AuthFilesSkeletonGrid = memo(function AuthFilesSkeletonGrid({
   count,
   quotaManaged,
   loadingLabel,
@@ -191,7 +186,6 @@ function AuthFilesSkeletonGrid({
           <div
             key={index}
             className={styles.fileCardSkeleton}
-            style={getAuthFileCardEnterStyle(index)}
           >
             <div className={styles.skeletonHeader}>
               <span className={`${styles.skeletonBlock} ${styles.skeletonAvatar}`} />
@@ -218,7 +212,9 @@ function AuthFilesSkeletonGrid({
       </div>
     </>
   );
-}
+});
+
+AuthFilesSkeletonGrid.displayName = 'AuthFilesSkeletonGrid';
 
 const compareAuthFilesByName = (left: AuthFileItem, right: AuthFileItem): number =>
   left.name.localeCompare(right.name);
@@ -377,23 +373,47 @@ export function AuthFilesPage() {
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
   const prefersReducedMotion = useReducedMotion();
-  const [filter, setFilter] = useState<'all' | string>('all');
-  const [problemOnly, setProblemOnly] = useState(false);
-  const [disabledOnly, setDisabledOnly] = useState(false);
-  const [premiumOnly, setPremiumOnly] = useState(false);
+  const [persistedUiState] = useState<AuthFilesUiState | null>(() => readAuthFilesUiState());
+  const [filter, setFilter] = useState<'all' | string>(() => {
+    const value = persistedUiState?.filter;
+    return typeof value === 'string' && value.trim() ? value : 'all';
+  });
+  const [problemOnly, setProblemOnly] = useState(
+    () => persistedUiState?.problemOnly === true
+  );
+  const [disabledOnly, setDisabledOnly] = useState(
+    () => persistedUiState?.disabledOnly === true
+  );
+  const [premiumOnly, setPremiumOnly] = useState(
+    () => persistedUiState?.premiumOnly === true
+  );
   const [premiumServerFilterSupported, setPremiumServerFilterSupported] = useState<boolean | null>(
     null
   );
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [sortMode, setSortMode] = useState<AuthFilesSortMode>('default');
+  const [search, setSearch] = useState(() =>
+    typeof persistedUiState?.search === 'string' ? persistedUiState.search : ''
+  );
+  const [page, setPage] = useState(() => {
+    const value = persistedUiState?.page;
+    return typeof value === 'number' && Number.isFinite(value)
+      ? Math.max(1, Math.round(value))
+      : 1;
+  });
+  const [pageSize, setPageSize] = useState(() => {
+    const value = persistedUiState?.pageSize;
+    return typeof value === 'number' && Number.isFinite(value)
+      ? clampCardPageSize(value)
+      : DEFAULT_PAGE_SIZE;
+  });
+  const [sortMode, setSortMode] = useState<AuthFilesSortMode>(() => {
+    const value = persistedUiState?.sortMode;
+    return isAuthFilesSortMode(value) ? value : 'default';
+  });
   const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
   const [manualRefreshPending, setManualRefreshPending] = useState(false);
-  const [uiStateHydrated, setUiStateHydrated] = useState(false);
   const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
   const [modelRulesEditor, setModelRulesEditor] = useState({ open: false, provider: '' });
   const [scopedTypeCounts, setScopedTypeCounts] = useState<{
@@ -449,10 +469,7 @@ export function AuthFilesPage() {
     }),
     [disabledOnly, filter, page, pageSize, premiumOnly, problemOnly, search, sortMode]
   );
-  const debouncedAuthFilesUiState = useDebounce<AuthFilesUiState | null>(
-    uiStateHydrated ? authFilesUiState : null,
-    300
-  );
+  const debouncedAuthFilesUiState = useDebounce(authFilesUiState, 300);
   const authFilesListOptions = useMemo<AuthFilesListOptions>(() => {
     if (!serverPaginationEnabled) {
       // Keep premiumOnly out of this request. The backend only has the auth-file
@@ -553,7 +570,6 @@ export function AuthFilesPage() {
     requestServerPremiumFilter,
   ]);
 
-  const statusBarCache = useAuthFilesStatusBarCache(files, usageDetails);
   const providerTypesFromListMetaKey = useMemo(
     () => buildProviderTypesKey(listMeta.typeCounts),
     [listMeta.typeCounts]
@@ -623,38 +639,6 @@ export function AuthFilesPage() {
     }),
     [claudeQuota, codexQuota]
   );
-
-  useEffect(() => {
-    const persisted = readAuthFilesUiState();
-    if (persisted) {
-      if (typeof persisted.filter === 'string' && persisted.filter.trim()) {
-        setFilter(persisted.filter);
-      }
-      if (typeof persisted.problemOnly === 'boolean') {
-        setProblemOnly(persisted.problemOnly);
-      }
-      if (typeof persisted.disabledOnly === 'boolean') {
-        setDisabledOnly(persisted.disabledOnly);
-      }
-      if (typeof persisted.premiumOnly === 'boolean') {
-        setPremiumOnly(persisted.premiumOnly);
-      }
-      if (typeof persisted.search === 'string') {
-        setSearch(persisted.search);
-      }
-      if (typeof persisted.page === 'number' && Number.isFinite(persisted.page)) {
-        setPage(Math.max(1, Math.round(persisted.page)));
-      }
-      if (typeof persisted.pageSize === 'number' && Number.isFinite(persisted.pageSize)) {
-        setPageSize(clampCardPageSize(persisted.pageSize));
-      }
-      if (isAuthFilesSortMode(persisted.sortMode)) {
-        setSortMode(persisted.sortMode);
-      }
-    }
-
-    setUiStateHydrated(true);
-  }, []);
 
   useEffect(() => {
     if (!debouncedAuthFilesUiState) return;
@@ -808,7 +792,7 @@ export function AuthFilesPage() {
   }, []);
 
   useEffect(() => {
-    if (!isCurrentLayer || !uiStateHydrated || serverSearchPending) return;
+    if (!isCurrentLayer || serverSearchPending) return;
     if (
       listMeta.dataKey === authFilesListOptionsKey ||
       listMeta.resolvedDataKey === authFilesListOptionsKey
@@ -824,11 +808,10 @@ export function AuthFilesPage() {
     listMeta.resolvedDataKey,
     loadFiles,
     serverSearchPending,
-    uiStateHydrated,
   ]);
 
   useEffect(() => {
-    if (!isCurrentLayer || !uiStateHydrated || belowFoldCardsReady) return undefined;
+    if (!isCurrentLayer || belowFoldCardsReady) return undefined;
 
     return scheduleIdleTask(
       () => {
@@ -837,18 +820,30 @@ export function AuthFilesPage() {
       },
       { fallbackDelayMs: 900 }
     );
-  }, [belowFoldCardsReady, isCurrentLayer, uiStateHydrated]);
+  }, [belowFoldCardsReady, isCurrentLayer]);
 
   useEffect(() => {
-    if (!isCurrentLayer || !uiStateHydrated) return;
+    if (!isCurrentLayer) return;
 
-    void Promise.allSettled([loadKeyStats(), loadExcluded(), loadModelAlias()]);
-  }, [isCurrentLayer, loadExcluded, loadKeyStats, loadModelAlias, uiStateHydrated]);
+    // 用量统计会直接影响首屏卡片；OAuth 规则只服务于下方延后挂载的区域，
+    // 不要让它们占用首屏请求和响应后的渲染预算。
+    void loadKeyStats().catch(() => {});
+  }, [isCurrentLayer, loadKeyStats]);
+
+  useEffect(() => {
+    if (!isCurrentLayer || !belowFoldCardsReady) return;
+
+    void Promise.allSettled([loadExcluded(), loadModelAlias()]);
+  }, [
+    belowFoldCardsReady,
+    isCurrentLayer,
+    loadExcluded,
+    loadModelAlias,
+  ]);
 
   useEffect(() => {
     if (
       !isCurrentLayer ||
-      !uiStateHydrated ||
       loading ||
       refreshing ||
       serverSearchPending ||
@@ -867,7 +862,6 @@ export function AuthFilesPage() {
     loading,
     refreshing,
     serverSearchPending,
-    uiStateHydrated,
   ]);
 
   // 改用 useVisibleInterval：标签页隐藏时不必继续拉取用量聚合
@@ -1055,7 +1049,7 @@ export function AuthFilesPage() {
     [displaySearch, normalizedDisplaySearch, wildcardSearch]
   );
   const scopedTypeCountsKey = useMemo(() => {
-    if (!serverPaginationEnabled || !isCurrentLayer || !uiStateHydrated) return null;
+    if (!serverPaginationEnabled || !isCurrentLayer) return null;
     if (!displayOptionsActive && displaySearch.length === 0) return null;
 
     return getAuthFilesTypeCountsKey({
@@ -1072,7 +1066,6 @@ export function AuthFilesPage() {
     premiumOnly,
     problemOnly,
     serverPaginationEnabled,
-    uiStateHydrated,
   ]);
 
   useEffect(() => {
@@ -1212,6 +1205,10 @@ export function AuthFilesPage() {
   );
   const showInitialLoading = loading && pageItems.length === 0;
   const showListProgress = listUpdating && pageItems.length > 0;
+
+  // 状态条只会出现在当前页的卡片中。旧服务端的完整列表可能很大，
+  // 将 pageItems 传入可以避免为不可见文件建立 usage-details 索引和状态条数据。
+  const statusBarCache = useAuthFilesStatusBarCache(pageItems, usageDetails);
 
   useLayoutEffect(() => {
     const snapshot = authFileGridMotionSnapshotRef.current;
@@ -1611,10 +1608,11 @@ export function AuthFilesPage() {
   const titleNode = useMemo(
     () => (
       <div className={styles.titleBlock}>
-        <h2 className={styles.titleWrapper}>
+        <span className={styles.pageEyebrow}>{t('auth_files.page_eyebrow')}</span>
+        <h1 className={styles.titleWrapper}>
           <span>{t('auth_files.title_section')}</span>
           {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
-        </h2>
+        </h1>
         <p className={styles.pageDescription}>{t('auth_files.description')}</p>
       </div>
     ),
@@ -1691,7 +1689,7 @@ export function AuthFilesPage() {
 
   const authFileCardNodes = useMemo(
     () =>
-      pageItems.map((file, index) => {
+      pageItems.map((file) => {
         const authIndexKey = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
         const statusData =
           (authIndexKey ? statusBarCache.get(authIndexKey) : undefined) ??
@@ -1716,7 +1714,6 @@ export function AuthFilesPage() {
             quotaFilterType={quotaFilterType}
             fileUsageStats={fileUsageStats}
             statusData={statusData}
-            enterDelayMs={Math.min(index, 7) * 12}
             onShowModels={showModels}
             onCopyName={copyTextWithNotification}
             onDownload={handleDownload}

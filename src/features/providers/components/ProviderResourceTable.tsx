@@ -28,7 +28,7 @@ interface ProviderResourceTableProps {
   onToggleDisabled?: (resource: ProviderResource, disabled: boolean) => void;
 }
 
-const columnWidths = ['120px', '145px', '68px', '105px', '112px', '176px'];
+const columnWidths = ['180px', '190px', '84px', '150px', '130px', '176px'];
 
 export function ProviderResourceTable({
   resources,
@@ -79,6 +79,8 @@ export function ProviderResourceTable({
   return (
     <Table
       className={styles.providerTable}
+      wrapperClassName={styles.providerTableWrap}
+      aria-label={t('providersPage.table.ariaLabel')}
       cols={columnWidths.map((width, index) => (
         <col key={index} style={{ width }} />
       ))}

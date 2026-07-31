@@ -142,7 +142,6 @@
     gap: 5px;
     padding: 5px 7px;
   }
-
 }
 
 .summaryLabel {
@@ -700,11 +699,7 @@
   background: var(--usage-surface-warm, var(--bg-secondary));
 
   &::before {
-    background: color-mix(
-      in srgb,
-      var(--usage-sage, var(--text-tertiary)) 18%,
-      transparent
-    );
+    background: color-mix(in srgb, var(--usage-sage, var(--text-tertiary)) 18%, transparent);
   }
 }
 
@@ -738,5 +733,223 @@
 
   .periodButtons :global(.btn.btn-primary) {
     color: #1c1d1a;
+  }
+}
+
+// Usage observatory chart surfaces: charts stay data-dense, while their frame
+// uses the same white panel, hairline rail, and warm inset grammar as the page.
+.panelCard,
+.chartLineCard,
+.deferredCard {
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 15px;
+  background: var(--usage-surface, var(--bg-primary));
+  box-shadow: none;
+}
+
+.panelCard,
+.chartLineCard {
+  &:hover {
+    border-color: var(--usage-border-strong, var(--border-primary));
+    background: var(--usage-surface, var(--bg-primary));
+  }
+
+  :global(.card-header) {
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom-color: var(--usage-border, var(--border-color));
+  }
+}
+
+.panelTitle {
+  color: var(--usage-text, var(--text-primary));
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.panelDescription,
+.legendItem,
+.chartLineLabel,
+.chartLineHint,
+.deferredCaption {
+  color: var(--usage-text-secondary, var(--text-secondary));
+}
+
+.panelShell {
+  gap: 14px;
+  animation: none;
+}
+
+.panelEmpty {
+  min-height: 188px;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 10px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+  color: var(--usage-text-tertiary, var(--text-tertiary));
+}
+
+.summaryRow {
+  gap: 7px;
+}
+
+.summaryPill {
+  min-height: 36px;
+  padding: 7px 10px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 8px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+}
+
+.summaryLabel {
+  color: var(--usage-text-tertiary, var(--text-tertiary));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.summaryValue {
+  color: var(--usage-text, var(--text-primary));
+  font-size: 11.5px;
+  font-weight: 650;
+}
+
+.legend {
+  gap: 7px 12px;
+}
+
+.legendItem {
+  font-size: 11px;
+}
+
+.legendDot {
+  width: 7px;
+  height: 7px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.chartArea {
+  height: 320px;
+  padding: 10px 9px 5px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 11px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+}
+
+.periodButtons {
+  gap: 2px;
+  padding: 3px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 999px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+
+  :global(.btn) {
+    min-width: 58px;
+    min-height: 30px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    color: var(--usage-text-secondary, var(--text-secondary));
+    font-size: 11px;
+    font-weight: 650;
+  }
+
+  :global(.btn.btn-primary) {
+    background: var(--usage-ink, var(--primary-color));
+    color: #ffffff;
+  }
+
+  :global(.btn.btn-secondary:hover:not(:disabled)) {
+    background: var(--usage-surface, var(--bg-primary));
+    color: var(--usage-text, var(--text-primary));
+  }
+}
+
+.chartLineCard {
+  background: var(--usage-surface-warm, var(--bg-secondary));
+
+  :global(.card-header) {
+    background: transparent;
+  }
+}
+
+.chartLineCount {
+  border-color: var(--usage-border, var(--border-color));
+  background: var(--usage-surface, var(--bg-primary));
+  color: var(--usage-text-secondary, var(--text-secondary));
+}
+
+.chartLineList {
+  gap: 8px;
+}
+
+.chartLineItem {
+  gap: 8px;
+  padding: 11px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 10px;
+  background: var(--usage-surface, var(--bg-primary));
+
+  &:hover {
+    border-color: var(--usage-border-strong, var(--border-primary));
+    background: var(--usage-surface, var(--bg-primary));
+  }
+}
+
+.chartLineRemoveButton {
+  color: var(--usage-text-tertiary, var(--text-tertiary));
+
+  &:hover {
+    color: var(--usage-danger, var(--error-color));
+  }
+}
+
+.deferredChartShell {
+  gap: 10px;
+}
+
+.deferredLegendPill {
+  height: 26px;
+  border-color: var(--usage-border, var(--border-color));
+  background: var(--usage-surface-subtle, var(--bg-secondary));
+}
+
+.deferredChartPlaceholder {
+  height: 300px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 11px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+
+  &::before {
+    background: color-mix(in srgb, var(--usage-sage, var(--text-tertiary)) 18%, transparent);
+  }
+}
+
+.deferredChartGlow {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .chartArea {
+    height: 272px;
+    padding: 8px 6px 4px;
+  }
+
+  .panelCard,
+  .chartLineCard,
+  .deferredCard {
+    border-radius: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panelCard,
+  .chartLineCard,
+  .periodButtons :global(.btn) {
+    transition: none;
   }
 }

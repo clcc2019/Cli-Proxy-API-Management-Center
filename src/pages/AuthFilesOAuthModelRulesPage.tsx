@@ -534,7 +534,7 @@ export function OAuthModelRulesEditorModal({
       title={title}
       onClose={onClose}
       closeDisabled={saving}
-      width={980}
+      width={1100}
       fullScreenOnMobile
       className={styles.modal}
       footer={
@@ -560,20 +560,21 @@ export function OAuthModelRulesEditorModal({
             description={t('oauth_model_rules.upgrade_required_desc')}
           />
         ) : (
-          <>
+          <div className={styles.rulesShell}>
             <section
-              className={styles.providerSection}
+              className={styles.providerContext}
               aria-labelledby="oauth-model-rules-provider-title"
             >
-              <div className={styles.sectionHeader}>
-                <div>
-                  <h2 id="oauth-model-rules-provider-title">
-                    {t('oauth_model_rules.provider_title')}
-                  </h2>
-                  <p>{t('oauth_model_rules.provider_hint')}</p>
-                </div>
+              <div className={styles.providerContextIntro}>
+                <span className={styles.providerContextEyebrow}>
+                  {t('oauth_model_rules.provider_label')}
+                </span>
+                <h2 id="oauth-model-rules-provider-title">
+                  {t('oauth_model_rules.provider_title')}
+                </h2>
+                <p>{t('oauth_model_rules.provider_hint')}</p>
               </div>
-              <div className={styles.providerBody}>
+              <div className={styles.providerContextControls}>
                 <AutocompleteInput
                   id="oauth-model-rules-provider"
                   placeholder={t('oauth_model_rules.provider_placeholder')}
@@ -608,275 +609,301 @@ export function OAuthModelRulesEditorModal({
               </div>
             </section>
 
-            {!resolvedProviderKey ? (
-              <div className={styles.awaitingProvider} role="status">
-                {t('oauth_model_rules.provider_required')}
-              </div>
-            ) : (
-              <div className={styles.rulesLayout}>
-                <section
-                  className={styles.ruleSection}
-                  aria-labelledby="oauth-model-rules-excluded-title"
-                >
-                  <div className={styles.sectionHeader}>
-                    <div>
-                      <h2 id="oauth-model-rules-excluded-title">
-                        {t('oauth_excluded.models_label')}
-                      </h2>
-                      <p>{t('oauth_model_rules.excluded_description')}</p>
-                    </div>
-                    {excludedSupported && (
-                      <div
-                        className={styles.modelSourceStatus}
-                        role="status"
-                        aria-busy={modelsLoading || undefined}
-                      >
-                        {modelsLoading && <LoadingSpinner size={14} />}
-                        <span>{modelSourceStatus}</span>
+            <div className={styles.rulesContent}>
+              {!resolvedProviderKey ? (
+                <div className={styles.awaitingProvider} role="status">
+                  {t('oauth_model_rules.provider_required')}
+                </div>
+              ) : (
+                <div className={styles.rulesSections}>
+                  <section
+                    className={styles.ruleSection}
+                    aria-labelledby="oauth-model-rules-excluded-title"
+                  >
+                    <div className={styles.sectionHeader}>
+                      <div>
+                        <h2 id="oauth-model-rules-excluded-title">
+                          {t('oauth_excluded.models_label')}
+                        </h2>
+                        <p>{t('oauth_model_rules.excluded_description')}</p>
                       </div>
-                    )}
-                  </div>
-
-                  {!excludedSupported ? (
-                    <div className={styles.unavailableState}>
-                      {t('oauth_model_rules.excluded_unavailable')}
-                    </div>
-                  ) : (
-                    <div className={styles.ruleBody}>
-                      {visibleModels.length > 0 ? (
-                        <div className={styles.modelList}>
-                          {visibleModels.map((model) => (
-                            <SelectionCheckbox
-                              key={model.id}
-                              checked={selectedModels.has(model.id)}
-                              disabled={disableControls || saving}
-                              onChange={(checked) => toggleModel(model.id, checked)}
-                              className={styles.modelItem}
-                              labelClassName={styles.modelText}
-                              label={
-                                <>
-                                  <span className={styles.modelId}>{model.id}</span>
-                                  {model.display_name && model.display_name !== model.id && (
-                                    <span className={styles.modelDisplayName}>
-                                      {model.display_name}
-                                    </span>
-                                  )}
-                                </>
-                              }
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className={styles.compactEmpty}>
-                          {t('oauth_model_rules.no_models_yet')}
+                      {excludedSupported && (
+                        <div
+                          className={styles.modelSourceStatus}
+                          role="status"
+                          aria-busy={modelsLoading || undefined}
+                        >
+                          {modelsLoading && <LoadingSpinner size={14} />}
+                          <span>{modelSourceStatus}</span>
                         </div>
                       )}
+                    </div>
 
-                      <details className={styles.manualModelDetails}>
-                        <summary>{t('oauth_model_rules.manual_model_disclosure')}</summary>
-                        <div className={styles.manualModelControl}>
-                          <input
-                            className="input"
-                            value={manualModel}
-                            onChange={(event) => setManualModel(event.target.value)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter') {
-                                event.preventDefault();
-                                addManualModel();
-                              }
-                            }}
-                            placeholder={t('oauth_model_rules.manual_model_placeholder')}
-                            disabled={disableControls || saving}
-                          />
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={addManualModel}
-                            disabled={disableControls || saving || !manualModel.trim()}
-                          >
-                            {t('oauth_model_rules.add_model')}
-                          </Button>
-                        </div>
-                        <p className={styles.controlHint}>
-                          {t('oauth_model_rules.manual_model_hint')}
-                        </p>
-                      </details>
-
-                      {excludedDirty &&
-                        selectedModels.size === 0 &&
-                        initialSelectedModels.size > 0 && (
-                          <div className={styles.clearNotice} role="status">
-                            {t('oauth_model_rules.excluded_clear_notice')}
+                    {!excludedSupported ? (
+                      <div className={styles.unavailableState}>
+                        {t('oauth_model_rules.excluded_unavailable')}
+                      </div>
+                    ) : (
+                      <div className={styles.ruleBody}>
+                        {visibleModels.length > 0 ? (
+                          <div className={styles.modelList}>
+                            {visibleModels.map((model) => (
+                              <SelectionCheckbox
+                                key={model.id}
+                                checked={selectedModels.has(model.id)}
+                                disabled={disableControls || saving}
+                                onChange={(checked) => toggleModel(model.id, checked)}
+                                className={styles.modelItem}
+                                labelClassName={styles.modelText}
+                                label={
+                                  <>
+                                    <span className={styles.modelId}>{model.id}</span>
+                                    {model.display_name && model.display_name !== model.id && (
+                                      <span className={styles.modelDisplayName}>
+                                        {model.display_name}
+                                      </span>
+                                    )}
+                                  </>
+                                }
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className={styles.compactEmpty}>
+                            {t('oauth_model_rules.no_models_yet')}
                           </div>
                         )}
-                    </div>
-                  )}
-                </section>
 
-                <section
-                  className={styles.ruleSection}
-                  aria-labelledby="oauth-model-rules-alias-title"
-                >
-                  <div className={styles.sectionHeader}>
-                    <div>
-                      <h2 id="oauth-model-rules-alias-title">
-                        {t('oauth_model_alias.alias_label')}
-                      </h2>
-                      <p>{t('oauth_model_rules.alias_description')}</p>
-                    </div>
-                    {aliasesSupported && mappings.length > 0 && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={addMappingEntry}
-                        disabled={disableControls || saving}
-                      >
-                        <IconPlus size={14} />
-                        {t('oauth_model_rules.add_alias')}
-                      </Button>
-                    )}
-                  </div>
-
-                  {!aliasesSupported ? (
-                    <div className={styles.unavailableState}>
-                      {t('oauth_model_rules.aliases_unavailable')}
-                    </div>
-                  ) : mappings.length === 0 ? (
-                    <div className={styles.aliasEmpty}>
-                      <span>{t('oauth_model_rules.alias_empty')}</span>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={addMappingEntry}
-                        disabled={disableControls || saving}
-                      >
-                        {t('oauth_model_rules.add_alias')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className={styles.mappingsBody}>
-                      {mappings.map((entry, index) => (
-                        <div key={entry.id} className={styles.mappingRow}>
-                          <div className={styles.mappingInputs}>
-                            <AutocompleteInput
-                              wrapperStyle={{ marginBottom: 0 }}
-                              placeholder={t('oauth_model_alias.alias_name_placeholder')}
-                              value={entry.name}
-                              onChange={(value) => updateMappingEntry(index, 'name', value)}
-                              disabled={disableControls || saving}
-                              options={modelsList.map((model) => ({
-                                value: model.id,
-                                label:
-                                  model.display_name && model.display_name !== model.id
-                                    ? model.display_name
-                                    : undefined,
-                              }))}
-                            />
-                            <span className={styles.mappingSeparator} aria-hidden="true">
-                              →
-                            </span>
+                        <details className={styles.manualModelDetails}>
+                          <summary>{t('oauth_model_rules.manual_model_disclosure')}</summary>
+                          <div className={styles.manualModelControl}>
                             <input
-                              className={`input ${styles.mappingAliasInput}`}
-                              aria-label={t('oauth_model_alias.alias_placeholder')}
-                              placeholder={t('oauth_model_alias.alias_placeholder')}
-                              value={entry.alias}
-                              onChange={(event) =>
-                                updateMappingEntry(index, 'alias', event.target.value)
-                              }
+                              className="input"
+                              value={manualModel}
+                              onChange={(event) => setManualModel(event.target.value)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                  event.preventDefault();
+                                  addManualModel();
+                                }
+                              }}
+                              placeholder={t('oauth_model_rules.manual_model_placeholder')}
                               disabled={disableControls || saving}
                             />
                             <Button
-                              variant="ghost"
+                              variant="secondary"
                               size="sm"
-                              className={styles.mappingRemove}
-                              onClick={() => removeMappingEntry(entry.id)}
-                              disabled={disableControls || saving}
-                              title={t('common.delete')}
-                              aria-label={t('common.delete')}
+                              onClick={addManualModel}
+                              disabled={disableControls || saving || !manualModel.trim()}
                             >
-                              <IconX size={14} />
+                              {t('oauth_model_rules.add_model')}
                             </Button>
                           </div>
+                          <p className={styles.controlHint}>
+                            {t('oauth_model_rules.manual_model_hint')}
+                          </p>
+                        </details>
 
-                          <div className={styles.mappingOptions}>
-                            <ToggleSwitch
-                              label={t('oauth_model_alias.alias_fork_label')}
-                              checked={Boolean(entry.fork)}
-                              onChange={(value) => updateMappingEntry(index, 'fork', value)}
-                              disabled={disableControls || saving}
-                            />
-                            {resolvedProviderKey === 'codex' && (
-                              <div className={styles.reasoningControl}>
-                                <span className={styles.reasoningLabel}>
-                                  {t('oauth_model_rules.reasoning_default_label')}
-                                </span>
-                                <Select
-                                  id={`oauth-model-rules-reasoning-default-${entry.id}`}
-                                  value={entry.reasoningEffort?.default ?? ''}
-                                  options={reasoningEffortOptions}
-                                  onChange={(value) =>
-                                    updateReasoningEffort(index, 'default', value)
-                                  }
-                                  disabled={disableControls || saving}
-                                  ariaLabel={t('oauth_model_rules.reasoning_default_label')}
-                                />
-                                <details className={styles.reasoningDetails}>
-                                  <summary>
-                                    {getReasoningOverrideCount(entry.reasoningEffort) > 0
-                                      ? t('oauth_model_rules.reasoning_more_configured', {
-                                          count: getReasoningOverrideCount(entry.reasoningEffort),
-                                        })
-                                      : t('oauth_model_rules.reasoning_more')}
-                                  </summary>
-                                  <div className={styles.reasoningOverrides}>
-                                    {REASONING_EFFORT_SOURCES.filter(
-                                      (source) => source !== 'default'
-                                    ).map((source) => (
-                                      <div key={source} className={styles.reasoningOverride}>
-                                        <span>{getReasoningSourceLabel(source)}</span>
-                                        <Select
-                                          id={`oauth-model-rules-reasoning-${entry.id}-${source}`}
-                                          value={entry.reasoningEffort?.[source] ?? ''}
-                                          options={reasoningEffortOptions}
-                                          onChange={(value) =>
-                                            updateReasoningEffort(index, source, value)
-                                          }
-                                          disabled={disableControls || saving}
-                                          ariaLabel={t(
-                                            'oauth_model_rules.reasoning_override_label',
-                                            {
-                                              source: getReasoningSourceLabel(source),
-                                            }
-                                          )}
-                                        />
-                                      </div>
-                                    ))}
-                                  </div>
-                                </details>
-                              </div>
-                            )}
-                          </div>
-                          {mappingErrors[entry.id] && (
-                            <p
-                              id={`oauth-model-rules-reasoning-error-${entry.id}`}
-                              className={styles.mappingError}
-                            >
-                              {mappingErrors[entry.id]}
-                            </p>
+                        {excludedDirty &&
+                          selectedModels.size === 0 &&
+                          initialSelectedModels.size > 0 && (
+                            <div className={styles.clearNotice} role="status">
+                              {t('oauth_model_rules.excluded_clear_notice')}
+                            </div>
                           )}
-                        </div>
-                      ))}
-                      {aliasDirty && aliasPayload.entries.length === 0 && (
-                        <div className={styles.clearNotice} role="status">
-                          {t('oauth_model_rules.alias_clear_notice')}
-                        </div>
+                      </div>
+                    )}
+                  </section>
+
+                  <section
+                    className={styles.ruleSection}
+                    aria-labelledby="oauth-model-rules-alias-title"
+                  >
+                    <div className={styles.sectionHeader}>
+                      <div>
+                        <h2 id="oauth-model-rules-alias-title">
+                          {t('oauth_model_alias.alias_label')}
+                        </h2>
+                        <p>{t('oauth_model_rules.alias_description')}</p>
+                      </div>
+                      {aliasesSupported && mappings.length > 0 && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={addMappingEntry}
+                          disabled={disableControls || saving}
+                        >
+                          <IconPlus size={14} />
+                          {t('oauth_model_rules.add_alias')}
+                        </Button>
                       )}
                     </div>
-                  )}
-                </section>
-              </div>
-            )}
-          </>
+
+                    {!aliasesSupported ? (
+                      <div className={styles.unavailableState}>
+                        {t('oauth_model_rules.aliases_unavailable')}
+                      </div>
+                    ) : mappings.length === 0 ? (
+                      <div className={styles.aliasEmpty}>
+                        <span>{t('oauth_model_rules.alias_empty')}</span>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={addMappingEntry}
+                          disabled={disableControls || saving}
+                        >
+                          {t('oauth_model_rules.add_alias')}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className={styles.mappingsBody}>
+                        <div className={styles.mappingList}>
+                          {mappings.map((entry, index) => (
+                            <div key={entry.id} className={styles.mappingRow}>
+                              <div className={styles.mappingRowMain}>
+                                <div className={styles.mappingField}>
+                                  <span className={styles.mappingFieldLabel}>
+                                    {t('oauth_model_alias.alias_name_placeholder')}
+                                  </span>
+                                  <AutocompleteInput
+                                    wrapperStyle={{ marginBottom: 0 }}
+                                    dropdownClassName={styles.originalModelDropdown}
+                                    portal
+                                    placeholder={t('oauth_model_alias.alias_name_placeholder')}
+                                    value={entry.name}
+                                    onChange={(value) => updateMappingEntry(index, 'name', value)}
+                                    disabled={disableControls || saving}
+                                    options={modelsList.map((model) => ({
+                                      value: model.id,
+                                      label:
+                                        model.display_name && model.display_name !== model.id
+                                          ? model.display_name
+                                          : undefined,
+                                    }))}
+                                  />
+                                </div>
+                                <span className={styles.mappingSeparator} aria-hidden="true">
+                                  →
+                                </span>
+                                <div className={styles.mappingField}>
+                                  <span className={styles.mappingFieldLabel}>
+                                    {t('oauth_model_alias.alias_placeholder')}
+                                  </span>
+                                  <input
+                                    className={`input ${styles.mappingAliasInput}`}
+                                    aria-label={t('oauth_model_alias.alias_placeholder')}
+                                    placeholder={t('oauth_model_alias.alias_placeholder')}
+                                    value={entry.alias}
+                                    onChange={(event) =>
+                                      updateMappingEntry(index, 'alias', event.target.value)
+                                    }
+                                    disabled={disableControls || saving}
+                                  />
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={styles.mappingRemove}
+                                  onClick={() => removeMappingEntry(entry.id)}
+                                  disabled={disableControls || saving}
+                                  title={t('common.delete')}
+                                  aria-label={t('common.delete')}
+                                >
+                                  <IconX size={14} />
+                                </Button>
+                              </div>
+
+                              <div className={styles.mappingRowSettings}>
+                                <div className={styles.mappingFork}>
+                                  <ToggleSwitch
+                                    label={t('oauth_model_alias.alias_fork_label')}
+                                    checked={Boolean(entry.fork)}
+                                    onChange={(value) => updateMappingEntry(index, 'fork', value)}
+                                    disabled={disableControls || saving}
+                                  />
+                                </div>
+                                {resolvedProviderKey === 'codex' && (
+                                  <div className={styles.reasoningInline}>
+                                    <div className={styles.reasoningDefault}>
+                                      <span className={styles.reasoningLabel}>
+                                        {t('oauth_model_rules.reasoning_default_label')}
+                                      </span>
+                                      <Select
+                                        id={`oauth-model-rules-reasoning-default-${entry.id}`}
+                                        className={styles.reasoningSelect}
+                                        value={entry.reasoningEffort?.default ?? ''}
+                                        options={reasoningEffortOptions}
+                                        dropdownClassName={styles.reasoningDropdown}
+                                        onChange={(value) =>
+                                          updateReasoningEffort(index, 'default', value)
+                                        }
+                                        disabled={disableControls || saving}
+                                        ariaLabel={t('oauth_model_rules.reasoning_default_label')}
+                                      />
+                                    </div>
+                                    <details className={styles.reasoningDetails}>
+                                      <summary>
+                                        {getReasoningOverrideCount(entry.reasoningEffort) > 0
+                                          ? t('oauth_model_rules.reasoning_more_configured', {
+                                              count: getReasoningOverrideCount(
+                                                entry.reasoningEffort
+                                              ),
+                                            })
+                                          : t('oauth_model_rules.reasoning_more')}
+                                      </summary>
+                                      <div className={styles.reasoningOverrides}>
+                                        {REASONING_EFFORT_SOURCES.filter(
+                                          (source) => source !== 'default'
+                                        ).map((source) => (
+                                          <div key={source} className={styles.reasoningOverride}>
+                                            <span>{getReasoningSourceLabel(source)}</span>
+                                            <Select
+                                              id={`oauth-model-rules-reasoning-${entry.id}-${source}`}
+                                              className={styles.reasoningSelect}
+                                              value={entry.reasoningEffort?.[source] ?? ''}
+                                              options={reasoningEffortOptions}
+                                              dropdownClassName={styles.reasoningDropdown}
+                                              onChange={(value) =>
+                                                updateReasoningEffort(index, source, value)
+                                              }
+                                              disabled={disableControls || saving}
+                                              ariaLabel={t(
+                                                'oauth_model_rules.reasoning_override_label',
+                                                {
+                                                  source: getReasoningSourceLabel(source),
+                                                }
+                                              )}
+                                            />
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </details>
+                                  </div>
+                                )}
+                              </div>
+                              {mappingErrors[entry.id] && (
+                                <p
+                                  id={`oauth-model-rules-reasoning-error-${entry.id}`}
+                                  className={styles.mappingError}
+                                >
+                                  {mappingErrors[entry.id]}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                          {aliasDirty && aliasPayload.entries.length === 0 && (
+                            <div className={styles.clearNotice} role="status">
+                              {t('oauth_model_rules.alias_clear_notice')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </Modal>

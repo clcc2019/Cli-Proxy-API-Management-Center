@@ -1,67 +1,63 @@
 @use '../../styles/mixins' as *;
-@use '../../styles/variables' as *;
 
 .page {
-  --radius-sm: 6px;
-  --primary-8: color-mix(in srgb, var(--primary-color) 8%, transparent);
-  --primary-10: color-mix(in srgb, var(--primary-color) 10%, transparent);
-  --primary-30: color-mix(in srgb, var(--primary-color) 30%, transparent);
-  --amber-color: var(--accent-amber);
-  --amber-text: #92400e;
-  --amber-10: color-mix(in srgb, var(--amber-color) 10%, transparent);
-  --amber-30: color-mix(in srgb, var(--amber-color) 30%, transparent);
-  --destructive-color: var(--danger-color);
-  --destructive-10: color-mix(in srgb, var(--destructive-color) 10%, transparent);
-  --muted-bg: var(--bg-tertiary);
-  --muted-foreground: var(--text-secondary);
-  --accent-bg: var(--bg-tertiary);
+  --provider-canvas: #ffffff;
+  --provider-surface: #ffffff;
+  --provider-surface-subtle: #f7f7f5;
+  --provider-surface-warm: #faf8f5;
+  --provider-text: #2c2a25;
+  --provider-text-secondary: #565551;
+  --provider-text-tertiary: #807f7c;
+  --provider-border: #eaeae9;
+  --provider-border-strong: #d8d8d3;
+  --provider-ink: #0e0d0c;
+  --provider-sage: #96a58d;
+  --provider-sage-strong: #63725a;
+  --provider-success: #407345;
+  --provider-warning: #a36e1f;
+  --provider-danger: #a53830;
+
   display: flex;
-  flex-direction: column;
-  gap: var(--page-content-gap, 20px);
   width: 100%;
   min-width: 0;
+  flex-direction: column;
+  gap: 22px;
   box-sizing: border-box;
+  color: var(--provider-text);
 }
 
 .errorBanner {
   padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--danger-color) 32%, var(--border-color));
+  border: 1px solid rgb(165 56 48 / 0.28);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--danger-color) 8%, var(--bg-primary));
-  color: var(--danger-color);
+  background: rgb(165 56 48 / 0.07);
+  color: var(--provider-danger);
   font-size: 13px;
-}
-
-:global([data-theme='dark']) .page {
-  --amber-color: var(--accent-amber);
-  --amber-text: #fcd34d;
-  --amber-10: color-mix(in srgb, var(--amber-color) 14%, transparent);
-  --amber-30: color-mix(in srgb, var(--amber-color) 38%, transparent);
+  line-height: 1.55;
 }
 
 .layout {
   display: grid;
   align-items: start;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr);
-
-  @media (min-width: 1280px) {
-    grid-template-columns: 240px minmax(0, 1fr);
-  }
+  grid-template-columns: minmax(205px, 224px) minmax(0, 1fr);
+  gap: 20px;
+  min-width: 0;
 }
 
-.layoutSingle {
-  @media (min-width: 1280px) {
+@media (max-width: 1199px) {
+  .layout {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-.modelCatalogSlot {
-  margin-top: 4px;
-}
-
 @media (max-width: 768px) {
   .page {
-    gap: 16px;
+    gap: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    scroll-behavior: auto;
   }
 }

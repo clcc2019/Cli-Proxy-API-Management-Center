@@ -137,6 +137,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
       open={Boolean(editor)}
       onClose={onClose}
       closeDisabled={editor?.saving === true}
+      fullScreenOnMobile
       className={styles.prefixProxyModal}
       width={960}
       title={
@@ -177,8 +178,8 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   {editor.error}
                 </div>
               )}
-              <div className={styles.prefixProxyLayout}>
-                <section className={styles.prefixProxyPanel}>
+              <div className={styles.prefixProxyWorkspace}>
+                <section className={styles.prefixProxySettingsPanel}>
                   <header className={styles.prefixProxyPanelHeader}>
                     <div className={styles.prefixProxyPanelTitleGroup}>
                       <h3 className={styles.prefixProxyPanelTitle}>
@@ -193,9 +194,14 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   <div className={styles.prefixProxyForm}>
                     <section className={styles.prefixProxySection}>
                       <header className={styles.prefixProxySectionHeader}>
-                        <h3 className={styles.prefixProxySectionTitle}>
-                          {t('auth_files.section_basic')}
-                        </h3>
+                        <div className={styles.prefixProxySectionHeading}>
+                          <span className={styles.prefixProxySectionIndex} aria-hidden="true">
+                            01
+                          </span>
+                          <h3 className={styles.prefixProxySectionTitle}>
+                            {t('auth_files.section_basic')}
+                          </h3>
+                        </div>
                       </header>
                       <div className={styles.prefixProxyFields}>
                         <div className={styles.prefixProxyField}>
@@ -238,6 +244,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                             value={editor.disableCooling}
                             options={disableCoolingOptions}
                             className={styles.prefixProxySelect}
+                            dropdownClassName={styles.prefixProxyDropdown}
                             disabled={editorControlsDisabled}
                             ariaLabel={t('auth_files.disable_cooling_label')}
                             onChange={handleDisableCoolingChange}
@@ -260,9 +267,14 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     {editor.isCodexFile && (
                       <section className={styles.prefixProxySection}>
                         <header className={styles.prefixProxySectionHeader}>
-                          <h3 className={styles.prefixProxySectionTitle}>
-                            {t('auth_files.section_codex')}
-                          </h3>
+                          <div className={styles.prefixProxySectionHeading}>
+                            <span className={styles.prefixProxySectionIndex} aria-hidden="true">
+                              02
+                            </span>
+                            <h3 className={styles.prefixProxySectionTitle}>
+                              {t('auth_files.section_codex')}
+                            </h3>
+                          </div>
                         </header>
                         <div className={styles.prefixProxyFields}>
                           <div
@@ -315,9 +327,14 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
 
                     <section className={styles.prefixProxySection}>
                       <header className={styles.prefixProxySectionHeader}>
-                        <h3 className={styles.prefixProxySectionTitle}>
-                          {t('auth_files.section_advanced')}
-                        </h3>
+                        <div className={styles.prefixProxySectionHeading}>
+                          <span className={styles.prefixProxySectionIndex} aria-hidden="true">
+                            {editor.isCodexFile ? '03' : '02'}
+                          </span>
+                          <h3 className={styles.prefixProxySectionTitle}>
+                            {t('auth_files.section_advanced')}
+                          </h3>
+                        </div>
                       </header>
                       <div className={styles.prefixProxyFields}>
                         <div
@@ -372,7 +389,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   </div>
                 </section>
 
-                <section className={`${styles.prefixProxyPanel} ${styles.prefixProxyPanelMuted}`}>
+                <aside className={styles.prefixProxyInspectorPanel}>
                   <header className={styles.prefixProxyPanelHeader}>
                     <div className={styles.prefixProxyPanelTitleGroup}>
                       <h3 className={styles.prefixProxyPanelTitle}>
@@ -474,7 +491,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                       </details>
                     )}
                   </div>
-                </section>
+                </aside>
               </div>
             </>
           )}

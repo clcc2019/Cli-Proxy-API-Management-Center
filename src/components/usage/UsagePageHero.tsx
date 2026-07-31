@@ -69,12 +69,12 @@ export const UsagePageHero = memo(function UsagePageHero({
   return (
     <section className={styles.hero}>
       <div className={styles.heroCopy}>
-        <h1 className={styles.pageTitle}>
-          <span className={styles.pageTitleIcon}>
-            <IconChartLine size={25} />
+        <div className={styles.heroTitleRow}>
+          <span className={styles.pageTitleIcon} aria-hidden="true">
+            <IconChartLine size={22} />
           </span>
-          <span>{t('usage_stats.title')}</span>
-        </h1>
+          <h1 className={styles.pageTitle}>{t('usage_stats.title')}</h1>
+        </div>
         <p className={styles.pageSubtitle}>{t('usage_stats.subtitle')}</p>
         <div className={styles.heroSummary}>
           <span>{selectedRangeLabel}</span>
@@ -133,12 +133,7 @@ export const UsagePageHero = memo(function UsagePageHero({
             <IconDatabase size={15} />
             <span>{t('usage_stats.import')}</span>
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onRefresh}
-            disabled={disableRefresh}
-          >
+          <Button variant="secondary" size="sm" onClick={onRefresh} disabled={disableRefresh}>
             <IconRefreshCw size={15} />
             <span>{loading ? t('common.loading') : t('usage_stats.refresh')}</span>
           </Button>

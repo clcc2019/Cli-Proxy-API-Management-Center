@@ -29,7 +29,9 @@ export function ProviderHeaderCard({
     <section className={styles.card}>
       <div className={styles.row}>
         <div className={styles.titleArea}>
+          <span className={styles.eyebrow}>{t('providersPage.header.eyebrow')}</span>
           <h1 className={styles.title}>{t('providersPage.header.title')}</h1>
+          <p className={styles.subtitle}>{t('providersPage.header.description')}</p>
         </div>
         <div className={styles.actions}>
           <button
@@ -57,19 +59,28 @@ export function ProviderHeaderCard({
         </div>
       </div>
 
-      <div className={styles.chips}>
-        <span className={`${styles.chip} ${styles.chipPrimary}`}>
-          {t('providersPage.header.activeResources', {
-            active: totalActive,
-            total: totalResources,
-          })}
-        </span>
-        <span className={styles.chip}>
-          {t('providersPage.header.providerFamilies', { count: providerFamilies })}
-        </span>
-        <span className={styles.chip}>
-          {t('providersPage.header.updatedAt', { time: updatedAtLabel })}
-        </span>
+      <div className={styles.summaryRail}>
+        <div className={styles.summaryLead}>
+          <span className={styles.summaryEyebrow}>{t('providersPage.header.inventoryLabel')}</span>
+          <span className={styles.summarySync}>
+            <span className={styles.summaryDot} aria-hidden="true" />
+            {t('providersPage.header.updatedAt', { time: updatedAtLabel })}
+          </span>
+        </div>
+        <div className={styles.chips}>
+          <span className={`${styles.chip} ${styles.chipPrimary}`}>
+            <strong>{totalActive}</strong>
+            <span>{t('providersPage.header.activeLabel')}</span>
+          </span>
+          <span className={styles.chip}>
+            <strong>{totalResources}</strong>
+            <span>{t('providersPage.header.totalLabel')}</span>
+          </span>
+          <span className={styles.chip}>
+            <strong>{providerFamilies}</strong>
+            <span>{t('providersPage.header.familiesLabel')}</span>
+          </span>
+        </div>
       </div>
     </section>
   );

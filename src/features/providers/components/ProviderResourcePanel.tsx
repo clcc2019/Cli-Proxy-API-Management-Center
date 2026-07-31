@@ -1,12 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { IconPlus, IconSearch } from '@/components/ui/icons';
+import { IconInbox, IconPlus, IconSearch, IconX } from '@/components/ui/icons';
 import { PROVIDER_LOGOS } from '../brandLogos';
-import type {
-  ProviderGroup,
-  ProviderResource,
-  ProviderSortBy,
-  SortDir,
-} from '../types';
+import type { ProviderGroup, ProviderResource, ProviderSortBy, SortDir } from '../types';
 import { ProviderResourceTable } from './ProviderResourceTable';
 import { ProviderResourceToolbar } from './ProviderResourceToolbar';
 import styles from './ProviderResourcePanel.module.scss';
@@ -69,6 +64,11 @@ export function ProviderResourcePanel({
               ) : null}
               <h2 className={styles.title}>{t(`providersPage.providerNames.${group.id}`)}</h2>
             </div>
+            <p className={styles.description}>
+              {t('providersPage.table.description', {
+                route: t(`providersPage.providerNames.${group.id}`),
+              })}
+            </p>
           </div>
           <div className={styles.searchWrap}>
             <span className={styles.searchIcon} aria-hidden="true">
@@ -80,10 +80,28 @@ export function ProviderResourcePanel({
               value={filter}
               onChange={(event) => onFilterChange(event.target.value)}
               placeholder={t('providersPage.table.filterPlaceholder')}
+              aria-label={t('providersPage.table.filterLabel')}
             />
+            {filter ? (
+              <button
+                type="button"
+                className={styles.searchClear}
+                onClick={() => onFilterChange('')}
+                aria-label={t('common.clear')}
+                title={t('common.clear')}
+              >
+                <IconX size={14} />
+              </button>
+            ) : null}
           </div>
         </div>
         <div className={styles.headerToolbarRow}>
+          <span className={styles.resultCount}>
+            {t('providersPage.table.resultCount', {
+              visible: filteredResources.length,
+              total: group.resources.length,
+            })}
+          </span>
           <ProviderResourceToolbar
             key={group.id}
             sortBy={toolbarControls.sortBy}
@@ -99,23 +117,36 @@ export function ProviderResourcePanel({
 
       {filteredResources.length === 0 ? (
         <div className={styles.empty}>
-          <div>{t('providersPage.table.empty')}</div>
+          <span className={styles.emptyIcon} aria-hidden="true">
+            <IconInbox size={21} />
+          </span>
+          <div className={styles.emptyCopy}>
+            <strong>{t('providersPage.table.emptyTitle')}</strong>
+            <p>{t('providersPage.table.empty')}</p>
+          </div>
           <div className={styles.emptyAction}>
-            <button type="button" className={styles.emptyActionButton} onClick={onCreate}>
+            <button
+              type="button"
+              className={styles.emptyActionButton}
+              onClick={onCreate}
+              disabled={disableMutations}
+            >
               <IconPlus size={16} />
               <span>{t('providersPage.actions.new')}</span>
             </button>
           </div>
         </div>
       ) : (
-        <ProviderResourceTable
-          resources={filteredResources}
-          disableMutations={disableMutations}
-          onView={onView}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onToggleDisabled={onToggleDisabled}
-        />
+        <div className={styles.tableFrame}>
+          <ProviderResourceTable
+            resources={filteredResources}
+            disableMutations={disableMutations}
+            onView={onView}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onToggleDisabled={onToggleDisabled}
+          />
+        </div>
       )}
     </section>
   );
