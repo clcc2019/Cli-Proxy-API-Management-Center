@@ -25,10 +25,6 @@ const ROUTE_LOADERS: Array<{ path: string; loader: RouteLoader }> = [
   { path: '/system', loader: loadSystemPage },
 ];
 
-// 登录后只在空闲期预热最常访问、体积较小的页面。图表、认证文件等重型页面
-// 改为用户悬停/聚焦导航时按意图预加载，避免一次性解析全部路由造成主线程尖峰。
-const IDLE_ROUTE_LOADERS: RouteLoader[] = [loadConfigPage, loadApiKeysPage];
-
 const preloadRequests = new Map<RouteLoader, Promise<Record<string, unknown>>>();
 
 const preloadLoader = (loader: RouteLoader): Promise<void> => {
@@ -49,10 +45,6 @@ export function preloadRoute(pathname: string): Promise<void> {
     ({ path }) => normalized === path || (path !== '/' && normalized.startsWith(`${path}/`))
   );
   return match ? preloadLoader(match.loader) : Promise.resolve();
-}
-
-export function preloadLikelyRoutes() {
-  return Promise.allSettled(IDLE_ROUTE_LOADERS.map(preloadLoader)).then(() => undefined);
 }
 
 export {

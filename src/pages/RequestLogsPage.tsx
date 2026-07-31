@@ -22,7 +22,9 @@ import {
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useAuthStore, useNotificationStore, useConfigStore, useThemeStore } from '@/stores';
-import { useUsageData } from '@/components/usage';
+// Import the hook directly instead of the barrel. The barrel also exports all
+// usage page sections and would pull their chart UI into the request-logs chunk.
+import { useUsageData } from '@/components/usage/hooks/useUsageData';
 import {
   REQUEST_EVENT_ROWS_LIMIT,
   useRequestEventRows,

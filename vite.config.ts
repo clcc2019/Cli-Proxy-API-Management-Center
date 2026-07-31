@@ -58,6 +58,20 @@ function getVersion(): string {
 }
 
 function resolveManualChunk(id: string) {
+  // The UI primitives are shared by nearly every route. Keeping them in one
+  // chunk avoids dozens of sub-5 KB requests without pulling page content
+  // into the initial entry.
+  if (/[\\/]src[\\/]components[\\/]ui[\\/]/.test(id)) {
+    return 'ui';
+  }
+
+  // Provider marks are tiny URL modules and are requested together on the
+  // provider/auth-files screens. One cacheable chunk is cheaper than a
+  // request per provider logo.
+  if (/[\\/]src[\\/]assets[\\/]icons[\\/]/.test(id)) {
+    return 'brand-icons';
+  }
+
   if (!id.includes('node_modules')) {
     return undefined;
   }
@@ -80,10 +94,7 @@ function resolveManualChunk(id: string) {
     return 'http';
   }
 
-  // 注意：这里必须用带边界的匹配。早先的 `id.includes('/react')` 会同时命中
-  // react-chartjs-2 / @uiw/react-codemirror / react-i18next，只是靠上面的
-  // charts / editor 判断先返回才没出事 —— 一旦调整顺序，chart.js 就会被
-  // 悄悄并进 framework 从而进入首屏。改成精确匹配包目录名，不再依赖顺序。
+  // 使用带边界的匹配，避免把 react-chartjs-2、react-i18next 等包误并入 framework。
   if (
     /node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|i18next|react-i18next|zustand)\//.test(
       id

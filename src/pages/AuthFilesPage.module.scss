@@ -241,6 +241,7 @@
 }
 
 .filterContent {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
@@ -967,23 +968,7 @@
   }
 }
 
-.listSurface {
-  position: relative;
-  min-height: 120px;
-  padding-top: 2px;
-  contain: layout style;
-  min-width: 0;
-  max-width: 100%;
-  overflow: visible;
-
-  @include mobile {
-    min-height: auto;
-    contain: none;
-    overflow: visible;
-  }
-}
-
-.listSurface :global(.empty-state) {
+.filterContent :global(.empty-state) {
   min-height: 156px;
   border-radius: 12px;
   border-color: color-mix(in srgb, var(--border-color) 66%, transparent);
@@ -997,17 +982,17 @@
   box-shadow: var(--shadow-card);
 }
 
-.listSurface :global(.empty-content) {
+.filterContent :global(.empty-content) {
   min-width: 0;
 }
 
-.listSurface :global(.empty-title),
-.listSurface :global(.empty-desc) {
+.filterContent :global(.empty-title),
+.filterContent :global(.empty-desc) {
   overflow-wrap: anywhere;
 }
 
 // .fileGrid 的完整定义在下方“卡片网格”一节，此处只保留刷新态的视觉反馈。
-.listSurfaceRefreshing .fileGrid {
+.listRefreshing .fileGrid {
   opacity: 0.94;
   // 刷新期间网格被置为 inert，光标同步提示不可交互。
   cursor: progress;
@@ -3547,6 +3532,10 @@
   height: 16px;
   color: currentColor;
   stroke-width: 2.4;
+  transition:
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    opacity var(--motion-duration-fast) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 // =============================================================================
@@ -3828,7 +3817,7 @@
   }
 }
 
-.listSurface :global(.empty-state) {
+.filterContent :global(.empty-state) {
   border-color: var(--auth-neutral-border);
   border-radius: 8px;
   background: transparent;
@@ -3964,7 +3953,7 @@
     background: color-mix(in srgb, var(--info-color) 14%, transparent);
   }
 
-  .listSurface :global(.empty-state) {
+  .filterContent :global(.empty-state) {
     border-color: color-mix(in srgb, var(--border-color) 78%, transparent);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 56%),
@@ -5033,12 +5022,12 @@
     width: 100%;
   }
 
-  .listSurface :global(.empty-state) {
+  .filterContent :global(.empty-state) {
     min-height: 148px;
     padding: 16px;
   }
 
-  .listSurface :global(.empty-content) {
+  .filterContent :global(.empty-content) {
     gap: 10px;
   }
 
@@ -5486,10 +5475,6 @@
   border-bottom: 1px solid var(--auth-divider);
 }
 
-.listSurface {
-  padding-top: 0;
-}
-
 .belowFoldCard {
   border-color: var(--auth-divider-strong);
 }
@@ -5811,14 +5796,7 @@
   box-shadow: 0 16px 34px -24px rgb(28 31 26 / 0.34);
 }
 
-.listSurface {
-  min-height: 150px;
-  padding: 0;
-  overflow: visible;
-  contain: none;
-}
-
-.listSurface :global(.empty-state) {
+.filterContent :global(.empty-state) {
   min-height: 190px;
   border: 1px solid var(--auth-neutral-border);
   border-radius: 15px;
@@ -6728,22 +6706,13 @@
   background: var(--auth-surface);
 }
 
-.listSurface {
-  min-height: 190px;
-  padding: 16px;
-  border: 1px solid var(--auth-neutral-border);
-  border-radius: 15px;
-  background: var(--auth-surface);
-  box-shadow: 0 20px 65px rgb(0 0 0 / 0.035);
-}
-
 .listProgressBar {
-  top: 0;
-  right: 16px;
-  left: 16px;
+  top: -8px;
+  right: 0;
+  left: 0;
 }
 
-.listSurface :global(.empty-state) {
+.filterContent :global(.empty-state) {
   min-height: 220px;
   margin: 0;
   border: 1px dashed var(--auth-neutral-border-strong);
@@ -6802,21 +6771,10 @@
     border-radius: 12px;
   }
 
-  .listSurface {
-    padding: 12px;
-    border-radius: 12px;
-  }
-
-  .listSurface :global(.empty-state) {
+  .filterContent :global(.empty-state) {
     min-height: 190px;
   }
 
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .listSurface {
-    transition: none;
-  }
 }
 
 // =============================================================================
@@ -8601,10 +8559,6 @@
 // limited to identity badges and avatars; controls share one neutral action
 // treatment across providers.
 // =============================================================================
-.listSurface {
-  background: var(--auth-surface-warm);
-}
-
 .authCardShell {
   --auth-card-surface: #fffefa;
   --auth-card-surface-hover: #ffffff;
@@ -8616,6 +8570,12 @@
   --auth-card-action-border-hover: #aabca6;
   --auth-card-action-text: #5f8066;
   --auth-card-action-text-hover: #2c4b33;
+  --auth-card-icon-action: color-mix(
+    in srgb,
+    var(--auth-card-action-text) 72%,
+    var(--auth-text-primary)
+  );
+  --auth-card-icon-action-hover: var(--auth-card-action-text-hover);
   --auth-card-icon-copy: #6488b0;
   --auth-card-icon-warning: #d36f63;
   --auth-card-icon-feature: #428c9a;
@@ -8888,6 +8848,22 @@
   color: var(--auth-card-icon-feature);
 }
 
+.authCardShell .authCardActionButton .authCardActionIcon {
+  color: var(--auth-card-icon-action);
+}
+
+.authCardShell .authCardActionButton:hover:not(:disabled) .authCardActionIcon {
+  color: var(--auth-card-icon-action-hover);
+}
+
+.authCardShell .authCardActionButton:active:not(:disabled) .actionIcon {
+  transform: translateY(1px);
+}
+
+.authCardShell .authCardActionButton:disabled .actionIcon {
+  opacity: 0.52;
+}
+
 .authCardShell .authCardWarning .cardWarningButton {
   border-color: color-mix(in srgb, var(--auth-card-icon-warning) 36%, var(--auth-card-action-border));
   background: color-mix(in srgb, var(--auth-card-icon-warning) 14%, transparent);
@@ -8978,6 +8954,12 @@
   --auth-card-action-border-hover: #708c73;
   --auth-card-action-text: #c6d2c4;
   --auth-card-action-text-hover: #eff5ed;
+  --auth-card-icon-action: color-mix(
+    in srgb,
+    var(--auth-card-action-text) 72%,
+    var(--auth-card-action-text-hover)
+  );
+  --auth-card-icon-action-hover: var(--auth-card-action-text-hover);
   --auth-card-icon-copy: #a9c8ed;
   --auth-card-icon-warning: #f2a59a;
   --auth-card-icon-feature: #8ed3de;

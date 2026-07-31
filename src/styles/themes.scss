@@ -8,6 +8,17 @@
 :root {
   color-scheme: light;
 
+  // Merge Gateway-inspired semantic tokens used by the application shell.
+  --mg-canvas: #ffffff;
+  --mg-surface: #ffffff;
+  --mg-surface-subtle: #f4f4f4;
+  --mg-text: #2c2a25;
+  --mg-text-secondary: #565551;
+  --mg-text-tertiary: #807f7c;
+  --mg-border: #eaeae9;
+  --mg-radius-control: 8px;
+  --mg-radius-pill: 999px;
+
   --bg-secondary: #ffffff;
   --bg-primary: #ffffff;
   --bg-tertiary: #f6f6f6;

@@ -39,18 +39,16 @@
   align-items: center;
   justify-content: space-between;
   gap: $spacing-md;
-  padding: 12px 20px;
-  background: var(--header-surface, var(--surface-overlay));
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+  padding: 12px clamp(16px, 2vw, 32px);
+  background: var(--mg-canvas, var(--bg-canvas));
+  border-bottom: 1px solid var(--mg-border, var(--border-color));
   position: sticky;
   top: 0;
   z-index: 10;
   width: 100%;
-  box-shadow:
-    var(--header-shadow),
-    inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 68%, transparent);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 
   @media (max-width: $breakpoint-mobile) {
     position: fixed;
@@ -66,7 +64,7 @@
   .left {
     display: flex;
     align-items: center;
-    gap: $spacing-sm;
+    gap: 8px;
     min-width: 0;
     flex: 0 1 auto;
 
@@ -76,23 +74,6 @@
       flex: 0 0 auto;
     }
 
-    .brand-logo {
-      height: 36px;
-      width: 36px;
-      object-fit: contain;
-      flex-shrink: 0;
-      padding: 2px;
-      border-radius: 11px;
-      border: 1px solid color-mix(in srgb, var(--primary-color) 16%, var(--border-color));
-      background: var(--surface-card, var(--surface-raised-strong));
-      box-shadow:
-        0 10px 24px -16px color-mix(in srgb, var(--primary-color) 46%, transparent),
-        inset 0 1px 0 var(--surface-sheen);
-
-      @media (max-width: $breakpoint-mobile) {
-        display: none;
-      }
-    }
   }
 
   .right {
@@ -113,109 +94,32 @@
 
   .sidebar-toggle-header {
     padding: 0;
-    background: var(--control-surface-gradient, var(--control-surface));
-    border: 1px solid var(--border-primary);
-    border-radius: $radius-md;
-    color: var(--text-secondary);
+    background: var(--mg-surface, var(--surface-raised));
+    border: 1px solid var(--mg-border, var(--border-primary));
+    border-radius: var(--mg-radius-control, $radius-md);
+    color: var(--mg-text-secondary, var(--text-secondary));
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
     transition:
-      background $transition-fast,
+      background-color $transition-fast,
       border-color $transition-fast,
-      color $transition-fast,
-      box-shadow $transition-fast,
-      transform $transition-fast;
+      color $transition-fast;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
     line-height: 1;
-    box-shadow: var(--control-shadow, var(--shadow));
+    box-shadow: none;
 
     &:hover {
-      background: var(--surface-raised-strong);
-      color: var(--primary-color);
-      border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
-      transform: translateY(-1px);
+      background: var(--mg-surface-subtle, var(--bg-tertiary));
+      color: var(--mg-text, var(--text-primary));
+      border-color: var(--mg-text-tertiary, var(--border-hover));
     }
 
-    &:active {
-      transform: translateY(0);
-    }
-
-    @media (max-width: $breakpoint-mobile) {
-      display: none;
-    }
-  }
-
-  .brand-header {
-    appearance: none;
-    display: flex;
-    align-items: center;
-    gap: $spacing-xs;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    font: inherit;
-    font-weight: 750;
-    font-size: 17px;
-    letter-spacing: -0.025em;
-    color: var(--text-primary);
-    margin-right: $spacing-md;
-    text-align: left;
-    cursor: default;
-    overflow: hidden;
-    white-space: nowrap;
-    flex-shrink: 0;
-
-    .brand-full {
-      display: inline-block;
-      max-width: 320px;
-      opacity: 1;
-      transform: translateX(0);
-      transition:
-        max-width 0.4s ease,
-        opacity 0.4s ease,
-        transform 0.4s ease;
-    }
-
-    .brand-abbr {
-      display: inline-block;
-      transform: translateX(12px);
-      opacity: 0;
-      pointer-events: none;
-      transition:
-        opacity 0.4s ease,
-        transform 0.4s ease;
-    }
-
-    &.collapsed {
-      .brand-full {
-        max-width: 0;
-        opacity: 0;
-        transform: translateX(-12px);
-      }
-
-      .brand-abbr {
-        transform: translateX(0);
-        opacity: 1;
-        pointer-events: auto;
-      }
-    }
-
-    &:hover {
-      color: var(--primary-color);
-    }
-
-    &.collapsed {
-      cursor: pointer;
-      margin-right: 0;
-    }
-
-    // 移动端：隐藏品牌文案，头部只保留左侧菜单按钮
     @media (max-width: $breakpoint-mobile) {
       display: none;
     }
@@ -233,7 +137,9 @@
   .header-actions {
     display: flex;
     align-items: center;
-    gap: $spacing-xs;
+    gap: 2px;
+    padding-left: 12px;
+    border-left: 1px solid var(--mg-border, var(--border-color));
     flex-shrink: 0;
 
     .language-menu {
@@ -305,15 +211,16 @@
 
     > .btn,
     .language-menu > .btn {
-      width: 36px;
-      min-width: 36px;
-      height: 36px;
+      width: 34px;
+      min-width: 34px;
+      height: 34px;
       padding: 0;
-      border-radius: 10px;
+      border-radius: var(--mg-radius-control, $radius-md);
+      color: var(--mg-text-secondary, var(--text-secondary));
 
       &:hover {
-        color: var(--primary-color);
-        background: var(--primary-soft);
+        color: var(--mg-text, var(--text-primary));
+        background: var(--mg-surface-subtle, var(--bg-tertiary));
       }
     }
 
@@ -331,10 +238,10 @@
     flex-shrink: 1;
     overflow: hidden;
     padding: 6px 10px 6px 7px;
-    border-radius: $radius-full;
-    background: var(--control-surface-gradient, var(--control-surface));
-    border: 1px solid color-mix(in srgb, var(--border-primary) 88%, transparent);
-    box-shadow: var(--control-shadow, var(--shadow));
+    border-radius: var(--mg-radius-pill, $radius-full);
+    background: var(--mg-surface-subtle, var(--bg-tertiary));
+    border: 1px solid var(--mg-border, var(--border-color));
+    box-shadow: none;
 
     .status-badge {
       flex-shrink: 0;
@@ -343,9 +250,9 @@
     }
 
     .base {
-      font-weight: 600;
+      font-weight: 500;
       font-size: 13px;
-      color: var(--text-primary);
+      color: var(--mg-text, var(--text-primary));
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

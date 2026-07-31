@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
-import { preloadLikelyRoutes, preloadRoute } from '@/router/routeLoaders';
+import { preloadRoute } from '@/router/routeLoaders';
 import {
   IconSidebarAuthFiles,
   IconSidebarConfig,
@@ -29,12 +29,10 @@ import {
   IconSidebarSystem,
   IconSidebarUsage,
 } from '@/components/ui/icons';
-import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import { useAuthStore, useConfigStore, useLanguageStore, useNotificationStore } from '@/stores';
 import { triggerHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
 import { isSupportedLanguage } from '@/utils/language';
-import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 
 const sidebarIcons: Record<string, ReactNode> = {
   dashboard: <IconSidebarDashboard size={18} />,
@@ -103,49 +101,8 @@ const headerIcons = {
   ),
 };
 
-const AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS = 5000;
-const ROUTE_PRELOAD_IDLE_TIMEOUT_MS = 2000;
 const NAVIGATION_PRELOAD_BUDGET_MS = 220;
 const HEADER_MENU_ITEM_SELECTOR = '[role="menuitemradio"]:not(:disabled)';
-
-type NetworkAwareNavigator = Navigator & {
-  connection?: {
-    effectiveType?: string;
-    saveData?: boolean;
-  };
-};
-
-const shouldPreloadPrimaryRoutes = () => {
-  if (typeof navigator === 'undefined') {
-    return true;
-  }
-
-  const connection = (navigator as NetworkAwareNavigator).connection;
-  if (!connection) {
-    return true;
-  }
-
-  if (connection.saveData) {
-    return false;
-  }
-
-  return connection.effectiveType !== 'slow-2g' && connection.effectiveType !== '2g';
-};
-
-function scheduleAuthenticatedRoutePreload() {
-  return scheduleIdleTask(
-    () => {
-      if (!shouldPreloadPrimaryRoutes()) {
-        return;
-      }
-      void preloadLikelyRoutes();
-    },
-    {
-      delayMs: AUTHENTICATED_ROUTE_PRELOAD_DELAY_MS,
-      timeoutMs: ROUTE_PRELOAD_IDLE_TIMEOUT_MS,
-    }
-  );
-}
 
 const getHeaderMenuItems = (menu: HTMLDivElement | null) =>
   Array.from(menu?.querySelectorAll<HTMLButtonElement>(HEADER_MENU_ITEM_SELECTOR) ?? []);
@@ -175,8 +132,6 @@ export function MainLayout() {
   const headerRef = useRef<HTMLElement | null>(null);
   const navigationIntentRef = useRef(0);
 
-  const fullBrandName = 'CLI Proxy API Management Center';
-  const abbrBrandName = t('title.abbr');
   const isLogsPage = location.pathname.startsWith('/logs');
 
   // 将顶栏高度写入 CSS 变量，确保侧栏/内容区计算一致，防止滚动时抖动
@@ -337,13 +292,6 @@ export function MainLayout() {
       // ignore initial failure; login flow会提示
     });
   }, [fetchConfig]);
-
-  useEffect(() => {
-    if (connectionStatus !== 'connected') {
-      return undefined;
-    }
-    return scheduleAuthenticatedRoutePreload();
-  }, [connectionStatus]);
 
   const statusClass =
     connectionStatus === 'connected'
@@ -523,26 +471,6 @@ export function MainLayout() {
           >
             {sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
           </button>
-          <img src={INLINE_LOGO_JPEG} alt="" aria-hidden="true" className="brand-logo" />
-          {sidebarCollapsed ? (
-            <button
-              type="button"
-              className="brand-header collapsed"
-              onClick={() => setSidebarCollapsed(false)}
-              title={fullBrandName}
-              aria-label={t('sidebar.expand')}
-              aria-controls="main-sidebar"
-              aria-expanded={false}
-            >
-              <span className="brand-full">{fullBrandName}</span>
-              <span className="brand-abbr">{abbrBrandName}</span>
-            </button>
-          ) : (
-            <div className="brand-header expanded">
-              <span className="brand-full">{fullBrandName}</span>
-              <span className="brand-abbr">{abbrBrandName}</span>
-            </div>
-          )}
         </div>
 
         <div className="right">

@@ -6,7 +6,6 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import type { Language } from '@/types';
 import { getInitialLanguage } from '@/utils/language';
-import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 
 type TranslationResource = Record<string, unknown>;
 
@@ -50,20 +49,11 @@ export const initializeI18n = () => {
 
   initializePromise = (async () => {
     const initialLanguage = getInitialLanguage();
-    // 关键路径上只加载当前语言；fallback 语言（若不同）挪到空闲时补齐，
-    // 以免 createRoot 之前多解析一份约 105KB 的 JSON。
+    // 关键路径上只加载当前语言；fallback 语言在切换语言时再加载，
+    // 避免用户不切换语言也要额外请求并解析另一份约 105KB 的 JSON。
     const resource = await loadLocaleResource(initialLanguage);
     loadedLanguages.add(initialLanguage);
     const resourceEntries = [[initialLanguage, { translation: resource }]] as const;
-
-    if (initialLanguage !== FALLBACK_LANGUAGE) {
-      scheduleIdleTask(
-        () => {
-          void ensureLanguageResource(FALLBACK_LANGUAGE).catch(() => {});
-        },
-        { fallbackDelayMs: 1_000 }
-      );
-    }
 
     if (!i18n.isInitialized) {
       await i18n.use(initReactI18next).init({

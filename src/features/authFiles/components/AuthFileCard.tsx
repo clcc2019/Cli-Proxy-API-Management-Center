@@ -550,7 +550,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   disabled={disableControls}
                 >
                   <IconSettings
-                    className={styles.actionIcon}
+                    className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
                     size={18}
                   />
                 </Button>
@@ -569,7 +569,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     <LoadingSpinner size={18} />
                   ) : (
                     <IconKey
-                      className={styles.actionIcon}
+                      className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
                       size={18}
                     />
                   )}
@@ -586,7 +586,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   disabled={disableControls}
                 >
                   <IconModelCluster
-                    className={styles.actionIcon}
+                    className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
                     size={18}
                   />
                 </Button>
@@ -603,7 +603,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     disabled={disableControls}
                   >
                     <IconDownload
-                      className={styles.actionIcon}
+                      className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
                       size={18}
                     />
                   </Button>
@@ -639,7 +639,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   disableControls={disableControls}
                   onAuthFileUpdated={onAuthFileUpdated}
                   className={`${styles.authCardActionButton} ${styles.authCardRefreshButton}`}
-                  iconClassName={styles.actionIcon}
+                  iconClassName={`${styles.actionIcon} ${styles.authCardActionIcon}`}
                   iconSize={18}
                 />
               </Suspense>
