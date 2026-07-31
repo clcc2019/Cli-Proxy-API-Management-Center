@@ -7109,20 +7109,34 @@
 // and health colors remain semantic accents rather than decoration.
 // =============================================================================
 .container {
-  --auth-surface: #fffefa;
-  --auth-surface-muted: #f6f5f1;
-  --auth-control-surface: #fffefa;
+  // Keep this dense management screen on the same visual vocabulary as the
+  // dashboard: warm charcoal, white data surfaces, hairline structure, and a
+  // quiet sage signal. Provider colours remain local metadata, never card fills.
+  --auth-surface: #ffffff;
+  --auth-surface-muted: #f4f4f4;
+  --auth-surface-warm: #faf8f5;
+  --auth-control-surface: #ffffff;
   --auth-neutral-border: #eaeae9;
   --auth-neutral-border-strong: #d8d8d3;
-  --auth-text-primary: #292a27;
-  --auth-text-secondary: #555850;
-  --auth-text-muted: #777a72;
-  --auth-status-active: #4f755f;
-  --auth-status-active-bg: #edf4ef;
-  --auth-status-active-border: #cfe0d4;
-  --auth-status-disabled: #74776f;
-  --auth-status-disabled-bg: #f1f1ee;
-  --auth-status-disabled-border: #ddddda;
+  --auth-divider-subtle: color-mix(in srgb, var(--auth-neutral-border) 54%, transparent);
+  --auth-divider: color-mix(in srgb, var(--auth-neutral-border) 82%, transparent);
+  --auth-divider-strong: var(--auth-neutral-border);
+  --auth-text-primary: #2c2a25;
+  --auth-text-secondary: #565551;
+  --auth-text-muted: #807f7c;
+  --auth-sage: #96a58d;
+  --auth-sage-strong: #63725a;
+  --auth-sage-soft: #e1e2d9;
+  --auth-ink-strong: #0e0d0c;
+  --auth-success: #407345;
+  --auth-warning: #e5a947;
+  --auth-danger: #a53830;
+  --auth-status-active: var(--auth-success);
+  --auth-status-active-bg: rgb(64 115 69 / 0.1);
+  --auth-status-active-border: rgb(64 115 69 / 0.2);
+  --auth-status-disabled: var(--auth-text-secondary);
+  --auth-status-disabled-bg: var(--auth-surface-muted);
+  --auth-status-disabled-border: var(--auth-neutral-border);
   --auth-toolbar-search-max: 480px;
   gap: 22px;
 }
@@ -7149,7 +7163,7 @@
   gap: 18px;
   margin-bottom: 14px;
   padding: 0 0 14px;
-  border-bottom-color: var(--auth-neutral-border);
+  border-bottom-color: var(--auth-divider-strong);
 }
 
 .titleWrapper {
@@ -7180,6 +7194,16 @@
   border-radius: 8px;
 }
 
+.headerActionUpload:global(.btn.btn-primary) {
+  border-color: var(--auth-ink-strong);
+  background: var(--auth-ink-strong);
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-text-secondary);
+    background: var(--auth-text-secondary);
+  }
+}
+
 .errorBox {
   margin-bottom: 12px;
   border-radius: 10px;
@@ -7198,19 +7222,21 @@
 
 .filterToolbarRow {
   z-index: 4;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: stretch;
-  gap: 10px;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
   padding: 14px 16px;
-  border: 1px solid var(--auth-neutral-border);
+  border: 1px solid var(--auth-divider);
   border-radius: 15px;
   background: var(--auth-surface);
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+  box-shadow: none;
   contain: none;
 }
 
 .filterRail {
   gap: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .filterContent {
@@ -7278,12 +7304,12 @@
 
 .filterControlsPanel {
   grid-template-columns:
-    minmax(300px, var(--auth-toolbar-search-max))
-    minmax(0, 1fr)
+    minmax(260px, 1fr)
+    auto
     38px;
   gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--auth-neutral-border);
+  padding-top: 0;
+  border-top: 0;
 }
 
 .searchToolbar {
@@ -7322,12 +7348,17 @@
     background: var(--auth-surface-muted);
     box-shadow: none;
   }
+
+  &:focus-visible {
+    border-color: var(--auth-sage);
+    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.24);
+  }
 }
 
 .filterChipActive {
-  border-color: color-mix(in srgb, var(--info-color) 34%, var(--auth-neutral-border));
-  background: color-mix(in srgb, var(--info-color) 7%, var(--auth-surface-muted));
-  color: color-mix(in srgb, var(--info-color) 78%, var(--auth-text-primary));
+  border-color: color-mix(in srgb, var(--auth-sage-strong) 44%, var(--auth-neutral-border));
+  background: color-mix(in srgb, var(--auth-sage-soft) 42%, var(--auth-surface-muted));
+  color: var(--auth-text-primary);
   box-shadow: none;
 }
 
@@ -7376,9 +7407,9 @@
 .fileGrid,
 .fileGridQuotaManaged {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: stretch;
-  gap: 16px;
+  gap: 10px;
   overflow: visible;
   contain: none;
 }
@@ -7388,8 +7419,8 @@
 .fileCard.codexCard,
 .fileCard.kimiCard,
 .fileCardSkeleton {
-  --auth-card-divider: var(--auth-neutral-border);
-  --auth-card-divider-strong: var(--auth-neutral-border);
+  --auth-card-divider: color-mix(in srgb, var(--auth-neutral-border) 64%, transparent);
+  --auth-card-divider-strong: var(--auth-neutral-border-strong);
   min-height: 0;
   border: 1px solid var(--auth-neutral-border);
   border-radius: 15px;
@@ -7401,9 +7432,9 @@
 .fileCard {
   overflow: visible;
   min-height: 100%;
-  padding: 16px;
+  padding: 12px;
   contain: layout style;
-  contain-intrinsic-size: auto 230px;
+  contain-intrinsic-size: auto 210px;
   animation: none;
   transition:
     border-color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -7419,22 +7450,22 @@
   &:hover {
     border-color: var(--auth-neutral-border-strong);
     background: var(--auth-surface);
-    box-shadow: 0 16px 34px -30px rgb(28 31 26 / 0.34);
+    box-shadow: 0 20px 38px -34px rgb(44 42 37 / 0.28);
   }
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--info-color) 42%, var(--auth-neutral-border));
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--info-color) 16%, transparent);
+    border-color: var(--auth-sage);
+    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.26);
   }
 }
 
 .fileCard.fileCardSelected,
 .fileCard.fileCardSelected:hover {
-  border-color: color-mix(in srgb, var(--info-color) 46%, var(--auth-neutral-border));
-  background: color-mix(in srgb, var(--info-color) 4%, var(--auth-surface));
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--info-color) 11%, transparent),
-    0 16px 34px -30px rgb(28 31 26 / 0.34);
+  // Selection stays provider-neutral. The neutral border plus inset sage ring
+  // is visible without turning a credential into a coloured tile.
+  border-color: var(--auth-neutral-border-strong);
+  background: var(--auth-surface);
+  box-shadow: inset 0 0 0 2px rgb(150 165 141 / 0.58);
 }
 
 .fileCard.fileCardDisabled,
@@ -7466,20 +7497,72 @@
   gap: 4px;
 }
 
+// Keep the credential classification and its inline priority control on one
+// deliberate metadata rail: types/statuses start on the left, while the
+// operational value stays anchored on the right.
+.cardIdentityRow,
+.cardIdentityRowWithWarning {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'name warning'
+    'details details';
+  column-gap: 8px;
+  row-gap: 6px;
+}
+
+.cardTypeAndOptionsRow {
+  grid-area: details;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.cardTypeAndOptionsRow .cardTypeGroup {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+}
+
+.cardTypeAndOptionsRow .priorityInlineRow {
+  grid-area: auto;
+  flex: 0 0 auto;
+  width: fit-content;
+  margin-left: auto;
+  justify-self: auto;
+}
+
+.cardIdentityWarning {
+  grid-area: warning;
+}
+
 .fileCard .providerAvatar {
   background: var(--provider-soft) !important;
-  border-color: color-mix(in srgb, var(--provider-accent) 22%, var(--auth-neutral-border)) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--provider-accent) 22%,
+    var(--auth-neutral-border)
+  ) !important;
   color: var(--provider-accent) !important;
   box-shadow: none;
 }
 
 .fileCard:hover .providerAvatar {
-  border-color: color-mix(in srgb, var(--provider-accent) 38%, var(--auth-neutral-border)) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--provider-accent) 38%,
+    var(--auth-neutral-border)
+  ) !important;
 }
 
 .fileCard .providerTypeBadge {
   background: var(--provider-soft) !important;
-  border-color: color-mix(in srgb, var(--provider-accent) 22%, var(--auth-neutral-border)) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--provider-accent) 22%,
+    var(--auth-neutral-border)
+  ) !important;
   color: var(--provider-accent) !important;
 }
 
@@ -7487,12 +7570,12 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 18px;
-  padding: 0 6px;
+  height: 20px;
+  padding: 0 7px;
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: 999px;
   font-size: 10.5px;
-  font-weight: 680;
+  font-weight: 650;
   line-height: 1;
   white-space: nowrap;
 }
@@ -7561,66 +7644,71 @@
 }
 
 .cardInsights {
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
-  padding: 11px 0 0;
-  border-top: 1px solid var(--auth-neutral-border);
+  padding: 10px 0 0;
+  border-top: 1px solid var(--auth-card-divider);
   border-left: 0;
 }
 
 .fileCard .quotaSection {
-  padding-top: 8px;
+  padding-top: 10px;
+  border-top-color: var(--auth-card-divider);
 }
 
 .fileCard .quotaBar {
-  border-color: var(--auth-neutral-border);
+  height: 6px;
+  padding: 0;
+  border: 0;
   background: var(--auth-surface-muted);
-}
-
-.cardActions {
-  align-self: stretch;
-  min-width: 0;
-  width: 100%;
-  margin: auto 0 0;
-  padding: 10px 0 0;
-  border-top: 1px solid var(--auth-neutral-border);
-  border-left: 0;
-}
-
-.cardActionsMain {
-  align-self: center;
-}
-
-.cardActionsContent,
-.cardActionCluster {
-  flex-wrap: wrap;
-}
-
-.fileCard .iconButton:global(.btn.btn-sm),
-.fileCard .modelsActionButton:global(.btn.btn-sm),
-.fileCard .refreshActionButton:global(.btn.btn-sm) {
-  border-color: var(--auth-neutral-border);
-  background: var(--auth-control-surface);
-  color: var(--auth-text-secondary);
   box-shadow: none;
-
-  &:hover:not(:disabled) {
-    border-color: var(--auth-neutral-border-strong);
-    background: var(--auth-surface-muted);
-    color: var(--auth-text-primary);
-    box-shadow: none;
-  }
 }
 
-.fileCard .iconButton:global(.btn.btn-danger.btn-sm) {
-  border-color: color-mix(in srgb, var(--danger-color) 26%, var(--auth-neutral-border));
-  background: transparent;
-  color: color-mix(in srgb, var(--danger-color) 76%, var(--auth-text-primary));
+.fileCard .quotaBarFill,
+.fileCard .quotaBarFillHigh,
+.fileCard .quotaBarFillMedium,
+.fileCard .quotaBarFillLow {
+  background: var(--auth-success);
+  box-shadow: none;
+}
+
+.fileCard .quotaBarFillMedium {
+  background: var(--auth-warning);
+}
+
+.fileCard .quotaBarFillLow {
+  background: var(--auth-danger);
+}
+
+.fileCard .quotaBarFill::before,
+.fileCard .quotaBarFill::after {
+  display: none;
+}
+
+.fileCard .quotaPercent {
+  min-width: 40px;
+  height: 20px;
+  box-shadow: none;
+}
+
+.fileCard .quotaRowHigh .quotaPercent {
+  --quota-percent-text: var(--auth-success);
+  --quota-percent-bg: rgb(64 115 69 / 0.1);
+}
+
+.fileCard .quotaRowMedium .quotaPercent {
+  --quota-percent-text: #9a6b1d;
+  --quota-percent-bg: rgb(229 169 71 / 0.16);
+}
+
+.fileCard .quotaRowLow .quotaPercent {
+  --quota-percent-text: var(--auth-danger);
+  --quota-percent-bg: rgb(165 56 48 / 0.1);
 }
 
 .fileCardSkeleton {
-  min-height: 230px;
-  padding: 16px;
+  min-height: 210px;
+  padding: 12px;
   animation: none;
 }
 
@@ -7635,16 +7723,24 @@
 }
 
 .belowFoldCard {
-  border-color: var(--auth-neutral-border);
+  border-color: var(--auth-divider-strong);
   border-radius: 15px;
   background: var(--auth-surface);
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+  box-shadow: none;
 }
 
 .belowFoldCard :global(.card-header) {
   padding: 14px 16px;
-  border-bottom-color: var(--auth-neutral-border);
-  background: transparent;
+  border-bottom-color: var(--auth-divider-strong);
+  background: var(--auth-surface-warm);
+}
+
+.modelRulesItem {
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background: var(--auth-surface-warm);
+  }
 }
 
 .batchActionBar {
@@ -7659,13 +7755,19 @@
 @container auth-files-page (max-width: 1180px) {
   .fileGrid,
   .fileGridQuotaManaged {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @container auth-files-page (max-width: 860px) {
+  .filterToolbarRow {
+    grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+
   .filterControlsPanel {
-    grid-template-columns: minmax(280px, var(--auth-toolbar-search-max)) 38px;
+    grid-template-columns: minmax(0, 1fr) 38px;
     justify-content: start;
   }
 
@@ -7681,14 +7783,37 @@
   }
 }
 
-@container auth-files-page (max-width: 720px) {
+@container auth-files-page (max-width: 680px) {
+  .filterToolbarRow {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .filterControlsPanel {
+    padding-top: 10px;
+    border-top: 1px solid var(--auth-divider);
+  }
+
+  .filterRail {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@container auth-files-page (max-width: 740px) {
   .fileGrid,
   .fileGridQuotaManaged {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @container auth-files-page (max-width: 560px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .authFilesHeader {
     align-items: stretch;
     gap: 12px;
@@ -7735,7 +7860,16 @@
   }
 
   .fileCard {
-    padding: 14px 12px;
+    padding: 11px;
+  }
+
+  .cardInsights {
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  .fileCard .quotaSection {
+    padding-top: 10px;
   }
 
   .pagination {
@@ -7743,16 +7877,29 @@
   }
 }
 
+@include mobile {
+  // In the stacked header, the desktop 520px flex basis becomes a vertical
+  // basis and creates a large empty block between the title and actions.
+  .titleBlock {
+    flex: 0 1 auto;
+    max-width: none;
+  }
+}
+
 :global([data-theme='dark']) {
   .container {
     --auth-surface: #181916;
     --auth-surface-muted: #20211d;
+    --auth-surface-warm: #1d1f1a;
     --auth-control-surface: #1b1c19;
     --auth-neutral-border: #33352f;
     --auth-neutral-border-strong: #4a4d44;
     --auth-text-primary: #efeee8;
     --auth-text-secondary: #c3c5bb;
     --auth-text-muted: #94978d;
+    --auth-sage: #96a58d;
+    --auth-sage-strong: #b3bea9;
+    --auth-sage-soft: #2c3429;
     --auth-status-active: #9ac2a7;
     --auth-status-active-bg: #213128;
     --auth-status-active-border: #395344;
@@ -7773,17 +7920,23 @@
   }
 
   .fileCard:hover {
-    background: color-mix(in srgb, var(--auth-surface-muted) 66%, var(--auth-surface));
+    background: var(--auth-surface);
   }
 
   .fileCard.fileCardSelected,
   .fileCard.fileCardSelected:hover {
-    background: color-mix(in srgb, var(--info-color) 8%, var(--auth-surface));
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-surface);
+    box-shadow: inset 0 0 0 2px rgb(150 165 141 / 0.48);
   }
 
   .fileCard.fileCardDisabled,
   .fileCard.fileCardDisabled:hover {
     background: var(--auth-surface);
+  }
+
+  .fileCard .quotaBar {
+    background: var(--auth-surface-muted);
   }
 
   .searchToolbarPopover {
@@ -7796,4 +7949,816 @@
     background: #1b1c19;
     box-shadow: 0 18px 44px -24px rgb(0 0 0 / 0.72);
   }
+}
+
+// =============================================================================
+// Unified operational details
+// The earlier page accrued several generations of provider-coloured tiles,
+// raised controls, and gradients. Keep identity and health data semantic, but
+// give every operational detail the same quiet white-surface grammar.
+// =============================================================================
+.container {
+  --auth-control-hover: #f4f4f4;
+  --auth-focus-ring: rgb(150 165 141 / 0.28);
+  --auth-popover-shadow: 0 16px 34px -24px rgb(44 42 37 / 0.3);
+}
+
+.countBadge {
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--auth-text-muted);
+  font-size: 13px;
+  font-weight: 560;
+}
+
+.headerActionButton:global(.btn) {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface);
+  box-shadow: none;
+  color: var(--auth-text-secondary);
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-control-hover);
+    box-shadow: none;
+    color: var(--auth-text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--auth-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.headerActionUpload:global(.btn.btn-primary) {
+  border-color: var(--auth-ink-strong);
+  background: var(--auth-ink-strong);
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-text-secondary);
+    background: var(--auth-text-secondary);
+    color: #ffffff;
+  }
+}
+
+.headerActionDanger:global(.btn.btn-danger) {
+  border-color: color-mix(in srgb, var(--auth-danger) 32%, var(--auth-neutral-border));
+  background: var(--auth-surface);
+  color: var(--auth-danger);
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--auth-danger) 52%, var(--auth-neutral-border));
+    background: rgb(165 56 48 / 0.07);
+    color: var(--auth-danger);
+  }
+}
+
+.filterTags {
+  align-items: center;
+}
+
+.filterTag {
+  min-height: 36px;
+  border-color: transparent;
+  border-radius: 8px;
+  background: transparent;
+
+  &:hover {
+    border-color: transparent;
+    background: var(--auth-control-hover);
+  }
+}
+
+.filterTagIconWrap,
+.filterAllIconWrap {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.filterTagIcon,
+.filterAllIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.filterTagActive {
+  border-color: transparent;
+  background: var(--auth-control-hover);
+  box-shadow: none;
+
+  &::after {
+    content: none;
+  }
+
+  .filterTagIconWrap {
+    border: 0;
+    background: transparent;
+  }
+}
+
+.filterTagCount,
+.filterTagActive .filterTagCount {
+  min-width: 16px;
+  height: 16px;
+  padding-inline: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--auth-text-muted) 10%, transparent);
+  color: var(--auth-text-muted);
+  font-size: 10px;
+}
+
+.filterChipGroup {
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.filterChip,
+.filterResetButton {
+  min-height: 32px;
+}
+
+.filterResetButton {
+  border: 1px solid color-mix(in srgb, var(--auth-danger) 24%, var(--auth-neutral-border));
+  background: var(--auth-surface);
+  color: var(--auth-danger);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--auth-danger) 44%, var(--auth-neutral-border));
+    background: rgb(165 56 48 / 0.07);
+  }
+}
+
+.searchToolbar {
+  gap: 6px;
+}
+
+.searchToolbarField,
+.searchToolbarIconButton,
+.pageQuotaRefreshButton:global(.btn.btn-sm) {
+  min-height: 38px;
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-control-hover);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    border-color: var(--auth-sage);
+    box-shadow: 0 0 0 2px var(--auth-focus-ring);
+  }
+}
+
+.searchToolbarInput,
+.searchToolbarCustomInput {
+  color: var(--auth-text-primary);
+
+  &::placeholder {
+    color: var(--auth-text-muted);
+  }
+}
+
+.searchToolbarFieldIcon,
+.searchToolbarFieldClear {
+  color: var(--auth-text-muted);
+}
+
+.searchToolbarIconButtonActive {
+  border-color: color-mix(in srgb, var(--auth-sage-strong) 44%, var(--auth-neutral-border));
+  background: color-mix(in srgb, var(--auth-sage-soft) 48%, var(--auth-surface));
+  color: var(--auth-text-primary);
+}
+
+.searchToolbarPopover {
+  padding: 8px;
+  border-color: var(--auth-neutral-border);
+  border-radius: 12px;
+  background: var(--auth-surface);
+  box-shadow: var(--auth-popover-shadow);
+}
+
+.searchToolbarPopoverHeader {
+  padding: 4px 6px 6px;
+  color: var(--auth-text-muted);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.searchToolbarOption {
+  min-height: 34px;
+  border-radius: 7px;
+  color: var(--auth-text-secondary);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--auth-control-hover);
+    color: var(--auth-text-primary);
+  }
+}
+
+.searchToolbarOptionActive,
+.searchToolbarPresetActive {
+  border-color: color-mix(in srgb, var(--auth-sage-strong) 42%, var(--auth-neutral-border));
+  background: color-mix(in srgb, var(--auth-sage-soft) 42%, var(--auth-surface));
+  color: var(--auth-text-primary);
+}
+
+.searchToolbarPreset {
+  min-height: 30px;
+  border-color: var(--auth-neutral-border);
+  border-radius: 7px;
+  background: var(--auth-surface);
+  color: var(--auth-text-secondary);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-control-hover);
+    color: var(--auth-text-primary);
+  }
+}
+
+.searchToolbarCustom {
+  border-top-color: var(--auth-divider);
+}
+
+.searchToolbarCustomInput {
+  border-color: var(--auth-neutral-border);
+  border-radius: 7px;
+  background: var(--auth-surface);
+
+  &:focus {
+    border-color: var(--auth-sage);
+    box-shadow: 0 0 0 2px var(--auth-focus-ring);
+  }
+}
+
+.fileCard {
+  --auth-feature-text: var(--auth-sage-strong);
+  --auth-feature-bg: color-mix(in srgb, var(--auth-sage-soft) 48%, var(--auth-surface));
+  --auth-feature-border: color-mix(in srgb, var(--auth-sage-strong) 28%, var(--auth-neutral-border));
+  --auth-refresh-text: var(--auth-text-secondary);
+  --auth-refresh-bg: var(--auth-surface-muted);
+  --auth-refresh-border: var(--auth-neutral-border);
+  --auth-stat-token-text: var(--auth-text-secondary);
+  --auth-stat-token-bg: var(--auth-surface-muted);
+  --auth-stat-token-border: var(--auth-neutral-border);
+  --auth-stat-token-icon: var(--auth-text-muted);
+}
+
+.fileCard .providerAvatar {
+  width: 28px;
+  height: 28px;
+  border-color: var(--auth-neutral-border) !important;
+  background: var(--auth-surface) !important;
+  box-shadow: none;
+}
+
+.fileCard:hover .providerAvatar {
+  border-color: var(--auth-neutral-border-strong) !important;
+  box-shadow: none;
+}
+
+.providerAvatarImage {
+  width: 17px;
+  height: 17px;
+}
+
+.cardSelection {
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+
+  > span {
+    border-color: var(--auth-neutral-border);
+    background: var(--auth-surface);
+    box-shadow: none;
+  }
+
+  > input:checked + span {
+    border-color: var(--auth-sage-strong);
+    background: var(--auth-sage-strong);
+  }
+}
+
+.statusPanel {
+  gap: 7px;
+  padding: 8px 9px;
+  border: 1px solid var(--auth-card-divider);
+  border-radius: 8px;
+  background: var(--auth-surface-warm);
+}
+
+.statusPanelTitle {
+  color: var(--auth-text-muted);
+  font-weight: 650;
+}
+
+.statusTokens {
+  gap: 3px;
+  color: var(--auth-text-secondary);
+}
+
+.statusTokensValue {
+  color: var(--auth-text-primary);
+  font-weight: 650;
+}
+
+.statusBlocks:focus-visible,
+.statusBlockWrapper:focus-visible {
+  outline-color: var(--auth-sage);
+}
+
+.statusBlock,
+.statusBlockWrapper:hover .statusBlock,
+.statusBlockWrapper.statusBlockActive .statusBlock {
+  transform: none;
+}
+
+.statusRate {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.statusTooltip,
+.cardWarningTooltip {
+  border-color: var(--auth-neutral-border-strong);
+  border-radius: 10px;
+  background: var(--auth-surface);
+  box-shadow: var(--auth-popover-shadow);
+  color: var(--auth-text-secondary);
+}
+
+.cardWarningButton {
+  border: 1px solid color-mix(in srgb, var(--auth-danger) 28%, var(--auth-neutral-border));
+  background: rgb(165 56 48 / 0.09);
+  box-shadow: none;
+  color: var(--auth-danger);
+
+  &:hover,
+  &:focus-visible {
+    background: rgb(165 56 48 / 0.14);
+    box-shadow: none;
+  }
+}
+
+.quotaSectionHeader,
+.quotaRowHeader {
+  min-height: 20px;
+}
+
+.quotaSectionTitle,
+.quotaModel {
+  color: var(--auth-text-secondary);
+}
+
+.quotaContent {
+  gap: 9px;
+}
+
+.quotaMessageAction {
+  border-color: var(--auth-neutral-border);
+  border-style: solid;
+  border-radius: 8px;
+  background: var(--auth-surface);
+  box-shadow: none;
+  color: var(--auth-text-secondary);
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-control-hover);
+    box-shadow: none;
+    color: var(--auth-text-primary);
+  }
+}
+
+.quotaError,
+.quotaWarning {
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.premiumPlanValue {
+  padding: 2px 7px;
+  border-color: color-mix(in srgb, var(--auth-warning) 34%, var(--auth-neutral-border));
+  border-radius: 999px;
+  background: rgb(229 169 71 / 0.12);
+  box-shadow: none;
+  color: #8e621b;
+}
+
+.codexPlanLabel,
+.codexPlanExpiry,
+.codexResetCreditExpiry {
+  color: var(--auth-text-muted);
+}
+
+.codexPlanValue {
+  color: var(--auth-text-secondary);
+}
+
+.belowFoldCard :global(.card-header) :global(.btn) {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface);
+  box-shadow: none;
+  color: var(--auth-text-secondary);
+
+  &:hover:not(:disabled) {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-control-hover);
+    color: var(--auth-text-primary);
+  }
+}
+
+.modelRulesNotice {
+  border-bottom-color: var(--auth-divider);
+  background: rgb(229 169 71 / 0.08);
+  color: var(--auth-text-secondary);
+}
+
+.modelRulesItem {
+  min-height: 64px;
+  border-bottom-color: var(--auth-divider-subtle);
+
+  &:hover {
+    background: var(--auth-surface-warm);
+  }
+}
+
+.excludedProvider {
+  color: var(--auth-text-primary);
+  font-weight: 650;
+}
+
+.modelRulesStat {
+  color: var(--auth-text-muted);
+}
+
+.batchActionBar {
+  border-color: var(--auth-neutral-border-strong);
+  background: var(--auth-surface);
+  box-shadow: var(--auth-popover-shadow);
+}
+
+.batchSelectionText {
+  color: var(--auth-text-primary);
+}
+
+.modelsList,
+.prefixProxyPanel {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface);
+  box-shadow: none;
+}
+
+.modelItem,
+.prefixProxySection {
+  border-color: var(--auth-divider-subtle);
+}
+
+.modelItem:hover {
+  background: var(--auth-surface-warm);
+}
+
+.prefixProxyModal :global(.modal-content) {
+  border-color: var(--auth-neutral-border);
+  border-radius: 15px;
+  background: var(--auth-surface);
+  box-shadow: 0 20px 65px rgb(0 0 0 / 0.07);
+}
+
+.prefixProxyPanelHeader,
+.prefixProxySectionHeader {
+  border-color: var(--auth-divider);
+  background: var(--auth-surface-warm);
+}
+
+.prefixProxyJsonDetails,
+.prefixProxyJsonWrapper {
+  border-color: var(--auth-neutral-border);
+  background: var(--auth-surface);
+  box-shadow: none;
+}
+
+.prefixProxyMonoTextarea,
+.prefixProxyInfoTextarea {
+  border-color: var(--auth-neutral-border);
+  border-radius: 8px;
+  background: var(--auth-surface-warm);
+  box-shadow: none;
+
+  &:focus {
+    border-color: var(--auth-sage);
+    box-shadow: 0 0 0 2px var(--auth-focus-ring);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filterTag,
+  .searchToolbarPopover,
+  .searchToolbarOption,
+  .searchToolbarPreset,
+  .modelRulesItem,
+  .modelItem,
+  .cardWarningButton {
+    transition: none;
+  }
+}
+
+:global([data-theme='dark']) {
+  .filterTag,
+  .filterTagActive {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+
+    &:hover {
+      background: var(--auth-control-hover);
+    }
+  }
+
+  .filterTagActive {
+    background: var(--auth-control-hover);
+  }
+
+  .filterTagIconWrap,
+  .filterAllIconWrap,
+  .filterTagActive .filterTagIconWrap {
+    border: 0;
+    background: transparent;
+  }
+
+  .searchToolbarField,
+  .searchToolbarIconButton,
+  .searchToolbarPopover,
+  .searchToolbarPreset,
+  .searchToolbarCustomInput,
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    border-color: var(--auth-neutral-border);
+    background: var(--auth-surface);
+    box-shadow: none;
+  }
+
+  .searchToolbarIconButtonActive,
+  .searchToolbarOptionActive,
+  .searchToolbarPresetActive {
+    border-color: color-mix(in srgb, var(--auth-sage) 46%, var(--auth-neutral-border));
+    background: color-mix(in srgb, var(--auth-sage-soft) 60%, var(--auth-surface));
+    color: var(--auth-text-primary);
+  }
+
+  .fileCard {
+    --auth-feature-text: var(--auth-sage-strong);
+    --auth-feature-bg: color-mix(in srgb, var(--auth-sage-soft) 52%, var(--auth-surface));
+    --auth-feature-border: color-mix(in srgb, var(--auth-sage) 34%, var(--auth-neutral-border));
+    --auth-refresh-text: var(--auth-text-secondary);
+    --auth-refresh-bg: var(--auth-surface-muted);
+    --auth-refresh-border: var(--auth-neutral-border);
+    --auth-stat-token-text: var(--auth-text-secondary);
+    --auth-stat-token-bg: var(--auth-surface-muted);
+    --auth-stat-token-border: var(--auth-neutral-border);
+    --auth-stat-token-icon: var(--auth-text-muted);
+  }
+
+  .fileCard .providerAvatar {
+    border-color: var(--auth-neutral-border) !important;
+    background: var(--auth-surface) !important;
+    box-shadow: none;
+  }
+
+  .statusPanel,
+  .prefixProxyPanelHeader,
+  .prefixProxySectionHeader {
+    background: var(--auth-surface-warm);
+  }
+
+  .statusTooltip,
+  .cardWarningTooltip,
+  .prefixProxyModal :global(.modal-content) {
+    border-color: var(--auth-neutral-border-strong);
+    background: var(--auth-surface);
+  }
+
+  .premiumPlanValue {
+    border-color: color-mix(in srgb, var(--auth-warning) 38%, var(--auth-neutral-border));
+    background: rgb(229 169 71 / 0.14);
+    color: #e1b766;
+  }
+}
+
+// Dashboard card alignment: an auth file remains a dense card, while its
+// health and quota data read as one joined metric surface instead of stacked
+// mini-cards. The footer/action geometry intentionally remains untouched.
+.fileCard {
+  transition:
+    border-color 300ms ease,
+    background-color 300ms ease;
+}
+
+.fileCard:hover {
+  border-color: var(--auth-neutral-border-strong);
+  background: var(--auth-surface-warm);
+  box-shadow: none;
+}
+
+.fileCard.fileCardSelected,
+.fileCard.fileCardSelected:hover {
+  background: var(--auth-surface);
+  box-shadow: inset 0 0 0 2px rgb(150 165 141 / 0.58);
+}
+
+// Keep keyboard navigation in the same quiet, inset language as dashboard
+// selection: a focused control should clarify its card without lifting it.
+.fileCard:focus-within {
+  border-color: var(--auth-sage);
+  box-shadow: inset 0 0 0 2px rgb(150 165 141 / 0.42);
+}
+
+.fileCard.fileCardSelected:focus-within {
+  box-shadow: inset 0 0 0 2px var(--auth-sage-strong);
+}
+
+.fileCard .cardHeader {
+  gap: 8px;
+}
+
+.fileCard .cardHeaderContent {
+  gap: 6px;
+}
+
+.fileCard .fileName {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.fileCard .fileNameCopyIcon {
+  opacity: 0.42;
+  transition: opacity 200ms ease;
+}
+
+.fileCard .fileName:hover .fileNameCopyIcon,
+.fileCard .fileName:focus-visible .fileNameCopyIcon {
+  opacity: 1;
+}
+
+.cardTypeAndOptionsRow {
+  min-height: 24px;
+}
+
+.priorityInlineRow {
+  padding-left: 8px;
+  border-left: 1px solid var(--auth-card-divider);
+}
+
+.priorityInlineLabel {
+  color: var(--auth-text-muted);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.fileCard .noteText {
+  min-height: 18px;
+  padding-top: 2px;
+  color: var(--auth-text-muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.fileCard .noteLabel {
+  color: var(--auth-text-secondary);
+  font-weight: 600;
+}
+
+.fileCard .cardInsights {
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--auth-card-divider);
+  border-radius: 10px;
+  background: var(--auth-surface);
+}
+
+.fileCard .statusPanel {
+  gap: 8px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 9px 9px 0 0;
+  background: var(--auth-surface-warm);
+}
+
+.fileCard .statusPanel:only-child {
+  border-radius: 9px;
+}
+
+.fileCard .statusPanelLabel {
+  min-height: 16px;
+}
+
+.fileCard .statusPanelTitle,
+.fileCard .quotaSectionTitle {
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+}
+
+.fileCard .statusTokensValue {
+  font-size: 13px;
+  letter-spacing: -0.02em;
+}
+
+.fileCard .quotaSection {
+  gap: 9px;
+  padding: 9px 10px 10px;
+  border: 0;
+  border-top: 1px solid var(--auth-card-divider);
+  border-radius: 0 0 9px 9px;
+  background: var(--auth-surface);
+}
+
+.fileCard .quotaRow {
+  gap: 5px;
+}
+
+.fileCard .quotaRowHeader {
+  min-height: 18px;
+}
+
+.fileCard .quotaModel {
+  color: var(--auth-text-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.fileCard .quotaAmount,
+.fileCard .quotaReset {
+  color: var(--auth-text-muted);
+  font-size: 10.5px;
+}
+
+.fileCard .quotaPercent {
+  height: 19px;
+  min-width: 38px;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.fileCard .quotaBar {
+  height: 5px;
+}
+
+@container auth-files-page (max-width: 560px) {
+  .fileCard .cardHeader {
+    gap: 8px;
+  }
+
+  .fileCard .cardInsights {
+    border-radius: 9px;
+  }
+
+  .fileCard .statusPanel {
+    padding: 9px;
+  }
+
+  .fileCard .quotaSection {
+    padding: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fileCard,
+  .fileCard .fileNameCopyIcon {
+    transition: none;
+  }
+}
+
+:global([data-theme='dark']) .fileCard:hover {
+  background: var(--auth-surface-warm);
+}
+
+:global([data-theme='dark']) .fileCard.fileCardSelected,
+:global([data-theme='dark']) .fileCard.fileCardSelected:hover,
+:global([data-theme='dark']) .fileCard.fileCardDisabled:hover {
+  background: var(--auth-surface);
 }

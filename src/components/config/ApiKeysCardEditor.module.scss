@@ -1,13 +1,27 @@
-@use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
 .headerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-md;
-  flex-wrap: wrap;
-  margin-bottom: $spacing-md;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--config-border, #eaeae9);
+  border-radius: 15px;
+  background: var(--config-surface, #ffffff);
+
+  @include mobile {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px;
+
+    :global(.btn) {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+    }
+  }
 }
 
 .headerCopy {
@@ -15,94 +29,109 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
 
-  .headerLabel {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
+.headerLabel {
+  margin: 0;
+  color: var(--config-text, #2c2a25);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .headerHint {
   margin: 0;
+  color: var(--config-text-muted, #807f7c);
   font-size: 12px;
-  color: var(--text-tertiary);
-  line-height: 1.5;
+  line-height: 1.55;
+}
+
+.addButton:global(.btn.btn-primary) {
+  min-height: 40px;
+  padding-inline: 18px;
+  border: 1px solid #0e0d0c;
+  border-radius: 999px;
+  background: #0e0d0c;
+  color: #ffffff;
+  box-shadow: none;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      border-color: #565551;
+      background: #565551;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--config-sage, #96a58d);
+    outline-offset: 2px;
+  }
 }
 
 .emptyState {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 28px 16px;
-  border: 1px dashed color-mix(in srgb, var(--border-color) 72%, transparent);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--bg-secondary) 40%, var(--surface-raised));
-  color: var(--text-secondary);
+  min-height: 152px;
+  padding: 28px 20px;
+  border: 1px dashed var(--config-border-strong, #d8d8d3);
+  border-radius: 15px;
+  background: var(--config-surface, #ffffff);
+  color: var(--config-text-secondary, #565551);
   font-size: 13px;
+  line-height: 1.6;
   text-align: center;
 }
 
 .cardList {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-
-  @media (min-width: 1760px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 336px), 1fr));
+  gap: 12px;
 }
 
 .card {
-  position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  border-radius: 14px;
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-card);
-  isolation: isolate;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--config-border, #eaeae9);
+  border-radius: 15px;
+  background: var(--config-surface, #ffffff);
   transition:
-    transform $transition-fast,
-    box-shadow $transition-fast,
-    border-color $transition-fast;
+    border-color var(--motion-duration-fast, 180ms) var(--motion-ease-standard, ease),
+    background-color var(--motion-duration-fast, 180ms) var(--motion-ease-standard, ease);
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-card-hover);
-    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: var(--config-border-strong, #d8d8d3);
+      background: #fff;
+    }
   }
 }
 
 .cardDisabled {
-  border-color: color-mix(in srgb, var(--danger-color) 24%, var(--border-color));
-  background: color-mix(in srgb, var(--bg-secondary) 42%, var(--surface-raised));
+  background: var(--config-surface, #ffffff);
+  border-color: var(--config-border, #eaeae9);
 
   .avatar {
-    color: var(--text-tertiary);
-    background: color-mix(in srgb, var(--bg-secondary) 78%, var(--surface-raised));
-    border-color: color-mix(in srgb, var(--border-color) 84%, transparent);
-    box-shadow: none;
+    color: var(--config-text-muted, #807f7c);
+    background: var(--config-surface, #ffffff);
+    border-color: var(--config-border, #eaeae9);
   }
 
   .keyValue {
-    color: var(--text-secondary);
+    color: var(--config-text-secondary, #565551);
   }
 }
 
 .cardHeader {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--config-border, #eaeae9);
 }
 
 .avatar {
@@ -112,121 +141,81 @@
   flex: 0 0 auto;
   width: 36px;
   height: 36px;
-  border-radius: 11px;
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 6%, var(--surface-raised-strong));
-  box-shadow:
-    0 16px 28px -18px color-mix(in srgb, var(--primary-color) 72%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62);
-  color: color-mix(in srgb, var(--primary-color) 60%, var(--text-primary));
+  border: 1px solid var(--config-border, #eaeae9);
+  border-radius: 10px;
+  background: var(--config-surface, #ffffff);
+  color: #63725a;
 
   svg {
-    display: block;
-    width: 20px;
-    height: 20px;
+    width: 19px;
+    height: 19px;
   }
 }
 
-.indexBadge {
+.indexBadge,
+.noteBadge,
+.statusBadge,
+.summaryChip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 22px;
-  padding: 0 9px;
+  min-height: 24px;
+  border: 1px solid var(--config-border, #eaeae9);
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.02em;
   white-space: nowrap;
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--bg-tertiary) 72%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+}
+
+.indexBadge {
+  justify-content: center;
+  padding: 0 8px;
+  background: var(--config-surface-subtle, #f4f4f4);
+  color: var(--config-text-muted, #807f7c);
   font-variant-numeric: tabular-nums;
 }
 
 .noteBadge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 22px;
+  min-width: 0;
   max-width: 100%;
   padding: 0 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: color-mix(in srgb, var(--primary-color) 60%, var(--text-primary));
-  background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-raised));
-  border: 1px solid color-mix(in srgb, var(--primary-color) 26%, var(--border-color));
+  background: var(--config-surface-subtle, #f4f4f4);
+  color: var(--config-text-secondary, #565551);
 }
 
 .statusBadge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 22px;
   padding: 0 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1;
-  white-space: nowrap;
-  color: color-mix(in srgb, #15803d 72%, var(--text-primary));
-  background: color-mix(in srgb, #22c55e 12%, var(--surface-raised));
-  border: 1px solid color-mix(in srgb, #22c55e 28%, var(--border-color));
+  border-color: rgb(64 115 69 / 0.28);
+  background: rgb(64 115 69 / 0.1);
+  color: #407345;
 }
 
 .statusBadgeDisabled {
-  color: color-mix(in srgb, var(--danger-color) 72%, var(--text-primary));
-  background: color-mix(in srgb, var(--danger-color) 10%, var(--surface-raised));
-  border-color: color-mix(in srgb, var(--danger-color) 30%, var(--border-color));
+  border-color: rgb(165 56 48 / 0.28);
+  background: rgb(165 56 48 / 0.1);
+  color: #a53830;
 }
 
 .keyRow {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
   min-width: 0;
+  padding: 0;
+  background: var(--config-surface, #ffffff);
 }
 
 .keyValue {
-  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
+  color: var(--config-text, #2c2a25);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'Monaco', 'Menlo', 'Consolas', 'Ubuntu Mono', monospace;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.01em;
-}
-
-.meta {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.metaLabel {
-  font-size: 10px;
-  font-weight: 750;
-  color: var(--text-tertiary);
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-
-  &::after {
-    content: ':';
-  }
 }
 
 .summaryRow {
@@ -236,78 +225,54 @@
 }
 
 .summaryChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text-secondary);
-  background: color-mix(in srgb, var(--bg-secondary) 65%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  padding: 0 9px;
+  background: var(--config-surface-subtle, #f4f4f4);
+  color: var(--config-text-secondary, #565551);
 }
 
 .summaryChipQuota {
-  color: color-mix(in srgb, #d97706 70%, var(--text-primary));
-  background: color-mix(in srgb, #f59e0b 14%, transparent);
-  border-color: color-mix(in srgb, #f59e0b 36%, transparent);
-}
-
-.noteText {
-  position: relative;
-  z-index: 1;
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.45;
-  word-break: break-word;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  border-color: rgb(229 169 71 / 0.38);
+  background: rgb(229 169 71 / 0.13);
+  color: #9a6b1d;
 }
 
 .actions {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
-  justify-content: flex-end;
-  margin-top: auto;
-  padding-top: 10px;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--config-border, #eaeae9);
 }
 
 .enabledSwitch {
-  margin-right: auto;
   min-height: 32px;
+  margin-right: auto;
 
   > span:last-child {
+    color: var(--config-text-secondary, #565551);
     font-size: 12px;
-    color: var(--text-secondary);
   }
 }
 
 .iconButton:global(.btn.btn-sm) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  min-width: 32px;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
   padding: 0;
-  box-sizing: border-box;
-  border-radius: 10px;
-  gap: 0;
   border-width: 1px;
+  border-radius: 8px;
+  box-shadow: none;
   transition:
-    color $transition-fast,
-    background-color $transition-fast,
-    border-color $transition-fast,
-    box-shadow $transition-fast,
-    transform $transition-fast;
+    color var(--motion-duration-fast, 180ms) var(--motion-ease-standard, ease),
+    background-color var(--motion-duration-fast, 180ms) var(--motion-ease-standard, ease),
+    border-color var(--motion-duration-fast, 180ms) var(--motion-ease-standard, ease);
 
   > span {
     display: flex;
@@ -315,83 +280,80 @@
     justify-content: center;
     width: 100%;
     height: 100%;
-    line-height: 0;
-    padding: 0;
-    gap: 0;
   }
 
   svg {
-    width: 18px;
-    height: 18px;
-    stroke-width: 2.25;
+    width: 17px;
+    height: 17px;
+    stroke-width: 2;
   }
 
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-}
-
-.copyFullButton:global(.btn.btn-sm) {
-  border-color: color-mix(in srgb, var(--primary-color) 34%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-raised-strong));
-  color: color-mix(in srgb, var(--primary-color) 60%, var(--text-primary));
-  box-shadow:
-    0 12px 26px -18px color-mix(in srgb, var(--primary-color) 60%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.52);
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--primary-color) 50%, var(--border-color));
-    background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-raised-strong));
+  &:focus-visible {
+    outline: 2px solid var(--config-sage, #96a58d);
+    outline-offset: 2px;
   }
 }
 
-.copyKeyButton:global(.btn.btn-sm) {
-  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
-  background: linear-gradient(180deg, var(--surface-raised), color-mix(in srgb, var(--bg-secondary) 40%, var(--surface-raised)));
-  color: var(--text-primary);
-  box-shadow:
-    0 12px 24px -18px rgba(15, 23, 42, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
-    background: var(--surface-raised);
-  }
-}
-
+.copyFullButton:global(.btn.btn-sm),
+.copyKeyButton:global(.btn.btn-sm),
 .editButton:global(.btn.btn-sm) {
-  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
-  background: linear-gradient(180deg, var(--surface-raised), color-mix(in srgb, var(--bg-secondary) 40%, var(--surface-raised)));
-  color: var(--text-primary);
-  box-shadow:
-    0 12px 24px -18px rgba(15, 23, 42, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border-color: var(--config-border, #eaeae9);
+  background: var(--config-surface, #ffffff);
+  color: var(--config-text-secondary, #565551);
 
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      border-color: #cfd5c9;
+      background: var(--config-surface-subtle, #f4f4f4);
+      color: var(--config-text, #2c2a25);
+    }
   }
 }
 
-// 以 --danger-color 派生，避免硬编码的饱和红渐变在暗色下与主题脱节
 .deleteButton:global(.btn.btn-sm.btn-danger) {
-  border-color: color-mix(in srgb, var(--danger-color) 56%, transparent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--danger-color) 88%, white),
-    var(--danger-color) 62%,
-    color-mix(in srgb, var(--danger-color) 88%, black)
-  );
-  color: var(--danger-contrast);
-  box-shadow:
-    0 14px 26px -17px color-mix(in srgb, var(--danger-color) 72%, transparent),
-    var(--surface-inner-highlight);
+  border-color: rgb(165 56 48 / 0.3);
+  background: rgb(165 56 48 / 0.08);
+  color: #a53830;
 
-  &:hover:not(:disabled) {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--danger-color) 88%, white),
-      var(--danger-hover)
-    );
-    border-color: color-mix(in srgb, var(--danger-hover) 82%, transparent);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      border-color: rgb(165 56 48 / 0.48);
+      background: rgb(165 56 48 / 0.15);
+      color: #8d302a;
+    }
+  }
+}
+
+@include mobile {
+  .cardList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .enabledSwitch {
+    width: 100%;
+    margin-right: 0;
+    padding-bottom: 6px;
+  }
+
+  .iconButton:global(.btn.btn-sm) {
+    flex: 1 1 calc(25% - 6px);
+    min-width: 40px;
+    min-height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .iconButton:global(.btn.btn-sm) {
+    transition: none;
   }
 }

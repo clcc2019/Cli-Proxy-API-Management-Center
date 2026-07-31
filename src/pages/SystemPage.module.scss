@@ -456,3 +456,743 @@
     transition: none;
   }
 }
+
+// =============================================================================
+// Merge Gateway system management surface
+// System information is an operational workspace: clear system state first,
+// then reference links, live model inventory and the isolated destructive area.
+// =============================================================================
+.container {
+  --system-surface: #ffffff;
+  --system-surface-warm: #faf8f5;
+  --system-surface-subtle: #f4f4f4;
+  --system-border: #eaeae9;
+  --system-border-strong: #d8d8d3;
+  --system-text: #2c2a25;
+  --system-text-secondary: #565551;
+  --system-text-tertiary: #807f7c;
+  --system-text-muted: #abaaa8;
+  --system-sage: #96a58d;
+  --system-sage-strong: #63725a;
+  --system-sage-soft: #e1e2d9;
+  --system-ink: #0e0d0c;
+  --system-success: #407345;
+  --system-warning: #e5a947;
+  --system-danger: #a53830;
+  --system-focus: rgb(150 165 141 / 0.34);
+
+  color: var(--system-text);
+}
+
+.pageHeader {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--system-border);
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--system-text);
+  font-size: clamp(25px, 2.2vw, 30px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr);
+  gap: 16px;
+
+  > :global(.card) {
+    min-width: 0;
+    border-color: var(--system-border);
+    border-radius: 15px;
+    background: var(--system-surface);
+    box-shadow: none;
+    animation: none;
+  }
+
+  > :global(.card):nth-child(1),
+  > :global(.card):nth-child(2) {
+    animation-delay: 0;
+  }
+}
+
+.aboutCard,
+.linksCard {
+  grid-column: 1 / -1;
+}
+
+.modelsCard {
+  grid-column: 1;
+}
+
+.dangerCard {
+  grid-column: 2;
+  align-self: start;
+}
+
+.content > :global(.card) :global(.card-header) {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--system-border);
+
+  :global(.title) {
+    color: var(--system-text);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+.content :global(.btn) {
+  min-height: 34px;
+  border-color: var(--system-border);
+  border-radius: 8px;
+  background: var(--system-surface);
+  box-shadow: none;
+  color: var(--system-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--system-border-strong);
+    background: var(--system-surface-subtle);
+    color: var(--system-text);
+  }
+}
+
+.aboutCard {
+  overflow: hidden;
+}
+
+.aboutHeader {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--system-border);
+}
+
+.aboutLogo {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--system-border);
+  border-radius: 10px;
+  box-shadow: none;
+  transition: none;
+}
+
+.aboutTitle {
+  width: auto;
+  color: var(--system-text);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  text-align: left;
+}
+
+.aboutInfoGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--system-border);
+  border-radius: 12px;
+  background: var(--system-surface-warm);
+}
+
+.infoTile,
+.tapTile {
+  min-height: 92px;
+  padding: 14px;
+  border: 0;
+  border-radius: 0;
+  border-left: 1px solid var(--system-border);
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+
+  &:first-child {
+    border-left: 0;
+  }
+
+  &:hover {
+    transform: none;
+    border-color: var(--system-border);
+    background: var(--system-surface-subtle);
+    box-shadow: none;
+  }
+}
+
+.tileHeader {
+  min-height: 28px;
+  align-items: center;
+}
+
+.tileLabel {
+  color: var(--system-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tileAction:global(.btn) {
+  min-height: 26px;
+  margin: 0 -4px 0 0;
+  padding: 4px 7px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--system-text-tertiary);
+  font-size: 10.5px;
+
+  &:hover:not(:disabled) {
+    border-color: transparent;
+    background: var(--system-surface-subtle);
+    color: var(--system-text);
+  }
+}
+
+.tileValue {
+  color: var(--system-text);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.tileSub {
+  color: var(--system-text-tertiary);
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 10.5px;
+}
+
+.sectionDescription {
+  margin: 0 0 14px;
+  color: var(--system-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.quickLinks {
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.linkCard {
+  gap: 10px;
+  min-height: 82px;
+  padding: 13px;
+  border-color: var(--system-border);
+  border-radius: 10px;
+  background: var(--system-surface);
+  box-shadow: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+
+  &:hover {
+    transform: none;
+    border-color: var(--system-border-strong);
+    background: var(--system-surface-warm);
+    box-shadow: none;
+  }
+}
+
+.linkIcon,
+.linkIcon.github,
+.linkIcon.docs {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--system-border);
+  border-radius: 8px;
+  background: var(--system-surface-subtle);
+  color: var(--system-text-secondary);
+  transition: none;
+}
+
+.linkTitle {
+  gap: 5px;
+  margin-bottom: 3px;
+  color: var(--system-text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.linkDesc {
+  color: var(--system-text-secondary);
+  font-size: 11.5px;
+}
+
+.modelsCard :global(.status-badge) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  margin: 0 0 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--system-border);
+  border-radius: 999px;
+  background: var(--system-surface-subtle);
+  color: var(--system-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.modelsCard :global(.status-badge.success) {
+  border-color: rgb(64 115 69 / 0.22);
+  background: rgb(64 115 69 / 0.09);
+  color: var(--system-success);
+}
+
+.modelsCard :global(.status-badge.warning) {
+  border-color: rgb(229 169 71 / 0.3);
+  background: rgb(229 169 71 / 0.1);
+  color: #8e621b;
+}
+
+.modelsCard :global(.status-badge.error),
+.modelsCard :global(.error-box) {
+  border-color: rgb(165 56 48 / 0.28);
+  background: rgb(165 56 48 / 0.06);
+  color: var(--system-danger);
+}
+
+.modelsCard :global(.error-box) {
+  margin-bottom: 12px;
+  border-radius: 10px;
+}
+
+.modelsCard :global(.hint) {
+  padding: 20px 12px;
+  border: 1px dashed var(--system-border);
+  border-radius: 10px;
+  background: var(--system-surface-warm);
+  color: var(--system-text-tertiary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.modelsCard :global(.item-list) {
+  overflow: hidden;
+  border: 1px solid var(--system-border);
+  border-radius: 12px;
+  background: var(--system-surface);
+}
+
+.modelsCard :global(.item-row) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
+  border-bottom: 1px solid var(--system-border);
+  background: var(--system-surface);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: var(--system-surface-warm);
+  }
+}
+
+.modelsCard :global(.item-meta) {
+  display: flex;
+  min-width: 120px;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.modelsCard :global(.item-title) {
+  color: var(--system-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modelsCard :global(.item-subtitle) {
+  color: var(--system-text-tertiary);
+  font-size: 10.5px;
+}
+
+.groupTitle {
+  gap: 7px;
+}
+
+.groupIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.modelTags {
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.modelTag {
+  gap: 5px;
+  padding: 4px 7px;
+  border-color: var(--system-border);
+  border-radius: 6px;
+  background: var(--system-surface-warm);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+
+  &:hover {
+    transform: none;
+    border-color: var(--system-border-strong);
+    background: var(--system-surface-subtle);
+  }
+}
+
+.modelName {
+  color: var(--system-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.modelAlias {
+  color: var(--system-text-tertiary);
+  font-size: 10.5px;
+}
+
+.dangerCard {
+  border-color: color-mix(in srgb, var(--system-danger) 24%, var(--system-border)) !important;
+}
+
+.dangerCard :global(.card-header) {
+  border-bottom-color: color-mix(in srgb, var(--system-danger) 16%, var(--system-border));
+}
+
+.dangerCard .sectionDescription {
+  color: var(--system-text-secondary);
+}
+
+.clearLoginActions {
+  justify-content: flex-start;
+}
+
+.dangerCard :global(.btn.btn-danger) {
+  min-height: 38px;
+  border-color: rgb(165 56 48 / 0.34);
+  border-radius: 8px;
+  background: var(--system-surface);
+  color: var(--system-danger);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: rgb(165 56 48 / 0.52);
+    background: rgb(165 56 48 / 0.07);
+    color: var(--system-danger);
+  }
+}
+
+.requestLogModal {
+  border: 1px solid var(--system-border);
+  border-radius: 15px;
+  background: var(--system-surface);
+  box-shadow: 0 20px 65px rgb(0 0 0 / 0.07);
+
+  :global(.modal-header) {
+    border-bottom: 1px solid var(--system-border);
+  }
+
+  :global(.modal-title) {
+    color: var(--system-text);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  :global(.modal-body) {
+    background: var(--system-surface);
+  }
+
+  :global(.modal-footer) {
+    border-top: 1px solid var(--system-border);
+    background: var(--system-surface-warm);
+  }
+
+  :global(.request-log-modal) {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  :global(.status-badge.warning) {
+    display: block;
+    padding: 9px 10px;
+    border: 1px solid rgb(229 169 71 / 0.3);
+    border-radius: 10px;
+    background: rgb(229 169 71 / 0.09);
+    color: #8e621b;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  :global(.btn.btn-primary) {
+    border-color: var(--system-ink);
+    background: var(--system-ink);
+    color: #ffffff;
+  }
+
+  :global(.btn.btn-secondary) {
+    border-color: var(--system-border);
+    background: var(--system-surface);
+    color: var(--system-text-secondary);
+  }
+}
+
+.infoTile:focus-visible,
+.linkCard:focus-visible,
+.content :global(.btn):focus-visible,
+.requestLogModal :global(.btn):focus-visible {
+  outline: 2px solid var(--system-sage);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+@media (max-width: 1080px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .modelsCard,
+  .dangerCard {
+    grid-column: 1;
+  }
+
+  .quickLinks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .aboutInfoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .infoTile,
+  .tapTile {
+    border-top: 1px solid var(--system-border);
+    border-left: 0;
+
+    &:nth-child(-n + 2) {
+      border-top: 0;
+    }
+
+    &:nth-child(odd) {
+      border-right: 1px solid var(--system-border);
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .pageHeader {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+  }
+
+  .content {
+    gap: 12px;
+  }
+
+  .aboutHeader {
+    padding-bottom: 14px;
+  }
+
+  .aboutTitle {
+    font-size: 18px;
+  }
+
+  .quickLinks,
+  .aboutInfoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoTile,
+  .tapTile {
+    min-height: 78px;
+    padding: 12px;
+    border-top: 1px solid var(--system-border);
+    border-right: 0 !important;
+
+    &:first-child {
+      border-top: 0;
+    }
+  }
+
+  .modelsCard :global(.item-row) {
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .modelTags {
+    justify-content: flex-start;
+  }
+
+  .dangerCard :global(.btn.btn-danger) {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content > :global(.card),
+  .infoTile,
+  .tapTile,
+  .linkCard,
+  .modelTag,
+  .content :global(.btn) {
+    animation: none;
+    transition: none;
+  }
+}
+
+:global([data-theme='dark']) .container {
+  --system-surface: var(--bg-primary);
+  --system-surface-warm: color-mix(in srgb, var(--bg-secondary) 72%, var(--bg-primary));
+  --system-surface-subtle: var(--bg-secondary);
+  --system-border: color-mix(in srgb, var(--border-color) 86%, transparent);
+  --system-border-strong: color-mix(in srgb, var(--text-tertiary) 42%, var(--border-color));
+  --system-text: var(--text-primary);
+  --system-text-secondary: var(--text-secondary);
+  --system-text-tertiary: var(--text-tertiary);
+  --system-text-muted: color-mix(in srgb, var(--text-tertiary) 76%, transparent);
+  --system-sage: #aab6a1;
+  --system-sage-strong: #b3bea9;
+  --system-sage-soft: #2c3429;
+  --system-ink: #f0f1eb;
+  --system-focus: rgb(179 190 169 / 0.34);
+}
+
+:global([data-theme='dark']) .requestLogModal {
+  --system-surface: var(--bg-primary);
+  --system-surface-warm: color-mix(in srgb, var(--bg-secondary) 72%, var(--bg-primary));
+  --system-surface-subtle: var(--bg-secondary);
+  --system-border: color-mix(in srgb, var(--border-color) 86%, transparent);
+  --system-border-strong: color-mix(in srgb, var(--text-tertiary) 42%, var(--border-color));
+  --system-text: var(--text-primary);
+  --system-text-secondary: var(--text-secondary);
+  --system-text-tertiary: var(--text-tertiary);
+  --system-sage: #aab6a1;
+  --system-sage-strong: #b3bea9;
+  --system-ink: #f0f1eb;
+
+  :global(.btn.btn-primary) {
+    color: #1c1d1a;
+  }
+}
+
+// Dashboard hierarchy refinement: the system page reads best as one primary
+// operational column. Joined rails communicate related information without
+// turning every supporting item into a competing standalone card.
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.aboutCard,
+.linksCard,
+.modelsCard,
+.dangerCard {
+  grid-column: auto;
+  width: 100%;
+}
+
+.quickLinks {
+  gap: 1px;
+  padding: 1px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--system-border);
+}
+
+.linkCard {
+  min-height: 88px;
+  padding: 15px;
+  border: 0;
+  border-radius: 0;
+  background: var(--system-surface);
+
+  &:hover {
+    border-color: transparent;
+    background: var(--system-surface-warm);
+  }
+}
+
+.modelsCard :global(.item-row) {
+  display: grid;
+  grid-template-columns: minmax(152px, 0.28fr) minmax(0, 0.72fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.modelTags {
+  justify-content: flex-start;
+}
+
+.dangerCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 24px;
+}
+
+.dangerCard :global(.card-header) {
+  grid-column: 1 / -1;
+}
+
+.dangerCard .sectionDescription {
+  margin: 0;
+}
+
+.clearLoginActions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .content {
+    gap: 14px;
+  }
+
+  .quickLinks {
+    gap: 1px;
+  }
+
+  .linkCard {
+    min-height: 74px;
+    padding: 12px;
+  }
+
+  .modelsCard :global(.item-row) {
+    display: flex;
+  }
+
+  .dangerCard {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .dangerCard .sectionDescription {
+    margin: 0;
+  }
+
+  .clearLoginActions {
+    justify-content: stretch;
+  }
+}

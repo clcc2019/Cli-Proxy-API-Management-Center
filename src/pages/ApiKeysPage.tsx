@@ -199,7 +199,7 @@ export function ApiKeysPage() {
             </div>
           )}
           <div id="api-keys" className={editorStyles.sectionStack}>
-            <div className={editorStyles.subsection}>
+            <div className={`${editorStyles.subsection} ${styles.apiKeysSummary}`}>
               <div className={editorStyles.subsectionHeader}>
                 <h3 className={editorStyles.subsectionTitle}>
                   {t('api_keys.configured_count', { count: apiKeys.length })}

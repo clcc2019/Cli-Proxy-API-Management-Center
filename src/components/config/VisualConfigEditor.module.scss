@@ -4,7 +4,7 @@
 .visualEditor {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xl;
+  gap: 20px;
   min-width: 0;
 
   :global(.form-group) {
@@ -13,24 +13,25 @@
   }
 
   :global(.form-group > label) {
-    color: var(--text-secondary);
+    color: #565551;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
   }
 
   :global(.input) {
-    min-height: 48px;
+    min-height: 44px;
     border-radius: 8px;
-    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
-    border-color: color-mix(in srgb, var(--border-color) 84%, transparent);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    font-size: 15px;
+    background: #ffffff;
+    border-color: #eaeae9;
+    box-shadow: none;
+    font-size: 14px;
   }
 
   :global(.input:focus) {
-    background: var(--bg-primary);
-    border-color: var(--primary-color);
+    background: #ffffff;
+    border-color: #96a58d;
+    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.22);
   }
 
   :global(textarea.input) {
@@ -38,7 +39,7 @@
   }
 
   :global(.hint) {
-    color: var(--text-secondary);
+    color: #807f7c;
     font-size: 12px;
     line-height: 1.6;
   }
@@ -53,10 +54,10 @@
   }
 
   :global(.item-row) {
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 14px 16px;
-    background: color-mix(in srgb, var(--bg-primary) 78%, transparent);
-    border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+    background: #ffffff;
+    border-color: #eaeae9;
 
     @include mobile {
       align-items: stretch;
@@ -87,9 +88,9 @@
   }
 
   :global(.pill) {
-    background: color-mix(in srgb, var(--bg-secondary) 84%, transparent);
-    border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-    color: var(--text-secondary);
+    background: #f4f4f4;
+    border: 1px solid #eaeae9;
+    color: #565551;
   }
 
   @include mobile {
@@ -201,15 +202,15 @@
   flex: 0 0 auto;
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
-  box-shadow: 0 18px 36px -30px rgba(0, 0, 0, 0.28);
+  border: 1px solid #eaeae9;
+  background: #ffffff;
+  box-shadow: 0 12px 26px -22px rgb(44 42 37 / 0.2);
   white-space: nowrap;
 }
 
 .mobileSectionNavButtonActive {
-  border-color: color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
-  background: color-mix(in srgb, var(--bg-primary) 96%, transparent);
+  border-color: #96a58d;
+  background: #faf8f5;
 }
 
 .mobileSectionNavIndex {
@@ -269,14 +270,11 @@
   max-height: calc(100vh - var(--header-height, 64px) - 36px);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 76%, transparent);
-  --glass-blur: 14px;
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  box-shadow: 0 24px 56px -34px rgba(0, 0, 0, 0.42);
+  padding: 10px;
+  border-radius: 15px;
+  border: 1px solid #eaeae9;
+  background: #ffffff;
+  box-shadow: none;
   -ms-overflow-style: none;
   scrollbar-width: none;
 
@@ -304,11 +302,11 @@
   max-height: inherit;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 96%, transparent);
-  box-shadow: 0 24px 56px -34px rgba(0, 0, 0, 0.42);
+  padding: 10px;
+  border-radius: 15px;
+  border: 1px solid #eaeae9;
+  background: #ffffff;
+  box-shadow: 0 18px 44px -28px rgb(44 42 37 / 0.24);
   -ms-overflow-style: none;
   scrollbar-width: none;
 
@@ -338,23 +336,21 @@
   @include button-reset;
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  padding: 14px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   color: inherit;
   text-align: left;
   transition:
-    transform 0.18s ease,
     background-color 0.18s ease,
     border-color 0.18s ease;
 
   &:hover {
-    transform: translateX(2px);
-    background: color-mix(in srgb, var(--bg-secondary) 86%, transparent);
-    border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
+    background: #faf8f5;
+    border-color: #eaeae9;
   }
 
   @media (max-width: 1024px) {
@@ -362,15 +358,15 @@
     flex: 0 0 auto;
 
     &:hover {
-      transform: translateY(-1px);
+      background: #faf8f5;
     }
   }
 }
 
 .navButtonActive {
-  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
-  border-color: color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
-  box-shadow: 0 18px 36px -30px rgba(0, 0, 0, 0.32);
+  background: #faf8f5;
+  border-color: #d3d7cd;
+  box-shadow: inset 3px 0 0 #96a58d;
 }
 
 .navIndex {
@@ -379,10 +375,10 @@
   justify-content: center;
   min-width: 34px;
   height: 34px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  color: var(--text-secondary);
+  border-radius: 8px;
+  background: #f4f4f4;
+  border: 1px solid #eaeae9;
+  color: #807f7c;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -415,19 +411,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-hover);
+  color: #63725a;
   flex: 0 0 auto;
 }
 
 .navLabel {
-  color: var(--text-primary);
-  font-size: 15px;
-  font-weight: 700;
+  color: #2c2a25;
+  font-size: 14px;
+  font-weight: 650;
   line-height: 1.2;
 }
 
 .navDescription {
-  color: var(--text-secondary);
+  color: #807f7c;
   font-size: 12px;
   line-height: 1.55;
 }
@@ -451,13 +447,13 @@
 .sections {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   min-width: 0;
 }
 
 .sectionGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 
   @include mobile {
@@ -468,29 +464,23 @@
 .sectionStack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .divider {
   height: 1px;
-  background: color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: #eaeae9;
 }
 
 .toggleRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
+  gap: 16px;
   align-items: center;
-  padding: 18px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-primary) 90%, transparent),
-      color-mix(in srgb, var(--bg-primary) 84%, transparent)
-    ),
-    color-mix(in srgb, var(--bg-secondary) 44%, transparent);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #eaeae9;
+  background: #faf8f5;
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
@@ -506,14 +496,14 @@
 }
 
 .toggleTitle {
-  color: var(--text-primary);
-  font-size: 15px;
-  font-weight: 700;
+  color: #2c2a25;
+  font-size: 14px;
+  font-weight: 650;
   line-height: 1.2;
 }
 
 .toggleDescription {
-  color: var(--text-secondary);
+  color: #807f7c;
   font-size: 13px;
   line-height: 1.6;
 }
@@ -526,7 +516,7 @@
 }
 
 .fieldLabel {
-  color: var(--text-secondary);
+  color: #565551;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -537,7 +527,7 @@
 }
 
 .fieldHint {
-  color: var(--text-secondary);
+  color: #807f7c;
   font-size: 12px;
   line-height: 1.6;
 }
@@ -552,9 +542,9 @@
   min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
-  color: var(--text-secondary);
+  border: 1px solid #eaeae9;
+  background: #f4f4f4;
+  color: #807f7c;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -563,17 +553,11 @@
 .subsection {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px 20px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-primary) 90%, transparent),
-      color-mix(in srgb, var(--bg-primary) 84%, transparent)
-    ),
-    color-mix(in srgb, var(--bg-secondary) 44%, transparent);
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #eaeae9;
+  background: #faf8f5;
 }
 
 .subsectionHeader {

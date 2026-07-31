@@ -369,7 +369,9 @@ export function SystemPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.pageTitle}>{t('system_info.title')}</h1>
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t('system_info.title')}</h1>
+      </header>
       <div className={styles.content}>
         <Card className={styles.aboutCard}>
           <div className={styles.aboutHeader}>
@@ -421,7 +423,7 @@ export function SystemPage() {
           </div>
         </Card>
 
-        <Card title={t('system_info.quick_links_title')}>
+        <Card className={styles.linksCard} title={t('system_info.quick_links_title')}>
           <p className={styles.sectionDescription}>{t('system_info.quick_links_desc')}</p>
           <div className={styles.quickLinks}>
             <a
@@ -481,6 +483,7 @@ export function SystemPage() {
         </Card>
 
         <Card
+          className={styles.modelsCard}
           title={t('system_info.models_title')}
           extra={
             <Button
@@ -542,7 +545,7 @@ export function SystemPage() {
           )}
         </Card>
 
-        <Card title={t('system_info.clear_login_title')}>
+        <Card className={styles.dangerCard} title={t('system_info.clear_login_title')}>
           <p className={styles.sectionDescription}>{t('system_info.clear_login_desc')}</p>
           <div className={styles.clearLoginActions}>
             <Button variant="danger" onClick={handleClearLoginStorage}>
@@ -556,6 +559,7 @@ export function SystemPage() {
         open={requestLogModalOpen}
         onClose={handleRequestLogClose}
         title={t('basic_settings.request_log_title')}
+        className={styles.requestLogModal}
         ariaDescribedBy={requestLogWarningId}
         footer={
           <>

@@ -388,7 +388,12 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
             {t('config_management.visual.api_keys.hint')}
           </p>
         </div>
-        <Button size="sm" onClick={openAddModal} disabled={disabled}>
+        <Button
+          size="sm"
+          onClick={openAddModal}
+          disabled={disabled}
+          className={apiKeyCardStyles.addButton}
+        >
           {t('config_management.visual.api_keys.add')}
         </Button>
       </div>

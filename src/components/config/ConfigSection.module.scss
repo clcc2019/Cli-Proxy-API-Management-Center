@@ -3,26 +3,20 @@
 
 .section {
   display: grid;
-  grid-template-columns: minmax(0, 248px) minmax(0, 1fr);
-  gap: 28px;
-  padding: 28px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  border-radius: 12px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-primary) 92%, transparent),
-      color-mix(in srgb, var(--bg-primary) 84%, transparent)
-    ),
-    color-mix(in srgb, var(--bg-secondary) 46%, transparent);
-  box-shadow: 0 18px 40px -34px rgba(0, 0, 0, 0.3);
+  grid-template-columns: minmax(0, 224px) minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid #eaeae9;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: none;
   scroll-margin-top: 96px;
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
+    gap: 16px;
     padding: 16px;
-    border-radius: 10px;
+    border-radius: 12px;
     scroll-margin-top: 80px;
   }
 }
@@ -30,14 +24,14 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
 }
 
 .titleRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -46,15 +40,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  padding: 0 10px;
-  border-radius: 14px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-primary) 92%, transparent), transparent),
-    color-mix(in srgb, var(--primary-color) 11%, var(--bg-secondary));
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
-  color: var(--primary-hover);
+  min-width: 36px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: #e1e2d9;
+  border: 1px solid #d3d7cd;
+  color: #63725a;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -64,28 +56,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
-  color: var(--text-secondary);
+  width: 32px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f4f4f4;
+  border: 1px solid #eaeae9;
+  color: #565551;
   flex: 0 0 auto;
 }
 
 .headingGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 22px;
-  line-height: 1.18;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+  color: #2c2a25;
 
   @include mobile {
     font-size: 20px;
@@ -96,9 +89,9 @@
 .description {
   margin: 0;
   max-width: 30ch;
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.65;
+  color: #807f7c;
+  font-size: 13px;
+  line-height: 1.55;
 
   @include mobile {
     max-width: none;
@@ -108,15 +101,15 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
-  padding-left: clamp(16px, 2.2vw, 28px);
-  border-left: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  padding-left: clamp(16px, 2vw, 24px);
+  border-left: 1px solid #eaeae9;
 
   @include mobile {
     padding-left: 0;
     padding-top: 4px;
     border-left: none;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+    border-top: 1px solid #eaeae9;
   }
 }

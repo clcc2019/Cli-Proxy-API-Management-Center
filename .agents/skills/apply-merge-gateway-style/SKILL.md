@@ -24,6 +24,8 @@ Recreate the design logic of Merge Gateway without copying its brand, logo, mark
 8. Add motion last. Keep it short, purposeful, transform/opacity-based, and safe under `prefers-reduced-motion`.
 9. Verify desktop, tablet, and mobile layouts. Exercise hover, keyboard focus, active, copied, expanded, loading, empty, and error states where relevant.
 
+For a reference-site refresh, first capture one desktop view of the relevant reference area and identify its surface hierarchy, action contrast, divider rhythm, and density. Translate those relationships into the target product; do not copy its brand, assets, or marketing composition wholesale.
+
 ## Choose width and hierarchy by page type
 
 - Let dense admin tables, logs, charts, and configuration workbenches inherit the available application-shell width. Avoid placing a second centered marketing max-width inside an already padded shell.
@@ -42,6 +44,7 @@ Recreate the design logic of Merge Gateway without copying its brand, logo, mark
 - Keep orange rare. Reserve it for the primary attention cue, a critical progress state, or one editorial accent—not every button and icon.
 - Use shadows only to establish hierarchy. Let borders, spacing, and alignment carry most of the structure.
 - Prefer one convincing product fragment over a collage of unrelated floating cards.
+- On operational screens, give the primary action the sole high-contrast fill (usually warm charcoal); keep companion actions white with hairline borders.
 
 ## Preserve the signature feel
 

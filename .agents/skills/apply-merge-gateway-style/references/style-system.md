@@ -16,6 +16,10 @@ Create a quiet, credible enterprise AI interface. Combine editorial B2B marketin
 
 Aim for “controlled technical confidence,” not futuristic spectacle.
 
+## Gateway reference calibration
+
+The live Gateway page pairs a pale, low-saturation sage atmosphere with a large editorial hero, then returns immediately to clean white sections. Its embedded product panels are almost entirely white: hierarchy comes from 1px gray rails, compact tab or action strips, warm-charcoal type, and one dark pill CTA. Apply that hero atmosphere only to marketing or destination screens. For dense management pages, borrow the panel grammar instead: one white operational surface, discrete internal dividers, and a single dark primary action. Keep repeated cards white even when their contents differ; use tinted fills only for compact controls or semantic status labels.
+
 ## Color tokens
 
 Use semantic names in the implementation. The following values reproduce the observed relationships:
@@ -126,6 +130,7 @@ For routine admin pages, logs, tables, settings, and workbenches:
 - Let the main table, chart, or form become the first large visual surface and consume the available shell width.
 - Prefer 16–24px vertical gaps between the title, summary, filters, and operational panel.
 - Avoid layering a page-specific entrance animation on top of an application-level route transition.
+- Treat repeated management cards as one product surface: use white for their structural background, express grouping through 1px dividers and spacing, and reserve tinted fills for compact controls or actual semantic states. Do not tint an entire card merely because it is disabled, selected, or contains a different kind of data.
 
 ## Page composition
 

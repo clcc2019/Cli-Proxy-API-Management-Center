@@ -2,12 +2,23 @@
 @use '../styles/variables' as *;
 
 .container {
+  --config-surface: #ffffff;
+  --config-surface-subtle: #f4f4f4;
+  --config-surface-warm: #faf8f5;
+  --config-text: #2c2a25;
+  --config-text-secondary: #565551;
+  --config-text-muted: #807f7c;
+  --config-border: #eaeae9;
+  --config-border-strong: #d8d8d3;
+  --config-sage: #96a58d;
+  --config-sage-soft: #e1e2d9;
+  --config-ink: #0e0d0c;
   width: 100%;
   min-width: 0;
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 22px;
   overflow-y: auto;
   padding-bottom: calc(
     var(--config-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom) + #{$spacing-md}
@@ -20,8 +31,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 2px 2px 12px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 2px 0 14px;
+  border-bottom: 1px solid var(--config-border);
 
   @media (prefers-reduced-motion: no-preference) {
     animation: configSectionEnter var(--motion-duration-base) var(--motion-ease-out) both;
@@ -37,10 +48,10 @@
 .pageTitle {
   margin: 0;
   min-width: 0;
-  color: var(--text-primary);
+  color: var(--config-text);
   font-size: var(--page-title-size, clamp(24px, 2vw, 30px));
-  font-weight: 700;
-  line-height: 1.2;
+  font-weight: 680;
+  line-height: 1.1;
   letter-spacing: -0.025em;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -68,9 +79,9 @@
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 86%, transparent);
-  color: var(--text-primary);
+  border: 1px solid var(--config-border);
+  background: var(--config-surface);
+  color: var(--config-text-secondary);
   font-size: 12px;
   font-weight: 600;
   text-align: center;
@@ -79,7 +90,7 @@
     color var(--motion-duration-fast) var(--motion-ease-standard),
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard),
-    transform var(--motion-duration-fast) var(--motion-ease-out);
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   @include mobile {
     width: 100%;
@@ -90,10 +101,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px;
+  padding: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: var(--config-surface-subtle);
+  border: 1px solid var(--config-border);
   width: fit-content;
   max-width: 100%;
   overflow-x: auto;
@@ -110,32 +121,35 @@
 
 .tabItem {
   @include button-reset;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid transparent;
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 700;
+  color: var(--config-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
   white-space: nowrap;
   transition:
     color var(--motion-duration-fast) var(--motion-ease-standard),
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard),
-    transform var(--motion-duration-fast) var(--motion-ease-out);
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
-      color: var(--text-primary);
-      background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
-      border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
-      transform: translateY(-1px);
+      color: var(--config-text);
+      background: var(--config-surface);
+      border-color: var(--config-border);
     }
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--config-sage);
+    outline-offset: 2px;
   }
 
   @include mobile {
@@ -145,43 +159,59 @@
 }
 
 .tabActive {
-  color: var(--text-primary);
-  background: var(--bg-primary);
-  border-color: color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
-  box-shadow: 0 16px 32px -28px rgba(0, 0, 0, 0.3);
+  color: var(--config-text);
+  background: var(--config-surface);
+  border-color: var(--config-border-strong);
+  box-shadow: inset 0 -2px 0 var(--config-ink);
 }
 
 .workspaceShell {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
-  padding: clamp(18px, 3vw, 28px);
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 74%, transparent);
-  box-shadow: var(--shadow);
+  gap: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 
   @media (prefers-reduced-motion: no-preference) {
     animation: configSectionEnter var(--motion-duration-slow) var(--motion-ease-out) 48ms both;
   }
 
   @include mobile {
-    padding: 16px;
-    border-radius: 10px;
+    padding: 0;
   }
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 20px;
   min-height: 0;
+}
+
+// The API-key page is a dense management surface. Keep its summary neutral so
+// colored badges remain the only state cue in the first viewport.
+.apiKeysSummary {
+  border-color: var(--config-border);
+  border-radius: 15px;
+  background: var(--config-surface);
 }
 
 .sourceWorkspace {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--config-border);
+  border-radius: 15px;
+  background: var(--config-surface);
+
+  @include mobile {
+    padding: 16px;
+    border-radius: 12px;
+  }
   min-height: 0;
 }
 
@@ -189,8 +219,8 @@
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  padding-bottom: 16px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--config-border);
 
   @include mobile {
     flex-direction: column;
@@ -213,7 +243,9 @@
 
 .searchInput {
   flex: 1;
+  border-color: var(--config-border) !important;
   border-radius: 8px !important;
+  background: var(--config-surface) !important;
   padding-right: 132px !important;
 }
 
@@ -229,9 +261,9 @@
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  color: var(--text-secondary);
+  background: var(--config-surface-subtle);
+  border: 1px solid var(--config-border);
+  color: var(--config-text-secondary);
   font-size: 12px;
   font-weight: 700;
   pointer-events: none;
@@ -245,21 +277,20 @@
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 999px;
-  background: var(--primary-color);
-  border: 1px solid var(--primary-color);
-  color: var(--primary-contrast);
+  border-radius: 8px;
+  background: var(--config-ink);
+  border: 1px solid var(--config-ink);
+  color: #ffffff;
   transition:
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard),
     opacity var(--motion-duration-fast) var(--motion-ease-standard),
-    transform var(--motion-duration-fast) var(--motion-ease-out);
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
-      background: var(--primary-hover);
-      border-color: var(--primary-hover);
-      transform: translateY(-1px);
+      background: var(--config-text-secondary);
+      border-color: var(--config-text-secondary);
     }
   }
 
@@ -279,7 +310,7 @@
     width: 36px;
     height: 36px;
     padding: 0 !important;
-    border-radius: 999px;
+    border-radius: 8px;
   }
 
   @include mobile {
@@ -296,10 +327,10 @@
   width: 100%;
   flex: 0 0 auto;
   height: clamp(420px, 64vh, 980px);
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  border-radius: 10px;
+  border: 1px solid var(--config-border);
+  border-radius: 12px;
   overflow: hidden;
-  background: color-mix(in srgb, var(--bg-primary) 90%, transparent);
+  background: var(--config-surface-warm);
 
   @supports (height: 100dvh) {
     height: clamp(420px, 64dvh, 980px);
@@ -321,8 +352,8 @@
     }
 
     .cm-gutters {
-      border-right: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-      background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+      border-right: 1px solid var(--config-border);
+      background: var(--config-surface-subtle);
     }
 
     .cm-lineNumbers .cm-gutterElement {
@@ -365,24 +396,31 @@
 }
 
 .modified {
-  color: var(--warning-text);
-  background: var(--warning-bg);
-  border-color: var(--warning-border);
+  color: #9a6b1d;
+  background: rgb(229 169 71 / 0.16);
+  border-color: rgb(229 169 71 / 0.34);
 }
 
 .saved {
-  color: var(--success-color);
-  background: color-mix(in srgb, var(--success-color) 12%, var(--bg-primary));
-  border-color: color-mix(in srgb, var(--success-color) 28%, var(--border-color));
+  color: #407345;
+  background: rgb(64 115 69 / 0.1);
+  border-color: rgb(64 115 69 / 0.22);
 }
 
 .error {
-  color: var(--warning-text);
-  background: var(--warning-bg);
-  border-color: var(--warning-border);
+  color: #a53830;
+  background: rgb(165 56 48 / 0.1);
+  border-color: rgb(165 56 48 / 0.24);
 }
 
 .floatingActionContainer {
+  // This control is portaled to document.body, so it cannot inherit the
+  // configuration-page tokens from .container.
+  --config-surface: #ffffff;
+  --config-surface-subtle: #f4f4f4;
+  --config-border: #eaeae9;
+  --config-border-strong: #d8d8d3;
+  --config-sage: #96a58d;
   position: fixed;
   left: var(--content-center-x, 50%);
   bottom: calc(16px + env(safe-area-inset-bottom));
@@ -398,13 +436,11 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  --glass-blur: 12px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
-  border: 1px solid var(--glass-border);
+  background: #ffffff;
+  border: 1px solid var(--config-border-strong, #d8d8d3);
   border-radius: 999px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 18px 44px -28px rgb(44 42 37 / 0.32);
+  background-clip: padding-box;
   max-width: inherit;
   overflow-x: auto;
   scrollbar-width: none;
@@ -447,26 +483,29 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 999px;
+  border-radius: 8px;
   cursor: pointer;
   color: var(--text-primary);
   transition:
     background-color 0.2s ease,
-    transform 0.15s ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--text-primary) 10%, transparent);
-    transform: scale(1.08);
+    background: var(--config-surface-subtle);
   }
 
   &:active:not(:disabled) {
-    transform: scale(0.95);
+    background: var(--config-sage-soft);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--config-sage);
+    outline-offset: 2px;
   }
 }
 
@@ -524,8 +563,7 @@
 }
 
 @media (max-width: 380px) {
-  .pageHeader,
-  .workspaceShell {
+  .pageHeader {
     padding: 14px;
   }
 }
@@ -538,7 +576,8 @@
 
   .statusBadge,
   .tabItem,
-  .searchButton {
+  .searchButton,
+  .floatingActionButton {
     transition: none;
   }
 }

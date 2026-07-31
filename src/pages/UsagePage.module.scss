@@ -2559,3 +2559,652 @@
     background-color: var(--bg-secondary);
   }
 }
+
+// =============================================================================
+// Merge Gateway usage management surface
+// Keep the operational information architecture intact, but give every
+// overview, chart and detail surface one quiet white-panel grammar.
+// =============================================================================
+.container {
+  --usage-surface: #ffffff;
+  --usage-surface-warm: #faf8f5;
+  --usage-surface-subtle: #f4f4f4;
+  --usage-border: #eaeae9;
+  --usage-border-strong: #d8d8d3;
+  --usage-text: #2c2a25;
+  --usage-text-secondary: #565551;
+  --usage-text-tertiary: #807f7c;
+  --usage-text-muted: #abaaa8;
+  --usage-sage: #96a58d;
+  --usage-sage-strong: #63725a;
+  --usage-sage-soft: #e1e2d9;
+  --usage-ink: #0e0d0c;
+  --usage-danger: #a53830;
+  --usage-warning: #e5a947;
+  --usage-success: #407345;
+  --usage-focus: rgb(150 165 141 / 0.34);
+
+  gap: 32px;
+  color: var(--usage-text);
+
+  :global(.card) {
+    border-color: var(--usage-border);
+    border-radius: 15px;
+    background: var(--usage-surface);
+    box-shadow: none;
+  }
+}
+
+// The application shell already owns the route transition. Avoid a second,
+// page-wide stagger that makes data panels feel less immediate.
+.introBlock,
+.motionSection,
+.panelShell {
+  animation: none;
+}
+
+.hero {
+  grid-template-columns: minmax(260px, 0.86fr) minmax(460px, 1.14fr);
+  gap: 24px;
+  padding: 20px 22px;
+  border: 1px solid var(--usage-border);
+  border-radius: 15px;
+  background: var(--usage-surface);
+}
+
+.heroCopy {
+  gap: 7px;
+}
+
+.pageTitle {
+  gap: 10px;
+  color: var(--usage-text);
+  font-size: clamp(25px, 2vw, 30px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.pageTitleIcon {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--usage-sage-strong);
+}
+
+.pageSubtitle {
+  max-width: 60ch;
+  color: var(--usage-text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.heroSummary {
+  gap: 6px 0;
+  color: var(--usage-text-tertiary);
+  font-size: 11.5px;
+
+  span {
+    padding: 0 12px;
+
+    &:first-child {
+      padding-left: 0;
+    }
+  }
+
+  span + span::before {
+    left: 0;
+    width: 1px;
+    height: 12px;
+    border-radius: 0;
+    background: var(--usage-border);
+    transform: translateY(-50%);
+  }
+}
+
+.heroActions {
+  gap: 8px;
+}
+
+.timeRangeGroup {
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--usage-border);
+  border-radius: 10px;
+  background: var(--usage-surface-warm);
+}
+
+.timeRangeIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--usage-text-muted);
+}
+
+.timeRangeLabel {
+  color: var(--usage-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.timeRangeSelectControl :global(button) {
+  min-height: 34px;
+  border-color: var(--usage-border);
+  border-radius: 8px;
+  background: var(--usage-surface);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--usage-border-strong);
+    background: var(--usage-surface-subtle);
+  }
+}
+
+.actionGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+
+  :global(.btn) {
+    min-height: 36px;
+    border-color: var(--usage-border);
+    border-radius: 8px;
+    background: var(--usage-surface);
+    box-shadow: none;
+    color: var(--usage-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      color 180ms ease;
+  }
+
+  :global(.btn:not(:disabled):hover) {
+    transform: none;
+    border-color: var(--usage-border-strong);
+    background: var(--usage-surface-subtle);
+    color: var(--usage-text);
+  }
+}
+
+.heroActionPrimary:global(.btn.btn-primary),
+.container :global(.btn.btn-primary) {
+  border-color: var(--usage-ink);
+  background: var(--usage-ink);
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    border-color: var(--usage-text-secondary);
+    background: var(--usage-text-secondary);
+    color: #ffffff;
+  }
+}
+
+.container :global(.btn.btn-secondary) {
+  border-color: var(--usage-border);
+  background: var(--usage-surface);
+  box-shadow: none;
+  color: var(--usage-text-secondary);
+
+  &:hover:not(:disabled) {
+    border-color: var(--usage-border-strong);
+    background: var(--usage-surface-subtle);
+    color: var(--usage-text);
+  }
+}
+
+.section {
+  gap: 16px;
+}
+
+.sectionHeader {
+  gap: 5px;
+}
+
+.sectionEyebrow {
+  gap: 6px;
+  color: var(--usage-sage-strong);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.065em;
+}
+
+.sectionTitle {
+  color: var(--usage-text);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+}
+
+.sectionDescription {
+  color: var(--usage-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.sectionToggle {
+  min-height: 34px;
+  padding: 7px 11px;
+  border-color: var(--usage-border);
+  border-radius: 999px;
+  background: var(--usage-surface);
+  color: var(--usage-text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  box-shadow: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+
+  &:hover {
+    transform: none;
+    border-color: var(--usage-border-strong);
+    background: var(--usage-surface-warm);
+    color: var(--usage-text);
+  }
+}
+
+.sectionToggleIcon {
+  color: var(--usage-text-tertiary);
+}
+
+.statsGrid {
+  gap: 10px;
+}
+
+.statCard {
+  min-height: 132px;
+  padding: 15px;
+  border-color: var(--usage-border);
+  border-radius: 15px;
+  background: var(--usage-surface);
+  box-shadow: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+
+  &:hover {
+    border-color: var(--usage-border-strong);
+    background: var(--usage-surface-warm);
+  }
+}
+
+.statIconBadge {
+  width: 28px;
+  height: 28px;
+  border-color: var(--usage-border);
+  border-radius: 8px;
+  background: var(--usage-surface-subtle);
+  color: var(--usage-text-secondary);
+}
+
+.statLabel {
+  color: var(--usage-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.statValue {
+  color: var(--usage-text);
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.statSplitItem {
+  strong {
+    color: var(--usage-text);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+  }
+
+  span {
+    color: var(--usage-text-tertiary);
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+}
+
+.statSplitDivider {
+  background: var(--usage-border);
+}
+
+.statMetaRow,
+.statMetaItem {
+  color: var(--usage-text-tertiary);
+  font-size: 11px;
+}
+
+.trendGrid,
+.analysisGrid,
+.detailsGrid,
+.secondaryChartsGrid,
+.supportStack {
+  gap: 16px;
+}
+
+.detailsFixedCard,
+.healthCard {
+  border-color: var(--usage-border);
+  border-radius: 15px;
+  background: var(--usage-surface);
+  box-shadow: none;
+}
+
+.container :global(.card) :global(.card-header) {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--usage-border);
+
+  :global(.title) {
+    color: var(--usage-text);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+.apiItem,
+.priceForm,
+.priceItem,
+.modelRow,
+.tableWrapper,
+.requestEventsTableWrapper {
+  border-color: var(--usage-border);
+  background: var(--usage-surface);
+  box-shadow: none;
+}
+
+.apiItem,
+.priceItem,
+.modelRow {
+  &:hover {
+    border-color: var(--usage-border-strong);
+    background: var(--usage-surface-warm);
+  }
+}
+
+.apiHeader {
+  &:hover {
+    background: var(--usage-surface-warm);
+  }
+}
+
+.apiModels,
+.table th,
+.requestEventsTableWrapper .table thead th {
+  border-color: var(--usage-border);
+}
+
+.apiBadge,
+.credentialType,
+.reasoningTag {
+  border-color: var(--usage-border);
+  background: var(--usage-surface-subtle);
+  color: var(--usage-text-secondary);
+}
+
+.table {
+  th,
+  td {
+    border-bottom-color: var(--usage-border);
+  }
+
+  th {
+    color: var(--usage-text-tertiary);
+    background: var(--usage-surface-warm);
+    font-size: 10.5px;
+    font-weight: 650;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  td {
+    color: var(--usage-text-secondary);
+  }
+
+  tbody tr:hover {
+    background: var(--usage-surface-warm);
+  }
+}
+
+.requestEventsTableWrapper .table thead th {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--usage-surface-warm);
+  box-shadow: inset 0 -1px 0 var(--usage-border);
+}
+
+.requestEventsTableWrapper .table tbody tr:hover {
+  background: var(--usage-surface-warm);
+}
+
+.requestEventsRowFailed {
+  background: rgb(229 169 71 / 0.07);
+  box-shadow: inset 2px 0 0 rgb(229 169 71 / 0.72);
+
+  &:hover {
+    background: rgb(229 169 71 / 0.11) !important;
+    box-shadow: inset 2px 0 0 var(--usage-warning) !important;
+  }
+}
+
+.requestEventsResultButton {
+  &:hover:not(:disabled) {
+    filter: none;
+    box-shadow: none;
+  }
+
+  &:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+.priceForm,
+.chartArea,
+.deferredChartPlaceholder {
+  background: var(--usage-surface-warm);
+}
+
+.priceForm,
+.chartArea,
+.deferredChartPlaceholder,
+.tableWrapper,
+.requestEventsTableWrapper {
+  border-color: var(--usage-border);
+}
+
+.healthCard {
+  padding: 16px;
+  gap: 14px;
+}
+
+.healthTitle {
+  color: var(--usage-text);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.healthWindow,
+.healthLegendLabel {
+  color: var(--usage-text-tertiary);
+}
+
+.healthRate {
+  border: 1px solid var(--usage-border);
+  border-radius: 999px;
+  background: var(--usage-surface-subtle);
+}
+
+.healthBlock {
+  border-radius: 1px;
+
+  .healthBlockWrapper:hover &,
+  .healthBlockWrapper.healthBlockActive & {
+    transform: none;
+    opacity: 0.8;
+  }
+}
+
+.healthBlockIdle {
+  background: var(--usage-border);
+}
+
+.loadingOverlay {
+  background: rgb(255 255 255 / 0.78);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  animation: none;
+}
+
+.loadingOverlayContent,
+.healthTooltip {
+  border-color: var(--usage-border);
+  border-radius: 10px;
+  background: var(--usage-surface);
+  box-shadow: 0 2px 18px rgb(0 0 0 / 0.06);
+}
+
+.loadingOverlaySpinner {
+  border-color: rgb(99 114 90 / 0.2);
+  border-top-color: var(--usage-sage-strong);
+  box-shadow: none;
+}
+
+.errorBox {
+  border-color: rgb(165 56 48 / 0.28);
+  border-radius: 10px;
+  background: rgb(165 56 48 / 0.05);
+  color: var(--usage-danger);
+}
+
+.deferredChartGlow {
+  display: none;
+}
+
+.requestEventsSkeletonBlock {
+  background: var(--usage-surface-subtle);
+  animation: none;
+}
+
+.container :global(.btn):focus-visible,
+.sectionToggle:focus-visible,
+.timeRangeSelectControl :global(button):focus-visible,
+.apiHeader:focus-visible,
+.sortHeaderButton:focus-visible {
+  outline: 2px solid var(--usage-sage);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+@include tablet {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include mobile {
+  .container {
+    gap: 24px;
+  }
+
+  .hero {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .heroSummary {
+    gap: 4px;
+
+    span {
+      padding: 0;
+    }
+  }
+
+  .timeRangeGroup {
+    padding: 8px;
+  }
+
+  .actionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sectionHeaderAction {
+    width: 100%;
+  }
+
+  .sectionToggle {
+    width: 100%;
+  }
+
+  .statsGrid,
+  .trendGrid,
+  .analysisGrid,
+  .detailsGrid,
+  .secondaryChartsGrid,
+  .supportStack {
+    gap: 12px;
+  }
+
+  .statCard {
+    min-height: 118px;
+    padding: 13px;
+  }
+
+  .statValue {
+    font-size: 25px;
+  }
+
+  .healthCard {
+    padding: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionGrid :global(.btn),
+  .sectionToggle,
+  .statCard,
+  .sectionToggleIcon {
+    transition: none;
+  }
+}
+
+:global([data-theme='dark']) .container {
+  --usage-surface: var(--bg-primary);
+  --usage-surface-warm: color-mix(in srgb, var(--bg-secondary) 72%, var(--bg-primary));
+  --usage-surface-subtle: var(--bg-secondary);
+  --usage-border: color-mix(in srgb, var(--border-color) 86%, transparent);
+  --usage-border-strong: color-mix(in srgb, var(--text-tertiary) 42%, var(--border-color));
+  --usage-text: var(--text-primary);
+  --usage-text-secondary: var(--text-secondary);
+  --usage-text-tertiary: var(--text-tertiary);
+  --usage-text-muted: color-mix(in srgb, var(--text-tertiary) 76%, transparent);
+  --usage-sage: #aab6a1;
+  --usage-sage-strong: #b3bea9;
+  --usage-sage-soft: #2c3429;
+  --usage-ink: #f0f1eb;
+  --usage-focus: rgb(179 190 169 / 0.34);
+}
+
+:global([data-theme='dark']) {
+  .loadingOverlay {
+    background: rgb(18 19 17 / 0.8);
+  }
+
+  .heroActionPrimary:global(.btn.btn-primary),
+  .container :global(.btn.btn-primary) {
+    color: #1c1d1a;
+  }
+}

@@ -413,108 +413,110 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </button>
                 </div>
 
-                <div className={styles.cardTypeGroup}>
-                  <span
-                    className={styles.providerTypeBadge}
-                    style={providerBadgeStyle}
-                    title={typeLabel}
-                  >
-                    {typeLabel}
-                  </span>
-                  <span
-                    className={`${styles.fileStatusBadge} ${
-                      file.disabled ? styles.fileStatusBadgeDisabled : styles.fileStatusBadgeActive
-                    }`}
-                  >
-                    <span className={styles.fileStatusDot} aria-hidden="true" />
-                    {t(
-                      file.disabled
-                        ? 'providersPage.status.disabled'
-                        : 'providersPage.status.active'
+                <div className={styles.cardTypeAndOptionsRow}>
+                  <div className={styles.cardTypeGroup}>
+                    <span
+                      className={styles.providerTypeBadge}
+                      style={providerBadgeStyle}
+                      title={typeLabel}
+                    >
+                      {typeLabel}
+                    </span>
+                    <span
+                      className={`${styles.fileStatusBadge} ${
+                        file.disabled ? styles.fileStatusBadgeDisabled : styles.fileStatusBadgeActive
+                      }`}
+                    >
+                      <span className={styles.fileStatusDot} aria-hidden="true" />
+                      {t(
+                        file.disabled
+                          ? 'providersPage.status.disabled'
+                          : 'providersPage.status.active'
+                      )}
+                    </span>
+                    {hasRefreshToken && (
+                      <span
+                        className={styles.refreshTokenBadge}
+                        title={t('auth_files.refresh_token_badge')}
+                        role="img"
+                        aria-label={t('auth_files.refresh_token_badge')}
+                      >
+                        R
+                      </span>
                     )}
-                  </span>
-                  {hasRefreshToken && (
-                    <span
-                      className={styles.refreshTokenBadge}
-                      title={t('auth_files.refresh_token_badge')}
-                      role="img"
-                      aria-label={t('auth_files.refresh_token_badge')}
-                    >
-                      R
-                    </span>
-                  )}
-                  {websocketsEnabled && (
-                    <span
-                      className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
-                      title={t('ai_providers.codex_websockets_hint')}
-                      role="img"
-                      aria-label={t('auth_files.websockets_enabled_badge')}
-                    >
-                      <IconSatellite size={13} aria-hidden="true" />
-                    </span>
-                  )}
-                  {serviceTierPassthroughBadgeLabel && (
-                    <span
-                      className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
-                      title={t('auth_files.service_tier_passthrough_hint')}
-                    >
-                      {serviceTierPassthroughBadgeLabel}
-                    </span>
-                  )}
-                </div>
+                    {websocketsEnabled && (
+                      <span
+                        className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
+                        title={t('ai_providers.codex_websockets_hint')}
+                        role="img"
+                        aria-label={t('auth_files.websockets_enabled_badge')}
+                      >
+                        <IconSatellite size={13} aria-hidden="true" />
+                      </span>
+                    )}
+                    {serviceTierPassthroughBadgeLabel && (
+                      <span
+                        className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
+                        title={t('auth_files.service_tier_passthrough_hint')}
+                      >
+                        {serviceTierPassthroughBadgeLabel}
+                      </span>
+                    )}
+                  </div>
 
-                {!isRuntimeOnly ? (
-                  <div className={styles.priorityInlineRow}>
-                    <span className={styles.priorityInlineLabel}>
-                      {t('auth_files.priority_display')}
-                    </span>
-                    <div className={styles.priorityStepper}>
-                      <button
-                        type="button"
-                        className={styles.priorityStepButton}
-                        onMouseDown={preventBlur}
-                        onClick={handleStepDecrement}
-                        disabled={disableControls || priorityUpdating}
-                        title={t('auth_files.priority_decrement')}
-                        aria-label={t('auth_files.priority_decrement')}
-                      >
-                        -
-                      </button>
-                      <input
-                        className={styles.priorityInput}
-                        type="number"
-                        step={1}
-                        inputMode="numeric"
-                        value={priorityDraft}
-                        disabled={disableControls || priorityUpdating}
-                        aria-label={t('auth_files.priority_display')}
-                        onChange={handlePriorityInputChange}
-                        onBlur={commitPriorityDraft}
-                        onKeyDown={handlePriorityKeyDown}
-                      />
-                      <button
-                        type="button"
-                        className={styles.priorityStepButton}
-                        onMouseDown={preventBlur}
-                        onClick={handleStepIncrement}
-                        disabled={disableControls || priorityUpdating}
-                        title={t('auth_files.priority_increment')}
-                        aria-label={t('auth_files.priority_increment')}
-                      >
-                        +
-                      </button>
+                  {!isRuntimeOnly ? (
+                    <div className={styles.priorityInlineRow}>
+                      <span className={styles.priorityInlineLabel}>
+                        {t('auth_files.priority_display')}
+                      </span>
+                      <div className={styles.priorityStepper}>
+                        <button
+                          type="button"
+                          className={styles.priorityStepButton}
+                          onMouseDown={preventBlur}
+                          onClick={handleStepDecrement}
+                          disabled={disableControls || priorityUpdating}
+                          title={t('auth_files.priority_decrement')}
+                          aria-label={t('auth_files.priority_decrement')}
+                        >
+                          -
+                        </button>
+                        <input
+                          className={styles.priorityInput}
+                          type="number"
+                          step={1}
+                          inputMode="numeric"
+                          value={priorityDraft}
+                          disabled={disableControls || priorityUpdating}
+                          aria-label={t('auth_files.priority_display')}
+                          onChange={handlePriorityInputChange}
+                          onBlur={commitPriorityDraft}
+                          onKeyDown={handlePriorityKeyDown}
+                        />
+                        <button
+                          type="button"
+                          className={styles.priorityStepButton}
+                          onMouseDown={preventBlur}
+                          onClick={handleStepIncrement}
+                          disabled={disableControls || priorityUpdating}
+                          title={t('auth_files.priority_increment')}
+                          aria-label={t('auth_files.priority_increment')}
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : priorityValue !== undefined ? (
-                  <div className={`${styles.priorityInlineRow} ${styles.priorityInlineReadOnly}`}>
-                    <span className={styles.priorityInlineLabel}>
-                      {t('auth_files.priority_display')}
-                    </span>
-                    <span className={`${styles.metaValue} ${styles.priorityValue}`}>
-                      {priorityValue}
-                    </span>
-                  </div>
-                ) : null}
+                  ) : priorityValue !== undefined ? (
+                    <div className={`${styles.priorityInlineRow} ${styles.priorityInlineReadOnly}`}>
+                      <span className={styles.priorityInlineLabel}>
+                        {t('auth_files.priority_display')}
+                      </span>
+                      <span className={`${styles.metaValue} ${styles.priorityValue}`}>
+                        {priorityValue}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
 
                 {rawStatusMessage && hasStatusWarning && (
                   <div className={styles.cardIdentityWarning}>

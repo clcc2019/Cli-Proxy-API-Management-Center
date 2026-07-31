@@ -505,3 +505,238 @@
     box-shadow: none;
   }
 }
+
+// Usage charts share the dashboard's restrained data-panel grammar. Series
+// colours remain in the chart itself; the surrounding controls stay neutral.
+.panelCard,
+.chartLineCard,
+.deferredCard {
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 15px;
+  background: var(--usage-surface, var(--bg-primary));
+  box-shadow: none;
+}
+
+.panelCard,
+.chartLineCard {
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+
+  &:hover {
+    border-color: var(--usage-border-strong, var(--border-primary));
+    background: var(--usage-surface-warm, var(--bg-primary));
+  }
+
+  :global(.card-header) {
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--usage-border, var(--border-color));
+  }
+}
+
+.panelTitle {
+  color: var(--usage-text, var(--text-primary));
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.panelDescription,
+.legendItem,
+.chartLineLabel,
+.chartLineHint,
+.deferredCaption {
+  color: var(--usage-text-secondary, var(--text-secondary));
+}
+
+.panelShell {
+  gap: 12px;
+  animation: none;
+}
+
+.panelEmpty {
+  padding: 24px 16px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 10px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+  color: var(--usage-text-secondary, var(--text-secondary));
+}
+
+.summaryRow {
+  gap: 7px;
+}
+
+.summaryPill {
+  min-height: 34px;
+  padding: 7px 9px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 8px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+}
+
+.summaryLabel {
+  color: var(--usage-text-tertiary, var(--text-tertiary));
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.summaryValue {
+  color: var(--usage-text, var(--text-primary));
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.legend {
+  gap: 6px 12px;
+}
+
+.legendItem {
+  font-size: 11px;
+}
+
+.legendDot {
+  width: 6px;
+  height: 6px;
+}
+
+.chartArea {
+  height: 296px;
+  padding: 8px 7px 4px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 10px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+}
+
+.periodButtons {
+  gap: 2px;
+  padding: 3px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 999px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+
+  :global(.btn) {
+    min-height: 30px;
+    min-width: 58px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    color: var(--usage-text-secondary, var(--text-secondary));
+    font-size: 11px;
+    font-weight: 600;
+    transition:
+      color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  :global(.btn.btn-primary) {
+    background: var(--usage-ink, var(--primary-color));
+    color: #ffffff;
+  }
+
+  :global(.btn.btn-secondary:hover:not(:disabled)) {
+    background: var(--usage-surface, var(--bg-primary));
+    color: var(--usage-text, var(--text-primary));
+  }
+}
+
+.chartLineHeader {
+  gap: 8px;
+}
+
+.chartLineCount {
+  border-color: var(--usage-border, var(--border-color));
+  background: var(--usage-surface-subtle, var(--bg-secondary));
+  color: var(--usage-text-secondary, var(--text-secondary));
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.chartLineList {
+  gap: 8px;
+}
+
+.chartLineItem {
+  gap: 8px;
+  padding: 10px;
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 10px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+
+  &:hover {
+    border-color: var(--usage-border-strong, var(--border-primary));
+    background: var(--usage-surface-warm, var(--bg-secondary));
+  }
+}
+
+.chartLineRemoveButton {
+  color: var(--usage-text-tertiary, var(--text-tertiary));
+
+  &:hover {
+    color: var(--usage-danger, var(--error-color));
+  }
+}
+
+.deferredChartShell {
+  gap: 10px;
+}
+
+.deferredLegendRow {
+  gap: 6px;
+}
+
+.deferredLegendPill {
+  height: 26px;
+  border-color: var(--usage-border, var(--border-color));
+  background: var(--usage-surface-subtle, var(--bg-secondary));
+}
+
+.deferredChartPlaceholder {
+  border-color: var(--usage-border, var(--border-color));
+  border-radius: 10px;
+  background: var(--usage-surface-warm, var(--bg-secondary));
+
+  &::before {
+    background: color-mix(
+      in srgb,
+      var(--usage-sage, var(--text-tertiary)) 18%,
+      transparent
+    );
+  }
+}
+
+.deferredChartGlow {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panelCard,
+  .chartLineCard,
+  .periodButtons :global(.btn) {
+    transition: none;
+  }
+}
+
+:global([data-theme='dark']) {
+  .panelCard,
+  .chartLineCard,
+  .deferredCard {
+    background: var(--usage-surface, var(--bg-primary));
+  }
+
+  .panelEmpty,
+  .summaryPill,
+  .periodButtons,
+  .chartLineItem,
+  .chartArea,
+  .deferredChartPlaceholder {
+    background: var(--usage-surface-warm, var(--bg-secondary));
+  }
+
+  .periodButtons :global(.btn.btn-primary) {
+    color: #1c1d1a;
+  }
+}
