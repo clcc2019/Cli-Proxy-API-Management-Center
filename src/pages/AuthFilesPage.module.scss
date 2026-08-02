@@ -4285,7 +4285,10 @@
   position: fixed;
   left: var(--content-center-x, 50%);
   bottom: calc(16px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  transform: translate3d(-50%, 8px, 0);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   z-index: 50;
   width: min(960px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
@@ -4305,9 +4308,6 @@
   border-radius: $radius-lg;
   border: 1px solid var(--auth-neutral-border-strong);
   background: color-mix(in srgb, var(--auth-surface) 92%, transparent);
-  --glass-blur: 12px;
-  backdrop-filter: var(--glass-backdrop-filter);
-  -webkit-backdrop-filter: var(--glass-backdrop-filter);
   box-shadow: var(--shadow-lg);
 
   &::before {
@@ -8001,12 +8001,6 @@
   background: color-mix(in srgb, var(--auth-surface) 78%, transparent);
 }
 
-.authCardTokenLabel {
-  color: var(--auth-text-muted);
-  font-size: 10px;
-  font-weight: 600;
-}
-
 .authCardTokenValue {
   color: var(--auth-text-primary);
   font-size: 13px;
@@ -8122,6 +8116,7 @@
   min-width: 0;
   flex: 0 0 auto;
   align-items: center;
+  margin-left: auto;
   padding-left: 9px;
   border-left: 0;
 }
@@ -8998,5 +8993,1078 @@
   .actionIcon {
     width: 18px !important;
     height: 18px !important;
+  }
+}
+
+// Final shared management-page pass. Auth files has a denser, highly
+// interactive body, but its introduction and structural surfaces follow the
+// same shell as the other management screens.
+.container {
+  --auth-surface: var(--mg-surface);
+  --auth-surface-muted: var(--mg-surface-subtle);
+  --auth-control-surface: var(--mg-surface);
+  --auth-neutral-border: var(--mg-border);
+  --auth-neutral-border-strong: #d8d8d3;
+  --auth-text-primary: var(--mg-text);
+  --auth-text-secondary: var(--mg-text-secondary);
+  --auth-text-muted: var(--mg-text-tertiary);
+}
+
+.authFilesHeader {
+  @include management-page-header;
+  margin: 0;
+  border-bottom-color: var(--mg-border);
+
+  @include mobile {
+    align-items: stretch;
+    gap: 10px;
+    padding-inline: 0;
+  }
+}
+
+.titleWrapper {
+  @include management-page-title;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: var(--mg-text);
+  font-size: clamp(26px, 2.2vw, 32px);
+  line-height: 1.1;
+}
+
+.countBadge {
+  height: 23px;
+  min-width: 23px;
+  padding-inline: 8px;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text-tertiary);
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.pageDescription {
+  @include management-page-description;
+  max-width: 700px;
+  color: var(--mg-text-secondary);
+}
+
+.pageEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+
+  &::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    flex: 0 0 5px;
+    border-radius: var(--mg-radius-pill);
+    background: var(--mg-orange);
+  }
+}
+
+.belowFoldCard {
+  border-color: var(--mg-border);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
+}
+
+.headerActions :global(.btn.btn-sm) {
+  min-height: 40px;
+  border-radius: var(--mg-radius-pill);
+}
+
+.filterTag {
+  border-radius: var(--mg-radius-control);
+  color: var(--mg-text-secondary);
+
+  &:hover {
+    background: var(--mg-surface-subtle);
+    color: var(--mg-text);
+  }
+}
+
+.filterTagActive {
+  border-color: color-mix(in srgb, var(--mg-sage-strong) 34%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-sage-soft) 62%, var(--mg-surface));
+  color: var(--mg-text);
+  box-shadow: inset 0 -2px 0 var(--mg-sage-strong);
+}
+
+.filterTagIconWrap,
+.filterAllIconWrap {
+  border-radius: var(--mg-radius-control);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-sage-strong);
+}
+
+// Treat the filters as a compact product toolbar: provider tabs occupy the
+// full first rail, while search, display options, and quota refresh share the
+// second rail. This avoids compressing both groups into competing columns.
+.filterSection {
+  gap: 14px;
+  margin: 0;
+}
+
+.filterToolbarRow {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom-color: var(--mg-border);
+}
+
+.filterRail {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--mg-border);
+}
+
+.filterTags {
+  scroll-padding-inline: 2px;
+}
+
+.filterTagActive::after {
+  display: none;
+}
+
+.filterControlsPanel {
+  width: 100%;
+}
+
+.searchToolbarField,
+.searchToolbarIconButton,
+.pageQuotaRefreshButton:global(.btn.btn-sm) {
+  border-color: var(--mg-border);
+  border-radius: var(--mg-radius-control);
+  background: var(--mg-surface);
+  color: var(--mg-text-secondary);
+  box-shadow: none;
+}
+
+.pageQuotaRefreshButton:global(.btn.btn-sm) {
+  color: var(--mg-sage-strong);
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--mg-sage-strong) 38%, var(--mg-border));
+    background: color-mix(in srgb, var(--mg-sage-soft) 48%, var(--mg-surface));
+    color: var(--mg-text);
+  }
+}
+
+.searchToolbarPopover {
+  border-color: var(--mg-border);
+  border-radius: var(--mg-radius-medium);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-float);
+}
+
+.filterChipActive {
+  border-color: color-mix(in srgb, var(--mg-sage-strong) 38%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-sage-soft) 58%, var(--mg-surface));
+  color: var(--mg-text);
+  box-shadow: none;
+}
+
+.fileGrid {
+  --auth-file-card-min-width: 310px;
+}
+
+.fileGridQuotaManaged {
+  --auth-file-card-min-width: 340px;
+}
+
+// Repeated credential cards remain white. Green is reserved for actual health,
+// quota, and selection states; structural surfaces and controls stay neutral.
+.authCardShell {
+  --auth-card-surface: var(--mg-surface);
+  --auth-card-surface-hover: var(--mg-surface);
+  --auth-card-metrics-surface: var(--mg-surface-warm);
+  --auth-card-token-surface: var(--mg-surface);
+  --auth-card-action-surface: var(--mg-surface);
+  --auth-card-action-hover: var(--mg-surface-subtle);
+  --auth-card-action-border: var(--mg-border);
+  --auth-card-action-border-hover: color-mix(
+    in srgb,
+    var(--mg-text-muted) 56%,
+    var(--mg-border)
+  );
+  --auth-card-action-text: var(--mg-text-secondary);
+  --auth-card-action-text-hover: var(--mg-text);
+  --auth-card-icon-action: var(--mg-text-tertiary);
+  --auth-card-icon-action-hover: var(--mg-text);
+  --auth-card-icon-copy: var(--mg-text-tertiary);
+  --auth-card-icon-feature: var(--mg-text-tertiary);
+  --auth-feature-text: var(--mg-text-secondary);
+  --auth-feature-bg: var(--mg-surface-subtle);
+  --auth-feature-border: var(--mg-border);
+  --auth-quota-track: color-mix(in srgb, var(--mg-text-muted) 12%, var(--mg-surface));
+  --auth-toggle-on-border: var(--mg-ink-strong);
+  --auth-toggle-on-bg: var(--mg-ink-strong);
+  --auth-toggle-thumb-border: rgb(14 13 12 / 0.24);
+  border-color: var(--mg-border);
+  background: var(--mg-surface);
+}
+
+.authCardShell.fileCardDisabled,
+.authCardShell.fileCardDisabled:hover {
+  border-color: var(--mg-border);
+  background: var(--mg-surface);
+  opacity: 1;
+}
+
+.authCardNameGroup {
+  display: flex;
+  min-width: 0;
+  grid-area: name;
+  align-items: center;
+  gap: 7px;
+}
+
+.authCardNameGroup .authCardName {
+  min-width: 0;
+  flex: 1 1 auto;
+  grid-area: auto;
+}
+
+.authCardProviderBadge {
+  display: inline-flex;
+  height: 20px;
+  max-width: 13ch;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  padding-inline: 7px;
+  overflow: hidden;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text-secondary);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.authCardProviderBadgeDot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: var(--mg-radius-pill);
+  background: var(--provider-accent);
+  opacity: 0.82;
+}
+
+.authCardProviderBadgeText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authCardShell .cardToggleSwitch:hover > input:checked + span:first-of-type {
+  border-color: var(--mg-text-secondary);
+}
+
+.authCardShell .cardToggleSwitch:hover > span:first-of-type {
+  border-color: var(--mg-text-muted);
+}
+
+.authCardStatusControl {
+  padding-right: 10px;
+  border-right: 1px solid var(--mg-border);
+}
+
+.authCardUtilityActions {
+  margin-left: 2px;
+  padding-left: 8px;
+  border-left: 1px solid var(--mg-border);
+}
+
+.authCardRefresh {
+  margin-left: auto;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.pagination {
+  gap: 4px;
+  margin-top: 16px;
+  padding: 4px;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-surface-subtle);
+  box-shadow: none;
+}
+
+.pagination > :global(.btn.btn-sm) {
+  min-height: 36px;
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-surface);
+}
+
+.pageInfo {
+  min-height: 36px;
+  color: var(--mg-text-tertiary);
+  font-size: 12.5px;
+  font-weight: 560;
+}
+
+.batchActionBar {
+  border-color: var(--mg-border);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-float);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.batchSelectionText {
+  border-color: color-mix(in srgb, var(--mg-sage-strong) 26%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-sage-soft) 56%, var(--mg-surface));
+  color: var(--mg-text);
+}
+
+// =============================================================================
+// Final mobile composition
+// Keep the phone layout touchable and readable instead of shrinking the dense
+// desktop arrangement. This layer intentionally lives at EOF so it wins over
+// the page's historical responsive passes above.
+// =============================================================================
+@container auth-files-page (max-width: 720px) {
+  .authFilesSection {
+    gap: 18px;
+  }
+
+  .authFilesHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .titleBlock {
+    flex: 0 1 auto;
+    max-width: none;
+  }
+
+  .titleWrapper {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    min-width: 0;
+    font-size: clamp(24px, 7vw, 30px);
+    line-height: 1.1;
+  }
+
+  .titleWrapper > span:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .countBadge {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  .pageDescription {
+    max-width: none;
+    overflow-wrap: anywhere;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .filterSection {
+    gap: 12px;
+    margin-bottom: 0;
+  }
+
+  .pagination {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 6px;
+    padding: 6px;
+    border-radius: var(--mg-radius-medium);
+  }
+
+  .pagination > :global(.btn.btn-sm) {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  .pagination > :global(.btn.btn-sm):first-child {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .pagination > :global(.btn.btn-sm):last-child {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .pageInfo {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 34px;
+  }
+
+  .filterToolbarRow {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--auth-divider);
+    border-radius: 12px;
+    background: var(--auth-surface);
+  }
+
+  .filterRail {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .filterTags {
+    gap: 6px;
+    padding: 0 1px 4px;
+    touch-action: pan-x;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .filterTag {
+    min-height: 40px;
+    padding-inline: 7px 10px;
+  }
+
+  .filterControlsPanel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-areas:
+      'search refresh'
+      'chips chips';
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .filterControlsPanel .searchToolbar {
+    grid-area: search;
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .searchToolbarField,
+  .searchToolbarIconButton {
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    grid-area: refresh;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+    flex-basis: 42px;
+  }
+
+  .filterChipRow {
+    grid-area: chips;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .searchToolbarPopover {
+    width: min(280px, calc(100vw - 32px));
+    min-width: 0;
+    max-width: calc(100vw - 32px);
+    max-height: min(420px, calc(100dvh - 96px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .belowFoldCard {
+    border-radius: 12px;
+  }
+
+  .belowFoldCard :global(.card-header) {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .belowFoldCard :global(.card-header) > :global(.title) {
+    min-width: 0;
+    flex: 1 1 180px;
+    overflow-wrap: anywhere;
+  }
+
+  .belowFoldCard :global(.card-header) > :global(.btn) {
+    min-height: 40px;
+    flex: 0 1 auto;
+  }
+
+  .modelRulesNotice {
+    gap: 6px;
+    padding: 10px 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .modelRulesItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 13px 14px;
+  }
+
+  .modelRulesInfo,
+  .excludedProvider,
+  .modelRulesStats {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .excludedProvider,
+  .modelRulesStat {
+    overflow-wrap: anywhere;
+  }
+
+  .modelRulesItem > :global(.btn) {
+    align-self: stretch;
+    justify-content: center;
+    min-height: 40px;
+  }
+}
+
+@container auth-files-page (max-width: 560px) {
+  .headerActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .headerActions > :global(.btn.btn-sm) {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 44px;
+    height: auto;
+    padding-inline: 10px;
+  }
+
+  .headerActions .headerActionDanger:global(.btn.btn-sm) {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .headerActionText {
+    overflow-wrap: anywhere;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .filterToolbarRow {
+    padding: 12px;
+  }
+
+  .filterControlsPanel {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .searchToolbarField,
+  .searchToolbarIconButton,
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    width: 44px;
+    min-width: 44px;
+    flex-basis: 44px;
+  }
+
+  .filterChipRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .filterChipGroup {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 6px;
+  }
+
+  .filterChip,
+  .filterResetButton {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    height: auto;
+    padding-inline: 8px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .filterResetButton {
+    margin: 0;
+  }
+
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .authCardShell {
+    min-height: 0;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .authCardHeader,
+  .authCardIdentityBody {
+    min-width: 0;
+  }
+
+  .authCardSelection {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    flex-basis: 24px;
+    margin-top: 2px;
+  }
+
+  .authCardTitleRow {
+    align-items: start;
+    gap: 8px;
+  }
+
+  .authCardNameGroup {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .authCardName {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    align-items: flex-start;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .authCardName .fileNameText {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .authCardPriority .priorityInlineRow {
+    min-height: 34px;
+  }
+
+  .authCardPriority .priorityStepButton {
+    width: 30px;
+    height: 34px;
+  }
+
+  .authCardPriority .priorityInput {
+    min-width: 36px;
+    height: 34px;
+  }
+
+  .authCardMetaRail,
+  .authCardBadgeGroup {
+    max-width: 100%;
+  }
+
+  .authCardNote .noteValue {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    max-width: 100%;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  .authCardMetrics {
+    margin-top: 12px;
+    padding-inline: 12px;
+  }
+
+  .authCardHealthPanel {
+    min-height: 0;
+    padding: 12px 0;
+  }
+
+  .authCardMetricHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .authCardMetricTitle {
+    flex: 1 1 120px;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .authCardTokenMetric {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .authCardQuotaSlot {
+    margin-inline: -12px;
+    padding-inline: 12px;
+  }
+
+  .authCardQuotaSlot > .quotaSection,
+  .authCardQuotaSlot > .authCardQuota {
+    padding: 12px 0 13px;
+  }
+
+  .authCardQuotaSlot .quotaSectionHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .authCardQuotaSlot .quotaSectionTitle {
+    flex: 1 1 100%;
+  }
+
+  .authCardQuotaSlot .codexResetCredits {
+    width: 100%;
+    margin-left: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .authCardQuotaSlot .codexResetCreditsText {
+    flex: 1 1 auto;
+    justify-content: flex-start;
+    min-width: 0;
+    line-height: 1.3;
+    white-space: normal;
+  }
+
+  .authCardQuotaSlot .codexResetCreditExpiry {
+    overflow-wrap: anywhere;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .authCardQuotaSlot .codexResetCreditButton:global(.btn.btn-sm) {
+    min-height: 38px;
+    height: auto;
+  }
+
+  .authCardQuotaSlot .quotaRowHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .authCardQuotaSlot .quotaModel {
+    flex: 1 1 100%;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .authCardQuotaSlot .quotaMeta {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    gap: 5px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .authCardQuotaSlot .quotaError,
+  .authCardQuotaSlot .quotaWarning,
+  .authCardQuotaSlot .quotaMessageAction {
+    min-height: 40px;
+    overflow-wrap: anywhere;
+  }
+
+  .authCardHealthPanel .statusTooltip {
+    width: min(260px, calc(100vw - 48px));
+    max-width: calc(100vw - 48px);
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .authCardFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .authCardFooterMain {
+    width: 100%;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .authCardStatusControl {
+    width: 100%;
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .authCardPrimaryActions {
+    display: flex;
+    width: 100%;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1px 0 3px;
+    touch-action: pan-x;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .authCardPrimaryActions > .authCardActionButton:global(.btn.btn-sm),
+  .authCardUtilityActions > .authCardActionButton:global(.btn.btn-sm),
+  .authCardRefreshButton:global(.btn.btn-sm) {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .authCardUtilityActions {
+    display: contents;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .authCardRefresh {
+    display: contents;
+    margin: 0;
+    padding-left: 0;
+  }
+
+  .authCardRefreshButton:global(.btn.btn-sm) {
+    margin: 0;
+  }
+}
+
+@container auth-files-page (max-width: 420px) {
+  .authCardTitleRow,
+  .authCardTitleRowWithWarning {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'name'
+      'priority'
+      'warning';
+  }
+
+  .authCardPriority,
+  .authCardWarning {
+    justify-self: start;
+  }
+
+  .authCardTitleRow:not(.authCardTitleRowWithWarning) {
+    grid-template-areas:
+      'name'
+      'priority';
+  }
+}
+
+@media (max-width: 560px) {
+  // The batch actions are portaled to body, so they need a viewport query
+  // instead of the auth-files container query used by the page content.
+  .batchActionContainer {
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    width: min(520px, calc(100vw - 16px));
+    max-width: calc(100vw - 16px);
+  }
+
+  .batchActionBar {
+    display: flex;
+    max-height: calc(100dvh - 20px - env(safe-area-inset-bottom));
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 12px;
+    overscroll-behavior: contain;
+  }
+
+  .batchActionLeft,
+  .batchActionRight {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 6px;
+    justify-content: stretch;
+  }
+
+  .batchActionLeft > :global(.btn.btn-sm),
+  .batchActionRight > :global(.btn.btn-sm) {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    height: auto;
+    padding-inline: 8px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .batchSelectionText {
+    grid-column: 1 / -1;
+    justify-content: center;
+    min-height: 40px;
+    margin: 0;
+    padding-inline: 10px;
+    line-height: 1.3;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 360px) {
+  .batchActionLeft,
+  .batchActionRight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .batchSelectionText {
+    grid-column: auto;
+  }
+}
+
+// Keep the request/Tokens metric row optically centered within its health rail:
+// the top inset and the lower breathing room use the same spacing token.
+.authCardHealthPanel {
+  --auth-card-metric-edge-space: 12px;
+  padding-block: var(--auth-card-metric-edge-space);
+}
+
+// Keep capability badges in the same compact metadata rail as the request and
+// Tokens labels. The token pill remains the right anchor while badges sit
+// immediately before it instead of creating a second row under the filename.
+.authCardMetricHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) max-content;
+  grid-template-areas: 'label badges tokens';
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.authCardMetricTitle {
+  grid-area: label;
+  min-width: 0;
+}
+
+.authCardMetricBadges {
+  display: flex;
+  min-width: 0;
+  min-height: 20px;
+  align-items: center;
+  justify-self: end;
+  margin: 0;
+}
+
+.authCardMetricBadges .authCardBadgeGroup {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  gap: 5px;
+  padding-top: 0;
+}
+
+.authCardTokenMetric {
+  grid-area: tokens;
+  justify-self: end;
+  margin: 0;
+  align-items: center;
+}
+
+.authCardTokenIcon {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  color: var(--mg-text-tertiary);
+  stroke-width: 2.1;
+}
+
+@container auth-files-page (max-width: 560px) {
+  .authCardMetricHeader {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .authCardMetricTitle {
+    flex: 1 1 110px;
+  }
+
+  .authCardMetricBadges {
+    flex: 0 1 auto;
+    max-width: 100%;
+  }
+
+  .authCardMetricBadges .authCardBadgeGroup {
+    max-width: 100%;
+    gap: 4px;
+  }
+
+  .authCardTokenMetric {
+    flex: 0 0 auto;
+    margin-left: auto;
   }
 }

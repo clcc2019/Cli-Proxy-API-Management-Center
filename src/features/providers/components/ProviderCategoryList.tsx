@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PROVIDER_LOGOS } from '../brandLogos';
 import type { ProviderBrand, ProviderGroup } from '../types';
@@ -9,7 +10,11 @@ interface ProviderCategoryListProps {
   onSelect: (brand: ProviderBrand) => void;
 }
 
-export function ProviderCategoryList({ groups, activeBrand, onSelect }: ProviderCategoryListProps) {
+export const ProviderCategoryList = memo(function ProviderCategoryList({
+  groups,
+  activeBrand,
+  onSelect,
+}: ProviderCategoryListProps) {
   const { t } = useTranslation();
 
   return (
@@ -64,4 +69,4 @@ export function ProviderCategoryList({ groups, activeBrand, onSelect }: Provider
       </aside>
     </div>
   );
-}
+});

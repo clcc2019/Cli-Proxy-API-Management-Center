@@ -118,13 +118,6 @@ export function useUsageViewState(maxLines = MAX_USAGE_CHART_LINES) {
     [t]
   );
 
-  const selectedRangeLabel = useMemo(
-    () =>
-      timeRangeOptions.find((option) => option.value === timeRange)?.label ??
-      t('usage_stats.range_all'),
-    [t, timeRange, timeRangeOptions]
-  );
-
   const handleChartLinesChange = useCallback(
     (lines: string[]) => {
       startTransition(() => {
@@ -158,7 +151,6 @@ export function useUsageViewState(maxLines = MAX_USAGE_CHART_LINES) {
     timeRange,
     deferredTimeRange,
     timeRangeOptions,
-    selectedRangeLabel,
     hourWindowHours,
     preferredChartPeriod: getAdaptiveChartPeriod(hourWindowHours),
     handleChartLinesChange,

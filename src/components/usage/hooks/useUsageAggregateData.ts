@@ -1,9 +1,10 @@
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useAuthStore, useNotificationStore } from '@/stores';
 import { usageApi, type UsageExportPayload } from '@/services/api/usage';
 import { downloadBlob } from '@/utils/download';
-import type { ModelPrice } from '@/utils/usage';
+import { loadModelPrices, type ModelPrice } from '@/utils/usage';
 import type { UsageAggregateSnapshot } from '@/types/usageAggregate';
 import { primeModelPrices, saveAndSyncModelPrices } from './usageModelPriceUtils';
 import {
@@ -75,6 +76,12 @@ const readAggregateUsageCache = (scopeKey = getUsageScopeKey()) =>
 export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
+  const isCurrentLayerRef = useRef(isCurrentLayer);
+  useLayoutEffect(() => {
+    isCurrentLayerRef.current = isCurrentLayer;
+  }, [isCurrentLayer]);
 
   const initialCache = readAggregateUsageCache();
   const [usage, setUsage] = useState<UsageAggregateSnapshot | null>(
@@ -85,14 +92,14 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(
     () => initialCache?.generatedAt ?? null
   );
-  const [modelPrices, setModelPrices] = useState<Record<string, ModelPrice>>({});
+  const [modelPrices, setModelPrices] = useState<Record<string, ModelPrice>>(() => loadModelPrices());
   const [exporting, setExporting] = useState(false);
   const [exportingDetailed, setExportingDetailed] = useState(false);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const applyCacheEntry = useCallback((entry: AggregateUsageCacheEntry | undefined) => {
-    if (!entry) return;
+    if (!entry || !isCurrentLayerRef.current) return;
     const refreshedAt = entry.generatedAt ?? new Date(entry.fetchedAt);
     startTransition(() => {
       setUsage(entry.snapshot);
@@ -102,6 +109,8 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
 
   const loadUsage = useCallback(
     async (options: LoadUsageAggregateOptions = {}) => {
+      if (!isCurrentLayerRef.current) return;
+
       const scopeKey = getUsageScopeKey();
       const cached = readAggregateUsageCache(scopeKey);
       const force = options.force === true;
@@ -111,18 +120,25 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
         applyCacheEntry(cached);
         const fresh = Date.now() - cached.fetchedAt < AGGREGATE_USAGE_STALE_TIME_MS;
         if (!force && fresh) {
-          setError('');
+          if (isCurrentLayerRef.current) {
+            setError('');
+            setLoading(false);
+          }
           return;
         }
       }
 
       if (!force && inFlightAggregateUsageRequest?.scopeKey === scopeKey) {
-        setLoading(true);
-        setError('');
+        if (isCurrentLayerRef.current) {
+          setLoading(true);
+          setError('');
+        }
         try {
           applyCacheEntry(await inFlightAggregateUsageRequest.promise);
         } finally {
-          startTransition(() => setLoading(false));
+          if (isCurrentLayerRef.current) {
+            startTransition(() => setLoading(false));
+          }
         }
         return;
       }
@@ -132,8 +148,10 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
         inFlightAggregateUsageRequest = null;
       }
 
-      setLoading(true);
-      setError('');
+      if (isCurrentLayerRef.current) {
+        setLoading(true);
+        setError('');
+      }
       const requestId = (aggregateUsageRequestToken += 1);
       const requestPromise = (async (): Promise<AggregateUsageCacheEntry> => {
         const response = await usageApi.getUsageAggregated();
@@ -156,13 +174,15 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : t('usage_stats.loading_error');
         if (requestId !== aggregateUsageRequestToken) return;
-        setError(message);
+        if (isCurrentLayerRef.current) {
+          setError(message);
+        }
         throw err;
       } finally {
         if (inFlightAggregateUsageRequest?.id === requestId) {
           inFlightAggregateUsageRequest = null;
         }
-        if (requestId === aggregateUsageRequestToken) {
+        if (requestId === aggregateUsageRequestToken && isCurrentLayerRef.current) {
           startTransition(() => setLoading(false));
         }
       }
@@ -171,9 +191,23 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   );
 
   useEffect(() => {
-    void loadUsage({ preferCache: true }).catch(() => {});
-    primeModelPrices(setModelPrices);
-  }, [loadUsage]);
+    if (!isCurrentLayer) return undefined;
+
+    let cancelled = false;
+    const taskId = window.setTimeout(() => {
+      if (cancelled || !isCurrentLayerRef.current) return;
+      void loadUsage({ preferCache: true }).catch(() => {});
+      primeModelPrices(setModelPrices, {
+        hydrateLocal: false,
+        shouldApply: () => !cancelled && isCurrentLayerRef.current,
+      });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(taskId);
+    };
+  }, [isCurrentLayer, loadUsage]);
 
   const downloadExport = useCallback(
     async (

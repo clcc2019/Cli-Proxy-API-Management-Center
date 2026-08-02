@@ -3,6 +3,7 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -11,6 +12,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { IconChevronDown } from './icons';
 
 interface AutocompleteInputProps {
@@ -35,6 +37,7 @@ const VIEWPORT_MARGIN = 8;
 const DROPDOWN_OFFSET = 6;
 const DROPDOWN_MAX_HEIGHT = 200;
 const DROPDOWN_Z_INDEX = 2010;
+const EMPTY_AUTOCOMPLETE_OPTIONS: Array<{ value: string; label: string }> = [];
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -92,6 +95,8 @@ export function AutocompleteInput({
   id,
   rightElement,
 }: AutocompleteInputProps) {
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -102,25 +107,31 @@ export function AutocompleteInput({
   const generatedId = useId();
   const inputId = id ?? generatedId;
 
-  const normalizedOptions = options.map((opt) =>
-    typeof opt === 'string'
-      ? { value: opt, label: opt }
-      : { value: opt.value, label: opt.label || opt.value }
-  );
-
-  const filteredOptions = normalizedOptions.filter((opt) => {
-    const v = value.toLowerCase();
-    return (
-      opt.value.toLowerCase().includes(v) || (opt.label && opt.label.toLowerCase().includes(v))
+  const normalizedOptions = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_AUTOCOMPLETE_OPTIONS;
+    return options.map((opt) =>
+      typeof opt === 'string'
+        ? { value: opt, label: opt }
+        : { value: opt.value, label: opt.label || opt.value }
     );
-  });
+  }, [isCurrentLayer, options]);
+
+  const filteredOptions = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_AUTOCOMPLETE_OPTIONS;
+    const normalizedValue = value.toLowerCase();
+    return normalizedOptions.filter(
+      (opt) =>
+        opt.value.toLowerCase().includes(normalizedValue) ||
+        (opt.label && opt.label.toLowerCase().includes(normalizedValue))
+    );
+  }, [isCurrentLayer, normalizedOptions, value]);
   const dropdownId = `${inputId}-options`;
   const hintId = hint ? `${inputId}-hint` : undefined;
   const errorId = error ? `${inputId}-error` : undefined;
   const toggleLabel = label || placeholder || 'Options';
   const boundedHighlightedIndex =
     highlightedIndex >= 0 && highlightedIndex < filteredOptions.length ? highlightedIndex : -1;
-  const isExpanded = isOpen && filteredOptions.length > 0 && !disabled;
+  const isExpanded = isCurrentLayer && isOpen && filteredOptions.length > 0 && !disabled;
   const activeOptionId =
     isExpanded && boundedHighlightedIndex >= 0
       ? `${dropdownId}-option-${boundedHighlightedIndex}`
@@ -128,6 +139,8 @@ export function AutocompleteInput({
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
   useEffect(() => {
+    if (!isCurrentLayer || !isOpen || disabled) return undefined;
+
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       if (containerRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
@@ -135,7 +148,7 @@ export function AutocompleteInput({
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [disabled, isCurrentLayer, isOpen]);
 
   const updateDropdownStyle = useCallback(() => {
     if (!inputRef.current || typeof window === 'undefined') return;
@@ -144,7 +157,7 @@ export function AutocompleteInput({
 
   const scheduleDropdownStyleUpdate = useCallback(() => {
     if (typeof window === 'undefined') return;
-    if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
+    if (rafRef.current !== null) return;
     rafRef.current = window.requestAnimationFrame(() => {
       rafRef.current = null;
       updateDropdownStyle();

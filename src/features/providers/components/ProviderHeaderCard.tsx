@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconLoader2, IconPlus, IconRefreshCw } from '@/components/ui/icons';
 import styles from './ProviderHeaderCard.module.scss';
@@ -13,7 +14,7 @@ interface ProviderHeaderCardProps {
   onNew: () => void;
 }
 
-export function ProviderHeaderCard({
+export const ProviderHeaderCard = memo(function ProviderHeaderCard({
   totalActive,
   totalResources,
   providerFamilies,
@@ -84,4 +85,4 @@ export function ProviderHeaderCard({
       </div>
     </section>
   );
-}
+});

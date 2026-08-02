@@ -1,4 +1,5 @@
-import { Fragment } from 'react';
+import { memo } from 'react';
+import { useEventCallback } from '@/hooks';
 import { Button } from './Button';
 import { IconX } from './icons';
 import type { HeaderEntry } from '@/utils/headers';
@@ -16,7 +17,73 @@ interface HeaderInputListProps {
   removeButtonAriaLabel?: string;
 }
 
-export function HeaderInputList({
+const EMPTY_HEADER_ENTRY: HeaderEntry = { key: '', value: '' };
+
+type HeaderInputField = 'key' | 'value';
+
+interface HeaderInputRowProps {
+  entry: HeaderEntry;
+  index: number;
+  disabled: boolean;
+  keyPlaceholder: string;
+  valuePlaceholder: string;
+  keyAriaLabel?: string;
+  valueAriaLabel?: string;
+  removeButtonTitle: string;
+  removeButtonAriaLabel: string;
+  removeDisabled: boolean;
+  onUpdate: (index: number, field: HeaderInputField, value: string) => void;
+  onRemove: (index: number) => void;
+}
+
+const HeaderInputRow = memo(function HeaderInputRow({
+  entry,
+  index,
+  disabled,
+  keyPlaceholder,
+  valuePlaceholder,
+  keyAriaLabel,
+  valueAriaLabel,
+  removeButtonTitle,
+  removeButtonAriaLabel,
+  removeDisabled,
+  onUpdate,
+  onRemove,
+}: HeaderInputRowProps) {
+  return (
+    <div className="header-input-row">
+      <input
+        className="input"
+        placeholder={keyPlaceholder}
+        aria-label={`${keyAriaLabel ?? keyPlaceholder} ${index + 1}`}
+        value={entry.key}
+        onChange={(e) => onUpdate(index, 'key', e.target.value)}
+        disabled={disabled}
+      />
+      <span className="header-separator">:</span>
+      <input
+        className="input"
+        placeholder={valuePlaceholder}
+        aria-label={`${valueAriaLabel ?? valuePlaceholder} ${index + 1}`}
+        value={entry.value}
+        onChange={(e) => onUpdate(index, 'value', e.target.value)}
+        disabled={disabled}
+      />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemove(index)}
+        disabled={disabled || removeDisabled}
+        title={removeButtonTitle}
+        aria-label={removeButtonAriaLabel}
+      >
+        <IconX size={14} />
+      </Button>
+    </div>
+  );
+});
+
+export const HeaderInputList = memo(function HeaderInputList({
   entries,
   onChange,
   addLabel,
@@ -28,60 +95,48 @@ export function HeaderInputList({
   removeButtonTitle = 'Remove',
   removeButtonAriaLabel = 'Remove',
 }: HeaderInputListProps) {
-  const currentEntries = entries.length ? entries : [{ key: '', value: '' }];
+  const currentEntries = entries.length ? entries : [EMPTY_HEADER_ENTRY];
 
-  const updateEntry = (index: number, field: 'key' | 'value', value: string) => {
-    const next = currentEntries.map((entry, idx) => (idx === index ? { ...entry, [field]: value } : entry));
-    onChange(next);
-  };
+  const updateEntry = useEventCallback(
+    (index: number, field: HeaderInputField, value: string) => {
+      const next = currentEntries.map((entry, idx) =>
+        idx === index ? { ...entry, [field]: value } : entry
+      );
+      onChange(next);
+    }
+  );
 
-  const addEntry = () => {
-    onChange([...currentEntries, { key: '', value: '' }]);
-  };
+  const addEntry = useEventCallback(() => {
+    onChange([...currentEntries, EMPTY_HEADER_ENTRY]);
+  });
 
-  const removeEntry = (index: number) => {
+  const removeEntry = useEventCallback((index: number) => {
     const next = currentEntries.filter((_, idx) => idx !== index);
-    onChange(next.length ? next : [{ key: '', value: '' }]);
-  };
+    onChange(next.length ? next : [EMPTY_HEADER_ENTRY]);
+  });
 
   return (
     <div className="header-input-list">
       {currentEntries.map((entry, index) => (
-        <Fragment key={index}>
-          <div className="header-input-row">
-            <input
-              className="input"
-              placeholder={keyPlaceholder}
-              aria-label={`${keyAriaLabel ?? keyPlaceholder} ${index + 1}`}
-              value={entry.key}
-              onChange={(e) => updateEntry(index, 'key', e.target.value)}
-              disabled={disabled}
-            />
-            <span className="header-separator">:</span>
-            <input
-              className="input"
-              placeholder={valuePlaceholder}
-              aria-label={`${valueAriaLabel ?? valuePlaceholder} ${index + 1}`}
-              value={entry.value}
-              onChange={(e) => updateEntry(index, 'value', e.target.value)}
-              disabled={disabled}
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => removeEntry(index)}
-              disabled={disabled || currentEntries.length <= 1}
-              title={removeButtonTitle}
-              aria-label={removeButtonAriaLabel}
-            >
-              <IconX size={14} />
-            </Button>
-          </div>
-        </Fragment>
+        <HeaderInputRow
+          key={index}
+          entry={entry}
+          index={index}
+          disabled={disabled}
+          keyPlaceholder={keyPlaceholder}
+          valuePlaceholder={valuePlaceholder}
+          keyAriaLabel={keyAriaLabel}
+          valueAriaLabel={valueAriaLabel}
+          removeButtonTitle={removeButtonTitle}
+          removeButtonAriaLabel={removeButtonAriaLabel}
+          removeDisabled={currentEntries.length <= 1}
+          onUpdate={updateEntry}
+          onRemove={removeEntry}
+        />
       ))}
       <Button variant="secondary" size="sm" onClick={addEntry} disabled={disabled} className="align-start">
         {addLabel}
       </Button>
     </div>
   );
-}
+});

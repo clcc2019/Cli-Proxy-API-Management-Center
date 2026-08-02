@@ -13,7 +13,7 @@
 
 .providerTableWrap {
   border-color: var(--provider-border, #eaeae9);
-  border-radius: 12px;
+  border-radius: var(--mg-radius-medium);
   background: var(--provider-surface, #ffffff);
   box-shadow: none;
 }
@@ -182,7 +182,7 @@
   height: 34px;
   padding: 0;
   border: 1px solid var(--provider-border, #eaeae9);
-  border-radius: 8px;
+  border-radius: var(--mg-radius-control);
   background: var(--provider-surface, #ffffff);
   color: var(--provider-text-secondary, #565551);
   cursor: pointer;

@@ -2,17 +2,17 @@
 @use '../../../styles/variables' as *;
 
 .card {
-  --provider-surface: #ffffff;
-  --provider-surface-warm: #faf8f5;
-  --provider-text: #2c2a25;
-  --provider-text-secondary: #565551;
-  --provider-text-tertiary: #807f7c;
-  --provider-border: #eaeae9;
+  --provider-surface: var(--mg-surface);
+  --provider-surface-warm: var(--mg-surface-warm);
+  --provider-text: var(--mg-text);
+  --provider-text-secondary: var(--mg-text-secondary);
+  --provider-text-tertiary: var(--mg-text-tertiary);
+  --provider-border: var(--mg-border);
   --provider-border-strong: #d8d8d3;
-  --provider-ink: #0e0d0c;
-  --provider-sage: #96a58d;
-  --provider-sage-strong: #63725a;
-  --provider-success: #407345;
+  --provider-ink: var(--mg-ink-strong);
+  --provider-sage: var(--mg-sage);
+  --provider-sage-strong: var(--mg-sage-strong);
+  --provider-success: var(--mg-success);
 
   display: flex;
   min-width: 0;
@@ -143,7 +143,7 @@
   min-width: 0;
   padding: 14px 16px;
   border: 1px solid var(--provider-border);
-  border-radius: 12px;
+  border-radius: var(--mg-radius-medium);
   background:
     radial-gradient(circle at 0 0, rgb(150 165 141 / 0.12), transparent 54%),
     var(--provider-surface-warm);
@@ -187,7 +187,7 @@
   gap: 3px;
   padding: 8px 11px;
   border: 1px solid var(--provider-border);
-  border-radius: 9px;
+  border-radius: var(--mg-radius-control);
   background: var(--provider-surface);
 }
 

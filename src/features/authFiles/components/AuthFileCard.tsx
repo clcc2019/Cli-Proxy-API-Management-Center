@@ -15,6 +15,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
+  IconChartLine,
   IconCopy,
   IconDownload,
   IconKey,
@@ -29,8 +30,8 @@ import { resolveAuthProvider } from '@/utils/quota';
 import { formatMillionTokens, type KeyUsageBucket } from '@/utils/usage';
 import {
   QUOTA_PROVIDER_TYPES,
-  getAuthFileStatusMessage,
   getTypeColor,
+  getTypeLabel,
   isRuntimeOnlyAuthFile,
   parsePriorityValue,
   readAuthFileServiceTierPassthrough,
@@ -39,7 +40,6 @@ import {
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
-import { AuthFileWarningIndicator } from '@/features/authFiles/components/AuthFileWarningIndicator';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 const AuthFileQuotaSection = lazy(() =>
@@ -53,7 +53,6 @@ const AuthFileQuotaRefreshButton = lazy(() =>
   }))
 );
 
-const HEALTHY_STATUS_MESSAGES = new Set(['ok', 'healthy', 'ready', 'success', 'available']);
 const AUTH_FILE_NAME_MASK = '*';
 
 const getStableMaskSeed = (value: string): number => {
@@ -177,6 +176,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
   const typeKey = file.type || 'unknown';
   const typeColor = useMemo(() => getTypeColor(typeKey, resolvedTheme), [typeKey, resolvedTheme]);
+  const providerLabel = useMemo(() => getTypeLabel(t, typeKey), [t, typeKey]);
 
   const websocketsEnabled = useMemo(() => readAuthFileWebsockets(file), [file]);
   const serviceTierPassthroughEnabled = useMemo(
@@ -204,10 +204,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
         : quotaType === 'kimi'
           ? styles.kimiCard
           : '';
-
-  const rawStatusMessage = getAuthFileStatusMessage(file);
-  const showStatusWarning =
-    Boolean(rawStatusMessage) && !HEALTHY_STATUS_MESSAGES.has(rawStatusMessage.toLowerCase());
 
   const priorityValue = useMemo(
     () => parsePriorityValue(file.priority ?? file['priority']),
@@ -337,7 +333,12 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     : t('auth_files.batch_select_all');
 
   return (
-    <div className={cardClassName} style={cardStyle} data-auth-file-name={file.name}>
+    <article
+      className={cardClassName}
+      style={cardStyle}
+      data-auth-file-name={file.name}
+      aria-label={`${providerLabel}: ${maskedAuthFileDisplayName}`}
+    >
       <div className={styles.authCardMain}>
         <header className={styles.authCardHeader}>
           {!isRuntimeOnly && (
@@ -350,25 +351,27 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
             />
           )}
           <div className={styles.authCardIdentityBody}>
-            <div
-              className={`${styles.authCardTitleRow} ${
-                showStatusWarning ? styles.authCardTitleRowWithWarning : ''
-              }`}
-            >
-              <button
-                type="button"
-                className={`${styles.fileName} ${styles.authCardName}`}
-                onClick={handleCopyName}
-                title={`${maskedAuthFileDisplayName} - ${t('common.copy')}`}
-                aria-label={`${t('common.copy')}: ${maskedAuthFileDisplayName}`}
-              >
-                <span className={styles.fileNameText}>{maskedAuthFileDisplayName}</span>
-                <IconCopy
-                  className={`${styles.fileNameCopyIcon} ${styles.authCardIconCopy}`}
-                  size={13}
-                  aria-hidden="true"
-                />
-              </button>
+            <div className={styles.authCardTitleRow}>
+              <div className={styles.authCardNameGroup}>
+                <button
+                  type="button"
+                  className={`${styles.fileName} ${styles.authCardName}`}
+                  onClick={handleCopyName}
+                  title={`${maskedAuthFileDisplayName} - ${t('common.copy')}`}
+                  aria-label={`${t('common.copy')}: ${maskedAuthFileDisplayName}`}
+                >
+                  <span className={styles.fileNameText}>{maskedAuthFileDisplayName}</span>
+                  <IconCopy
+                    className={`${styles.fileNameCopyIcon} ${styles.authCardIconCopy}`}
+                    size={13}
+                    aria-hidden="true"
+                  />
+                </button>
+                <span className={styles.authCardProviderBadge} title={providerLabel}>
+                  <span className={styles.authCardProviderBadgeDot} aria-hidden="true" />
+                  <span className={styles.authCardProviderBadgeText}>{providerLabel}</span>
+                </span>
+              </div>
 
               {!isRuntimeOnly || priorityValue !== undefined ? (
                 <div className={styles.authCardPriority}>
@@ -426,51 +429,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 </div>
               ) : null}
 
-              {showStatusWarning && rawStatusMessage && (
-                <div className={styles.authCardWarning}>
-                  <AuthFileWarningIndicator message={rawStatusMessage} />
-                </div>
-              )}
             </div>
-
-            {hasAuthFileBadges && (
-              <div className={styles.authCardMetaRail}>
-                <div className={styles.authCardBadgeGroup}>
-                  {hasRefreshToken && (
-                    <span
-                      className={styles.refreshTokenBadge}
-                      title={t('auth_files.refresh_token_badge')}
-                      role="img"
-                      aria-label={t('auth_files.refresh_token_badge')}
-                    >
-                      R
-                    </span>
-                  )}
-                  {websocketsEnabled && (
-                    <span
-                      className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
-                      title={t('ai_providers.codex_websockets_hint')}
-                      role="img"
-                      aria-label={t('auth_files.websockets_enabled_badge')}
-                    >
-                      <IconSatellite
-                        className={styles.authCardFeatureIcon}
-                        size={13}
-                        aria-hidden="true"
-                      />
-                    </span>
-                  )}
-                  {serviceTierPassthroughBadgeLabel && (
-                    <span
-                      className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
-                      title={t('auth_files.service_tier_passthrough_hint')}
-                    >
-                      {serviceTierPassthroughBadgeLabel}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
 
             {noteValue && (
               <div className={`${styles.noteText} ${styles.authCardNote}`} title={noteValue}>
@@ -487,10 +446,50 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               <span className={styles.authCardMetricTitle}>
                 {t('auth_files.health_status_label')}
               </span>
+              {hasAuthFileBadges && (
+                <div className={`${styles.authCardMetaRail} ${styles.authCardMetricBadges}`}>
+                  <div className={styles.authCardBadgeGroup}>
+                    {hasRefreshToken && (
+                      <span
+                        className={styles.refreshTokenBadge}
+                        title={t('auth_files.refresh_token_badge')}
+                        role="img"
+                        aria-label={t('auth_files.refresh_token_badge')}
+                      >
+                        R
+                      </span>
+                    )}
+                    {websocketsEnabled && (
+                      <span
+                        className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
+                        title={t('ai_providers.codex_websockets_hint')}
+                        role="img"
+                        aria-label={t('auth_files.websockets_enabled_badge')}
+                      >
+                        <IconSatellite
+                          className={styles.authCardFeatureIcon}
+                          size={13}
+                          aria-hidden="true"
+                        />
+                      </span>
+                    )}
+                    {serviceTierPassthroughBadgeLabel && (
+                      <span
+                        className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
+                        title={t('auth_files.service_tier_passthrough_hint')}
+                      >
+                        {serviceTierPassthroughBadgeLabel}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               <span className={styles.authCardTokenMetric} title={tokenExactLabel}>
-                <span className={styles.authCardTokenLabel}>
-                  {t('auth_files.tokens_stat_label')}
-                </span>
+                <IconChartLine
+                  className={styles.authCardTokenIcon}
+                  size={13}
+                  aria-hidden="true"
+                />
                 <strong className={styles.authCardTokenValue}>{tokenDisplay}</strong>
               </span>
             </div>
@@ -627,26 +626,26 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </Button>
                 </div>
               )}
+
+              {!isRuntimeOnly && showQuotaLayout && quotaType && (
+                <div className={styles.authCardRefresh}>
+                  <Suspense fallback={null}>
+                    <AuthFileQuotaRefreshButton
+                      file={file}
+                      quotaType={quotaType}
+                      disableControls={disableControls}
+                      onAuthFileUpdated={onAuthFileUpdated}
+                      className={`${styles.authCardActionButton} ${styles.authCardRefreshButton}`}
+                      iconClassName={`${styles.actionIcon} ${styles.authCardActionIcon}`}
+                      iconSize={18}
+                    />
+                  </Suspense>
+                </div>
+              )}
             </div>
           </div>
-
-          {!isRuntimeOnly && showQuotaLayout && quotaType && (
-            <div className={styles.authCardRefresh}>
-              <Suspense fallback={null}>
-                <AuthFileQuotaRefreshButton
-                  file={file}
-                  quotaType={quotaType}
-                  disableControls={disableControls}
-                  onAuthFileUpdated={onAuthFileUpdated}
-                  className={`${styles.authCardActionButton} ${styles.authCardRefreshButton}`}
-                  iconClassName={`${styles.actionIcon} ${styles.authCardActionIcon}`}
-                  iconSize={18}
-                />
-              </Suspense>
-            </div>
-          )}
         </footer>
       </div>
-    </div>
+    </article>
   );
 });

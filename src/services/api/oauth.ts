@@ -4,15 +4,21 @@
 
 import { apiClient } from './client';
 
-export type OAuthProvider =
-  | 'codex'
-  | 'anthropic'
-  | 'kimi'
-  | 'xai';
+export type OAuthProvider = 'codex' | 'anthropic' | 'kimi' | 'xai';
+
+export type CodexLoginMode = 'device' | 'browser';
 
 export interface OAuthStartResponse {
-  url: string;
+  status?: 'ok';
+  mode?: CodexLoginMode;
+  url?: string;
+  verification_url?: string;
+  user_code?: string;
   state?: string;
+  /** Device-flow lifetime, in seconds. */
+  expires_in?: number;
+  /** Recommended status-polling interval, in seconds. */
+  interval?: number;
 }
 
 export interface OAuthCallbackResponse {
@@ -22,10 +28,17 @@ export interface OAuthCallbackResponse {
 const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'xai'];
 
 export const oauthApi = {
-  startAuth: (provider: OAuthProvider) => {
+  startAuth: (provider: OAuthProvider, mode?: CodexLoginMode) => {
     const params: Record<string, string | boolean> = {};
     if (WEBUI_SUPPORTED.includes(provider)) {
       params.is_webui = true;
+    }
+    // Device-code login is the Codex endpoint's default. Deliberately omit
+    // `mode=device` so the frontend follows the same default contract as the
+    // CLI and remains compatible with servers that introduced the default
+    // before accepting an explicit mode parameter.
+    if (provider === 'codex' && mode === 'browser') {
+      params.mode = 'browser';
     }
     return apiClient.get<OAuthStartResponse>(`/${provider}-auth-url`, {
       params: Object.keys(params).length ? params : undefined,

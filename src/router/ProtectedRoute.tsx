@@ -11,7 +11,6 @@ export function ProtectedRoute({ children }: { children: ReactElement }) {
 
   useEffect(() => {
     if (isAuthenticated) {
-      setChecking(false);
       return;
     }
 
@@ -34,7 +33,7 @@ export function ProtectedRoute({ children }: { children: ReactElement }) {
     };
   }, [isAuthenticated, restoreSession]);
 
-  if (checking) {
+  if (checking && !isAuthenticated) {
     return (
       <div className="main-content">
         <LoadingSpinner />

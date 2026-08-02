@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { TokaMark } from '@/components/ui/TokaMark';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useTimeoutRegistry } from '@/hooks';
 import {
   useAuthStore,
@@ -14,13 +16,12 @@ import {
 } from '@/stores';
 import { configApi, versionApi } from '@/services/api';
 import { apiKeysApi } from '@/services/api/apiKeys';
-import { classifyModels } from '@/utils/models';
+import { classifyModels, type ModelGroup, type ModelInfo } from '@/utils/models';
 import {
   STORAGE_KEY_AUTH,
   STORAGE_KEY_AUTH_SESSION,
   STORAGE_KEY_QUOTA_CACHE,
 } from '@/utils/constants';
-import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import iconGemini from '@/assets/icons/gemini.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconOpenaiLight from '@/assets/icons/openai-light.svg';
@@ -45,6 +46,7 @@ const MODEL_CATEGORY_ICONS: Record<string, string | { light: string; dark: strin
   deepseek: iconDeepseek,
   minimax: iconMinimax,
 };
+const EMPTY_MODELS: ModelInfo[] = [];
 
 const parseVersionSegments = (version?: string | null) => {
   if (!version) return null;
@@ -72,27 +74,87 @@ const compareVersions = (latest?: string | null, current?: string | null) => {
   return 0;
 };
 
+type SystemModelGroupsProps = {
+  groups: ModelGroup[];
+  resolvedTheme: 'light' | 'dark';
+};
+
+const SystemModelGroups = memo(function SystemModelGroups({
+  groups,
+  resolvedTheme,
+}: SystemModelGroupsProps) {
+  const { t } = useTranslation();
+
+  const getIconForCategory = (categoryId: string): string | null => {
+    const iconEntry = MODEL_CATEGORY_ICONS[categoryId];
+    if (!iconEntry) return null;
+    if (typeof iconEntry === 'string') return iconEntry;
+    return resolvedTheme === 'dark' ? iconEntry.dark : iconEntry.light;
+  };
+
+  return (
+    <div className="item-list">
+      {groups.map((group) => {
+        const iconSrc = getIconForCategory(group.id);
+        return (
+          <div key={group.id} className="item-row">
+            <div className="item-meta">
+              <div className={styles.groupTitle}>
+                {iconSrc && <img src={iconSrc} alt="" className={styles.groupIcon} />}
+                <span className="item-title">{group.label}</span>
+              </div>
+              <div className="item-subtitle">
+                {t('system_info.models_count', { count: group.items.length })}
+              </div>
+            </div>
+            <div className={styles.modelTags}>
+              {group.items.map((model) => (
+                <span
+                  key={`${model.name}-${model.alias ?? 'default'}`}
+                  className={styles.modelTag}
+                  title={model.description || ''}
+                >
+                  <span className={styles.modelName}>{model.name}</span>
+                  {model.alias && <span className={styles.modelAlias}>{model.alias}</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+SystemModelGroups.displayName = 'SystemModelGroups';
+
 export function SystemPage() {
   const { t, i18n } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const requestLogWarningId = useId();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const resolvedTheme = useThemeStore((state) =>
+    isCurrentLayer ? state.resolvedTheme : 'light'
+  );
   // 窄选择器：整店订阅会让任何无关字段变化（如全局 unauthorized 事件
   // 翻转 connectionStatus 之外的状态）都重渲染整个 SystemPage。
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
-  const serverVersion = useAuthStore((state) => state.serverVersion);
-  const serverBuildDate = useAuthStore((state) => state.serverBuildDate);
-  const apiBase = useAuthStore((state) => state.apiBase);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
+  const serverVersion = useAuthStore((state) => (isCurrentLayer ? state.serverVersion : ''));
+  const serverBuildDate = useAuthStore((state) => (isCurrentLayer ? state.serverBuildDate : ''));
+  const apiBase = useAuthStore((state) => (isCurrentLayer ? state.apiBase : ''));
   const logout = useAuthStore((state) => state.logout);
-  const config = useConfigStore((state) => state.config);
+  const config = useConfigStore((state) => (isCurrentLayer ? state.config : null));
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
   const clearCache = useConfigStore((state) => state.clearCache);
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
 
-  const models = useModelsStore((state) => state.models);
-  const modelsLoading = useModelsStore((state) => state.loading);
-  const modelsError = useModelsStore((state) => state.error);
+  const models = useModelsStore((state) => (isCurrentLayer ? state.models : EMPTY_MODELS));
+  const modelsLoading = useModelsStore((state) => (isCurrentLayer ? state.loading : false));
+  const modelsError = useModelsStore((state) => (isCurrentLayer ? state.error : null));
   const fetchModelsFromStore = useModelsStore((state) => state.fetchModels);
 
   const [modelStatus, setModelStatus] = useState<{
@@ -116,7 +178,8 @@ export function SystemPage() {
   );
   const groupedModels = useMemo(() => classifyModels(models, { otherLabel }), [models, otherLabel]);
   const requestLogEnabled = config?.requestLog ?? false;
-  const requestLogDirty = requestLogDraft !== requestLogEnabled;
+  const effectiveRequestLogDraft = requestLogTouched ? requestLogDraft : requestLogEnabled;
+  const requestLogDirty = effectiveRequestLogDraft !== requestLogEnabled;
   const canEditRequestLog = connectionStatus === 'connected' && Boolean(config);
 
   const appVersion = __APP_VERSION__ || t('system_info.version_unknown');
@@ -124,13 +187,6 @@ export function SystemPage() {
   const buildTime = serverBuildDate
     ? new Date(serverBuildDate).toLocaleString(i18n.language)
     : t('system_info.version_unknown');
-
-  const getIconForCategory = (categoryId: string): string | null => {
-    const iconEntry = MODEL_CATEGORY_ICONS[categoryId];
-    if (!iconEntry) return null;
-    if (typeof iconEntry === 'string') return iconEntry;
-    return resolvedTheme === 'dark' ? iconEntry.dark : iconEntry.light;
-  };
 
   const normalizeApiKeyList = (input: unknown): string[] => {
     if (!Array.isArray(input)) return [];
@@ -261,9 +317,8 @@ export function SystemPage() {
 
   const openRequestLogModal = useCallback(() => {
     setRequestLogTouched(false);
-    setRequestLogDraft(requestLogEnabled);
     setRequestLogModalOpen(true);
-  }, [requestLogEnabled]);
+  }, []);
 
   const clearVersionTapReset = useCallback(() => {
     cancelVersionTapResetRef.current?.();
@@ -300,10 +355,10 @@ export function SystemPage() {
 
     const previous = requestLogEnabled;
     setRequestLogSaving(true);
-    updateConfigValue('request-log', requestLogDraft);
+    updateConfigValue('request-log', effectiveRequestLogDraft);
 
     try {
-      await configApi.updateRequestLog(requestLogDraft);
+      await configApi.updateRequestLog(effectiveRequestLogDraft);
       clearCache('request-log');
       showNotification(t('notification.request_log_updated'), 'success');
       setRequestLogModalOpen(false);
@@ -354,21 +409,23 @@ export function SystemPage() {
   }, [serverVersion, showNotification, t]);
 
   useEffect(() => {
+    if (!isCurrentLayer) return undefined;
+
     fetchConfig().catch(() => {
       // ignore
     });
-  }, [fetchConfig]);
+  }, [fetchConfig, isCurrentLayer]);
 
   useEffect(() => {
-    if (requestLogModalOpen && !requestLogTouched) {
-      setRequestLogDraft(requestLogEnabled);
-    }
-  }, [requestLogModalOpen, requestLogTouched, requestLogEnabled]);
+    if (!isCurrentLayer) return undefined;
 
-  useEffect(() => {
-    fetchModels();
+    const taskId = window.setTimeout(() => {
+      void fetchModels();
+    }, 0);
+
+    return () => window.clearTimeout(taskId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionStatus, apiBase]);
+  }, [apiBase, connectionStatus, isCurrentLayer]);
 
   return (
     <div className={styles.container}>
@@ -382,7 +439,7 @@ export function SystemPage() {
         <section className={styles.systemOverview} aria-labelledby="system-overview-title">
           <div className={styles.serviceSummary}>
             <div className={styles.serviceIdentity}>
-              <img src={INLINE_LOGO_JPEG} alt={t('title.main')} className={styles.aboutLogo} />
+              <TokaMark aria-label={t('title.main')} className={styles.aboutLogo} />
               <div>
                 <div className={styles.serviceEyebrow}>{t('system_info.about_title')}</div>
                 <h2 id="system-overview-title" className={styles.serviceTitle}>
@@ -466,36 +523,7 @@ export function SystemPage() {
           ) : models.length === 0 ? (
             <div className="hint">{t('system_info.models_empty')}</div>
           ) : (
-            <div className="item-list">
-              {groupedModels.map((group) => {
-                const iconSrc = getIconForCategory(group.id);
-                return (
-                  <div key={group.id} className="item-row">
-                    <div className="item-meta">
-                      <div className={styles.groupTitle}>
-                        {iconSrc && <img src={iconSrc} alt="" className={styles.groupIcon} />}
-                        <span className="item-title">{group.label}</span>
-                      </div>
-                      <div className="item-subtitle">
-                        {t('system_info.models_count', { count: group.items.length })}
-                      </div>
-                    </div>
-                    <div className={styles.modelTags}>
-                      {group.items.map((model) => (
-                        <span
-                          key={`${model.name}-${model.alias ?? 'default'}`}
-                          className={styles.modelTag}
-                          title={model.description || ''}
-                        >
-                          <span className={styles.modelName}>{model.name}</span>
-                          {model.alias && <span className={styles.modelAlias}>{model.alias}</span>}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <SystemModelGroups groups={groupedModels} resolvedTheme={resolvedTheme} />
           )}
         </Card>
 
@@ -537,7 +565,7 @@ export function SystemPage() {
           <ToggleSwitch
             label={t('basic_settings.request_log_enable')}
             labelPosition="left"
-            checked={requestLogDraft}
+            checked={effectiveRequestLogDraft}
             disabled={!canEditRequestLog || requestLogSaving}
             onChange={(value) => {
               setRequestLogDraft(value);

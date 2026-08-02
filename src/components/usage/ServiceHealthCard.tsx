@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import {
   collectUsageDetails,
   calculateServiceHealthData,
@@ -19,6 +20,7 @@ const COLOR_STOPS = [
 const TOOLTIP_OFFSET = 8;
 const TOOLTIP_SAFE_WIDTH = 180;
 const TOOLTIP_SAFE_HEIGHT = 72;
+const EMPTY_SERVICE_HEALTH_DATA = calculateServiceHealthData([]);
 
 type TooltipHorizontalPosition = 'center' | 'left' | 'right';
 type TooltipVerticalPosition = 'above' | 'below';
@@ -61,18 +63,28 @@ export interface ServiceHealthCardProps {
 
 export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltipState | null>(null);
+  const activeTooltipRef = useRef<ActiveTooltipState | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const tooltipPositionFrameRef = useRef<number | null>(null);
+  const hasActiveTooltip = isCurrentLayer && activeTooltip !== null;
+
+  useEffect(() => {
+    activeTooltipRef.current = isCurrentLayer ? activeTooltip : null;
+  }, [activeTooltip, isCurrentLayer]);
 
   const healthData: ServiceHealthData = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_SERVICE_HEALTH_DATA;
     const details = usage ? collectUsageDetails(usage) : [];
     return calculateServiceHealthData(details);
-  }, [usage]);
+  }, [isCurrentLayer, usage]);
 
   const hasData = healthData.totalSuccess + healthData.totalFailure > 0;
 
   useEffect(() => {
-    if (activeTooltip === null) return;
+    if (!hasActiveTooltip) return;
     const handler = (e: PointerEvent) => {
       if (gridRef.current && !gridRef.current.contains(e.target as Node)) {
         setActiveTooltip(null);
@@ -80,7 +92,7 @@ export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
     };
     document.addEventListener('pointerdown', handler);
     return () => document.removeEventListener('pointerdown', handler);
-  }, [activeTooltip]);
+  }, [hasActiveTooltip]);
 
   const buildTooltipState = useCallback(
     (idx: number, anchorEl: HTMLDivElement | null): ActiveTooltipState | null => {
@@ -121,14 +133,20 @@ export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
   );
 
   useEffect(() => {
-    if (!activeTooltip) return;
+    if (!hasActiveTooltip) return;
 
     const updateTooltipPosition = () => {
-      if (!document.body.contains(activeTooltip.anchorEl)) {
-        setActiveTooltip(null);
-        return;
-      }
-      setActiveTooltip(buildTooltipState(activeTooltip.idx, activeTooltip.anchorEl));
+      if (tooltipPositionFrameRef.current !== null) return;
+      tooltipPositionFrameRef.current = window.requestAnimationFrame(() => {
+        tooltipPositionFrameRef.current = null;
+        const currentTooltip = activeTooltipRef.current;
+        if (!currentTooltip) return;
+        if (!document.body.contains(currentTooltip.anchorEl)) {
+          setActiveTooltip(null);
+          return;
+        }
+        setActiveTooltip(buildTooltipState(currentTooltip.idx, currentTooltip.anchorEl));
+      });
     };
 
     window.addEventListener('resize', updateTooltipPosition);
@@ -136,14 +154,19 @@ export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
     return () => {
       window.removeEventListener('resize', updateTooltipPosition);
       window.removeEventListener('scroll', updateTooltipPosition, true);
+      if (tooltipPositionFrameRef.current !== null) {
+        window.cancelAnimationFrame(tooltipPositionFrameRef.current);
+        tooltipPositionFrameRef.current = null;
+      }
     };
-  }, [activeTooltip, buildTooltipState]);
+  }, [buildTooltipState, hasActiveTooltip]);
 
   const openTooltip = useCallback(
     (idx: number, anchorEl: HTMLDivElement) => {
+      if (!isCurrentLayer) return;
       setActiveTooltip(buildTooltipState(idx, anchorEl));
     },
-    [buildTooltipState]
+    [buildTooltipState, isCurrentLayer]
   );
 
   const handlePointerEnter = useCallback(
@@ -163,13 +186,14 @@ export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>, idx: number) => {
+      if (!isCurrentLayer) return;
       if (e.pointerType === 'touch') {
         e.preventDefault();
         const anchorEl = e.currentTarget;
         setActiveTooltip((prev) => (prev?.idx === idx ? null : buildTooltipState(idx, anchorEl)));
       }
     },
-    [buildTooltipState]
+    [buildTooltipState, isCurrentLayer]
   );
 
   const renderTooltip = (detail: StatusBlockDetail, tooltipState: ActiveTooltipState) => {
@@ -238,7 +262,7 @@ export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
           {healthData.blockDetails.map((detail, idx) => {
             const isIdle = detail.rate === -1;
             const blockStyle = isIdle ? undefined : { backgroundColor: rateToColor(detail.rate) };
-            const isActive = activeTooltip?.idx === idx;
+            const isActive = isCurrentLayer && activeTooltip?.idx === idx;
 
             return (
               <div

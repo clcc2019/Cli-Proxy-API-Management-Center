@@ -6,7 +6,7 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--provider-border, #eaeae9);
-  border-radius: 15px;
+  border-radius: var(--mg-radius-card);
   background: var(--provider-surface, #ffffff);
 }
 
@@ -46,7 +46,7 @@
   height: 28px;
   flex: 0 0 auto;
   padding: 3px;
-  border-radius: 9px;
+  border-radius: var(--mg-radius-control);
   background: var(--provider-surface-subtle, #f7f7f5);
   object-fit: contain;
 }
@@ -97,7 +97,7 @@
   min-height: 42px;
   padding: 0 38px 0 37px;
   border: 1px solid var(--provider-border, #eaeae9);
-  border-radius: 9px;
+  border-radius: var(--mg-radius-control);
   outline: 0;
   background: var(--provider-surface-subtle, #f7f7f5);
   color: var(--provider-text, #2c2a25);
@@ -143,7 +143,7 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 7px;
+  border-radius: var(--mg-radius-control);
   color: var(--provider-text-tertiary, #807f7c);
   transform: translateY(-50%);
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ApiKeysCardEditor } from '@/components/config/VisualConfigEditorBlocks';
 import {
@@ -9,6 +9,7 @@ import {
   IconShield,
 } from '@/components/ui/icons';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { apiKeysApi } from '@/services/api/apiKeys';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type { ClientApiKeyConfig } from '@/types/config';
@@ -56,9 +57,13 @@ const fingerprintApiKeys = (keys: VisualApiKeyEntry[]): string =>
 
 export function ApiKeysPage() {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
   const clearConfigCache = useConfigStore((state) => state.clearCache);
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
 
@@ -67,19 +72,38 @@ export function ApiKeysPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const loadRequestVersionRef = useRef(0);
+  const isCurrentLayerRef = useRef(isCurrentLayer);
 
-  const isDirty = useMemo(
-    () => fingerprintApiKeys(apiKeys) !== fingerprintApiKeys(baselineApiKeys),
-    [apiKeys, baselineApiKeys]
+  useLayoutEffect(() => {
+    isCurrentLayerRef.current = isCurrentLayer;
+  }, [isCurrentLayer]);
+
+  const apiKeysFingerprint = useMemo(() => fingerprintApiKeys(apiKeys), [apiKeys]);
+  const baselineApiKeysFingerprint = useMemo(
+    () => fingerprintApiKeys(baselineApiKeys),
+    [baselineApiKeys]
   );
+  const isDirty = apiKeysFingerprint !== baselineApiKeysFingerprint;
   const disableControls = connectionStatus !== 'connected';
-  const restrictedCount = apiKeys.filter(
-    (entry) => entry.allowedModels.length > 0 || entry.excludedModels.length > 0
-  ).length;
-  const quotaCount = apiKeys.filter((entry) => hasClientApiKeyQuota(entry.quota)).length;
-  const disabledCount = apiKeys.filter((entry) => entry.disabled).length;
+  const { restrictedCount, quotaCount, disabledCount } = useMemo(
+    () =>
+      apiKeys.reduce(
+        (counts, entry) => {
+          if (entry.allowedModels.length > 0 || entry.excludedModels.length > 0) {
+            counts.restrictedCount += 1;
+          }
+          if (hasClientApiKeyQuota(entry.quota)) counts.quotaCount += 1;
+          if (entry.disabled) counts.disabledCount += 1;
+          return counts;
+        },
+        { restrictedCount: 0, quotaCount: 0, disabledCount: 0 }
+      ),
+    [apiKeys]
+  );
 
   useUnsavedChangesGuard({
+    enabled: isCurrentLayer,
     shouldBlock: isDirty && !saving,
     dialog: {
       title: t('common.unsaved_changes_title'),
@@ -91,24 +115,51 @@ export function ApiKeysPage() {
   });
 
   const loadApiKeys = useCallback(async () => {
+    if (!isCurrentLayerRef.current) return;
+
+    const requestVersion = (loadRequestVersionRef.current += 1);
     setLoading(true);
     setError('');
     try {
       const list = await apiKeysApi.list();
+      if (
+        loadRequestVersionRef.current !== requestVersion ||
+        !isCurrentLayerRef.current
+      ) {
+        return;
+      }
       const visualKeys = toVisualApiKeys(list);
       setApiKeys(visualKeys);
       setBaselineApiKeys(visualKeys);
     } catch (err: unknown) {
+      if (
+        loadRequestVersionRef.current !== requestVersion ||
+        !isCurrentLayerRef.current
+      ) {
+        return;
+      }
       const message = err instanceof Error ? err.message : t('api_keys.load_failed');
       setError(message);
     } finally {
-      setLoading(false);
+      if (
+        loadRequestVersionRef.current === requestVersion &&
+        isCurrentLayerRef.current
+      ) {
+        setLoading(false);
+      }
     }
   }, [t]);
 
   useEffect(() => {
-    void loadApiKeys();
-  }, [loadApiKeys]);
+    loadRequestVersionRef.current += 1;
+    if (!isCurrentLayer) return undefined;
+
+    const taskId = window.setTimeout(() => {
+      void loadApiKeys();
+    }, 0);
+
+    return () => window.clearTimeout(taskId);
+  }, [isCurrentLayer, loadApiKeys]);
 
   const refreshConfigStore = useCallback(async () => {
     clearConfigCache();

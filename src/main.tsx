@@ -4,7 +4,7 @@ import '@/styles/global.scss';
 import { initializeI18n } from '@/i18n';
 import App from './App.tsx';
 
-document.title = 'CLI Proxy API Management Center';
+document.title = 'Toka';
 document.documentElement.setAttribute('translate', 'no');
 document.documentElement.classList.add('notranslate');
 

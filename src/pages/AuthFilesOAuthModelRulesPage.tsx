@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -23,6 +24,7 @@ type UnsupportedError = 'unsupported' | null;
 
 type OAuthModelMappingFormEntry = OAuthModelAliasEntry & {
   id: string;
+  effortOnly: boolean;
 };
 
 type OAuthModelMappingFormField = 'name' | 'alias' | 'fork';
@@ -38,6 +40,10 @@ const OAUTH_PROVIDER_PRESETS = ['claude', 'codex', 'xai', 'qwen', 'kimi'];
 const OAUTH_PROVIDER_EXCLUDES = new Set(['all', 'unknown', 'empty']);
 const REASONING_EFFORT_LEVELS = ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
 const REASONING_EFFORT_SOURCES = ['default', ...REASONING_EFFORT_LEVELS] as const;
+const EMPTY_PROVIDER_OPTIONS: string[] = [];
+const EMPTY_MODEL_OPTIONS: Array<{ value: string; label?: string }> = [];
+const EMPTY_MODEL_ITEMS: AuthFileModelItem[] = [];
+const MAPPING_AUTOCOMPLETE_WRAPPER_STYLE = { marginBottom: 0 };
 
 const normalizeProviderKey = (value: string) => value.trim().toLowerCase();
 
@@ -52,11 +58,18 @@ const getRecordEntry = <T,>(record: Record<string, T>, providerKey: string): T |
   return Object.entries(record).find(([key]) => normalizeProviderKey(key) === providerKey)?.[1];
 };
 
+const hasSameModelName = (entry: Pick<OAuthModelAliasEntry, 'name' | 'alias'>): boolean => {
+  const name = entry.name.trim();
+  const alias = entry.alias.trim();
+  return Boolean(name && alias && name.toLowerCase() === alias.toLowerCase());
+};
+
 const buildEmptyMappingEntry = (): OAuthModelMappingFormEntry => ({
   id: generateId(),
   name: '',
   alias: '',
   fork: true,
+  effortOnly: false,
 });
 
 const normalizeMappingEntries = (entries?: OAuthModelAliasEntry[]): OAuthModelMappingFormEntry[] =>
@@ -66,6 +79,7 @@ const normalizeMappingEntries = (entries?: OAuthModelAliasEntry[]): OAuthModelMa
     alias: entry.alias ?? '',
     fork: Boolean(entry.fork),
     reasoningEffort: normalizeOAuthReasoningEffort(entry.reasoningEffort),
+    effortOnly: hasSameModelName(entry),
   }));
 
 const serializeReasoningEffort = (value?: OAuthReasoningEffort): [string, string][] =>
@@ -73,6 +87,49 @@ const serializeReasoningEffort = (value?: OAuthReasoningEffort): [string, string
 
 const getReasoningOverrideCount = (value?: OAuthReasoningEffort): number =>
   Object.keys(value ?? {}).filter((source) => source !== 'default').length;
+
+const isEffortOnlyMapping = (
+  entry: Pick<OAuthModelMappingFormEntry, 'effortOnly'>,
+  providerKey: string
+): boolean => providerKey === 'codex' && entry.effortOnly;
+
+type OAuthModelSelectionRowProps = {
+  model: AuthFileModelItem;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (modelId: string, checked: boolean) => void;
+};
+
+const OAuthModelSelectionRow = memo(function OAuthModelSelectionRow({
+  model,
+  checked,
+  disabled,
+  onChange,
+}: OAuthModelSelectionRowProps) {
+  return (
+    <SelectionCheckbox
+      checked={checked}
+      disabled={disabled}
+      onChange={(nextChecked) => onChange(model.id, nextChecked)}
+      ariaLabel={model.id}
+      className={[
+        styles.modelItem,
+        checked ? styles.modelItemSelected : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      labelClassName={styles.modelText}
+      label={
+        <>
+          <span className={styles.modelId}>{model.id}</span>
+          {model.display_name && model.display_name !== model.id && (
+            <span className={styles.modelDisplayName}>{model.display_name}</span>
+          )}
+        </>
+      }
+    />
+  );
+});
 
 const mappingSignature = (entries: OAuthModelMappingFormEntry[]): string =>
   JSON.stringify(
@@ -94,6 +151,217 @@ const areSetsEqual = (left: Set<string>, right: Set<string>): boolean =>
 
 const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : '');
 
+type ProviderRulesDraft = {
+  selectedModels: Set<string>;
+  initialSelectedModels: Set<string>;
+  mappings: OAuthModelMappingFormEntry[];
+  initialMappingsSignature: string;
+};
+
+const buildProviderRulesDraft = (
+  excluded: Record<string, string[]>,
+  modelAlias: Record<string, OAuthModelAliasEntry[]>,
+  providerKey: string
+): ProviderRulesDraft => {
+  if (!providerKey) {
+    return {
+      selectedModels: new Set(),
+      initialSelectedModels: new Set(),
+      mappings: [],
+      initialMappingsSignature: '[]',
+    };
+  }
+
+  const selectedModels = new Set(getRecordEntry(excluded, providerKey) ?? []);
+  const mappings = normalizeMappingEntries(getRecordEntry(modelAlias, providerKey));
+  return {
+    selectedModels,
+    initialSelectedModels: new Set(selectedModels),
+    mappings,
+    initialMappingsSignature: mappingSignature(mappings),
+  };
+};
+
+type OAuthModelMappingRowProps = {
+  entry: OAuthModelMappingFormEntry;
+  providerKey: string;
+  disabled: boolean;
+  modelOptions: Array<{ value: string; label?: string }>;
+  reasoningEffortOptions: SelectOption[];
+  error?: string;
+  onUpdateMapping: (
+    entryId: string,
+    field: OAuthModelMappingFormField,
+    value: string | boolean
+  ) => void;
+  onToggleEffortOnly: (entryId: string, enabled: boolean) => void;
+  onRemove: (entryId: string) => void;
+  onUpdateReasoningEffort: (entryId: string, source: string, target: string) => void;
+};
+
+const areOAuthModelMappingRowPropsEqual = (
+  previous: OAuthModelMappingRowProps,
+  next: OAuthModelMappingRowProps
+) =>
+  previous.entry === next.entry &&
+  previous.providerKey === next.providerKey &&
+  previous.disabled === next.disabled &&
+  previous.modelOptions === next.modelOptions &&
+  previous.reasoningEffortOptions === next.reasoningEffortOptions &&
+  previous.error === next.error &&
+  previous.onUpdateMapping === next.onUpdateMapping &&
+  previous.onToggleEffortOnly === next.onToggleEffortOnly &&
+  previous.onRemove === next.onRemove &&
+  previous.onUpdateReasoningEffort === next.onUpdateReasoningEffort;
+
+const OAuthModelMappingRow = memo(function OAuthModelMappingRow({
+  entry,
+  providerKey,
+  disabled,
+  modelOptions,
+  reasoningEffortOptions,
+  error,
+  onUpdateMapping,
+  onToggleEffortOnly,
+  onRemove,
+  onUpdateReasoningEffort,
+}: OAuthModelMappingRowProps) {
+  const { t } = useTranslation();
+  const effortOnly = isEffortOnlyMapping(entry, providerKey);
+  const reasoningOverrideCount = getReasoningOverrideCount(entry.reasoningEffort);
+  const getReasoningSourceLabel = (source: string) =>
+    source === 'default' ? t('oauth_model_rules.reasoning_default_source') : source;
+
+  return (
+    <div className={styles.mappingRow}>
+      <div className={styles.mappingRowMain}>
+        <div className={styles.mappingField}>
+          <span className={styles.mappingFieldLabel}>
+            {t('oauth_model_alias.alias_name_placeholder')}
+          </span>
+          <AutocompleteInput
+            wrapperStyle={MAPPING_AUTOCOMPLETE_WRAPPER_STYLE}
+            dropdownClassName={styles.originalModelDropdown}
+            portal
+            placeholder={t('oauth_model_alias.alias_name_placeholder')}
+            value={entry.name}
+            onChange={(value) => onUpdateMapping(entry.id, 'name', value)}
+            disabled={disabled}
+            options={modelOptions}
+          />
+        </div>
+        <span className={styles.mappingSeparator} aria-hidden="true">
+          →
+        </span>
+        <div className={styles.mappingField}>
+          <span className={styles.mappingFieldLabel}>
+            {effortOnly
+              ? t('oauth_model_rules.reasoning_only_model_label')
+              : t('oauth_model_alias.alias_placeholder')}
+          </span>
+          <input
+            className={['input', styles.mappingAliasInput].join(' ')}
+            aria-label={t('oauth_model_alias.alias_placeholder')}
+            placeholder={t('oauth_model_alias.alias_placeholder')}
+            value={entry.alias}
+            onChange={(event) => onUpdateMapping(entry.id, 'alias', event.target.value)}
+            disabled={disabled || effortOnly}
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={styles.mappingRemove}
+          onClick={() => onRemove(entry.id)}
+          disabled={disabled}
+          title={t('common.delete')}
+          aria-label={t('common.delete')}
+        >
+          <IconX size={14} />
+        </Button>
+      </div>
+
+      <div className={styles.mappingRowSettings}>
+        {providerKey === 'codex' && (
+          <div className={styles.mappingFork}>
+            <ToggleSwitch
+              label={t('oauth_model_rules.reasoning_only_label')}
+              checked={effortOnly}
+              onChange={(value) => onToggleEffortOnly(entry.id, value)}
+              disabled={disabled || (!entry.name.trim() && !effortOnly)}
+            />
+          </div>
+        )}
+        {!effortOnly && (
+          <div className={styles.mappingFork}>
+            <ToggleSwitch
+              label={t('oauth_model_alias.alias_fork_label')}
+              checked={Boolean(entry.fork)}
+              onChange={(value) => onUpdateMapping(entry.id, 'fork', value)}
+              disabled={disabled}
+            />
+          </div>
+        )}
+        {providerKey === 'codex' && (
+          <div className={styles.reasoningInline}>
+            <div className={styles.reasoningDefault}>
+              <span className={styles.reasoningLabel}>
+                {t('oauth_model_rules.reasoning_default_label')}
+              </span>
+              <Select
+                id={'oauth-model-rules-reasoning-default-' + entry.id}
+                className={styles.reasoningSelect}
+                value={entry.reasoningEffort?.default ?? ''}
+                options={reasoningEffortOptions}
+                dropdownClassName={styles.reasoningDropdown}
+                onChange={(value) => onUpdateReasoningEffort(entry.id, 'default', value)}
+                disabled={disabled}
+                ariaLabel={t('oauth_model_rules.reasoning_default_label')}
+              />
+            </div>
+            <details className={styles.reasoningDetails}>
+              <summary>
+                {reasoningOverrideCount > 0
+                  ? t('oauth_model_rules.reasoning_more_configured', {
+                      count: reasoningOverrideCount,
+                    })
+                  : t('oauth_model_rules.reasoning_more')}
+              </summary>
+              <div className={styles.reasoningOverrides}>
+                {REASONING_EFFORT_SOURCES.filter((source) => source !== 'default').map((source) => (
+                  <div key={source} className={styles.reasoningOverride}>
+                    <span>{getReasoningSourceLabel(source)}</span>
+                    <Select
+                      id={'oauth-model-rules-reasoning-' + entry.id + '-' + source}
+                      className={styles.reasoningSelect}
+                      value={entry.reasoningEffort?.[source] ?? ''}
+                      options={reasoningEffortOptions}
+                      dropdownClassName={styles.reasoningDropdown}
+                      onChange={(value) => onUpdateReasoningEffort(entry.id, source, value)}
+                      disabled={disabled}
+                      ariaLabel={t('oauth_model_rules.reasoning_override_label', {
+                        source: getReasoningSourceLabel(source),
+                      })}
+                    />
+                  </div>
+                ))}
+              </div>
+            </details>
+          </div>
+        )}
+      </div>
+      {error && (
+        <p
+          id={'oauth-model-rules-reasoning-error-' + entry.id}
+          className={styles.mappingError}
+        >
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}, areOAuthModelMappingRowPropsEqual);
+
 export function OAuthModelRulesEditorModal({
   open,
   initialProvider = '',
@@ -101,8 +369,12 @@ export function OAuthModelRulesEditorModal({
   onSaved,
 }: OAuthModelRulesEditorModalProps) {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
   const disableControls = connectionStatus !== 'connected';
 
   const [provider, setProvider] = useState(initialProvider);
@@ -124,17 +396,25 @@ export function OAuthModelRulesEditorModal({
   const [initialMappingsSignature, setInitialMappingsSignature] = useState('[]');
   const [mappingErrors, setMappingErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const providerRef = useRef(initialProvider);
+  const modelsRequestVersionRef = useRef(0);
 
   const resolvedProviderKey = useMemo(() => normalizeProviderKey(provider), [provider]);
   const excludedSupported = excludedError !== 'unsupported';
   const aliasesSupported = modelAliasError !== 'unsupported';
   const canConfigureAnything = excludedSupported || aliasesSupported;
 
-  useEffect(() => {
-    if (open) setProvider(initialProvider);
-  }, [initialProvider, open]);
+  const commitProviderRulesDraft = useCallback((draft: ProviderRulesDraft) => {
+    setSelectedModels(draft.selectedModels);
+    setInitialSelectedModels(draft.initialSelectedModels);
+    setMappings(draft.mappings);
+    setInitialMappingsSignature(draft.initialMappingsSignature);
+    setMappingErrors({});
+  }, []);
 
   useEffect(() => {
+    if (!isCurrentLayer) return undefined;
+
     let cancelled = false;
 
     const load = async () => {
@@ -147,12 +427,16 @@ export function OAuthModelRulesEditorModal({
 
       if (cancelled) return;
 
+      let nextExcluded: Record<string, string[]> = {};
+      let nextModelAlias: Record<string, OAuthModelAliasEntry[]> = {};
+
       if (filesResult.status === 'fulfilled') {
         setFiles(filesResult.value?.files ?? []);
       }
 
       if (excludedResult.status === 'fulfilled') {
-        setExcluded(excludedResult.value ?? {});
+        nextExcluded = excludedResult.value ?? {};
+        setExcluded(nextExcluded);
         setExcludedError(null);
       } else if (getHttpStatus(excludedResult.reason) === 404) {
         setExcludedError('unsupported');
@@ -164,7 +448,8 @@ export function OAuthModelRulesEditorModal({
       }
 
       if (aliasResult.status === 'fulfilled') {
-        setModelAlias(aliasResult.value ?? {});
+        nextModelAlias = aliasResult.value ?? {};
+        setModelAlias(nextModelAlias);
         setModelAliasError(null);
       } else if (getHttpStatus(aliasResult.reason) === 404) {
         setModelAliasError('unsupported');
@@ -175,21 +460,33 @@ export function OAuthModelRulesEditorModal({
         );
       }
 
+      commitProviderRulesDraft(
+        buildProviderRulesDraft(
+          nextExcluded,
+          nextModelAlias,
+          normalizeProviderKey(providerRef.current)
+        )
+      );
       setInitialLoading(false);
     };
 
-    void load().catch((error: unknown) => {
-      if (cancelled) return;
-      showNotification(`${t('notification.load_failed')}: ${getErrorMessage(error)}`, 'error');
-      setInitialLoading(false);
-    });
+    const taskId = window.setTimeout(() => {
+      void load().catch((error: unknown) => {
+        if (cancelled) return;
+        showNotification(`${t('notification.load_failed')}: ${getErrorMessage(error)}`, 'error');
+        setInitialLoading(false);
+      });
+    }, 0);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(taskId);
     };
-  }, [showNotification, t]);
+  }, [commitProviderRulesDraft, isCurrentLayer, showNotification, t]);
 
   const providerOptions = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_PROVIDER_OPTIONS;
+
     const values = new Set<string>(OAUTH_PROVIDER_PRESETS);
     Object.keys(excluded).forEach((value) => values.add(value));
     Object.keys(modelAlias).forEach((value) => values.add(value));
@@ -206,7 +503,7 @@ export function OAuthModelRulesEditorModal({
       .sort((left, right) => left.localeCompare(right));
 
     return [...OAUTH_PROVIDER_PRESETS, ...extras];
-  }, [excluded, files, modelAlias]);
+  }, [excluded, files, isCurrentLayer, modelAlias]);
 
   const getTypeLabel = useCallback(
     (type: string): string => {
@@ -228,12 +525,6 @@ export function OAuthModelRulesEditorModal({
     [t]
   );
 
-  const getReasoningSourceLabel = useCallback(
-    (source: string) =>
-      source === 'default' ? t('oauth_model_rules.reasoning_default_source') : source,
-    [t]
-  );
-
   const title = useMemo(
     () =>
       resolvedProviderKey
@@ -243,63 +534,64 @@ export function OAuthModelRulesEditorModal({
   );
 
   useEffect(() => {
-    if (!resolvedProviderKey) {
-      setSelectedModels(new Set());
-      setInitialSelectedModels(new Set());
-      setMappings([]);
-      setInitialMappingsSignature('[]');
-      setMappingErrors({});
-      return;
-    }
+    if (!isCurrentLayer) return undefined;
 
-    const nextSelectedModels = new Set(getRecordEntry(excluded, resolvedProviderKey) ?? []);
-    const nextMappings = normalizeMappingEntries(getRecordEntry(modelAlias, resolvedProviderKey));
-    setSelectedModels(nextSelectedModels);
-    setInitialSelectedModels(new Set(nextSelectedModels));
-    setMappings(nextMappings);
-    setInitialMappingsSignature(mappingSignature(nextMappings));
-    setMappingErrors({});
-  }, [excluded, modelAlias, resolvedProviderKey]);
+    const requestVersion = (modelsRequestVersionRef.current += 1);
+    const taskId = window.setTimeout(() => {
+      if (modelsRequestVersionRef.current !== requestVersion) return;
 
-  useEffect(() => {
-    if (!resolvedProviderKey || !canConfigureAnything) {
+      if (!resolvedProviderKey || !canConfigureAnything) {
+        setModelsList([]);
+        setModelsError(null);
+        setModelsLoading(false);
+        return;
+      }
+
       setModelsList([]);
+      setModelsLoading(true);
       setModelsError(null);
-      setModelsLoading(false);
-      return;
-    }
 
-    let cancelled = false;
-    setModelsList([]);
-    setModelsLoading(true);
-    setModelsError(null);
-
-    authFilesApi
-      .getModelDefinitions(resolvedProviderKey)
-      .then((models) => {
-        if (!cancelled) setModelsList(models);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        if (getHttpStatus(error) === 404) {
-          setModelsError('unsupported');
-          setModelsList([]);
-          return;
-        }
-        showNotification(`${t('notification.load_failed')}: ${getErrorMessage(error)}`, 'error');
-      })
-      .finally(() => {
-        if (!cancelled) setModelsLoading(false);
-      });
+      void authFilesApi
+        .getModelDefinitions(resolvedProviderKey)
+        .then((models) => {
+          if (modelsRequestVersionRef.current === requestVersion) {
+            setModelsList(models);
+          }
+        })
+        .catch((error: unknown) => {
+          if (modelsRequestVersionRef.current !== requestVersion) return;
+          if (getHttpStatus(error) === 404) {
+            setModelsError('unsupported');
+            setModelsList([]);
+            return;
+          }
+          showNotification(`${t('notification.load_failed')}: ${getErrorMessage(error)}`, 'error');
+        })
+        .finally(() => {
+          if (modelsRequestVersionRef.current === requestVersion) {
+            setModelsLoading(false);
+          }
+        });
+    }, 0);
 
     return () => {
-      cancelled = true;
+      window.clearTimeout(taskId);
+      if (modelsRequestVersionRef.current === requestVersion) {
+        modelsRequestVersionRef.current += 1;
+      }
     };
-  }, [canConfigureAnything, resolvedProviderKey, showNotification, t]);
+  }, [canConfigureAnything, isCurrentLayer, resolvedProviderKey, showNotification, t]);
 
-  const updateProvider = useCallback((value: string) => {
-    setProvider(value);
-  }, []);
+  const updateProvider = useCallback(
+    (value: string) => {
+      providerRef.current = value;
+      setProvider(value);
+      commitProviderRulesDraft(
+        buildProviderRulesDraft(excluded, modelAlias, normalizeProviderKey(value))
+      );
+    },
+    [commitProviderRulesDraft, excluded, modelAlias]
+  );
 
   const toggleModel = useCallback((modelId: string, checked: boolean) => {
     setSelectedModels((previous) => {
@@ -318,26 +610,52 @@ export function OAuthModelRulesEditorModal({
   }, [manualModel]);
 
   const updateMappingEntry = useCallback(
-    (index: number, field: OAuthModelMappingFormField, value: string | boolean) => {
-      const entryId = mappings[index]?.id;
+    (entryId: string, field: OAuthModelMappingFormField, value: string | boolean) => {
       setMappings((previous) =>
-        previous.map((entry, entryIndex) => {
-          if (entryIndex !== index) return entry;
-          return field === 'fork'
-            ? { ...entry, fork: Boolean(value) }
-            : { ...entry, [field]: String(value) };
+        previous.map((entry) => {
+          if (entry.id !== entryId) return entry;
+          if (field === 'fork') return { ...entry, fork: Boolean(value) };
+
+          const nextValue = String(value);
+          if (field === 'name' && isEffortOnlyMapping(entry, resolvedProviderKey)) {
+            return { ...entry, name: nextValue, alias: nextValue };
+          }
+          const nextEntry = { ...entry, [field]: nextValue };
+          return {
+            ...nextEntry,
+            effortOnly:
+              resolvedProviderKey === 'codex' && hasSameModelName(nextEntry) ? true : false,
+          };
         })
       );
-      if (entryId) {
-        setMappingErrors((previous) => {
-          if (!previous[entryId]) return previous;
-          const next = { ...previous };
-          delete next[entryId];
-          return next;
-        });
-      }
+      setMappingErrors((previous) => {
+        if (!previous[entryId]) return previous;
+        const next = { ...previous };
+        delete next[entryId];
+        return next;
+      });
     },
-    [mappings]
+    [resolvedProviderKey]
+  );
+
+  const toggleEffortOnlyMapping = useCallback(
+    (entryId: string, enabled: boolean) => {
+      setMappings((previous) =>
+        previous.map((entry) => {
+          if (entry.id !== entryId) return entry;
+          return enabled
+            ? { ...entry, alias: entry.name, fork: false, effortOnly: true }
+            : { ...entry, alias: '', fork: true, effortOnly: false };
+        })
+      );
+      setMappingErrors((previous) => {
+        if (!previous[entryId]) return previous;
+        const next = { ...previous };
+        delete next[entryId];
+        return next;
+      });
+    },
+    []
   );
 
   const addMappingEntry = useCallback(() => {
@@ -354,10 +672,10 @@ export function OAuthModelRulesEditorModal({
     });
   }, []);
 
-  const updateReasoningEffort = useCallback((index: number, source: string, target: string) => {
+  const updateReasoningEffort = useCallback((entryId: string, source: string, target: string) => {
     setMappings((previous) =>
-      previous.map((entry, entryIndex) => {
-        if (entryIndex !== index) return entry;
+      previous.map((entry) => {
+        if (entry.id !== entryId) return entry;
 
         const nextReasoningEffort = {
           ...(normalizeOAuthReasoningEffort(entry.reasoningEffort) ?? {}),
@@ -390,6 +708,16 @@ export function OAuthModelRulesEditorModal({
         return;
       }
 
+      const sameModel = hasSameModelName({ name, alias });
+      if (sameModel && resolvedProviderKey !== 'codex') {
+        errors[entry.id] = t('oauth_model_rules.reasoning_same_model_codex_only');
+        return;
+      }
+      if (sameModel && !reasoningEffort) {
+        errors[entry.id] = t('oauth_model_rules.reasoning_same_model_requires_effort');
+        return;
+      }
+
       const key = `${name.toLowerCase()}::${alias.toLowerCase()}`;
       if (seen.has(key)) {
         errors[entry.id] = t('oauth_model_rules.alias_duplicate');
@@ -397,27 +725,40 @@ export function OAuthModelRulesEditorModal({
       }
       seen.add(key);
 
-      const next: OAuthModelAliasEntry = entry.fork ? { name, alias, fork: true } : { name, alias };
+      const next: OAuthModelAliasEntry =
+        entry.fork && !sameModel ? { name, alias, fork: true } : { name, alias };
       if (reasoningEffort) next.reasoningEffort = reasoningEffort;
       entries.push(next);
     });
 
     return { entries, errors };
-  }, [mappings, t]);
+  }, [mappings, resolvedProviderKey, t]);
 
+  const currentMappingsSignature = useMemo(() => mappingSignature(mappings), [mappings]);
   const excludedDirty = !areSetsEqual(selectedModels, initialSelectedModels);
-  const aliasDirty = mappingSignature(mappings) !== initialMappingsSignature;
+  const aliasDirty = currentMappingsSignature !== initialMappingsSignature;
   const hasChanges = (excludedSupported && excludedDirty) || (aliasesSupported && aliasDirty);
   const canSave = Boolean(resolvedProviderKey) && !disableControls && !saving && hasChanges;
 
   const visibleModels = useMemo<AuthFileModelItem[]>(() => {
+    if (!isCurrentLayer) return EMPTY_MODEL_ITEMS;
+
     const knownIds = new Set(modelsList.map((model) => model.id));
     const customSelectedModels = Array.from(selectedModels)
       .filter((model) => !knownIds.has(model))
       .sort((left, right) => left.localeCompare(right))
       .map((id): AuthFileModelItem => ({ id }));
     return [...modelsList, ...customSelectedModels];
-  }, [modelsList, selectedModels]);
+  }, [isCurrentLayer, modelsList, selectedModels]);
+
+  const modelOptions = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_MODEL_OPTIONS;
+    return modelsList.map((model) => ({
+      value: model.id,
+      label:
+        model.display_name && model.display_name !== model.id ? model.display_name : undefined,
+    }));
+  }, [isCurrentLayer, modelsList]);
 
   const handleSave = useCallback(async () => {
     const normalizedProvider = normalizeProviderKey(provider);
@@ -484,7 +825,7 @@ export function OAuthModelRulesEditorModal({
         if (tasks[index].kind === 'excluded') {
           setInitialSelectedModels(new Set(selectedModels));
         } else {
-          setInitialMappingsSignature(mappingSignature(mappings));
+          setInitialMappingsSignature(currentMappingsSignature);
         }
       });
 
@@ -509,9 +850,9 @@ export function OAuthModelRulesEditorModal({
     aliasDirty,
     aliasPayload,
     aliasesSupported,
+    currentMappingsSignature,
     excludedDirty,
     excludedSupported,
-    mappings,
     onClose,
     onSaved,
     provider,
@@ -648,23 +989,12 @@ export function OAuthModelRulesEditorModal({
                         {visibleModels.length > 0 ? (
                           <div className={styles.modelList}>
                             {visibleModels.map((model) => (
-                              <SelectionCheckbox
+                              <OAuthModelSelectionRow
                                 key={model.id}
+                                model={model}
                                 checked={selectedModels.has(model.id)}
                                 disabled={disableControls || saving}
-                                onChange={(checked) => toggleModel(model.id, checked)}
-                                className={styles.modelItem}
-                                labelClassName={styles.modelText}
-                                label={
-                                  <>
-                                    <span className={styles.modelId}>{model.id}</span>
-                                    {model.display_name && model.display_name !== model.id && (
-                                      <span className={styles.modelDisplayName}>
-                                        {model.display_name}
-                                      </span>
-                                    )}
-                                  </>
-                                }
+                                onChange={toggleModel}
                               />
                             ))}
                           </div>
@@ -722,7 +1052,7 @@ export function OAuthModelRulesEditorModal({
                     <div className={styles.sectionHeader}>
                       <div>
                         <h2 id="oauth-model-rules-alias-title">
-                          {t('oauth_model_alias.alias_label')}
+                          {t('oauth_model_rules.alias_title')}
                         </h2>
                         <p>{t('oauth_model_rules.alias_description')}</p>
                       </div>
@@ -758,138 +1088,20 @@ export function OAuthModelRulesEditorModal({
                     ) : (
                       <div className={styles.mappingsBody}>
                         <div className={styles.mappingList}>
-                          {mappings.map((entry, index) => (
-                            <div key={entry.id} className={styles.mappingRow}>
-                              <div className={styles.mappingRowMain}>
-                                <div className={styles.mappingField}>
-                                  <span className={styles.mappingFieldLabel}>
-                                    {t('oauth_model_alias.alias_name_placeholder')}
-                                  </span>
-                                  <AutocompleteInput
-                                    wrapperStyle={{ marginBottom: 0 }}
-                                    dropdownClassName={styles.originalModelDropdown}
-                                    portal
-                                    placeholder={t('oauth_model_alias.alias_name_placeholder')}
-                                    value={entry.name}
-                                    onChange={(value) => updateMappingEntry(index, 'name', value)}
-                                    disabled={disableControls || saving}
-                                    options={modelsList.map((model) => ({
-                                      value: model.id,
-                                      label:
-                                        model.display_name && model.display_name !== model.id
-                                          ? model.display_name
-                                          : undefined,
-                                    }))}
-                                  />
-                                </div>
-                                <span className={styles.mappingSeparator} aria-hidden="true">
-                                  →
-                                </span>
-                                <div className={styles.mappingField}>
-                                  <span className={styles.mappingFieldLabel}>
-                                    {t('oauth_model_alias.alias_placeholder')}
-                                  </span>
-                                  <input
-                                    className={`input ${styles.mappingAliasInput}`}
-                                    aria-label={t('oauth_model_alias.alias_placeholder')}
-                                    placeholder={t('oauth_model_alias.alias_placeholder')}
-                                    value={entry.alias}
-                                    onChange={(event) =>
-                                      updateMappingEntry(index, 'alias', event.target.value)
-                                    }
-                                    disabled={disableControls || saving}
-                                  />
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className={styles.mappingRemove}
-                                  onClick={() => removeMappingEntry(entry.id)}
-                                  disabled={disableControls || saving}
-                                  title={t('common.delete')}
-                                  aria-label={t('common.delete')}
-                                >
-                                  <IconX size={14} />
-                                </Button>
-                              </div>
-
-                              <div className={styles.mappingRowSettings}>
-                                <div className={styles.mappingFork}>
-                                  <ToggleSwitch
-                                    label={t('oauth_model_alias.alias_fork_label')}
-                                    checked={Boolean(entry.fork)}
-                                    onChange={(value) => updateMappingEntry(index, 'fork', value)}
-                                    disabled={disableControls || saving}
-                                  />
-                                </div>
-                                {resolvedProviderKey === 'codex' && (
-                                  <div className={styles.reasoningInline}>
-                                    <div className={styles.reasoningDefault}>
-                                      <span className={styles.reasoningLabel}>
-                                        {t('oauth_model_rules.reasoning_default_label')}
-                                      </span>
-                                      <Select
-                                        id={`oauth-model-rules-reasoning-default-${entry.id}`}
-                                        className={styles.reasoningSelect}
-                                        value={entry.reasoningEffort?.default ?? ''}
-                                        options={reasoningEffortOptions}
-                                        dropdownClassName={styles.reasoningDropdown}
-                                        onChange={(value) =>
-                                          updateReasoningEffort(index, 'default', value)
-                                        }
-                                        disabled={disableControls || saving}
-                                        ariaLabel={t('oauth_model_rules.reasoning_default_label')}
-                                      />
-                                    </div>
-                                    <details className={styles.reasoningDetails}>
-                                      <summary>
-                                        {getReasoningOverrideCount(entry.reasoningEffort) > 0
-                                          ? t('oauth_model_rules.reasoning_more_configured', {
-                                              count: getReasoningOverrideCount(
-                                                entry.reasoningEffort
-                                              ),
-                                            })
-                                          : t('oauth_model_rules.reasoning_more')}
-                                      </summary>
-                                      <div className={styles.reasoningOverrides}>
-                                        {REASONING_EFFORT_SOURCES.filter(
-                                          (source) => source !== 'default'
-                                        ).map((source) => (
-                                          <div key={source} className={styles.reasoningOverride}>
-                                            <span>{getReasoningSourceLabel(source)}</span>
-                                            <Select
-                                              id={`oauth-model-rules-reasoning-${entry.id}-${source}`}
-                                              className={styles.reasoningSelect}
-                                              value={entry.reasoningEffort?.[source] ?? ''}
-                                              options={reasoningEffortOptions}
-                                              dropdownClassName={styles.reasoningDropdown}
-                                              onChange={(value) =>
-                                                updateReasoningEffort(index, source, value)
-                                              }
-                                              disabled={disableControls || saving}
-                                              ariaLabel={t(
-                                                'oauth_model_rules.reasoning_override_label',
-                                                {
-                                                  source: getReasoningSourceLabel(source),
-                                                }
-                                              )}
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </details>
-                                  </div>
-                                )}
-                              </div>
-                              {mappingErrors[entry.id] && (
-                                <p
-                                  id={`oauth-model-rules-reasoning-error-${entry.id}`}
-                                  className={styles.mappingError}
-                                >
-                                  {mappingErrors[entry.id]}
-                                </p>
-                              )}
-                            </div>
+                          {mappings.map((entry) => (
+                            <OAuthModelMappingRow
+                              key={entry.id}
+                              entry={entry}
+                              providerKey={resolvedProviderKey}
+                              disabled={disableControls || saving}
+                              modelOptions={modelOptions}
+                              reasoningEffortOptions={reasoningEffortOptions}
+                              error={mappingErrors[entry.id]}
+                              onUpdateMapping={updateMappingEntry}
+                              onToggleEffortOnly={toggleEffortOnlyMapping}
+                              onRemove={removeMappingEntry}
+                              onUpdateReasoningEffort={updateReasoningEffort}
+                            />
                           ))}
                           {aliasDirty && aliasPayload.entries.length === 0 && (
                             <div className={styles.clearNotice} role="status">
@@ -930,6 +1142,11 @@ export function AuthFilesOAuthModelRulesPage() {
   }, [location.state, navigate]);
 
   return (
-    <OAuthModelRulesEditorModal open initialProvider={initialProvider} onClose={handleClose} />
+    <OAuthModelRulesEditorModal
+      key={initialProvider || 'new-provider'}
+      open
+      initialProvider={initialProvider}
+      onClose={handleClose}
+    />
   );
 }

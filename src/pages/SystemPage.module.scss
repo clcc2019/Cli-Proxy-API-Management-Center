@@ -1,33 +1,34 @@
 @use '../styles/variables.scss' as *;
+@use '../styles/mixins' as *;
 
 // A deliberately sparse system workbench: service state comes first, version
 // metadata stays secondary, and the model inventory is the primary workspace.
 .container {
-  --system-surface: #ffffff;
-  --system-surface-subtle: #f7f6f4;
-  --system-surface-muted: #fbfaf8;
-  --system-border: #e7e5e1;
+  --system-surface: var(--mg-surface);
+  --system-surface-subtle: var(--mg-surface-subtle);
+  --system-surface-muted: var(--mg-surface-warm);
+  --system-border: var(--mg-border);
   --system-border-strong: #d5d1cb;
-  --system-text: #292622;
-  --system-text-secondary: #615c55;
-  --system-text-tertiary: #89827a;
-  --system-ink: #24211e;
-  --system-success: #407345;
-  --system-warning: #a36e1f;
-  --system-danger: #a53830;
+  --system-text: var(--mg-text);
+  --system-text-secondary: var(--mg-text-secondary);
+  --system-text-tertiary: var(--mg-text-tertiary);
+  --system-ink: var(--mg-ink-strong);
+  --system-success: var(--mg-success);
+  --system-warning: var(--mg-warning);
+  --system-danger: var(--mg-danger);
   --system-focus: rgb(111 106 100 / 0.32);
 
   width: 100%;
   min-width: 0;
-  max-width: 1160px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   color: var(--system-text);
 }
 
 .pageHeader {
+  @include management-page-header;
   margin-bottom: 24px;
-  padding-bottom: 17px;
-  border-bottom: 1px solid var(--system-border);
+  border-bottom-color: var(--system-border);
 }
 
 .pageEyebrow,
@@ -46,12 +47,8 @@
 }
 
 .pageTitle {
-  margin: 0;
+  @include management-page-title;
   color: var(--system-text);
-  font-size: clamp(26px, 2.3vw, 32px);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.045em;
 }
 
 .content {
@@ -65,7 +62,7 @@
   grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
   overflow: hidden;
   border: 1px solid var(--system-border);
-  border-radius: 16px;
+  border-radius: var(--mg-radius-card);
   background: var(--system-surface);
 }
 
@@ -75,7 +72,7 @@
   min-height: 224px;
   flex-direction: column;
   justify-content: space-between;
-  padding: 26px;
+  padding: 24px;
   border-right: 1px solid var(--system-border);
   background: var(--system-surface-muted);
 }
@@ -88,12 +85,10 @@
 }
 
 .aboutLogo {
-  width: 44px;
-  height: 44px;
+  display: block;
+  width: 48px;
+  height: 48px;
   flex: 0 0 auto;
-  border: 1px solid var(--system-border);
-  border-radius: 11px;
-  object-fit: cover;
 }
 
 .serviceTitle {
@@ -116,7 +111,7 @@
   border-radius: 999px;
   background: var(--system-surface);
   color: var(--system-text);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 
@@ -145,7 +140,7 @@
   overflow: hidden;
   color: var(--system-text-secondary);
   font-family: $font-mono;
-  font-size: 11px;
+  font-size: 11.5px;
   line-height: 1.5;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -197,7 +192,7 @@
 .versionValue {
   overflow-wrap: anywhere;
   color: var(--system-text);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: -0.02em;
@@ -223,15 +218,9 @@
 .content > :global(.card) {
   min-width: 0;
   border-color: var(--system-border);
-  border-radius: 16px;
+  border-radius: var(--mg-radius-card);
   background: var(--system-surface);
   box-shadow: none;
-  transition: border-color 180ms ease;
-
-  &:hover {
-    border-color: var(--system-border-strong);
-    box-shadow: none;
-  }
 }
 
 .content > :global(.card) :global(.card-header) {
@@ -243,7 +232,7 @@
 
   :global(.title) {
     color: var(--system-text);
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
     letter-spacing: -0.02em;
   }
@@ -339,7 +328,7 @@
   grid-template-columns: minmax(160px, 0.28fr) minmax(0, 0.72fr);
   align-items: center;
   gap: 18px;
-  padding: 13px 14px;
+  padding: 15px 16px;
   border-bottom: 1px solid var(--system-border);
   transition: background-color 180ms ease;
 
@@ -361,7 +350,7 @@
 
 .modelsCard :global(.item-title) {
   color: var(--system-text);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 
@@ -419,7 +408,7 @@
 
 .modelName {
   color: var(--system-text);
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
 }
 
@@ -687,4 +676,19 @@
 
 :global([data-theme='dark']) .requestLogModal :global(.btn.btn-primary) {
   color: #1c1d1a;
+}
+
+.requestLogModal {
+  --system-surface: var(--mg-surface);
+  --system-surface-subtle: var(--mg-surface-subtle);
+  --system-surface-muted: var(--mg-surface-warm);
+  --system-border: var(--mg-border);
+  --system-text: var(--mg-text);
+  --system-text-secondary: var(--mg-text-secondary);
+  --system-text-tertiary: var(--mg-text-tertiary);
+  --system-ink: var(--mg-ink-strong);
+  --system-warning: var(--mg-warning);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
+  box-shadow: none;
 }

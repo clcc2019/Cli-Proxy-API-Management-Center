@@ -4,19 +4,25 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import iconClaude from '@/assets/icons/claude.svg';
 import { modelsApi } from '@/services/api';
 import type { ModelInfo } from '@/utils/models';
 import { buildHeaderObject } from '@/utils/headers';
 import { getErrorMessage } from '@/utils/error';
+import { ModelDiscoveryRow } from './components/ModelDiscoveryRow';
 import type { ClaudeEditOutletContext } from './AiProvidersClaudeEditLayout';
 import styles from './AiProvidersPage.module.scss';
+
+const EMPTY_MODEL_INFO_LIST: ModelInfo[] = [];
+const EMPTY_MODEL_NAMES: string[] = [];
 
 export function AiProvidersClaudeModelsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const {
     disableControls,
     loading: initialLoading,
@@ -25,15 +31,21 @@ export function AiProvidersClaudeModelsPage() {
     mergeDiscoveredModels,
   } = useOutletContext<ClaudeEditOutletContext>();
 
-  const [endpoint, setEndpoint] = useState('');
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const autoFetchSignatureRef = useRef<string>('');
+  const fetchRequestVersionRef = useRef(0);
+  const endpoint = useMemo(
+    () => modelsApi.buildClaudeModelsEndpoint(form.baseUrl ?? ''),
+    [form.baseUrl]
+  );
 
   const filteredModels = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_MODEL_INFO_LIST;
+
     const filter = search.trim().toLowerCase();
     if (!filter) return models;
     return models.filter((model) => {
@@ -42,17 +54,35 @@ export function AiProvidersClaudeModelsPage() {
       const desc = (model.description || '').toLowerCase();
       return name.includes(filter) || alias.includes(filter) || desc.includes(filter);
     });
-  }, [models, search]);
+  }, [isCurrentLayer, models, search]);
   const visibleModelNames = useMemo(
-    () => filteredModels.map((model) => model.name),
-    [filteredModels]
+    () => (isCurrentLayer ? filteredModels.map((model) => model.name) : EMPTY_MODEL_NAMES),
+    [filteredModels, isCurrentLayer]
   );
   const allVisibleSelected = useMemo(
     () => visibleModelNames.length > 0 && visibleModelNames.every((name) => selected.has(name)),
     [selected, visibleModelNames]
   );
 
+  const commitModels = useCallback((nextModels: ModelInfo[]) => {
+    const availableNames = new Set(nextModels.map((model) => model.name));
+    setModels(nextModels);
+    setSelected((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((name) => {
+        if (availableNames.has(name)) {
+          next.add(name);
+        } else {
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
   const fetchClaudeModelDiscovery = useCallback(async () => {
+    const requestVersion = (fetchRequestVersionRef.current += 1);
     setFetching(true);
     setError('');
     const headerObject = buildHeaderObject(form.headers);
@@ -62,9 +92,11 @@ export function AiProvidersClaudeModelsPage() {
         form.apiKey.trim() || undefined,
         headerObject
       );
-      setModels(list);
+      if (requestVersion !== fetchRequestVersionRef.current) return;
+      commitModels(list);
     } catch (err: unknown) {
-      setModels([]);
+      if (requestVersion !== fetchRequestVersionRef.current) return;
+      commitModels([]);
       const message = getErrorMessage(err);
       const hasCustomXApiKey = Object.keys(headerObject).some(
         (key) => key.toLowerCase() === 'x-api-key'
@@ -81,67 +113,63 @@ export function AiProvidersClaudeModelsPage() {
         : '';
       setError(`${t('ai_providers.claude_models_fetch_error')}: ${message}${diag}`);
     } finally {
-      setFetching(false);
+      if (requestVersion === fetchRequestVersionRef.current) {
+        setFetching(false);
+      }
     }
-  }, [form.apiKey, form.baseUrl, form.headers, t]);
+  }, [commitModels, form.apiKey, form.baseUrl, form.headers, t]);
 
   useEffect(() => {
-    if (initialLoading) return;
+    if (!isCurrentLayer || initialLoading) return;
 
-    const nextEndpoint = modelsApi.buildClaudeModelsEndpoint(form.baseUrl ?? '');
-    setEndpoint(nextEndpoint);
-    setModels([]);
-    setSearch('');
-    setSelected(new Set());
-    setError('');
+    const taskId = window.setTimeout(() => {
+      const headerObject = buildHeaderObject(form.headers);
+      const hasCustomXApiKey = Object.keys(headerObject).some(
+        (key) => key.toLowerCase() === 'x-api-key'
+      );
+      const hasAuthorization = Object.keys(headerObject).some(
+        (key) => key.toLowerCase() === 'authorization'
+      );
+      const hasApiKeyField = Boolean(form.apiKey.trim());
+      const canAutoFetch = hasApiKeyField || hasCustomXApiKey || hasAuthorization;
+      const headerSignature = Object.entries(headerObject)
+        .sort(([a], [b]) => a.toLowerCase().localeCompare(b.toLowerCase()))
+        .map(([key, value]) => `${key}:${value}`)
+        .join('|');
+      const signature = `${endpoint}||${form.apiKey.trim()}||${headerSignature}`;
 
-    const headerObject = buildHeaderObject(form.headers);
-    const hasCustomXApiKey = Object.keys(headerObject).some(
-      (key) => key.toLowerCase() === 'x-api-key'
-    );
-    const hasAuthorization = Object.keys(headerObject).some(
-      (key) => key.toLowerCase() === 'authorization'
-    );
-    const hasApiKeyField = Boolean(form.apiKey.trim());
-    const canAutoFetch = hasApiKeyField || hasCustomXApiKey || hasAuthorization;
+      if (autoFetchSignatureRef.current === signature) return;
+      autoFetchSignatureRef.current = signature;
+      fetchRequestVersionRef.current += 1;
+      setFetching(false);
+      commitModels([]);
+      setSearch('');
+      setError('');
 
-    // Avoid firing a guaranteed 401 on initial render (common while the parent form is still
-    // initializing), and avoid duplicate auto-fetches (e.g. React StrictMode in dev).
-    if (!canAutoFetch) return;
+      // Avoid firing a guaranteed 401 while the parent form is still missing credentials.
+      if (canAutoFetch) {
+        void fetchClaudeModelDiscovery();
+      }
+    }, 0);
 
-    const headerSignature = Object.entries(headerObject)
-      .sort(([a], [b]) => a.toLowerCase().localeCompare(b.toLowerCase()))
-      .map(([key, value]) => `${key}:${value}`)
-      .join('|');
-    const signature = `${nextEndpoint}||${form.apiKey.trim()}||${headerSignature}`;
-    if (autoFetchSignatureRef.current === signature) return;
-    autoFetchSignatureRef.current = signature;
-
-    void fetchClaudeModelDiscovery();
-  }, [fetchClaudeModelDiscovery, form.apiKey, form.baseUrl, form.headers, initialLoading]);
-
-  useEffect(() => {
-    const availableNames = new Set(models.map((model) => model.name));
-    setSelected((prev) => {
-      let changed = false;
-      const next = new Set<string>();
-      prev.forEach((name) => {
-        if (availableNames.has(name)) {
-          next.add(name);
-        } else {
-          changed = true;
-        }
-      });
-      return changed ? next : prev;
-    });
-  }, [models]);
+    return () => {
+      window.clearTimeout(taskId);
+      fetchRequestVersionRef.current += 1;
+    };
+  }, [
+    commitModels,
+    endpoint,
+    fetchClaudeModelDiscovery,
+    form.apiKey,
+    form.headers,
+    initialLoading,
+    isCurrentLayer,
+  ]);
 
   const handleBack = useCallback(() => {
     navigate(-1);
   }, [navigate]);
-
-
-  const toggleSelection = (name: string) => {
+  const toggleSelection = useCallback((name: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(name)) {
@@ -151,7 +179,7 @@ export function AiProvidersClaudeModelsPage() {
       }
       return next;
     });
-  };
+  }, []);
 
   const handleSelectVisible = useCallback(() => {
     setSelected((prev) => {
@@ -272,31 +300,13 @@ export function AiProvidersClaudeModelsPage() {
           ) : (
             <div className={styles.modelDiscoveryList}>
               {filteredModels.map((model) => {
-                const checked = selected.has(model.name);
                 return (
-                  <SelectionCheckbox
+                  <ModelDiscoveryRow
                     key={model.name}
-                    checked={checked}
-                    onChange={() => toggleSelection(model.name)}
+                    model={model}
+                    checked={selected.has(model.name)}
                     disabled={disableControls || saving || fetching}
-                    ariaLabel={model.name}
-                    className={`${styles.modelDiscoveryRow} ${
-                      checked ? styles.modelDiscoveryRowSelected : ''
-                    }`}
-                    labelClassName={styles.modelDiscoverySelectionLabel}
-                    label={
-                      <div className={styles.modelDiscoveryMeta}>
-                        <div className={styles.modelDiscoveryName}>
-                          {model.name}
-                          {model.alias && (
-                            <span className={styles.modelDiscoveryAlias}>{model.alias}</span>
-                          )}
-                        </div>
-                        {model.description && (
-                          <div className={styles.modelDiscoveryDesc}>{model.description}</div>
-                        )}
-                      </div>
-                    }
+                    onToggle={toggleSelection}
                   />
                 );
               })}

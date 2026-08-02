@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { authFilesApi } from '@/services/api/authFiles';
 import type { ProviderKeyConfig } from '@/types';
 import type { AuthFileItem } from '@/types/authFile';
@@ -60,6 +61,9 @@ export interface RequestEventRow {
   totalCost: number;
   searchText: string;
 }
+
+const EMPTY_REQUEST_EVENT_ROWS: RequestEventRow[] = [];
+const EMPTY_USAGE_DETAILS: UsageDetail[] = [];
 
 export interface UseRequestEventRowsOptions {
   usage: unknown;
@@ -212,8 +216,10 @@ export function useRequestEventRows({
   codexConfigs,
 }: UseRequestEventRowsOptions): UseRequestEventRowsReturn {
   const { i18n } = useTranslation();
-  const apiBase = useAuthStore((state) => state.apiBase);
-  const managementKey = useAuthStore((state) => state.managementKey);
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
+  const apiBase = useAuthStore((state) => (isCurrentLayer ? state.apiBase : ''));
+  const managementKey = useAuthStore((state) => (isCurrentLayer ? state.managementKey : ''));
   const authScopeKey = `${apiBase ?? ''}::${managementKey ?? ''}`;
   const [authFileMapState, setAuthFileMapState] = useState<{
     scopeKey: string;
@@ -228,6 +234,8 @@ export function useRequestEventRows({
       : (authFileMapCache.get(authScopeKey)?.map ?? EMPTY_CREDENTIAL_INFO_MAP);
 
   useEffect(() => {
+    if (!isCurrentLayer) return undefined;
+
     let cancelled = false;
     const cached = authFileMapCache.get(authScopeKey);
     if (cached && Date.now() - cached.fetchedAt < AUTH_FILE_MAP_STALE_TIME_MS) {
@@ -249,7 +257,7 @@ export function useRequestEventRows({
     return () => {
       cancelled = true;
     };
-  }, [authScopeKey]);
+  }, [authScopeKey, isCurrentLayer]);
 
   const sourceInfoMap = useMemo(
     () =>
@@ -260,11 +268,18 @@ export function useRequestEventRows({
     [claudeConfigs, codexConfigs]
   );
 
-  const rows = useMemo<RequestEventRow[]>(() => {
-    const details = selectRecentUsageDetails(collectUsageDetails(usage), REQUEST_EVENT_ROWS_LIMIT);
+  const recentDetails = useMemo(
+    () =>
+      isCurrentLayer
+        ? selectRecentUsageDetails(collectUsageDetails(usage), REQUEST_EVENT_ROWS_LIMIT)
+        : EMPTY_USAGE_DETAILS,
+    [isCurrentLayer, usage]
+  );
 
+  const rows = useMemo<RequestEventRow[]>(() => {
+    if (!isCurrentLayer) return EMPTY_REQUEST_EVENT_ROWS;
     const idOccurrences = new Map<string, number>();
-    return details.map((detail) => {
+    return recentDetails.map((detail) => {
       const timestamp = detail.timestamp;
       const timestampMs =
         typeof detail.__timestampMs === 'number' && detail.__timestampMs > 0
@@ -373,7 +388,7 @@ export function useRequestEventRows({
         searchText,
       };
     });
-  }, [authFileMap, i18n.language, modelPrices, sourceInfoMap, usage]);
+  }, [authFileMap, i18n.language, isCurrentLayer, modelPrices, recentDetails, sourceInfoMap]);
 
   const hasLatencyData = useMemo(() => rows.some((row) => row.latencyMs !== null), [rows]);
 

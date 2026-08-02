@@ -1,25 +1,25 @@
-# CLI Proxy API 管理中心
+# Toka
 
-用于管理与故障排查 **CLI Proxy API** 的单文件 Web UI（React + TypeScript），通过 **Management API** 完成配置、凭据、日志与统计等管理操作。
+Toka 是用于管理与故障排查 AI 网关服务的单文件 Web UI（React + TypeScript），通过 **Management API** 完成配置、凭据、日志与统计等管理操作。
 
 [English](README.md)
 
-**主项目**: https://github.com/router-for-me/CLIProxyAPI  
+**后端项目**：[Toka 后端源码](https://github.com/router-for-me/CLIProxyAPI)
 **示例地址**: https://remote.router-for.me/  
 **最低版本要求**: ≥ 6.8.0（推荐 ≥ 6.8.15）
 
-从6.0.19版本开始，Web UI 随主程序一起提供；服务运行后，通过 API 端口上的"/management.html"访问它。
+从后端 6.0.19 版本开始，Toka 随主程序一起提供；服务运行后，通过 API 端口上的 `/management.html` 访问它。
 
 ## 这是什么（以及不是什么）
 
-- 本仓库只包含 Web 管理界面本身，通过 CLI Proxy API 的 **Management API**（`/v0/management`）读取/修改配置、上传凭据、查看日志与使用统计。
+- 本仓库只包含 Toka Web 管理界面，通过所连接后端的 **Management API**（`/v0/management`）读取/修改配置、上传凭据、查看日志与使用统计。
 - 它 **不是** 代理本体，不参与流量转发。
 
 ## 快速开始
 
-### 方式 A：使用 CLI Proxy API 自带的 Web UI（推荐）
+### 方式 A：使用后端自带的 Toka（推荐）
 
-1. 启动 CLI Proxy API 服务。
+1. 启动 AI 网关后端服务。
 2. 打开：`http://<host>:<api_port>/management.html`
 3. 输入 **管理密钥** 并连接。
 
@@ -32,7 +32,7 @@ npm install
 npm run dev
 ```
 
-打开 `http://localhost:5173`，然后连接到你的 CLI Proxy API 后端实例。
+打开 `http://localhost:5173`，然后连接到你的 Toka 后端实例。
 
 ### 方式 C：构建单文件 HTML
 
@@ -42,7 +42,7 @@ npm run build
 ```
 
 - 构建产物：`dist/index.html`（资源已全部内联）。
-- 在 CLI Proxy API 的发布流程里会重命名为 `management.html`。
+- 在后端发布流程里会重命名为 `management.html`。
 - 本地预览：`npm run preview`
 
 提示：直接用 `file://` 打开 `dist/index.html` 可能遇到浏览器 CORS 限制；更稳妥的方式是用预览/静态服务器打开。

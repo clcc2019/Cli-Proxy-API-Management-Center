@@ -2,21 +2,21 @@
 @use '../styles/variables' as *;
 
 .container {
-  --oauth-surface: #ffffff;
-  --oauth-surface-subtle: #f4f4f4;
-  --oauth-surface-warm: #faf8f5;
-  --oauth-text: #2c2a25;
-  --oauth-text-secondary: #565551;
-  --oauth-text-tertiary: #807f7c;
-  --oauth-text-muted: #abaaa8;
-  --oauth-border: #eaeae9;
-  --oauth-ink: #0e0d0c;
-  --oauth-sage: #96a58d;
-  --oauth-sage-strong: #63725a;
-  --oauth-sage-soft: #e1e2d9;
-  --oauth-success: #407345;
-  --oauth-warning: #a87428;
-  --oauth-danger: #a53830;
+  --oauth-surface: var(--mg-surface);
+  --oauth-surface-subtle: var(--mg-surface-subtle);
+  --oauth-surface-warm: var(--mg-surface-warm);
+  --oauth-text: var(--mg-text);
+  --oauth-text-secondary: var(--mg-text-secondary);
+  --oauth-text-tertiary: var(--mg-text-tertiary);
+  --oauth-text-muted: var(--mg-text-muted);
+  --oauth-border: var(--mg-border);
+  --oauth-ink: var(--mg-ink-strong);
+  --oauth-sage: var(--mg-sage);
+  --oauth-sage-strong: var(--mg-sage-strong);
+  --oauth-sage-soft: var(--mg-sage-soft);
+  --oauth-success: var(--mg-success);
+  --oauth-warning: var(--mg-warning);
+  --oauth-danger: var(--mg-danger);
   --oauth-focus: color-mix(in srgb, var(--oauth-sage-strong) 42%, transparent);
 
   position: relative;
@@ -31,28 +31,26 @@
 }
 
 .pageHeader {
-  display: flex;
-  flex-direction: column;
+  @include management-page-header;
   align-items: flex-start;
+  flex-direction: column;
   gap: 5px;
-  padding: 2px 2px 0;
+  padding: 2px 1px 16px;
+
+  @include mobile {
+    align-items: stretch;
+  }
 }
 
 .pageTitle {
-  margin: 0;
+  @include management-page-title;
   color: var(--oauth-text);
-  font-size: clamp(26px, 2.2vw, 32px);
-  font-weight: 650;
-  line-height: 1.15;
-  letter-spacing: -0.028em;
 }
 
 .pageSubtitle {
+  @include management-page-description;
   max-width: 72ch;
-  margin: 0;
   color: var(--oauth-text-secondary);
-  font-size: 13.5px;
-  line-height: 1.5;
   text-wrap: pretty;
 }
 
@@ -61,9 +59,9 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--oauth-border);
-  border-radius: 15px;
+  border-radius: var(--mg-radius-card);
   background: var(--oauth-surface);
-  box-shadow: 0 20px 65px rgb(0 0 0 / 0.035);
+  box-shadow: none;
 }
 
 .providerGrid {

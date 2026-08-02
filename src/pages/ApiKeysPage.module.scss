@@ -2,20 +2,20 @@
 @use '../styles/variables' as *;
 
 .container {
-  --api-surface: #ffffff;
-  --api-surface-subtle: #f7f7f5;
-  --api-surface-warm: #faf8f5;
-  --api-text: #2c2a25;
-  --api-text-secondary: #565551;
-  --api-text-tertiary: #807f7c;
-  --api-border: #eaeae9;
+  --api-surface: var(--mg-surface);
+  --api-surface-subtle: var(--mg-surface-subtle);
+  --api-surface-warm: var(--mg-surface-warm);
+  --api-text: var(--mg-text);
+  --api-text-secondary: var(--mg-text-secondary);
+  --api-text-tertiary: var(--mg-text-tertiary);
+  --api-border: var(--mg-border);
   --api-border-strong: #d8d8d3;
-  --api-ink: #0e0d0c;
-  --api-sage: #96a58d;
-  --api-sage-strong: #63725a;
-  --api-success: #407345;
-  --api-warning: #a36e1f;
-  --api-danger: #a53830;
+  --api-ink: var(--mg-ink-strong);
+  --api-sage: var(--mg-sage);
+  --api-sage-strong: var(--mg-sage-strong);
+  --api-success: var(--mg-success);
+  --api-warning: var(--mg-warning);
+  --api-danger: var(--mg-danger);
 
   width: 100%;
   min-width: 0;
@@ -28,13 +28,8 @@
 }
 
 .pageHeader {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  min-width: 0;
-  padding: 3px 1px 18px;
-  border-bottom: 1px solid var(--api-border);
+  @include management-page-header;
+  border-bottom-color: var(--api-border);
 }
 
 .pageHeaderMain {
@@ -56,20 +51,14 @@
 }
 
 .pageTitle {
-  margin: 0;
+  @include management-page-title;
   color: var(--api-text);
-  font-size: clamp(26px, 2.3vw, 32px);
-  font-weight: 650;
-  line-height: 1.06;
-  letter-spacing: -0.045em;
 }
 
 .pageDescription {
+  @include management-page-description;
   max-width: 700px;
-  margin: 0;
   color: var(--api-text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
 }
 
 .pageHeaderAside {
@@ -117,12 +106,8 @@
 }
 
 .tabBar {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid var(--api-border);
-  border-radius: 999px;
+  @include management-tabs;
+  border-color: var(--api-border);
   background: var(--api-surface-subtle);
 }
 

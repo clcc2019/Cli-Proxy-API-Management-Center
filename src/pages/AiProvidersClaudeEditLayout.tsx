@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { providersApi } from '@/services/api';
 import { useAuthStore, useClaudeEditDraftStore, useConfigStore, useNotificationStore } from '@/stores';
@@ -103,6 +104,23 @@ const buildClaudeBaseline = (form: ProviderFormState): ClaudeEditBaseline => ({
     form.experimentalCchSigning === undefined ? null : Boolean(form.experimentalCchSigning),
 });
 
+const buildClaudeDraftSeed = (config?: ProviderKeyConfig) => {
+  const form: ProviderFormState = config
+    ? {
+        ...config,
+        headers: headersToEntries(config.headers),
+        modelEntries: modelsToEntries(config.models),
+        excludedText: excludedModelsToText(config.excludedModels),
+      }
+    : buildEmptyForm();
+  const availableModels = form.modelEntries.map((entry) => entry.name.trim()).filter(Boolean);
+  return {
+    baseline: buildClaudeBaseline(form),
+    form,
+    testModel: availableModels[0] || '',
+  };
+};
+
 const areCloakConfigsEqual = (left: ClaudeEditBaseline['cloak'], right: ClaudeEditBaseline['cloak']) => {
   if (left === right) return true;
   if (!left || !right) return false;
@@ -126,21 +144,23 @@ export function AiProvidersClaudeEditLayout() {
   const showNotification = useNotificationStore((state) => state.showNotification);
 
   const params = useParams<{ index?: string }>();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const hasIndexParam = typeof params.index === 'string';
   const editIndex = useMemo(() => parseIndexParam(params.index), [params.index]);
   const invalidIndexParam = hasIndexParam && editIndex === null;
 
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
   const disableControls = connectionStatus !== 'connected';
 
-  const config = useConfigStore((state) => state.config);
+  const config = useConfigStore((state) => (isCurrentLayer ? state.config : null));
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
-  const isCacheValid = useConfigStore((state) => state.isCacheValid);
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
   const clearCache = useConfigStore((state) => state.clearCache);
 
   const [configs, setConfigs] = useState<ProviderKeyConfig[]>(() => config?.claudeApiKeys ?? []);
-  const [loading, setLoading] = useState(() => !isCacheValid('claude-api-key'));
   const [saving, setSaving] = useState(false);
 
   const draftKey = useMemo(() => {
@@ -201,60 +221,38 @@ export function AiProvidersClaudeEditLayout() {
   }, [location.state, navigate]);
 
   useEffect(() => {
-    let cancelled = false;
-    const hasValidCache = isCacheValid('claude-api-key');
-    if (!hasValidCache) {
-      setLoading(true);
-    }
+    if (!isCurrentLayer) return undefined;
 
-    fetchConfig('claude-api-key')
-      .then((value) => {
-        if (cancelled) return;
-        setConfigs(Array.isArray(value) ? (value as ProviderKeyConfig[]) : []);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const message = getErrorMessage(err) || t('notification.refresh_failed');
-        showNotification(`${t('notification.load_failed')}: ${message}`, 'error');
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setLoading(false);
-      });
+    let cancelled = false;
+    const taskId = window.setTimeout(() => {
+      void fetchConfig('claude-api-key')
+        .then((value) => {
+          if (cancelled) return;
+          const nextConfigs = Array.isArray(value) ? (value as ProviderKeyConfig[]) : [];
+          setConfigs(nextConfigs);
+          initDraft(
+            draftKey,
+            buildClaudeDraftSeed(editIndex === null ? undefined : nextConfigs[editIndex])
+          );
+        })
+        .catch((err: unknown) => {
+          if (cancelled) return;
+          const fallbackConfigs = useConfigStore.getState().config?.claudeApiKeys ?? [];
+          setConfigs(fallbackConfigs);
+          initDraft(
+            draftKey,
+            buildClaudeDraftSeed(editIndex === null ? undefined : fallbackConfigs[editIndex])
+          );
+          const message = getErrorMessage(err) || t('notification.refresh_failed');
+          showNotification(`${t('notification.load_failed')}: ${message}`, 'error');
+        });
+    }, 0);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(taskId);
     };
-  }, [fetchConfig, isCacheValid, showNotification, t]);
-
-  useEffect(() => {
-    if (loading) return;
-    if (draft?.initialized) return;
-
-    if (initialData) {
-      const seededForm: ProviderFormState = {
-        ...initialData,
-        headers: headersToEntries(initialData.headers),
-        modelEntries: modelsToEntries(initialData.models),
-        excludedText: excludedModelsToText(initialData.excludedModels),
-      };
-      const available = seededForm.modelEntries.map((entry) => entry.name.trim()).filter(Boolean);
-      const baseline = buildClaudeBaseline(seededForm);
-      initDraft(draftKey, {
-        baseline,
-        form: seededForm,
-        testModel: available[0] || '',
-      });
-      return;
-    }
-
-    const emptyForm = buildEmptyForm();
-    initDraft(draftKey, {
-      baseline: buildClaudeBaseline(emptyForm),
-      form: emptyForm,
-      testModel: '',
-    });
-  }, [draft?.initialized, draftKey, initDraft, initialData, loading]);
+  }, [draftKey, editIndex, fetchConfig, initDraft, isCurrentLayer, showNotification, t]);
 
   const resolvedLoading = !draft?.initialized;
   const baseline = draft?.baseline ?? null;
@@ -316,7 +314,7 @@ export function AiProvidersClaudeEditLayout() {
   const canGuard = !resolvedLoading && !saving && !invalidIndexParam && !invalidIndex;
 
   const { allowNextNavigation } = useUnsavedChangesGuard({
-    enabled: canGuard,
+    enabled: isCurrentLayer && canGuard,
     shouldBlock: ({ nextLocation }) => {
       const nextPath = nextLocation.pathname;
       const isWithinRoot =
@@ -333,7 +331,7 @@ export function AiProvidersClaudeEditLayout() {
   });
 
   useEffect(() => {
-    if (resolvedLoading) return;
+    if (!isCurrentLayer || resolvedLoading) return;
 
     if (availableModels.length === 0) {
       if (testModel) {
@@ -345,7 +343,7 @@ export function AiProvidersClaudeEditLayout() {
     if (!testModel || !availableModels.includes(testModel)) {
       setTestModel(availableModels[0]);
     }
-  }, [availableModels, resolvedLoading, setTestModel, testModel]);
+  }, [availableModels, isCurrentLayer, resolvedLoading, setTestModel, testModel]);
 
   const mergeDiscoveredModels = useCallback(
     (selectedModels: ModelInfo[]) => {

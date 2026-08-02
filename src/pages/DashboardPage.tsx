@@ -7,7 +7,9 @@ import { useInterval } from '@/hooks/useInterval';
 import { useAuthStore, useConfigStore, useModelsStore } from '@/stores';
 import { apiKeysApi, providersApi, authFilesApi } from '@/services/api';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import type { Config } from '@/types';
+import type { ModelInfo } from '@/utils/models';
 import styles from './DashboardPage.module.scss';
 
 interface QuickStat {
@@ -31,6 +33,7 @@ const GREETING_REFRESH_INTERVAL_MS = 5 * 60_000;
 const MODELS_IDLE_LOAD_DELAY_MS = 320;
 const MODELS_IDLE_LOAD_TIMEOUT_MS = 1_500;
 const DASHBOARD_STATS_CACHE_TTL_MS = 1_000;
+const EMPTY_MODELS: ModelInfo[] = [];
 
 const getConfiguredItemCount = (items: unknown): number | null =>
   Array.isArray(items) ? items.length : null;
@@ -127,11 +130,25 @@ function getTimeOfDay(date = new Date()): TimeOfDay {
  */
 const HeroTimeBlock = memo(function HeroTimeBlock() {
   const { i18n } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [now, setNow] = useState<Date>(() => new Date());
+  const wasCurrentLayerRef = useRef(isCurrentLayer);
+
+  useEffect(() => {
+    if (!isCurrentLayer) {
+      wasCurrentLayerRef.current = false;
+      return;
+    }
+    if (!wasCurrentLayerRef.current) {
+      setNow(new Date());
+    }
+    wasCurrentLayerRef.current = true;
+  }, [isCurrentLayer]);
 
   useAlignedInterval(() => {
     setNow(new Date());
-  }, MINUTE_INTERVAL_MS);
+  }, MINUTE_INTERVAL_MS, { enabled: isCurrentLayer });
 
   const formattedTime = useMemo(
     () => now.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' }),
@@ -161,17 +178,34 @@ const HeroTimeBlock = memo(function HeroTimeBlock() {
  */
 const HeroGreeting = memo(function HeroGreeting() {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay);
+  const wasCurrentLayerRef = useRef(isCurrentLayer);
+
+  useEffect(() => {
+    if (!isCurrentLayer) {
+      wasCurrentLayerRef.current = false;
+      return;
+    }
+    if (!wasCurrentLayerRef.current) {
+      const nextTimeOfDay = getTimeOfDay();
+      setTimeOfDay((previous) => (previous === nextTimeOfDay ? previous : nextTimeOfDay));
+    }
+    wasCurrentLayerRef.current = true;
+  }, [isCurrentLayer]);
 
   useInterval(() => {
     const tod = getTimeOfDay();
     setTimeOfDay((prev) => (prev === tod ? prev : tod));
-  }, GREETING_REFRESH_INTERVAL_MS);
+  }, isCurrentLayer ? GREETING_REFRESH_INTERVAL_MS : null);
 
   return (
     <>
       <span className={styles.heroGreeting}>{t(`dashboard.greeting_${timeOfDay}`)}</span>
-      <h1 className={styles.heroTitle}>{t('dashboard.welcome_back')}</h1>
+      <h1 id="dashboard-hero-title" className={styles.heroTitle}>
+        {t('dashboard.welcome_back')}
+      </h1>
       <p className={styles.heroCaring}>{t(`dashboard.caring_${timeOfDay}`)}</p>
     </>
   );
@@ -179,16 +213,20 @@ const HeroGreeting = memo(function HeroGreeting() {
 
 export function DashboardPage() {
   const { t, i18n } = useTranslation();
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
-  const serverVersion = useAuthStore((state) => state.serverVersion);
-  const serverBuildDate = useAuthStore((state) => state.serverBuildDate);
-  const apiBase = useAuthStore((state) => state.apiBase);
-  const config = useConfigStore((state) => state.config);
-  const configError = useConfigStore((state) => state.error);
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
+  const serverVersion = useAuthStore((state) => (isCurrentLayer ? state.serverVersion : ''));
+  const serverBuildDate = useAuthStore((state) => (isCurrentLayer ? state.serverBuildDate : ''));
+  const apiBase = useAuthStore((state) => (isCurrentLayer ? state.apiBase : ''));
+  const config = useConfigStore((state) => (isCurrentLayer ? state.config : null));
+  const configError = useConfigStore((state) => (isCurrentLayer ? state.error : ''));
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
 
-  const models = useModelsStore((state) => state.models);
-  const modelsLoading = useModelsStore((state) => state.loading);
+  const models = useModelsStore((state) => (isCurrentLayer ? state.models : EMPTY_MODELS));
+  const modelsLoading = useModelsStore((state) => (isCurrentLayer ? state.loading : false));
   const fetchModelsFromStore = useModelsStore((state) => state.fetchModels);
 
   const [stats, setStats] = useState<{
@@ -317,7 +355,7 @@ export function DashboardPage() {
   }, [connectionStatus, apiBase, resolveApiKeysForModels, fetchModelsFromStore]);
 
   useEffect(() => {
-    if (connectionStatus !== 'connected') {
+    if (!isCurrentLayer || connectionStatus !== 'connected') {
       return undefined;
     }
 
@@ -365,7 +403,16 @@ export function DashboardPage() {
       active = false;
       cancelIdleModelsLoad();
     };
-  }, [apiBase, config, configError, connectionStatus, fetchConfig, fetchModels, loadApiKeys]);
+  }, [
+    apiBase,
+    config,
+    configError,
+    connectionStatus,
+    fetchConfig,
+    fetchModels,
+    isCurrentLayer,
+    loadApiKeys,
+  ]);
 
   const isStatsLoading = connectionStatus === 'connected' && loading;
   const providerStatsReady = providerStats.codex !== null && providerStats.claude !== null;
@@ -465,7 +512,7 @@ export function DashboardPage() {
       </div>
 
       {/* Hero welcome section */}
-      <section className={styles.hero}>
+      <section className={styles.hero} aria-labelledby="dashboard-hero-title">
         <span className={styles.heroWatermark} aria-hidden="true">
           OVERVIEW
         </span>
@@ -474,7 +521,7 @@ export function DashboardPage() {
         </div>
         <div className={styles.heroMeta}>
           <HeroTimeBlock />
-          <div className={styles.connectionPill}>
+          <div className={styles.connectionPill} role="status" aria-live="polite">
             <span
               className={`${styles.statusDot} ${
                 connectionStatus === 'connected'
@@ -483,18 +530,28 @@ export function DashboardPage() {
                     ? styles.connecting
                     : styles.disconnected
               }`}
+              aria-hidden="true"
             />
-            <span className={styles.pillText}>
-              {serverVersion ? `v${serverVersion.trim().replace(/^[vV]+/, '')}` : t(statusLabel)}
-            </span>
+            <span className={styles.pillText}>{t(statusLabel)}</span>
+            {serverVersion && (
+              <span className={styles.pillVersion}>
+                v{serverVersion.trim().replace(/^[vV]+/, '')}
+              </span>
+            )}
           </div>
           {buildDateText && <span className={styles.buildDate}>{buildDateText}</span>}
         </div>
       </section>
 
       {/* Bento stats grid */}
-      <section className={styles.statsSection}>
-        <h2 className={styles.sectionHeading}>{t('dashboard.system_overview')}</h2>
+      <section
+        className={styles.statsSection}
+        aria-labelledby="dashboard-stats-title"
+        aria-busy={isStatsLoading}
+      >
+        <h2 id="dashboard-stats-title" className={styles.sectionHeading}>
+          {t('dashboard.system_overview')}
+        </h2>
         <div className={styles.bentoGrid}>
           {quickStats.map((stat, index) => (
             <Link
@@ -506,7 +563,11 @@ export function DashboardPage() {
             >
               <div className={styles.bentoIcon}>{stat.icon}</div>
               <div className={styles.bentoContent}>
-                <span className={styles.bentoValue}>{stat.loading ? '…' : stat.value}</span>
+                <span
+                  className={`${styles.bentoValue} ${stat.loading ? styles.bentoValueLoading : ''}`}
+                >
+                  {stat.loading ? '…' : stat.value}
+                </span>
                 <span className={styles.bentoLabel}>{stat.label}</span>
                 {stat.sublabel && !stat.loading && (
                   <span className={styles.bentoSublabel}>{stat.sublabel}</span>
@@ -519,8 +580,10 @@ export function DashboardPage() {
 
       {/* Config pills section */}
       {config && (
-        <section className={styles.configSection}>
-          <h2 className={styles.sectionHeading}>{t('dashboard.current_config')}</h2>
+        <section className={styles.configSection} aria-labelledby="dashboard-config-title">
+          <h2 id="dashboard-config-title" className={styles.sectionHeading}>
+            {t('dashboard.current_config')}
+          </h2>
           <div className={styles.configPillGrid}>
             <div className={styles.configPill}>
               <span className={styles.configPillLabel}>{t('basic_settings.debug_enable')}</span>
@@ -584,7 +647,10 @@ export function DashboardPage() {
             )}
           </div>
           <Link to="/config" className={styles.viewMoreLink}>
-            {t('dashboard.edit_settings')} →
+            <span>{t('dashboard.edit_settings')}</span>
+            <span className={styles.viewMoreArrow} aria-hidden="true">
+              →
+            </span>
           </Link>
         </section>
       )}

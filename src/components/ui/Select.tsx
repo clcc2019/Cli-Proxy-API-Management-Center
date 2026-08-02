@@ -9,6 +9,7 @@ import {
   type CSSProperties
 } from 'react';
 import { createPortal } from 'react-dom';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { IconChevronDown } from './icons';
 import styles from './Select.module.scss';
 
@@ -91,6 +92,8 @@ export function Select({
   fullWidth = true,
   id,
 }: SelectProps) {
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const generatedId = useId();
   const selectId = id ?? generatedId;
   const listboxId = `${selectId}-listbox`;
@@ -100,10 +103,10 @@ export function Select({
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties | null>(null);
-  const isOpen = open && !disabled;
+  const isOpen = isCurrentLayer && open && !disabled;
 
   useEffect(() => {
-    if (!open || disabled) return;
+    if (!isCurrentLayer || !open || disabled) return;
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       if (wrapRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
@@ -111,7 +114,7 @@ export function Select({
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [disabled, open]);
+  }, [disabled, isCurrentLayer, open]);
 
   const updateDropdownStyle = useCallback(() => {
     if (!wrapRef.current) return;
@@ -120,9 +123,7 @@ export function Select({
 
   const scheduleDropdownStyleUpdate = useCallback(() => {
     if (typeof window === 'undefined') return;
-    if (rafRef.current !== null) {
-      window.cancelAnimationFrame(rafRef.current);
-    }
+    if (rafRef.current !== null) return;
     rafRef.current = window.requestAnimationFrame(() => {
       rafRef.current = null;
       updateDropdownStyle();

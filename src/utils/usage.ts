@@ -893,10 +893,18 @@ export function formatUsd(value: number): string {
   if (!Number.isFinite(num)) {
     return '$0.00';
   }
-  const fixed = num.toFixed(2);
-  const parts = Number(fixed).toLocaleString(undefined, {
+
+  const abs = Math.abs(num);
+  // Keep the familiar two-decimal display for regular amounts, but retain
+  // enough precision for small, positive per-request costs. Otherwise a
+  // valid amount such as $0.00025 is rounded to $0.00 before it reaches the UI.
+  const maximumFractionDigits =
+    abs === 0 || abs >= 0.01
+      ? 2
+      : Math.min(12, Math.max(2, Math.ceil(-Math.log10(abs)) + 2));
+  const parts = num.toLocaleString(undefined, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits,
   });
   return `$${parts}`;
 }

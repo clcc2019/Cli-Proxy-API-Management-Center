@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconInbox, IconPlus, IconSearch, IconX } from '@/components/ui/icons';
 import { PROVIDER_LOGOS } from '../brandLogos';
@@ -30,7 +31,7 @@ interface ProviderResourcePanelProps {
   onCreate: () => void;
 }
 
-export function ProviderResourcePanel({
+export const ProviderResourcePanel = memo(function ProviderResourcePanel({
   group,
   filter,
   onFilterChange,
@@ -150,4 +151,4 @@ export function ProviderResourcePanel({
       )}
     </section>
   );
-}
+});

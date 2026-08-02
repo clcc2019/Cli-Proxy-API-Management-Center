@@ -17,6 +17,7 @@ import {
   IconCheck,
   IconX,
 } from '@/components/ui/icons';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 export interface SortOption {
@@ -61,12 +62,15 @@ const PopoverButton = memo(function PopoverButton({
   triggerSummary,
   children,
 }: PopoverButtonProps) {
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverId = useId();
+  const visibleOpen = isCurrentLayer && open;
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!visibleOpen) return undefined;
     const handlePointer = (event: MouseEvent) => {
       if (!wrapperRef.current) return;
       if (event.target instanceof Node && wrapperRef.current.contains(event.target)) return;
@@ -84,24 +88,26 @@ const PopoverButton = memo(function PopoverButton({
       document.removeEventListener('mousedown', handlePointer);
       document.removeEventListener('keydown', handleKey);
     };
-  }, [open, onOpenChange]);
+  }, [onOpenChange, visibleOpen]);
 
   return (
     <div ref={wrapperRef} className={styles.searchToolbarPopoverWrap}>
       <button
         ref={triggerRef}
         type="button"
-        className={`${styles.searchToolbarIconButton} ${open ? styles.searchToolbarIconButtonActive : ''}`}
-        onClick={() => onOpenChange(!open)}
+        className={`${styles.searchToolbarIconButton} ${visibleOpen ? styles.searchToolbarIconButtonActive : ''}`}
+        onClick={() => {
+          if (isCurrentLayer) onOpenChange(!open);
+        }}
         aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-expanded={visibleOpen}
         aria-controls={popoverId}
         aria-label={triggerSummary ? `${ariaLabel}: ${triggerSummary}` : ariaLabel}
         title={triggerSummary ? `${triggerLabel} · ${triggerSummary}` : triggerLabel}
       >
         {triggerIcon}
       </button>
-      {open && (
+      {visibleOpen && (
         <div
           id={popoverId}
           role="dialog"

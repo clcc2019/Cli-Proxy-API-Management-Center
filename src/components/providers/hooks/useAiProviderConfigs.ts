@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TFunction } from 'i18next';
 import { providersApi } from '@/services/api';
 import { useConfigStore, useNotificationStore } from '@/stores';
@@ -23,33 +23,48 @@ const providerConfigSections: Record<ProviderKind, ConfigSection> = {
   claude: 'claude-api-key',
 };
 
+const EMPTY_PROVIDER_CONFIGS: ProviderKeyConfig[] = [];
+const EMPTY_OPENAI_CONFIGS: OpenAICompatibilityConfig[] = [];
+
 interface UseAiProviderConfigsOptions {
   t: TFunction;
+  enabled?: boolean;
 }
 
-export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
+export function useAiProviderConfigs({ t, enabled = true }: UseAiProviderConfigsOptions) {
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const configCodexApiKeys = useConfigStore((state) => state.config?.codexApiKeys);
-  const configClaudeApiKeys = useConfigStore((state) => state.config?.claudeApiKeys);
-  const configOpenAICompatibility = useConfigStore((state) => state.config?.openAICompatibility);
+  const configCodexApiKeys = useConfigStore((state) =>
+    enabled ? state.config?.codexApiKeys : undefined
+  );
+  const configClaudeApiKeys = useConfigStore((state) =>
+    enabled ? state.config?.claudeApiKeys : undefined
+  );
+  const configOpenAICompatibility = useConfigStore((state) =>
+    enabled ? state.config?.openAICompatibility : undefined
+  );
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
   const isCacheValid = useConfigStore((state) => state.isCacheValid);
 
   const isMountedRef = useRef(false);
+  const enabledRef = useRef(enabled);
   const loadRequestVersionRef = useRef(0);
   const switchingKeysRef = useRef<Set<string>>(new Set());
   const [loading, setLoading] = useState(() => !isCacheValid());
   const [error, setError] = useState('');
-  const [codexConfigs, setCodexConfigs] = useState<ProviderKeyConfig[]>(() =>
-    sortToggleableProviderConfigs(configCodexApiKeys || [])
+  const codexConfigs = useMemo(
+    () => sortToggleableProviderConfigs(configCodexApiKeys ?? EMPTY_PROVIDER_CONFIGS),
+    [configCodexApiKeys]
   );
-  const [claudeConfigs, setClaudeConfigs] = useState<ProviderKeyConfig[]>(() =>
-    sortToggleableProviderConfigs(configClaudeApiKeys || [])
+  const claudeConfigs = useMemo(
+    () => sortToggleableProviderConfigs(configClaudeApiKeys ?? EMPTY_PROVIDER_CONFIGS),
+    [configClaudeApiKeys]
   );
-  const [openAIConfigs, setOpenAIConfigs] = useState<OpenAICompatibilityConfig[]>(
-    () => configOpenAICompatibility || []
-  );
+  const openAIConfigs = configOpenAICompatibility ?? EMPTY_OPENAI_CONFIGS;
   const [switchingKeys, setSwitchingKeys] = useState<Set<string>>(() => new Set());
+
+  useLayoutEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
 
   const getConfigs = useCallback(
     (provider: ProviderKind) => (provider === 'codex' ? codexConfigs : claudeConfigs),
@@ -61,11 +76,6 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
       const next = sortToggleableProviderConfigs(configs);
       const section = providerConfigSections[provider];
 
-      if (provider === 'codex') {
-        setCodexConfigs(next);
-      } else {
-        setClaudeConfigs(next);
-      }
       updateConfigValue(section, next);
 
       return next;
@@ -76,7 +86,6 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
   const commitOpenAIConfigs = useCallback(
     (configs: OpenAICompatibilityConfig[]) => {
       const next = [...configs];
-      setOpenAIConfigs(next);
       updateConfigValue('openai-compatibility', next);
       return next;
     },
@@ -101,13 +110,14 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
   }, []);
 
   const loadConfigs = useCallback(async () => {
+    if (!enabledRef.current) return;
     if (switchingKeysRef.current.size > 0) return;
     const requestVersion = (loadRequestVersionRef.current += 1);
     const hasValidCache = isCacheValid();
-    if (!hasValidCache && isMountedRef.current) {
+    if (!hasValidCache && isMountedRef.current && enabledRef.current) {
       setLoading(true);
     }
-    if (isMountedRef.current) setError('');
+    if (isMountedRef.current && enabledRef.current) setError('');
 
     try {
       const [codex, claude, openAI] = await Promise.all([
@@ -116,20 +126,25 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
         providersApi.getOpenAICompatConfigs(),
       ]);
       if (!isMountedRef.current || requestVersion !== loadRequestVersionRef.current) return;
-      const sortedCodex = sortToggleableProviderConfigs(codex);
-      const sortedClaude = sortToggleableProviderConfigs(claude);
-      setCodexConfigs(sortedCodex);
-      setClaudeConfigs(sortedClaude);
-      setOpenAIConfigs(openAI);
       updateConfigValue('codex-api-key', codex);
       updateConfigValue('claude-api-key', claude);
       updateConfigValue('openai-compatibility', openAI);
     } catch (err: unknown) {
-      if (!isMountedRef.current || requestVersion !== loadRequestVersionRef.current) return;
+      if (
+        !isMountedRef.current ||
+        !enabledRef.current ||
+        requestVersion !== loadRequestVersionRef.current
+      ) {
+        return;
+      }
       const message = getErrorMessage(err) || t('notification.refresh_failed');
       setError(message);
     } finally {
-      if (isMountedRef.current && requestVersion === loadRequestVersionRef.current) {
+      if (
+        isMountedRef.current &&
+        enabledRef.current &&
+        requestVersion === loadRequestVersionRef.current
+      ) {
         setLoading(false);
       }
     }
@@ -144,20 +159,14 @@ export function useAiProviderConfigs({ t }: UseAiProviderConfigsOptions) {
   }, []);
 
   useEffect(() => {
-    void loadConfigs();
-  }, [loadConfigs]);
+    if (!enabled) return undefined;
 
-  useEffect(() => {
-    if (configCodexApiKeys) {
-      setCodexConfigs(sortToggleableProviderConfigs(configCodexApiKeys));
-    }
-    if (configClaudeApiKeys) {
-      setClaudeConfigs(sortToggleableProviderConfigs(configClaudeApiKeys));
-    }
-    if (configOpenAICompatibility) {
-      setOpenAIConfigs(configOpenAICompatibility);
-    }
-  }, [configClaudeApiKeys, configCodexApiKeys, configOpenAICompatibility]);
+    const taskId = window.setTimeout(() => {
+      void loadConfigs();
+    }, 0);
+
+    return () => window.clearTimeout(taskId);
+  }, [enabled, loadConfigs]);
 
   const setConfigEnabled = useCallback(
     async (provider: ProviderKind, index: number, enabled: boolean) => {

@@ -67,7 +67,7 @@
 .dirBtn {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: var(--mg-radius-control);
 }
 
 .filterGroup {
@@ -101,7 +101,7 @@
   gap: 8px;
   padding: 9px;
   border: 1px solid var(--provider-border, #eaeae9);
-  border-radius: 12px;
+  border-radius: var(--mg-radius-medium);
   background: var(--provider-surface, #ffffff);
   box-shadow: 0 20px 44px rgb(44 42 37 / 0.13);
 }
@@ -120,7 +120,7 @@
   min-height: 28px;
   padding: 0 8px;
   border: 1px solid var(--provider-border, #eaeae9);
-  border-radius: 7px;
+  border-radius: var(--mg-radius-control);
   color: var(--provider-text-secondary, #565551);
   font-size: 11px;
 

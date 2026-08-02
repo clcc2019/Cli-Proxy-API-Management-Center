@@ -4,21 +4,21 @@
 // hairline structure, product-like data surfaces, and semantic color only.
 
 .dashboard {
-  --dashboard-surface: #ffffff;
-  --dashboard-surface-subtle: #f4f4f4;
-  --dashboard-surface-warm: #faf8f5;
-  --dashboard-border: #eaeae9;
+  --dashboard-surface: var(--mg-surface);
+  --dashboard-surface-subtle: var(--mg-surface-subtle, #f4f4f4);
+  --dashboard-surface-warm: var(--mg-surface-warm, #faf8f5);
+  --dashboard-border: var(--mg-border, #eaeae9);
   --dashboard-text: var(--text-primary, #2c2a25);
   --dashboard-text-secondary: var(--text-secondary, #565551);
   --dashboard-text-tertiary: var(--text-tertiary, #807f7c);
-  --dashboard-sage: #96a58d;
-  --dashboard-sage-strong: #63725a;
-  --dashboard-sage-soft: #e1e2d9;
-  --dashboard-orange: #ff6e06;
-  --dashboard-success: #407345;
-  --dashboard-warning: #e5a947;
-  --dashboard-danger: #a53830;
-  --dashboard-radius: 15px;
+  --dashboard-sage: var(--mg-sage, #96a58d);
+  --dashboard-sage-strong: var(--mg-sage-strong, #63725a);
+  --dashboard-sage-soft: var(--mg-sage-soft, #e1e2d9);
+  --dashboard-orange: var(--mg-orange, #ff6e06);
+  --dashboard-success: var(--mg-success);
+  --dashboard-warning: var(--mg-warning);
+  --dashboard-danger: var(--mg-danger);
+  --dashboard-radius: var(--mg-radius-card, 15px);
   --dashboard-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   position: relative;
@@ -30,6 +30,18 @@
   max-width: 1196px;
   margin: 0 auto;
   color: var(--dashboard-text);
+
+  &::before {
+    position: absolute;
+    z-index: -2;
+    top: -32px;
+    right: -32px;
+    bottom: -32px;
+    left: -32px;
+    background: linear-gradient(180deg, #fbfbf8 0%, #ffffff 42%, #ffffff 100%);
+    content: '';
+    pointer-events: none;
+  }
 }
 
 // ─── Quiet sage atmosphere and contour lines ───────────
@@ -245,6 +257,15 @@
   font-weight: 600;
 }
 
+.pillVersion {
+  padding-left: 8px;
+  border-left: 1px solid var(--dashboard-border);
+  color: var(--dashboard-text-tertiary);
+  font-family: $font-mono;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 .buildDate {
   color: var(--dashboard-text-tertiary);
   font-size: 11px;
@@ -382,6 +403,11 @@
   letter-spacing: -0.04em;
 }
 
+.bentoValueLoading {
+  color: var(--dashboard-text-tertiary);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 .bentoLabel {
   color: var(--dashboard-text);
   font-size: 14px;
@@ -449,12 +475,17 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
+  gap: 12px;
 }
 
 .configPillLabel {
   color: var(--dashboard-text-secondary);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.configPillWide .configPillLabel {
+  flex: 0 0 auto;
 }
 
 .configPillValue {
@@ -495,11 +526,13 @@
 
 .configPillMono {
   min-width: 0;
+  overflow: hidden;
   color: var(--dashboard-text-secondary);
   font-family: $font-mono;
   font-size: 12px;
   line-height: 1.5;
-  word-break: break-all;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .configBadge {
@@ -542,9 +575,10 @@
   min-height: 44px;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   padding: 10px 18px;
   border-radius: $radius-full;
-  background: #0e0d0c;
+  background: var(--mg-ink-strong, #0e0d0c);
   color: #ffffff;
   font-size: 13px;
   line-height: 1.2;
@@ -552,7 +586,7 @@
   transition: background-color 400ms ease;
 
   &:hover {
-    background: #565551;
+    background: var(--mg-text-secondary, #565551);
     color: #ffffff;
     text-decoration: none;
   }
@@ -564,6 +598,15 @@
   }
 }
 
+.viewMoreArrow {
+  display: inline-flex;
+  transition: transform 300ms var(--dashboard-ease);
+}
+
+.viewMoreLink:hover .viewMoreArrow {
+  transform: translateX(3px);
+}
+
 // ─── Responsive layout ─────────────────────────────────
 
 @media (max-width: $breakpoint-tablet) {
@@ -572,8 +615,32 @@
   }
 
   .hero {
+    align-items: stretch;
+    flex-direction: column;
     gap: 32px;
     padding: 40px;
+  }
+
+  .heroContent {
+    max-width: 72%;
+  }
+
+  .heroMeta {
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 18px;
+    padding: 18px 20px;
+  }
+
+  .dateTimeBlock {
+    flex: 1 1 auto;
+  }
+
+  .buildDate {
+    margin-left: auto;
   }
 
   .bentoGrid {
@@ -617,6 +684,10 @@
     padding: 30px 24px 24px;
   }
 
+  .heroContent {
+    max-width: none;
+  }
+
   .heroWatermark {
     right: 10px;
     bottom: -6px;
@@ -635,7 +706,19 @@
   .heroMeta {
     width: 100%;
     min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 14px;
     padding: 18px;
+  }
+
+  .dateTimeBlock {
+    flex: 0 0 auto;
+  }
+
+  .buildDate {
+    margin-left: 0;
   }
 
   .time {
@@ -676,6 +759,14 @@
     min-width: 0;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .configPillWide .configPillMono {
+    width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-all;
   }
 
   .viewMoreLink {
@@ -753,7 +844,8 @@
   .heroMeta,
   .bentoCard,
   .configSection,
-  .statusDot.connecting {
+  .statusDot.connecting,
+  .bentoValueLoading {
     animation: none;
   }
 
@@ -761,7 +853,8 @@
   .bentoCard::after,
   .bentoIcon,
   .configPill,
-  .viewMoreLink {
+  .viewMoreLink,
+  .viewMoreArrow {
     transition: none;
   }
 }

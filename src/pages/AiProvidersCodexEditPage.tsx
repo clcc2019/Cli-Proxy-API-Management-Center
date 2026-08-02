@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/Input';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { Modal } from '@/components/ui/Modal';
-import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { ProviderEditShell } from '@/components/common/ProviderEditShell';
 import iconCodex from '@/assets/icons/codex.svg';
@@ -27,7 +27,11 @@ import {
 import type { ProviderFormState } from '@/components/providers';
 import type { ModelInfo } from '@/utils/models';
 import { getErrorMessage } from '@/utils/error';
+import { ModelDiscoveryRow } from './components/ModelDiscoveryRow';
 import styles from './AiProvidersPage.module.scss';
+
+const EMPTY_MODEL_INFO_LIST: ModelInfo[] = [];
+const EMPTY_MODEL_NAMES: string[] = [];
 
 type LocationState = { fromAiProviders?: boolean } | null;
 
@@ -44,6 +48,15 @@ const buildEmptyForm = (): ProviderFormState => ({
   excludedModels: [],
   modelEntries: [{ name: '', alias: '' }],
   excludedText: '',
+});
+
+const buildFormFromConfig = (config: ProviderKeyConfig): ProviderFormState => ({
+  ...config,
+  websockets: Boolean(config.websockets),
+  poolMode: Boolean(config.poolMode),
+  headers: headersToEntries(config.headers),
+  modelEntries: modelsToEntries(config.models),
+  excludedText: excludedModelsToText(config.excludedModels),
 });
 
 const parseIndexParam = (value: string | undefined) => {
@@ -96,9 +109,13 @@ export function AiProvidersCodexEditPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams<{ index?: string }>();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
 
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
   const disableControls = connectionStatus !== 'connected';
 
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
@@ -112,7 +129,6 @@ export function AiProvidersCodexEditPage() {
   const [baseline, setBaseline] = useState(() => buildCodexBaseline(buildEmptyForm()));
 
   const [modelDiscoveryOpen, setModelDiscoveryOpen] = useState(false);
-  const [modelDiscoveryEndpoint, setModelDiscoveryEndpoint] = useState('');
   const [discoveredModels, setDiscoveredModels] = useState<ModelInfo[]>([]);
   const [modelDiscoveryFetching, setModelDiscoveryFetching] = useState(false);
   const [modelDiscoveryError, setModelDiscoveryError] = useState('');
@@ -132,6 +148,10 @@ export function AiProvidersCodexEditPage() {
   }, [configs, editIndex]);
 
   const invalidIndex = editIndex !== null && !initialData;
+  const modelDiscoveryEndpoint = useMemo(
+    () => modelsApi.buildV1ModelsEndpoint(form.baseUrl ?? ''),
+    [form.baseUrl]
+  );
 
   const title =
     editIndex !== null
@@ -148,51 +168,41 @@ export function AiProvidersCodexEditPage() {
   }, [location.state, navigate]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
+    if (!isCurrentLayer) return undefined;
 
-    providersApi
-      .getCodexConfigs()
-      .then((value) => {
-        if (cancelled) return;
-        setConfigs(Array.isArray(value) ? (value as ProviderKeyConfig[]) : []);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : '';
-        setError(message || t('notification.refresh_failed'));
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setLoading(false);
-      });
+    let cancelled = false;
+    const taskId = window.setTimeout(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError('');
+
+      void providersApi
+        .getCodexConfigs()
+        .then((value) => {
+          if (cancelled) return;
+          const nextConfigs = Array.isArray(value) ? (value as ProviderKeyConfig[]) : [];
+          const nextInitialData = editIndex === null ? undefined : nextConfigs[editIndex];
+          const nextForm = nextInitialData ? buildFormFromConfig(nextInitialData) : buildEmptyForm();
+          setConfigs(nextConfigs);
+          setForm(nextForm);
+          setBaseline(buildCodexBaseline(nextForm));
+        })
+        .catch((err: unknown) => {
+          if (cancelled) return;
+          const message = err instanceof Error ? err.message : '';
+          setError(message || t('notification.refresh_failed'));
+        })
+        .finally(() => {
+          if (cancelled) return;
+          setLoading(false);
+        });
+    }, 0);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(taskId);
     };
-  }, [t]);
-
-  useEffect(() => {
-    if (loading) return;
-
-    if (initialData) {
-      const nextForm: ProviderFormState = {
-        ...initialData,
-        websockets: Boolean(initialData.websockets),
-        poolMode: Boolean(initialData.poolMode),
-        headers: headersToEntries(initialData.headers),
-        modelEntries: modelsToEntries(initialData.models),
-        excludedText: excludedModelsToText(initialData.excludedModels),
-      };
-      setForm(nextForm);
-      setBaseline(buildCodexBaseline(nextForm));
-      return;
-    }
-    const nextForm = buildEmptyForm();
-    setForm(nextForm);
-    setBaseline(buildCodexBaseline(nextForm));
-  }, [initialData, loading]);
+  }, [editIndex, isCurrentLayer, t]);
 
   const normalizedHeaders = useMemo(() => normalizeHeaderEntries(form.headers), [form.headers]);
   const normalizedModels = useMemo(
@@ -234,7 +244,7 @@ export function AiProvidersCodexEditPage() {
   const canGuard = !loading && !saving && !invalidIndexParam && !invalidIndex;
 
   const { allowNextNavigation } = useUnsavedChangesGuard({
-    enabled: canGuard,
+    enabled: isCurrentLayer && canGuard,
     shouldBlock: ({ currentLocation, nextLocation }) =>
       isDirty && currentLocation.pathname !== nextLocation.pathname,
     dialog: {
@@ -249,6 +259,8 @@ export function AiProvidersCodexEditPage() {
   const canSave = !disableControls && !saving && !loading && !invalidIndexParam && !invalidIndex;
 
   const discoveredModelsFiltered = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_MODEL_INFO_LIST;
+
     const filter = modelDiscoverySearch.trim().toLowerCase();
     if (!filter) return discoveredModels;
     return discoveredModels.filter((model) => {
@@ -257,10 +269,10 @@ export function AiProvidersCodexEditPage() {
       const description = (model.description || '').toLowerCase();
       return name.includes(filter) || alias.includes(filter) || description.includes(filter);
     });
-  }, [discoveredModels, modelDiscoverySearch]);
+  }, [discoveredModels, isCurrentLayer, modelDiscoverySearch]);
   const visibleDiscoveredModelNames = useMemo(
-    () => discoveredModelsFiltered.map((model) => model.name),
-    [discoveredModelsFiltered]
+    () => (isCurrentLayer ? discoveredModelsFiltered.map((model) => model.name) : EMPTY_MODEL_NAMES),
+    [discoveredModelsFiltered, isCurrentLayer]
   );
   const allVisibleDiscoveredSelected = useMemo(
     () =>
@@ -268,6 +280,23 @@ export function AiProvidersCodexEditPage() {
       visibleDiscoveredModelNames.every((name) => modelDiscoverySelected.has(name)),
     [modelDiscoverySelected, visibleDiscoveredModelNames]
   );
+
+  const commitDiscoveredModels = useCallback((nextModels: ModelInfo[]) => {
+    const availableNames = new Set(nextModels.map((model) => model.name));
+    setDiscoveredModels(nextModels);
+    setModelDiscoverySelected((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((name) => {
+        if (availableNames.has(name)) {
+          next.add(name);
+        } else {
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, []);
 
   const mergeDiscoveredModels = useCallback(
     (selectedModels: ModelInfo[]) => {
@@ -325,10 +354,10 @@ export function AiProvidersCodexEditPage() {
         headerObject
       );
       if (modelDiscoveryRequestIdRef.current !== requestId) return;
-      setDiscoveredModels(list);
+      commitDiscoveredModels(list);
     } catch (err: unknown) {
       if (modelDiscoveryRequestIdRef.current !== requestId) return;
-      setDiscoveredModels([]);
+      commitDiscoveredModels([]);
       const message = getErrorMessage(err);
       setModelDiscoveryError(`${t('ai_providers.codex_models_fetch_error')}: ${message}`);
     } finally {
@@ -336,24 +365,17 @@ export function AiProvidersCodexEditPage() {
         setModelDiscoveryFetching(false);
       }
     }
-  }, [form.apiKey, form.baseUrl, form.headers, t]);
+  }, [commitDiscoveredModels, form.apiKey, form.baseUrl, form.headers, t]);
+
+  useEffect(
+    () => () => {
+      modelDiscoveryRequestIdRef.current += 1;
+    },
+    []
+  );
 
   useEffect(() => {
-    if (!modelDiscoveryOpen) {
-      autoFetchSignatureRef.current = '';
-      modelDiscoveryRequestIdRef.current += 1;
-      setModelDiscoveryFetching(false);
-      return;
-    }
-
-    const nextEndpoint = modelsApi.buildV1ModelsEndpoint(form.baseUrl ?? '');
-    setModelDiscoveryEndpoint(nextEndpoint);
-    setDiscoveredModels([]);
-    setModelDiscoverySearch('');
-    setModelDiscoverySelected(new Set());
-    setModelDiscoveryError('');
-
-    if (!nextEndpoint) return;
+    if (!isCurrentLayer || !modelDiscoveryOpen) return undefined;
 
     const headerObject = buildHeaderObject(form.headers);
     const hasCustomAuthorization = Object.keys(headerObject).some(
@@ -361,37 +383,49 @@ export function AiProvidersCodexEditPage() {
     );
     const hasApiKeyField = Boolean(form.apiKey.trim());
     const canAutoFetch = hasApiKeyField || hasCustomAuthorization;
-
-    if (!canAutoFetch) return;
-
     const headerSignature = Object.entries(headerObject)
       .sort(([a], [b]) => a.toLowerCase().localeCompare(b.toLowerCase()))
       .map(([key, value]) => `${key}:${value}`)
       .join('|');
-    const signature = `${nextEndpoint}||${form.apiKey.trim()}||${headerSignature}`;
-    if (autoFetchSignatureRef.current === signature) return;
-    autoFetchSignatureRef.current = signature;
+    const signature = `${modelDiscoveryEndpoint}||${form.apiKey.trim()}||${headerSignature}`;
 
-    void fetchCodexModelDiscovery();
-  }, [fetchCodexModelDiscovery, form.apiKey, form.baseUrl, form.headers, modelDiscoveryOpen]);
+    if (autoFetchSignatureRef.current === signature) return undefined;
+    modelDiscoveryRequestIdRef.current += 1;
 
-  useEffect(() => {
-    const availableNames = new Set(discoveredModels.map((model) => model.name));
-    setModelDiscoverySelected((prev) => {
-      let changed = false;
-      const next = new Set<string>();
-      prev.forEach((name) => {
-        if (availableNames.has(name)) {
-          next.add(name);
-        } else {
-          changed = true;
-        }
-      });
-      return changed ? next : prev;
-    });
-  }, [discoveredModels]);
+    const taskId = window.setTimeout(() => {
+      autoFetchSignatureRef.current = signature;
+      setModelDiscoveryFetching(false);
+      commitDiscoveredModels([]);
+      setModelDiscoverySearch('');
+      setModelDiscoveryError('');
 
-  const toggleModelDiscoverySelection = (name: string) => {
+      if (modelDiscoveryEndpoint && canAutoFetch) {
+        void fetchCodexModelDiscovery();
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(taskId);
+      modelDiscoveryRequestIdRef.current += 1;
+    };
+  }, [
+    commitDiscoveredModels,
+    fetchCodexModelDiscovery,
+    form.apiKey,
+    form.headers,
+    isCurrentLayer,
+    modelDiscoveryEndpoint,
+    modelDiscoveryOpen,
+  ]);
+
+  const closeModelDiscovery = useCallback(() => {
+    autoFetchSignatureRef.current = '';
+    modelDiscoveryRequestIdRef.current += 1;
+    setModelDiscoveryFetching(false);
+    setModelDiscoveryOpen(false);
+  }, []);
+
+  const toggleModelDiscoverySelection = useCallback((name: string) => {
     setModelDiscoverySelected((prev) => {
       const next = new Set(prev);
       if (next.has(name)) {
@@ -401,7 +435,7 @@ export function AiProvidersCodexEditPage() {
       }
       return next;
     });
-  };
+  }, []);
 
   const handleSelectVisibleDiscoveredModels = useCallback(() => {
     setModelDiscoverySelected((prev) => {
@@ -422,7 +456,7 @@ export function AiProvidersCodexEditPage() {
     if (selectedModels.length) {
       mergeDiscoveredModels(selectedModels);
     }
-    setModelDiscoveryOpen(false);
+    closeModelDiscovery();
   };
 
   const handleSave = useCallback(async () => {
@@ -674,7 +708,7 @@ export function AiProvidersCodexEditPage() {
             <Modal
               open={modelDiscoveryOpen}
               title={t('ai_providers.codex_models_fetch_title')}
-              onClose={() => setModelDiscoveryOpen(false)}
+              onClose={closeModelDiscovery}
               width={720}
               ariaDescribedBy={modelDiscoveryHintId}
               footer={
@@ -682,7 +716,7 @@ export function AiProvidersCodexEditPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => setModelDiscoveryOpen(false)}
+                    onClick={closeModelDiscovery}
                     disabled={modelDiscoveryFetching}
                   >
                     {t('common.cancel')}
@@ -787,35 +821,15 @@ export function AiProvidersCodexEditPage() {
                   </div>
                 ) : (
                   <div className={styles.modelDiscoveryList}>
-                    {discoveredModelsFiltered.map((model) => {
-                      const checked = modelDiscoverySelected.has(model.name);
-                      return (
-                        <SelectionCheckbox
-                          key={model.name}
-                          checked={checked}
-                          onChange={() => toggleModelDiscoverySelection(model.name)}
-                          disabled={disableControls || saving || modelDiscoveryFetching}
-                          ariaLabel={model.name}
-                          className={`${styles.modelDiscoveryRow} ${
-                            checked ? styles.modelDiscoveryRowSelected : ''
-                          }`}
-                          labelClassName={styles.modelDiscoverySelectionLabel}
-                          label={
-                            <div className={styles.modelDiscoveryMeta}>
-                              <div className={styles.modelDiscoveryName}>
-                                {model.name}
-                                {model.alias && (
-                                  <span className={styles.modelDiscoveryAlias}>{model.alias}</span>
-                                )}
-                              </div>
-                              {model.description && (
-                                <div className={styles.modelDiscoveryDesc}>{model.description}</div>
-                              )}
-                            </div>
-                          }
-                        />
-                      );
-                    })}
+                    {discoveredModelsFiltered.map((model) => (
+                      <ModelDiscoveryRow
+                        key={model.name}
+                        model={model}
+                        checked={modelDiscoverySelected.has(model.name)}
+                        disabled={disableControls || saving || modelDiscoveryFetching}
+                        onToggle={toggleModelDiscoverySelection}
+                      />
+                    ))}
                   </div>
                 )}
               </div>

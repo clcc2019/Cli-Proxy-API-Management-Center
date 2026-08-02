@@ -1,5 +1,5 @@
 /**
- * 复制链接按钮
+ * 复制 OAuth 链接或设备码的按钮
  *
  * toast 通知在本项目已全局关闭（useNotificationStore.showNotification 是空实现），
  * 所以复制结果必须内联反馈，否则用户点完什么都看不到。
@@ -14,12 +14,12 @@ import { copyToClipboard } from '@/utils/clipboard';
 const FEEDBACK_DURATION_MS = 2_000;
 
 type CopyLinkButtonProps = {
-  url: string;
+  value: string;
   label: string;
   className?: string;
 };
 
-export function CopyLinkButton({ url, label, className }: CopyLinkButtonProps) {
+export function CopyLinkButton({ value, label, className }: CopyLinkButtonProps) {
   const { t } = useTranslation();
   const [result, setResult] = useState<'copied' | 'failed' | null>(null);
   const resetTimerRef = useRef<number | null>(null);
@@ -34,7 +34,7 @@ export function CopyLinkButton({ url, label, className }: CopyLinkButtonProps) {
   useEffect(() => clearResetTimer, [clearResetTimer]);
 
   const handleCopy = useCallback(async () => {
-    const copied = await copyToClipboard(url);
+    const copied = await copyToClipboard(value);
     setResult(copied ? 'copied' : 'failed');
     // 连点时重新计时，而不是让上一次的定时器提前收走反馈
     clearResetTimer();
@@ -42,15 +42,14 @@ export function CopyLinkButton({ url, label, className }: CopyLinkButtonProps) {
       resetTimerRef.current = null;
       setResult(null);
     }, FEEDBACK_DURATION_MS);
-  }, [clearResetTimer, url]);
+  }, [clearResetTimer, value]);
 
-  const feedbackText =
-    result === 'copied' ? t('auth_login.copied') : t('notification.copy_failed');
+  const feedbackText = result === 'copied' ? t('auth_login.copied') : t('notification.copy_failed');
 
   return (
     <Button variant="secondary" size="sm" className={className} onClick={handleCopy}>
       {result ? <IconCheck size={15} /> : <IconCopy size={15} />}
-      <span>{result ? feedbackText : label}</span>
+      <span aria-live="polite">{result ? feedbackText : label}</span>
     </Button>
   );
 }

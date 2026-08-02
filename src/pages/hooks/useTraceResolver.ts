@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { authFilesApi } from '@/services/api/authFiles';
 import { USAGE_STATS_STALE_TIME_MS, useUsageStatsStore } from '@/stores';
 import type { AuthFileItem, Config } from '@/types';
@@ -79,8 +80,10 @@ interface UseTraceResolverReturn {
 export function useTraceResolver(options: UseTraceResolverOptions): UseTraceResolverReturn {
   const { traceScopeKey, connectionStatus, config, requestLogDownloading } = options;
   const { t } = useTranslation();
-  const usageSnapshot = useUsageStatsStore((state) => state.usage);
-  const usageScopeKey = useUsageStatsStore((state) => state.scopeKey);
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
+  const usageSnapshot = useUsageStatsStore((state) => (isCurrentLayer ? state.usage : null));
+  const usageScopeKey = useUsageStatsStore((state) => (isCurrentLayer ? state.scopeKey : ''));
   const loadUsageStats = useUsageStatsStore((state) => state.loadUsageStats);
 
   const [traceLogLine, setTraceLogLine] = useState<ParsedLogLine | null>(null);
@@ -90,6 +93,13 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
 
   const traceAuthLoadedAtRef = useRef(0);
   const traceScopeKeyRef = useRef('');
+  const traceLoadingRef = useRef(false);
+  const traceRequestVersionRef = useRef(0);
+  const isCurrentLayerRef = useRef(isCurrentLayer);
+
+  useLayoutEffect(() => {
+    isCurrentLayerRef.current = isCurrentLayer;
+  }, [isCurrentLayer]);
 
   const scopedUsageSnapshot = usageScopeKey === traceScopeKey ? usageSnapshot : null;
   const traceUsageDetails = useMemo<UsageDetailWithEndpoint[]>(
@@ -100,19 +110,25 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
   const traceSourceInfoMap = useMemo(() => buildSourceInfoMap(config ?? {}), [config]);
 
   const loadTraceUsageDetailsInternal = useCallback(async (forceUsage: boolean) => {
+    if (!isCurrentLayerRef.current) return;
+
     if (traceScopeKeyRef.current !== traceScopeKey) {
       traceScopeKeyRef.current = traceScopeKey;
       traceAuthLoadedAtRef.current = 0;
+      traceRequestVersionRef.current += 1;
+      traceLoadingRef.current = false;
       setTraceAuthFileMap(new Map());
       setTraceError('');
     }
 
-    if (traceLoading) return;
+    if (traceLoadingRef.current) return;
 
     const now = Date.now();
     const authFresh =
       traceAuthLoadedAtRef.current > 0 && now - traceAuthLoadedAtRef.current < TRACE_AUTH_CACHE_MS;
 
+    const requestVersion = (traceRequestVersionRef.current += 1);
+    traceLoadingRef.current = true;
     setTraceLoading(true);
     setTraceError('');
     try {
@@ -125,6 +141,13 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
           ? Promise.resolve(null)
           : authFilesApi.list({ codexSubscription: 'skip', summary: true }).catch(() => null)
       ]);
+
+      if (
+        traceRequestVersionRef.current !== requestVersion ||
+        !isCurrentLayerRef.current
+      ) {
+        return;
+      }
 
       if (authFilesResponse !== null) {
         const files = Array.isArray(authFilesResponse)
@@ -145,11 +168,22 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
         }
       }
     } catch (err: unknown) {
+      if (
+        traceRequestVersionRef.current !== requestVersion ||
+        !isCurrentLayerRef.current
+      ) {
+        return;
+      }
       setTraceError(getErrorMessage(err) || t('logs.trace_usage_load_error'));
     } finally {
-      setTraceLoading(false);
+      if (traceRequestVersionRef.current === requestVersion) {
+        traceLoadingRef.current = false;
+        if (isCurrentLayerRef.current) {
+          setTraceLoading(false);
+        }
+      }
     }
-  }, [loadUsageStats, t, traceLoading, traceScopeKey]);
+  }, [loadUsageStats, t, traceScopeKey]);
 
   const loadTraceUsageDetails = useCallback(async () => {
     await loadTraceUsageDetailsInternal(false);
@@ -160,14 +194,21 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
   }, [loadTraceUsageDetailsInternal]);
 
   useEffect(() => {
-    if (connectionStatus === 'connected') {
+    traceRequestVersionRef.current += 1;
+    traceLoadingRef.current = false;
+    if (!isCurrentLayer || connectionStatus !== 'connected') return undefined;
+
+    const taskId = window.setTimeout(() => {
+      if (!isCurrentLayerRef.current) return;
       traceScopeKeyRef.current = traceScopeKey;
       traceAuthLoadedAtRef.current = 0;
       setTraceAuthFileMap(new Map());
       setTraceLoading(false);
       setTraceError('');
-    }
-  }, [connectionStatus, traceScopeKey]);
+    }, 0);
+
+    return () => window.clearTimeout(taskId);
+  }, [connectionStatus, isCurrentLayer, traceScopeKey]);
 
   const traceCandidates = useMemo(() => {
     if (!traceLogLine) return [];
@@ -217,6 +258,7 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
 
   const openTraceModal = useCallback(
     (line: ParsedLogLine) => {
+      if (!isCurrentLayerRef.current) return;
       if (!isTraceableRequestPath(line.path)) return;
       setTraceError('');
       setTraceLogLine(line);

@@ -2,19 +2,11 @@
 @use '../styles/mixins' as *;
 
 .container {
-  --provider-page-surface: color-mix(in srgb, var(--panel-surface) 72%, var(--surface-raised));
-  --provider-page-surface-muted: color-mix(
-    in srgb,
-    var(--panel-surface-muted) 66%,
-    var(--bg-secondary)
-  );
-  --provider-page-control: color-mix(in srgb, var(--control-surface) 76%, var(--bg-primary));
-  --provider-page-border: color-mix(in srgb, var(--neutral-accent) 24%, var(--border-color));
-  --provider-page-border-strong: color-mix(
-    in srgb,
-    var(--neutral-accent-strong) 34%,
-    var(--border-color)
-  );
+  --provider-page-surface: var(--mg-surface);
+  --provider-page-surface-muted: var(--mg-surface-subtle);
+  --provider-page-control: var(--mg-surface);
+  --provider-page-border: var(--mg-border);
+  --provider-page-border-strong: #d8d8d3;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -22,16 +14,11 @@
 }
 
 .pageHeader {
+  @include management-page-header;
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
   gap: 20px;
-  min-width: 0;
-  padding: 4px 2px 10px;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  padding: 2px 1px 16px;
+  border-bottom-color: var(--mg-border);
 
   @media (max-width: 1180px) {
     align-items: stretch;
@@ -41,7 +28,7 @@
 
   @include mobile {
     gap: 10px;
-    padding: 2px 1px 8px;
+    padding: 2px 1px 14px;
   }
 }
 
@@ -78,7 +65,7 @@
 }
 
 .pageEyebrow {
-  color: var(--text-tertiary);
+  color: var(--mg-text-tertiary);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -87,13 +74,10 @@
 }
 
 .pageTitle {
+  @include management-page-title;
   margin: 0;
   min-width: 0;
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: 0;
-  color: var(--text-primary);
+  color: var(--mg-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -104,12 +88,10 @@
 }
 
 .pageDescription {
+  @include management-page-description;
   max-width: 620px;
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 13px;
+  color: var(--mg-text-secondary);
   font-weight: 500;
-  line-height: 1.5;
 }
 
 .statusBadge {
@@ -118,10 +100,10 @@
   justify-content: center;
   min-height: 34px;
   padding: 0 11px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--provider-page-control) 82%, transparent);
-  color: var(--text-primary);
+  border-radius: var(--mg-radius-pill);
+  border: 1px solid var(--mg-border);
+  background: var(--mg-surface);
+  color: var(--mg-text);
   font-size: 12px;
   font-weight: 800;
   text-align: center;
@@ -713,7 +695,6 @@
       inset: 0;
       border-radius: inherit;
       background: color-mix(in srgb, var(--surface-raised) 35%, transparent);
-      backdrop-filter: blur(0.5px);
       animation: providerCardSwitchingPulse 1.2s ease-in-out infinite;
       pointer-events: none;
       z-index: 2;
@@ -2802,5 +2783,40 @@
   .apiKeyEntryIndex {
     background: color-mix(in srgb, var(--primary-color) 80%, var(--bg-tertiary));
     color: var(--primary-contrast);
+  }
+}
+
+// Provider editors share the same operational surface grammar as the rest of
+// the management center. Provider identity accents remain semantic, while
+// repeated cards stay white and border-led instead of becoming a color mosaic.
+.container {
+  --provider-page-surface: var(--mg-surface);
+  --provider-page-surface-muted: var(--mg-surface-subtle);
+  --provider-page-control: var(--mg-surface);
+  --provider-page-border: var(--mg-border);
+  --provider-page-border-strong: #d8d8d3;
+}
+
+.providerConfigItem {
+  border-color: var(--mg-border);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
+  box-shadow: none;
+
+  &::before,
+  &::after {
+    background: transparent;
+    opacity: 0;
+  }
+
+  &:hover {
+    border-color: #d8d8d3;
+    box-shadow: none;
+  }
+
+  :global(.provider-card-avatar) {
+    border-radius: var(--mg-radius-control);
+    background: var(--mg-surface-subtle);
+    box-shadow: none;
   }
 }

@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { IconEye, IconEyeOff } from '@/components/ui/icons';
+import { TokaMark } from '@/components/ui/TokaMark';
 import { useAuthStore, useLanguageStore, useNotificationStore } from '@/stores';
 import { detectApiBaseFromLocation, normalizeApiBase } from '@/utils/connection';
 import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
 import { isSupportedLanguage } from '@/utils/language';
-import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import type { ApiError } from '@/types';
 import styles from './LoginPage.module.scss';
 
@@ -187,9 +187,8 @@ export function LoginPage() {
       <div className={styles.brandPanel}>
         <div className={styles.brandContent}>
           <span className={styles.brandKicker}>{t('login.connection_title')}</span>
-          <span className={styles.brandWord}>CLI</span>
-          <span className={styles.brandWord}>PROXY</span>
-          <span className={styles.brandWord}>API</span>
+          <span className={styles.brandWord}>TO</span>
+          <span className={styles.brandWord}>KA</span>
           <p className={styles.brandCaption}>{t('login.subtitle')}</p>
         </div>
       </div>
@@ -197,7 +196,7 @@ export function LoginPage() {
       <div className={styles.formPanel}>
         {showSplash ? (
           <div className={styles.splashContent}>
-            <img src={INLINE_LOGO_JPEG} alt={t('title.main')} className={styles.splashLogo} />
+            <TokaMark aria-label={t('title.main')} className={styles.splashLogo} />
             <h1 className={styles.splashTitle}>{t('splash.title')}</h1>
             <p className={styles.splashSubtitle}>{t('splash.subtitle')}</p>
             <div className={styles.splashLoader}>
@@ -207,7 +206,7 @@ export function LoginPage() {
         ) : (
           <div className={styles.formContent}>
             <div className={styles.logoBadge}>
-              <img src={INLINE_LOGO_JPEG} alt={t('title.main')} className={styles.logo} />
+              <TokaMark aria-label={t('title.main')} className={styles.logo} />
             </div>
             <div className={styles.loginCard}>
               <div className={styles.loginHeader}>

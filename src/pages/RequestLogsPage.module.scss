@@ -5,21 +5,21 @@
 // a quiet operational summary, and one high-fidelity product surface.
 
 .page {
-  --request-surface: #ffffff;
-  --request-surface-subtle: #f4f4f4;
-  --request-surface-warm: #faf8f5;
-  --request-text: #2c2a25;
-  --request-text-secondary: #565551;
-  --request-text-tertiary: #807f7c;
-  --request-text-muted: #abaaa8;
-  --request-border: #eaeae9;
-  --request-sage: #96a58d;
-  --request-sage-strong: #63725a;
-  --request-sage-soft: #e1e2d9;
-  --request-orange: #ff6e06;
-  --request-success: #407345;
-  --request-warning: #a87428;
-  --request-danger: #a53830;
+  --request-surface: var(--mg-surface);
+  --request-surface-subtle: var(--mg-surface-subtle);
+  --request-surface-warm: var(--mg-surface-warm);
+  --request-text: var(--mg-text);
+  --request-text-secondary: var(--mg-text-secondary);
+  --request-text-tertiary: var(--mg-text-tertiary);
+  --request-text-muted: var(--mg-text-muted);
+  --request-border: var(--mg-border);
+  --request-sage: var(--mg-sage);
+  --request-sage-strong: var(--mg-sage-strong);
+  --request-sage-soft: var(--mg-sage-soft);
+  --request-orange: var(--mg-orange);
+  --request-success: var(--mg-success);
+  --request-warning: var(--mg-warning);
+  --request-danger: var(--mg-danger);
   --request-focus: color-mix(in srgb, var(--request-sage-strong) 42%, transparent);
   --request-radius-panel: 15px;
 
@@ -64,28 +64,26 @@
 // ─── Compact management-page introduction ───────────────
 
 .pageHeader {
-  display: flex;
-  flex-direction: column;
+  @include management-page-header;
   align-items: flex-start;
+  flex-direction: column;
   gap: 5px;
-  padding: 2px 2px 0;
+  padding: 2px 1px 16px;
+
+  @include mobile {
+    align-items: stretch;
+  }
 }
 
 .pageTitle {
-  margin: 0;
+  @include management-page-title;
   color: var(--request-text);
-  font-size: clamp(26px, 2.2vw, 32px);
-  font-weight: 650;
-  line-height: 1.15;
-  letter-spacing: -0.028em;
 }
 
 .pageSubtitle {
+  @include management-page-description;
   max-width: 76ch;
-  margin: 0;
   color: var(--request-text-secondary);
-  font-size: 13.5px;
-  line-height: 1.5;
   text-wrap: pretty;
 }
 
@@ -96,7 +94,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: hidden;
   border: 1px solid var(--request-border);
-  border-radius: var(--request-radius-panel);
+  border-radius: var(--mg-radius-card);
   background: var(--request-surface);
 }
 
@@ -172,9 +170,9 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--request-border);
-  border-radius: var(--request-radius-panel);
+  border-radius: var(--mg-radius-card);
   background: var(--request-surface);
-  box-shadow: 0 20px 65px rgb(0 0 0 / 0.035);
+  box-shadow: none;
 }
 
 .toolbar {

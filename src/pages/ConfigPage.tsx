@@ -47,8 +47,12 @@ export function ConfigPage() {
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.isCurrentLayer : true;
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
+  const resolvedTheme = useThemeStore((state) =>
+    isCurrentLayer ? state.resolvedTheme : 'light'
+  );
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const {
@@ -62,11 +66,12 @@ export function ConfigPage() {
     setVisualValues,
   } = useVisualConfig();
 
-  const [activeTab, setActiveTab] = useState<ConfigEditorTab>(() => {
+  const [selectedTab, setSelectedTab] = useState<ConfigEditorTab>(() => {
     const saved = localStorage.getItem('config-management:tab');
     if (saved === 'visual' || saved === 'source') return saved;
     return 'visual';
   });
+  const activeTab = selectedTab === 'visual' && visualParseError ? 'source' : selectedTab;
 
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
@@ -86,6 +91,12 @@ export function ConfigPage() {
   const [lastSearchedQuery, setLastSearchedQuery] = useState('');
   const editorRef = useRef<ReactCodeMirrorRef | null>(null);
   const floatingActionsRef = useRef<HTMLDivElement>(null);
+  const loadConfigVersionRef = useRef(0);
+  const isCurrentLayerRef = useRef(isCurrentLayer);
+
+  useLayoutEffect(() => {
+    isCurrentLayerRef.current = isCurrentLayer;
+  }, [isCurrentLayer]);
 
   const disableControls = connectionStatus !== 'connected';
   const isDirty = dirty || visualDirty;
@@ -96,10 +107,19 @@ export function ConfigPage() {
     (Object.values(visualValidationErrors).some(Boolean) || visualHasPayloadValidationErrors);
 
   const loadConfig = useCallback(async () => {
+    if (!isCurrentLayerRef.current) return;
+
+    const requestVersion = (loadConfigVersionRef.current += 1);
     setLoading(true);
     setError('');
     try {
       const data = await configFileApi.fetchConfigYaml();
+      if (
+        loadConfigVersionRef.current !== requestVersion ||
+        !isCurrentLayerRef.current
+      ) {
+        return;
+      }
       setContent(data);
       setDirty(false);
       setDiffModalOpen(false);
@@ -107,27 +127,49 @@ export function ConfigPage() {
       setMergedYaml(data);
       loadVisualValuesFromYaml(data);
     } catch (err: unknown) {
+      if (
+        loadConfigVersionRef.current !== requestVersion ||
+        !isCurrentLayerRef.current
+      ) {
+        return;
+      }
       const message = err instanceof Error ? err.message : t('notification.refresh_failed');
       setError(message);
     } finally {
-      setLoading(false);
+      if (
+        loadConfigVersionRef.current === requestVersion &&
+        isCurrentLayerRef.current
+      ) {
+        setLoading(false);
+      }
     }
   }, [loadVisualValuesFromYaml, t]);
 
   useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
+    loadConfigVersionRef.current += 1;
+    if (!isCurrentLayer) return undefined;
+
+    const taskId = window.setTimeout(() => {
+      void loadConfig();
+    }, 0);
+
+    return () => window.clearTimeout(taskId);
+  }, [isCurrentLayer, loadConfig]);
 
   useEffect(() => {
-    if (activeTab !== 'visual' || !visualParseError) return;
+    if (!isCurrentLayer || selectedTab !== 'visual' || !visualParseError) return undefined;
 
-    setActiveTab('source');
-    localStorage.setItem('config-management:tab', 'source');
-    showNotification(
-      t('config_management.visual_mode_unavailable_detail', { message: visualParseError }),
-      'error'
-    );
-  }, [activeTab, showNotification, t, visualParseError]);
+    const taskId = window.setTimeout(() => {
+      setSelectedTab('source');
+      localStorage.setItem('config-management:tab', 'source');
+      showNotification(
+        t('config_management.visual_mode_unavailable_detail', { message: visualParseError }),
+        'error'
+      );
+    }, 0);
+
+    return () => window.clearTimeout(taskId);
+  }, [isCurrentLayer, selectedTab, showNotification, t, visualParseError]);
 
   const handleConfirmSave = async () => {
     setSaving(true);
@@ -266,7 +308,7 @@ export function ConfigPage() {
         }
       }
 
-      setActiveTab(tab);
+      setSelectedTab(tab);
       localStorage.setItem('config-management:tab', tab);
     },
     [

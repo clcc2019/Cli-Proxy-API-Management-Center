@@ -5,7 +5,8 @@
  * （前提是 src/services/api/oauth.ts 的 OAuthProvider 已包含它）。
  *
  * `supportsCallback` 取代此前散落在页面里的 CALLBACK_SUPPORTED.includes()：
- * 支持回填回调 URL 的 provider 走三步向导，设备码流程（kimi）走两步。
+ * 支持回填回调 URL 的 provider 走三步向导；Codex 默认设备码模式会在
+ * 运行时隐藏回调步骤，只有显式切换浏览器兜底模式后才显示。
  */
 
 import type { OAuthProvider } from '@/services/api/oauth';
@@ -13,8 +14,6 @@ import type { ResolvedTheme } from '@/types';
 import iconCodex from '@/assets/icons/codex.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconGrok from '@/assets/icons/grok.svg';
-import iconKimiLight from '@/assets/icons/kimi-light.svg';
-import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 
 type ThemedIcon = { light: string; dark: string };
 
@@ -46,13 +45,6 @@ export const OAUTH_PROVIDERS: readonly OAuthProviderDescriptor[] = [
     supportsCallback: true,
   },
   {
-    id: 'kimi',
-    titleKey: 'auth_login.kimi_oauth_title',
-    hintKey: 'auth_login.kimi_oauth_hint',
-    icon: { light: iconKimiLight, dark: iconKimiDark },
-    supportsCallback: false,
-  },
-  {
     id: 'xai',
     titleKey: 'auth_login.xai_oauth_title',
     hintKey: 'auth_login.xai_oauth_hint',
@@ -66,14 +58,12 @@ export const getOAuthProviderDescriptor = (
   provider: OAuthProvider
 ): OAuthProviderDescriptor | undefined => OAUTH_PROVIDERS.find((item) => item.id === provider);
 
-export const resolveProviderIcon = (
-  icon: string | ThemedIcon,
-  theme: ResolvedTheme
-): string => (typeof icon === 'string' ? icon : icon[theme]);
+export const resolveProviderIcon = (icon: string | ThemedIcon, theme: ResolvedTheme): string =>
+  typeof icon === 'string' ? icon : icon[theme];
 
 /**
  * i18n 键的 provider 前缀：'gemini-cli' 这类带连字符的 id 在语言文件里是下划线形式。
- * 当前 5 个 provider 都不含连字符，保留转换是为了新增时不必再想起这条规则。
+ * 当前 provider id 都不含连字符，保留转换是为了新增时不必再想起这条规则。
  */
 export const getProviderI18nPrefix = (provider: OAuthProvider) => provider.replace(/-/g, '_');
 

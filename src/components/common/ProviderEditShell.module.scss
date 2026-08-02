@@ -2,22 +2,22 @@
 @use '../../styles/mixins' as *;
 
 .modal {
-  border-color: color-mix(in srgb, var(--border-color) 76%, transparent);
-  border-radius: 10px;
-  background: var(--bg-primary);
-  box-shadow: 0 20px 48px color-mix(in srgb, var(--text-primary) 14%, transparent);
+  border-color: var(--mg-border);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-card);
 
   :global(.modal-header) {
     min-height: 56px;
     padding: 12px 56px 12px 18px;
-    border-bottom-color: color-mix(in srgb, var(--border-color) 64%, transparent);
-    background: var(--bg-primary);
+    border-bottom-color: var(--mg-border);
+    background: var(--mg-surface);
   }
 
   :global(.modal-body) {
     padding: 16px 18px;
     max-height: min(74vh, calc(100vh - 164px));
-    background: color-mix(in srgb, var(--bg-secondary) 18%, var(--bg-primary));
+    background: var(--mg-surface-subtle);
   }
 
   :global(.modal-footer) {
@@ -25,13 +25,12 @@
     bottom: 0;
     z-index: 2;
     padding: 12px 18px;
-    border-top-color: color-mix(in srgb, var(--border-color) 64%, transparent);
-    background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
-    backdrop-filter: blur(8px);
+    border-top-color: var(--mg-border);
+    background: var(--mg-surface);
 
     :global(.btn.btn-sm) {
       min-height: 34px;
-      border-radius: 7px;
+      border-radius: var(--mg-radius-pill);
       padding-inline: 13px;
     }
   }
@@ -44,7 +43,7 @@
 
   @include mobile {
     width: 100%;
-    border-radius: 10px;
+    border-radius: var(--mg-radius-medium);
 
     :global(.modal-header) {
       min-height: 54px;
@@ -82,9 +81,9 @@
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 34%, var(--surface-raised));
+  border-radius: var(--mg-radius-control);
+  border: 1px solid var(--mg-border);
+  background: var(--mg-surface-subtle);
   box-shadow: none;
 
   img,
@@ -98,7 +97,7 @@
   @include mobile {
     width: 28px;
     height: 28px;
-    border-radius: 7px;
+    border-radius: var(--mg-radius-control);
 
     img,
     svg {
@@ -113,7 +112,7 @@
   font-size: 17px;
   font-weight: 800;
   letter-spacing: 0;
-  color: var(--text-primary);
+  color: var(--mg-text);
   line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;

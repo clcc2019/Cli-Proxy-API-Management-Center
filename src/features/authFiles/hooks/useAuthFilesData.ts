@@ -226,10 +226,15 @@ export type UseAuthFilesDataResult = {
 export type UseAuthFilesDataOptions = {
   refreshKeyStats: () => Promise<void>;
   listOptions?: AuthFilesListOptions;
+  onListMetaResolved?: (meta: AuthFilesListMeta) => void;
 };
 
 export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFilesDataResult {
-  const { refreshKeyStats, listOptions = DEFAULT_AUTH_FILES_LIST_OPTIONS } = options;
+  const {
+    refreshKeyStats,
+    listOptions = DEFAULT_AUTH_FILES_LIST_OPTIONS,
+    onListMetaResolved,
+  } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
 
@@ -265,11 +270,25 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const listUsesServerPagination = Boolean(listOptions.pageSize);
 
   const applyFilesState = useCallback((action: SetStateAction<AuthFileItem[]>) => {
-    setFiles((prev) => {
-      const next = typeof action === 'function' ? action(prev) : action;
-      filesRef.current = next;
-      visibleFileCountRef.current = next.length;
-      return next;
+    const previousFiles = filesRef.current;
+    const nextFiles = typeof action === 'function' ? action(previousFiles) : action;
+    filesRef.current = nextFiles;
+    visibleFileCountRef.current = nextFiles.length;
+    setFiles(nextFiles);
+
+    setSelectedFiles((prev) => {
+      if (prev.size === 0) return prev;
+      const existingNames = new Set(nextFiles.map((file) => file.name));
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((name) => {
+        if (existingNames.has(name)) {
+          next.add(name);
+        } else {
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
     });
   }, []);
 
@@ -457,23 +476,6 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     [applyFilesState]
   );
 
-  useEffect(() => {
-    if (selectedFiles.size === 0) return;
-    const existingNames = new Set(files.map((file) => file.name));
-    setSelectedFiles((prev) => {
-      let changed = false;
-      const next = new Set<string>();
-      prev.forEach((name) => {
-        if (existingNames.has(name)) {
-          next.add(name);
-        } else {
-          changed = true;
-        }
-      });
-      return changed ? next : prev;
-    });
-  }, [files, selectedFiles.size]);
-
   const loadFiles = useCallback(
     async (
       overrideOptions?: Partial<AuthFilesListOptions>,
@@ -548,6 +550,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             resolvedDataKey,
             typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
           };
+          onListMetaResolved?.(nextListMeta);
           setListMeta((prev) =>
             areAuthFilesListMetaEqual(prev, nextListMeta) ? prev : nextListMeta
           );
@@ -570,6 +573,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
               resolvedDataKey: effectiveListOptionsKey,
               typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
             };
+            onListMetaResolved?.(unsupportedPremiumListMeta);
             setListMeta((prev) =>
               areAuthFilesListMetaEqual(prev, unsupportedPremiumListMeta)
                 ? prev
@@ -601,7 +605,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       }
     },
-    [applyFilesState, listOptions, listOptionsKey, t]
+    [applyFilesState, listOptions, listOptionsKey, onListMetaResolved, t]
   );
 
   useEffect(() => {

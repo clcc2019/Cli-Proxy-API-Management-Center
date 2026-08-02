@@ -6,6 +6,7 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useAuthStore, useNotificationStore, useConfigStore, useThemeStore } from '@/stores';
 // Import the hook directly instead of the barrel. The barrel also exports all
 // usage page sections and would pull their chart UI into the request-logs chunk.
@@ -163,6 +165,19 @@ function formatRelative(
   return fallback;
 }
 
+const getRelativeTimeUpdateKey = (now: number, timestampMs: number): number => {
+  if (!timestampMs) return 0;
+
+  const diff = Math.max(0, Math.floor((now - timestampMs) / 1000));
+  if (diff < 5) return 0;
+  if (diff < 60) return diff;
+  if (diff < 3600) return 1_000 + Math.floor(diff / 60);
+  if (diff < 86_400) return 2_000 + Math.floor(diff / 3600);
+
+  const days = Math.floor(diff / 86_400);
+  return days <= 30 ? 3_000 + days : 4_000;
+};
+
 /**
  * Hoisted timer source so every row subscribes to a single interval.
  * Avoids N intervals or a top-level state update that re-renders the whole list.
@@ -174,6 +189,7 @@ function ensureRelativeTimer() {
   if (relativeTimerId !== null) return;
   if (typeof window === 'undefined') return;
   relativeTimerId = window.setInterval(() => {
+    if (document.visibilityState === 'hidden') return;
     const now = Date.now();
     relativeTimeSubscribers.forEach((fn) => fn(now));
   }, RELATIVE_TICK_MS);
@@ -202,17 +218,45 @@ const RelativeTime = memo(function RelativeTime({
   labels,
   className,
 }: RelativeTimeProps) {
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [now, setNow] = useState(() => Date.now());
+  const [initialRelativeTimeUpdateKey] = useState(() =>
+    getRelativeTimeUpdateKey(Date.now(), timestampMs)
+  );
+  const relativeTimeUpdateKeyRef = useRef(initialRelativeTimeUpdateKey);
+  const wasCurrentLayerRef = useRef(isCurrentLayer);
+  const previousTimestampMsRef = useRef(timestampMs);
 
   useEffect(() => {
-    const subscriber = (next: number) => setNow(next);
+    if (!isCurrentLayer) {
+      wasCurrentLayerRef.current = false;
+      previousTimestampMsRef.current = timestampMs;
+      return undefined;
+    }
+
+    const nextNow = Date.now();
+    const shouldSyncNow =
+      !wasCurrentLayerRef.current || previousTimestampMsRef.current !== timestampMs;
+    relativeTimeUpdateKeyRef.current = getRelativeTimeUpdateKey(nextNow, timestampMs);
+    if (shouldSyncNow) {
+      setNow(nextNow);
+    }
+    wasCurrentLayerRef.current = true;
+    previousTimestampMsRef.current = timestampMs;
+    const subscriber = (next: number) => {
+      const nextKey = getRelativeTimeUpdateKey(next, timestampMs);
+      if (relativeTimeUpdateKeyRef.current === nextKey) return;
+      relativeTimeUpdateKeyRef.current = nextKey;
+      setNow(next);
+    };
     relativeTimeSubscribers.add(subscriber);
     ensureRelativeTimer();
     return () => {
       relativeTimeSubscribers.delete(subscriber);
       teardownRelativeTimer();
     };
-  }, []);
+  }, [isCurrentLayer, timestampMs]);
 
   const text = formatRelative(now, timestampMs, isZh, fallback, labels);
   return <span className={className}>{text}</span>;
@@ -482,10 +526,16 @@ const SkeletonList = memo(function SkeletonList() {
 
 export function RequestLogsPage() {
   const { t, i18n } = useTranslation();
-  const config = useConfigStore((state) => state.config);
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
+  const config = useConfigStore((state) => (isCurrentLayer ? state.config : null));
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
+  const resolvedTheme = useThemeStore((state) =>
+    isCurrentLayer ? state.resolvedTheme : 'light'
+  );
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
 
   const { usage, loading, error, modelPrices, loadUsage } = useUsageData({
     detailsLimit: REQUEST_EVENT_ROWS_LIMIT,
@@ -493,7 +543,7 @@ export function RequestLogsPage() {
     includeAggregated: false,
   });
 
-  useHeaderRefresh(loadUsage);
+  useHeaderRefresh(loadUsage, isCurrentLayer);
 
   const { rows, hasLatencyData } = useRequestEventRows({
     usage,
@@ -553,7 +603,7 @@ export function RequestLogsPage() {
       void loadUsage();
     },
     AUTO_REFRESH_INTERVAL_MS,
-    { enabled: connectionStatus === 'connected' }
+    { enabled: isCurrentLayer && connectionStatus === 'connected' }
   );
 
   const latencyHint = useMemo(

@@ -11,7 +11,7 @@
   min-width: 0;
   padding: 14px 10px 10px;
   border: 1px solid var(--provider-border, #eaeae9);
-  border-radius: 15px;
+  border-radius: var(--mg-radius-card);
   background: var(--provider-surface, #ffffff);
 }
 
@@ -41,7 +41,7 @@
   min-width: 0;
   padding: 10px 9px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--mg-radius-control);
   background: transparent;
   color: var(--provider-text, #2c2a25);
   text-align: left;
@@ -92,7 +92,7 @@
   height: 28px;
   flex: 0 0 auto;
   padding: 3px;
-  border-radius: 9px;
+  border-radius: var(--mg-radius-control);
   background: var(--provider-surface-subtle);
   object-fit: contain;
 }

@@ -62,6 +62,7 @@ export const SecondaryScreenShell = forwardRef<HTMLDivElement, SecondaryScreenSh
       const element = floatingActionRef.current;
       if (!element) return;
 
+      let frame: number | null = null;
       const updateHeight = () => {
         const height = element.getBoundingClientRect().height;
         document.documentElement.style.setProperty(
@@ -69,17 +70,28 @@ export const SecondaryScreenShell = forwardRef<HTMLDivElement, SecondaryScreenSh
           `${height}px`
         );
       };
+      const scheduleHeightUpdate = () => {
+        if (frame !== null) return;
+        frame = window.requestAnimationFrame(() => {
+          frame = null;
+          updateHeight();
+        });
+      };
 
       updateHeight();
-      window.addEventListener('resize', updateHeight);
+      window.addEventListener('resize', scheduleHeightUpdate);
 
       const resizeObserver =
-        typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateHeight);
+        typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleHeightUpdate);
       resizeObserver?.observe(element);
 
       return () => {
         resizeObserver?.disconnect();
-        window.removeEventListener('resize', updateHeight);
+        window.removeEventListener('resize', scheduleHeightUpdate);
+        if (frame !== null) {
+          window.cancelAnimationFrame(frame);
+          frame = null;
+        }
         document.documentElement.style.removeProperty('--secondary-shell-floating-action-height');
       };
     }, [shouldRenderFloatingAction]);

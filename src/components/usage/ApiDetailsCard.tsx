@@ -1,4 +1,4 @@
-import { memo, useState, useMemo } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { formatCompactNumber, formatUsd, type ApiStats } from '@/utils/usage';
@@ -13,6 +13,84 @@ export interface ApiDetailsCardProps {
 type ApiSortKey = 'endpoint' | 'requests' | 'tokens' | 'cost';
 type SortDir = 'asc' | 'desc';
 
+interface ApiDetailsRowProps {
+  api: ApiStats;
+  expanded: boolean;
+  hasPrices: boolean;
+  onToggleExpand: (endpoint: string) => void;
+}
+
+const ApiDetailsRow = memo(function ApiDetailsRow({
+  api,
+  expanded,
+  hasPrices,
+  onToggleExpand,
+}: ApiDetailsRowProps) {
+  const { t } = useTranslation();
+  const panelId = `api-models-${encodeURIComponent(api.endpoint)}`;
+
+  return (
+    <div className={styles.apiItem}>
+      <button
+        type="button"
+        className={styles.apiHeader}
+        onClick={() => onToggleExpand(api.endpoint)}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+      >
+        <div className={styles.apiInfo}>
+          <span className={styles.apiEndpoint}>{api.endpoint}</span>
+          <div className={styles.apiStats}>
+            <span className={styles.apiBadge}>
+              <span className={styles.requestCountCell}>
+                <span>
+                  {t('usage_stats.requests_count')}: {api.totalRequests.toLocaleString()}
+                </span>
+                <span className={styles.requestBreakdown}>
+                  (
+                  <span className={styles.statSuccess}>{api.successCount.toLocaleString()}</span>{' '}
+                  <span className={styles.statFailure}>{api.failureCount.toLocaleString()}</span>
+                  )
+                </span>
+              </span>
+            </span>
+            <span className={styles.apiBadge}>
+              {t('usage_stats.tokens_count')}: {formatCompactNumber(api.totalTokens)}
+            </span>
+            {hasPrices && api.totalCost > 0 && (
+              <span className={styles.apiBadge}>
+                {t('usage_stats.total_cost')}: {formatUsd(api.totalCost)}
+              </span>
+            )}
+          </div>
+        </div>
+        <span className={styles.expandIcon}>{expanded ? '▼' : '▶'}</span>
+      </button>
+      {expanded && (
+        <div id={panelId} className={styles.apiModels}>
+          {Object.entries(api.models).map(([model, stats]) => (
+            <div key={model} className={styles.modelRow}>
+              <span className={styles.modelName}>{model}</span>
+              <span className={styles.modelStat}>
+                <span className={styles.requestCountCell}>
+                  <span>{stats.requests.toLocaleString()}</span>
+                  <span className={styles.requestBreakdown}>
+                    (
+                    <span className={styles.statSuccess}>{stats.successCount.toLocaleString()}</span>{' '}
+                    <span className={styles.statFailure}>{stats.failureCount.toLocaleString()}</span>
+                    )
+                  </span>
+                </span>
+              </span>
+              <span className={styles.modelStat}>{formatCompactNumber(stats.tokens)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
 export const ApiDetailsCard = memo(function ApiDetailsCard({
   apiStats,
   loading,
@@ -23,7 +101,7 @@ export const ApiDetailsCard = memo(function ApiDetailsCard({
   const [sortKey, setSortKey] = useState<ApiSortKey>('requests');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
-  const toggleExpand = (endpoint: string) => {
+  const toggleExpand = useCallback((endpoint: string) => {
     setExpandedApis((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(endpoint)) {
@@ -33,7 +111,7 @@ export const ApiDetailsCard = memo(function ApiDetailsCard({
       }
       return newSet;
     });
-  };
+  }, []);
 
   const handleSort = (key: ApiSortKey) => {
     if (sortKey === key) {
@@ -102,82 +180,15 @@ export const ApiDetailsCard = memo(function ApiDetailsCard({
           </div>
           <div className={styles.detailsScroll}>
             <div className={styles.apiList}>
-              {sorted.map((api, index) => {
-                const isExpanded = expandedApis.has(api.endpoint);
-                const panelId = `api-models-${index}`;
-
-                return (
-                  <div key={api.endpoint} className={styles.apiItem}>
-                    <button
-                      type="button"
-                      className={styles.apiHeader}
-                      onClick={() => toggleExpand(api.endpoint)}
-                      aria-expanded={isExpanded}
-                      aria-controls={panelId}
-                    >
-                      <div className={styles.apiInfo}>
-                        <span className={styles.apiEndpoint}>{api.endpoint}</span>
-                        <div className={styles.apiStats}>
-                          <span className={styles.apiBadge}>
-                            <span className={styles.requestCountCell}>
-                              <span>
-                                {t('usage_stats.requests_count')}:{' '}
-                                {api.totalRequests.toLocaleString()}
-                              </span>
-                              <span className={styles.requestBreakdown}>
-                                (
-                                <span className={styles.statSuccess}>
-                                  {api.successCount.toLocaleString()}
-                                </span>{' '}
-                                <span className={styles.statFailure}>
-                                  {api.failureCount.toLocaleString()}
-                                </span>
-                                )
-                              </span>
-                            </span>
-                          </span>
-                          <span className={styles.apiBadge}>
-                            {t('usage_stats.tokens_count')}: {formatCompactNumber(api.totalTokens)}
-                          </span>
-                          {hasPrices && api.totalCost > 0 && (
-                            <span className={styles.apiBadge}>
-                              {t('usage_stats.total_cost')}: {formatUsd(api.totalCost)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</span>
-                    </button>
-                    {isExpanded && (
-                      <div id={panelId} className={styles.apiModels}>
-                        {Object.entries(api.models).map(([model, stats]) => (
-                          <div key={model} className={styles.modelRow}>
-                            <span className={styles.modelName}>{model}</span>
-                            <span className={styles.modelStat}>
-                              <span className={styles.requestCountCell}>
-                                <span>{stats.requests.toLocaleString()}</span>
-                                <span className={styles.requestBreakdown}>
-                                  (
-                                  <span className={styles.statSuccess}>
-                                    {stats.successCount.toLocaleString()}
-                                  </span>{' '}
-                                  <span className={styles.statFailure}>
-                                    {stats.failureCount.toLocaleString()}
-                                  </span>
-                                  )
-                                </span>
-                              </span>
-                            </span>
-                            <span className={styles.modelStat}>
-                              {formatCompactNumber(stats.tokens)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {sorted.map((api) => (
+                <ApiDetailsRow
+                  key={api.endpoint}
+                  api={api}
+                  expanded={expandedApis.has(api.endpoint)}
+                  hasPrices={hasPrices}
+                  onToggleExpand={toggleExpand}
+                />
+              ))}
             </div>
           </div>
         </>

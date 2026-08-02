@@ -6,6 +6,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import styles from '@/pages/AuthFilesPage.module.scss';
 
 type AuthFileWarningIndicatorProps = {
@@ -15,11 +16,14 @@ type AuthFileWarningIndicatorProps = {
 export function AuthFileWarningIndicator(props: AuthFileWarningIndicatorProps) {
   const { message } = props;
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const visibleOpen = isCurrentLayer && open;
 
   useEffect(() => {
-    if (!open) {
+    if (!visibleOpen) {
       return;
     }
 
@@ -32,13 +36,16 @@ export function AuthFileWarningIndicator(props: AuthFileWarningIndicatorProps) {
 
     document.addEventListener('pointerdown', handlePointerDown);
     return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [open]);
+  }, [visibleOpen]);
 
-  const handlePointerEnter = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === 'mouse') {
-      setOpen(true);
-    }
-  }, []);
+  const handlePointerEnter = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (isCurrentLayer && event.pointerType === 'mouse') {
+        setOpen(true);
+      }
+    },
+    [isCurrentLayer]
+  );
 
   const handlePointerLeave = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse') {
@@ -47,8 +54,9 @@ export function AuthFileWarningIndicator(props: AuthFileWarningIndicatorProps) {
   }, []);
 
   const handleClick = useCallback(() => {
+    if (!isCurrentLayer) return;
     setOpen((current) => !current);
-  }, []);
+  }, [isCurrentLayer]);
 
   return (
     <div
@@ -68,7 +76,7 @@ export function AuthFileWarningIndicator(props: AuthFileWarningIndicatorProps) {
       >
         <span className={styles.cardWarningButtonMark}>!</span>
       </button>
-      {open && (
+      {visibleOpen && (
         <div className={styles.cardWarningTooltip} role="tooltip">
           {message}
         </div>

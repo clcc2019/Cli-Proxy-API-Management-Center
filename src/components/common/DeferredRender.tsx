@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { usePageTransitionLayer } from './PageTransitionLayer';
 
 interface DeferredRenderProps {
   children: ReactNode;
@@ -17,6 +18,8 @@ export function DeferredRender({
   rootMargin = '240px 0px',
   threshold = 0.01,
 }: DeferredRenderProps) {
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [shouldRender, setShouldRender] = useState(() => {
     if (typeof window === 'undefined') return true;
@@ -24,7 +27,7 @@ export function DeferredRender({
   });
 
   useEffect(() => {
-    if (shouldRender) return;
+    if (shouldRender || !isCurrentLayer) return;
     const node = containerRef.current;
     if (!node) return;
 
@@ -42,7 +45,7 @@ export function DeferredRender({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [rootMargin, shouldRender, threshold]);
+  }, [isCurrentLayer, rootMargin, shouldRender, threshold]);
 
   const style: CSSProperties | undefined =
     !shouldRender && minHeight !== undefined ? { minHeight } : undefined;

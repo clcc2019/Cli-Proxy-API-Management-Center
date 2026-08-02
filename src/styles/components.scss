@@ -7,7 +7,7 @@
   gap: $spacing-sm;
   min-height: 40px;
   border: 1px solid transparent;
-  border-radius: $radius-md;
+  border-radius: var(--mg-radius-control);
   padding: 10px 14px;
   font: inherit;
   font-weight: 600;
@@ -25,57 +25,41 @@
     transform $transition-fast;
   background-color: var(--control-surface, var(--surface-raised));
   color: var(--text-primary);
-  box-shadow: var(--control-shadow, var(--shadow));
+  box-shadow: none;
 
   &:focus-visible {
     outline: none;
-    box-shadow: var(--control-shadow, var(--shadow)), 0 0 0 3px var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   &.btn-primary {
-    background: var(--brand-gradient, var(--primary-color));
+    background: var(--mg-ink-strong);
     color: var(--primary-contrast, #fff);
-    border-color: color-mix(in srgb, var(--primary-color) 82%, var(--primary-active));
-    box-shadow:
-      var(--primary-shadow),
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      inset 0 -1px 0 rgb(24 24 92 / 0.14);
+    border-color: var(--mg-ink-strong);
 
     &:hover:not(:disabled) {
-      background: var(--brand-gradient-hover, var(--primary-hover));
-      border-color: var(--primary-hover);
-      box-shadow:
-        var(--primary-shadow-hover),
-        inset 0 1px 0 rgb(255 255 255 / 0.25),
-        inset 0 -1px 0 rgb(24 24 92 / 0.16);
-      transform: translateY(-1px);
+      background: var(--mg-text-secondary);
+      border-color: var(--mg-text-secondary);
     }
 
     &:active:not(:disabled) {
-      background: var(--primary-active);
-      border-color: var(--primary-active);
-      box-shadow: 0 5px 16px -10px color-mix(in srgb, var(--primary-active) 72%, transparent);
-      transform: translateY(0);
+      background: var(--mg-text);
+      border-color: var(--mg-text);
     }
   }
 
   &.btn-secondary {
-    background: var(--control-surface-gradient, var(--control-surface));
-    border-color: var(--border-primary);
-    color: var(--text-primary);
+    background: var(--mg-surface);
+    border-color: var(--mg-border);
+    color: var(--mg-text);
 
     &:hover:not(:disabled) {
-      background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--primary-color) 4%, var(--control-surface)) 0%,
-        color-mix(in srgb, var(--primary-color) 6%, var(--bg-secondary)) 100%
-      );
-      border-color: color-mix(in srgb, var(--primary-color) 20%, var(--border-hover));
+      background: var(--mg-surface-subtle);
+      border-color: var(--mg-text-muted);
     }
 
     &:active:not(:disabled) {
-      background: var(--bg-hover, var(--bg-tertiary));
-      box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.08);
+      background: var(--mg-surface-warm);
     }
   }
 
@@ -86,21 +70,20 @@
     box-shadow: none;
 
     &:hover:not(:disabled) {
-      color: var(--primary-color);
-      background: var(--primary-soft);
+      color: var(--mg-sage-strong);
+      background: var(--mg-sage-soft);
     }
   }
 
   &.btn-danger {
-    background-color: var(--danger-color);
-    border-color: var(--danger-color);
+    background-color: var(--mg-danger);
+    border-color: var(--mg-danger);
     color: var(--danger-contrast, #fff);
-    box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--danger-color) 70%, transparent);
+    box-shadow: none;
 
     &:hover:not(:disabled) {
-      background-color: var(--danger-hover, var(--danger-color));
-      border-color: var(--danger-hover, var(--danger-color));
-      transform: translateY(-1px);
+      background-color: color-mix(in srgb, var(--mg-danger) 84%, var(--mg-text));
+      border-color: color-mix(in srgb, var(--mg-danger) 84%, var(--mg-text));
     }
 
     &:active:not(:disabled) {
@@ -130,13 +113,13 @@
 textarea {
   width: 100%;
   border: 1px solid var(--border-color);
-  border-radius: $radius-md;
+  border-radius: var(--mg-radius-control);
   padding: 10px 12px;
   min-height: 40px;
-  background-color: var(--control-surface, var(--surface-raised));
+  background-color: var(--mg-surface);
   color: var(--text-primary);
   caret-color: var(--primary-color);
-  box-shadow: var(--control-shadow);
+  box-shadow: none;
   transition:
     border-color $transition-fast,
     background-color $transition-fast,
@@ -153,9 +136,9 @@ textarea {
 
   &:focus {
     outline: none;
-    border-color: var(--primary-color);
-    background-color: var(--surface-raised-strong);
-    box-shadow: var(--control-shadow), 0 0 0 3px var(--focus-ring);
+    border-color: var(--mg-sage-strong);
+    background-color: var(--mg-surface);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   &[aria-invalid='true'] {
@@ -256,21 +239,21 @@ textarea {
   min-width: 0;
   background: var(--surface-card, var(--surface-raised));
   border: 1px solid var(--surface-card-border, var(--border-color));
-  border-radius: $radius-lg;
-  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
+  border-radius: var(--mg-radius-card);
+  box-shadow: var(--shadow-card);
   padding: clamp(14px, 1.2vw + 8px, 20px);
   transition: border-color $transition-fast, box-shadow $transition-fast;
 
   &:hover {
     border-color: var(--surface-card-border-hover, var(--border-hover));
-    box-shadow: var(--shadow-card-hover), var(--surface-inner-highlight);
+    box-shadow: var(--shadow-card-hover);
   }
 }
 
 // 紧凑密度：14px 内边距、12px 圆角，适合密集列表场景
 .card.card-compact {
   padding: 14px;
-  border-radius: 12px;
+  border-radius: var(--mg-radius-medium);
 }
 
 // 舒适密度：20px 内边距，适合需要呼吸感的重要卡片
@@ -502,8 +485,8 @@ textarea {
   }
 
   input:checked + .track {
-    background: var(--brand-gradient, var(--primary-color));
-    border-color: color-mix(in srgb, var(--primary-color) 62%, transparent);
+    background: var(--mg-sage-strong);
+    border-color: var(--mg-sage-strong);
   }
 
   input:checked + .track .thumb {
@@ -525,9 +508,9 @@ textarea {
 .pill {
   padding: 4px 10px;
   border-radius: $radius-full;
-  background: color-mix(in srgb, var(--bg-secondary) 82%, var(--surface-raised));
-  color: var(--text-secondary);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text-secondary);
+  border: 1px solid var(--mg-border);
   font-size: 12px;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 56%, transparent);
 }
@@ -565,10 +548,8 @@ textarea {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  // 深色遮罩 + 模糊，让背景的视觉噪音消减，更聚焦弹窗内容
-  background: rgb(7 11 22 / 0.48);
-  backdrop-filter: blur(4px) saturate(0.9);
-  -webkit-backdrop-filter: blur(4px) saturate(0.9);
+  // 实体遮罩已能压低背景噪音，也避免全视口 backdrop blur 的持续合成成本。
+  background: rgb(14 13 12 / 0.56);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -604,7 +585,7 @@ textarea {
 
 .modal {
   background: var(--floating-surface-material, var(--floating-surface));
-  border-radius: $radius-lg;
+  border-radius: var(--mg-radius-card);
   border: 1px solid var(--floating-border);
   box-shadow: var(--floating-shadow), var(--surface-inner-highlight);
   max-width: 100%;
@@ -615,7 +596,6 @@ textarea {
   position: relative;
   // 从屏幕中央以柔和的缩放展开
   transform-origin: 50% 40%;
-  will-change: transform, opacity;
 
   &.modal-entering {
     animation: modal-scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -686,7 +666,7 @@ textarea {
   }
 
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
+    outline: 2px solid color-mix(in srgb, var(--mg-sage-strong) 52%, transparent);
     outline-offset: 2px;
   }
 
@@ -829,11 +809,11 @@ textarea {
 
 .empty-state {
   border: 1px dashed color-mix(in srgb, var(--border-color) 82%, transparent);
-  border-radius: $radius-lg;
+  border-radius: var(--mg-radius-medium);
   padding: $spacing-lg;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 3%, transparent), transparent 56%),
-    var(--surface-card-muted, color-mix(in srgb, var(--surface-raised) 92%, transparent));
+    linear-gradient(135deg, color-mix(in srgb, var(--mg-sage) 8%, transparent), transparent 56%),
+    var(--surface-card-muted, var(--mg-surface-subtle));
   display: flex;
   justify-content: space-between;
   gap: $spacing-md;
@@ -978,7 +958,7 @@ textarea {
   display: flex;
   flex-direction: column;
   border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
-  border-radius: $radius-md;
+  border-radius: var(--mg-radius-medium);
   overflow: hidden;
   background: var(--surface-card, var(--surface-raised));
   box-shadow: var(--shadow-card), var(--surface-inner-highlight);

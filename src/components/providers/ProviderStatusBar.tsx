@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
 import defaultStyles from '@/pages/AiProvidersPage.module.scss';
 
@@ -72,6 +73,8 @@ type StatusBlockView = {
   label: string;
 };
 
+const EMPTY_STATUS_BLOCK_ITEMS: StatusBlockView[] = [];
+
 interface StatusBlockItemProps {
   item: StatusBlockView;
   index: number;
@@ -129,6 +132,37 @@ const StatusBlockItem = memo(function StatusBlockItem({
   );
 });
 
+interface SummaryStatusBlockItemProps {
+  item: StatusBlockView;
+  index: number;
+  active: boolean;
+  wrapperClassName: string;
+  activeWrapperClassName: string;
+  renderTooltip: (item: StatusBlockView) => ReactNode;
+}
+
+// Summary 模式把 hover 事件收敛到父容器，但状态切换仍只影响当前和上一个 block。
+// 行级 memo 避免鼠标跨 block 移动时重新协调整条 20 段状态时间线。
+const SummaryStatusBlockItem = memo(function SummaryStatusBlockItem({
+  item,
+  index,
+  active,
+  wrapperClassName,
+  activeWrapperClassName,
+  renderTooltip,
+}: SummaryStatusBlockItemProps) {
+  return (
+    <div
+      className={`${wrapperClassName} ${active ? activeWrapperClassName : ''}`}
+      data-status-block-index={index}
+      aria-hidden="true"
+    >
+      <div className={item.blockClassName} style={item.blockStyle} />
+      {active && renderTooltip(item)}
+    </div>
+  );
+});
+
 function ProviderStatusBarImpl({
   statusData,
   styles: stylesProp,
@@ -136,11 +170,16 @@ function ProviderStatusBarImpl({
   interactionMode = 'individual',
 }: ProviderStatusBarProps) {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const s = (stylesProp || defaultStyles) as StylesModule;
   const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
   // roving tabindex 的当前停靠点
   const [focusedIndex, setFocusedIndex] = useState(0);
   const blocksRef = useRef<HTMLDivElement>(null);
+  // summary 模式只需要在进入新 block 时更新 tooltip；记录当前 block，
+  // 避免 pointerover 在 block 内部冒泡时重复触发 state updater。
+  const summaryPointerIndexRef = useRef<number | null>(null);
 
   const hasData = statusData.totalSuccess + statusData.totalFailure > 0;
   const rateClass = !hasData
@@ -153,15 +192,16 @@ function ProviderStatusBarImpl({
 
   // 点击外部关闭 tooltip（移动端）
   useEffect(() => {
-    if (activeTooltip === null) return;
+    if (!isCurrentLayer || activeTooltip === null) return;
     const handler = (e: PointerEvent) => {
       if (blocksRef.current && !blocksRef.current.contains(e.target as Node)) {
+        summaryPointerIndexRef.current = null;
         setActiveTooltip(null);
       }
     };
     document.addEventListener('pointerdown', handler);
     return () => document.removeEventListener('pointerdown', handler);
-  }, [activeTooltip]);
+  }, [activeTooltip, isCurrentLayer]);
 
   const getBlockIndex = useCallback((target: EventTarget & HTMLDivElement): number | null => {
     const index = Number(target.dataset.index);
@@ -191,6 +231,7 @@ function ProviderStatusBarImpl({
 
   const handlePointerLeave = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.pointerType === 'mouse') {
+      summaryPointerIndexRef.current = null;
       setActiveTooltip((prev) => (prev === null ? prev : null));
     }
   }, []);
@@ -256,13 +297,15 @@ function ProviderStatusBarImpl({
     [getBlockIndex, statusData.blockDetails.length]
   );
 
-  const handleSummaryPointerMove = useCallback(
+  const handleSummaryPointerOver = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (e.pointerType !== 'mouse') return;
       const index = getSummaryBlockIndex(e.target);
       if (index === null) return;
-      setFocusedIndex((previous) => (previous === index ? previous : index));
-      setActiveTooltip((previous) => (previous === index ? previous : index));
+      if (summaryPointerIndexRef.current === index) return;
+      summaryPointerIndexRef.current = index;
+      setFocusedIndex(index);
+      setActiveTooltip(index);
     },
     [getSummaryBlockIndex]
   );
@@ -271,10 +314,12 @@ function ProviderStatusBarImpl({
     (e: ReactPointerEvent<HTMLDivElement>) => {
       const index = getSummaryBlockIndex(e.target);
       if (index === null) return;
-      setFocusedIndex((previous) => (previous === index ? previous : index));
-      setActiveTooltip((previous) => (previous === index ? null : index));
+      setFocusedIndex(index);
+      const nextActiveIndex = activeTooltip === index ? null : index;
+      summaryPointerIndexRef.current = nextActiveIndex;
+      setActiveTooltip(nextActiveIndex);
     },
-    [getSummaryBlockIndex]
+    [activeTooltip, getSummaryBlockIndex]
   );
 
   const handleSummaryFocus = useCallback(() => {
@@ -315,6 +360,8 @@ function ProviderStatusBarImpl({
   );
 
   const blockItems = useMemo<StatusBlockView[]>(() => {
+    if (!isCurrentLayer) return EMPTY_STATUS_BLOCK_ITEMS;
+
     const total = statusData.blockDetails.length;
     return statusData.blockDetails.map((detail, idx) => {
       const isIdle = detail.rate === -1;
@@ -346,6 +393,7 @@ function ProviderStatusBarImpl({
     s.statusTooltipLeft,
     s.statusTooltipRight,
     statusData.blockDetails,
+    isCurrentLayer,
     t,
   ]);
 
@@ -403,7 +451,7 @@ function ProviderStatusBarImpl({
           tabIndex={0}
           aria-label={summaryLabel}
           aria-expanded={activeTooltip !== null}
-          onPointerMove={handleSummaryPointerMove}
+          onPointerOver={handleSummaryPointerOver}
           onPointerLeave={handlePointerLeave}
           onClick={handleSummaryClick}
           onFocus={handleSummaryFocus}
@@ -411,17 +459,15 @@ function ProviderStatusBarImpl({
           onKeyDown={handleSummaryKeyDown}
         >
           {blockItems.map((item, idx) => (
-            <div
+            <SummaryStatusBlockItem
               key={idx}
-              className={`${s.statusBlockWrapper} ${
-                activeTooltip === idx ? s.statusBlockActive : ''
-              }`}
-              data-status-block-index={idx}
-              aria-hidden="true"
-            >
-              <div className={item.blockClassName} style={item.blockStyle} />
-              {activeTooltip === idx && renderTooltip(item)}
-            </div>
+              item={item}
+              index={idx}
+              active={activeTooltip === idx}
+              wrapperClassName={s.statusBlockWrapper}
+              activeWrapperClassName={s.statusBlockActive}
+              renderTooltip={renderTooltip}
+            />
           ))}
         </div>
       ) : (

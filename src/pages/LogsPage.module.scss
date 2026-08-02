@@ -16,21 +16,21 @@
   }
 }
 
+.pageHeader {
+  @include management-page-header;
+  margin-bottom: 16px;
+}
+
 .pageTitle {
-  @include page-heading;
+  @include management-page-title;
 }
 
 .tabBar {
-  display: flex;
-  align-items: center;
+  @include management-tabs;
   width: fit-content;
   max-width: 100%;
-  gap: 4px;
   margin-bottom: $spacing-md;
-  padding: 4px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  border-radius: $radius-full;
-  background: color-mix(in srgb, var(--panel-surface-muted) 78%, transparent);
+  background: var(--mg-surface-subtle);
   overflow-x: auto;
   scrollbar-width: none;
 
@@ -46,7 +46,7 @@
   border-radius: $radius-full;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--mg-text-secondary);
   background: transparent;
   cursor: pointer;
   transition:
@@ -56,8 +56,8 @@
     box-shadow 0.15s ease;
 
   &:hover {
-    color: var(--text-primary);
-    background: color-mix(in srgb, var(--surface-raised) 74%, transparent);
+    color: var(--mg-text);
+    background: var(--mg-surface);
   }
 
   // 鼠标点击不显示焦点环，但键盘导航必须可见：
@@ -73,10 +73,10 @@
 }
 
 .tabActive {
-  color: var(--primary-color);
-  border-color: color-mix(in srgb, var(--primary-color) 22%, var(--border-color));
-  background: var(--surface-raised-strong);
-  box-shadow: var(--control-shadow);
+  color: var(--mg-text);
+  border-color: #d8d8d3;
+  background: var(--mg-surface);
+  box-shadow: inset 0 -2px 0 var(--mg-ink-strong);
 }
 
 .content {
@@ -176,9 +176,9 @@
   gap: 8px;
   flex: 1 1 100%;
   padding: 8px 10px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
+  background: var(--mg-surface-subtle);
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-control);
 }
 
 .filterChipGroup {

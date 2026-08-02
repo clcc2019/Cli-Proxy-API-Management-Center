@@ -107,7 +107,6 @@
     left: 3px;
     right: auto;
     transition: transform $transition-fast;
-    will-change: transform;
   }
 
   input:checked + .track {

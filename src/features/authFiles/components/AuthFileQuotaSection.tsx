@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useNotificationStore, useQuotaStore } from '@/stores';
@@ -93,14 +94,18 @@ function useAuthFileQuotaRefresh(props: AuthFileQuotaSectionProps) {
   const { file, quotaType, disableControls } = props;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
 
   const quota = useQuotaStore((state) => {
+    if (!isCurrentLayer) return undefined;
     if (quotaType === 'claude') return state.claudeQuota[file.name] as QuotaState;
     if (quotaType === 'codex') return state.codexQuota[file.name] as QuotaState;
     return state.kimiQuota[file.name] as QuotaState;
   });
 
   const refreshQuotaForFile = useCallback(async () => {
+    if (!isCurrentLayer) return;
     const result = await refreshAuthFileQuota({
       file,
       quotaType,
@@ -118,11 +123,11 @@ function useAuthFileQuotaRefresh(props: AuthFileQuotaSectionProps) {
         'error'
       );
     }
-  }, [disableControls, file, props.onAuthFileUpdated, quotaType, showNotification, t]);
+  }, [disableControls, file, isCurrentLayer, props.onAuthFileUpdated, quotaType, showNotification, t]);
 
   const quotaStatus = quota?.status ?? 'idle';
   const isQuotaRefreshing = quotaStatus === 'loading';
-  const canRefreshQuota = !disableControls && !file.disabled;
+  const canRefreshQuota = isCurrentLayer && !disableControls && !file.disabled;
   const config = getAuthFileQuotaConfig(quotaType) as unknown as { i18nPrefix: string };
 
   return {
@@ -187,7 +192,7 @@ export const AuthFileQuotaRefreshButton = memo(function AuthFileQuotaRefreshButt
 export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   props: AuthFileQuotaSectionProps
 ) {
-  const { file, quotaType, disableControls, onAuthFileUpdated } = props;
+  const { file, quotaType, onAuthFileUpdated } = props;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const setCodexQuota = useQuotaStore((state) => state.setCodexQuota);
@@ -256,8 +261,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   const showResetCredits = quotaType === 'codex' && quotaStatus === 'success';
   const canConsumeResetCredit =
     showResetCredits &&
-    !disableControls &&
-    !file.disabled &&
+    canRefreshQuota &&
     !resetCreditConsuming &&
     resetCreditCount !== null &&
     resetCreditCount > 0;

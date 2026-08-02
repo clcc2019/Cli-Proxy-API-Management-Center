@@ -1,27 +1,23 @@
-import { memo, useMemo, type ChangeEventHandler, type RefObject } from 'react';
+import { memo, type ChangeEventHandler, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import {
-  IconChartLine,
   IconDatabase,
   IconDownload,
   IconFileText,
   IconRefreshCw,
 } from '@/components/ui/icons';
-import styles from '@/pages/UsagePage.module.scss';
+import styles from './UsagePageHeader.module.scss';
 
 interface TimeRangeOption {
   value: string;
   label: string;
 }
 
-export interface UsagePageHeroProps {
+export interface UsagePageHeaderProps {
   timeRange: string;
   timeRangeOptions: ReadonlyArray<TimeRangeOption>;
-  selectedRangeLabel: string;
-  visibleModelCount: number;
-  lastRefreshedAt: Date | null;
   loading: boolean;
   exporting: boolean;
   exportingDetailed: boolean;
@@ -35,12 +31,9 @@ export interface UsagePageHeroProps {
   onImportChange: ChangeEventHandler<HTMLInputElement>;
 }
 
-export const UsagePageHero = memo(function UsagePageHero({
+export const UsagePageHeader = memo(function UsagePageHeader({
   timeRange,
   timeRangeOptions,
-  selectedRangeLabel,
-  visibleModelCount,
-  lastRefreshedAt,
   loading,
   exporting,
   exportingDetailed,
@@ -52,65 +45,48 @@ export const UsagePageHero = memo(function UsagePageHero({
   onRefresh,
   importInputRef,
   onImportChange,
-}: UsagePageHeroProps) {
-  const { i18n, t } = useTranslation();
-  const lastUpdatedLabel = useMemo(
-    () =>
-      lastRefreshedAt
-        ? `${t('usage_stats.last_updated')}: ${lastRefreshedAt.toLocaleString(i18n.language)}`
-        : null,
-    [i18n.language, lastRefreshedAt, t]
-  );
+}: UsagePageHeaderProps) {
+  const { t } = useTranslation();
+
   const disableExport = loading || importing || exportingDetailed;
   const disableExportDetailed = loading || importing || exporting;
   const disableImport = loading || exporting || exportingDetailed;
   const disableRefresh = loading || exporting || exportingDetailed || importing;
 
   return (
-    <section className={styles.hero}>
-      <div className={styles.heroCopy}>
-        <div className={styles.heroTitleRow}>
-          <span className={styles.pageTitleIcon} aria-hidden="true">
-            <IconChartLine size={22} />
-          </span>
-          <h1 className={styles.pageTitle}>{t('usage_stats.title')}</h1>
-        </div>
-        <p className={styles.pageSubtitle}>{t('usage_stats.subtitle')}</p>
-        <div className={styles.heroSummary}>
-          <span>{selectedRangeLabel}</span>
-          <span>
-            {t('usage_stats.model_price_model')}: {visibleModelCount}
-          </span>
-          {lastUpdatedLabel && <span>{lastUpdatedLabel}</span>}
-        </div>
+    <header className={styles.header} aria-labelledby="usage-page-title">
+      <div className={styles.identity}>
+        <h1 id="usage-page-title" className={styles.title}>
+          {t('usage_stats.title')}
+        </h1>
       </div>
 
-      <div className={styles.heroActions}>
-        <div className={styles.timeRangeGroup}>
-          <span className={styles.timeRangeIcon}>
-            <IconDatabase size={17} />
-          </span>
-          <span className={styles.timeRangeLabel}>{t('usage_stats.range_filter')}</span>
+      <div className={styles.tools}>
+        <div className={styles.rangeField}>
+          <div className={styles.rangeLabel}>
+            <IconDatabase size={14} aria-hidden="true" />
+            <span>{t('usage_stats.range_filter')}</span>
+          </div>
           <Select
             value={timeRange}
             options={timeRangeOptions}
             onChange={onTimeRangeChange}
-            className={styles.timeRangeSelectControl}
+            className={styles.rangeSelect}
             ariaLabel={t('usage_stats.range_filter')}
             fullWidth={false}
           />
         </div>
 
-        <div className={styles.actionGrid}>
+        <div className={styles.actions}>
           <Button
             variant="primary"
             size="sm"
             onClick={onExport}
             loading={exporting}
             disabled={disableExport}
-            className={styles.heroActionPrimary}
+            className={styles.primaryAction}
           >
-            <IconDownload size={15} />
+            <IconDownload size={14} />
             <span>{t('usage_stats.export')}</span>
           </Button>
           <Button
@@ -120,7 +96,7 @@ export const UsagePageHero = memo(function UsagePageHero({
             loading={exportingDetailed}
             disabled={disableExportDetailed}
           >
-            <IconFileText size={15} />
+            <IconFileText size={14} />
             <span>{t('usage_stats.export_details')}</span>
           </Button>
           <Button
@@ -130,26 +106,26 @@ export const UsagePageHero = memo(function UsagePageHero({
             loading={importing}
             disabled={disableImport}
           >
-            <IconDatabase size={15} />
+            <IconDatabase size={14} />
             <span>{t('usage_stats.import')}</span>
           </Button>
           <Button variant="secondary" size="sm" onClick={onRefresh} disabled={disableRefresh}>
-            <IconRefreshCw size={15} />
+            <IconRefreshCw size={14} />
             <span>{loading ? t('common.loading') : t('usage_stats.refresh')}</span>
           </Button>
         </div>
-
-        <input
-          ref={importInputRef}
-          type="file"
-          aria-label={t('usage_stats.import')}
-          accept=".json,application/json"
-          style={{ display: 'none' }}
-          onChange={onImportChange}
-        />
       </div>
-    </section>
+
+      <input
+        ref={importInputRef}
+        className={styles.fileInput}
+        type="file"
+        aria-label={t('usage_stats.import')}
+        accept=".json,application/json"
+        onChange={onImportChange}
+      />
+    </header>
   );
 });
 
-UsagePageHero.displayName = 'UsagePageHero';
+UsagePageHeader.displayName = 'UsagePageHeader';

@@ -34,8 +34,8 @@ export type { DeferredUsageCardProps } from './DeferredUsageCard';
 export { UsageSectionIntro } from './UsageSectionIntro';
 export type { UsageSectionIntroProps } from './UsageSectionIntro';
 
-export { UsagePageHero } from './UsagePageHero';
-export type { UsagePageHeroProps } from './UsagePageHero';
+export { UsagePageHeader } from './UsagePageHeader';
+export type { UsagePageHeaderProps } from './UsagePageHeader';
 
 export { UsageAnalysisSection } from './UsageAnalysisSection';
 export type { UsageAnalysisSectionProps } from './UsageAnalysisSection';
@@ -50,9 +50,6 @@ export type { ApiDetailsCardProps } from './ApiDetailsCard';
 
 export { ModelStatsCard } from './ModelStatsCard';
 export type { ModelStatsCardProps, ModelStat } from './ModelStatsCard';
-
-export { PriceSettingsCard } from './PriceSettingsCard';
-export type { PriceSettingsCardProps } from './PriceSettingsCard';
 
 export { CredentialStatsCard } from './CredentialStatsCard';
 export type { CredentialStatsCardProps } from './CredentialStatsCard';

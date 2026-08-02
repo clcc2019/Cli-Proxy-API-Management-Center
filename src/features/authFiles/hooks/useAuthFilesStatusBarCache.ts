@@ -119,6 +119,7 @@ const FILE_STATUS_CACHE = new WeakMap<AuthFileItem, StatusBarCacheEntry>();
 // 这些稳定的匹配候选，避免每次状态条索引重建都重复规范化文件字段。
 const FILE_USAGE_SOURCE_CANDIDATES_CACHE = new WeakMap<AuthFileItem, string[]>();
 const EMPTY_DETAILS_BY_AUTH_INDEX = new Map<string, UsageDetail[]>();
+const EMPTY_STATUS_BAR_CACHE = new Map<string, AuthFileStatusBarData>();
 
 const getCachedUsageSourceCandidates = (file: AuthFileItem): string[] => {
   const cached = FILE_USAGE_SOURCE_CANDIDATES_CACHE.get(file);
@@ -158,11 +159,17 @@ const mergeUsageDetails = (
   return merged;
 };
 
-export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: UsageDetail[]) {
+export function useAuthFilesStatusBarCache(
+  files: AuthFileItem[],
+  usageDetails: UsageDetail[],
+  enabled: boolean
+) {
   const needsUsageDetailsFallback = useMemo(
     () =>
-      usageDetails.length > 0 && files.some((file) => !authFileIncludesRecentRequestSummary(file)),
-    [files, usageDetails.length]
+      enabled &&
+      usageDetails.length > 0 &&
+      files.some((file) => !authFileIncludesRecentRequestSummary(file)),
+    [enabled, files, usageDetails.length]
   );
 
   // usageDetails 引用变化时才重建 auth_index -> details 索引。
@@ -201,6 +208,8 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
   // 十几个廉价的 React element，代价远小于为此在渲染期读写 ref
   // （React 纯度规则不允许，eslint react-hooks/refs 会直接报错）。
   return useMemo(() => {
+    if (!enabled) return EMPTY_STATUS_BAR_CACHE;
+
     const cache = new Map<string, AuthFileStatusBarData>();
 
     files.forEach((file) => {
@@ -238,5 +247,5 @@ export function useAuthFilesStatusBarCache(files: AuthFileItem[], usageDetails: 
     });
 
     return cache;
-  }, [detailsByAuthIndex, detailsBySource, files]);
+  }, [detailsByAuthIndex, detailsBySource, enabled, files]);
 }

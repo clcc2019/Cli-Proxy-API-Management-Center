@@ -2,14 +2,15 @@
  * OAuth 登录分步向导
  *
  * 支持两种形态：
- * - 支持回调回填的 provider（codex / anthropic / xai）：3 步
- * - 设备码流程（kimi）：2 步，没有回调粘贴步
+ * - 浏览器回调流程（anthropic / xai，以及 Codex 兜底模式）：3 步
+ * - 设备码流程（Codex 默认模式 / kimi）：2 步，没有回调粘贴步
  *
  * 反馈全部内联——本项目的 toast 已全局关闭。
  */
 
-import { useCallback, useState, type ReactNode } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useInterval } from '@/hooks';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,6 +18,7 @@ import {
   IconAlertTriangle,
   IconCheckCircle2,
   IconExternalLink,
+  IconKey,
   IconLoader2,
   IconTimer,
 } from '@/components/ui/icons';
@@ -29,10 +31,9 @@ type OAuthLoginModalProps = {
   open: boolean;
   provider: OAuthProviderDescriptor | null;
   state: OAuthFlowState;
-  /** 由 useOAuthFlow 的秒级 tick 提供的当前时间戳 */
-  now: number;
   onClose: () => void;
   onRestart: () => void;
+  onUseBrowserFallback: () => void;
   onCancel: () => void;
   onSubmitCallback: (redirectUrl: string) => void;
   onGotoAuthFiles: () => void;
@@ -47,16 +48,41 @@ const formatDuration = (ms: number) => {
 
 type StepStatus = 'done' | 'current' | 'pending';
 
-function Step({
+const ELAPSED_TICK_MS = 1_000;
+
+interface OAuthElapsedTimeProps {
+  open: boolean;
+  startedAt: number;
+  timeoutMs: number;
+}
+
+const OAuthElapsedTime = memo(function OAuthElapsedTime({
+  open,
+  startedAt,
+  timeoutMs,
+}: OAuthElapsedTimeProps) {
+  const { t } = useTranslation();
+  const [now, setNow] = useState(() => Date.now());
+
+  useInterval(() => setNow(Date.now()), open ? ELAPSED_TICK_MS : null);
+
+  const elapsedLabel = `${formatDuration(Math.min(now - startedAt, timeoutMs))} / ${formatDuration(timeoutMs)}`;
+
+  return (
+    <span className={styles.elapsed}>
+      {t('auth_login.waiting_elapsed', { elapsed: elapsedLabel })}
+    </span>
+  );
+});
+
+function StepIndicator({
   index,
   title,
   status,
-  children,
 }: {
   index: number;
   title: string;
   status: StepStatus;
-  children?: ReactNode;
 }) {
   const indexClass = [
     styles.stepIndex,
@@ -65,21 +91,22 @@ function Step({
   ]
     .filter(Boolean)
     .join(' ');
+  const itemClass = [
+    styles.stepItem,
+    status === 'current' ? styles.stepItemCurrent : '',
+    status === 'done' ? styles.stepItemDone : '',
+    status === 'pending' ? styles.stepItemPending : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div className={styles.step}>
-      <div className={styles.stepHeader}>
-        <span className={indexClass} aria-hidden="true">
-          {status === 'done' ? '✓' : index}
-        </span>
-        <span
-          className={`${styles.stepTitle} ${status === 'pending' ? styles.stepTitlePending : ''}`}
-        >
-          {title}
-        </span>
-      </div>
-      {children ? <div className={styles.stepBody}>{children}</div> : null}
-    </div>
+    <li className={itemClass} aria-current={status === 'current' ? 'step' : undefined}>
+      <span className={indexClass} aria-hidden="true">
+        {status === 'done' ? '✓' : index}
+      </span>
+      <span className={styles.stepTitle}>{title}</span>
+    </li>
   );
 }
 
@@ -87,9 +114,9 @@ export function OAuthLoginModal({
   open,
   provider,
   state,
-  now,
   onClose,
   onRestart,
+  onUseBrowserFallback,
   onCancel,
   onSubmitCallback,
   onGotoAuthFiles,
@@ -110,12 +137,10 @@ export function OAuthLoginModal({
 
   const isPolling = state.phase === 'awaiting' || state.phase === 'submitting';
   const startedAt = isPolling ? state.startedAt : undefined;
-  // `now` 由 useOAuthFlow 的秒级 tick 提供：时间戳在副作用里取，
-  // 渲染期间不调 Date.now()（React 纯度规则，且会让计时值漂移）。
-  const elapsedLabel =
-    startedAt === undefined
-      ? ''
-      : `${formatDuration(now - startedAt)} / ${formatDuration(OAUTH_TIMEOUT_MS)}`;
+  const timeoutMs = isPolling ? state.timeoutMs : OAUTH_TIMEOUT_MS;
+  const flowMode = 'mode' in state ? state.mode : undefined;
+  const userCode = 'userCode' in state ? state.userCode : undefined;
+  const isDeviceFlow = flowMode === 'device';
 
   const callbackError = state.phase === 'awaiting' ? state.callbackError : undefined;
 
@@ -134,6 +159,10 @@ export function OAuthLoginModal({
         return t('auth_login.missing_state');
       case 'unauthorized':
         return t('auth_login.oauth_unauthorized');
+      case 'deviceStart':
+        return `${t('auth_login.codex_device_start_error')} ${state.message}`.trim();
+      case 'invalidResponse':
+        return t('auth_login.invalid_start_response');
       case 'start':
         return `${t(getProviderAuthKey(provider.id, 'oauth_start_error'))} ${state.message}`.trim();
       case 'poll':
@@ -142,7 +171,9 @@ export function OAuthLoginModal({
     }
   })();
 
-  const linkStepStatus: StepStatus = authUrl ? 'done' : 'current';
+  const hasAuthInstructions = Boolean(authUrl && (!isDeviceFlow || userCode));
+  const linkStepStatus: StepStatus =
+    state.phase === 'success' || hasAuthInstructions ? 'done' : 'current';
   const authorizeStepStatus: StepStatus = (() => {
     if (state.phase === 'success') return 'done';
     if (isPolling) return 'current';
@@ -151,19 +182,56 @@ export function OAuthLoginModal({
 
   const showResultPanel =
     state.phase === 'success' || state.phase === 'timedOut' || state.phase === 'error';
+  const canUseBrowserFallback =
+    provider.id === 'codex' &&
+    flowMode !== 'browser' &&
+    state.phase !== 'idle' &&
+    state.phase !== 'success';
+  const callbackStepStatus: StepStatus =
+    state.phase === 'success' ? 'done' : isPolling ? 'current' : 'pending';
+  const workspaceTitle =
+    state.phase === 'success'
+      ? t('auth_login.success_title')
+      : state.phase === 'timedOut'
+        ? t('auth_login.timed_out_title')
+        : state.phase === 'error'
+          ? t('common.error')
+          : authUrl
+            ? t(
+                isDeviceFlow
+                  ? 'auth_login.step_enter_device_code'
+                  : 'auth_login.step_authorize'
+              )
+            : t('auth_login.step_open_link');
 
   return (
     <Modal
       open={open}
-      width={680}
+      width={860}
       className={styles.oauthModal}
       onClose={onClose}
-      title={t('auth_login.modal_title', { provider: t(provider.titleKey) })}
+      ariaDescribedBy="oauth-modal-description"
+      title={
+        <div className={styles.modalTitleBlock}>
+          <span className={styles.modalTitleEyebrow}>
+            <span className={styles.modalTitleDot} aria-hidden="true" />
+            {t('nav.oauth')}
+          </span>
+          <span className={styles.modalTitleText}>
+            {t('auth_login.modal_title', { provider: t(provider.titleKey) })}
+          </span>
+        </div>
+      }
       footer={
         <div className={styles.footer}>
           <Button variant="ghost" size="sm" onClick={isPolling ? onCancel : onClose}>
             {t('common.cancel')}
           </Button>
+          {canUseBrowserFallback && (
+            <Button variant="ghost" size="sm" onClick={onUseBrowserFallback}>
+              {t('auth_login.codex_browser_fallback')}
+            </Button>
+          )}
           {state.phase === 'success' ? (
             <Button size="sm" className={styles.footerSpacer} onClick={onGotoAuthFiles}>
               {t('auth_login.goto_auth_files')}
@@ -183,142 +251,259 @@ export function OAuthLoginModal({
       }
     >
       <div className={styles.body}>
-        <p className={styles.providerHint}>{t(provider.hintKey)}</p>
+        <div className={styles.flowShell}>
+          <aside className={styles.flowRail} aria-label={t('nav.oauth')}>
+            <div className={styles.railIntro}>
+              <span className={styles.railEyebrow}>{t(provider.titleKey)}</span>
+              <p id="oauth-modal-description" className={styles.providerHint}>
+                {t(provider.hintKey)}
+              </p>
+            </div>
 
-        <div className={styles.steps}>
-          <Step
-            index={1}
-            title={t('auth_login.step_open_link')}
-            status={linkStepStatus}
-          >
-            {authUrl ? (
-              <>
-                <div className={styles.urlBox}>
-                  <div className={styles.urlValue}>{authUrl}</div>
-                </div>
-                <div className={styles.actions}>
-                  <Button
-                    size="sm"
-                    onClick={() => window.open(authUrl, '_blank', 'noopener,noreferrer')}
-                  >
-                    <IconExternalLink size={15} />
-                    <span>{t(getProviderAuthKey(provider.id, 'open_link'))}</span>
-                  </Button>
-                  <CopyLinkButton
-                    url={authUrl}
-                    label={t(getProviderAuthKey(provider.id, 'copy_link'))}
-                  />
-                </div>
-              </>
-            ) : (
-              <div className={styles.waiting} role="status" aria-busy="true">
-                <IconLoader2 size={16} className={styles.waitingIcon} />
-                <span>{t('common.loading')}</span>
+            <ol className={styles.stepList}>
+              <StepIndicator
+                index={1}
+                title={t('auth_login.step_open_link')}
+                status={linkStepStatus}
+              />
+              <StepIndicator
+                index={2}
+                title={t(
+                  isDeviceFlow
+                    ? 'auth_login.step_enter_device_code'
+                    : 'auth_login.step_authorize'
+                )}
+                status={authorizeStepStatus}
+              />
+              {provider.supportsCallback && !isDeviceFlow && (
+                <StepIndicator
+                  index={3}
+                  title={t('auth_login.step_paste_callback')}
+                  status={callbackStepStatus}
+                />
+              )}
+            </ol>
+          </aside>
+
+          <section className={styles.workspace} aria-labelledby="oauth-workspace-title">
+            <header className={styles.workspaceHeader}>
+              <div>
+                <span className={styles.workspaceEyebrow}>{t(provider.titleKey)}</span>
+                <h3 id="oauth-workspace-title" className={styles.workspaceTitle}>
+                  {workspaceTitle}
+                </h3>
               </div>
-            )}
-          </Step>
+              {isPolling && (
+                <OAuthElapsedTime
+                  key={`${startedAt}-${open ? 'open' : 'closed'}`}
+                  open={open}
+                  startedAt={startedAt!}
+                  timeoutMs={timeoutMs}
+                />
+              )}
+            </header>
 
-          <Step
-            index={2}
-            title={t('auth_login.step_authorize')}
-            status={authorizeStepStatus}
-          >
-            {isPolling ? (
-              <>
-                <div className={styles.waiting} role="status" aria-live="polite">
-                  <IconLoader2 size={16} className={styles.waitingIcon} />
-                  <span>{t(getProviderAuthKey(provider.id, 'oauth_status_waiting'))}</span>
-                  <span className={styles.elapsed}>
-                    {t('auth_login.waiting_elapsed', { elapsed: elapsedLabel })}
+            <div className={styles.taskContent}>
+              {state.phase === 'starting' && (
+                <div className={styles.loadingPanel} role="status" aria-busy="true">
+                  <span className={styles.loadingMark} aria-hidden="true">
+                    <IconLoader2 size={18} className={styles.waitingIcon} />
                   </span>
+                  <span>{t('common.loading')}</span>
                 </div>
-                <p className={styles.waitingHint}>{t('auth_login.waiting_hint')}</p>
-              </>
-            ) : null}
-          </Step>
+              )}
 
-          {provider.supportsCallback && (
-            <Step
-              index={3}
-              title={t('auth_login.step_paste_callback')}
-              status={isPolling ? 'current' : 'pending'}
-            >
-              {authUrl ? (
+              {authUrl && isDeviceFlow && (
                 <>
-                  <Input
-                    hint={t('auth_login.oauth_callback_hint')}
-                    placeholder={t('auth_login.oauth_callback_placeholder')}
-                    value={callbackUrl}
-                    onChange={(event) => setCallbackUrl(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        handleSubmitCallback();
-                      }
-                    }}
-                  />
-                  {callbackError && (
-                    <div className={styles.inlineError} role="alert">
-                      <IconAlertTriangle size={14} className={styles.resultIcon} />
-                      <span>
-                        {callbackError.kind === 'unsupported'
-                          ? t('auth_login.oauth_callback_upgrade_hint')
-                          : `${t('auth_login.oauth_callback_error')} ${callbackError.message}`.trim()}
+                  <div
+                    className={`${styles.deviceWorkspace} ${
+                      userCode ? '' : styles.deviceWorkspaceSingle
+                    }`}
+                  >
+                    {userCode && (
+                      <section className={styles.codePanel}>
+                        <span className={styles.sectionLabel}>
+                          <IconKey size={14} aria-hidden="true" />
+                          {t('auth_login.codex_device_code_label')}
+                        </span>
+                        <p className={styles.deviceIntro}>
+                          {t('auth_login.codex_device_instructions')}
+                        </p>
+                        <code
+                          className={styles.deviceCodeValue}
+                          aria-label={t('auth_login.codex_device_code_label')}
+                        >
+                          {userCode}
+                        </code>
+                        <CopyLinkButton
+                          value={userCode}
+                          label={t('auth_login.codex_copy_code')}
+                          className={styles.panelAction}
+                        />
+                      </section>
+                    )}
+
+                    <section className={styles.linkPanel}>
+                      <span className={styles.sectionLabel}>
+                        <IconExternalLink size={14} aria-hidden="true" />
+                        {t('auth_login.codex_verification_url_label')}
                       </span>
+                      <div className={styles.urlBox}>
+                        <div className={styles.urlValue}>{authUrl}</div>
+                      </div>
+                      <div className={styles.panelActions}>
+                        <Button
+                          size="sm"
+                          onClick={() => window.open(authUrl, '_blank', 'noopener,noreferrer')}
+                        >
+                          <IconExternalLink size={15} />
+                          <span>{t('auth_login.codex_open_verification')}</span>
+                        </Button>
+                        <CopyLinkButton
+                          value={authUrl}
+                          label={t(getProviderAuthKey(provider.id, 'copy_link'))}
+                        />
+                      </div>
+                    </section>
+                  </div>
+
+                  {isPolling && (
+                    <div className={styles.waiting} role="status" aria-live="polite">
+                      <IconLoader2 size={16} className={styles.waitingIcon} />
+                      <div>
+                        <strong>{t(getProviderAuthKey(provider.id, 'oauth_status_waiting'))}</strong>
+                        <p>{t('auth_login.codex_device_waiting_hint')}</p>
+                      </div>
                     </div>
                   )}
-                  <div className={styles.actions}>
-                    <Button
-                      size="sm"
-                      onClick={handleSubmitCallback}
-                      loading={state.phase === 'submitting'}
-                      disabled={!callbackUrl.trim()}
-                    >
-                      {t('auth_login.oauth_callback_button')}
-                    </Button>
-                  </div>
-                </>
-              ) : null}
-            </Step>
-          )}
-        </div>
 
-        {showResultPanel && (
-          <div
-            className={`${styles.resultPanel} ${
-              state.phase === 'success'
-                ? styles.resultSuccess
-                : state.phase === 'timedOut'
-                  ? styles.resultWarning
-                  : styles.resultError
-            }`}
-            role={state.phase === 'success' ? 'status' : 'alert'}
-          >
-            <div className={styles.resultHeader}>
-              {state.phase === 'success' ? (
-                <IconCheckCircle2 size={16} className={styles.resultIcon} />
-              ) : state.phase === 'timedOut' ? (
-                <IconTimer size={16} className={styles.resultIcon} />
-              ) : (
-                <IconAlertTriangle size={16} className={styles.resultIcon} />
+                  <p className={styles.browserFallbackHint}>
+                    {t('auth_login.codex_browser_fallback_hint')}
+                  </p>
+                </>
               )}
-              <span>
-                {state.phase === 'success'
-                  ? t('auth_login.success_title')
-                  : state.phase === 'timedOut'
-                    ? t('auth_login.timed_out_title')
-                    : t('common.error')}
-              </span>
+
+              {authUrl && !isDeviceFlow && (
+                <>
+                  <section className={styles.linkPanel}>
+                    <span className={styles.sectionLabel}>
+                      <IconExternalLink size={14} aria-hidden="true" />
+                      {t('auth_login.step_open_link')}
+                    </span>
+                    <div className={styles.urlBox}>
+                      <div className={styles.urlValue}>{authUrl}</div>
+                    </div>
+                    <div className={styles.panelActions}>
+                      <Button
+                        size="sm"
+                        onClick={() => window.open(authUrl, '_blank', 'noopener,noreferrer')}
+                      >
+                        <IconExternalLink size={15} />
+                        <span>{t(getProviderAuthKey(provider.id, 'open_link'))}</span>
+                      </Button>
+                      <CopyLinkButton
+                        value={authUrl}
+                        label={t(getProviderAuthKey(provider.id, 'copy_link'))}
+                      />
+                    </div>
+                  </section>
+
+                  {isPolling && (
+                    <div className={styles.waiting} role="status" aria-live="polite">
+                      <IconLoader2 size={16} className={styles.waitingIcon} />
+                      <div>
+                        <strong>{t(getProviderAuthKey(provider.id, 'oauth_status_waiting'))}</strong>
+                        <p>{t('auth_login.waiting_hint')}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {provider.supportsCallback && (
+                    <section className={styles.callbackPanel}>
+                      <span className={styles.sectionLabel}>
+                        {t('auth_login.step_paste_callback')}
+                      </span>
+                      <Input
+                        hint={t('auth_login.oauth_callback_hint')}
+                        placeholder={t('auth_login.oauth_callback_placeholder')}
+                        value={callbackUrl}
+                        onChange={(event) => setCallbackUrl(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault();
+                            handleSubmitCallback();
+                          }
+                        }}
+                      />
+                      {callbackError && (
+                        <div className={styles.inlineError} role="alert">
+                          <IconAlertTriangle size={14} className={styles.resultIcon} />
+                          <span>
+                            {callbackError.kind === 'unsupported'
+                              ? t('auth_login.oauth_callback_upgrade_hint')
+                              : `${t('auth_login.oauth_callback_error')} ${callbackError.message}`.trim()}
+                          </span>
+                        </div>
+                      )}
+                      <div className={styles.callbackAction}>
+                        <Button
+                          size="sm"
+                          onClick={handleSubmitCallback}
+                          loading={state.phase === 'submitting'}
+                          disabled={!callbackUrl.trim()}
+                        >
+                          {t('auth_login.oauth_callback_button')}
+                        </Button>
+                      </div>
+                    </section>
+                  )}
+                </>
+              )}
+
+              {showResultPanel && (
+                <div
+                  className={`${styles.resultPanel} ${
+                    state.phase === 'success'
+                      ? styles.resultSuccess
+                      : state.phase === 'timedOut'
+                        ? styles.resultWarning
+                        : styles.resultError
+                  }`}
+                  role={state.phase === 'success' ? 'status' : 'alert'}
+                >
+                  <div className={styles.resultHeader}>
+                    {state.phase === 'success' ? (
+                      <IconCheckCircle2 size={18} className={styles.resultIcon} />
+                    ) : state.phase === 'timedOut' ? (
+                      <IconTimer size={18} className={styles.resultIcon} />
+                    ) : (
+                      <IconAlertTriangle size={18} className={styles.resultIcon} />
+                    )}
+                    <span>
+                      {state.phase === 'success'
+                        ? t('auth_login.success_title')
+                        : state.phase === 'timedOut'
+                          ? t('auth_login.timed_out_title')
+                          : t('common.error')}
+                    </span>
+                  </div>
+                  <p className={styles.resultMessage}>
+                    {state.phase === 'success'
+                      ? t('auth_login.success_hint')
+                      : state.phase === 'timedOut'
+                        ? t('auth_login.timed_out_hint')
+                        : errorMessage}
+                  </p>
+                  {state.phase === 'error' && state.kind === 'deviceStart' && (
+                    <p className={styles.resultMessage}>
+                      {t('auth_login.codex_browser_fallback_hint')}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-            <p className={styles.resultMessage}>
-              {state.phase === 'success'
-                ? t('auth_login.success_hint')
-                : state.phase === 'timedOut'
-                  ? t('auth_login.timed_out_hint')
-                  : errorMessage}
-            </p>
-          </div>
-        )}
+          </section>
+        </div>
       </div>
     </Modal>
   );

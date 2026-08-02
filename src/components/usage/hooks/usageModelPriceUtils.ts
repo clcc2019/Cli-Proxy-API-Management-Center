@@ -4,6 +4,13 @@ import { loadModelPrices, saveModelPrices, type ModelPrice } from '@/utils/usage
 
 type SetModelPrices = (prices: Record<string, ModelPrice>) => void;
 
+export interface PrimeModelPricesOptions {
+  /** Skip the local-storage hydration when the caller already used it as a lazy initializer. */
+  hydrateLocal?: boolean;
+  /** Prevent a stale page-transition layer from receiving the async result. */
+  shouldApply?: () => boolean;
+}
+
 const MODEL_PRICES_STALE_TIME_MS = 240_000;
 
 interface ModelPricesCacheEntry {
@@ -25,8 +32,12 @@ const getModelPricesScopeKey = () => {
 
 const hasModelPrices = (prices: Record<string, ModelPrice>) => Object.keys(prices).length > 0;
 
-const applyModelPrices = (prices: Record<string, ModelPrice>, setModelPrices: SetModelPrices) => {
-  if (!hasModelPrices(prices)) return;
+const applyModelPrices = (
+  prices: Record<string, ModelPrice>,
+  setModelPrices: SetModelPrices,
+  shouldApply?: () => boolean
+) => {
+  if (!hasModelPrices(prices) || (shouldApply && !shouldApply())) return;
   setModelPrices(prices);
   saveModelPrices(prices);
 };
@@ -57,13 +68,18 @@ const loadRemoteModelPrices = (scopeKey: string) => {
   return promise;
 };
 
-export const primeModelPrices = (setModelPrices: SetModelPrices) => {
-  setModelPrices(loadModelPrices());
+export const primeModelPrices = (
+  setModelPrices: SetModelPrices,
+  options: PrimeModelPricesOptions = {}
+) => {
+  if (options.hydrateLocal !== false && (!options.shouldApply || options.shouldApply())) {
+    setModelPrices(loadModelPrices());
+  }
   const scopeKey = getModelPricesScopeKey();
   void loadRemoteModelPrices(scopeKey)
     .then((prices) => {
       if (getModelPricesScopeKey() === scopeKey) {
-        applyModelPrices(prices, setModelPrices);
+        applyModelPrices(prices, setModelPrices, options.shouldApply);
       }
     })
     .catch(() => {});

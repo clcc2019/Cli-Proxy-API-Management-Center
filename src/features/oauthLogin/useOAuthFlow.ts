@@ -7,17 +7,21 @@
  * - 定时器身份校验：stopPolling 只在 timers.current[provider] 与 expectedTimer
  *   一致时才关表，避免「旧表的回调关掉新表」。
  * - 重入守卫：/get-auth-status 慢于轮询间隔时，pollingRequestsInFlight 阻止请求堆叠。
- * - 已等待时长用独立的 1s tick 驱动，轮询表的 delay 恒为 3s，
- *   因此秒级重渲染不会重启轮询（useInterval 的 effect 只依赖 delay 与稳定回调）。
+ * - 轮询表的 delay 恒为 3s；等待时长由弹窗内仅在打开时运行的计时组件负责，
+ *   不会把秒级更新扩散到页面和所有 provider 卡片。
  * - 不用 useVisibleInterval：用户去浏览器完成授权时本页面必然处于隐藏状态，
  *   而那正是最需要检测到结果的时刻，暂停轮询会恰好错过它。
  * - 弹窗关闭后轮询继续，只有 cancel 与卸载才停表；授权在外部浏览器完成，
  *   用户很可能关掉弹窗去别处等待。
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { oauthApi, type OAuthProvider } from '@/services/api/oauth';
-import { useInterval } from '@/hooks';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  oauthApi,
+  type CodexLoginMode,
+  type OAuthProvider,
+  type OAuthStartResponse,
+} from '@/services/api/oauth';
 import { getErrorMessage } from '@/utils/error';
 import { AUTH_FILES_REFRESH_EVENT } from '@/utils/constants';
 
@@ -26,17 +30,16 @@ export const OAUTH_POLL_INTERVAL_MS = 3_000;
 // 这个时长覆盖的是整个人工操作过程，不是单次请求，因此留足 5 分钟。
 export const OAUTH_TIMEOUT_MS = 5 * 60 * 1000;
 
-const ELAPSED_TICK_MS = 1_000;
-
 /** 终态错误：流程已停止，只能重新授权 */
-export type OAuthErrorKind = 'start' | 'poll' | 'missingState' | 'unauthorized';
+export type OAuthErrorKind =
+  'start' | 'deviceStart' | 'invalidResponse' | 'poll' | 'missingState' | 'unauthorized';
 
 /** 回调提交错误：轮询仍在继续，用户可改正 URL 重试（见 awaiting.callbackError） */
 export type OAuthCallbackErrorKind = 'callback' | 'unsupported';
 
 export type OAuthFlowState =
   | { phase: 'idle' }
-  | { phase: 'starting' }
+  | { phase: 'starting'; mode: CodexLoginMode }
   /**
    * callbackError：回调提交失败的内联提示。挂在 awaiting 上而不是切到 error，
    * 是因为此时轮询仍在跑、授权链接依然有效——用户应该能改正 URL 重试。
@@ -47,17 +50,57 @@ export type OAuthFlowState =
       url: string;
       state: string;
       startedAt: number;
+      timeoutMs: number;
+      pollIntervalMs: number;
+      mode: CodexLoginMode;
+      userCode?: string;
       callbackError?: { kind: OAuthCallbackErrorKind; message: string };
     }
-  | { phase: 'submitting'; url: string; state: string; startedAt: number }
+  | {
+      phase: 'submitting';
+      url: string;
+      state: string;
+      startedAt: number;
+      timeoutMs: number;
+      pollIntervalMs: number;
+      mode: CodexLoginMode;
+      userCode?: string;
+    }
   | { phase: 'success' }
-  | { phase: 'timedOut'; url: string }
-  | { phase: 'error'; kind: OAuthErrorKind; message: string; url?: string };
+  | {
+      phase: 'timedOut';
+      url: string;
+      timeoutMs: number;
+      mode: CodexLoginMode;
+      userCode?: string;
+    }
+  | {
+      phase: 'error';
+      kind: OAuthErrorKind;
+      message: string;
+      url?: string;
+      mode?: CodexLoginMode;
+      userCode?: string;
+    };
+
+export const getOAuthFlowMode = (state: OAuthFlowState): CodexLoginMode | undefined =>
+  'mode' in state ? state.mode : undefined;
 
 type StateMap = Partial<Record<OAuthProvider, OAuthFlowState>>;
 type TimerMap = Partial<Record<OAuthProvider, number>>;
 
 const IDLE: OAuthFlowState = { phase: 'idle' };
+
+const secondsToMs = (value: number | undefined, fallback: number): number => {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return fallback;
+  return Math.max(1_000, Math.round(value * 1_000));
+};
+
+const getResponseUrl = (response: OAuthStartResponse, mode: CodexLoginMode): string => {
+  const verificationUrl = response.verification_url?.trim() ?? '';
+  const authUrl = response.url?.trim() ?? '';
+  return mode === 'device' ? verificationUrl || authUrl : authUrl || verificationUrl;
+};
 
 const getStatusCode = (err: unknown): number | undefined => {
   if (!err || typeof err !== 'object' || !('status' in err)) return undefined;
@@ -73,8 +116,6 @@ const isLive = (
 
 export function useOAuthFlow() {
   const [states, setStates] = useState<StateMap>({});
-  /** 由秒级 tick 更新，供 UI 计算已等待时长 */
-  const [now, setNow] = useState(() => Date.now());
   const timers = useRef<TimerMap>({});
   const pollingRequestsInFlight = useRef<TimerMap>({});
   const mountedRef = useRef(true);
@@ -145,6 +186,8 @@ export function useOAuthFlow() {
             kind,
             message,
             url: current && isLive(current) ? current.url : undefined,
+            mode: current && isLive(current) ? current.mode : undefined,
+            userCode: current && isLive(current) ? current.userCode : undefined,
           },
         };
       });
@@ -153,20 +196,36 @@ export function useOAuthFlow() {
   );
 
   const startPolling = useCallback(
-    (provider: OAuthProvider, authState: string, startedAt: number, runId: number) => {
+    (
+      provider: OAuthProvider,
+      authState: string,
+      startedAt: number,
+      timeoutMs: number,
+      pollIntervalMs: number,
+      runId: number
+    ) => {
       stopPolling(provider);
 
       const timer = window.setInterval(async () => {
         // 上一轮请求还没回来，跳过本轮，避免堆叠
         if (pollingRequestsInFlight.current[provider] === timer) return;
 
-        if (Date.now() - startedAt >= OAUTH_TIMEOUT_MS) {
+        if (Date.now() - startedAt >= timeoutMs) {
           stopPolling(provider, timer);
           if (!isCurrentRun(provider, runId)) return;
           setStates((prev) => {
             const current = prev[provider];
             if (!current || !isLive(current)) return prev;
-            return { ...prev, [provider]: { phase: 'timedOut', url: current.url } };
+            return {
+              ...prev,
+              [provider]: {
+                phase: 'timedOut',
+                url: current.url,
+                timeoutMs: current.timeoutMs,
+                mode: current.mode,
+                userCode: current.userCode,
+              },
+            };
           });
           return;
         }
@@ -202,7 +261,7 @@ export function useOAuthFlow() {
             delete pollingRequestsInFlight.current[provider];
           }
         }
-      }, OAUTH_POLL_INTERVAL_MS);
+      }, pollIntervalMs);
 
       timers.current[provider] = timer;
     },
@@ -210,35 +269,76 @@ export function useOAuthFlow() {
   );
 
   const start = useCallback(
-    async (provider: OAuthProvider) => {
+    async (provider: OAuthProvider, requestedMode?: CodexLoginMode) => {
       stopPolling(provider);
       const runId = nextRunId(provider);
-      // 上一轮结束后 tick 会停掉，now 可能停留在很早的时刻；
-      // 这里同步一次，避免新一轮开始的第一秒显示错误的已等待时长
-      setNow(Date.now());
-      setState(provider, { phase: 'starting' });
+      const initialMode: CodexLoginMode =
+        provider === 'codex' && requestedMode !== 'browser' ? 'device' : 'browser';
+      setState(provider, { phase: 'starting', mode: initialMode });
 
       try {
-        const res = await oauthApi.startAuth(provider);
+        const res = await oauthApi.startAuth(provider, initialMode);
         if (!isCurrentRun(provider, runId)) return;
 
+        // Only an explicit device response activates the device-code UI.
+        // Responses without `mode` are legacy browser flows and keep the
+        // callback behavior used by older backends.
+        const mode: CodexLoginMode =
+          provider === 'codex' && res.mode === 'device' ? 'device' : 'browser';
+        const url = getResponseUrl(res, mode);
+        const userCode = mode === 'device' ? res.user_code?.trim() : undefined;
+        const authState = res.state?.trim() ?? '';
+
+        if (!url || (mode === 'device' && !userCode)) {
+          setState(provider, {
+            phase: 'error',
+            kind: 'invalidResponse',
+            message: '',
+            url: url || undefined,
+            mode,
+            userCode,
+          });
+          return;
+        }
+
         // 没有 state 就无从轮询：明确报错，而不是留在永久等待里
-        if (!res.state) {
-          setState(provider, { phase: 'error', kind: 'missingState', message: '', url: res.url });
+        if (!authState) {
+          setState(provider, {
+            phase: 'error',
+            kind: 'missingState',
+            message: '',
+            url,
+            mode,
+            userCode,
+          });
           return;
         }
 
         const startedAt = Date.now();
+        const timeoutMs = secondsToMs(res.expires_in, OAUTH_TIMEOUT_MS);
+        const pollIntervalMs = Math.min(
+          secondsToMs(res.interval, OAUTH_POLL_INTERVAL_MS),
+          timeoutMs
+        );
         setState(provider, {
           phase: 'awaiting',
-          url: res.url,
-          state: res.state,
+          url,
+          state: authState,
           startedAt,
+          timeoutMs,
+          pollIntervalMs,
+          mode,
+          userCode,
         });
-        startPolling(provider, res.state, startedAt, runId);
+        startPolling(provider, authState, startedAt, timeoutMs, pollIntervalMs, runId);
       } catch (err: unknown) {
         if (!isCurrentRun(provider, runId)) return;
-        setState(provider, { phase: 'error', kind: 'start', message: getErrorMessage(err) });
+        setState(provider, {
+          phase: 'error',
+          kind: initialMode === 'device' ? 'deviceStart' : 'start',
+          message: getErrorMessage(err),
+          mode: initialMode,
+        });
       }
     },
     [isCurrentRun, nextRunId, setState, startPolling, stopPolling]
@@ -247,7 +347,7 @@ export function useOAuthFlow() {
   const submitCallback = useCallback(
     async (provider: OAuthProvider, redirectUrl: string) => {
       const current = states[provider];
-      if (!current || !isLive(current)) return;
+      if (!current || !isLive(current) || current.mode === 'device') return;
       const runId = runIds.current[provider] ?? 0;
 
       setState(provider, {
@@ -255,6 +355,10 @@ export function useOAuthFlow() {
         url: current.url,
         state: current.state,
         startedAt: current.startedAt,
+        timeoutMs: current.timeoutMs,
+        pollIntervalMs: current.pollIntervalMs,
+        mode: current.mode,
+        userCode: current.userCode,
       });
       try {
         await oauthApi.submitCallback(provider, redirectUrl);
@@ -270,6 +374,10 @@ export function useOAuthFlow() {
               url: latest.url,
               state: latest.state,
               startedAt: latest.startedAt,
+              timeoutMs: latest.timeoutMs,
+              pollIntervalMs: latest.pollIntervalMs,
+              mode: latest.mode,
+              userCode: latest.userCode,
             },
           };
         });
@@ -288,6 +396,10 @@ export function useOAuthFlow() {
               url: base.url,
               state: base.state,
               startedAt: base.startedAt,
+              timeoutMs: base.timeoutMs,
+              pollIntervalMs: base.pollIntervalMs,
+              mode: base.mode,
+              userCode: base.userCode,
               callbackError: {
                 kind: unsupported ? 'unsupported' : 'callback',
                 message: unsupported ? '' : getErrorMessage(err),
@@ -313,14 +425,5 @@ export function useOAuthFlow() {
 
   const reset = cancel;
 
-  // 秒级 tick 驱动「已等待时长」：时间戳在这里取（副作用里），
-  // 而不是在渲染中调 Date.now()——后者在 React 的纯度规则下不被允许，
-  // 也会让计时值随任意一次重渲染漂移。没有进行中的流程时完全停掉。
-  const hasLiveFlow = useMemo(
-    () => Object.values(states).some((state) => state !== undefined && isLive(state)),
-    [states]
-  );
-  useInterval(() => setNow(Date.now()), hasLiveFlow ? ELAPSED_TICK_MS : null);
-
-  return { getState, start, submitCallback, cancel, reset, now };
+  return { getState, start, submitCallback, cancel, reset };
 }

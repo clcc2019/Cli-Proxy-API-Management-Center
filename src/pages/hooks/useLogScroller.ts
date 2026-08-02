@@ -14,6 +14,8 @@ export const isNearBottom = (node: HTMLDivElement | null) => {
 interface UseLogScrollerOptions {
   logState: LogState;
   setLogState: Dispatch<SetStateAction<LogState>>;
+  logViewerRef: RefObject<HTMLDivElement | null>;
+  enabled?: boolean;
   loading: boolean;
   isSearching: boolean;
   filteredLineCount: number;
@@ -22,7 +24,6 @@ interface UseLogScrollerOptions {
 }
 
 interface UseLogScrollerReturn {
-  logViewerRef: RefObject<HTMLDivElement | null>;
   canLoadMore: boolean;
   handleLogScroll: (e: UIEvent<HTMLDivElement>) => void;
   scrollToBottom: () => void;
@@ -33,6 +34,8 @@ export function useLogScroller(options: UseLogScrollerOptions): UseLogScrollerRe
   const {
     logState,
     setLogState,
+    logViewerRef,
+    enabled = true,
     loading,
     isSearching,
     filteredLineCount,
@@ -40,23 +43,25 @@ export function useLogScroller(options: UseLogScrollerOptions): UseLogScrollerRe
     showRawLogs,
   } = options;
 
-  const logViewerRef = useRef<HTMLDivElement | null>(null);
   const pendingScrollToBottomRef = useRef(false);
   const pendingPrependScrollRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
+  const resizeFrameRef = useRef<number | null>(null);
+  const tryAutoLoadMoreRef = useRef<() => void>(() => undefined);
 
-  const canLoadMore = !isSearching && logState.visibleFrom > 0;
+  const canLoadMore = enabled && !isSearching && logState.visibleFrom > 0;
 
   const scrollToBottom = useCallback(() => {
     const node = logViewerRef.current;
     if (!node) return;
     node.scrollTop = node.scrollHeight;
-  }, []);
+  }, [logViewerRef]);
 
   const requestScrollToBottom = useCallback(() => {
     pendingScrollToBottomRef.current = true;
   }, []);
 
   const prependVisibleLines = useCallback(() => {
+    if (!enabled) return;
     const node = logViewerRef.current;
     if (!node) return;
     if (pendingPrependScrollRef.current) return;
@@ -77,10 +82,11 @@ export function useLogScroller(options: UseLogScrollerOptions): UseLogScrollerRe
         visibleFrom: Math.max(prev.visibleFrom - LOAD_MORE_LINES, 0),
       };
     });
-  }, [isSearching, setLogState]);
+  }, [enabled, isSearching, logViewerRef, setLogState]);
 
   const handleLogScroll = useCallback(
     (_e: UIEvent<HTMLDivElement>) => {
+      if (!enabled) return;
       const node = logViewerRef.current;
       if (!node) return;
       if (isSearching) return;
@@ -90,10 +96,11 @@ export function useLogScroller(options: UseLogScrollerOptions): UseLogScrollerRe
 
       prependVisibleLines();
     },
-    [canLoadMore, isSearching, prependVisibleLines]
+    [canLoadMore, enabled, isSearching, logViewerRef, prependVisibleLines]
   );
 
   useLayoutEffect(() => {
+    if (!enabled) return;
     const node = logViewerRef.current;
     const pending = pendingPrependScrollRef.current;
     if (!node || !pending) return;
@@ -101,7 +108,7 @@ export function useLogScroller(options: UseLogScrollerOptions): UseLogScrollerRe
     const delta = node.scrollHeight - pending.scrollHeight;
     node.scrollTop = pending.scrollTop + delta;
     pendingPrependScrollRef.current = null;
-  }, [logState.visibleFrom]);
+  }, [enabled, logState.visibleFrom, logViewerRef]);
 
   const tryAutoLoadMoreUntilScrollable = useCallback(() => {
     const node = logViewerRef.current;
@@ -114,9 +121,22 @@ export function useLogScroller(options: UseLogScrollerOptions): UseLogScrollerRe
     if (hasVerticalOverflow) return;
 
     prependVisibleLines();
-  }, [canLoadMore, isSearching, prependVisibleLines]);
+  }, [canLoadMore, isSearching, logViewerRef, prependVisibleLines]);
+
+  useLayoutEffect(() => {
+    tryAutoLoadMoreRef.current = tryAutoLoadMoreUntilScrollable;
+  }, [tryAutoLoadMoreUntilScrollable]);
+
+  const handleResize = useCallback(() => {
+    if (resizeFrameRef.current !== null) return;
+    resizeFrameRef.current = window.requestAnimationFrame(() => {
+      resizeFrameRef.current = null;
+      tryAutoLoadMoreRef.current();
+    });
+  }, []);
 
   useEffect(() => {
+    if (!enabled) return;
     if (loading) return;
     const node = logViewerRef.current;
     if (!node) return;
@@ -128,38 +148,39 @@ export function useLogScroller(options: UseLogScrollerOptions): UseLogScrollerRe
       window.cancelAnimationFrame(raf);
     };
   }, [
+    enabled,
     filteredLineCount,
     hasStructuredFilters,
     loading,
     logState.visibleFrom,
+    logViewerRef,
     showRawLogs,
     tryAutoLoadMoreUntilScrollable,
   ]);
 
   useEffect(() => {
-    const onResize = () => {
-      window.requestAnimationFrame(() => {
-        tryAutoLoadMoreUntilScrollable();
-      });
-    };
-
-    window.addEventListener('resize', onResize);
+    if (!enabled) return undefined;
+    window.addEventListener('resize', handleResize);
     return () => {
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', handleResize);
+      if (resizeFrameRef.current !== null) {
+        window.cancelAnimationFrame(resizeFrameRef.current);
+        resizeFrameRef.current = null;
+      }
     };
-  }, [tryAutoLoadMoreUntilScrollable]);
+  }, [enabled, handleResize]);
 
   useEffect(() => {
+    if (!enabled) return;
     if (!pendingScrollToBottomRef.current) return;
     if (loading) return;
     if (!logViewerRef.current) return;
 
     scrollToBottom();
     pendingScrollToBottomRef.current = false;
-  }, [loading, logState.buffer, logState.visibleFrom, scrollToBottom]);
+  }, [enabled, loading, logState.buffer, logState.visibleFrom, logViewerRef, scrollToBottom]);
 
   return {
-    logViewerRef,
     canLoadMore,
     handleLogScroll,
     scrollToBottom,

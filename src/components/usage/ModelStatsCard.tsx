@@ -32,6 +32,47 @@ interface ModelStatWithRate extends ModelStat {
   successRate: number;
 }
 
+interface ModelStatsRowProps {
+  stat: ModelStatWithRate;
+  hasPrices: boolean;
+}
+
+const ModelStatsRow = memo(function ModelStatsRow({ stat, hasPrices }: ModelStatsRowProps) {
+  return (
+    <tr>
+      <td className={styles.modelCell}>{stat.model}</td>
+      <td>
+        <span className={styles.requestCountCell}>
+          <span>{stat.requests.toLocaleString()}</span>
+          <span className={styles.requestBreakdown}>
+            (
+            <span className={styles.statSuccess}>{stat.successCount.toLocaleString()}</span>{' '}
+            <span className={styles.statFailure}>{stat.failureCount.toLocaleString()}</span>
+            )
+          </span>
+        </span>
+      </td>
+      <td>{formatCompactNumber(stat.tokens)}</td>
+      <td className={styles.durationCell}>{formatDurationMs(stat.averageLatencyMs)}</td>
+      <td className={styles.durationCell}>{formatDurationMs(stat.totalLatencyMs)}</td>
+      <td>
+        <span
+          className={
+            stat.successRate >= 95
+              ? styles.statSuccess
+              : stat.successRate >= 80
+                ? styles.statNeutral
+                : styles.statFailure
+          }
+        >
+          {stat.successRate.toFixed(1)}%
+        </span>
+      </td>
+      {hasPrices && <td>{stat.cost > 0 ? formatUsd(stat.cost) : '--'}</td>}
+    </tr>
+  );
+});
+
 export const ModelStatsCard = memo(function ModelStatsCard({
   modelStats,
   loading,
@@ -54,11 +95,17 @@ export const ModelStatsCard = memo(function ModelStatsCard({
     }
   };
 
+  const statsWithRate = useMemo<ModelStatWithRate[]>(
+    () =>
+      modelStats.map((s) => ({
+        ...s,
+        successRate: s.requests > 0 ? (s.successCount / s.requests) * 100 : 100,
+      })),
+    [modelStats]
+  );
+
   const sorted = useMemo((): ModelStatWithRate[] => {
-    const list: ModelStatWithRate[] = modelStats.map((s) => ({
-      ...s,
-      successRate: s.requests > 0 ? (s.successCount / s.requests) * 100 : 100,
-    }));
+    const list = [...statsWithRate];
     const dir = sortDir === 'asc' ? 1 : -1;
     list.sort((a, b) => {
       if (sortKey === 'model') return dir * a.model.localeCompare(b.model);
@@ -73,7 +120,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
       return dir * (left - right);
     });
     return list;
-  }, [modelStats, sortKey, sortDir]);
+  }, [statsWithRate, sortKey, sortDir]);
 
   const arrow = (key: SortKey) => (sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '');
   const ariaSort = (key: SortKey): 'none' | 'ascending' | 'descending' =>
@@ -173,45 +220,7 @@ export const ModelStatsCard = memo(function ModelStatsCard({
                 </thead>
                 <tbody>
                   {sorted.map((stat) => (
-                    <tr key={stat.model}>
-                      <td className={styles.modelCell}>{stat.model}</td>
-                      <td>
-                        <span className={styles.requestCountCell}>
-                          <span>{stat.requests.toLocaleString()}</span>
-                          <span className={styles.requestBreakdown}>
-                            (
-                            <span className={styles.statSuccess}>
-                              {stat.successCount.toLocaleString()}
-                            </span>{' '}
-                            <span className={styles.statFailure}>
-                              {stat.failureCount.toLocaleString()}
-                            </span>
-                            )
-                          </span>
-                        </span>
-                      </td>
-                      <td>{formatCompactNumber(stat.tokens)}</td>
-                      <td className={styles.durationCell}>
-                        {formatDurationMs(stat.averageLatencyMs)}
-                      </td>
-                      <td className={styles.durationCell}>
-                        {formatDurationMs(stat.totalLatencyMs)}
-                      </td>
-                      <td>
-                        <span
-                          className={
-                            stat.successRate >= 95
-                              ? styles.statSuccess
-                              : stat.successRate >= 80
-                                ? styles.statNeutral
-                                : styles.statFailure
-                          }
-                        >
-                          {stat.successRate.toFixed(1)}%
-                        </span>
-                      </td>
-                      {hasPrices && <td>{stat.cost > 0 ? formatUsd(stat.cost) : '--'}</td>}
-                    </tr>
+                    <ModelStatsRow key={stat.model} stat={stat} hasPrices={hasPrices} />
                   ))}
                 </tbody>
               </table>

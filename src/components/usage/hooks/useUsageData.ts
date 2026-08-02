@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { USAGE_STATS_STALE_TIME_MS, useNotificationStore, useUsageStatsStore } from '@/stores';
 import { usageApi } from '@/services/api/usage';
 import { downloadBlob } from '@/utils/download';
-import type { ModelPrice } from '@/utils/usage';
+import { loadModelPrices, type ModelPrice } from '@/utils/usage';
 import { primeModelPrices, saveAndSyncModelPrices } from './usageModelPriceUtils';
 import {
   appendErrorMessage,
@@ -46,14 +47,22 @@ export interface UseUsageDataOptions {
 
 export function useUsageData(options: UseUsageDataOptions = {}): UseUsageDataReturn {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const usageSnapshot = useUsageStatsStore((state) => state.usage);
-  const loading = useUsageStatsStore((state) => state.loading);
-  const storeError = useUsageStatsStore((state) => state.error);
-  const lastRefreshedAtTs = useUsageStatsStore((state) => state.lastRefreshedAt);
+  const usageSnapshot = useUsageStatsStore((state) => (isCurrentLayer ? state.usage : null));
+  const loading = useUsageStatsStore((state) => (isCurrentLayer ? state.loading : false));
+  const storeError = useUsageStatsStore((state) => (isCurrentLayer ? state.error : null));
+  const lastRefreshedAtTs = useUsageStatsStore((state) =>
+    isCurrentLayer ? state.lastRefreshedAt : null
+  );
   const loadUsageStats = useUsageStatsStore((state) => state.loadUsageStats);
+  const isCurrentLayerRef = useRef(isCurrentLayer);
+  useLayoutEffect(() => {
+    isCurrentLayerRef.current = isCurrentLayer;
+  }, [isCurrentLayer]);
 
-  const [modelPrices, setModelPrices] = useState<Record<string, ModelPrice>>({});
+  const [modelPrices, setModelPrices] = useState<Record<string, ModelPrice>>(() => loadModelPrices());
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -62,6 +71,7 @@ export function useUsageData(options: UseUsageDataOptions = {}): UseUsageDataRet
   const includeAggregated = options.includeAggregated !== false;
 
   const loadUsage = useCallback(async () => {
+    if (!isCurrentLayerRef.current) return;
     await loadUsageStats({
       force: true,
       staleTimeMs: USAGE_STATS_STALE_TIME_MS,
@@ -72,14 +82,24 @@ export function useUsageData(options: UseUsageDataOptions = {}): UseUsageDataRet
   }, [compactDetails, detailsLimit, includeAggregated, loadUsageStats]);
 
   useEffect(() => {
+    if (!isCurrentLayer) return undefined;
+
+    let active = true;
     void loadUsageStats({
       staleTimeMs: USAGE_STATS_STALE_TIME_MS,
       detailsLimit,
       compactDetails,
       includeAggregated,
     }).catch(() => {});
-    primeModelPrices(setModelPrices);
-  }, [compactDetails, detailsLimit, includeAggregated, loadUsageStats]);
+    primeModelPrices(setModelPrices, {
+      hydrateLocal: false,
+      shouldApply: () => active && isCurrentLayerRef.current,
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [compactDetails, detailsLimit, includeAggregated, isCurrentLayer, loadUsageStats]);
 
   const handleExport = useCallback(async () => {
     setExporting(true);

@@ -34,6 +34,7 @@ export function ProviderNav() {
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [activeProvider, setActiveProvider] = useState<ProviderId | null>(null);
   const contentScrollerRef = useRef<HTMLElement | null>(null);
   const navListRef = useRef<HTMLDivElement | null>(null);
@@ -52,6 +53,8 @@ export function ProviderNav() {
   const [indicatorTransitionsEnabled, setIndicatorTransitionsEnabled] = useState(false);
   const indicatorHasEnabledTransitionsRef = useRef(false);
   const scrollUpdateFrameRef = useRef<number | null>(null);
+  const resizeUpdateFrameRef = useRef<number | null>(null);
+  const activeProviderRef = useRef<ProviderId | null>(null);
 
   // Only show this quick-switch overlay on the AI Providers list page.
   // Note: The app uses iOS-style stacked page transitions inside `/ai-providers/*`,
@@ -83,10 +86,9 @@ export function ProviderNav() {
 
   const getScrollContainer = useCallback((): ScrollContainer => {
     // Mobile layout uses document scroll (layout switches at 768px); desktop uses the `.content` scroller.
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     if (isMobile) return window;
     return getContentScroller() ?? window;
-  }, [getContentScroller]);
+  }, [getContentScroller, isMobile]);
 
   const updateActiveProvider = useCallback(() => {
     const container = getScrollContainer();
@@ -139,7 +141,6 @@ export function ProviderNav() {
     // Listen to both: desktop scroll happens on `.content`; mobile uses `window`.
     window.addEventListener('scroll', scheduleActiveProviderUpdate, { passive: true });
     contentScroller?.addEventListener('scroll', scheduleActiveProviderUpdate, { passive: true });
-    window.addEventListener('resize', scheduleActiveProviderUpdate);
     const raf = requestAnimationFrame(scheduleActiveProviderUpdate);
     return () => {
       if (scrollUpdateFrameRef.current !== null) {
@@ -148,7 +149,6 @@ export function ProviderNav() {
       }
       cancelAnimationFrame(raf);
       window.removeEventListener('scroll', scheduleActiveProviderUpdate);
-      window.removeEventListener('resize', scheduleActiveProviderUpdate);
       contentScroller?.removeEventListener('scroll', scheduleActiveProviderUpdate);
     };
   }, [getContentScroller, scheduleActiveProviderUpdate, shouldShow]);
@@ -177,10 +177,21 @@ export function ProviderNav() {
   }, []);
 
   useLayoutEffect(() => {
+    activeProviderRef.current = activeProvider;
     if (!shouldShow) return;
     const raf = requestAnimationFrame(() => updateIndicator(activeProvider));
     return () => cancelAnimationFrame(raf);
   }, [activeProvider, shouldShow, updateIndicator]);
+
+  const scheduleResizeUpdate = useCallback(() => {
+    if (resizeUpdateFrameRef.current !== null) return;
+
+    resizeUpdateFrameRef.current = requestAnimationFrame(() => {
+      resizeUpdateFrameRef.current = null;
+      updateActiveProvider();
+      updateIndicator(activeProviderRef.current);
+    });
+  }, [updateActiveProvider, updateIndicator]);
 
   // Expose overlay height to the page, so it can reserve bottom padding and avoid being covered.
   useLayoutEffect(() => {
@@ -189,20 +200,32 @@ export function ProviderNav() {
     const el = navContainerRef.current;
     if (!el) return;
 
+    let frame: number | null = null;
     const updateHeight = () => {
       const height = el.getBoundingClientRect().height;
       document.documentElement.style.setProperty('--provider-nav-height', `${height}px`);
     };
+    const scheduleHeightUpdate = () => {
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        updateHeight();
+      });
+    };
 
     updateHeight();
-    window.addEventListener('resize', updateHeight);
+    window.addEventListener('resize', scheduleHeightUpdate);
 
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateHeight);
+    const ro =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleHeightUpdate);
     ro?.observe(el);
 
     return () => {
       ro?.disconnect();
-      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('resize', scheduleHeightUpdate);
+      if (frame !== null) {
+        cancelAnimationFrame(frame);
+      }
       document.documentElement.style.removeProperty('--provider-nav-height');
     };
   }, [shouldShow]);
@@ -234,12 +257,15 @@ export function ProviderNav() {
 
   useEffect(() => {
     if (!shouldShow) return;
-    const handleResize = () => updateIndicator(activeProvider);
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', scheduleResizeUpdate);
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', scheduleResizeUpdate);
+      if (resizeUpdateFrameRef.current !== null) {
+        cancelAnimationFrame(resizeUpdateFrameRef.current);
+        resizeUpdateFrameRef.current = null;
+      }
     };
-  }, [activeProvider, shouldShow, updateIndicator]);
+  }, [scheduleResizeUpdate, shouldShow]);
 
   const indicatorStyle: CSSProperties | undefined = indicatorRect
     ? ({

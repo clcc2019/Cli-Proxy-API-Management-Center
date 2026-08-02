@@ -204,7 +204,7 @@ const loadAuthFileUsageStats = async (
   }
 };
 
-export function useAuthFilesStats(): UseAuthFilesStatsResult {
+export function useAuthFilesStats(enabled = true): UseAuthFilesStatsResult {
   const apiBase = useAuthStore((state) => state.apiBase);
   const managementKey = useAuthStore((state) => state.managementKey);
   const scopeKey = useMemo(
@@ -212,6 +212,7 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
     [apiBase, managementKey]
   );
   const mountedRef = useRef(true);
+  const enabledRef = useRef(enabled);
   const [keyUsageState, setKeyUsageState] = useState<AuthFileUsageState>(() => {
     const initialScopeKey = getUsageScopeKey();
     const cached = authFileUsageCache.get(initialScopeKey);
@@ -228,28 +229,35 @@ export function useAuthFilesStats(): UseAuthFilesStatsResult {
     };
   }, []);
 
+  useEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
+
   const keyUsageStats = useMemo(() => {
+    if (!enabled) return createEmptyKeyUsageStats();
     if (keyUsageState.scopeKey === scopeKey) {
       return keyUsageState.stats;
     }
     const cached = authFileUsageCache.get(scopeKey);
     return cached?.stats ?? createEmptyKeyUsageStats();
-  }, [keyUsageState, scopeKey]);
+  }, [enabled, keyUsageState, scopeKey]);
 
   const applyAuthFileUsageStats = useCallback(
     async (force = false) => {
+      if (!enabled) return;
+
       const entry = await loadAuthFileUsageStats(force, scopeKey);
       if (entry.scopeKey !== getUsageScopeKey()) {
         return;
       }
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || !enabledRef.current) return;
       setKeyUsageState((prev) =>
         prev.scopeKey === entry.scopeKey && prev.stats === entry.stats
           ? prev
           : { scopeKey: entry.scopeKey, stats: entry.stats }
       );
     },
-    [scopeKey]
+    [enabled, scopeKey]
   );
 
   const loadKeyStats = useCallback(async () => {

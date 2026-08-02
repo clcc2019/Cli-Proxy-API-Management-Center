@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { IconChevronDown, IconChevronUp, IconSlidersHorizontal } from '@/components/ui/icons';
 import { Select } from '@/components/ui/Select';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
@@ -16,7 +17,29 @@ interface ProviderResourceToolbarProps {
   onSelectedModelsChange: (next: Set<string>) => void;
 }
 
-export function ProviderResourceToolbar({
+interface ProviderModelFilterItemProps {
+  name: string;
+  selected: boolean;
+  onToggle: (name: string) => void;
+}
+
+const ProviderModelFilterItem = memo(function ProviderModelFilterItem({
+  name,
+  selected,
+  onToggle,
+}: ProviderModelFilterItemProps) {
+  return (
+    <li className={styles.filterItem}>
+      <SelectionCheckbox
+        checked={selected}
+        onChange={() => onToggle(name)}
+        label={<span className={styles.filterItemLabel}>{name}</span>}
+      />
+    </li>
+  );
+});
+
+export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
   sortBy,
   sortDir,
   onSortBy,
@@ -26,8 +49,13 @@ export function ProviderResourceToolbar({
   onSelectedModelsChange,
 }: ProviderResourceToolbarProps) {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [filterOpen, setFilterOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectedModelsRef = useRef(selectedModels);
+  const visibleFilterOpen = isCurrentLayer && filterOpen;
+  selectedModelsRef.current = selectedModels;
 
   const sortOptions = useMemo(
     () => [
@@ -42,7 +70,7 @@ export function ProviderResourceToolbar({
   );
 
   useEffect(() => {
-    if (!filterOpen) return;
+    if (!visibleFilterOpen) return;
     const onClickOutside = (e: PointerEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setFilterOpen(false);
@@ -50,17 +78,28 @@ export function ProviderResourceToolbar({
     };
     document.addEventListener('pointerdown', onClickOutside);
     return () => document.removeEventListener('pointerdown', onClickOutside);
-  }, [filterOpen]);
+  }, [visibleFilterOpen]);
 
-  const toggleModel = (name: string) => {
-    const next = new Set(selectedModels);
-    if (next.has(name)) next.delete(name);
-    else next.add(name);
-    onSelectedModelsChange(next);
-  };
+  const toggleModel = useCallback(
+    (name: string) => {
+      if (!isCurrentLayer) return;
+      const next = new Set(selectedModelsRef.current);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      onSelectedModelsChange(next);
+    },
+    [isCurrentLayer, onSelectedModelsChange]
+  );
 
-  const selectAll = () => onSelectedModelsChange(new Set(availableModels));
-  const clearAll = () => onSelectedModelsChange(new Set());
+  const selectAll = useCallback(() => {
+    if (!isCurrentLayer) return;
+    onSelectedModelsChange(new Set(availableModels));
+  }, [availableModels, isCurrentLayer, onSelectedModelsChange]);
+
+  const clearAll = useCallback(() => {
+    if (!isCurrentLayer) return;
+    onSelectedModelsChange(new Set());
+  }, [isCurrentLayer, onSelectedModelsChange]);
 
   const filterLabel =
     selectedModels.size === 0
@@ -106,14 +145,16 @@ export function ProviderResourceToolbar({
         <button
           type="button"
           className={styles.filterTrigger}
-          onClick={() => setFilterOpen((v) => !v)}
+          onClick={() => {
+            if (isCurrentLayer) setFilterOpen((v) => !v);
+          }}
           disabled={availableModels.length === 0}
         >
           <IconSlidersHorizontal size={14} />
           <span>{filterLabel}</span>
           <IconChevronDown size={12} />
         </button>
-        {filterOpen ? (
+        {visibleFilterOpen ? (
           <div className={styles.filterPanel}>
             <div className={styles.filterToolbar}>
               <button
@@ -138,13 +179,12 @@ export function ProviderResourceToolbar({
             ) : (
               <ul className={styles.filterList}>
                 {availableModels.map((name) => (
-                  <li key={name} className={styles.filterItem}>
-                    <SelectionCheckbox
-                      checked={selectedModels.has(name)}
-                      onChange={() => toggleModel(name)}
-                      label={<span className={styles.filterItemLabel}>{name}</span>}
-                    />
-                  </li>
+                  <ProviderModelFilterItem
+                    key={name}
+                    name={name}
+                    selected={selectedModels.has(name)}
+                    onToggle={toggleModel}
+                  />
                 ))}
               </ul>
             )}
@@ -153,4 +193,4 @@ export function ProviderResourceToolbar({
       </div>
     </div>
   );
-}
+});

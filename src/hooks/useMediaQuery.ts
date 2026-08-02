@@ -6,49 +6,40 @@
  * - 支持老 Safari 的 addListener/removeListener
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
+
+const getServerSnapshot = () => false;
 
 export function useMediaQuery(query: string): boolean {
-  const getInitial = () => {
+  const media = useMemo(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return false;
+      return null;
     }
-    return window.matchMedia(query).matches;
-  };
-
-  const [matches, setMatches] = useState<boolean>(getInitial);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return;
-    }
-
-    const media = window.matchMedia(query);
-
-    // 同步读取一次，防止 query 变化期间初值已错位
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-
-    const listener = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
-
-    if (typeof media.addEventListener === 'function') {
-      media.addEventListener('change', listener);
-      return () => media.removeEventListener('change', listener);
-    }
-
-    // Fallback for legacy Safari
-    type LegacyMediaQueryList = MediaQueryList & {
-      addListener: (l: (e: MediaQueryListEvent) => void) => void;
-      removeListener: (l: (e: MediaQueryListEvent) => void) => void;
-    };
-    const legacy = media as LegacyMediaQueryList;
-    legacy.addListener(listener);
-    return () => legacy.removeListener(listener);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return window.matchMedia(query);
   }, [query]);
 
-  return matches;
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      if (!media) return () => undefined;
+
+      if (typeof media.addEventListener === 'function') {
+        media.addEventListener('change', onStoreChange);
+        return () => media.removeEventListener('change', onStoreChange);
+      }
+
+      // Fallback for legacy Safari.
+      type LegacyMediaQueryList = MediaQueryList & {
+        addListener: (listener: () => void) => void;
+        removeListener: (listener: () => void) => void;
+      };
+      const legacy = media as LegacyMediaQueryList;
+      legacy.addListener(onStoreChange);
+      return () => legacy.removeListener(onStoreChange);
+    },
+    [media]
+  );
+
+  const getSnapshot = useCallback(() => media?.matches ?? false, [media]);
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

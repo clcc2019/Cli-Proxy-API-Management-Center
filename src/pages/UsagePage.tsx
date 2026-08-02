@@ -8,8 +8,9 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useConfigStore, useThemeStore } from '@/stores';
 import { DeferredUsageCard } from '@/components/usage/DeferredUsageCard';
 import { StatCards } from '@/components/usage/StatCards';
-import { UsagePageHero } from '@/components/usage/UsagePageHero';
+import { UsagePageHeader } from '@/components/usage/UsagePageHeader';
 import { UsageSectionIntro } from '@/components/usage/UsageSectionIntro';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useUsageAggregateData } from '@/components/usage/hooks/useUsageAggregateData';
 import { useUsageViewState } from '@/components/usage/hooks/useUsageViewState';
 import { getAggregateWindowModelNames } from '@/utils/usageAggregate';
@@ -31,6 +32,8 @@ const LazyUsageAnalysisSection = lazy(async () => ({
   default: (await import('@/components/usage/UsageAnalysisSection')).UsageAnalysisSection,
 }));
 
+const EMPTY_USAGE_MODEL_NAMES: string[] = [];
+
 const buildDetailsFallback = (apiTitle: string, modelTitle: string, caption: string) => (
   <section className={styles.section}>
     <div className={styles.detailsGrid}>
@@ -40,10 +43,9 @@ const buildDetailsFallback = (apiTitle: string, modelTitle: string, caption: str
   </section>
 );
 
-const buildSupportFallback = (credentialTitle: string, pricingTitle: string, caption: string) => (
+const buildSupportFallback = (credentialTitle: string, caption: string) => (
   <div className={styles.supportStack}>
     <DeferredUsageCard title={credentialTitle} caption={caption} />
-    <DeferredUsageCard title={pricingTitle} caption={caption} />
   </div>
 );
 
@@ -55,17 +57,17 @@ const buildSectionFallback = (title: string, description: string) => (
 
 export function UsagePage() {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const isDark = useThemeStore((state) => state.resolvedTheme === 'dark');
-  const config = useConfigStore((state) => state.config);
+  const isDark = useThemeStore((state) => isCurrentLayer && state.resolvedTheme === 'dark');
+  const config = useConfigStore((state) => (isCurrentLayer ? state.config : null));
 
   const {
     usage,
     loading,
     error,
-    lastRefreshedAt,
     modelPrices,
-    setModelPrices,
     loadUsage,
     handleExport,
     handleExportDetailed,
@@ -85,22 +87,22 @@ export function UsagePage() {
     handleTimeRangeChange,
     hourWindowHours,
     preferredChartPeriod,
-    selectedRangeLabel,
     timeRange,
     timeRangeOptions,
   } = useUsageViewState();
 
-  useHeaderRefresh(loadUsage);
+  useHeaderRefresh(loadUsage, isCurrentLayer);
 
   const selectedWindow = useMemo(
     () => usage?.windows?.[deferredTimeRange] ?? null,
     [deferredTimeRange, usage]
   );
   const deferredWindow = useDeferredValue(selectedWindow);
+  const visibleWindow = isCurrentLayer ? deferredWindow : null;
 
   const visibleModelNames = useMemo(
-    () => getAggregateWindowModelNames(deferredWindow),
-    [deferredWindow]
+    () => (visibleWindow ? getAggregateWindowModelNames(visibleWindow) : EMPTY_USAGE_MODEL_NAMES),
+    [visibleWindow]
   );
   const deferredChartCaption = t('usage_stats.render_on_demand');
   const trendsTitle = t('usage_stats.trends_title');
@@ -122,12 +124,9 @@ export function UsagePage() {
       )}
 
       <div id="usage-actions" className={`${styles.anchorBlock} ${styles.introBlock}`}>
-        <UsagePageHero
+        <UsagePageHeader
           timeRange={timeRange}
           timeRangeOptions={timeRangeOptions}
-          selectedRangeLabel={selectedRangeLabel}
-          visibleModelCount={visibleModelNames.length}
-          lastRefreshedAt={lastRefreshedAt}
           loading={loading}
           exporting={exporting}
           exportingDetailed={exportingDetailed}
@@ -162,12 +161,13 @@ export function UsagePage() {
             </>
           }
         />
-        <StatCards window={deferredWindow} loading={loading} modelPrices={modelPrices} />
+        <StatCards window={visibleWindow} loading={loading} modelPrices={modelPrices} />
       </section>
 
       <Suspense fallback={buildSectionFallback(trendsTitle, trendsDescription)}>
         <LazyUsageTrendsSection
-          window={deferredWindow}
+          initiallyCollapsed={false}
+          window={visibleWindow}
           chartLines={chartLines}
           chartDataLines={deferredChartLines}
           modelNames={visibleModelNames}
@@ -187,7 +187,7 @@ export function UsagePage() {
         >
           <Suspense fallback={buildSectionFallback(analysisTitle, analysisDescription)}>
             <LazyUsageAnalysisSection
-              window={deferredWindow}
+              window={visibleWindow}
               loading={loading}
               isDark={isDark}
               isMobile={isMobile}
@@ -198,56 +198,55 @@ export function UsagePage() {
         </DeferredRender>
       </div>
 
-      <DeferredRender
-        minHeight={420}
-        rootMargin="160px 0px"
-        placeholder={buildDetailsFallback(
-          t('usage_stats.api_details'),
-          t('usage_stats.models'),
-          deferredChartCaption
-        )}
-      >
-        <Suspense
-          fallback={buildDetailsFallback(
+      <div className={styles.workspaceGrid}>
+        <DeferredRender
+          className={styles.workspaceCell}
+          minHeight={420}
+          rootMargin="160px 0px"
+          placeholder={buildDetailsFallback(
             t('usage_stats.api_details'),
             t('usage_stats.models'),
             deferredChartCaption
           )}
         >
-          <LazyUsageDetailsSection
-            window={deferredWindow}
-            loading={loading}
-            modelPrices={modelPrices}
-          />
-        </Suspense>
-      </DeferredRender>
+          <Suspense
+            fallback={buildDetailsFallback(
+              t('usage_stats.api_details'),
+              t('usage_stats.models'),
+              deferredChartCaption
+            )}
+          >
+            <LazyUsageDetailsSection
+              window={visibleWindow}
+              loading={loading}
+              modelPrices={modelPrices}
+            />
+          </Suspense>
+        </DeferredRender>
 
-      <DeferredRender
-        minHeight={420}
-        rootMargin="160px 0px"
-        placeholder={buildSupportFallback(
-          t('usage_stats.credential_stats'),
-          t('usage_stats.model_price_settings'),
-          deferredChartCaption
-        )}
-      >
-        <Suspense
-          fallback={buildSupportFallback(
+        <DeferredRender
+          className={styles.workspaceCell}
+          minHeight={420}
+          rootMargin="160px 0px"
+          placeholder={buildSupportFallback(
             t('usage_stats.credential_stats'),
-            t('usage_stats.model_price_settings'),
             deferredChartCaption
           )}
         >
-          <LazyUsageSupportSection
-            usage={usage}
-            window={deferredWindow}
-            loading={loading}
-            config={config}
-            modelPrices={modelPrices}
-            onPricesChange={setModelPrices}
-          />
-        </Suspense>
-      </DeferredRender>
+          <Suspense
+            fallback={buildSupportFallback(
+              t('usage_stats.credential_stats'),
+              deferredChartCaption
+            )}
+          >
+            <LazyUsageSupportSection
+              window={visibleWindow}
+              loading={loading}
+              config={config}
+            />
+          </Suspense>
+        </DeferredRender>
+      </div>
     </main>
   );
 }

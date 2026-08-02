@@ -9,6 +9,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -52,7 +53,10 @@ import {
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
 import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
 import { SearchToolbar } from '@/features/authFiles/components/SearchToolbar';
-import { useAuthFilesData } from '@/features/authFiles/hooks/useAuthFilesData';
+import {
+  useAuthFilesData,
+  type AuthFilesListMeta,
+} from '@/features/authFiles/hooks/useAuthFilesData';
 import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModels';
 import { useAuthFilesOauth } from '@/features/authFiles/hooks/useAuthFilesOauth';
 import { useAuthFilesPrefixProxyEditor } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
@@ -119,7 +123,10 @@ const EMPTY_AUTH_FILE_USAGE_STATS: KeyUsageBucket = {
 };
 const EMPTY_AUTH_FILE_TYPE_COUNTS: Record<string, number> = { all: 0 };
 const EMPTY_AUTH_FILE_MAP = new Map<string, AuthFileItem>();
+const EMPTY_AUTH_FILE_USAGE_STATS_MAP = new Map<string, KeyUsageBucket>();
 const EMPTY_AUTH_FILE_ITEMS: AuthFileItem[] = [];
+const EMPTY_AUTH_FILE_CARD_NODES: ReactNode[] = [];
+const EMPTY_AUTH_FILE_QUOTA_REFRESH_TARGETS: AuthFileQuotaRefreshTarget[] = [];
 const EMPTY_AUTH_FILE_NAMES: string[] = [];
 const EMPTY_AUTH_FILE_PROVIDER_TYPES: string[] = [];
 const ALL_AUTH_FILE_TYPES = ['all'];
@@ -183,10 +190,7 @@ const AuthFilesSkeletonGrid = memo(function AuthFilesSkeletonGrid({
         aria-hidden="true"
       >
         {items.map((_, index) => (
-          <div
-            key={index}
-            className={styles.fileCardSkeleton}
-          >
+          <div key={index} className={styles.fileCardSkeleton}>
             <div className={styles.skeletonHeader}>
               <span className={`${styles.skeletonBlock} ${styles.skeletonAvatar}`} />
               <span className={`${styles.skeletonBlock} ${styles.skeletonTitle}`} />
@@ -367,26 +371,24 @@ const compareAuthFiles = (
 
 export function AuthFilesPage() {
   const { t } = useTranslation();
-  const showNotification = useNotificationStore((state) => state.showNotification);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
-  const resolvedTheme: ResolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
+  const showNotification = useNotificationStore((state) => state.showNotification);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
+  const resolvedTheme: ResolvedTheme = useThemeStore((state) =>
+    isCurrentLayer ? state.resolvedTheme : 'light'
+  );
   const prefersReducedMotion = useReducedMotion();
   const [persistedUiState] = useState<AuthFilesUiState | null>(() => readAuthFilesUiState());
   const [filter, setFilter] = useState<'all' | string>(() => {
     const value = persistedUiState?.filter;
     return typeof value === 'string' && value.trim() ? value : 'all';
   });
-  const [problemOnly, setProblemOnly] = useState(
-    () => persistedUiState?.problemOnly === true
-  );
-  const [disabledOnly, setDisabledOnly] = useState(
-    () => persistedUiState?.disabledOnly === true
-  );
-  const [premiumOnly, setPremiumOnly] = useState(
-    () => persistedUiState?.premiumOnly === true
-  );
+  const [problemOnly, setProblemOnly] = useState(() => persistedUiState?.problemOnly === true);
+  const [disabledOnly, setDisabledOnly] = useState(() => persistedUiState?.disabledOnly === true);
+  const [premiumOnly, setPremiumOnly] = useState(() => persistedUiState?.premiumOnly === true);
   const [premiumServerFilterSupported, setPremiumServerFilterSupported] = useState<boolean | null>(
     null
   );
@@ -395,9 +397,7 @@ export function AuthFilesPage() {
   );
   const [page, setPage] = useState(() => {
     const value = persistedUiState?.page;
-    return typeof value === 'number' && Number.isFinite(value)
-      ? Math.max(1, Math.round(value))
-      : 1;
+    return typeof value === 'number' && Number.isFinite(value) ? Math.max(1, Math.round(value)) : 1;
   });
   const [pageSize, setPageSize] = useState(() => {
     const value = persistedUiState?.pageSize;
@@ -409,7 +409,6 @@ export function AuthFilesPage() {
     const value = persistedUiState?.sortMode;
     return isAuthFilesSortMode(value) ? value : 'default';
   });
-  const [batchActionBarVisible, setBatchActionBarVisible] = useState(false);
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
@@ -504,8 +503,14 @@ export function AuthFilesPage() {
     () => getAuthFilesListOptionsKey(authFilesListOptions),
     [authFilesListOptions]
   );
+  const handleListMetaResolved = useCallback((meta: AuthFilesListMeta) => {
+    if (!meta.paginated || meta.pageSize <= 0) return;
 
-  const { keyUsageStats, loadKeyStats, refreshKeyStats } = useAuthFilesStats();
+    const resolvedTotalPages = Math.max(1, Math.ceil(meta.total / meta.pageSize));
+    setPage((current) => (current > resolvedTotalPages ? resolvedTotalPages : current));
+  }, []);
+
+  const { keyUsageStats, loadKeyStats, refreshKeyStats } = useAuthFilesStats(isCurrentLayer);
   const {
     files,
     selectedFiles,
@@ -537,21 +542,25 @@ export function AuthFilesPage() {
     batchSetStatus,
     batchDelete,
     applyLocalFileUpdates,
-  } = useAuthFilesData({ refreshKeyStats, listOptions: authFilesListOptions });
+  } = useAuthFilesData({
+    refreshKeyStats,
+    listOptions: authFilesListOptions,
+    onListMetaResolved: handleListMetaResolved,
+  });
 
   const authFilesIncludeRecentRequestSummary = useMemo(
-    () => files.length > 0 && files.every((file) => authFileIncludesRecentRequestSummary(file)),
-    [files]
+    () =>
+      isCurrentLayer &&
+      files.length > 0 &&
+      files.every((file) => authFileIncludesRecentRequestSummary(file)),
+    [files, isCurrentLayer]
   );
   const { usageDetails, loadStatusDetails, refreshStatusDetails } = useAuthFilesStatusDetails(
-    !authFilesIncludeRecentRequestSummary
+    isCurrentLayer && !authFilesIncludeRecentRequestSummary
   );
 
   useEffect(() => {
-    if (!premiumOnly) {
-      setPremiumServerFilterSupported((current) => (current === null ? current : null));
-      return;
-    }
+    if (!premiumOnly) return undefined;
     if (!requestServerPremiumFilter) return;
     if (
       listMeta.dataKey !== authFilesListOptionsKey &&
@@ -560,7 +569,12 @@ export function AuthFilesPage() {
       return;
     }
 
-    setPremiumServerFilterSupported(listMeta.premiumOnlyApplied === true);
+    const supported = listMeta.premiumOnlyApplied === true;
+    const taskId = window.setTimeout(() => {
+      setPremiumServerFilterSupported((current) => (current === supported ? current : supported));
+    }, 0);
+
+    return () => window.clearTimeout(taskId);
   }, [
     authFilesListOptionsKey,
     listMeta.dataKey,
@@ -612,6 +626,7 @@ export function AuthFilesPage() {
   const disableControls = connectionStatus !== 'connected';
   const premiumFilterServerSide = premiumOnly && premiumServerFilterSupported === true;
   const needsPlanSources =
+    isCurrentLayer &&
     !premiumFilterServerSide &&
     (premiumOnly || (!listMeta.paginated && sortMode === 'subscription_expiry'));
   const selectClaudeQuotaForPlanSources = useCallback(
@@ -649,6 +664,7 @@ export function AuthFilesPage() {
   const listUpdating = refreshing || serverSearchPending;
 
   const captureAuthFileGridLayout = useCallback(() => {
+    if (!isCurrentLayer) return;
     if (typeof window === 'undefined') return;
 
     if (authFileGridMotionSnapshotTimeoutRef.current !== null) {
@@ -679,7 +695,7 @@ export function AuthFilesPage() {
       authFileGridMotionSnapshotRef.current = null;
       authFileGridMotionSnapshotTimeoutRef.current = null;
     }, AUTH_FILE_GRID_MOTION_SNAPSHOT_TTL_MS);
-  }, [prefersReducedMotion]);
+  }, [isCurrentLayer, prefersReducedMotion]);
 
   useEffect(() => {
     const listBusy = loading || refreshing;
@@ -731,9 +747,13 @@ export function AuthFilesPage() {
   }, [captureAuthFileGridLayout]);
   const handleTogglePremiumOnly = useCallback(() => {
     captureAuthFileGridLayout();
-    setPremiumOnly((prev) => !prev);
+    const nextPremiumOnly = !premiumOnly;
+    setPremiumOnly(nextPremiumOnly);
+    if (!nextPremiumOnly) {
+      setPremiumServerFilterSupported(null);
+    }
     setPage(1);
-  }, [captureAuthFileGridLayout]);
+  }, [captureAuthFileGridLayout, premiumOnly]);
   const handleSearchValue = useCallback(
     (value: string) => {
       if (value === search) return;
@@ -759,6 +779,9 @@ export function AuthFilesPage() {
     setProblemOnly(false);
     setDisabledOnly(false);
     setPremiumOnly(false);
+    if (premiumOnly) {
+      setPremiumServerFilterSupported(null);
+    }
     setSearch('');
     setPage(1);
   }, [captureAuthFileGridLayout, disabledOnly, filter, page, premiumOnly, problemOnly, search]);
@@ -782,7 +805,7 @@ export function AuthFilesPage() {
     [captureAuthFileGridLayout, pageSize]
   );
 
-  useHeaderRefresh(handleHeaderRefresh);
+  useHeaderRefresh(handleHeaderRefresh, isCurrentLayer);
 
   useEffect(() => {
     pageMountedRef.current = true;
@@ -834,12 +857,7 @@ export function AuthFilesPage() {
     if (!isCurrentLayer || !belowFoldCardsReady) return;
 
     void Promise.allSettled([loadExcluded(), loadModelAlias()]);
-  }, [
-    belowFoldCardsReady,
-    isCurrentLayer,
-    loadExcluded,
-    loadModelAlias,
-  ]);
+  }, [belowFoldCardsReady, isCurrentLayer, loadExcluded, loadModelAlias]);
 
   useEffect(() => {
     if (
@@ -892,6 +910,7 @@ export function AuthFilesPage() {
   }, [hasListMetaTypeCounts, providerTypesFromListMeta]);
 
   const existingTypes = useMemo(() => {
+    if (!isCurrentLayer) return existingTypesFromListMeta ?? ALL_AUTH_FILE_TYPES;
     if (existingTypesFromListMeta) return existingTypesFromListMeta;
     const types = new Set<string>(['all']);
     files.forEach((file) => {
@@ -900,7 +919,7 @@ export function AuthFilesPage() {
       }
     });
     return Array.from(types);
-  }, [existingTypesFromListMeta, files]);
+  }, [existingTypesFromListMeta, files, isCurrentLayer]);
 
   // A previous server-page response can remain in state for one render while the
   // full Plus/Pro collection is loading. It must not control the visible count,
@@ -908,13 +927,13 @@ export function AuthFilesPage() {
   const serverPaginated = serverPaginationEnabled && listMeta.paginated;
   const sortSnapshotByName = useMemo(() => {
     // 服务端分页时排序由后端完成，本地不调用 compareAuthFiles，跳过全量 snapshot 计算。
-    if (serverPaginated) return EMPTY_SORT_SNAPSHOT;
+    if (!isCurrentLayer || serverPaginated) return EMPTY_SORT_SNAPSHOT;
     const snapshot: Record<string, AuthFileSortSnapshot> = {};
     files.forEach((file) => {
       snapshot[file.name] = getAuthFileSortSnapshot(file, planSources);
     });
     return snapshot;
-  }, [files, planSources, serverPaginated]);
+  }, [files, isCurrentLayer, planSources, serverPaginated]);
 
   const matchesSupplementalDisplayFilters = useCallback(
     (file: (typeof files)[number]) => {
@@ -946,18 +965,31 @@ export function AuthFilesPage() {
   const shouldApplyLocalDisplayFilters =
     displayOptionsActive && (!serverPageResultSettled || (premiumOnly && !premiumFilterServerSide));
   const currentFilesMatchingDisplayFilters = useMemo(
-    () => (shouldApplyLocalDisplayFilters ? files.filter(matchesDisplayFilters) : files),
-    [files, matchesDisplayFilters, shouldApplyLocalDisplayFilters]
+    () =>
+      !isCurrentLayer
+        ? EMPTY_AUTH_FILE_ITEMS
+        : shouldApplyLocalDisplayFilters
+          ? files.filter(matchesDisplayFilters)
+          : files,
+    [files, isCurrentLayer, matchesDisplayFilters, shouldApplyLocalDisplayFilters]
   );
   const currentDisplayFilterNames = useMemo(
     () =>
-      displayOptionsActive && !serverPaginated && !premiumOnly
+      isCurrentLayer && displayOptionsActive && !serverPaginated && !premiumOnly
         ? currentFilesMatchingDisplayFilters.map((file) => file.name)
         : EMPTY_AUTH_FILE_NAMES,
-    [currentFilesMatchingDisplayFilters, displayOptionsActive, premiumOnly, serverPaginated]
+    [
+      currentFilesMatchingDisplayFilters,
+      displayOptionsActive,
+      isCurrentLayer,
+      premiumOnly,
+      serverPaginated,
+    ]
   );
   const currentDisplayFilterSortSnapshot = useMemo(() => {
-    if (!displayOptionsActive || serverPaginated || premiumOnly) return EMPTY_SORT_SNAPSHOT;
+    if (!isCurrentLayer || !displayOptionsActive || serverPaginated || premiumOnly) {
+      return EMPTY_SORT_SNAPSHOT;
+    }
     return Object.fromEntries(
       currentFilesMatchingDisplayFilters.map((file) => [
         file.name,
@@ -967,18 +999,16 @@ export function AuthFilesPage() {
   }, [
     currentFilesMatchingDisplayFilters,
     displayOptionsActive,
+    isCurrentLayer,
     planSources,
     premiumOnly,
     serverPaginated,
     sortSnapshotByName,
   ]);
-  const currentDisplayFilterNamesRef = useRef<string[]>([]);
-  const currentDisplayFilterSortSnapshotRef = useRef<Record<string, AuthFileSortSnapshot>>({});
-  currentDisplayFilterNamesRef.current = currentDisplayFilterNames;
-  currentDisplayFilterSortSnapshotRef.current = currentDisplayFilterSortSnapshot;
   // Plan membership is derived from live quota data. Retaining a name snapshot
   // here would keep files in (or out of) the Plus/Pro view after a quota refresh.
-  const shouldSnapshotDisplayFilters = displayOptionsActive && !serverPaginated && !premiumOnly;
+  const shouldSnapshotDisplayFilters =
+    isCurrentLayer && displayOptionsActive && !serverPaginated && !premiumOnly;
   const fileByName = useMemo(
     () =>
       shouldSnapshotDisplayFilters
@@ -995,18 +1025,18 @@ export function AuthFilesPage() {
       ].join('|')
     : null;
 
-  useEffect(() => {
-    if (!displayFilterSnapshotKey) {
-      setDisplayFilterSnapshot(null);
-      return;
-    }
-
-    setDisplayFilterSnapshot({
-      key: displayFilterSnapshotKey,
-      names: currentDisplayFilterNamesRef.current,
-      sortSnapshot: currentDisplayFilterSortSnapshotRef.current,
-    });
-  }, [displayFilterSnapshotKey]);
+  const displayFilterSnapshotStateKey = displayFilterSnapshot?.key ?? null;
+  if (displayFilterSnapshotStateKey !== displayFilterSnapshotKey) {
+    setDisplayFilterSnapshot(
+      displayFilterSnapshotKey
+        ? {
+            key: displayFilterSnapshotKey,
+            names: currentDisplayFilterNames,
+            sortSnapshot: currentDisplayFilterSortSnapshot,
+          }
+        : null
+    );
+  }
 
   const filesMatchingDisplayFilters = useMemo(() => {
     if (!displayFilterSnapshotKey || displayFilterSnapshot?.key !== displayFilterSnapshotKey) {
@@ -1070,12 +1100,10 @@ export function AuthFilesPage() {
 
   useEffect(() => {
     if (!scopedTypeCountsKey) {
-      setScopedTypeCounts(null);
       return undefined;
     }
     if (listUpdating) return undefined;
     if (listMeta.typeCountsKey === scopedTypeCountsKey && listMeta.typeCounts) {
-      setScopedTypeCounts(null);
       return undefined;
     }
 
@@ -1140,17 +1168,23 @@ export function AuthFilesPage() {
     : !listMeta.typeCounts;
   const localTypeCounts = useMemo(
     () =>
-      needsLocalTypeCounts
+      isCurrentLayer && needsLocalTypeCounts
         ? countAuthFilesByType(filesMatchingDisplayFilters)
         : EMPTY_AUTH_FILE_TYPE_COUNTS,
-    [filesMatchingDisplayFilters, needsLocalTypeCounts]
+    [filesMatchingDisplayFilters, isCurrentLayer, needsLocalTypeCounts]
   );
   const premiumTypeCounts = useMemo(
     () =>
-      premiumOnly && !premiumFilterServerSide
+      isCurrentLayer && premiumOnly && !premiumFilterServerSide
         ? countAuthFilesByType(filesMatchingDisplayFilters.filter(matchesDisplaySearch))
         : EMPTY_AUTH_FILE_TYPE_COUNTS,
-    [filesMatchingDisplayFilters, matchesDisplaySearch, premiumFilterServerSide, premiumOnly]
+    [
+      filesMatchingDisplayFilters,
+      isCurrentLayer,
+      matchesDisplaySearch,
+      premiumFilterServerSide,
+      premiumOnly,
+    ]
   );
   const typeCounts =
     premiumOnly && !premiumFilterServerSide
@@ -1160,14 +1194,22 @@ export function AuthFilesPage() {
         : (listMeta.typeCounts ?? localTypeCounts);
 
   const filtered = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_AUTH_FILE_ITEMS;
     if (serverPageResultSettled) return filesMatchingDisplayFilters;
     return filesMatchingDisplayFilters.filter((item) => {
       const matchType = filter === 'all' || item.type === filter;
       return matchType && matchesDisplaySearch(item);
     });
-  }, [filesMatchingDisplayFilters, filter, matchesDisplaySearch, serverPageResultSettled]);
+  }, [
+    filesMatchingDisplayFilters,
+    filter,
+    isCurrentLayer,
+    matchesDisplaySearch,
+    serverPageResultSettled,
+  ]);
 
   const sorted = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_AUTH_FILE_ITEMS;
     if (serverPaginated) return filtered;
     const copy = [...filtered];
 
@@ -1181,13 +1223,14 @@ export function AuthFilesPage() {
     displayFilterSnapshot,
     displayFilterSnapshotKey,
     filtered,
+    isCurrentLayer,
     planSources,
     serverPaginated,
     sortMode,
     sortSnapshotByName,
   ]);
 
-  const listTotal = serverPaginated ? listMeta.total : sorted.length;
+  const listTotal = isCurrentLayer ? (serverPaginated ? listMeta.total : sorted.length) : 0;
   const filterTagTypeCounts = useMemo(() => {
     if (!scopedTypeCountsKey) return typeCounts;
     if (typeCounts[filter] === listTotal) return typeCounts;
@@ -1200,27 +1243,43 @@ export function AuthFilesPage() {
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * pageSize;
   const pageItems = useMemo(
-    () => (serverPaginated ? sorted : sorted.slice(start, start + pageSize)),
-    [pageSize, serverPaginated, sorted, start]
+    () =>
+      isCurrentLayer
+        ? serverPaginated
+          ? sorted
+          : sorted.slice(start, start + pageSize)
+        : EMPTY_AUTH_FILE_ITEMS,
+    [isCurrentLayer, pageSize, serverPaginated, sorted, start]
   );
-  const showInitialLoading = loading && pageItems.length === 0;
-  const showListProgress = listUpdating && pageItems.length > 0;
+  const showInitialLoading = isCurrentLayer && loading && pageItems.length === 0;
+  const showListProgress = isCurrentLayer && listUpdating && pageItems.length > 0;
 
   // 状态条只会出现在当前页的卡片中。旧服务端的完整列表可能很大，
   // 将 pageItems 传入可以避免为不可见文件建立 usage-details 索引和状态条数据。
-  const statusBarCache = useAuthFilesStatusBarCache(pageItems, usageDetails);
+  const statusBarCache = useAuthFilesStatusBarCache(pageItems, usageDetails, isCurrentLayer);
 
   useLayoutEffect(() => {
-    const snapshot = authFileGridMotionSnapshotRef.current;
-    const grid = authFileGridRef.current;
-    if (!snapshot || !grid) return;
-
-    if (prefersReducedMotion) {
+    const cancelGridMotion = () => {
       authFileGridMotionSnapshotRef.current = null;
       if (authFileGridMotionSnapshotTimeoutRef.current !== null) {
         window.clearTimeout(authFileGridMotionSnapshotTimeoutRef.current);
         authFileGridMotionSnapshotTimeoutRef.current = null;
       }
+      authFileGridMotionAnimationsRef.current.forEach((animation) => animation.cancel());
+      authFileGridMotionAnimationsRef.current = [];
+    };
+
+    if (!isCurrentLayer) {
+      cancelGridMotion();
+      return;
+    }
+
+    const snapshot = authFileGridMotionSnapshotRef.current;
+    const grid = authFileGridRef.current;
+    if (!snapshot || !grid) return;
+
+    if (prefersReducedMotion) {
+      cancelGridMotion();
       return;
     }
 
@@ -1247,14 +1306,7 @@ export function AuthFilesPage() {
     // page. Retain the snapshot in that case so the eventual response can animate.
     if (moves.length === 0 && !listMembershipChanged) return;
 
-    authFileGridMotionSnapshotRef.current = null;
-    if (authFileGridMotionSnapshotTimeoutRef.current !== null) {
-      window.clearTimeout(authFileGridMotionSnapshotTimeoutRef.current);
-      authFileGridMotionSnapshotTimeoutRef.current = null;
-    }
-
-    authFileGridMotionAnimationsRef.current.forEach((animation) => animation.cancel());
-    authFileGridMotionAnimationsRef.current = [];
+    cancelGridMotion();
 
     const animations = moves.map(([card, translateX, translateY]) => {
       card.style.willChange = 'transform';
@@ -1278,30 +1330,42 @@ export function AuthFilesPage() {
       cards.forEach((card) => card.style.removeProperty('will-change'));
       authFileGridMotionAnimationsRef.current = [];
     });
-  }, [pageItems, prefersReducedMotion]);
+  }, [isCurrentLayer, pageItems, prefersReducedMotion]);
 
   // 一次性按文件名预计算 usage buckets。
   // 仅当 keyUsageStats / pageItems 任一变化时重算，
   // 卡片接收到的 bucket 引用稳定 → React.memo 命中，统计未变时不会触发整页卡片重渲染。
   const fileUsageStatsByName = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_AUTH_FILE_USAGE_STATS_MAP;
+
     const map = new Map<string, KeyUsageBucket>();
     pageItems.forEach((file) => {
       map.set(file.name, resolveAuthFileUsageStats(file, keyUsageStats, FILE_USAGE_BUCKET_CACHE));
     });
 
     return map;
-  }, [pageItems, keyUsageStats]);
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
-  const selectablePageItems = useMemo(() => filterSelectableAuthFiles(pageItems), [pageItems]);
-  const pageQuotaRefreshItems = useMemo(() => resolveQuotaRefreshTargets(pageItems), [pageItems]);
-  const selectableFilteredItems = useMemo(() => filterSelectableAuthFiles(sorted), [sorted]);
+  }, [isCurrentLayer, keyUsageStats, pageItems]);
+  const selectablePageItems = useMemo(
+    () => (isCurrentLayer ? filterSelectableAuthFiles(pageItems) : EMPTY_AUTH_FILE_ITEMS),
+    [isCurrentLayer, pageItems]
+  );
+  const pageQuotaRefreshItems = useMemo(
+    () =>
+      isCurrentLayer
+        ? resolveQuotaRefreshTargets(pageItems)
+        : EMPTY_AUTH_FILE_QUOTA_REFRESH_TARGETS,
+    [isCurrentLayer, pageItems]
+  );
+  const selectableFilteredItems = useMemo(
+    () => (isCurrentLayer ? filterSelectableAuthFiles(sorted) : EMPTY_AUTH_FILE_ITEMS),
+    [isCurrentLayer, sorted]
+  );
   const selectedNames = useMemo(
-    () => (selectedFiles.size > 0 ? Array.from(selectedFiles) : EMPTY_AUTH_FILE_NAMES),
-    [selectedFiles]
+    () =>
+      isCurrentLayer && selectedFiles.size > 0
+        ? Array.from(selectedFiles)
+        : EMPTY_AUTH_FILE_NAMES,
+    [isCurrentLayer, selectedFiles]
   );
   const selectedHasStatusUpdating = useMemo(
     () => selectedNames.some((name) => statusUpdating[name] === true),
@@ -1483,14 +1547,13 @@ export function AuthFilesPage() {
     await Promise.all([loadExcluded(), loadModelAlias()]);
   }, [loadExcluded, loadModelAlias]);
 
+  const selectionActive = isCurrentLayer && selectionCount > 0;
+
   useLayoutEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!isCurrentLayer || !selectionActive || typeof window === 'undefined') return;
 
     const actionsEl = floatingBatchActionsRef.current;
-    if (!actionsEl) {
-      document.documentElement.style.removeProperty('--auth-files-action-bar-height');
-      return;
-    }
+    if (!actionsEl) return;
 
     let rafId: number | null = null;
     const scheduleUpdate = () => {
@@ -1516,18 +1579,16 @@ export function AuthFilesPage() {
       window.removeEventListener('resize', scheduleUpdate);
       document.documentElement.style.removeProperty('--auth-files-action-bar-height');
     };
-  }, [batchActionBarVisible]);
-
-  useEffect(() => {
-    selectionCountRef.current = selectionCount;
-    if (selectionCount > 0) {
-      setBatchActionBarVisible(true);
-    }
-  }, [selectionCount]);
+  }, [isCurrentLayer, selectionActive]);
 
   useLayoutEffect(() => {
-    if (!batchActionBarVisible) return;
-    const selectionActive = selectionCount > 0;
+    selectionCountRef.current = selectionCount;
+    if (!isCurrentLayer) {
+      batchActionAnimationRef.current?.cancel();
+      batchActionAnimationRef.current = null;
+      return;
+    }
+
     const previousSelectionActive = previousSelectionActiveRef.current;
     const actionsEl = floatingBatchActionsRef.current;
     if (!actionsEl) return;
@@ -1542,17 +1603,19 @@ export function AuthFilesPage() {
       actionsEl.style.transform = `translate3d(-50%, ${translateY}px, 0)`;
       actionsEl.style.opacity = String(opacity);
       actionsEl.style.visibility = opacity === 0 ? 'hidden' : 'visible';
+      actionsEl.style.pointerEvents = opacity === 0 ? 'none' : 'auto';
     };
 
     if (prefersReducedMotion || typeof actionsEl.animate !== 'function') {
-      applyPresentation(0, selectionActive ? 1 : 0);
+      applyPresentation(selectionActive ? 0 : 8, selectionActive ? 1 : 0);
       if (!selectionActive) {
-        setBatchActionBarVisible(false);
+        document.documentElement.style.removeProperty('--auth-files-action-bar-height');
       }
       return;
     }
 
     actionsEl.style.visibility = 'visible';
+    actionsEl.style.pointerEvents = selectionActive ? 'auto' : 'none';
     actionsEl.style.willChange = 'transform, opacity';
     const animation = actionsEl.animate(
       selectionActive
@@ -1576,17 +1639,17 @@ export function AuthFilesPage() {
       .then(() => {
         if (batchActionAnimationRef.current !== animation) return;
         batchActionAnimationRef.current = null;
-        applyPresentation(0, selectionActive ? 1 : 0);
+        applyPresentation(selectionActive ? 0 : 8, selectionActive ? 1 : 0);
         actionsEl.style.removeProperty('will-change');
         animation.cancel();
         if (!selectionActive && selectionCountRef.current === 0) {
-          setBatchActionBarVisible(false);
+          document.documentElement.style.removeProperty('--auth-files-action-bar-height');
         }
       })
       .catch(() => {
         // A newer selection state cancels the previous animation.
       });
-  }, [batchActionBarVisible, prefersReducedMotion, selectionCount]);
+  }, [isCurrentLayer, prefersReducedMotion, selectionActive, selectionCount]);
 
   useEffect(
     () => () => {
@@ -1598,6 +1661,7 @@ export function AuthFilesPage() {
         window.clearTimeout(authFileGridMotionSnapshotTimeoutRef.current);
         authFileGridMotionSnapshotTimeoutRef.current = null;
       }
+      document.documentElement.style.removeProperty('--auth-files-action-bar-height');
     },
     []
   );
@@ -1688,8 +1752,9 @@ export function AuthFilesPage() {
   }, [batchDelete, selectedNames]);
 
   const authFileCardNodes = useMemo(
-    () =>
-      pageItems.map((file) => {
+    () => {
+      if (!isCurrentLayer) return EMPTY_AUTH_FILE_CARD_NODES;
+      return pageItems.map((file) => {
         const authIndexKey = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
         const statusData =
           (authIndexKey ? statusBarCache.get(authIndexKey) : undefined) ??
@@ -1726,7 +1791,8 @@ export function AuthFilesPage() {
             onToggleSelect={toggleSelect}
           />
         );
-      }),
+      });
+    },
     [
       accessTokenCopying,
       copyTextWithNotification,
@@ -1738,6 +1804,7 @@ export function AuthFilesPage() {
       handleDelete,
       handleDownload,
       handlePriorityChange,
+      isCurrentLayer,
       handleStatusToggle,
       openPrefixProxyEditor,
       pageItems,
@@ -2002,6 +2069,7 @@ export function AuthFilesPage() {
       {modelRulesEditor.open && (
         <Suspense fallback={null}>
           <OAuthModelRulesEditorModal
+            key={modelRulesEditor.provider || 'new-provider'}
             open
             initialProvider={modelRulesEditor.provider}
             onClose={closeModelRulesEditor}
@@ -2041,11 +2109,13 @@ export function AuthFilesPage() {
         </Suspense>
       )}
 
-      {batchActionBarVisible && typeof document !== 'undefined'
+      {typeof document !== 'undefined'
         ? createPortal(
             <div
               className={styles.batchActionContainer}
               ref={floatingBatchActionsRef}
+              aria-hidden={!selectionActive}
+              inert={!selectionActive}
               // 该栏 portal 到 body，脱离了页面语义结构；补 region + 标签，
               // 读屏器才能把它作为一块可导航的区域列出。
               role="region"

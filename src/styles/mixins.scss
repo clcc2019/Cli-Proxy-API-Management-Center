@@ -78,3 +78,61 @@
     font-size: 24px;
   }
 }
+
+// Shared introduction for routine management screens. Overview pages keep
+// their own hero composition, while tables, settings, and workbenches use
+// this compact title row so the operational surface stays visually dominant.
+@mixin management-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-lg;
+  min-width: 0;
+  padding: 2px 1px 16px;
+  border-bottom: 1px solid var(--mg-border);
+
+  @include mobile {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 14px;
+  }
+}
+
+@mixin management-page-title {
+  margin: 0;
+  min-width: 0;
+  color: var(--mg-text);
+  font-size: clamp(26px, 2.2vw, 32px);
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+@mixin management-page-description {
+  max-width: 72ch;
+  margin: 0;
+  color: var(--mg-text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@mixin management-surface {
+  min-width: 0;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
+  box-shadow: none;
+}
+
+@mixin management-tabs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-surface-subtle);
+}

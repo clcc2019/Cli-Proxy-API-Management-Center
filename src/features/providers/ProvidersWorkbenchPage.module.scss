@@ -1,21 +1,21 @@
 @use '../../styles/mixins' as *;
 
 .page {
-  --provider-canvas: #ffffff;
-  --provider-surface: #ffffff;
-  --provider-surface-subtle: #f7f7f5;
-  --provider-surface-warm: #faf8f5;
-  --provider-text: #2c2a25;
-  --provider-text-secondary: #565551;
-  --provider-text-tertiary: #807f7c;
-  --provider-border: #eaeae9;
+  --provider-canvas: var(--mg-canvas);
+  --provider-surface: var(--mg-surface);
+  --provider-surface-subtle: var(--mg-surface-subtle);
+  --provider-surface-warm: var(--mg-surface-warm);
+  --provider-text: var(--mg-text);
+  --provider-text-secondary: var(--mg-text-secondary);
+  --provider-text-tertiary: var(--mg-text-tertiary);
+  --provider-border: var(--mg-border);
   --provider-border-strong: #d8d8d3;
-  --provider-ink: #0e0d0c;
-  --provider-sage: #96a58d;
-  --provider-sage-strong: #63725a;
-  --provider-success: #407345;
-  --provider-warning: #a36e1f;
-  --provider-danger: #a53830;
+  --provider-ink: var(--mg-ink-strong);
+  --provider-sage: var(--mg-sage);
+  --provider-sage-strong: var(--mg-sage-strong);
+  --provider-success: var(--mg-success);
+  --provider-warning: var(--mg-warning);
+  --provider-danger: var(--mg-danger);
 
   display: flex;
   width: 100%;

@@ -5,9 +5,11 @@
  * 因此卡片高度稳定、同行等高，不再像此前那样展开后横跨整行。
  */
 
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import type { OAuthProvider } from '@/services/api/oauth';
 import type { ResolvedTheme } from '@/types';
 import type { OAuthFlowState } from '../useOAuthFlow';
 import {
@@ -21,11 +23,11 @@ type OAuthProviderCardProps = {
   provider: OAuthProviderDescriptor;
   state: OAuthFlowState;
   theme: ResolvedTheme;
-  onStart: () => void;
-  onOpen: () => void;
+  onStart: (provider: OAuthProvider) => void;
+  onOpen: (provider: OAuthProvider) => void;
 };
 
-export function OAuthProviderCard({
+export const OAuthProviderCard = memo(function OAuthProviderCard({
   provider,
   state,
   theme,
@@ -84,11 +86,15 @@ export function OAuthProviderCard({
           <div className={styles.cardHint}>{t(provider.hintKey)}</div>
           <div className={styles.cardFooter}>
             {state.phase === 'idle' ? (
-              <Button onClick={onStart}>{t('common.login')}</Button>
+              <Button onClick={() => onStart(provider.id)}>{t('common.login')}</Button>
             ) : (
               // 已有进行中/已结束的流程时，按钮回到弹窗而不是重新发起，
               // 避免误点作废一次正在等待的授权
-              <Button variant="secondary" onClick={onOpen} loading={state.phase === 'starting'}>
+              <Button
+                variant="secondary"
+                onClick={() => onOpen(provider.id)}
+                loading={state.phase === 'starting'}
+              >
                 {t('auth_login.view_progress')}
               </Button>
             )}
@@ -97,4 +103,4 @@ export function OAuthProviderCard({
       </Card>
     </div>
   );
-}
+});

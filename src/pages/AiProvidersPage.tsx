@@ -110,9 +110,11 @@ const matchesFilter = (resource: ProviderResource, normalized: string) => {
 export function AiProvidersPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
 
   const {
     codexConfigs,
@@ -130,7 +132,7 @@ export function AiProvidersPage() {
     deleteOpenAICompatEntry,
     setConfigEnabled,
     setOpenAICompatEnabled,
-  } = useAiProviderConfigs({ t });
+  } = useAiProviderConfigs({ t, enabled: isCurrentLayer });
 
   const [activeBrand, setActiveBrand] = useState<ProviderBrand>('codex');
   const [filter, setFilter] = useState('');
@@ -193,15 +195,18 @@ export function AiProvidersPage() {
     });
   }, [activeGroup.resources, filter, selectedModels, sortBy, sortDir]);
 
-  const toolbarControls: ProviderPanelControls = {
-    sortBy,
-    sortDir,
-    onSortBy: setSortBy,
-    onSortDir: setSortDir,
-    availableModels,
-    selectedModels,
-    onSelectedModelsChange: setSelectedModels,
-  };
+  const toolbarControls = useMemo<ProviderPanelControls>(
+    () => ({
+      sortBy,
+      sortDir,
+      onSortBy: setSortBy,
+      onSortDir: setSortDir,
+      availableModels,
+      selectedModels,
+      onSelectedModelsChange: setSelectedModels,
+    }),
+    [availableModels, selectedModels, sortBy, sortDir]
+  );
 
   const openEditor = useCallback(
     (path: string) => navigate(path, { state: { fromAiProviders: true } }),
@@ -294,7 +299,7 @@ export function AiProvidersPage() {
         updatedAtLabel={formatDateTime(updatedAt, i18n.language)}
         isFetching={loading}
         isNewDisabled={connectionStatus !== 'connected' || isSwitching}
-        onRefresh={() => void handleRefresh()}
+        onRefresh={handleRefresh}
         onNew={handleCreate}
       />
 

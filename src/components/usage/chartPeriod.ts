@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export type UsageChartPeriod = 'hour' | 'day';
 
@@ -17,9 +17,7 @@ export const getAdaptiveChartPeriod = (hourWindowHours?: number): UsageChartPeri
   return hourWindowHours <= 24 ? 'hour' : 'day';
 };
 
-export const getAdaptiveAnalysisChartPeriod = (
-  hourWindowHours?: number
-): UsageChartPeriod => {
+export const getAdaptiveAnalysisChartPeriod = (hourWindowHours?: number): UsageChartPeriod => {
   if (!hourWindowHours) {
     return 'day';
   }
@@ -31,11 +29,20 @@ export const useAdaptiveAnalysisChartPeriod = (
   hourWindowHours?: number
 ): [UsageChartPeriod, (period: UsageChartPeriod) => void] => {
   const preferredPeriod = getAdaptiveAnalysisChartPeriod(hourWindowHours);
-  const [period, setPeriod] = useState<UsageChartPeriod>(preferredPeriod);
+  const [selection, setSelection] = useState(() => ({
+    preferredPeriod,
+    period: preferredPeriod,
+  }));
 
-  useEffect(() => {
-    setPeriod(preferredPeriod);
-  }, [preferredPeriod]);
+  // Derive the reset value from the latest preference during render. This avoids an effect-driven
+  // intermediate chart render when the selected window changes from hourly to daily (or back).
+  const period = selection.preferredPeriod === preferredPeriod ? selection.period : preferredPeriod;
+  const setPeriod = useCallback(
+    (nextPeriod: UsageChartPeriod) => {
+      setSelection({ preferredPeriod, period: nextPeriod });
+    },
+    [preferredPeriod]
+  );
 
   return [period, setPeriod];
 };
@@ -43,13 +50,37 @@ export const useAdaptiveAnalysisChartPeriod = (
 export const useSyncedUsageChartPeriods = (
   preferredPeriod: UsageChartPeriod = 'day'
 ): SyncedUsageChartPeriods => {
-  const [requestsPeriod, setRequestsPeriod] = useState<UsageChartPeriod>(preferredPeriod);
-  const [tokensPeriod, setTokensPeriod] = useState<UsageChartPeriod>(preferredPeriod);
+  const [selection, setSelection] = useState(() => ({
+    preferredPeriod,
+    requestsPeriod: preferredPeriod,
+    tokensPeriod: preferredPeriod,
+  }));
 
-  useEffect(() => {
-    setRequestsPeriod(preferredPeriod);
-    setTokensPeriod(preferredPeriod);
-  }, [preferredPeriod]);
+  const hasCurrentPreference = selection.preferredPeriod === preferredPeriod;
+  const requestsPeriod = hasCurrentPreference ? selection.requestsPeriod : preferredPeriod;
+  const tokensPeriod = hasCurrentPreference ? selection.tokensPeriod : preferredPeriod;
+  const setRequestsPeriod = useCallback(
+    (nextPeriod: UsageChartPeriod) => {
+      setSelection((current) => ({
+        preferredPeriod,
+        requestsPeriod: nextPeriod,
+        tokensPeriod:
+          current.preferredPeriod === preferredPeriod ? current.tokensPeriod : preferredPeriod,
+      }));
+    },
+    [preferredPeriod]
+  );
+  const setTokensPeriod = useCallback(
+    (nextPeriod: UsageChartPeriod) => {
+      setSelection((current) => ({
+        preferredPeriod,
+        requestsPeriod:
+          current.preferredPeriod === preferredPeriod ? current.requestsPeriod : preferredPeriod,
+        tokensPeriod: nextPeriod,
+      }));
+    },
+    [preferredPeriod]
+  );
 
   return {
     requestsPeriod,

@@ -1,5 +1,6 @@
 import { memo, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Card } from '@/components/ui/Card';
 import {
   buildCandidateUsageSourceIds,
@@ -38,6 +39,8 @@ interface CredentialBucket {
   totalTokens: number;
 }
 
+const EMPTY_CREDENTIAL_ROWS: CredentialRow[] = [];
+
 export const CredentialStatsCard = memo(function CredentialStatsCard({
   credentials,
   loading,
@@ -45,11 +48,13 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
   codexConfigs,
 }: CredentialStatsCardProps) {
   const { t } = useTranslation();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(new Map());
 
   // Fetch auth files for auth_index-based matching
   useEffect(() => {
-    if (loading || credentials.length === 0) {
+    if (!isCurrentLayer || loading || credentials.length === 0) {
       return;
     }
 
@@ -77,12 +82,12 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     return () => {
       cancelled = true;
     };
-  }, [credentials.length, loading]);
+  }, [credentials.length, isCurrentLayer, loading]);
 
   // Aggregate rows: all from bySource only (no separate byAuthIndex rows to avoid duplicates).
   // Auth files are used purely for name resolution of unmatched source IDs.
   const rows = useMemo((): CredentialRow[] => {
-    if (!credentials.length) return [];
+    if (!isCurrentLayer || !credentials.length) return EMPTY_CREDENTIAL_ROWS;
     const bySource: Record<string, CredentialBucket> = {};
     const result: CredentialRow[] = [];
     const consumedSourceIds = new Set<string>();
@@ -245,7 +250,7 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     });
 
     return result.sort((a, b) => b.totalTokens - a.totalTokens || b.total - a.total);
-  }, [credentials, claudeConfigs, codexConfigs, authFileMap]);
+  }, [authFileMap, claudeConfigs, codexConfigs, credentials, isCurrentLayer]);
 
   return (
     <Card title={t('usage_stats.credential_stats')} className={styles.detailsFixedCard}>

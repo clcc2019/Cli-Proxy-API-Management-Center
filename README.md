@@ -1,25 +1,25 @@
-# CLI Proxy API Management Center
+# Toka
 
-A single-file Web UI (React + TypeScript) for operating and troubleshooting the **CLI Proxy API** via its **Management API** (config, credentials, logs, and usage).
+Toka is a single-file Web UI (React + TypeScript) for operating and troubleshooting an AI gateway through its **Management API** (config, credentials, logs, and usage).
 
 [中文文档](README_CN.md)
 
-**Main Project**: https://github.com/router-for-me/CLIProxyAPI  
+**Backend Project**: [Toka backend source](https://github.com/router-for-me/CLIProxyAPI)
 **Example URL**: https://remote.router-for.me/  
 **Minimum Required Version**: ≥ 6.8.0 (recommended ≥ 6.8.15)
 
-Since version 6.0.19, the Web UI ships with the main program; access it via `/management.html` on the API port once the service is running.
+Since backend version 6.0.19, Toka ships with the main program; access it via `/management.html` on the API port once the service is running.
 
 ## What this is (and isn’t)
 
-- This repository is the Web UI only. It talks to the CLI Proxy API **Management API** (`/v0/management`) to read/update config, upload credentials, view logs, and inspect usage.
+- This repository contains the Toka Web UI only. It talks to the connected backend through its **Management API** (`/v0/management`) to read/update config, upload credentials, view logs, and inspect usage.
 - It is **not** a proxy and does not forward traffic.
 
 ## Quick start
 
-### Option A: Use the Web UI bundled in CLI Proxy API (recommended)
+### Option A: Use Toka bundled with the backend (recommended)
 
-1. Start your CLI Proxy API service.
+1. Start your AI gateway backend service.
 2. Open: `http://<host>:<api_port>/management.html`
 3. Enter your **management key** and connect.
 
@@ -32,7 +32,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`, then connect to your CLI Proxy API backend instance.
+Open `http://localhost:5173`, then connect to your Toka backend instance.
 
 ### Option C: Build a single HTML file
 
@@ -42,7 +42,7 @@ npm run build
 ```
 
 - Output: `dist/index.html` (all assets are inlined).
-- For CLI Proxy API bundling, the release workflow renames it to `management.html`.
+- For backend bundling, the release workflow renames it to `management.html`.
 - To preview locally: `npm run preview`
 
 Tip: opening `dist/index.html` via `file://` may be blocked by browser CORS; serving it (preview/static server) is more reliable.

@@ -14,6 +14,7 @@ import {
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
+import { TokaMark } from '@/components/ui/TokaMark';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
 import { preloadRoute } from '@/router/routeLoaders';
@@ -134,63 +135,64 @@ export function MainLayout() {
 
   const isLogsPage = location.pathname.startsWith('/logs');
 
-  // 将顶栏高度写入 CSS 变量，确保侧栏/内容区计算一致，防止滚动时抖动
+  // 将顶栏高度和主内容区中心点在同一帧内读取并写入，减少 resize 时的布局往返
   useLayoutEffect(() => {
-    const updateHeaderHeight = () => {
-      const height = headerRef.current?.offsetHeight;
-      if (height) {
-        document.documentElement.style.setProperty('--header-height', `${height}px`);
+    let frame: number | null = null;
+    const updateLayoutMetrics = () => {
+      const headerHeight = headerRef.current?.offsetHeight;
+      const contentRect = contentRef.current?.getBoundingClientRect();
+      const nextHeaderValue = headerHeight ? `${headerHeight}px` : null;
+      const nextContentValue = contentRect
+        ? `${contentRect.left + contentRect.width / 2}px`
+        : null;
+
+      if (
+        nextHeaderValue &&
+        document.documentElement.style.getPropertyValue('--header-height') !== nextHeaderValue
+      ) {
+        document.documentElement.style.setProperty('--header-height', nextHeaderValue);
+      }
+      if (
+        nextContentValue &&
+        document.documentElement.style.getPropertyValue('--content-center-x') !== nextContentValue
+      ) {
+        document.documentElement.style.setProperty('--content-center-x', nextContentValue);
       }
     };
+    const scheduleLayoutMetricsUpdate = () => {
+      if (frame !== null) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = null;
+        updateLayoutMetrics();
+      });
+    };
 
-    updateHeaderHeight();
+    updateLayoutMetrics();
 
-    const resizeObserver =
+    const headerResizeObserver =
       typeof ResizeObserver !== 'undefined' && headerRef.current
-        ? new ResizeObserver(updateHeaderHeight)
+        ? new ResizeObserver(scheduleLayoutMetricsUpdate)
         : null;
-    if (resizeObserver && headerRef.current) {
-      resizeObserver.observe(headerRef.current);
-    }
-
-    window.addEventListener('resize', updateHeaderHeight);
-
-    return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-      window.removeEventListener('resize', updateHeaderHeight);
-    };
-  }, []);
-
-  // 将主内容区的中心点写入 CSS 变量，供底部浮层（配置面板操作栏、提供商导航）对齐到内容区
-  useLayoutEffect(() => {
-    const updateContentCenter = () => {
-      const el = contentRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      document.documentElement.style.setProperty('--content-center-x', `${centerX}px`);
-    };
-
-    updateContentCenter();
-
-    const resizeObserver =
+    const contentResizeObserver =
       typeof ResizeObserver !== 'undefined' && contentRef.current
-        ? new ResizeObserver(updateContentCenter)
+        ? new ResizeObserver(scheduleLayoutMetricsUpdate)
         : null;
 
-    if (resizeObserver && contentRef.current) {
-      resizeObserver.observe(contentRef.current);
+    if (headerResizeObserver && headerRef.current) {
+      headerResizeObserver.observe(headerRef.current);
     }
-
-    window.addEventListener('resize', updateContentCenter);
+    if (contentResizeObserver && contentRef.current) {
+      contentResizeObserver.observe(contentRef.current);
+    }
+    window.addEventListener('resize', scheduleLayoutMetricsUpdate);
 
     return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame);
       }
-      window.removeEventListener('resize', updateContentCenter);
+      headerResizeObserver?.disconnect();
+      contentResizeObserver?.disconnect();
+      window.removeEventListener('resize', scheduleLayoutMetricsUpdate);
       document.documentElement.style.removeProperty('--content-center-x');
     };
   }, []);
@@ -460,6 +462,21 @@ export function MainLayout() {
           >
             {headerIcons.menu}
           </Button>
+          <NavLink
+            to="/"
+            className="brand-lockup"
+            onClick={(event) => handleNavigationClick(event, '/')}
+            onPointerEnter={() => handleNavigationIntent('/')}
+            onPointerDown={() => handleNavigationIntent('/')}
+            onFocus={() => handleNavigationIntent('/')}
+            aria-label={t('title.main')}
+          >
+            <TokaMark className="brand-mark" aria-hidden="true" />
+            <span className="brand-copy">
+              <span className="brand-name">{t('title.main')}</span>
+              <span className="brand-caption">{t('splash.subtitle')}</span>
+            </span>
+          </NavLink>
           <button
             type="button"
             className="sidebar-toggle-header"

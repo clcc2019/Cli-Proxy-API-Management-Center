@@ -18,15 +18,24 @@ export function useVisibleInterval(
   const { enabled = true, refreshOnVisible = true } = options;
   const stableCallback = useEventCallback(callback);
   const [visible, setVisible] = useState(isDocumentVisible);
+  const shouldTrackVisibility = enabled && delay !== null;
+  const shouldRunInterval = shouldTrackVisibility && visible && isDocumentVisible();
 
-  useInterval(stableCallback, enabled && visible ? delay : null);
+  useInterval(stableCallback, shouldRunInterval ? delay : null);
 
   useEffect(() => {
-    if (typeof document === 'undefined') return;
+    if (typeof document === 'undefined' || !shouldTrackVisibility) return;
+
+    const syncVisibility = () => {
+      const nextVisible = isDocumentVisible();
+      setVisible((previous) => (previous === nextVisible ? previous : nextVisible));
+    };
+
+    syncVisibility();
 
     const handleVisibilityChange = () => {
-      const nextVisible = !document.hidden;
-      setVisible(nextVisible);
+      const nextVisible = isDocumentVisible();
+      setVisible((previous) => (previous === nextVisible ? previous : nextVisible));
 
       if (nextVisible && enabled && refreshOnVisible && delay !== null) {
         stableCallback();
@@ -37,5 +46,5 @@ export function useVisibleInterval(
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [delay, enabled, refreshOnVisible, stableCallback]);
+  }, [delay, enabled, refreshOnVisible, shouldTrackVisibility, stableCallback]);
 }

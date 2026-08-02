@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,8 @@ import type { ModelEntry } from '@/components/ui/modelInputListUtils';
 import { modelsToEntries } from '@/components/ui/modelInputListUtils';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { ProviderEditShell } from '@/components/common/ProviderEditShell';
+import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
+import { useEventCallback } from '@/hooks';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
@@ -37,6 +39,8 @@ type ApiKeyEntryForm = {
   proxyUrl: string;
   authIndex?: string;
 };
+
+const EMPTY_OPENAI_API_KEY_ENTRY: ApiKeyEntryForm = { apiKey: '', proxyUrl: '' };
 
 type OpenAIFormState = {
   name: string;
@@ -189,7 +193,67 @@ const buildModelPayload = (
     });
 };
 
-function OpenAIApiKeyInputList({
+type OpenAIApiKeyInputField = 'apiKey' | 'proxyUrl';
+
+interface OpenAIApiKeyInputRowProps {
+  entry: ApiKeyEntryForm;
+  index: number;
+  disabled: boolean;
+  apiKeyPlaceholder: string;
+  proxyPlaceholder: string;
+  deleteLabel: string;
+  removeButtonClassName: string;
+  removeDisabled: boolean;
+  onUpdate: (index: number, field: OpenAIApiKeyInputField, value: string) => void;
+  onRemove: (index: number) => void;
+}
+
+const OpenAIApiKeyInputRow = memo(function OpenAIApiKeyInputRow({
+  entry,
+  index,
+  disabled,
+  apiKeyPlaceholder,
+  proxyPlaceholder,
+  deleteLabel,
+  removeButtonClassName,
+  removeDisabled,
+  onUpdate,
+  onRemove,
+}: OpenAIApiKeyInputRowProps) {
+  return (
+    <div className={styles.openaiKeyInputRow}>
+      <input
+        className="input"
+        value={entry.apiKey}
+        placeholder={apiKeyPlaceholder}
+        aria-label={`${apiKeyPlaceholder} ${index + 1}`}
+        onChange={(event) => onUpdate(index, 'apiKey', event.target.value)}
+        disabled={disabled}
+      />
+      <input
+        className="input"
+        value={entry.proxyUrl}
+        placeholder={proxyPlaceholder}
+        aria-label={`${proxyPlaceholder} ${index + 1}`}
+        onChange={(event) => onUpdate(index, 'proxyUrl', event.target.value)}
+        disabled={disabled}
+      />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemove(index)}
+        disabled={disabled || removeDisabled}
+        title={deleteLabel}
+        aria-label={deleteLabel}
+        className={removeButtonClassName}
+      >
+        <IconX size={14} />
+      </Button>
+    </div>
+  );
+});
+
+const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
   entries,
   onChange,
   disabled,
@@ -199,71 +263,69 @@ function OpenAIApiKeyInputList({
   disabled: boolean;
 }) {
   const { t } = useTranslation();
-  const currentEntries = entries.length ? entries : [{ apiKey: '', proxyUrl: '' }];
+  const currentEntries = entries.length ? entries : [EMPTY_OPENAI_API_KEY_ENTRY];
 
-  const updateEntry = (index: number, field: keyof ApiKeyEntryForm, value: string) => {
-    onChange(
-      currentEntries.map((entry, idx) => (idx === index ? { ...entry, [field]: value } : entry))
-    );
-  };
+  const updateEntry = useEventCallback(
+    (index: number, field: OpenAIApiKeyInputField, value: string) => {
+      onChange(
+        currentEntries.map((entry, idx) =>
+          idx === index ? { ...entry, [field]: value } : entry
+        )
+      );
+    }
+  );
 
-  const addEntry = () => {
-    onChange([...currentEntries, { apiKey: '', proxyUrl: '' }]);
-  };
+  const addEntry = useEventCallback(() => {
+    onChange([...currentEntries, EMPTY_OPENAI_API_KEY_ENTRY]);
+  });
 
-  const removeEntry = (index: number) => {
+  const removeEntry = useEventCallback((index: number) => {
     const next = currentEntries.filter((_, idx) => idx !== index);
-    onChange(next.length ? next : [{ apiKey: '', proxyUrl: '' }]);
-  };
+    onChange(next.length ? next : [EMPTY_OPENAI_API_KEY_ENTRY]);
+  });
 
   return (
     <div className={styles.openaiKeyInputList}>
       {currentEntries.map((entry, index) => (
-        <div key={index} className={styles.openaiKeyInputRow}>
-          <input
-            className="input"
-            value={entry.apiKey}
-            placeholder={t('ai_providers.openai_key_placeholder')}
-            aria-label={`${t('ai_providers.openai_key_placeholder')} ${index + 1}`}
-            onChange={(event) => updateEntry(index, 'apiKey', event.target.value)}
-            disabled={disabled}
-          />
-          <input
-            className="input"
-            value={entry.proxyUrl}
-            placeholder={t('ai_providers.openai_proxy_placeholder')}
-            aria-label={`${t('ai_providers.openai_proxy_placeholder')} ${index + 1}`}
-            onChange={(event) => updateEntry(index, 'proxyUrl', event.target.value)}
-            disabled={disabled}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => removeEntry(index)}
-            disabled={disabled || currentEntries.length <= 1}
-            title={t('common.delete')}
-            aria-label={t('common.delete')}
-            className={styles.modelRowRemoveButton}
-          >
-            <IconX size={14} />
-          </Button>
-        </div>
+        <OpenAIApiKeyInputRow
+          key={index}
+          entry={entry}
+          index={index}
+          disabled={disabled}
+          apiKeyPlaceholder={t('ai_providers.openai_key_placeholder')}
+          proxyPlaceholder={t('ai_providers.openai_proxy_placeholder')}
+          deleteLabel={t('common.delete')}
+          removeButtonClassName={styles.modelRowRemoveButton}
+          removeDisabled={currentEntries.length <= 1}
+          onUpdate={updateEntry}
+          onRemove={removeEntry}
+        />
       ))}
-      <Button variant="secondary" size="sm" onClick={addEntry} disabled={disabled} className="align-start">
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={addEntry}
+        disabled={disabled}
+        className="align-start"
+      >
         {t('ai_providers.openai_keys_add_btn')}
       </Button>
     </div>
   );
-}
+});
 
 export function AiProvidersOpenAIEditPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams<{ index?: string }>();
+  const pageTransitionLayer = usePageTransitionLayer();
+  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
 
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
+  const connectionStatus = useAuthStore((state) =>
+    isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
   const disableControls = connectionStatus !== 'connected';
   const updateConfigValue = useConfigStore((state) => state.updateConfigValue);
   const clearCache = useConfigStore((state) => state.clearCache);
@@ -300,37 +362,40 @@ export function AiProvidersOpenAIEditPage() {
   }, [location.state, navigate]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
+    if (!isCurrentLayer) return undefined;
 
-    providersApi
-      .getOpenAICompatConfigs()
-      .then((value) => {
-        if (cancelled) return;
-        setConfigs(Array.isArray(value) ? value : []);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setError(getErrorMessage(err) || t('notification.refresh_failed'));
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setLoading(false);
-      });
+    let cancelled = false;
+    const taskId = window.setTimeout(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError('');
+
+      void providersApi
+        .getOpenAICompatConfigs()
+        .then((value) => {
+          if (cancelled) return;
+          const nextConfigs = Array.isArray(value) ? value : [];
+          const nextInitialData = editIndex === null ? undefined : nextConfigs[editIndex];
+          const nextForm = nextInitialData ? buildFormFromConfig(nextInitialData) : buildEmptyForm();
+          setConfigs(nextConfigs);
+          setForm(nextForm);
+          setBaseline(buildOpenAIBaseline(nextForm));
+        })
+        .catch((err: unknown) => {
+          if (cancelled) return;
+          setError(getErrorMessage(err) || t('notification.refresh_failed'));
+        })
+        .finally(() => {
+          if (cancelled) return;
+          setLoading(false);
+        });
+    }, 0);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(taskId);
     };
-  }, [t]);
-
-  useEffect(() => {
-    if (loading) return;
-
-    const nextForm = initialData ? buildFormFromConfig(initialData) : buildEmptyForm();
-    setForm(nextForm);
-    setBaseline(buildOpenAIBaseline(nextForm));
-  }, [initialData, loading]);
+  }, [editIndex, isCurrentLayer, t]);
 
   const normalizedHeaders = useMemo(() => normalizeHeaderEntries(form.headers), [form.headers]);
   const normalizedModels = useMemo(
@@ -364,7 +429,7 @@ export function AiProvidersOpenAIEditPage() {
 
   const canGuard = !loading && !saving && !invalidIndexParam && !invalidIndex;
   const { allowNextNavigation } = useUnsavedChangesGuard({
-    enabled: canGuard,
+    enabled: isCurrentLayer && canGuard,
     shouldBlock: ({ currentLocation, nextLocation }) =>
       isDirty && currentLocation.pathname !== nextLocation.pathname,
     dialog: {
@@ -377,6 +442,18 @@ export function AiProvidersOpenAIEditPage() {
   });
 
   const canSave = !disableControls && !saving && !loading && !invalidIndexParam && !invalidIndex;
+
+  const handleApiKeyEntriesChange = useCallback((apiKeyEntries: ApiKeyEntryForm[]) => {
+    setForm((prev) => ({ ...prev, apiKeyEntries }));
+  }, []);
+
+  const handleHeaderEntriesChange = useCallback((headers: HeaderEntry[]) => {
+    setForm((prev) => ({ ...prev, headers }));
+  }, []);
+
+  const handleModelEntriesChange = useCallback((modelEntries: ModelEntry[]) => {
+    setForm((prev) => ({ ...prev, modelEntries }));
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (!canSave) return;
@@ -569,14 +646,14 @@ export function AiProvidersOpenAIEditPage() {
               <div className={styles.sectionHint}>{t('ai_providers.openai_keys_hint')}</div>
               <OpenAIApiKeyInputList
                 entries={form.apiKeyEntries}
-                onChange={(entries) => setForm((prev) => ({ ...prev, apiKeyEntries: entries }))}
+                onChange={handleApiKeyEntriesChange}
                 disabled={disableControls || saving}
               />
             </div>
 
             <HeaderInputList
               entries={form.headers}
-              onChange={(entries) => setForm((prev) => ({ ...prev, headers: entries }))}
+              onChange={handleHeaderEntriesChange}
               addLabel={t('common.custom_headers_add')}
               keyPlaceholder={t('common.custom_headers_key_placeholder')}
               valuePlaceholder={t('common.custom_headers_value_placeholder')}
@@ -594,7 +671,7 @@ export function AiProvidersOpenAIEditPage() {
               <div className={styles.sectionHint}>{t('ai_providers.openai_models_hint')}</div>
               <ModelInputList
                 entries={form.modelEntries}
-                onChange={(entries) => setForm((prev) => ({ ...prev, modelEntries: entries }))}
+                onChange={handleModelEntriesChange}
                 addLabel={t('ai_providers.openai_models_add_btn')}
                 namePlaceholder={t('ai_providers.openai_model_name_placeholder')}
                 aliasPlaceholder={t('ai_providers.openai_model_alias_placeholder')}

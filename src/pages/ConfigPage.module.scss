@@ -2,17 +2,17 @@
 @use '../styles/variables' as *;
 
 .container {
-  --config-surface: #ffffff;
-  --config-surface-subtle: #f4f4f4;
-  --config-surface-warm: #faf8f5;
-  --config-text: #2c2a25;
-  --config-text-secondary: #565551;
-  --config-text-muted: #807f7c;
-  --config-border: #eaeae9;
+  --config-surface: var(--mg-surface);
+  --config-surface-subtle: var(--mg-surface-subtle);
+  --config-surface-warm: var(--mg-surface-warm);
+  --config-text: var(--mg-text);
+  --config-text-secondary: var(--mg-text-secondary);
+  --config-text-muted: var(--mg-text-tertiary);
+  --config-border: var(--mg-border);
   --config-border-strong: #d8d8d3;
-  --config-sage: #96a58d;
-  --config-sage-soft: #e1e2d9;
-  --config-ink: #0e0d0c;
+  --config-sage: var(--mg-sage);
+  --config-sage-soft: var(--mg-sage-soft);
+  --config-ink: var(--mg-ink-strong);
   width: 100%;
   min-width: 0;
   min-height: 100%;
@@ -26,12 +26,10 @@
 }
 
 .pageHeader {
+  @include management-page-header;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-end;
   gap: 12px;
-  padding: 2px 0 14px;
   border-bottom: 1px solid var(--config-border);
 
   @media (prefers-reduced-motion: no-preference) {
@@ -46,13 +44,9 @@
 }
 
 .pageTitle {
-  margin: 0;
-  min-width: 0;
+  @include management-page-title;
   color: var(--config-text);
-  font-size: var(--page-title-size, clamp(24px, 2vw, 30px));
-  font-weight: 680;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  font-size: var(--page-title-size, clamp(26px, 2.2vw, 32px));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -98,11 +92,8 @@
 }
 
 .tabBar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  @include management-tabs;
   padding: 3px;
-  border-radius: 999px;
   background: var(--config-surface-subtle);
   border: 1px solid var(--config-border);
   width: fit-content;
@@ -564,7 +555,7 @@
 
 @media (max-width: 380px) {
   .pageHeader {
-    padding: 14px;
+    padding: 2px 0 14px;
   }
 }
 
