@@ -6,6 +6,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 
 const DEV_PROXY_PREFIX = '/__dev_proxy__';
+const PROJECT_ROOT = import.meta.dirname;
 const SKIP_REQUEST_HEADERS = new Set([
   'accept-encoding',
   'connection',
@@ -46,7 +47,7 @@ function getVersion(): string {
 
   // 3. Fall back to package.json version
   try {
-    const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8'));
+    const pkg = JSON.parse(fs.readFileSync(path.resolve(PROJECT_ROOT, 'package.json'), 'utf8'));
     if (pkg.version && pkg.version !== '0.0.0') {
       return pkg.version;
     }
@@ -202,7 +203,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src')
+        '@': path.resolve(PROJECT_ROOT, './src')
       }
     },
     css: {
