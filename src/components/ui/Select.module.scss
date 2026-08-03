@@ -1,5 +1,18 @@
 @use '../../styles/mixins' as *;
 
+// 与全局 mg-popover-enter 同形，但 CSS Modules 会把 animation 引用改写为
+// 模块作用域名，因此关键帧必须在本模块内定义才能命中。
+@keyframes mg-popover-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--popover-enter-y, -4px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 .wrap {
   position: relative;
   display: inline-flex;
@@ -18,10 +31,9 @@
   width: 100%;
   height: 40px;
   padding: 0 12px;
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--border-color);
   border-radius: $radius-md;
-  background: var(--control-surface-gradient, var(--control-surface));
-  box-shadow: var(--control-shadow, var(--shadow));
+  background: var(--control-surface);
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 500;
@@ -35,22 +47,19 @@
     box-shadow 150ms ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 18%, var(--border-hover));
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--primary-color) 3%, var(--control-surface)),
-      color-mix(in srgb, var(--primary-color) 5%, var(--bg-secondary))
-    );
+    border-color: var(--border-hover);
+    background: var(--mg-surface-subtle, var(--bg-secondary));
   }
 
   &:focus {
     outline: none;
-    box-shadow: var(--control-shadow, var(--shadow)), 0 0 0 3px var(--focus-ring);
+    border-color: var(--mg-sage-strong, var(--primary-color));
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   &[aria-expanded='true'] {
-    border-color: var(--primary-color);
-    box-shadow: var(--control-shadow, var(--shadow)), 0 0 0 3px var(--focus-ring);
+    border-color: var(--mg-sage-strong, var(--primary-color));
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
@@ -90,6 +99,8 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  animation: mg-popover-enter var(--motion-duration-fast, 140ms)
+    var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 .option {
@@ -113,23 +124,23 @@
   flex-shrink: 0;
 
   &:hover {
-    background: color-mix(in srgb, var(--primary-color) 7%, var(--bg-secondary));
+    background: var(--mg-surface-subtle, var(--bg-secondary));
   }
 
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
+    outline: 2px solid color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 52%, transparent);
     outline-offset: 2px;
-    background: color-mix(in srgb, var(--primary-color) 7%, var(--bg-secondary));
+    background: var(--mg-surface-subtle, var(--bg-secondary));
   }
 }
 
 .optionActive {
-  border-color: color-mix(in srgb, var(--primary-color) 42%, transparent);
+  border-color: color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 42%, transparent);
   background: var(--primary-soft);
-  color: color-mix(in srgb, var(--primary-color) 82%, var(--text-primary));
+  color: var(--mg-sage-strong, var(--primary-color));
   font-weight: 600;
 }
 
 .optionHighlighted {
-  background: color-mix(in srgb, var(--primary-color) 7%, var(--bg-secondary));
+  background: var(--mg-surface-subtle, var(--bg-secondary));
 }

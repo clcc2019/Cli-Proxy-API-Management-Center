@@ -87,7 +87,7 @@ export const StatCards = memo(function StatCards({ window, loading, modelPrices 
   const requestsValue = loading ? '-' : metrics.totalRequests.toLocaleString();
   const requestsMeta: ReactNode = (
     <>
-      <span className={styles.statMetaItem}>
+      <span className={`${styles.statMetaItem} ${styles.statSuccess}`}>
         {t('usage_stats.success_requests')}:{' '}
         {loading
           ? '-'

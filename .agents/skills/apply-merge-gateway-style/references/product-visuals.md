@@ -5,6 +5,7 @@ Use this reference to create the “images inside the page”: high-fidelity pro
 ## Contents
 
 - Core construction and internal UI grammar
+- Asset fidelity, accessibility, and responsive delivery
 - Reliability, budget, routing, and request-log recipes
 - Tenant controls and hero code panels
 - Composition rules and anti-patterns
@@ -20,6 +21,27 @@ Create each visual from one recognizable application surface, not an abstract il
 - Use cropped edges intentionally so the product feels larger than the illustration frame.
 - Render at 2× pixel density when exporting raster assets. Prefer SVG for line art, tables, labels, and UI mockups.
 - Keep text as real HTML when localization, accessibility, or live data matters. Keep SVG text as text where the delivery pipeline supports the required fonts.
+
+## Asset and fidelity contract
+
+Choose the delivery format by behavior, not by convenience:
+
+| Visual need | Preferred format | Minimum contract |
+|---|---|---|
+| Live data, localized copy, keyboard interaction | HTML/CSS/React/Vue | real semantics, responsive reflow, loading/empty/error states |
+| Static line art, contour, routing diagram | SVG | `viewBox`, meaningful `title`/`desc` or `aria-hidden`, no clipped essential labels |
+| Supplied screenshot or decorative texture | raster/WebP/PNG | 2× export density, compressed file, meaningful alt text or decorative treatment |
+| Chart or table that communicates a decision | live chart/table | visible summary and an accessible data representation |
+
+When a visual is illustrative rather than live, label mock data as sample data if a reasonable user could mistake it for production values. Do not invent a provider, customer, security state, or performance claim that the surrounding copy does not support.
+
+Fidelity checks for every product visual:
+
+- Keep the dominant frame between 15–16px radius and 1px border; use one floating element at most and keep its anchor obvious.
+- Keep final-size labels at least 12px and line-height around 1.4. If the visual cannot support readable labels, crop it to one meaningful fragment instead of shrinking the whole dashboard.
+- Define a safe inset for the claim, status marks, and controls. Responsive cropping may remove decoration or secondary rows, never the primary signal.
+- Preserve the same empty/loading/error language as the real product. A marketing mockup should still look like an intentional state, not a broken screenshot.
+- Check the asset on white and pale sage/khaki backgrounds, at 100% browser zoom, and with images disabled. Essential information must remain available as text outside the asset.
 
 ## Internal UI grammar
 
@@ -110,6 +132,9 @@ Build this as HTML when possible:
 - Use one dominant frame, one secondary floating element at most, and one semantic accent.
 - Keep important text and status marks inside a safe inset so responsive cropping does not remove the story.
 - Ensure transparent assets remain legible on both pure white and pale sage/khaki sections.
+- Keep the DOM/source order aligned with the claim: heading → explanation → action → visual proof is the safe default. If CSS reorders columns, verify mobile reading order and focus order separately.
+- For responsive visuals, define three states explicitly: full desktop composition, simplified tablet composition, and essential mobile crop/recomposition. Do not rely on one `transform: scale()` rule.
+- Use `alt=""` for purely decorative visuals and put the explanation in nearby text; use a concise alt for a meaningful static visual; use a live accessible representation for data-bearing visuals.
 
 ## Avoid
 

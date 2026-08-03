@@ -367,10 +367,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     aria-hidden="true"
                   />
                 </button>
-                <span className={styles.authCardProviderBadge} title={providerLabel}>
-                  <span className={styles.authCardProviderBadgeDot} aria-hidden="true" />
-                  <span className={styles.authCardProviderBadgeText}>{providerLabel}</span>
-                </span>
               </div>
 
               {!isRuntimeOnly || priorityValue !== undefined ? (
@@ -626,23 +622,23 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </Button>
                 </div>
               )}
-
-              {!isRuntimeOnly && showQuotaLayout && quotaType && (
-                <div className={styles.authCardRefresh}>
-                  <Suspense fallback={null}>
-                    <AuthFileQuotaRefreshButton
-                      file={file}
-                      quotaType={quotaType}
-                      disableControls={disableControls}
-                      onAuthFileUpdated={onAuthFileUpdated}
-                      className={`${styles.authCardActionButton} ${styles.authCardRefreshButton}`}
-                      iconClassName={`${styles.actionIcon} ${styles.authCardActionIcon}`}
-                      iconSize={18}
-                    />
-                  </Suspense>
-                </div>
-              )}
             </div>
+
+            {!isRuntimeOnly && showQuotaLayout && quotaType && (
+              <div className={styles.authCardRefresh}>
+                <Suspense fallback={null}>
+                  <AuthFileQuotaRefreshButton
+                    file={file}
+                    quotaType={quotaType}
+                    disableControls={disableControls}
+                    onAuthFileUpdated={onAuthFileUpdated}
+                    className={`${styles.authCardActionButton} ${styles.authCardRefreshButton}`}
+                    iconClassName={`${styles.actionIcon} ${styles.authCardActionIcon}`}
+                    iconSize={18}
+                  />
+                </Suspense>
+              </div>
+            )}
           </div>
         </footer>
       </div>

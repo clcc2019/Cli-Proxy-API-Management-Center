@@ -52,11 +52,7 @@
   gap: clamp(16px, 2vw, 28px);
   padding: 10px clamp(16px, 2vw, 28px);
   border-bottom: 1px solid var(--mg-border, var(--border-color));
-  background: color-mix(
-    in srgb,
-    var(--mg-surface, var(--bg-canvas)) 96%,
-    var(--mg-surface-warm, #faf8f5)
-  );
+  background: var(--mg-surface, var(--bg-canvas));
   box-shadow: 0 1px 0 rgb(44 42 37 / 0.025);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -262,6 +258,8 @@
         border-radius: var(--mg-radius-medium, 12px);
         background: var(--mg-surface, var(--surface-overlay));
         box-shadow: var(--mg-shadow-float, 0 2px 18px rgb(0 0 0 / 0.06));
+        animation: mg-popover-enter var(--motion-duration-fast, 140ms)
+          var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
       }
 
       .language-menu-option {
@@ -535,12 +533,7 @@
   position: relative;
   z-index: 1;
   width: var(--sidebar-width);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--mg-surface-warm, #faf8f5) 72%, var(--mg-canvas, #ffffff)) 0%,
-      var(--sidebar-surface, var(--surface-overlay)) 240px
-    );
+  background: var(--sidebar-surface, var(--mg-surface, var(--surface-overlay)));
   border-right: 1px solid var(--mg-border, var(--border-color));
   padding: 14px 10px 16px;
   display: flex;
@@ -791,11 +784,7 @@
   scrollbar-gutter: stable;
   height: 100%;
   position: relative;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--mg-surface-warm, #faf8f5) 58%, var(--mg-canvas, #ffffff)) 0%,
-    var(--mg-canvas, #ffffff) 280px
-  );
+  background: var(--mg-canvas, var(--bg-canvas));
 
   @media (max-width: $breakpoint-mobile) {
     height: auto;

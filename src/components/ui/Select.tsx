@@ -59,6 +59,9 @@ const resolveDropdownStyle = (element: HTMLElement): CSSProperties => {
     Math.min(DROPDOWN_MAX_HEIGHT, direction === 'down' ? spaceBelow : spaceAbove)
   );
 
+  // 入场位移方向与展开方向一致：向下展开从上方 4px 落入，向上展开反之
+  const enterY = direction === 'down' ? '-4px' : '4px';
+
   return direction === 'down'
     ? {
         position: 'fixed',
@@ -66,7 +69,8 @@ const resolveDropdownStyle = (element: HTMLElement): CSSProperties => {
         left,
         width,
         maxHeight,
-        zIndex: DROPDOWN_Z_INDEX
+        zIndex: DROPDOWN_Z_INDEX,
+        ['--popover-enter-y' as string]: enterY
       }
     : {
         position: 'fixed',
@@ -74,7 +78,8 @@ const resolveDropdownStyle = (element: HTMLElement): CSSProperties => {
         left,
         width,
         maxHeight,
-        zIndex: DROPDOWN_Z_INDEX
+        zIndex: DROPDOWN_Z_INDEX,
+        ['--popover-enter-y' as string]: enterY
       };
 };
 

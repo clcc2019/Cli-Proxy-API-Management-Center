@@ -67,6 +67,20 @@ textarea {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
+// 浮层（下拉/菜单/Popover）统一的入场动效：淡入 + 4px 位移，方向由
+// --popover-enter-y 控制（向下展开为 -4px，向上展开为 4px）。
+// 只动 transform/opacity，全程走合成器；reduced-motion 下由全局规则压到 0.01ms。
+@keyframes mg-popover-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--popover-enter-y, -4px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

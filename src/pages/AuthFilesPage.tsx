@@ -1458,9 +1458,8 @@ export function AuthFilesPage() {
   const handleAuthFileUpdated = useCallback(
     (updated: AuthFileItem) => {
       applyLocalFileUpdates([updated]);
-      void refreshFilesFromServer();
     },
-    [applyLocalFileUpdates, refreshFilesFromServer]
+    [applyLocalFileUpdates]
   );
 
   const handlePageRefreshQuota = useCallback(async () => {

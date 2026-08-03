@@ -18,12 +18,12 @@ import defaultStyles from '@/pages/AiProvidersPage.module.scss';
 
 /**
  * 根据成功率 (0–1) 在三个色标之间做 RGB 线性插值
- * 0 → 红 (#ef4444)  →  0.5 → 金黄 (#facc15)  →  1 → 绿 (#22c55e)
+ * 0 → 红 (#c53a32)  →  0.5 → 琥珀 (#d68b16)  →  1 → 纯绿 (#16a34a)
  */
 const COLOR_STOPS = [
-  { r: 239, g: 68, b: 68 }, // #ef4444
-  { r: 250, g: 204, b: 21 }, // #facc15
-  { r: 34, g: 197, b: 94 }, // #22c55e
+  { r: 197, g: 58, b: 50 }, // #c53a32
+  { r: 214, g: 139, b: 22 }, // #d68b16
+  { r: 22, g: 163, b: 74 }, // #16a34a
 ] as const;
 
 function rateToColor(rate: number): string {

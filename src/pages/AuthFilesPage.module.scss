@@ -1093,8 +1093,8 @@
   }
 }
 
-// 卡片列数完全由页面容器宽度决定。auto-fill 保留潜在空列，
-// 避免搜索结果较少时现有卡片被拉伸到整行。
+// 默认按页面容器宽度自适应列数。auto-fill 保留潜在空列，
+// 避免搜索结果较少时现有卡片被拉伸到整行；大屏在下方固定为 5 列。
 .fileGrid {
   --auth-file-card-min-width: 280px;
   display: grid;
@@ -1125,6 +1125,14 @@
 
   @include mobile {
     grid-template-columns: 1fr;
+  }
+}
+
+// 大屏增加信息密度，但保持固定 5 列，避免超宽显示器继续自动增加列数。
+@container auth-files-page (min-width: 1140px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
@@ -1370,7 +1378,6 @@
 .quotaRefreshButtonSpinning {
   border-color: color-mix(in srgb, var(--quota-medium-color) 48%, var(--border-color));
   color: color-mix(in srgb, var(--quota-medium-color) 86%, var(--text-secondary));
-  animation: quotaRefreshButtonPulse 1.1s ease-in-out infinite;
 }
 
 @keyframes quotaRefreshSpin {
@@ -1383,26 +1390,11 @@
   }
 }
 
-@keyframes quotaRefreshButtonPulse {
-  0%,
-  100% {
-    filter: saturate(1);
-  }
-
-  50% {
-    filter: saturate(1.14) brightness(1.04);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .quotaButtonSpinnerSpinning,
   .quotaRefreshIconSpinning .quotaRefreshIconSvg,
   .quotaRefreshIconSvgSpinning {
-    animation-duration: 1.7s !important;
-  }
-
-  .quotaRefreshButtonSpinning {
-    animation: none;
+    animation: none !important;
   }
 }
 
@@ -1461,22 +1453,13 @@
   height: 100%;
   border-radius: 999px;
   overflow: hidden;
-  // 通过 --quota-fill-start/mid/end 变量驱动渐变色，3 种变体共用同一组规则。
-  // 默认档与 .quotaBarFillHigh 同值，色阶由主题令牌派生，避免硬编码 Tailwind 色。
-  --quota-fill-start: color-mix(in srgb, var(--success-color) 82%, #000);
-  --quota-fill-mid: var(--success-color);
-  --quota-fill-end: color-mix(in srgb, var(--success-color) 48%, #fff);
-  --quota-fill-glow: color-mix(in srgb, var(--success-color) 22%, transparent);
-  background: linear-gradient(
-    90deg,
-    var(--quota-fill-start),
-    var(--quota-fill-mid) 62%,
-    var(--quota-fill-end)
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.06),
-    0 0 7px var(--quota-fill-glow);
+  // 额度进度使用纯语义色，避免渐变和高光把浅绿色扩散到整张卡片。
+  --quota-fill-start: var(--mg-success-fill, var(--success-color));
+  --quota-fill-mid: var(--mg-success-fill, var(--success-color));
+  --quota-fill-end: var(--mg-success-fill, var(--success-color));
+  --quota-fill-glow: transparent;
+  background: var(--quota-fill-mid);
+  box-shadow: none;
   transition:
     width 0.36s cubic-bezier(0.32, 0.72, 0.2, 1),
     background-color var(--motion-duration-base) var(--motion-ease-standard),
@@ -1500,16 +1483,15 @@
   }
 
   &::after {
-    inset-inline: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 64%);
+    display: none;
   }
 }
 
 .quotaBarFillHigh {
-  --quota-fill-start: color-mix(in srgb, var(--success-color) 82%, #000);
-  --quota-fill-mid: var(--success-color);
-  --quota-fill-end: color-mix(in srgb, var(--success-color) 48%, #fff);
-  --quota-fill-glow: color-mix(in srgb, var(--success-color) 22%, transparent);
+  --quota-fill-start: var(--mg-success-fill, var(--success-color));
+  --quota-fill-mid: var(--mg-success-fill, var(--success-color));
+  --quota-fill-end: var(--mg-success-fill, var(--success-color));
+  --quota-fill-glow: transparent;
 }
 
 .quotaBarFillMedium {
@@ -1580,8 +1562,8 @@
 }
 
 .quotaPercent {
-  --quota-percent-text: #166534;
-  --quota-percent-bg: color-mix(in srgb, #dcfce7 82%, var(--surface-raised));
+  --quota-percent-text: var(--mg-success-text, #15803d);
+  --quota-percent-bg: var(--mg-surface, var(--surface-raised));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1603,8 +1585,8 @@
 }
 
 .quotaRowHigh .quotaPercent {
-  --quota-percent-text: #166534;
-  --quota-percent-bg: color-mix(in srgb, #dcfce7 82%, var(--surface-raised));
+  --quota-percent-text: var(--mg-success-text, #15803d);
+  --quota-percent-bg: var(--mg-surface, var(--surface-raised));
 }
 
 .quotaRowMedium .quotaPercent {
@@ -2515,7 +2497,7 @@
 }
 
 .tooltipSuccess {
-  color: var(--success-color);
+  color: var(--mg-success-text, var(--success-color));
 }
 
 .tooltipFailure {
@@ -2547,8 +2529,8 @@
 }
 
 .statusRateHigh {
-  color: var(--success-badge-text, #15803d);
-  background: var(--success-badge-bg, #dcfce7);
+  color: var(--mg-success-text, var(--success-badge-text, #15803d));
+  background: var(--mg-surface, var(--success-badge-bg, #ffffff));
 }
 
 .statusRateMedium {
@@ -5531,26 +5513,26 @@
 .container {
   // Keep this dense management screen on the same visual vocabulary as the
   // dashboard: warm charcoal, white data surfaces, hairline structure, and a
-  // quiet sage signal. Provider colours remain local metadata, never card fills.
-  --auth-surface: #ffffff;
-  --auth-surface-muted: #f4f4f4;
-  --auth-surface-warm: #faf8f5;
-  --auth-control-surface: #ffffff;
-  --auth-neutral-border: #eaeae9;
-  --auth-neutral-border-strong: #d8d8d3;
+  // quiet semantic signal. Provider colours remain local metadata, never card fills.
+  --auth-surface: var(--mg-surface);
+  --auth-surface-muted: var(--mg-surface-subtle);
+  --auth-surface-warm: var(--mg-surface-warm);
+  --auth-control-surface: var(--mg-surface);
+  --auth-neutral-border: var(--mg-border);
+  --auth-neutral-border-strong: var(--mg-border-strong);
   --auth-divider-subtle: color-mix(in srgb, var(--auth-neutral-border) 54%, transparent);
   --auth-divider: color-mix(in srgb, var(--auth-neutral-border) 82%, transparent);
   --auth-divider-strong: var(--auth-neutral-border);
-  --auth-text-primary: #2c2a25;
-  --auth-text-secondary: #565551;
-  --auth-text-muted: #807f7c;
-  --auth-sage: #96a58d;
-  --auth-sage-strong: #63725a;
-  --auth-sage-soft: #e1e2d9;
-  --auth-ink-strong: #0e0d0c;
-  --auth-success: #407345;
-  --auth-warning: #e5a947;
-  --auth-danger: #a53830;
+  --auth-text-primary: var(--mg-text);
+  --auth-text-secondary: var(--mg-text-secondary);
+  --auth-text-muted: var(--mg-text-tertiary);
+  --auth-sage: var(--mg-sage);
+  --auth-sage-strong: var(--mg-sage-strong);
+  --auth-sage-soft: var(--mg-sage-soft);
+  --auth-ink-strong: var(--mg-ink-strong);
+  --auth-success: var(--mg-success);
+  --auth-warning: var(--mg-warning);
+  --auth-danger: var(--mg-danger);
   --auth-toolbar-search-max: 480px;
   gap: 22px;
 }
@@ -9090,7 +9072,7 @@
 
 .filterTagActive {
   border-color: color-mix(in srgb, var(--mg-sage-strong) 34%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-sage-soft) 62%, var(--mg-surface));
+  background: var(--mg-surface-subtle);
   color: var(--mg-text);
   box-shadow: inset 0 -2px 0 var(--mg-sage-strong);
 }
@@ -9163,7 +9145,7 @@
 
 .filterChipActive {
   border-color: color-mix(in srgb, var(--mg-sage-strong) 38%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-sage-soft) 58%, var(--mg-surface));
+  background: var(--mg-surface-subtle);
   color: var(--mg-text);
   box-shadow: none;
 }
@@ -9200,7 +9182,10 @@
   --auth-feature-text: var(--mg-text-secondary);
   --auth-feature-bg: var(--mg-surface-subtle);
   --auth-feature-border: var(--mg-border);
-  --auth-quota-track: color-mix(in srgb, var(--mg-text-muted) 12%, var(--mg-surface));
+  --auth-quota-track: var(--mg-surface-subtle);
+  --auth-quota-high: var(--mg-success-fill);
+  --auth-quota-high-text: var(--mg-success-text);
+  --auth-quota-high-soft: var(--mg-surface);
   --auth-toggle-on-border: var(--mg-ink-strong);
   --auth-toggle-on-bg: var(--mg-ink-strong);
   --auth-toggle-thumb-border: rgb(14 13 12 / 0.24);
@@ -9229,41 +9214,6 @@
   grid-area: auto;
 }
 
-.authCardProviderBadge {
-  display: inline-flex;
-  height: 20px;
-  max-width: 13ch;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 5px;
-  padding-inline: 7px;
-  overflow: hidden;
-  border: 1px solid var(--mg-border);
-  border-radius: var(--mg-radius-pill);
-  background: var(--mg-surface-subtle);
-  color: var(--mg-text-secondary);
-  font-size: 10.5px;
-  font-weight: 650;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.authCardProviderBadgeDot {
-  width: 5px;
-  height: 5px;
-  flex: 0 0 5px;
-  border-radius: var(--mg-radius-pill);
-  background: var(--provider-accent);
-  opacity: 0.82;
-}
-
-.authCardProviderBadgeText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .authCardShell .cardToggleSwitch:hover > input:checked + span:first-of-type {
   border-color: var(--mg-text-secondary);
 }
@@ -9273,18 +9223,19 @@
 }
 
 .authCardStatusControl {
-  padding-right: 10px;
-  border-right: 1px solid var(--mg-border);
+  padding-right: 0;
+  border-right: 0;
 }
 
 .authCardUtilityActions {
-  margin-left: 2px;
-  padding-left: 8px;
-  border-left: 1px solid var(--mg-border);
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
 }
 
 .authCardRefresh {
   margin-left: auto;
+  flex: 0 0 auto;
   padding-left: 0;
   border-left: 0;
 }
@@ -9323,7 +9274,7 @@
 
 .batchSelectionText {
   border-color: color-mix(in srgb, var(--mg-sage-strong) 26%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-sage-soft) 56%, var(--mg-surface));
+  background: var(--mg-surface-subtle);
   color: var(--mg-text);
 }
 
@@ -10066,5 +10017,556 @@
   .authCardTokenMetric {
     flex: 0 0 auto;
     margin-left: auto;
+  }
+}
+
+// =============================================================================
+// Credential card detail pass
+// Keep the repeated surface quiet, but give the card enough edge definition to
+// read as a single operational object. The only persistent accent remains the
+// semantic sage state used by selection and the enabled toggle.
+// =============================================================================
+.authCardShell {
+  box-shadow: var(--shadow);
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard);
+
+  &:hover {
+    box-shadow: var(--shadow);
+  }
+
+  &:focus-within:not(.fileCardSelected) {
+    border-color: var(--mg-sage-strong);
+    box-shadow: 0 0 0 3px var(--focus-ring), var(--shadow);
+  }
+}
+
+.authCardShell .authCardName {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 5px;
+  padding-inline: 4px;
+  margin-inline: -4px;
+  border-radius: var(--mg-radius-control);
+  background: transparent;
+
+  &:hover:not(:disabled) {
+    background: var(--mg-surface-subtle);
+    color: var(--mg-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+}
+
+.authCardShell .fileNameCopyIcon {
+  opacity: 0.58;
+  color: var(--mg-text-muted);
+}
+
+.authCardShell .authCardName:hover .fileNameCopyIcon,
+.authCardShell .authCardName:focus-visible .fileNameCopyIcon {
+  opacity: 1;
+  color: var(--mg-text-secondary);
+}
+
+.authCardShell .authCardMetrics {
+  border-color: var(--mg-border);
+  background: var(--mg-surface-warm);
+  box-shadow: var(--surface-inner-highlight);
+}
+
+.authCardShell .authCardTokenMetric {
+  border-color: var(--mg-border);
+  background: var(--mg-surface);
+}
+
+.authCardShell .authCardActionButton:global(.btn.btn-sm) {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  flex-basis: 32px;
+  border-radius: var(--mg-radius-control);
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+}
+
+.authCardShell .authCardFooterMain {
+  min-width: 0;
+  gap: 6px;
+}
+
+.authCardShell .authCardFooter,
+.authCardShell .authCardFooterMain {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.authCardShell .authCardPrimaryActions {
+  gap: 4px;
+}
+
+.authCardShell .cardToggleSwitch > input:checked + span:first-of-type {
+  border-color: var(--mg-ink-strong);
+  background: var(--mg-ink-strong);
+}
+
+@container auth-files-page (min-width: 1140px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .authCardShell {
+    padding: 14px;
+  }
+
+  .authCardShell .authCardHeader {
+    gap: 8px;
+  }
+
+  .authCardShell .authCardIdentityBody {
+    gap: 7px;
+  }
+
+  .authCardShell .authCardTitleRow {
+    min-height: 26px;
+    gap: 7px;
+  }
+
+  .authCardShell .authCardName {
+    min-height: 26px;
+    font-size: 13.5px;
+    line-height: 1.3;
+  }
+
+  .authCardShell .authCardNameGroup {
+    gap: 5px;
+  }
+
+  .authCardShell .authCardNote {
+    padding-top: 6px;
+    font-size: 11px;
+  }
+
+  .authCardShell .authCardMetrics {
+    margin-top: 10px;
+    padding-inline: 10px;
+  }
+
+  .authCardShell .authCardHealthPanel {
+    min-height: 58px;
+    padding: 10px 0 9px;
+  }
+
+  .authCardShell .authCardMetricHeader {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .authCardShell .authCardTokenMetric {
+    gap: 5px;
+    padding: 3px 7px;
+  }
+
+  .authCardShell .authCardTokenValue {
+    font-size: 12.5px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusBar {
+    gap: 6px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusBlocks {
+    gap: 2px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusBlock {
+    height: 5px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusRate {
+    min-width: 36px;
+    height: 20px;
+  }
+
+  .authCardShell .authCardQuotaSlot {
+    margin-inline: -10px;
+    padding-inline: 10px;
+  }
+
+  .authCardShell .authCardQuotaSlot > .quotaSection,
+  .authCardShell .authCardQuotaSlot > .authCardQuota {
+    padding: 9px 0 10px;
+  }
+
+  .authCardShell .authCardQuotaSlot .quotaContent {
+    gap: 7px;
+  }
+
+  .authCardShell .authCardQuotaSlot .quotaSectionHeader,
+  .authCardShell .authCardQuotaSlot .quotaRowHeader {
+    min-height: 18px;
+  }
+
+  .authCardShell .authCardFooter {
+    margin-top: 10px;
+    gap: 4px;
+  }
+
+  .authCardShell .authCardFooterMain {
+    gap: 6px;
+  }
+
+  .authCardMetricBadges .authCardBadgeGroup {
+    gap: 4px;
+  }
+}
+
+@container auth-files-page (max-width: 720px) {
+  .authCardShell .authCardFooter {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .authCardShell .authCardFooterMain {
+    width: auto;
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .authCardShell .authCardStatusControl {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .authCardShell .authCardPrimaryActions {
+    width: auto;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1px 0;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    overscroll-behavior-inline: contain;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .authCardShell .authCardActionButton:global(.btn.btn-sm) {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    flex-basis: 36px;
+  }
+
+  .authCardShell .authCardUtilityActions {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .authCardShell .authCardUtilityActions {
+    display: contents;
+  }
+
+  .authCardShell .authCardRefresh {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+  }
+}
+
+// =============================================================================
+// Final credential-card palette and phone rhythm
+// Keep identity colors local to metadata, reserve sage for enabled/selected
+// states, and let warning/error tints stay readable without becoming fills.
+// =============================================================================
+.authCardShell {
+  --auth-feature-text: var(--mg-sage-strong);
+  --auth-feature-bg: color-mix(in srgb, var(--mg-sage-soft) 72%, var(--mg-surface));
+  --auth-feature-border: color-mix(in srgb, var(--mg-sage-strong) 24%, var(--mg-border));
+  --auth-feature-fast-text: var(--mg-warning);
+  --auth-feature-fast-bg: color-mix(in srgb, var(--mg-warning) 9%, var(--mg-surface));
+  --auth-feature-fast-border: color-mix(in srgb, var(--mg-warning) 26%, var(--mg-border));
+  --auth-refresh-text: var(--mg-warning);
+  --auth-refresh-bg: color-mix(in srgb, var(--mg-warning) 8%, var(--mg-surface));
+  --auth-refresh-border: color-mix(in srgb, var(--mg-warning) 24%, var(--mg-border));
+  --auth-card-icon-copy: var(--mg-text-tertiary);
+  --auth-card-icon-feature: var(--mg-sage-strong);
+  --auth-card-icon-warning: var(--mg-danger);
+  --auth-quota-high-soft: color-mix(in srgb, var(--mg-success-fill) 10%, var(--mg-surface));
+  --auth-quota-medium-soft: color-mix(in srgb, var(--mg-warning) 10%, var(--mg-surface));
+  --auth-quota-low-soft: color-mix(in srgb, var(--mg-danger) 10%, var(--mg-surface));
+  --auth-quota-unknown-soft: var(--mg-surface-subtle);
+}
+
+.authCardShell .featureBadgeEnabled {
+  border-color: var(--auth-feature-border);
+  background: var(--auth-feature-bg);
+  color: var(--auth-feature-text);
+}
+
+.authCardShell .featureBadgeFast {
+  border-color: var(--auth-feature-fast-border);
+  background: var(--auth-feature-fast-bg);
+  color: var(--auth-feature-fast-text);
+}
+
+.authCardShell .refreshTokenBadge {
+  border-color: var(--auth-refresh-border);
+  background: var(--auth-refresh-bg);
+  color: var(--auth-refresh-text);
+  box-shadow: none;
+}
+
+.authCardShell .authCardHealthPanel .statusRate {
+  border-color: var(--mg-border);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text-tertiary);
+  box-shadow: none;
+}
+
+.authCardShell .authCardHealthPanel .statusRateHigh {
+  border-color: color-mix(in srgb, var(--mg-success-fill) 24%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-success-fill) 10%, var(--mg-surface));
+  color: var(--mg-success-text);
+}
+
+.authCardShell .authCardHealthPanel .statusRateMedium {
+  border-color: color-mix(in srgb, var(--mg-warning) 26%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-warning) 10%, var(--mg-surface));
+  color: var(--mg-warning);
+}
+
+.authCardShell .authCardHealthPanel .statusRateLow {
+  border-color: color-mix(in srgb, var(--mg-danger) 24%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-danger) 9%, var(--mg-surface));
+  color: var(--mg-danger);
+}
+
+.authCardShell.fileCardSelected,
+.authCardShell.fileCardSelected:hover {
+  border-color: color-mix(in srgb, var(--mg-sage-strong) 42%, var(--mg-border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mg-sage-strong) 38%, transparent), var(--shadow);
+}
+
+.authCardShell .authCardQuotaSlot .quotaRowHigh .quotaPercent {
+  --quota-percent-bg: var(--auth-quota-high-soft);
+  --quota-percent-text: var(--mg-success-text);
+  background: var(--quota-percent-bg);
+  color: var(--quota-percent-text);
+}
+
+.authCardShell .authCardQuotaSlot .quotaRowMedium .quotaPercent {
+  --quota-percent-bg: var(--auth-quota-medium-soft);
+  --quota-percent-text: var(--mg-warning);
+  background: var(--quota-percent-bg);
+  color: var(--quota-percent-text);
+}
+
+.authCardShell .authCardQuotaSlot .quotaRowLow .quotaPercent {
+  --quota-percent-bg: var(--auth-quota-low-soft);
+  --quota-percent-text: var(--mg-danger);
+  background: var(--quota-percent-bg);
+  color: var(--quota-percent-text);
+}
+
+.authCardShell .authCardQuotaSlot .quotaRowUnknown .quotaPercent {
+  --quota-percent-bg: var(--auth-quota-unknown-soft);
+  --quota-percent-text: var(--mg-text-tertiary);
+  background: var(--quota-percent-bg);
+  color: var(--quota-percent-text);
+}
+
+@container auth-files-page (max-width: 720px) {
+  .authCardShell .authCardHeader {
+    gap: 8px;
+  }
+
+  .authCardShell .authCardIdentityBody {
+    gap: 7px;
+  }
+
+  .authCardShell .authCardTitleRow {
+    gap: 6px;
+  }
+
+  .authCardShell .authCardNameGroup {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .authCardShell .authCardName {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    align-items: flex-start;
+    line-height: 1.35;
+  }
+
+  .authCardShell .authCardFooter {
+    margin-top: 10px;
+  }
+}
+
+@container auth-files-page (max-width: 560px) {
+  .authCardShell .authCardNameGroup {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .authCardShell .authCardName {
+    width: 100%;
+    min-height: 0;
+    align-items: flex-start;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .authCardShell .authCardName .fileNameText {
+    min-width: 0;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .authCardShell .authCardMetricHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas:
+      'label label'
+      'badges tokens';
+    align-items: center;
+    column-gap: 7px;
+    row-gap: 6px;
+    margin-bottom: 7px;
+  }
+
+  .authCardShell .authCardMetricTitle {
+    grid-area: label;
+    flex: none;
+  }
+
+  .authCardShell .authCardMetricBadges {
+    grid-area: badges;
+    justify-self: start;
+    max-width: 100%;
+  }
+
+  .authCardShell .authCardMetricBadges .authCardBadgeGroup {
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .authCardShell .authCardTokenMetric {
+    grid-area: tokens;
+    justify-self: end;
+    margin-left: 0;
+  }
+
+  .authCardShell .authCardMetrics {
+    padding-inline: 11px;
+  }
+
+  .authCardShell .authCardHealthPanel {
+    padding: 10px 0 11px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusBar {
+    gap: 6px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusBlocks {
+    gap: 2px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusBlock {
+    height: 5px;
+  }
+
+  .authCardShell .authCardHealthPanel .statusRate {
+    min-width: 38px;
+    height: 22px;
+  }
+
+  .authCardShell .authCardQuotaSlot {
+    margin-inline: -11px;
+    padding-inline: 11px;
+  }
+
+  .authCardShell .authCardQuotaSlot > .quotaSection,
+  .authCardShell .authCardQuotaSlot > .authCardQuota {
+    padding: 10px 0 11px;
+  }
+
+  .authCardShell .authCardQuotaSlot .quotaContent {
+    gap: 7px;
+  }
+
+  .authCardShell .authCardQuotaSlot .quotaSectionHeader,
+  .authCardShell .authCardQuotaSlot .quotaRowHeader {
+    min-height: 18px;
+  }
+
+  .authCardShell .authCardFooterMain {
+    gap: 4px;
+  }
+
+  .authCardShell .authCardPrimaryActions {
+    gap: 4px;
+  }
+}
+
+@container auth-files-page (max-width: 420px) {
+  .authCardShell {
+    padding: 12px;
+  }
+
+  .authCardShell .authCardMetrics {
+    padding-inline: 10px;
+  }
+
+  .authCardShell .authCardQuotaSlot {
+    margin-inline: -10px;
+    padding-inline: 10px;
+  }
+
+  .authCardShell .authCardFooter,
+  .authCardShell .authCardFooterMain {
+    gap: 3px;
+  }
+
+  .authCardShell .authCardPrimaryActions {
+    gap: 3px;
   }
 }

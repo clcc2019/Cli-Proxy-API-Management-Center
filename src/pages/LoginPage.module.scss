@@ -20,7 +20,11 @@
   padding: clamp(40px, 5vw, 72px);
   isolation: isolate;
   background:
-    radial-gradient(72% 58% at 78% 18%, rgb(150 165 141 / 0.13), transparent 72%),
+    radial-gradient(
+      72% 58% at 78% 18%,
+      color-mix(in srgb, var(--mg-orange) 12%, transparent),
+      transparent 72%
+    ),
     var(--mg-ink-strong, #0e0d0c);
 
   &::before {
@@ -95,7 +99,7 @@
   justify-content: center;
   padding: clamp(36px, 5vw, 72px);
   overflow: hidden;
-  background: var(--mg-surface-warm, #faf8f5);
+  background: var(--mg-surface, #ffffff);
   position: relative;
 
   @media (max-width: $breakpoint-mobile) {

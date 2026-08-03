@@ -1723,9 +1723,9 @@
 }
 
 .latencyCapsuleNormal {
-  color: var(--success-badge-text, #065f46);
-  background: color-mix(in srgb, var(--success-color) 14%, transparent);
-  border-color: color-mix(in srgb, var(--success-color) 32%, transparent);
+  color: var(--mg-success-text, var(--success-badge-text, #15803d));
+  background: var(--success-badge-bg, var(--mg-surface));
+  border-color: var(--success-badge-border);
 }
 
 .latencyCapsuleSlow {
@@ -2552,6 +2552,12 @@
   border: 1px solid var(--usage-border);
   border-radius: 999px;
   background: var(--usage-surface-subtle);
+}
+
+.healthRateHigh {
+  color: var(--mg-success-text, var(--usage-success));
+  background: var(--usage-surface);
+  border-color: color-mix(in srgb, var(--mg-success-fill, var(--usage-success)) 42%, var(--usage-border));
 }
 
 .healthBlock {
@@ -4292,28 +4298,28 @@
 }
 
 // Usage management surface — final composition.
-// Keep the page intentionally quiet: one canvas, one panel grammar, and
+// Keep the page intentionally quiet: one white canvas, one panel grammar, and
 // explicit breakpoints. Older declarations above remain for component
 // compatibility, while this layer owns the visible page composition.
 .container {
-  --usage-canvas: #fbfbf9;
-  --usage-surface: #ffffff;
-  --usage-surface-warm: #faf8f5;
-  --usage-surface-subtle: #f4f4f1;
-  --usage-border: #eaeae9;
-  --usage-border-strong: #d5d5d0;
-  --usage-text: #2c2a25;
-  --usage-text-secondary: #565551;
-  --usage-text-tertiary: #807f7c;
-  --usage-text-muted: #abaaa8;
-  --usage-sage: #96a58d;
-  --usage-sage-strong: #63725a;
-  --usage-sage-soft: #e1e2d9;
-  --usage-ink: #0e0d0c;
-  --usage-success: #407345;
-  --usage-warning: #b88926;
-  --usage-danger: #a53830;
-  --usage-focus: rgb(99 114 90 / 0.34);
+  --usage-canvas: var(--mg-canvas);
+  --usage-surface: var(--mg-surface);
+  --usage-surface-warm: var(--mg-surface-warm);
+  --usage-surface-subtle: var(--mg-surface-subtle);
+  --usage-border: var(--mg-border);
+  --usage-border-strong: var(--mg-border-strong);
+  --usage-text: var(--mg-text);
+  --usage-text-secondary: var(--mg-text-secondary);
+  --usage-text-tertiary: var(--mg-text-tertiary);
+  --usage-text-muted: var(--mg-text-muted);
+  --usage-sage: var(--mg-sage);
+  --usage-sage-strong: var(--mg-sage-strong);
+  --usage-sage-soft: var(--mg-sage-soft);
+  --usage-ink: var(--mg-ink-strong);
+  --usage-success: var(--mg-success);
+  --usage-warning: var(--mg-warning);
+  --usage-danger: var(--mg-danger);
+  --usage-focus: var(--mg-focus-ring);
 
   display: flex;
   width: 100%;
@@ -4474,8 +4480,8 @@
   width: 20px;
   height: 2px;
   content: '';
-  background: var(--usage-sage);
-  opacity: 0.7;
+  background: var(--usage-border-strong);
+  opacity: 0.9;
 }
 
 .overviewPanel .statCard[data-stat-key='cost']::before {
@@ -4503,7 +4509,7 @@
   border-color: var(--usage-border);
   border-radius: 8px;
   background: var(--usage-surface-subtle);
-  color: var(--usage-sage-strong);
+  color: var(--usage-text-secondary);
 }
 
 .overviewPanel .statLabel {
@@ -4743,8 +4749,8 @@
 }
 
 .loadingOverlaySpinner {
-  border-color: rgb(99 114 90 / 0.18);
-  border-top-color: var(--usage-sage-strong);
+  border-color: color-mix(in srgb, var(--usage-text-tertiary) 18%, transparent);
+  border-top-color: var(--usage-text-secondary);
   box-shadow: none;
 }
 

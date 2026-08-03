@@ -3,10 +3,10 @@
 
 .wrap {
   border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
-  border-radius: var(--radius-md);
+  border-radius: var(--mg-radius-medium, 12px);
   overflow: hidden;
   background: var(--surface-card, var(--surface-raised));
-  box-shadow: var(--shadow-card), var(--surface-inner-highlight);
+  box-shadow: var(--shadow-card);
 }
 
 .scroll {
@@ -54,11 +54,11 @@
   }
 
   &:hover td {
-    background: color-mix(in srgb, var(--primary-color) 4%, var(--surface-raised));
+    background: var(--mg-surface-subtle, var(--surface-raised));
   }
 
   &.selected td {
-    background: var(--primary-8, color-mix(in srgb, var(--primary-color) 9%, transparent));
+    background: var(--primary-soft, color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 8%, transparent));
   }
 }
 

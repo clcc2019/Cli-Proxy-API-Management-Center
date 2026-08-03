@@ -926,9 +926,7 @@
   justify-content: center;
   gap: 10px;
   padding: 48px 24px;
-  background:
-    radial-gradient(50% 72% at 50% 30%, rgb(150 165 141 / 0.1), transparent 78%),
-    var(--request-surface);
+  background: var(--request-surface);
   text-align: center;
 }
 

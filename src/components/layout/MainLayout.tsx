@@ -531,7 +531,7 @@ export function MainLayout() {
               </Button>
               {languageMenuOpen && (
                 <div
-                  className="notification entering language-menu-popover"
+                  className="language-menu-popover"
                   role="menu"
                   aria-label={t('language.switch')}
                   onKeyDown={(event) =>

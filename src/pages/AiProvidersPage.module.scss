@@ -1503,7 +1503,7 @@
 }
 
 .tooltipSuccess {
-  color: var(--success-color, #22c55e);
+  color: var(--mg-success-text, var(--success-color, #15803d));
 }
 
 .tooltipFailure {
@@ -1550,7 +1550,7 @@
 }
 
 .statusRateHigh {
-  color: color-mix(in srgb, var(--success-color, #16a34a) 80%, var(--text-primary));
+  color: var(--mg-success-text, var(--success-color, #15803d));
   background: transparent;
 }
 
