@@ -1094,7 +1094,7 @@
 }
 
 // 默认按页面容器宽度自适应列数。auto-fill 保留潜在空列，
-// 避免搜索结果较少时现有卡片被拉伸到整行；大屏在下方固定为 5 列。
+// 避免搜索结果较少时现有卡片被拉伸到整行；大屏在下方固定为 4 列。
 .fileGrid {
   --auth-file-card-min-width: 280px;
   display: grid;
@@ -1128,11 +1128,11 @@
   }
 }
 
-// 大屏增加信息密度，但保持固定 5 列，避免超宽显示器继续自动增加列数。
+// 大屏增加信息密度，但保持固定 4 列，避免超宽显示器继续自动增加列数。
 @container auth-files-page (min-width: 1140px) {
   .fileGrid,
   .fileGridQuotaManaged {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -8990,6 +8990,17 @@
   --auth-text-primary: var(--mg-text);
   --auth-text-secondary: var(--mg-text-secondary);
   --auth-text-muted: var(--mg-text-tertiary);
+  --auth-page-wash: color-mix(in srgb, var(--mg-surface-warm) 72%, var(--mg-canvas));
+  --auth-control-height: 40px;
+  background: linear-gradient(180deg, var(--auth-page-wash) 0, var(--mg-canvas) 300px);
+}
+
+.authFilesSection {
+  gap: 24px;
+}
+
+.titleBlock {
+  gap: 8px;
 }
 
 .authFilesHeader {
@@ -9010,7 +9021,7 @@
   align-items: center;
   gap: $spacing-sm;
   color: var(--mg-text);
-  font-size: clamp(26px, 2.2vw, 32px);
+  font-size: clamp(28px, 2.4vw, 36px);
   line-height: 1.1;
 }
 
@@ -9071,10 +9082,10 @@
 }
 
 .filterTagActive {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 34%, var(--mg-border));
+  border-color: var(--mg-border);
   background: var(--mg-surface-subtle);
   color: var(--mg-text);
-  box-shadow: inset 0 -2px 0 var(--mg-sage-strong);
+  box-shadow: none;
 }
 
 .filterTagIconWrap,
@@ -9084,9 +9095,8 @@
   color: var(--mg-sage-strong);
 }
 
-// Treat the filters as a compact product toolbar: provider tabs occupy the
-// full first rail, while search, display options, and quota refresh share the
-// second rail. This avoids compressing both groups into competing columns.
+// Keep provider filters as a flat navigation row. Only the operational controls
+// below need a shared surface boundary.
 .filterSection {
   gap: 14px;
   margin: 0;
@@ -9094,18 +9104,32 @@
 
 .filterToolbarRow {
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom-color: var(--mg-border);
+  gap: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .filterRail {
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--mg-border);
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .filterTags {
+  gap: 4px;
+  padding: 0 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   scroll-padding-inline: 2px;
+}
+
+.filterTag {
+  min-height: 36px;
+  border: 1px solid transparent;
+  background: transparent;
 }
 
 .filterTagActive::after {
@@ -9113,12 +9137,23 @@
 }
 
 .filterControlsPanel {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto 40px;
+  align-items: center;
+  gap: 10px;
   width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-medium);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-rest);
 }
 
 .searchToolbarField,
 .searchToolbarIconButton,
 .pageQuotaRefreshButton:global(.btn.btn-sm) {
+  height: var(--auth-control-height);
+  min-height: var(--auth-control-height);
   border-color: var(--mg-border);
   border-radius: var(--mg-radius-control);
   background: var(--mg-surface);
@@ -9127,6 +9162,9 @@
 }
 
 .pageQuotaRefreshButton:global(.btn.btn-sm) {
+  width: var(--auth-control-height);
+  min-width: var(--auth-control-height);
+  flex-basis: var(--auth-control-height);
   color: var(--mg-sage-strong);
 
   &:hover:not(:disabled) {
@@ -9144,10 +9182,39 @@
 }
 
 .filterChipActive {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 38%, var(--mg-border));
-  background: var(--mg-surface-subtle);
+  border-color: var(--mg-border);
+  background: var(--mg-surface);
   color: var(--mg-text);
-  box-shadow: none;
+  box-shadow: var(--mg-shadow-rest);
+}
+
+.filterChipRow {
+  min-height: var(--auth-control-height);
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.filterChipRowLabel {
+  padding-inline: 6px;
+}
+
+.filterChipGroup {
+  gap: 3px;
+}
+
+.filterChip {
+  height: 32px;
+  min-height: 32px;
+  border-color: transparent;
+  background: transparent;
+}
+
+.filterChip:hover:not(:disabled) {
+  border-color: var(--mg-border);
+  background: var(--mg-surface);
 }
 
 .fileGrid {
@@ -9267,7 +9334,7 @@
   border-color: var(--mg-border);
   border-radius: var(--mg-radius-card);
   background: var(--mg-surface);
-  box-shadow: var(--mg-shadow-float);
+  box-shadow: 0 18px 42px -26px rgb(14 13 12 / 0.28), var(--mg-shadow-float);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -9368,10 +9435,10 @@
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
     gap: 12px;
-    padding: 12px 14px;
-    border: 1px solid var(--auth-divider);
-    border-radius: 12px;
-    background: var(--auth-surface);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .filterRail {
@@ -9383,6 +9450,9 @@
   .filterTags {
     gap: 6px;
     padding: 0 1px 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     touch-action: pan-x;
     overscroll-behavior-inline: contain;
     scrollbar-width: none;
@@ -9406,6 +9476,11 @@
     align-items: stretch;
     gap: 8px;
     width: 100%;
+    padding: 12px;
+    border: 1px solid var(--auth-divider);
+    border-radius: 12px;
+    background: var(--auth-surface);
+    box-shadow: none;
   }
 
   .filterControlsPanel .searchToolbar {
@@ -9530,7 +9605,10 @@
   }
 
   .filterToolbarRow {
-    padding: 12px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .filterControlsPanel {
@@ -10027,19 +10105,24 @@
 // semantic sage state used by selection and the enabled toggle.
 // =============================================================================
 .authCardShell {
-  box-shadow: var(--shadow);
+  box-shadow: var(--mg-shadow-rest);
   transition:
     border-color var(--motion-duration-base) var(--motion-ease-standard),
     box-shadow var(--motion-duration-base) var(--motion-ease-standard);
 
   &:hover {
-    box-shadow: var(--shadow);
+    border-color: var(--mg-border-hover);
+    box-shadow: var(--mg-shadow-float);
   }
 
   &:focus-within:not(.fileCardSelected) {
     border-color: var(--mg-sage-strong);
     box-shadow: 0 0 0 3px var(--focus-ring), var(--shadow);
   }
+}
+
+.authCardShell.fileCardDisabled:hover {
+  box-shadow: none;
 }
 
 .authCardShell .authCardName {
@@ -10113,6 +10196,12 @@
   box-shadow: none;
 }
 
+.authCardShell .authCardFooter {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mg-border);
+}
+
 .authCardShell .authCardPrimaryActions {
   gap: 4px;
 }
@@ -10125,12 +10214,12 @@
 @container auth-files-page (min-width: 1140px) {
   .fileGrid,
   .fileGridQuotaManaged {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
   }
 
   .authCardShell {
-    padding: 14px;
+    padding: 16px;
   }
 
   .authCardShell .authCardHeader {
@@ -10568,5 +10657,410 @@
 
   .authCardShell .authCardPrimaryActions {
     gap: 3px;
+  }
+}
+
+// =============================================================================
+// Final interaction and lower-workbench pass
+// Keep the remaining operational areas on the same quiet surface grammar:
+// controls align to one rail, state is carried by borders and semantic color,
+// and secondary sections do not grow another visible card inside the page.
+// =============================================================================
+
+.errorBox {
+  margin-bottom: 0;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--mg-danger) 28%, var(--mg-border));
+  border-radius: var(--mg-radius-control);
+  background: color-mix(in srgb, var(--mg-danger) 5%, var(--mg-surface));
+  color: var(--mg-danger);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.filterContent :global(.empty-state) {
+  min-height: 176px;
+  border: 1px dashed var(--mg-border-strong);
+  border-radius: var(--mg-radius-medium);
+  background: transparent;
+  box-shadow: none;
+}
+
+.filterContent :global(.empty-title) {
+  color: var(--mg-text);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.filterContent :global(.empty-desc) {
+  max-width: 52ch;
+  color: var(--mg-text-tertiary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.pagination {
+  gap: 6px;
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pagination > :global(.btn.btn-sm) {
+  min-height: 36px;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-control);
+  background: var(--mg-surface);
+  color: var(--mg-text-secondary);
+  transition:
+    border-color var(--mg-motion-fast) var(--mg-ease-standard),
+    background-color var(--mg-motion-fast) var(--mg-ease-standard),
+    color var(--mg-motion-fast) var(--mg-ease-standard);
+
+  &:hover:not(:disabled) {
+    border-color: var(--mg-border-hover);
+    background: var(--mg-surface-subtle);
+    color: var(--mg-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--mg-sage-strong);
+    box-shadow: 0 0 0 3px var(--mg-focus-ring);
+  }
+
+  &:disabled {
+    color: var(--mg-text-muted);
+    opacity: 0.68;
+  }
+}
+
+.pageInfo {
+  min-height: 36px;
+  min-width: 138px;
+  padding-inline: 8px;
+  color: var(--mg-text-tertiary);
+  font-size: 12px;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+}
+
+.authCardShell .authCardFooter {
+  min-height: 34px;
+  align-items: center;
+}
+
+.authCardShell .authCardFooterMain {
+  align-items: center;
+  gap: 6px;
+}
+
+.authCardShell .authCardStatusControl {
+  min-height: 34px;
+  align-items: center;
+}
+
+// Flatten the two utility buttons into the same flex rail as the primary
+// actions. The wrapper remains in the DOM for semantics, but no longer adds a
+// second visual grouping or a separate spacing rhythm.
+.authCardShell .authCardUtilityActions {
+  display: contents;
+}
+
+.authCardShell .authCardPrimaryActions {
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1px 0;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  overscroll-behavior-inline: contain;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.authCardShell .authCardRefresh {
+  min-height: 34px;
+  align-items: center;
+}
+
+.authCardShell .cardToggleSwitch > span:first-of-type {
+  transition:
+    border-color var(--mg-motion-fast) var(--mg-ease-standard),
+    background-color var(--mg-motion-fast) var(--mg-ease-standard),
+    box-shadow var(--mg-motion-fast) var(--mg-ease-standard);
+}
+
+.authCardShell .cardToggleSwitch:focus-within > span:first-of-type {
+  border-color: var(--mg-sage-strong);
+  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+}
+
+.authCardShell .cardToggleSwitch > input:disabled + span:first-of-type {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.authCardShell .authCardRefreshButton[aria-busy='true'] {
+  border-color: color-mix(in srgb, var(--mg-warning) 42%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-warning) 6%, var(--mg-surface));
+  color: var(--mg-warning);
+}
+
+.authCardShell .authCardQuotaSlot .quotaSectionHeader {
+  align-items: center;
+  gap: 8px;
+}
+
+.authCardShell .authCardQuotaSlot .quotaContent {
+  gap: 8px;
+}
+
+.authCardShell .authCardQuotaSlot .quotaBar {
+  height: 6px;
+  border: 1px solid color-mix(in srgb, var(--mg-border) 78%, transparent);
+}
+
+.authCardShell .authCardQuotaSlot .quotaPercent {
+  min-width: 40px;
+  height: 20px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, var(--mg-border));
+  box-shadow: none;
+}
+
+.authCardShell .authCardQuotaSlot .quotaLoadingState {
+  min-height: 46px;
+  padding-block: 8px;
+}
+
+.authCardShell .authCardQuotaSlot .quotaError,
+.authCardShell .authCardQuotaSlot .quotaWarning {
+  padding: 8px 10px;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.authCardShell .codexResetCreditButton:global(.btn.btn-sm) {
+  min-height: 28px;
+  height: 28px;
+  border-radius: var(--mg-radius-control);
+}
+
+.belowFoldCard {
+  overflow: hidden;
+  border-radius: var(--mg-radius-card);
+  border-color: var(--mg-border);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-rest);
+}
+
+.belowFoldCard > :global(.card),
+.belowFoldCard .oauthConfigCard {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.belowFoldCard :global(.card-header) {
+  min-height: 56px;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--mg-border);
+  background: transparent;
+}
+
+.belowFoldCard :global(.card-header) :global(.title) {
+  min-width: 0;
+  color: var(--mg-text);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.belowFoldCard :global(.card-header) :global(.btn),
+.modelRulesItem > :global(.btn),
+.excludedActions > :global(.btn) {
+  min-height: 36px;
+  border-radius: var(--mg-radius-control);
+}
+
+.belowFoldCard :global(.card-header) :global(.btn):focus-visible,
+.modelRulesItem > :global(.btn):focus-visible,
+.excludedActions > :global(.btn):focus-visible {
+  outline: none;
+  border-color: var(--mg-sage-strong);
+  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+}
+
+.modelRulesNotice {
+  gap: 6px 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--mg-border);
+  background: color-mix(in srgb, var(--mg-warning) 6%, var(--mg-surface));
+  color: var(--mg-warning);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modelRulesItem,
+.excludedItem {
+  min-height: 60px;
+  padding: 12px 18px;
+  border-bottom-color: var(--mg-border-fade);
+  transition: background-color var(--mg-motion-fast) var(--mg-ease-standard);
+
+  &:hover {
+    background: var(--mg-surface-warm);
+  }
+}
+
+.modelRulesInfo,
+.excludedInfo {
+  min-width: 0;
+}
+
+.excludedProvider {
+  color: var(--mg-text);
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.modelRulesStats {
+  gap: 4px 8px;
+  margin-top: 5px;
+}
+
+.modelRulesStat,
+.excludedModels {
+  color: var(--mg-text-tertiary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.batchActionBar {
+  gap: 10px;
+  padding: 8px 10px;
+  border-color: var(--mg-floating-border);
+  border-radius: var(--mg-radius-medium);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-float), 0 18px 42px -28px rgb(14 13 12 / 0.32);
+}
+
+.batchActionLeft,
+.batchActionRight {
+  gap: 4px;
+}
+
+.batchActionBar :global(.btn.btn-sm) {
+  min-height: 36px;
+  border-radius: var(--mg-radius-control);
+}
+
+.batchSelectionText {
+  min-height: 32px;
+  margin-right: 2px;
+  padding-inline: 10px;
+  border-color: color-mix(in srgb, var(--mg-sage-strong) 28%, var(--mg-border));
+  border-radius: var(--mg-radius-control);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text);
+}
+
+@container auth-files-page (min-width: 721px) {
+  .authCardShell .authCardActionButton:global(.btn.btn-sm),
+  .authCardShell .authCardRefreshButton:global(.btn.btn-sm) {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
+  }
+}
+
+@container auth-files-page (max-width: 720px) {
+  .pagination {
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .pagination > :global(.btn.btn-sm) {
+    min-height: 44px;
+  }
+
+  .pageInfo {
+    min-height: 34px;
+    padding-inline: 4px;
+  }
+
+  .authCardShell .authCardActionButton:global(.btn.btn-sm),
+  .authCardShell .authCardRefreshButton:global(.btn.btn-sm) {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
+  }
+
+  .authCardShell .authCardQuotaSlot .codexResetCreditButton:global(.btn.btn-sm),
+  .belowFoldCard :global(.card-header) :global(.btn),
+  .modelRulesItem > :global(.btn),
+  .excludedActions > :global(.btn) {
+    min-height: 40px;
+    height: auto;
+  }
+
+  .belowFoldCard {
+    border-radius: var(--mg-radius-medium);
+    box-shadow: none;
+  }
+
+  .belowFoldCard :global(.card-header) {
+    min-height: 52px;
+    padding: 13px 14px;
+  }
+
+  .modelRulesNotice {
+    padding-inline: 14px;
+  }
+
+  .modelRulesItem,
+  .excludedItem {
+    padding-inline: 14px;
+  }
+
+  .batchActionBar {
+    padding: 10px;
+    border-radius: var(--mg-radius-medium);
+  }
+}
+
+@container auth-files-page (max-width: 560px) {
+  .belowFoldCard :global(.card-header) :global(.btn),
+  .modelRulesItem > :global(.btn),
+  .excludedActions > :global(.btn) {
+    min-height: 40px;
+  }
+
+  .batchActionBar :global(.btn.btn-sm) {
+    min-height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagination > :global(.btn.btn-sm),
+  .authCardShell .cardToggleSwitch > span:first-of-type,
+  .modelRulesItem,
+  .excludedItem {
+    transition: none;
   }
 }
