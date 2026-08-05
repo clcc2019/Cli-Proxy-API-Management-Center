@@ -134,7 +134,7 @@ export const FilterTagsRail = memo(function FilterTagsRail({
   );
 
   return (
-    <div className={styles.filterRail}>
+    <nav className={styles.filterRail} aria-label={t('auth_files.provider_filter_label')}>
       <div className={styles.filterTags}>
         {tags.map((tag) => (
           <FilterTagButton
@@ -149,7 +149,7 @@ export const FilterTagsRail = memo(function FilterTagsRail({
           />
         ))}
       </div>
-    </div>
+    </nav>
   );
 }, areFilterTagsRailPropsEqual);
 

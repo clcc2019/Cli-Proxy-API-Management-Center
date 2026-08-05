@@ -68,6 +68,10 @@ export type AuthFilesListCodexSubscriptionMode = 'cache' | 'refresh' | 'skip';
 export type AuthFilesListOptions = {
   codexSubscription?: AuthFilesListCodexSubscriptionMode;
   summary?: boolean;
+  /** Defer fixed-size recent request buckets when the page loads card metadata first. */
+  includeRecentRequests?: boolean;
+  /** Ask the server for provider counts without constructing list entries. */
+  typeCountsOnly?: boolean;
   page?: number;
   pageSize?: number;
   search?: string;
@@ -478,6 +482,12 @@ const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
 
   if (options.summary) {
     params.summary = true;
+  }
+  if (options.includeRecentRequests === false) {
+    params.recent_requests = false;
+  }
+  if (options.typeCountsOnly) {
+    params.type_counts_only = true;
   }
 
   if (typeof options.page === 'number' && Number.isFinite(options.page) && options.page > 0) {

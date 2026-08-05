@@ -1,6 +1,5 @@
 import {
   lazy,
-  memo,
   Suspense,
   useCallback,
   useDeferredValue,
@@ -24,12 +23,6 @@ import { copyToClipboard } from '@/utils/clipboard';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 import { normalizeAuthIndex, type KeyUsageBucket } from '@/utils/usage';
 import {
-  normalizePlanType,
-  resolveAuthProvider,
-  resolveCodexPlanType,
-  resolveCodexSubscriptionActiveUntil,
-} from '@/utils/quota';
-import {
   authFilesApi,
   getAuthFilesListOptionsKey,
   getAuthFilesTypeCountsKey,
@@ -42,16 +35,14 @@ import {
   clampCardPageSize,
   getTypeLabel,
   hasAuthFileStatusMessage,
-  isRuntimeOnlyAuthFile,
   normalizeProviderKey,
-  parsePriorityValue,
   resolveAuthFileUsageStats,
-  type AuthFileUsageBucketCache,
   type QuotaProviderType,
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
 import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
+import { AuthFilesSkeletonGrid } from '@/features/authFiles/components/AuthFilesSkeletonGrid';
 import { SearchToolbar } from '@/features/authFiles/components/SearchToolbar';
 import {
   useAuthFilesData,
@@ -73,8 +64,31 @@ import {
   hasPremiumAuthFilePlan,
   type AuthFilePlanSources,
 } from '@/features/authFiles/planMetadata';
-import type { AuthFileQuotaRefreshTarget } from '@/features/authFiles/quotaRefresh';
 import { authFileIncludesRecentRequestSummary } from '@/features/authFiles/stats';
+import {
+  ALL_AUTH_FILE_TYPES,
+  EMPTY_AUTH_FILE_ITEMS,
+  EMPTY_AUTH_FILE_MAP,
+  EMPTY_AUTH_FILE_NAMES,
+  EMPTY_AUTH_FILE_PROVIDER_TYPES,
+  EMPTY_AUTH_FILE_QUOTA_REFRESH_TARGETS,
+  EMPTY_AUTH_FILE_TYPE_COUNTS,
+  EMPTY_AUTH_FILE_USAGE_STATS,
+  EMPTY_AUTH_FILE_USAGE_STATS_MAP,
+  EMPTY_CLAUDE_QUOTA,
+  EMPTY_CODEX_QUOTA,
+  EMPTY_SORT_SNAPSHOT,
+  FILE_USAGE_BUCKET_CACHE,
+  areAuthFileTypeCountsEqual,
+  buildProviderTypesKey,
+  buildWildcardSearch,
+  compareAuthFiles,
+  countAuthFilesByType,
+  filterSelectableAuthFiles,
+  getAuthFileSortSnapshot,
+  resolveQuotaRefreshTargets,
+  type AuthFileSortSnapshot,
+} from '@/features/authFiles/authFilesPageUtils';
 import {
   isAuthFilesSortMode,
   readAuthFilesUiState,
@@ -83,7 +97,7 @@ import {
   type AuthFilesUiState,
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
-import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
+import type { AuthFileItem } from '@/types';
 import styles from './AuthFilesPage.module.scss';
 
 const AuthFileModelsModal = lazy(() =>
@@ -109,265 +123,12 @@ const OAuthModelRulesEditorModal = lazy(() =>
 
 const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
-const AUTH_FILE_SKELETON_MAX = 12;
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
 const AUTH_FILE_GRID_MOTION_DURATION_MS = 260;
 const AUTH_FILE_GRID_MOTION_SNAPSHOT_TTL_MS = 1_500;
 
-const EMPTY_AUTH_FILE_USAGE_STATS: KeyUsageBucket = {
-  success: 0,
-  failure: 0,
-  totalTokens: 0,
-  totalCost: 0,
-  pricedRequests: 0,
-};
-const EMPTY_AUTH_FILE_TYPE_COUNTS: Record<string, number> = { all: 0 };
-const EMPTY_AUTH_FILE_MAP = new Map<string, AuthFileItem>();
-const EMPTY_AUTH_FILE_USAGE_STATS_MAP = new Map<string, KeyUsageBucket>();
-const EMPTY_AUTH_FILE_ITEMS: AuthFileItem[] = [];
 const EMPTY_AUTH_FILE_CARD_NODES: ReactNode[] = [];
-const EMPTY_AUTH_FILE_QUOTA_REFRESH_TARGETS: AuthFileQuotaRefreshTarget[] = [];
-const EMPTY_AUTH_FILE_NAMES: string[] = [];
-const EMPTY_AUTH_FILE_PROVIDER_TYPES: string[] = [];
-const ALL_AUTH_FILE_TYPES = ['all'];
 const QUOTA_REFRESH_SPINNER_STYLE = { width: 15, height: 15 } as const;
-const EMPTY_CLAUDE_QUOTA: Record<string, ClaudeQuotaState> = {};
-const EMPTY_CODEX_QUOTA: Record<string, CodexQuotaState> = {};
-/**
- * 按文件对象缓存 usage bucket，保证统计未变时引用稳定，
- * 让 AuthFileCard 的 memo 命中。
- *
- * 用 WeakMap 而不是「比较整个 Map 再复用旧引用」：后者需要在渲染期读写 ref，
- * 违反 React 纯度规则（eslint react-hooks/refs 会直接报错）。WeakMap 以 file
- * 对象为键，读写都是纯操作；文件被回收后条目自动释放，也不会泄漏。
- *
- * 键是对象而非文件名，因此天然按实例隔离 —— 页面切换动画期间新旧两层同时
- * 挂载也不会互相顶掉结果（这正是原先模块级缓存的隐患）。
- */
-const FILE_USAGE_BUCKET_CACHE: AuthFileUsageBucketCache = new WeakMap();
-
-const escapeWildcardSearchSegment = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const buildWildcardSearch = (value: string): RegExp | null => {
-  if (!value.includes('*')) return null;
-  const pattern = value.split('*').map(escapeWildcardSearchSegment).join('.*');
-  return new RegExp(pattern, 'i');
-};
-
-const buildProviderTypesKey = (typeCounts: Record<string, number> | undefined): string =>
-  typeCounts
-    ? Object.keys(typeCounts)
-        .filter((type) => type !== 'all')
-        .join('\n')
-    : '';
-
-const filterSelectableAuthFiles = (files: AuthFileItem[]): AuthFileItem[] => {
-  const selectable = files.filter((file) => !isRuntimeOnlyAuthFile(file));
-  return selectable.length > 0 ? selectable : EMPTY_AUTH_FILE_ITEMS;
-};
-
-const AuthFilesSkeletonGrid = memo(function AuthFilesSkeletonGrid({
-  count,
-  quotaManaged,
-  loadingLabel,
-}: {
-  count: number;
-  quotaManaged: boolean;
-  loadingLabel: string;
-}) {
-  const items = useMemo(
-    () => Array.from({ length: Math.min(Math.max(count, 3), AUTH_FILE_SKELETON_MAX) }),
-    [count]
-  );
-
-  return (
-    <>
-      <span className={styles.visuallyHidden} role="status" aria-busy="true">
-        {loadingLabel}
-      </span>
-      <div
-        className={`${styles.fileGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''} ${styles.skeletonGrid}`}
-        aria-hidden="true"
-      >
-        {items.map((_, index) => (
-          <div key={index} className={styles.fileCardSkeleton}>
-            <div className={styles.skeletonHeader}>
-              <span className={`${styles.skeletonBlock} ${styles.skeletonAvatar}`} />
-              <span className={`${styles.skeletonBlock} ${styles.skeletonTitle}`} />
-              <span className={`${styles.skeletonBlock} ${styles.skeletonBadge}`} />
-            </div>
-            <div className={styles.skeletonMeta}>
-              <span className={styles.skeletonBlock} />
-              <span className={styles.skeletonBlock} />
-              <span className={styles.skeletonBlock} />
-            </div>
-            <div className={styles.skeletonStats}>
-              {Array.from({ length: 4 }).map((__, statIndex) => (
-                <span key={statIndex} className={styles.skeletonBlock} />
-              ))}
-            </div>
-            <div className={styles.skeletonActions}>
-              <span className={styles.skeletonBlock} />
-              <span className={styles.skeletonBlock} />
-              <span className={styles.skeletonBlock} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-});
-
-AuthFilesSkeletonGrid.displayName = 'AuthFilesSkeletonGrid';
-
-const compareAuthFilesByName = (left: AuthFileItem, right: AuthFileItem): number =>
-  left.name.localeCompare(right.name);
-
-const EMPTY_SORT_SNAPSHOT: Record<string, AuthFileSortSnapshot> = {};
-const EMPTY_QUOTA_REFRESH_TARGETS: AuthFileQuotaRefreshTarget[] = [];
-
-const resolveQuotaRefreshTarget = (file: AuthFileItem): AuthFileQuotaRefreshTarget | null => {
-  if (isRuntimeOnlyAuthFile(file) || file.disabled) return null;
-
-  const provider = resolveAuthProvider(file);
-  if (!QUOTA_PROVIDER_TYPES.has(provider as QuotaProviderType)) return null;
-
-  return { file, quotaType: provider as QuotaProviderType };
-};
-
-const resolveQuotaRefreshTargets = (files: AuthFileItem[]): AuthFileQuotaRefreshTarget[] => {
-  const targets = files.reduce<AuthFileQuotaRefreshTarget[]>((items, file) => {
-    const target = resolveQuotaRefreshTarget(file);
-    if (target) items.push(target);
-    return items;
-  }, []);
-  return targets.length > 0 ? targets : EMPTY_QUOTA_REFRESH_TARGETS;
-};
-
-const countAuthFilesByType = (files: AuthFileItem[]): Record<string, number> => {
-  const counts: Record<string, number> = { all: files.length };
-  files.forEach((file) => {
-    if (!file.type) return;
-    counts[file.type] = (counts[file.type] || 0) + 1;
-  });
-  return counts;
-};
-
-const areAuthFileTypeCountsEqual = (
-  left: Record<string, number> | null | undefined,
-  right: Record<string, number> | null | undefined
-) => {
-  if (left === right) return true;
-  if (!left || !right) return false;
-  const leftKeys = Object.keys(left);
-  const rightKeys = Object.keys(right);
-  if (leftKeys.length !== rightKeys.length) return false;
-  return leftKeys.every((key) => left[key] === right[key]);
-};
-
-type AuthFileSortSnapshot = {
-  disabled: boolean;
-  provider: string;
-  priority: number;
-  subscriptionExpiryMs: number | null;
-  subscriptionSortRank: number;
-};
-
-const normalizeSubscriptionExpiryMs = (value: unknown): number | null => {
-  const normalizeTimestamp = (timestamp: number): number | null => {
-    if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
-    return timestamp < 1_000_000_000_000 ? timestamp * 1000 : timestamp;
-  };
-
-  if (typeof value === 'number') {
-    return normalizeTimestamp(value);
-  }
-  if (typeof value !== 'string') return null;
-
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-
-  const numeric = Number(trimmed);
-  if (Number.isFinite(numeric)) {
-    return normalizeTimestamp(numeric);
-  }
-
-  const parsed = Date.parse(trimmed);
-  return Number.isNaN(parsed) ? null : normalizeTimestamp(parsed);
-};
-
-const getAuthFileSortSnapshot = (
-  file: AuthFileItem,
-  planSources?: AuthFilePlanSources
-): AuthFileSortSnapshot => {
-  const planType = normalizePlanType(
-    planSources?.codexQuota[file.name]?.planType ?? resolveCodexPlanType(file)
-  );
-  const subscriptionExpiryMs = normalizeSubscriptionExpiryMs(
-    resolveCodexSubscriptionActiveUntil(file)
-  );
-  const isFreePlan = planType === 'free';
-  const hasKnownPlan = Boolean(planType);
-  const subscriptionSortRank =
-    isFreePlan || (!hasKnownPlan && subscriptionExpiryMs === null)
-      ? 2
-      : subscriptionExpiryMs === null
-        ? 1
-        : 0;
-
-  return {
-    disabled: file.disabled === true,
-    provider: normalizeProviderKey(String(file.provider ?? file.type ?? 'unknown')),
-    priority: parsePriorityValue(file.priority ?? file['priority']) ?? 0,
-    subscriptionExpiryMs,
-    subscriptionSortRank,
-  };
-};
-
-const compareAuthFiles = (
-  left: AuthFileItem,
-  right: AuthFileItem,
-  sortMode: AuthFilesSortMode,
-  sortSnapshot?: Record<string, AuthFileSortSnapshot>,
-  planSources?: AuthFilePlanSources
-) => {
-  const leftSnapshot = sortSnapshot?.[left.name] ?? getAuthFileSortSnapshot(left, planSources);
-  const rightSnapshot = sortSnapshot?.[right.name] ?? getAuthFileSortSnapshot(right, planSources);
-
-  if (leftSnapshot.disabled !== rightSnapshot.disabled) {
-    return leftSnapshot.disabled ? 1 : -1;
-  }
-
-  if (sortMode === 'default') {
-    const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
-    if (providerCompare !== 0) return providerCompare;
-    return compareAuthFilesByName(left, right);
-  }
-
-  if (sortMode === 'az') {
-    return compareAuthFilesByName(left, right);
-  }
-
-  if (sortMode === 'subscription_expiry') {
-    const rankCompare = leftSnapshot.subscriptionSortRank - rightSnapshot.subscriptionSortRank;
-    if (rankCompare !== 0) return rankCompare;
-
-    if (leftSnapshot.subscriptionSortRank === 0 && rightSnapshot.subscriptionSortRank === 0) {
-      const leftExpiry = leftSnapshot.subscriptionExpiryMs ?? Number.POSITIVE_INFINITY;
-      const rightExpiry = rightSnapshot.subscriptionExpiryMs ?? Number.POSITIVE_INFINITY;
-      const expiryCompare = leftExpiry - rightExpiry;
-      if (expiryCompare !== 0) return expiryCompare;
-    }
-
-    const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
-    if (providerCompare !== 0) return providerCompare;
-    return compareAuthFilesByName(left, right);
-  }
-
-  const priorityCompare = rightSnapshot.priority - leftSnapshot.priority;
-  if (priorityCompare !== 0) return priorityCompare;
-  return compareAuthFilesByName(left, right);
-};
 
 export function AuthFilesPage() {
   const { t } = useTranslation();
@@ -474,11 +235,12 @@ export function AuthFilesPage() {
       // Keep premiumOnly out of this request. The backend only has the auth-file
       // snapshot, while the Plus/Pro badge also incorporates the latest quota
       // data stored on the client.
-      return { codexSubscription: 'cache', summary: true };
+      return { codexSubscription: 'cache', summary: true, includeRecentRequests: false };
     }
     return {
       codexSubscription: 'cache',
       summary: true,
+      includeRecentRequests: false,
       page: serverListPage,
       pageSize: serverListPageSize,
       search: serverListSearch,
@@ -757,11 +519,16 @@ export function AuthFilesPage() {
   const handleSearchValue = useCallback(
     (value: string) => {
       if (value === search) return;
-      captureAuthFileGridLayout();
+      // Search results are debounced below. During one continuous typing burst,
+      // keep a single FLIP snapshot instead of forcing a full-card layout read
+      // for every keystroke.
+      if (normalizedSearch === debouncedSearch) {
+        captureAuthFileGridLayout();
+      }
       setSearch(value);
       setPage(1);
     },
-    [captureAuthFileGridLayout, search]
+    [captureAuthFileGridLayout, debouncedSearch, normalizedSearch, search]
   );
   const handleClearFilters = useCallback(() => {
     if (
@@ -868,10 +635,18 @@ export function AuthFilesPage() {
       files.length === 0 ||
       authFilesIncludeRecentRequestSummary
     ) {
-      return;
+      return undefined;
     }
 
-    void loadStatusDetails().catch(() => {});
+    // Status details enrich the cards but are not needed to make the first
+    // interaction usable. Let the initial list, quota stats, and paint settle
+    // before requesting the compatibility payload for older servers.
+    return scheduleIdleTask(
+      () => {
+        void loadStatusDetails().catch(() => {});
+      },
+      { delayMs: 120, fallbackDelayMs: 700, timeoutMs: 1_500 }
+    );
   }, [
     authFilesIncludeRecentRequestSummary,
     files.length,
@@ -1025,31 +800,42 @@ export function AuthFilesPage() {
       ].join('|')
     : null;
 
-  const displayFilterSnapshotStateKey = displayFilterSnapshot?.key ?? null;
-  if (displayFilterSnapshotStateKey !== displayFilterSnapshotKey) {
-    setDisplayFilterSnapshot(
-      displayFilterSnapshotKey
-        ? {
-            key: displayFilterSnapshotKey,
-            names: currentDisplayFilterNames,
-            sortSnapshot: currentDisplayFilterSortSnapshot,
-          }
-        : null
-    );
-  }
+  // Capture the first stable result for each filter generation without a
+  // render-phase state update. The render-local value keeps the grid stable
+  // immediately; the effect persists it for subsequent renders.
+  const displayFilterSnapshotForRender = useMemo(() => {
+    if (!displayFilterSnapshotKey) return null;
+    if (displayFilterSnapshot?.key === displayFilterSnapshotKey) return displayFilterSnapshot;
+    return {
+      key: displayFilterSnapshotKey,
+      names: currentDisplayFilterNames,
+      sortSnapshot: currentDisplayFilterSortSnapshot,
+    };
+  }, [
+    currentDisplayFilterNames,
+    currentDisplayFilterSortSnapshot,
+    displayFilterSnapshot,
+    displayFilterSnapshotKey,
+  ]);
+
+  useEffect(() => {
+    setDisplayFilterSnapshot((current) => {
+      if (current?.key === displayFilterSnapshotForRender?.key) return current;
+      return displayFilterSnapshotForRender;
+    });
+  }, [displayFilterSnapshotForRender]);
 
   const filesMatchingDisplayFilters = useMemo(() => {
-    if (!displayFilterSnapshotKey || displayFilterSnapshot?.key !== displayFilterSnapshotKey) {
+    if (!displayFilterSnapshotForRender) {
       return currentFilesMatchingDisplayFilters;
     }
 
-    return displayFilterSnapshot.names
+    return displayFilterSnapshotForRender.names
       .map((name) => fileByName.get(name))
       .filter((file): file is AuthFileItem => Boolean(file));
   }, [
     currentFilesMatchingDisplayFilters,
-    displayFilterSnapshot,
-    displayFilterSnapshotKey,
+    displayFilterSnapshotForRender,
     fileByName,
   ]);
 
@@ -1102,7 +888,10 @@ export function AuthFilesPage() {
     if (!scopedTypeCountsKey) {
       return undefined;
     }
-    if (listUpdating) return undefined;
+    // The main list request already carries type_counts. Wait for its first
+    // response before opening the compatibility request, otherwise restoring a
+    // saved search launches two full management-list scans in the same frame.
+    if (loading || listUpdating) return undefined;
     if (listMeta.typeCountsKey === scopedTypeCountsKey && listMeta.typeCounts) {
       return undefined;
     }
@@ -1118,6 +907,8 @@ export function AuthFilesPage() {
           page: 1,
           pageSize: 1,
           search: displaySearch,
+          includeRecentRequests: false,
+          typeCountsOnly: true,
           problemOnly,
           disabledOnly,
           premiumOnly,
@@ -1147,6 +938,7 @@ export function AuthFilesPage() {
   }, [
     disabledOnly,
     displaySearch,
+    loading,
     listMeta.typeCounts,
     listMeta.typeCountsKey,
     listUpdating,
@@ -1213,15 +1005,11 @@ export function AuthFilesPage() {
     if (serverPaginated) return filtered;
     const copy = [...filtered];
 
-    const activeSortSnapshot =
-      displayFilterSnapshotKey && displayFilterSnapshot?.key === displayFilterSnapshotKey
-        ? displayFilterSnapshot.sortSnapshot
-        : sortSnapshotByName;
+    const activeSortSnapshot = displayFilterSnapshotForRender?.sortSnapshot ?? sortSnapshotByName;
     copy.sort((a, b) => compareAuthFiles(a, b, sortMode, activeSortSnapshot, planSources));
     return copy;
   }, [
-    displayFilterSnapshot,
-    displayFilterSnapshotKey,
+    displayFilterSnapshotForRender,
     filtered,
     isCurrentLayer,
     planSources,
@@ -1267,6 +1055,12 @@ export function AuthFilesPage() {
       }
       authFileGridMotionAnimationsRef.current.forEach((animation) => animation.cancel());
       authFileGridMotionAnimationsRef.current = [];
+      // A cancelled Web Animation does not run the normal `finished` cleanup.
+      // Remove compositor hints eagerly so rapid filter changes cannot leave
+      // stale cards promoted to their own layers.
+      authFileGridRef.current
+        ?.querySelectorAll<HTMLElement>('[data-auth-file-name]')
+        .forEach((card) => card.style.removeProperty('will-change'));
     };
 
     if (!isCurrentLayer) {
@@ -1362,9 +1156,7 @@ export function AuthFilesPage() {
   );
   const selectedNames = useMemo(
     () =>
-      isCurrentLayer && selectedFiles.size > 0
-        ? Array.from(selectedFiles)
-        : EMPTY_AUTH_FILE_NAMES,
+      isCurrentLayer && selectedFiles.size > 0 ? Array.from(selectedFiles) : EMPTY_AUTH_FILE_NAMES,
     [isCurrentLayer, selectedFiles]
   );
   const selectedHasStatusUpdating = useMemo(
@@ -1665,21 +1457,17 @@ export function AuthFilesPage() {
     []
   );
 
-  const showTitleCountBadge =
-    listTotal > 0 || displayOptionsActive || filter !== 'all' || displaySearch.length > 0;
-
   const titleNode = useMemo(
     () => (
       <div className={styles.titleBlock}>
         <span className={styles.pageEyebrow}>{t('auth_files.page_eyebrow')}</span>
         <h1 className={styles.titleWrapper}>
           <span>{t('auth_files.title_section')}</span>
-          {showTitleCountBadge && <span className={styles.countBadge}>{listTotal}</span>}
         </h1>
         <p className={styles.pageDescription}>{t('auth_files.description')}</p>
       </div>
     ),
-    [listTotal, showTitleCountBadge, t]
+    [t]
   );
 
   const deleteAllButtonLabel = useMemo(
@@ -1750,73 +1538,70 @@ export function AuthFilesPage() {
     batchDelete(selectedNames);
   }, [batchDelete, selectedNames]);
 
-  const authFileCardNodes = useMemo(
-    () => {
-      if (!isCurrentLayer) return EMPTY_AUTH_FILE_CARD_NODES;
-      return pageItems.map((file) => {
-        const authIndexKey = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
-        const statusData =
-          (authIndexKey ? statusBarCache.get(authIndexKey) : undefined) ??
-          statusBarCache.get(file.name) ??
-          EMPTY_AUTH_FILE_STATUS_BAR_DATA;
-        const fileUsageStats = fileUsageStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_USAGE_STATS;
+  const authFileCardNodes = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_AUTH_FILE_CARD_NODES;
+    return pageItems.map((file) => {
+      const authIndexKey = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
+      const statusData =
+        (authIndexKey ? statusBarCache.get(authIndexKey) : undefined) ??
+        statusBarCache.get(file.name) ??
+        EMPTY_AUTH_FILE_STATUS_BAR_DATA;
+      const fileUsageStats = fileUsageStatsByName.get(file.name) ?? EMPTY_AUTH_FILE_USAGE_STATS;
 
-        return (
-          <AuthFileCard
-            key={file.name}
-            file={file}
-            selected={selectedFiles.has(file.name)}
-            resolvedTheme={resolvedTheme}
-            // 只传连接状态这一真正的“单卡片”维度。列表刷新中的禁用改由
-            // .fileGrid 上的 inert 统一处理：listUpdating 每次搜索都会翻转两次，
-            // 若混进 props 会让整页卡片的 memo 全部失效、连带重算 20 个状态块。
-            disableControls={disableControls}
-            deleting={deleting === file.name}
-            statusUpdating={statusUpdating[file.name] === true}
-            accessTokenCopying={accessTokenCopying[file.name] === true}
-            priorityUpdating={priorityUpdating[file.name] === true}
-            quotaFilterType={quotaFilterType}
-            fileUsageStats={fileUsageStats}
-            statusData={statusData}
-            onShowModels={showModels}
-            onCopyName={copyTextWithNotification}
-            onDownload={handleDownload}
-            onCopyAccessToken={handleCopyAccessToken}
-            onPriorityChange={handlePriorityChange}
-            onOpenPrefixProxyEditor={openPrefixProxyEditor}
-            onAuthFileUpdated={handleAuthFileUpdated}
-            onDelete={handleDelete}
-            onToggleStatus={handleStatusToggle}
-            onToggleSelect={toggleSelect}
-          />
-        );
-      });
-    },
-    [
-      accessTokenCopying,
-      copyTextWithNotification,
-      deleting,
-      disableControls,
-      fileUsageStatsByName,
-      handleAuthFileUpdated,
-      handleCopyAccessToken,
-      handleDelete,
-      handleDownload,
-      handlePriorityChange,
-      isCurrentLayer,
-      handleStatusToggle,
-      openPrefixProxyEditor,
-      pageItems,
-      priorityUpdating,
-      quotaFilterType,
-      resolvedTheme,
-      selectedFiles,
-      showModels,
-      statusBarCache,
-      statusUpdating,
-      toggleSelect,
-    ]
-  );
+      return (
+        <AuthFileCard
+          key={file.name}
+          file={file}
+          selected={selectedFiles.has(file.name)}
+          resolvedTheme={resolvedTheme}
+          // 只传连接状态这一真正的“单卡片”维度。列表刷新中的禁用改由
+          // .fileGrid 上的 inert 统一处理：listUpdating 每次搜索都会翻转两次，
+          // 若混进 props 会让整页卡片的 memo 全部失效、连带重算 20 个状态块。
+          disableControls={disableControls}
+          deleting={deleting === file.name}
+          statusUpdating={statusUpdating[file.name] === true}
+          accessTokenCopying={accessTokenCopying[file.name] === true}
+          priorityUpdating={priorityUpdating[file.name] === true}
+          quotaFilterType={quotaFilterType}
+          fileUsageStats={fileUsageStats}
+          statusData={statusData}
+          onShowModels={showModels}
+          onCopyName={copyTextWithNotification}
+          onDownload={handleDownload}
+          onCopyAccessToken={handleCopyAccessToken}
+          onPriorityChange={handlePriorityChange}
+          onOpenPrefixProxyEditor={openPrefixProxyEditor}
+          onAuthFileUpdated={handleAuthFileUpdated}
+          onDelete={handleDelete}
+          onToggleStatus={handleStatusToggle}
+          onToggleSelect={toggleSelect}
+        />
+      );
+    });
+  }, [
+    accessTokenCopying,
+    copyTextWithNotification,
+    deleting,
+    disableControls,
+    fileUsageStatsByName,
+    handleAuthFileUpdated,
+    handleCopyAccessToken,
+    handleDelete,
+    handleDownload,
+    handlePriorityChange,
+    isCurrentLayer,
+    handleStatusToggle,
+    openPrefixProxyEditor,
+    pageItems,
+    priorityUpdating,
+    quotaFilterType,
+    resolvedTheme,
+    selectedFiles,
+    showModels,
+    statusBarCache,
+    statusUpdating,
+    toggleSelect,
+  ]);
 
   return (
     <div className={styles.container}>
@@ -1905,7 +1690,11 @@ export function AuthFilesPage() {
                 <span className={styles.filterChipRowLabel}>
                   {t('auth_files.display_options_label')}
                 </span>
-                <div className={styles.filterChipGroup} role="group">
+                <div
+                  className={styles.filterChipGroup}
+                  role="group"
+                  aria-label={t('auth_files.display_options_label')}
+                >
                   <button
                     type="button"
                     className={`${styles.filterChip} ${problemOnly ? styles.filterChipActive : ''}`}
