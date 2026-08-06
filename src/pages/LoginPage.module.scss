@@ -1,7 +1,7 @@
 @use '../styles/variables.scss' as *;
 
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   background: var(--bg-canvas);
 
@@ -11,21 +11,22 @@
 }
 
 .brandPanel {
-  flex: 1 1 52%;
+  flex: 0 1 47%;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: clamp(40px, 5vw, 72px);
+  padding: clamp(40px, 6vw, 96px);
   isolation: isolate;
   background:
     radial-gradient(
       72% 58% at 78% 18%,
-      color-mix(in srgb, var(--mg-orange) 12%, transparent),
+      color-mix(in srgb, var(--mg-orange) 14%, transparent),
       transparent 72%
     ),
-    var(--mg-ink-strong, #0e0d0c);
+    radial-gradient(70% 80% at 10% 100%, rgb(192 106 69 / 0.12), transparent 68%),
+    var(--mg-ink-strong, #17211d);
 
   &::before {
     content: none;
@@ -93,11 +94,11 @@
 }
 
 .formPanel {
-  flex: 1 1 48%;
+  flex: 1 1 53%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(36px, 5vw, 72px);
+  padding: clamp(32px, 5vw, 80px);
   overflow: hidden;
   background: var(--mg-surface, #ffffff);
   position: relative;
@@ -113,10 +114,10 @@
 
 .formContent {
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xl;
+  gap: 20px;
   position: relative;
   z-index: 1;
 }
@@ -125,11 +126,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 88px;
-  height: 88px;
+  width: 72px;
+  height: 72px;
   margin: 0 auto;
   padding: 4px;
-  border-radius: 22px;
+  border-radius: 18px;
   background: color-mix(in srgb, var(--surface-raised-strong) 92%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
   box-shadow:
@@ -147,8 +148,8 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: clamp(26px, 3vw, 36px);
+  gap: 18px;
+  padding: clamp(24px, 3vw, 34px);
   border-radius: var(--mg-radius-large, 16px);
   border: 1px solid var(--mg-border, var(--border-color));
   background: var(--surface-raised, #ffffff);

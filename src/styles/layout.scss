@@ -1,17 +1,17 @@
 @use './variables.scss' as *;
 
 :root {
-  --header-height: 64px;
-  --page-padding-inline: clamp(20px, 1.5vw, 24px);
-  --page-padding-block: clamp(20px, 2vw, 28px);
-  --page-content-gap: clamp(16px, 1.4vw, 24px);
-  --page-title-size: clamp(24px, 2vw, 30px);
+  --header-height: 68px;
+  --page-padding-inline: clamp(20px, 2.2vw, 34px);
+  --page-padding-block: clamp(22px, 2.4vw, 36px);
+  --page-content-gap: clamp(18px, 1.8vw, 28px);
+  --page-title-size: clamp(26px, 2.2vw, 34px);
 }
 
 .app-shell {
-  --sidebar-width: 216px;
-  --sidebar-collapsed-width: 72px;
-  --sidebar-item-height: 40px;
+  --sidebar-width: 232px;
+  --sidebar-collapsed-width: 76px;
+  --sidebar-item-height: 42px;
   --sidebar-label-size: 13.5px;
   --sidebar-label-weight: 600;
   --sidebar-label-active-weight: 650;
@@ -50,12 +50,13 @@
   align-items: center;
   justify-content: space-between;
   gap: clamp(16px, 2vw, 28px);
-  padding: 10px clamp(16px, 2vw, 28px);
+  padding: 12px clamp(20px, 2.4vw, 36px);
   border-bottom: 1px solid var(--mg-border, var(--border-color));
-  background: var(--mg-surface, var(--bg-canvas));
-  box-shadow: 0 1px 0 rgb(44 42 37 / 0.025);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: color-mix(in srgb, var(--header-surface, var(--mg-surface)) 88%, transparent);
+  box-shadow: var(--header-shadow, 0 1px 0 rgb(37 49 43 / 0.06));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  isolation: isolate;
 
   @media (max-width: $breakpoint-mobile) {
     position: fixed;
@@ -72,7 +73,7 @@
   .left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
     flex: 0 1 auto;
 
@@ -88,7 +89,7 @@
     display: inline-flex;
     min-width: 0;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     padding: 2px;
     color: var(--mg-text, var(--text-primary));
     text-decoration: none;
@@ -108,9 +109,9 @@
 
   .brand-mark {
     display: block;
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
   }
 
   .brand-copy {
@@ -130,7 +131,7 @@
   .brand-name {
     max-width: 205px;
     color: var(--mg-text, var(--text-primary));
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 650;
     letter-spacing: -0.025em;
     line-height: 1.2;
@@ -138,7 +139,7 @@
 
   .brand-caption {
     color: var(--mg-text-tertiary, var(--text-tertiary));
-    font-size: 9.5px;
+    font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.1em;
     line-height: 1.2;
@@ -232,11 +233,11 @@
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 1px;
-    padding: 3px;
+    gap: 2px;
+    padding: 4px;
     border: 1px solid var(--mg-border, var(--border-color));
-    border-radius: 11px;
-    background: var(--mg-surface, var(--surface-raised));
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--mg-surface-subtle) 54%, var(--mg-surface));
     flex-shrink: 0;
 
     .language-menu {
@@ -361,9 +362,9 @@
     min-height: 34px;
     padding: 5px 11px 5px 8px;
     border-radius: var(--mg-radius-pill, $radius-full);
-    background: var(--mg-surface, var(--surface-raised));
+    background: color-mix(in srgb, var(--mg-surface-subtle) 64%, var(--mg-surface));
     border: 1px solid var(--mg-border, var(--border-color));
-    box-shadow: none;
+    box-shadow: var(--mg-shadow-rest);
 
     .status-badge {
       display: inline-flex;
@@ -535,7 +536,7 @@
   width: var(--sidebar-width);
   background: var(--sidebar-surface, var(--mg-surface, var(--surface-overlay)));
   border-right: 1px solid var(--mg-border, var(--border-color));
-  padding: 14px 10px 16px;
+  padding: 18px 12px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -601,7 +602,7 @@
     display: flex;
     min-height: 0;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     padding: 0;
     flex: 1;
   }
@@ -612,8 +613,8 @@
     min-height: var(--sidebar-item-height);
     align-items: center;
     gap: 10px;
-    padding: 5px 8px;
-    border-radius: 10px;
+    padding: 6px 10px;
+    border-radius: 12px;
     border: 1px solid transparent;
     color: var(--mg-text-secondary, var(--text-secondary));
     font-size: var(--sidebar-label-size);
@@ -628,13 +629,13 @@
 
     .nav-icon {
       display: inline-flex;
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       color: var(--mg-text-tertiary, var(--text-secondary));
-      border-radius: 8px;
+      border-radius: 9px;
       background: transparent;
       box-shadow: none;
       transition:
@@ -691,18 +692,18 @@
       font-weight: var(--sidebar-label-active-weight);
       border-color: color-mix(
         in srgb,
-        var(--mg-sage-strong, #63725a) 24%,
+        var(--mg-sage-strong) 30%,
         var(--mg-border, var(--border-primary))
       );
-      box-shadow: 0 1px 0 rgb(44 42 37 / 0.03);
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.48), var(--mg-shadow-rest);
 
       &::before {
         content: '';
         position: absolute;
         left: 3px;
         top: 50%;
-        width: 2px;
-        height: 20px;
+        width: 3px;
+        height: 22px;
         border-radius: 0 $radius-full $radius-full 0;
         background: var(--mg-sage-strong, var(--text-primary));
         transform: translateY(-50%);
@@ -773,6 +774,14 @@
   }
 }
 
+@media (prefers-reduced-transparency: reduce) {
+  .main-header {
+    background: var(--header-surface, var(--mg-surface));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 .content {
   flex: 1;
   display: flex;
@@ -809,8 +818,8 @@
   flex: 1 0 auto;
   width: 100%;
   min-width: 0;
-  max-width: none;
-  margin: 0;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: var(--page-padding-block) var(--page-padding-inline);
   display: flex;
   flex-direction: column;
