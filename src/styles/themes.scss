@@ -1,72 +1,65 @@
 /**
  * Global color tokens
  *
- * The application uses one restrained light theme. Semantic success, warning,
- * and error colors remain available for state communication.
+ * The application has one fixed, pure-white appearance. Semantic success,
+ * warning, and error colors remain available for state communication.
  */
 
 :root {
   color-scheme: light;
 
   // Merge Gateway-inspired semantic tokens used by the application shell.
-  --mg-canvas: #f3f1ee;
-  --mg-surface: #fcfbf8;
-  --mg-surface-subtle: #ece9e4;
-  --mg-surface-warm: #f7f3ed;
-  --mg-text: #2b2926;
-  --mg-text-secondary: #5d5953;
-  --mg-text-tertiary: #817b73;
-  --mg-text-muted: #a49d94;
-  --mg-border: #dedad4;
-  --mg-border-hover: #c9c1b8;
-  --mg-border-strong: #aea59b;
-  --mg-ink-strong: #1d1b18;
+  --mg-canvas: #ffffff;
+  --mg-surface: #ffffff;
+  --mg-surface-subtle: #f5f5f3;
+  --mg-surface-warm: #fbfaf7;
+  --mg-text: #2c2a25;
+  --mg-text-secondary: #565551;
+  --mg-text-tertiary: #74716c;
+  --mg-text-muted: #9e9a92;
+  --mg-border: #e5e4e0;
+  --mg-border-hover: #cbc9c3;
+  --mg-border-strong: #b8b6af;
+  --mg-ink-strong: #0e0d0c;
   --mg-text-inverse: #ffffff;
-  // Canonical product accent. The legacy sage aliases below keep existing
-  // component names stable while moving the visual system to mineral orange.
-  --mg-accent: #c06a45;
-  --mg-accent-strong: #9b4d30;
-  --mg-accent-soft: #f8e9e1;
-  --mg-accent-wash: rgb(192 106 69 / 13%);
-  --mg-accent-wash-soft: rgb(192 106 69 / 6%);
-  --mg-sage: var(--mg-accent);
-  --mg-sage-strong: var(--mg-accent-strong);
-  --mg-sage-soft: var(--mg-accent-soft);
-  --mg-sage-wash: var(--mg-accent-wash);
-  --mg-sage-wash-soft: var(--mg-accent-wash-soft);
-  --mg-khaki-soft: #f2ece5;
+  --mg-sage: #5d914d;
+  --mg-sage-strong: #4f8048;
+  --mg-sage-soft: #eff2ed;
+  --mg-sage-wash: rgb(93 145 77 / 12%);
+  --mg-sage-wash-soft: rgb(93 145 77 / 5%);
+  --mg-khaki-soft: #f4f5f1;
   --mg-teal: #1f6170;
-  --mg-orange: #c06a45;
+  --mg-orange: #c2410c;
   --mg-success-fill: #16a34a;
   --mg-success-text: #15803d;
   --mg-success: var(--mg-success-text);
   --mg-warning: #9b5b00;
   --mg-danger: #c53a32;
-  --mg-surface-selected: #f7eee8;
-  --mg-surface-disabled: #ece9e4;
-  --mg-floating-border: #d7d1ca;
-  --mg-border-fade: rgb(129 123 115 / 28%);
-  --mg-overlay: rgb(29 27 24 / 56%);
-  --mg-focus-ring: rgb(155 77 48 / 32%);
+  --mg-surface-selected: #f2f5f0;
+  --mg-surface-disabled: #f5f5f3;
+  --mg-floating-border: #deddd8;
+  --mg-border-fade: rgb(158 154 146 / 28%);
+  --mg-overlay: rgb(14 13 12 / 56%);
+  --mg-focus-ring: rgb(79 128 72 / 32%);
   --mg-focus-ring-danger: rgb(197 58 50 / 28%);
   --mg-radius-control: 8px;
   --mg-radius-medium: 12px;
   --mg-radius-card: 15px;
   --mg-radius-large: 16px;
   --mg-radius-pill: 999px;
-  --mg-shadow-rest: 0 1px 2px rgb(47 42 36 / 0.07);
-  --mg-shadow-card: 0 20px 65px rgb(47 42 36 / 0.09);
-  --mg-shadow-float: 0 8px 24px rgb(47 42 36 / 0.1);
+  --mg-shadow-rest: 0 1px 2px rgb(0 0 0 / 0.07);
+  --mg-shadow-card: 0 20px 65px rgb(0 0 0 / 0.07);
+  --mg-shadow-float: 0 2px 18px rgb(0 0 0 / 0.06);
 
-  --bg-secondary: #ece9e4;
-  --bg-primary: var(--mg-surface);
+  --bg-secondary: #f7f7f5;
+  --bg-primary: #ffffff;
   --bg-tertiary: var(--mg-surface-subtle);
   --bg-hover: var(--bg-tertiary);
-  --bg-quinary: var(--mg-surface);
+  --bg-quinary: #ffffff;
   --bg-error-light: rgb(197 58 50 / 0.1);
-  --floating-surface: var(--mg-surface);
-  --floating-border: var(--mg-border);
-  --floating-shadow: 0 12px 26px rgb(47 42 36 / 0.14);
+  --floating-surface: #ffffff;
+  --floating-border: #e5e5e5;
+  --floating-shadow: 0 12px 26px rgb(0 0 0 / 0.14);
 
   --text-primary: var(--mg-text);
   --text-secondary: var(--mg-text-secondary);
@@ -80,13 +73,13 @@
   --border-hover: var(--mg-border-hover);
 
   --primary-color: var(--mg-ink-strong);
-  --primary-hover: var(--mg-accent-strong);
+  --primary-hover: var(--mg-text-secondary);
   --primary-active: var(--mg-text);
   --primary-contrast: #ffffff;
   --primary-soft: color-mix(in srgb, var(--mg-sage-soft) 42%, var(--mg-surface));
   --focus-ring: var(--mg-focus-ring);
-  --primary-shadow: 0 10px 22px -14px rgb(29 27 24 / 0.42);
-  --primary-shadow-hover: 0 14px 28px -16px rgb(29 27 24 / 0.5);
+  --primary-shadow: 0 10px 22px -14px rgb(14 13 12 / 0.42);
+  --primary-shadow-hover: 0 14px 28px -16px rgb(14 13 12 / 0.5);
 
   --accent-blue: var(--mg-teal);
   --accent-violet: var(--mg-teal);
@@ -120,36 +113,36 @@
   --count-badge-bg: rgb(139 134 128 / 0.18);
   --count-badge-text: var(--primary-active);
 
-  --shadow: 0 1px 2px rgb(47 42 36 / 0.08);
-  --shadow-lg: 0 10px 18px -3px rgb(47 42 36 / 0.12);
-  --shadow-soft: 0 12px 26px -18px rgb(47 42 36 / 0.18);
-  --header-shadow: 0 1px 0 rgb(47 42 36 / 0.06);
-  --sidebar-shadow: 8px 0 24px -24px rgb(47 42 36 / 0.2);
-  --shadow-card: 0 1px 2px rgb(47 42 36 / 0.07), 0 10px 22px -20px rgb(47 42 36 / 0.22);
-  --shadow-card-hover: 0 2px 4px rgb(47 42 36 / 0.08), 0 14px 28px -20px rgb(47 42 36 / 0.28);
-  --control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72), 0 1px 2px rgb(47 42 36 / 0.08);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 10px 18px -3px rgb(0 0 0 / 0.1);
+  --shadow-soft: 0 12px 26px -18px rgb(0 0 0 / 0.16);
+  --header-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
+  --sidebar-shadow: 8px 0 24px -24px rgb(0 0 0 / 0.18);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.07), 0 10px 22px -20px rgb(0 0 0 / 0.2);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.08), 0 14px 28px -20px rgb(0 0 0 / 0.24);
+  --control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 1px 2px rgb(0 0 0 / 0.06);
 
   --radius-md: var(--mg-radius-control);
   --accent-tertiary: var(--bg-tertiary);
-  --surface-raised: var(--mg-surface);
+  --surface-raised: #ffffff;
   --surface-raised-strong: #ffffff;
-  --surface-overlay: rgb(252 251 248 / 0.96);
-  --surface-hero: var(--mg-surface);
-  --surface-card: var(--mg-surface);
+  --surface-overlay: rgb(255 255 255 / 0.96);
+  --surface-hero: #ffffff;
+  --surface-card: #ffffff;
   --surface-card-muted: var(--mg-surface-subtle);
   --surface-card-border: var(--border-color);
   --surface-card-border-hover: var(--border-hover);
   --surface-inner-highlight: inset 0 1px 0 rgb(255 255 255 / 0.48);
-  --control-surface-gradient: var(--mg-surface);
-  --floating-surface-material: var(--mg-surface);
-  --header-surface: var(--mg-surface);
-  --sidebar-surface: #f7f5f1;
-  --panel-surface: var(--mg-surface);
+  --control-surface-gradient: #ffffff;
+  --floating-surface-material: #ffffff;
+  --header-surface: #ffffff;
+  --sidebar-surface: #ffffff;
+  --panel-surface: #ffffff;
   --panel-surface-muted: var(--mg-surface-subtle);
-  --control-surface: var(--mg-surface);
+  --control-surface: #ffffff;
   --neutral-accent: var(--mg-text-tertiary);
   --neutral-accent-strong: var(--mg-text-secondary);
-  --surface-sheen: rgb(255 255 255 / 0.62);
+  --surface-sheen: rgb(255 255 255 / 0.5);
   --bg-canvas: var(--mg-canvas);
 
   --motion-duration-fast: 140ms;

@@ -25,9 +25,9 @@
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 40px;
   width: 100%;
-  max-width: 1320px;
+  max-width: 1196px;
   margin: 0 auto;
   color: var(--dashboard-text);
 
@@ -38,7 +38,7 @@
     right: -32px;
     bottom: -32px;
     left: -32px;
-    background: transparent;
+    background: var(--dashboard-surface);
     content: '';
     pointer-events: none;
   }
@@ -52,7 +52,7 @@
   top: -64px;
   right: -72px;
   left: -72px;
-  height: 340px;
+  height: 420px;
   overflow: hidden;
   pointer-events: none;
   background: radial-gradient(
@@ -101,9 +101,9 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 36px;
-  min-height: 248px;
-  padding: 40px;
+  gap: 48px;
+  min-height: 272px;
+  padding: 48px;
   overflow: hidden;
   border: 1px solid var(--dashboard-border);
   border-radius: 16px;
@@ -114,7 +114,7 @@
       transparent 66%
     ),
     var(--dashboard-surface);
-  box-shadow: var(--mg-shadow-card);
+  box-shadow: 0 20px 65px rgb(0 0 0 / 0.055);
   animation: heroEnter 500ms var(--dashboard-ease) 100ms both;
 }
 
@@ -162,7 +162,7 @@
   max-width: 14ch;
   margin: 0;
   color: var(--dashboard-text);
-  font-size: clamp(40px, 4.4vw, 58px);
+  font-size: clamp(42px, 5vw, 64px);
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.045em;
@@ -186,16 +186,16 @@
   position: relative;
   z-index: 1;
   display: flex;
-  min-width: 232px;
+  min-width: 244px;
   flex: 0 0 auto;
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
-  padding: 20px;
+  padding: 22px;
   border: 1px solid var(--dashboard-border);
   border-radius: var(--dashboard-radius);
-  background: color-mix(in srgb, var(--dashboard-surface) 88%, var(--dashboard-surface-subtle));
-  box-shadow: var(--mg-shadow-rest);
+  background: rgb(255 255 255 / 0.9);
+  box-shadow: 0 2px 18px rgb(0 0 0 / 0.045);
   animation: fadeSlideUp 500ms var(--dashboard-ease) 400ms both;
 }
 
@@ -314,18 +314,18 @@
   overflow: hidden;
   border-radius: var(--dashboard-radius);
   background: var(--dashboard-border);
-  box-shadow: var(--mg-shadow-card);
+  box-shadow: 0 20px 65px rgb(0 0 0 / 0.045);
 }
 
 .bentoCard {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 164px;
+  min-height: 180px;
   flex-direction: column;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px;
+  padding: 28px;
   border: 0;
   border-radius: 0;
   background: var(--dashboard-surface);
@@ -435,7 +435,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 24px;
+  padding: 28px;
   border: 1px solid var(--dashboard-border);
   border-radius: var(--dashboard-radius);
   background: var(--dashboard-surface);

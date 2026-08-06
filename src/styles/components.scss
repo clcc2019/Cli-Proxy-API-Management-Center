@@ -7,7 +7,7 @@
   gap: $spacing-sm;
   min-height: 40px;
   border: 1px solid transparent;
-  border-radius: var(--mg-radius-control);
+  border-radius: var(--mg-radius-pill);
   padding: 10px 18px;
   font: inherit;
   font-weight: 600;
@@ -116,7 +116,7 @@ textarea {
   border-radius: var(--mg-radius-control);
   padding: 10px 12px;
   min-height: 40px;
-  background-color: color-mix(in srgb, var(--mg-surface) 82%, var(--mg-surface-subtle));
+  background-color: var(--mg-surface);
   color: var(--text-primary);
   caret-color: var(--primary-color);
   box-shadow: none;

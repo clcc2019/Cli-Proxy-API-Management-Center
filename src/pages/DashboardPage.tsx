@@ -513,6 +513,9 @@ export function DashboardPage() {
 
       {/* Hero welcome section */}
       <section className={styles.hero} aria-labelledby="dashboard-hero-title">
+        <span className={styles.heroWatermark} aria-hidden="true">
+          OVERVIEW
+        </span>
         <div className={styles.heroContent}>
           <HeroGreeting />
         </div>
