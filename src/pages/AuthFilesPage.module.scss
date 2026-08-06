@@ -11308,3 +11308,451 @@
     min-height: 36px;
   }
 }
+
+// The page-transition wrapper clips its contents horizontally. Keep the
+// outermost desktop card one pixel inside that clip edge so its right border
+// and shadow are painted completely when the grid expands to four columns.
+@container auth-files-page (min-width: 721px) {
+  .fileGrid,
+  .fileGridQuotaManaged {
+    padding-inline-end: 1px;
+  }
+}
+
+// Below 380px the status toggle and five card actions no longer fit on one
+// rail. Stack the status control and let the action rail wrap so every action
+// remains visible without requiring a hidden horizontal swipe.
+@media (max-width: 380px) {
+  .authCardShell .authCardFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .authCardShell .authCardFooterMain {
+    width: 100%;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .authCardShell .authCardStatusControl {
+    width: 100%;
+  }
+
+  .authCardShell .authCardPrimaryActions {
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 3px;
+  }
+}
+
+// Community version parity: provider filters are a quiet underline tab row;
+// display filters use the same restrained segmented-control treatment.
+.filterRail {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.filterTags {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0;
+  border-bottom: 1px solid var(--border-color);
+  scroll-padding-inline: 0;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filterTag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 8px 12px 11px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  transition:
+    color var(--motion-duration-fast) var(--motion-ease-out),
+    background-color var(--motion-duration-fast) var(--motion-ease-out);
+
+  &::after {
+    position: absolute;
+    right: 10px;
+    bottom: -1px;
+    left: 10px;
+    height: 2px;
+    border-radius: var(--mg-radius-pill);
+    background: transparent;
+    content: '';
+    transition: background-color var(--motion-duration-fast) var(--motion-ease-out);
+  }
+
+  &:active {
+    transform: translateY(0.5px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filterTag:hover {
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--bg-tertiary) 55%, transparent);
+  }
+}
+
+.filterTagActive,
+.filterTag[aria-pressed='true'] {
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  box-shadow: none;
+  font-weight: 650;
+
+  &::after {
+    display: block;
+    background: var(--text-primary);
+    content: '';
+  }
+}
+
+.filterTagIconWrap,
+.filterAllIconWrap {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-tertiary);
+  box-shadow: none;
+}
+
+.filterTagIcon {
+  width: 15px;
+  height: 15px;
+}
+
+.filterTagActive .filterTagIconWrap,
+.filterTag[aria-pressed='true'] .filterTagIconWrap,
+.filterTagActive .filterAllIconWrap,
+.filterTag[aria-pressed='true'] .filterAllIconWrap {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.filterTagCount,
+.filterTagActive .filterTagCount,
+.filterTag[aria-pressed='true'] .filterTagCount {
+  min-width: 0;
+  height: auto;
+  padding: 0 6px;
+  border-radius: var(--mg-radius-pill);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  color: var(--text-tertiary);
+  font-family: $font-mono;
+  font-size: 10.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+
+.filterTagActive .filterTagCount,
+.filterTag[aria-pressed='true'] .filterTagCount {
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: var(--text-primary);
+}
+
+// Restore the current workbench geometry: search, display options, and quota
+// refresh occupy the same desktop row, then intentionally stack on narrow
+// containers.
+.filterControlsPanel {
+  --auth-control-height: 36px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto 36px;
+  grid-template-areas: 'search chips refresh';
+  align-items: center;
+  gap: 8px 10px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid color-mix(in srgb, var(--mg-border) 76%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mg-surface-subtle) 42%, var(--mg-surface));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72);
+}
+
+.filterControlsPanel .searchToolbar {
+  grid-area: search;
+  width: min(100%, var(--auth-toolbar-search-max, 640px));
+  min-width: 0;
+  max-width: var(--auth-toolbar-search-max, 640px);
+  justify-self: start;
+}
+
+.filterControlsPanel .searchToolbarField,
+.filterControlsPanel .searchToolbarIconButton,
+.filterControlsPanel .pageQuotaRefreshButton:global(.btn.btn-sm) {
+  height: 36px;
+  min-height: 36px;
+}
+
+.filterControlsPanel .pageQuotaRefreshButton:global(.btn.btn-sm) {
+  width: 36px;
+  min-width: 36px;
+  flex-basis: 36px;
+}
+
+.filterChipRow {
+  grid-area: chips;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.filterControlsPanel .pageQuotaRefreshButton:global(.btn.btn-sm) {
+  grid-area: refresh;
+}
+
+.filterChipRowLabel {
+  padding: 0;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 550;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.filterChipGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  min-height: 0;
+  padding: 2px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--mg-radius-pill);
+  background: color-mix(in srgb, var(--bg-secondary) 56%, var(--bg-primary));
+}
+
+.filterChip {
+  height: auto;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--mg-radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 550;
+  transition:
+    color var(--motion-duration-fast) var(--motion-ease-out),
+    background-color var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out);
+
+  &:hover {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -1px;
+  }
+}
+
+.filterChipActive,
+.filterChip[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-weight: 650;
+  box-shadow: var(--shadow);
+}
+
+.filterChipActive:hover,
+.filterChip[aria-pressed='true']:hover {
+  border-color: transparent;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow);
+}
+
+.filterControlsPanel .filterResetButton {
+  height: 28px;
+  min-height: 28px;
+  padding-inline: 8px;
+  font-size: 11.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filterTag,
+  .filterTag::after,
+  .filterChip {
+    transition: none;
+  }
+
+  .filterTag:active {
+    transform: none;
+  }
+}
+
+@container auth-files-page (max-width: 900px) {
+  .filterControlsPanel {
+    grid-template-columns: minmax(0, 1fr) 36px;
+    grid-template-areas:
+      'search refresh'
+      'chips chips';
+    gap: 8px;
+  }
+
+  .filterControlsPanel .searchToolbar {
+    grid-area: search;
+    width: 100%;
+    max-width: none;
+  }
+
+  .filterChipRow {
+    grid-area: chips;
+    width: 100%;
+  }
+
+  .filterControlsPanel .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    grid-area: refresh;
+    width: 36px;
+    min-width: 36px;
+    flex-basis: 36px;
+  }
+}
+
+@container auth-files-page (max-width: 640px) {
+  .filterControlsPanel {
+    grid-template-columns: minmax(0, 1fr) 36px;
+    gap: 6px;
+    padding: 5px;
+  }
+
+  .filterControlsPanel .pageQuotaRefreshButton:global(.btn.btn-sm) {
+    width: 36px;
+    min-width: 36px;
+    flex-basis: 36px;
+  }
+
+  .filterControlsPanel .searchToolbar {
+    width: 100%;
+    max-width: none;
+  }
+
+  .filterChipRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+    align-items: stretch;
+  }
+
+  .filterChipGroup {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 3px;
+    overflow: visible;
+  }
+
+  .filterChip {
+    width: 100%;
+    min-height: 30px;
+    padding-inline: 6px;
+    white-space: normal;
+    line-height: 1.15;
+    text-align: center;
+  }
+}
+
+@container auth-files-page (max-width: 560px) {
+  .filterControlsPanel {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .filterChipRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 5px;
+    width: 100%;
+  }
+
+  .filterChipRowLabel {
+    display: none;
+  }
+
+  .filterChipGroup {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    max-width: none;
+  }
+
+  .filterChip:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .filterControlsPanel .filterResetButton {
+    width: 100%;
+    min-height: 30px;
+  }
+}
+
+@container auth-files-page (max-width: 380px) {
+  .filterTag {
+    padding-inline: 9px;
+    font-size: 12px;
+  }
+
+  .filterTagText {
+    max-width: 10ch;
+  }
+
+  .filterChip {
+    padding-inline: 5px;
+    font-size: 11px;
+  }
+}
+
+// Refresh state remains exposed through aria-busy and the existing status
+// handling, but the decorative line above the card grid is intentionally off.
+.listProgressBar {
+  display: none;
+}
