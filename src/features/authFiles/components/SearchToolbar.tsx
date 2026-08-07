@@ -18,14 +18,14 @@ import {
   IconX,
 } from '@/components/ui/icons';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
-import styles from '@/pages/AuthFilesPage.module.scss';
+import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
-export interface SortOption {
+interface SortOption {
   value: string;
   label: string;
 }
 
-export interface SearchToolbarProps {
+interface SearchToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
@@ -91,11 +91,11 @@ const PopoverButton = memo(function PopoverButton({
   }, [onOpenChange, visibleOpen]);
 
   return (
-    <div ref={wrapperRef} className={styles.searchToolbarPopoverWrap}>
+    <div ref={wrapperRef} className={refreshStyles.popoverWrap}>
       <button
         ref={triggerRef}
         type="button"
-        className={`${styles.searchToolbarIconButton} ${visibleOpen ? styles.searchToolbarIconButtonActive : ''}`}
+        className={`${refreshStyles.controlButton} ${visibleOpen ? refreshStyles.controlButtonActive : ''}`}
         onClick={() => {
           if (isCurrentLayer) onOpenChange(!open);
         }}
@@ -103,16 +103,19 @@ const PopoverButton = memo(function PopoverButton({
         aria-expanded={visibleOpen}
         aria-controls={popoverId}
         aria-label={triggerSummary ? `${ariaLabel}: ${triggerSummary}` : ariaLabel}
-        title={triggerSummary ? `${triggerLabel} · ${triggerSummary}` : triggerLabel}
+        title={triggerSummary ? `${triggerLabel}: ${triggerSummary}` : triggerLabel}
       >
         {triggerIcon}
+        {triggerSummary ? (
+          <span className={refreshStyles.controlButtonSummary}>{triggerSummary}</span>
+        ) : null}
       </button>
       {visibleOpen && (
         <div
           id={popoverId}
           role="dialog"
           aria-label={triggerLabel}
-          className={styles.searchToolbarPopover}
+          className={refreshStyles.controlPopover}
         >
           {children}
         </div>
@@ -154,6 +157,11 @@ export const SearchToolbar = memo(function SearchToolbar({
     onSearchChange('');
   }, [onSearchChange]);
 
+  const handleSortOpenChange = useCallback((open: boolean) => {
+    if (open) setPageSizeOpen(false);
+    setSortOpen(open);
+  }, []);
+
   const handlePageSizeDraftChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setPageSizeDraft(event.target.value);
   }, []);
@@ -169,6 +177,7 @@ export const SearchToolbar = memo(function SearchToolbar({
   const handlePageSizeOpenChange = useCallback(
     (open: boolean) => {
       if (open) {
+        setSortOpen(false);
         setPageSizeDraft(String(pageSize));
       }
       setPageSizeOpen(open);
@@ -226,12 +235,12 @@ export const SearchToolbar = memo(function SearchToolbar({
   );
 
   return (
-    <div className={styles.searchToolbar}>
-      <div className={styles.searchToolbarField}>
-        <IconSearch size={16} className={styles.searchToolbarFieldIcon} aria-hidden="true" />
+    <div className={refreshStyles.searchToolbar}>
+      <div className={refreshStyles.searchField}>
+        <IconSearch size={16} className={refreshStyles.searchIcon} aria-hidden="true" />
         <input
           type="search"
-          className={styles.searchToolbarInput}
+          className={refreshStyles.searchInput}
           value={search}
           onChange={handleSearchInput}
           placeholder={searchPlaceholder}
@@ -242,7 +251,7 @@ export const SearchToolbar = memo(function SearchToolbar({
         {search && (
           <button
             type="button"
-            className={styles.searchToolbarFieldClear}
+            className={refreshStyles.searchClear}
             onClick={handleSearchClear}
             aria-label={t('common.clear')}
             title={t('common.clear')}
@@ -254,7 +263,7 @@ export const SearchToolbar = memo(function SearchToolbar({
 
       <PopoverButton
         open={sortOpen}
-        onOpenChange={setSortOpen}
+        onOpenChange={handleSortOpenChange}
         ariaLabel={sortLabel}
         triggerLabel={sortLabel}
         triggerSummary={sortSummary}
@@ -262,21 +271,29 @@ export const SearchToolbar = memo(function SearchToolbar({
       >
         {sortOpen ? (
           <>
-            <div className={styles.searchToolbarPopoverHeader}>{sortLabel}</div>
-            <ul className={styles.searchToolbarOptionList} role="listbox" aria-label={sortLabel}>
+            <div className={refreshStyles.popoverHeading}>
+              {sortLabel}
+            </div>
+            <ul
+              className={refreshStyles.popoverOptionList}
+              role="listbox"
+              aria-label={sortLabel}
+            >
               {sortOptions.map((option) => {
                 const active = option.value === sortValue;
                 return (
                   <li key={option.value} role="presentation">
                     <button
                       type="button"
-                      className={`${styles.searchToolbarOption} ${active ? styles.searchToolbarOptionActive : ''}`}
+                      className={refreshStyles.popoverOption}
                       role="option"
                       aria-selected={active}
                       onClick={() => handleSortPick(option.value)}
                     >
                       <span>{option.label}</span>
-                      {active && <IconCheck size={14} aria-hidden="true" />}
+                      <span className={refreshStyles.optionMarker} aria-hidden="true">
+                        {active ? <IconCheck size={14} /> : null}
+                      </span>
                     </button>
                   </li>
                 );
@@ -296,15 +313,21 @@ export const SearchToolbar = memo(function SearchToolbar({
       >
         {pageSizeOpen ? (
           <>
-            <div className={styles.searchToolbarPopoverHeader}>{pageSizeLabel}</div>
-            <div className={styles.searchToolbarPresetGrid} role="group" aria-label={pageSizeLabel}>
+            <div className={refreshStyles.popoverHeading}>
+              {pageSizeLabel}
+            </div>
+            <div
+              className={refreshStyles.presetGrid}
+              role="group"
+              aria-label={pageSizeLabel}
+            >
               {pageSizePresets.map((preset) => {
                 const active = preset === pageSize;
                 return (
                   <button
                     key={preset}
                     type="button"
-                    className={`${styles.searchToolbarPreset} ${active ? styles.searchToolbarPresetActive : ''}`}
+                    className={refreshStyles.preset}
                     onClick={() => handlePageSizePreset(preset)}
                     aria-pressed={active}
                   >
@@ -313,8 +336,8 @@ export const SearchToolbar = memo(function SearchToolbar({
                 );
               })}
             </div>
-            <label className={styles.searchToolbarCustom}>
-              <span className={styles.searchToolbarCustomLabel}>
+            <label className={refreshStyles.customPageSize}>
+              <span className={refreshStyles.customPageSizeLabel}>
                 {t('auth_files.page_size_custom')}
               </span>
               <input
@@ -326,7 +349,7 @@ export const SearchToolbar = memo(function SearchToolbar({
                 onChange={handlePageSizeDraftChange}
                 onBlur={commitPageSizeDraft}
                 onKeyDown={handlePageSizeKeyDown}
-                className={styles.searchToolbarCustomInput}
+                className={refreshStyles.customPageSizeInput}
                 aria-label={pageSizeLabel}
               />
             </label>

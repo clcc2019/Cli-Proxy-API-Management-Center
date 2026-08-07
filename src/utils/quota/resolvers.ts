@@ -3,7 +3,7 @@
  */
 
 import type { AuthFileItem } from '@/types';
-import { normalizeStringValue, normalizePlanType, parseIdTokenPayload } from './parsers';
+import { normalizePlanType, parseIdTokenPayload } from './parsers';
 
 const OPENAI_AUTH_CLAIM = 'https://api.openai.com/auth';
 const CODEX_SUBSCRIPTION_CONTAINER_KEYS = [
@@ -144,7 +144,7 @@ const deriveCodexSubscriptionActiveStartFromUntil = (untilValue: unknown): strin
   return start.getTime() < untilMs ? start.toISOString() : null;
 };
 
-export function calculateCodexSubscriptionActiveDays(
+function calculateCodexSubscriptionActiveDays(
   startValue: unknown,
   nowMs = Date.now()
 ): number | null {
@@ -154,65 +154,6 @@ export function calculateCodexSubscriptionActiveDays(
   const elapsedMs = nowMs - startMs;
   const days = Math.ceil(elapsedMs / 86_400_000);
   return Math.max(1, days);
-}
-
-export function extractCodexChatgptAccountId(value: unknown): string | null {
-  const payload = parseIdTokenPayload(value);
-  if (!payload) return null;
-  const authClaim = resolveOpenAiAuthClaim(payload);
-  const candidates = [
-    payload.chatgpt_account_id,
-    payload.chatgptAccountId,
-    payload.account_id,
-    payload.accountId,
-    authClaim?.chatgpt_account_id,
-    authClaim?.chatgptAccountId,
-    authClaim?.account_id,
-    authClaim?.accountId,
-  ];
-
-  for (const candidate of candidates) {
-    const accountId = normalizeStringValue(candidate);
-    if (accountId) return accountId;
-  }
-
-  return null;
-}
-
-export function resolveCodexChatgptAccountId(file: AuthFileItem): string | null {
-  const metadata = asRecord(file.metadata);
-  const attributes = asRecord(file.attributes);
-
-  const directCandidates = [
-    file.account_id,
-    file.accountId,
-    file.chatgpt_account_id,
-    file.chatgptAccountId,
-    file['account_id'],
-    file['accountId'],
-    metadata?.account_id,
-    metadata?.accountId,
-    metadata?.chatgpt_account_id,
-    metadata?.chatgptAccountId,
-    attributes?.account_id,
-    attributes?.accountId,
-    attributes?.chatgpt_account_id,
-    attributes?.chatgptAccountId,
-  ];
-
-  for (const candidate of directCandidates) {
-    const accountId = normalizeStringValue(candidate);
-    if (accountId) return accountId;
-  }
-
-  const candidates = [file.id_token, metadata?.id_token, attributes?.id_token];
-
-  for (const candidate of candidates) {
-    const id = extractCodexChatgptAccountId(candidate);
-    if (id) return id;
-  }
-
-  return null;
 }
 
 export function resolveCodexPlanType(file: AuthFileItem): string | null {

@@ -10,22 +10,6 @@ import type {
   KimiQuotaRow,
 } from '@/types';
 
-export function pickEarlierResetTime(current?: string, next?: string): string | undefined {
-  if (!current) return next;
-  if (!next) return current;
-  const currentTime = new Date(current).getTime();
-  const nextTime = new Date(next).getTime();
-  if (Number.isNaN(currentTime)) return next;
-  if (Number.isNaN(nextTime)) return current;
-  return currentTime <= nextTime ? current : next;
-}
-
-export function minNullableNumber(current: number | null, next: number | null): number | null {
-  if (current === null) return next;
-  if (next === null) return current;
-  return Math.min(current, next);
-}
-
 function toInt(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return Math.floor(value);
   if (typeof value === 'string') {

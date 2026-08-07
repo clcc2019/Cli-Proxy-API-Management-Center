@@ -23,6 +23,8 @@ import type {
   KimiQuotaState,
 } from '@/types';
 import { apiCallApi, authFilesApi, getApiCallErrorMessage } from '@/services/api';
+import { mergeAuthFileUpdatePreservingRequestStats } from '@/features/authFiles/stats';
+
 import {
   CLAUDE_PROFILE_URL,
   CLAUDE_USAGE_URL,
@@ -43,14 +45,11 @@ import {
   formatQuotaResetTime,
   formatKimiResetHint,
   getQuotaProgressLevel,
+  type QuotaProviderType,
   buildKimiQuotaRows,
   createStatusError,
 } from '@/utils/quota';
 import { normalizeAuthIndex } from '@/utils/usage';
-
-type QuotaUpdater<T> = T | ((prev: T) => T);
-
-type QuotaType = 'claude' | 'codex' | 'kimi';
 
 const getQuotaRowClassName = (styles: Record<string, string>, percent: number | null): string => {
   const level = getQuotaProgressLevel(percent);
@@ -65,18 +64,8 @@ const getQuotaRowClassName = (styles: Record<string, string>, percent: number | 
   return [styles.quotaRow, levelClass].filter(Boolean).join(' ');
 };
 
-export interface QuotaStore {
-  claudeQuota: Record<string, ClaudeQuotaState>;
-  codexQuota: Record<string, CodexQuotaState>;
-  kimiQuota: Record<string, KimiQuotaState>;
-  setClaudeQuota: (updater: QuotaUpdater<Record<string, ClaudeQuotaState>>) => void;
-  setCodexQuota: (updater: QuotaUpdater<Record<string, CodexQuotaState>>) => void;
-  setKimiQuota: (updater: QuotaUpdater<Record<string, KimiQuotaState>>) => void;
-  clearQuotaCache: () => void;
-}
-
-export interface QuotaConfig<TState, TData> {
-  type: QuotaType;
+interface QuotaConfig<TState, TData> {
+  type: QuotaProviderType;
   i18nPrefix: string;
   fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<TData>;
   buildLoadingState: () => TState;
@@ -94,7 +83,7 @@ interface QuotaProgressBarProps {
   ariaValueText?: string;
 }
 
-export interface QuotaRenderHelpers {
+interface QuotaRenderHelpers {
   styles: Record<string, string>;
   QuotaProgressBar: (props: QuotaProgressBarProps) => ReactElement;
   item?: AuthFileItem;
@@ -407,12 +396,9 @@ const resolveCodexUpdatedAuthFile = (
   payload: CodexUsagePayload
 ): AuthFileItem | null => {
   const snapshot = payload.auth_file ?? payload.authFile;
-  const normalizedSnapshot =
-    snapshot && typeof snapshot === 'object'
-      ? ({ ...file, ...snapshot, name: file.name } as AuthFileItem)
-      : null;
-
-  if (normalizedSnapshot) return normalizedSnapshot;
+  if (snapshot && typeof snapshot === 'object') {
+    return mergeAuthFileUpdatePreservingRequestStats(file, snapshot as AuthFileItem);
+  }
 
   const patch: Partial<AuthFileItem> = {};
   const planType = normalizePlanType(
@@ -438,7 +424,7 @@ const resolveCodexUpdatedAuthFile = (
   }
 
   return Object.keys(patch).length > 0
-    ? ({ ...file, ...patch, name: file.name } as AuthFileItem)
+    ? mergeAuthFileUpdatePreservingRequestStats(file, patch)
     : null;
 };
 

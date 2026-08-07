@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { IconSettings } from '@/components/ui/icons';
 import type { OAuthModelAliasEntry } from '@/types';
 import styles from '@/pages/AuthFilesPage.module.scss';
+import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 type UnsupportedError = 'unsupported' | null;
 
@@ -72,10 +73,15 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
   return (
     <Card
       flush
-      className={styles.oauthConfigCard}
+      className={`${styles.oauthConfigCard} ${refreshStyles.rulesPanel}`}
       title={t('oauth_model_rules.title')}
       extra={
-        <Button size="sm" onClick={() => onManage()} disabled={disableControls || allUnavailable}>
+        <Button
+          size="sm"
+          className={refreshStyles.rulesAddButton}
+          onClick={() => onManage()}
+          disabled={disableControls || allUnavailable}
+        >
           {t('oauth_model_rules.add')}
         </Button>
       }
@@ -88,7 +94,10 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
       ) : (
         <>
           {(excludedUnavailable || aliasesUnavailable) && (
-            <div className={styles.modelRulesNotice} role="status">
+            <div
+              className={`${styles.modelRulesNotice} ${refreshStyles.rulesNotice}`}
+              role="status"
+            >
               {excludedUnavailable && <span>{t('oauth_model_rules.excluded_unavailable')}</span>}
               {aliasesUnavailable && <span>{t('oauth_model_rules.aliases_unavailable')}</span>}
             </div>
@@ -105,19 +114,24 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
               }
             />
           ) : (
-            <div className={styles.modelRulesList}>
+            <div className={`${styles.modelRulesList} ${refreshStyles.rulesList}`}>
               {rules.map((rule) => (
-                <div key={getProviderKey(rule.provider)} className={styles.modelRulesItem}>
-                  <div className={styles.modelRulesInfo}>
-                    <div className={styles.excludedProvider}>{rule.provider}</div>
-                    <div className={styles.modelRulesStats}>
+                <div
+                  key={getProviderKey(rule.provider)}
+                  className={`${styles.modelRulesItem} ${refreshStyles.rulesRow}`}
+                >
+                  <div className={`${styles.modelRulesInfo} ${refreshStyles.rulesInfo}`}>
+                    <div className={`${styles.excludedProvider} ${refreshStyles.rulesProvider}`}>
+                      {rule.provider}
+                    </div>
+                    <div className={`${styles.modelRulesStats} ${refreshStyles.rulesStats}`}>
                       {!excludedUnavailable && (
-                        <span className={styles.modelRulesStat}>
+                        <span className={`${styles.modelRulesStat} ${refreshStyles.rulesStat}`}>
                           {t('oauth_excluded.model_count', { count: rule.disabledCount })}
                         </span>
                       )}
                       {!aliasesUnavailable && (
-                        <span className={styles.modelRulesStat}>
+                        <span className={`${styles.modelRulesStat} ${refreshStyles.rulesStat}`}>
                           {t('oauth_model_alias.model_count', { count: rule.aliasCount })}
                         </span>
                       )}
@@ -126,6 +140,7 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
                   <Button
                     variant="secondary"
                     size="sm"
+                    className={refreshStyles.rulesManageButton}
                     onClick={() => onManage(rule.provider)}
                     disabled={disableControls}
                   >

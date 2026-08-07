@@ -2,18 +2,34 @@ import type { TFunction } from 'i18next';
 import { CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from '@/components/quota';
 import { useQuotaStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
-import { getStatusFromError } from '@/utils/quota';
-import { isRuntimeOnlyAuthFile, type QuotaProviderType } from '@/features/authFiles/constants';
+import {
+  getStatusFromError,
+  isRuntimeOnlyAuthFile,
+  type QuotaProviderType,
+} from '@/utils/quota';
 
-type QuotaState = { status?: string; error?: string; errorStatus?: number } | undefined;
+export type AuthFileQuotaState = {
+  status?: string;
+  error?: string;
+  errorStatus?: number;
+  __hasCachedQuotaSnapshot?: boolean;
+};
 
 const quotaRequestVersions = new Map<string, number>();
 let nextQuotaRequestVersion = 0;
 const CODEX_REFRESH_SETTLE_DELAY_MS = 400;
+const MINIMUM_QUOTA_REFRESH_INDICATOR_MS = 420;
 const AUTH_FILE_QUOTA_REFRESH_CONCURRENCY = 4;
 
 const waitForQuotaRefreshSettle = () =>
   new Promise<void>((resolve) => window.setTimeout(resolve, CODEX_REFRESH_SETTLE_DELAY_MS));
+
+const waitForMinimumIndicatorDuration = (startedAt: number) => {
+  const remaining = MINIMUM_QUOTA_REFRESH_INDICATOR_MS - (Date.now() - startedAt);
+  return remaining > 0
+    ? new Promise<void>((resolve) => window.setTimeout(resolve, remaining))
+    : Promise.resolve();
+};
 
 type ComparableQuotaWindow = { id?: string; usedPercent?: number | null };
 type ComparableCodexQuotaData = { windows?: ComparableQuotaWindow[] };
@@ -49,11 +65,11 @@ const stabilizeCodexQuotaData = (first: unknown, confirmation: unknown): unknown
 type AuthFileQuotaConfig = {
   i18nPrefix: string;
   fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<unknown>;
-  buildLoadingState: () => unknown;
-  buildSuccessState: (data: unknown) => unknown;
-  buildErrorState: (message: string, status?: number) => unknown;
+  buildLoadingState: () => AuthFileQuotaState;
+  buildSuccessState: (data: unknown) => AuthFileQuotaState;
+  buildErrorState: (message: string, status?: number) => AuthFileQuotaState;
   extractAuthFileUpdate?: (data: unknown) => AuthFileItem | null;
-  renderQuotaItems: (quota: unknown, t: TFunction, helpers: unknown) => unknown;
+  renderQuotaItems: (quota: AuthFileQuotaState, t: TFunction, helpers: unknown) => unknown;
 };
 
 export type AuthFileQuotaRefreshResult =
@@ -73,34 +89,32 @@ export type AuthFileQuotaRefreshSummary = {
   authFiles: AuthFileItem[];
 };
 
-export const getAuthFileQuotaConfig = (type: QuotaProviderType) => {
-  if (type === 'claude') return CLAUDE_CONFIG;
-  if (type === 'codex') return CODEX_CONFIG;
-  return KIMI_CONFIG;
+export const getAuthFileQuotaConfig = (type: QuotaProviderType): AuthFileQuotaConfig => {
+  const config = type === 'claude' ? CLAUDE_CONFIG : type === 'codex' ? CODEX_CONFIG : KIMI_CONFIG;
+  return config as unknown as AuthFileQuotaConfig;
 };
 
-const getTypedQuotaConfig = (type: QuotaProviderType) =>
-  getAuthFileQuotaConfig(type) as unknown as AuthFileQuotaConfig;
+type AuthFileQuotaMap = Record<string, AuthFileQuotaState>;
+type AuthFileQuotaUpdater = (updater: (previous: AuthFileQuotaMap) => AuthFileQuotaMap) => void;
 
-const getQuotaEntry = (quotaType: QuotaProviderType, fileName: string): QuotaState => {
-  const state = useQuotaStore.getState();
-  if (quotaType === 'claude') return state.claudeQuota[fileName] as QuotaState;
-  if (quotaType === 'codex') return state.codexQuota[fileName] as QuotaState;
-  return state.kimiQuota[fileName] as QuotaState;
-};
-
-const getQuotaStateUpdater = (quotaType: QuotaProviderType) => {
+const getQuotaStoreAccess = (quotaType: QuotaProviderType) => {
   const state = useQuotaStore.getState();
   if (quotaType === 'claude') {
-    return state.setClaudeQuota as unknown as (updater: unknown) => void;
+    return {
+      entries: state.claudeQuota as AuthFileQuotaMap,
+      update: state.setClaudeQuota as unknown as AuthFileQuotaUpdater,
+    };
   }
   if (quotaType === 'codex') {
-    return state.setCodexQuota as unknown as (updater: unknown) => void;
+    return {
+      entries: state.codexQuota as AuthFileQuotaMap,
+      update: state.setCodexQuota as unknown as AuthFileQuotaUpdater,
+    };
   }
-  if (quotaType === 'kimi') {
-    return state.setKimiQuota as unknown as (updater: unknown) => void;
-  }
-  return state.setKimiQuota as unknown as (updater: unknown) => void;
+  return {
+    entries: state.kimiQuota as AuthFileQuotaMap,
+    update: state.setKimiQuota as unknown as AuthFileQuotaUpdater,
+  };
 };
 
 export async function refreshAuthFileQuota(options: {
@@ -124,28 +138,29 @@ export async function refreshAuthFileQuota(options: {
   if (disableControls) return { status: 'skipped', fileName };
   if (isRuntimeOnlyAuthFile(file)) return { status: 'skipped', fileName };
   if (file.disabled) return { status: 'skipped', fileName };
-  if (getQuotaEntry(quotaType, fileName)?.status === 'loading') {
+  const { entries, update: updateQuotaState } = getQuotaStoreAccess(quotaType);
+  if (entries[fileName]?.status === 'loading') {
     return { status: 'skipped', fileName };
   }
 
-  const config = getTypedQuotaConfig(quotaType);
-  const updateQuotaState = getQuotaStateUpdater(quotaType);
+  const config = getAuthFileQuotaConfig(quotaType);
   const requestKey = `${quotaType}:${fileName}`;
   const requestVersion = ++nextQuotaRequestVersion;
   quotaRequestVersions.set(requestKey, requestVersion);
   const isLatestRequest = () => quotaRequestVersions.get(requestKey) === requestVersion;
+  const indicatorStartedAt = Date.now();
 
-  updateQuotaState((prev: Record<string, unknown>) => {
+  updateQuotaState((prev) => {
     const previousEntry = prev[fileName];
     const loadingState = config.buildLoadingState();
-    const nextEntry =
-      previousEntry && typeof previousEntry === 'object'
-        ? {
-            ...(loadingState as Record<string, unknown>),
-            ...(previousEntry as Record<string, unknown>),
-            status: 'loading',
-          }
-        : loadingState;
+    const nextEntry = previousEntry
+      ? {
+          ...loadingState,
+          ...previousEntry,
+          status: 'loading',
+          __hasCachedQuotaSnapshot: previousEntry.status === 'success',
+        }
+      : loadingState;
 
     return {
       ...prev,
@@ -165,21 +180,23 @@ export async function refreshAuthFileQuota(options: {
         // The first successful snapshot remains usable when the confirmation read fails.
       }
     }
+    await waitForMinimumIndicatorDuration(indicatorStartedAt);
     if (!isLatestRequest()) return { status: 'skipped', fileName };
     const authFile = config.extractAuthFileUpdate?.(data) ?? null;
     if (authFile) {
       onAuthFileUpdated?.(authFile);
     }
-    updateQuotaState((prev: Record<string, unknown>) => ({
+    updateQuotaState((prev) => ({
       ...prev,
       [fileName]: config.buildSuccessState(data),
     }));
     return authFile ? { status: 'success', fileName, authFile } : { status: 'success', fileName };
   } catch (err: unknown) {
+    await waitForMinimumIndicatorDuration(indicatorStartedAt);
     if (!isLatestRequest()) return { status: 'skipped', fileName };
     const message = err instanceof Error ? err.message : t('common.unknown_error');
     const errorStatus = getStatusFromError(err);
-    updateQuotaState((prev: Record<string, unknown>) => ({
+    updateQuotaState((prev) => ({
       ...prev,
       [fileName]: config.buildErrorState(message, errorStatus),
     }));

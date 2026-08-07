@@ -25,22 +25,23 @@ import {
   IconTrash2,
 } from '@/components/ui/icons';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
-import type { AuthFileItem } from '@/types';
-import { resolveAuthProvider } from '@/utils/quota';
+import type { AuthFileItem, ResolvedTheme } from '@/types';
+import {
+  isRuntimeOnlyAuthFile,
+  resolveQuotaProviderType,
+  type QuotaProviderType,
+} from '@/utils/quota';
 import { formatMillionTokens, type KeyUsageBucket } from '@/utils/usage';
 import {
-  QUOTA_PROVIDER_TYPES,
+  getAuthFileIcon,
   getTypeColor,
   getTypeLabel,
-  isRuntimeOnlyAuthFile,
   parsePriorityValue,
   readAuthFileServiceTierPassthrough,
   readAuthFileWebsockets,
-  type QuotaProviderType,
-  type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
-import styles from '@/pages/AuthFilesPage.module.scss';
+import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 const AuthFileQuotaSection = lazy(() =>
   import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
@@ -109,12 +110,6 @@ export type AuthFileCardProps = {
   onToggleSelect: (name: string) => void;
 };
 
-const resolveQuotaType = (file: AuthFileItem): QuotaProviderType | null => {
-  const provider = resolveAuthProvider(file);
-  if (!QUOTA_PROVIDER_TYPES.has(provider as QuotaProviderType)) return null;
-  return provider as QuotaProviderType;
-};
-
 const isRecordObject = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
@@ -177,6 +172,10 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const typeKey = file.type || 'unknown';
   const typeColor = useMemo(() => getTypeColor(typeKey, resolvedTheme), [typeKey, resolvedTheme]);
   const providerLabel = useMemo(() => getTypeLabel(t, typeKey), [t, typeKey]);
+  const providerIconSrc = useMemo(
+    () => getAuthFileIcon(typeKey, resolvedTheme),
+    [resolvedTheme, typeKey]
+  );
 
   const websocketsEnabled = useMemo(() => readAuthFileWebsockets(file), [file]);
   const serviceTierPassthroughEnabled = useMemo(
@@ -191,19 +190,10 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     hasRefreshToken || Boolean(websocketsEnabled) || Boolean(serviceTierPassthroughBadgeLabel);
   const quotaType = useMemo(() => {
     if (!quotaFilterType) return null;
-    return resolveQuotaType(file) === quotaFilterType ? quotaFilterType : null;
+    return resolveQuotaProviderType(file) === quotaFilterType ? quotaFilterType : null;
   }, [file, quotaFilterType]);
 
   const showQuotaLayout = Boolean(quotaType) && !isRuntimeOnly;
-
-  const providerCardClass =
-    quotaType === 'claude'
-      ? styles.claudeCard
-      : quotaType === 'codex'
-        ? styles.codexCard
-        : quotaType === 'kimi'
-          ? styles.kimiCard
-          : '';
 
   const priorityValue = useMemo(
     () => parsePriorityValue(file.priority ?? file['priority']),
@@ -321,12 +311,11 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   }, [typeColor]);
 
   const cardClassName = useMemo(() => {
-    const cls = [styles.authCardShell];
-    if (providerCardClass) cls.push(providerCardClass);
-    if (selected) cls.push(styles.fileCardSelected);
-    if (file.disabled) cls.push(styles.fileCardDisabled);
+    const cls = [refreshStyles.credentialCard];
+    if (selected) cls.push(refreshStyles.credentialCardSelected);
+    if (file.disabled) cls.push(refreshStyles.credentialCardDisabled);
     return cls.join(' ');
-  }, [providerCardClass, selected, file.disabled]);
+  }, [selected, file.disabled]);
 
   const checkboxLabel = selected
     ? t('auth_files.batch_deselect')
@@ -339,30 +328,40 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
       data-auth-file-name={file.name}
       aria-label={`${providerLabel}: ${maskedAuthFileDisplayName}`}
     >
-      <div className={styles.authCardMain}>
-        <header className={styles.authCardHeader}>
+      <div className={refreshStyles.cardMain}>
+        <header className={refreshStyles.cardHeader}>
           {!isRuntimeOnly && (
             <SelectionCheckbox
               checked={selected}
               onChange={handleToggleSelect}
-              className={`${styles.cardSelection} ${styles.authCardSelection}`}
+              className={refreshStyles.cardSelection}
               aria-label={checkboxLabel}
               title={checkboxLabel}
             />
           )}
-          <div className={styles.authCardIdentityBody}>
-            <div className={styles.authCardTitleRow}>
-              <div className={styles.authCardNameGroup}>
+          <div className={refreshStyles.cardIdentity}>
+            <div className={refreshStyles.cardTitleRow}>
+              <div className={refreshStyles.cardNameGroup}>
+                <span className={refreshStyles.providerBadge} title={providerLabel}>
+                  {providerIconSrc ? (
+                    <img src={providerIconSrc} alt="" className={refreshStyles.providerBadgeIcon} />
+                  ) : (
+                    <span className={refreshStyles.providerBadgeFallback} aria-hidden="true">
+                      {providerLabel.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <span className={refreshStyles.providerBadgeLabel}>{providerLabel}</span>
+                </span>
                 <button
                   type="button"
-                  className={`${styles.fileName} ${styles.authCardName}`}
+                  className={refreshStyles.cardNameButton}
                   onClick={handleCopyName}
                   title={`${maskedAuthFileDisplayName} - ${t('common.copy')}`}
                   aria-label={`${t('common.copy')}: ${maskedAuthFileDisplayName}`}
                 >
-                  <span className={styles.fileNameText}>{maskedAuthFileDisplayName}</span>
+                  <span className={refreshStyles.cardNameText}>{maskedAuthFileDisplayName}</span>
                   <IconCopy
-                    className={`${styles.fileNameCopyIcon} ${styles.authCardIconCopy}`}
+                    className={refreshStyles.cardCopyIcon}
                     size={13}
                     aria-hidden="true"
                   />
@@ -370,20 +369,20 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               </div>
 
               {!isRuntimeOnly || priorityValue !== undefined ? (
-                <div className={styles.authCardPriority}>
+                <div className={refreshStyles.cardPriority}>
                   <div
-                    className={`${styles.priorityInlineRow} ${
-                      isRuntimeOnly ? styles.priorityInlineReadOnly : ''
+                    className={`${refreshStyles.priorityControl} ${
+                      isRuntimeOnly ? refreshStyles.priorityReadOnly : ''
                     }`}
                   >
-                    <span className={styles.priorityInlineLabel}>
+                    <span className={refreshStyles.priorityLabel}>
                       {t('auth_files.priority_display')}
                     </span>
                     {!isRuntimeOnly ? (
-                      <div className={styles.priorityStepper}>
+                      <div className={refreshStyles.priorityStepper}>
                         <button
                           type="button"
-                          className={styles.priorityStepButton}
+                          className={refreshStyles.priorityStepButton}
                           onMouseDown={preventBlur}
                           onClick={handleStepDecrement}
                           disabled={priorityControlsDisabled}
@@ -393,7 +392,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                           -
                         </button>
                         <input
-                          className={styles.priorityInput}
+                          className={refreshStyles.priorityInput}
                           type="number"
                           step={1}
                           inputMode="numeric"
@@ -406,7 +405,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                         />
                         <button
                           type="button"
-                          className={styles.priorityStepButton}
+                          className={refreshStyles.priorityStepButton}
                           onMouseDown={preventBlur}
                           onClick={handleStepIncrement}
                           disabled={priorityControlsDisabled}
@@ -417,37 +416,36 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                         </button>
                       </div>
                     ) : (
-                      <span className={`${styles.metaValue} ${styles.priorityValue}`}>
+                      <span className={refreshStyles.priorityValue}>
                         {priorityValue}
                       </span>
                     )}
                   </div>
                 </div>
               ) : null}
-
             </div>
 
             {noteValue && (
-              <div className={`${styles.noteText} ${styles.authCardNote}`} title={noteValue}>
-                <span className={styles.noteLabel}>{t('auth_files.note_display')}</span>
-                <span className={styles.noteValue}>{noteValue}</span>
+              <div className={refreshStyles.cardNote} title={noteValue}>
+                <span className={refreshStyles.noteLabel}>{t('auth_files.note_display')}</span>
+                <span className={refreshStyles.noteValue}>{noteValue}</span>
               </div>
             )}
           </div>
         </header>
 
-        <section className={styles.authCardMetrics}>
-          <div className={styles.authCardHealthPanel}>
-            <div className={styles.authCardMetricHeader}>
-              <span className={styles.authCardMetricTitle}>
+        <section className={refreshStyles.metricsPanel}>
+          <div className={refreshStyles.healthPanel}>
+            <div className={refreshStyles.metricHeader}>
+              <span className={refreshStyles.metricTitle}>
                 {t('auth_files.health_status_label')}
               </span>
               {hasAuthFileBadges && (
-                <div className={`${styles.authCardMetaRail} ${styles.authCardMetricBadges}`}>
-                  <div className={styles.authCardBadgeGroup}>
+                <div className={refreshStyles.metricBadges}>
+                  <div className={refreshStyles.badgeGroup}>
                     {hasRefreshToken && (
                       <span
-                        className={styles.refreshTokenBadge}
+                        className={refreshStyles.refreshTokenBadge}
                         title={t('auth_files.refresh_token_badge')}
                         role="img"
                         aria-label={t('auth_files.refresh_token_badge')}
@@ -457,13 +455,13 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     )}
                     {websocketsEnabled && (
                       <span
-                        className={`${styles.featureBadge} ${styles.featureBadgeEnabled} ${styles.featureBadgeIconOnly}`}
+                        className={`${refreshStyles.featureBadge} ${refreshStyles.featureBadgeEnabled} ${refreshStyles.featureBadgeIconOnly}`}
                         title={t('ai_providers.codex_websockets_hint')}
                         role="img"
                         aria-label={t('auth_files.websockets_enabled_badge')}
                       >
                         <IconSatellite
-                          className={styles.authCardFeatureIcon}
+                          className={refreshStyles.featureIcon}
                           size={13}
                           aria-hidden="true"
                         />
@@ -471,7 +469,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     )}
                     {serviceTierPassthroughBadgeLabel && (
                       <span
-                        className={`${styles.featureBadge} ${styles.featureBadgeFast}`}
+                        className={`${refreshStyles.featureBadge} ${refreshStyles.featureBadgeFast}`}
                         title={t('auth_files.service_tier_passthrough_hint')}
                       >
                         {serviceTierPassthroughBadgeLabel}
@@ -480,27 +478,24 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </div>
                 </div>
               )}
-              <span className={styles.authCardTokenMetric} title={tokenExactLabel}>
-                <IconChartLine
-                  className={styles.authCardTokenIcon}
-                  size={13}
-                  aria-hidden="true"
-                />
-                <strong className={styles.authCardTokenValue}>{tokenDisplay}</strong>
+              <span className={refreshStyles.tokenMetric} title={tokenExactLabel}>
+                <IconChartLine className={refreshStyles.tokenIcon} size={13} aria-hidden="true" />
+                <strong className={refreshStyles.tokenValue}>{tokenDisplay}</strong>
               </span>
             </div>
-            <ProviderStatusBar statusData={statusData} styles={styles} interactionMode="summary" />
+            <ProviderStatusBar
+              statusData={statusData}
+              styles={refreshStyles}
+              interactionMode="summary"
+            />
           </div>
 
           {showQuotaLayout && quotaType && (
-            <div className={styles.authCardQuotaSlot}>
+            <div className={refreshStyles.quotaSlot}>
               <Suspense
                 fallback={
-                  <div
-                    className={`${styles.quotaSection} ${styles.authCardQuota}`}
-                    aria-hidden="true"
-                  >
-                    <div className={styles.quotaContent} />
+                  <div className={refreshStyles.quotaSection} aria-hidden="true">
+                    <div className={refreshStyles.quotaContent} />
                   </div>
                 }
               >
@@ -515,125 +510,112 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           )}
         </section>
 
-        <footer className={styles.authCardFooter}>
-          <div className={styles.authCardFooterMain}>
-            {!isRuntimeOnly && (
-              <div className={styles.authCardStatusControl}>
-                <div className={styles.statusToggle}>
-                  <ToggleSwitch
-                    ariaLabel={t('auth_files.status_toggle_label')}
-                    checked={!file.disabled}
-                    className={`${styles.cardToggleSwitch} ${styles.authCardToggleSwitch}`}
-                    disabled={disableControls || statusUpdating}
-                    label={t('auth_files.status_toggle_label')}
-                    labelInside
-                    onChange={handleToggleStatus}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className={styles.authCardPrimaryActions}>
+        <footer className={refreshStyles.cardFooter}>
+          <div className={refreshStyles.cardFooterMain}>
+            <div className={refreshStyles.cardFooterLeft}>
               {!isRuntimeOnly && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleOpenPrefixProxy}
-                  className={styles.authCardActionButton}
-                  title={t('auth_files.prefix_proxy_button')}
-                  aria-label={t('auth_files.prefix_proxy_button')}
-                  disabled={disableControls}
-                >
-                  <IconSettings
-                    className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
-                    size={18}
-                  />
-                </Button>
-              )}
-              {!isRuntimeOnly && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleCopyAccessToken}
-                  className={styles.authCardActionButton}
-                  title={t('auth_files.access_token_copy')}
-                  aria-label={t('auth_files.access_token_copy')}
-                  disabled={disableControls || accessTokenCopying}
-                >
-                  {accessTokenCopying ? (
-                    <LoadingSpinner size={18} />
-                  ) : (
-                    <IconKey
-                      className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
-                      size={18}
+                <div className={refreshStyles.cardStatusControl}>
+                  <div className={refreshStyles.cardStatusToggle}>
+                    <ToggleSwitch
+                      ariaLabel={t('auth_files.status_toggle_label')}
+                      checked={!file.disabled}
+                      className={refreshStyles.cardToggleSwitch}
+                      disabled={disableControls || statusUpdating}
+                      label={t('auth_files.status_toggle_label')}
+                      labelInside
+                      onChange={handleToggleStatus}
                     />
-                  )}
-                </Button>
+                  </div>
+                </div>
               )}
-              {showModelsButton && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleShowModels}
-                  className={styles.authCardActionButton}
-                  title={t('auth_files.models_button')}
-                  aria-label={t('auth_files.models_button')}
-                  disabled={disableControls}
-                >
-                  <IconModelCluster
-                    className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
-                    size={18}
-                  />
-                </Button>
-              )}
-              {!isRuntimeOnly && (
-                <div className={styles.authCardUtilityActions}>
+
+              <div className={refreshStyles.cardActions}>
+                {!isRuntimeOnly && (
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={handleDownload}
-                    className={styles.authCardActionButton}
-                    title={t('auth_files.download_button')}
-                    aria-label={t('auth_files.download_button')}
+                    onClick={handleOpenPrefixProxy}
+                    className={refreshStyles.cardActionButton}
+                    title={t('auth_files.prefix_proxy_button')}
+                    aria-label={t('auth_files.prefix_proxy_button')}
                     disabled={disableControls}
                   >
-                    <IconDownload
-                      className={`${styles.actionIcon} ${styles.authCardActionIcon}`}
-                      size={18}
-                    />
+                    <IconSettings className={refreshStyles.cardActionIcon} size={18} />
                   </Button>
+                )}
+                {!isRuntimeOnly && (
                   <Button
-                    variant="danger"
+                    variant="secondary"
                     size="sm"
-                    onClick={handleDelete}
-                    className={styles.authCardActionButton}
-                    title={t('auth_files.delete_button')}
-                    aria-label={t('auth_files.delete_button')}
-                    disabled={disableControls || deleting}
+                    onClick={handleCopyAccessToken}
+                    className={refreshStyles.cardActionButton}
+                    title={t('auth_files.access_token_copy')}
+                    aria-label={t('auth_files.access_token_copy')}
+                    disabled={disableControls || accessTokenCopying}
                   >
-                    {deleting ? (
+                    {accessTokenCopying ? (
                       <LoadingSpinner size={18} />
                     ) : (
-                      <IconTrash2
-                        className={styles.actionIcon}
-                        size={18}
-                      />
+                      <IconKey className={refreshStyles.cardActionIcon} size={18} />
                     )}
                   </Button>
-                </div>
-              )}
+                )}
+                {showModelsButton && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleShowModels}
+                    className={refreshStyles.cardActionButton}
+                    title={t('auth_files.models_button')}
+                    aria-label={t('auth_files.models_button')}
+                    disabled={disableControls}
+                  >
+                    <IconModelCluster className={refreshStyles.cardActionIcon} size={18} />
+                  </Button>
+                )}
+                {!isRuntimeOnly && (
+                  <div className={refreshStyles.cardUtilityActions}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleDownload}
+                      className={refreshStyles.cardActionButton}
+                      title={t('auth_files.download_button')}
+                      aria-label={t('auth_files.download_button')}
+                      disabled={disableControls}
+                    >
+                      <IconDownload className={refreshStyles.cardActionIcon} size={18} />
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={handleDelete}
+                      className={refreshStyles.cardActionButton}
+                      title={t('auth_files.delete_button')}
+                      aria-label={t('auth_files.delete_button')}
+                      disabled={disableControls || deleting}
+                    >
+                      {deleting ? (
+                        <LoadingSpinner size={18} />
+                      ) : (
+                        <IconTrash2 className={refreshStyles.cardActionIcon} size={18} />
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {!isRuntimeOnly && showQuotaLayout && quotaType && (
-              <div className={styles.authCardRefresh}>
+              <div className={refreshStyles.cardRefresh}>
                 <Suspense fallback={null}>
                   <AuthFileQuotaRefreshButton
                     file={file}
                     quotaType={quotaType}
                     disableControls={disableControls}
                     onAuthFileUpdated={onAuthFileUpdated}
-                    className={`${styles.authCardActionButton} ${styles.authCardRefreshButton}`}
-                    iconClassName={`${styles.actionIcon} ${styles.authCardActionIcon}`}
+                    className={`${refreshStyles.cardActionButton} ${refreshStyles.cardRefreshButton}`}
+                    iconClassName={refreshStyles.cardActionIcon}
                     iconSize={18}
                   />
                 </Suspense>

@@ -19,7 +19,7 @@ export function formatQuotaResetTime(value?: string): string {
   });
 }
 
-export function formatUnixSeconds(value: number | null): string {
+function formatUnixSeconds(value: number | null): string {
   if (!value) return '-';
   const date = new Date(value * 1000);
   if (Number.isNaN(date.getTime())) return '-';

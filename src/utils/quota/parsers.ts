@@ -2,11 +2,8 @@
  * Normalization and parsing functions for quota data.
  */
 
-import type { ClaudeUsagePayload, CodexUsagePayload, KimiUsagePayload } from '@/types';
-import { normalizeAuthIndex } from '@/utils/usage';
+import type { ClaudeUsagePayload, KimiUsagePayload } from '@/types';
 import { QUOTA_PROGRESS_HIGH_THRESHOLD, QUOTA_PROGRESS_MEDIUM_THRESHOLD } from './constants';
-
-export { normalizeAuthIndex };
 
 export function normalizeStringValue(value: unknown): string | null {
   if (typeof value === 'string') {
@@ -46,20 +43,6 @@ export function normalizeUnixTimestampSeconds(value: unknown): number | null {
   return Number.isNaN(parsed) ? null : Math.floor(parsed / 1000);
 }
 
-export function normalizeQuotaFraction(value: unknown): number | null {
-  const normalized = normalizeNumberValue(value);
-  if (normalized !== null) return normalized;
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    if (trimmed.endsWith('%')) {
-      const parsed = Number(trimmed.slice(0, -1));
-      return Number.isFinite(parsed) ? parsed / 100 : null;
-    }
-  }
-  return null;
-}
-
 export type QuotaProgressLevel = 'high' | 'medium' | 'low' | 'unknown';
 
 export function normalizeQuotaProgressPercent(value: number | null): number | null {
@@ -84,7 +67,7 @@ export function normalizePlanType(value: unknown): string | null {
   return normalized ? normalized.toLowerCase() : null;
 }
 
-export function decodeBase64UrlPayload(value: string): string | null {
+function decodeBase64UrlPayload(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
   try {
@@ -159,23 +142,6 @@ export function parseClaudeUsagePayload(payload: unknown): ClaudeUsagePayload | 
   }
   if (typeof payload === 'object') {
     return payload as ClaudeUsagePayload;
-  }
-  return null;
-}
-
-export function parseCodexUsagePayload(payload: unknown): CodexUsagePayload | null {
-  if (payload === undefined || payload === null) return null;
-  if (typeof payload === 'string') {
-    const trimmed = payload.trim();
-    if (!trimmed) return null;
-    try {
-      return JSON.parse(trimmed) as CodexUsagePayload;
-    } catch {
-      return null;
-    }
-  }
-  if (typeof payload === 'object') {
-    return payload as CodexUsagePayload;
   }
   return null;
 }

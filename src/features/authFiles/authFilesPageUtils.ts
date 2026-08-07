@@ -1,17 +1,15 @@
 import type { KeyUsageBucket } from '@/utils/usage';
 import {
+  isRuntimeOnlyAuthFile,
+  resolveQuotaProviderType,
   normalizePlanType,
-  resolveAuthProvider,
   resolveCodexPlanType,
   resolveCodexSubscriptionActiveUntil,
 } from '@/utils/quota';
 import {
-  QUOTA_PROVIDER_TYPES,
-  isRuntimeOnlyAuthFile,
   normalizeProviderKey,
   parsePriorityValue,
   type AuthFileUsageBucketCache,
-  type QuotaProviderType,
 } from '@/features/authFiles/constants';
 import type { AuthFilePlanSources } from '@/features/authFiles/planMetadata';
 import type { AuthFileQuotaRefreshTarget } from '@/features/authFiles/quotaRefresh';
@@ -81,10 +79,10 @@ export const EMPTY_SORT_SNAPSHOT: Record<string, AuthFileSortSnapshot> = {};
 const resolveQuotaRefreshTarget = (file: AuthFileItem): AuthFileQuotaRefreshTarget | null => {
   if (isRuntimeOnlyAuthFile(file) || file.disabled) return null;
 
-  const provider = resolveAuthProvider(file);
-  if (!QUOTA_PROVIDER_TYPES.has(provider as QuotaProviderType)) return null;
+  const quotaType = resolveQuotaProviderType(file);
+  if (!quotaType) return null;
 
-  return { file, quotaType: provider as QuotaProviderType };
+  return { file, quotaType };
 };
 
 export const resolveQuotaRefreshTargets = (

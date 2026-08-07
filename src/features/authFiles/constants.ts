@@ -5,47 +5,34 @@ import iconGrok from '@/assets/icons/grok.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
-import type { AuthFileItem } from '@/types';
+import type { AuthFileItem, ResolvedTheme, ThemeColors, TypeColorSet } from '@/types';
 import { hasAuthFileRequestStats, readAuthFileRequestStats } from '@/features/authFiles/stats';
 import {
   normalizeAuthIndex,
   normalizeUsageSourceId,
-  type KeyStatBucket,
-  type KeyStats,
   type KeyUsageBucket,
   type KeyUsageStats,
 } from '@/utils/usage';
+import { getPathBasename } from '@/utils/path';
 
-export type ThemeColors = { bg: string; text: string; border?: string };
-export type TypeColorSet = { light: ThemeColors; dark?: ThemeColors };
-export type ResolvedTheme = 'light' | 'dark';
 export type AuthFileModelItem = {
   id: string;
   display_name?: string;
   type?: string;
   owned_by?: string;
 };
-export type AuthFileIconAsset = string | { light: string; dark: string };
-
-export type QuotaProviderType = 'claude' | 'codex' | 'kimi';
-
-export const QUOTA_PROVIDER_TYPES = new Set<QuotaProviderType>([
-  'claude',
-  'codex',
-  'kimi',
-]);
+type AuthFileIconAsset = string | { light: string; dark: string };
 
 export const MIN_CARD_PAGE_SIZE = 3;
 export const MAX_CARD_PAGE_SIZE = 30;
-export const AUTH_FILE_REFRESH_WARNING_MS = 24 * 60 * 60 * 1000;
 
-export const INTEGER_STRING_PATTERN = /^[+-]?\d+$/;
-export const TRUTHY_TEXT_VALUES = new Set(['true', '1', 'yes', 'y', 'on']);
-export const FALSY_TEXT_VALUES = new Set(['false', '0', 'no', 'n', 'off']);
+const INTEGER_STRING_PATTERN = /^[+-]?\d+$/;
+const TRUTHY_TEXT_VALUES = new Set(['true', '1', 'yes', 'y', 'on']);
+const FALSY_TEXT_VALUES = new Set(['false', '0', 'no', 'n', 'off']);
 
 // 标签类型颜色配置 — 基于各提供商 Logo 品牌色调配，确保彼此不重复
 // 优化策略：light 使用清亮浅底 + 高对比文字；dark 使用深色底 + 明亮品牌色文字
-export const TYPE_COLORS: Record<string, TypeColorSet> = {
+const TYPE_COLORS: Record<string, TypeColorSet> = {
   // Qwen logo: 紫罗兰渐变 #6336E7 → #6F69F7
   qwen: {
     light: { bg: '#f5f3ff', text: '#7c3aed' },
@@ -81,7 +68,7 @@ export const TYPE_COLORS: Record<string, TypeColorSet> = {
   },
 };
 
-export const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
+const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
   claude: iconClaude,
   codex: iconCodex,
   kimi: { light: iconKimiLight, dark: iconKimiDark },
@@ -104,7 +91,7 @@ export const resolveQuotaErrorMessage = (
 
 export const normalizeProviderKey = (value: string) => value.trim().toLowerCase();
 
-export const getAuthFileStatusMessage = (file: AuthFileItem): string => {
+const getAuthFileStatusMessage = (file: AuthFileItem): string => {
   const raw = file['status_message'] ?? file.statusMessage;
   if (typeof raw === 'string') return raw.trim();
   if (raw == null) return '';
@@ -233,13 +220,6 @@ export const applyCodexAuthFileServiceTierPassthrough = (
   return next;
 };
 
-export function isRuntimeOnlyAuthFile(file: AuthFileItem): boolean {
-  const raw = file['runtime_only'] ?? file.runtimeOnly;
-  if (typeof raw === 'boolean') return raw;
-  if (typeof raw === 'string') return raw.trim().toLowerCase() === 'true';
-  return false;
-}
-
 type AuthFileMatchedBucket = { success: number; failure: number };
 
 const hasAuthFileMatchData = (bucket: AuthFileMatchedBucket) =>
@@ -259,13 +239,6 @@ const readAuthFileString = (file: AuthFileItem, ...keys: Array<keyof AuthFileIte
   return '';
 };
 
-const authFilePathBasename = (value: string) => {
-  const normalized = value.trim();
-  if (!normalized) return '';
-  const parts = normalized.split(/[\\/]+/).filter(Boolean);
-  return parts.length > 0 ? parts[parts.length - 1] : normalized;
-};
-
 export const authFileUsageSourceCandidates = (file: AuthFileItem): string[] => {
   const rawPath = readAuthFileString(file, 'path');
   const candidates = [
@@ -274,7 +247,7 @@ export const authFileUsageSourceCandidates = (file: AuthFileItem): string[] => {
     readAuthFileString(file, 'name'),
     readAuthFileString(file, 'id'),
     rawPath,
-    authFilePathBasename(rawPath),
+    getPathBasename(rawPath),
     readAuthFileString(file, 'email'),
     readAuthFileString(file, 'account'),
     readAuthFileString(file, 'account_id', 'accountId', 'chatgpt_account_id', 'chatgptAccountId'),
@@ -333,16 +306,6 @@ const resolveAuthFileBucket = <T extends AuthFileMatchedBucket>(
   return defaultStats;
 };
 
-export function resolveAuthFileStats(file: AuthFileItem, stats: KeyStats): KeyStatBucket {
-  const matched = resolveAuthFileBucket(file, stats, { success: 0, failure: 0 });
-  if (hasAuthFileMatchData(matched)) {
-    return matched;
-  }
-
-  const listStats = readAuthFileRequestStats(file);
-  return hasAuthFileRequestStats(listStats) ? listStats : matched;
-}
-
 export type AuthFileUsageBucketCache = WeakMap<
   AuthFileItem,
   { stats: KeyUsageStats; bucket: KeyUsageBucket }
@@ -380,17 +343,10 @@ function computeAuthFileUsageStats(file: AuthFileItem, stats: KeyUsageStats): Ke
       totalCost: 0,
       pricedRequests: 0,
     },
-    (bucket) =>
-      bucket.success > 0 ||
-      bucket.failure > 0 ||
-      bucket.totalTokens > 0
+    (bucket) => bucket.success > 0 || bucket.failure > 0 || bucket.totalTokens > 0
   );
 
-  if (
-    matched.success > 0 ||
-    matched.failure > 0 ||
-    matched.totalTokens > 0
-  ) {
+  if (matched.success > 0 || matched.failure > 0 || matched.totalTokens > 0) {
     return matched;
   }
 
@@ -399,24 +355,6 @@ function computeAuthFileUsageStats(file: AuthFileItem, stats: KeyUsageStats): Ke
     ? { ...matched, success: listStats.success, failure: listStats.failure }
     : matched;
 }
-
-export const formatAuthFileDate = (raw: unknown): string => {
-  if (!raw) return '-';
-  const asNumber = Number(raw);
-  const date =
-    Number.isFinite(asNumber) && !Number.isNaN(asNumber)
-      ? new Date(asNumber < 1e12 ? asNumber * 1000 : asNumber)
-      : new Date(String(raw));
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
-};
-
-export const formatModified = (item: AuthFileItem): string => {
-  return formatAuthFileDate(item['modtime'] ?? item.modified);
-};
-
-export const formatLastRefresh = (item: AuthFileItem): string => {
-  return formatAuthFileDate(item['last_refresh'] ?? item.lastRefresh ?? item['last_refreshed_at']);
-};
 
 // 检查模型是否被 OAuth 排除
 export const isModelExcluded = (

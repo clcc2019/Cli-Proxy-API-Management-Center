@@ -13,19 +13,19 @@ import {
   authFilesApi,
   getAuthFilesListOptionsKey,
   getAuthFilesTypeCountsKey,
+  normalizeAuthFileDeleteAliases,
   type AuthFilesListOptions,
 } from '@/services/api';
 import { apiClient } from '@/services/api/client';
 import { useNotificationStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import { formatFileSize } from '@/utils/format';
+import { getPathBasename } from '@/utils/path';
 import { AUTH_FILES_REFRESH_EVENT, MAX_AUTH_FILE_SIZE } from '@/utils/constants';
 import { downloadBlob } from '@/utils/download';
-import {
-  getTypeLabel,
-  hasAuthFileStatusMessage,
-  isRuntimeOnlyAuthFile,
-} from '@/features/authFiles/constants';
+import { isRuntimeOnlyAuthFile } from '@/utils/quota';
+import { getTypeLabel, hasAuthFileStatusMessage } from '@/features/authFiles/constants';
+import { readAuthFileNumericCount } from '@/features/authFiles/stats';
 
 const normalizeDeleteAuthIndex = (value: unknown): string | number | null => {
   if (typeof value === 'string') return value.trim() || null;
@@ -38,13 +38,6 @@ const normalizeDeleteText = (value: unknown): string | null => {
   return value.trim() || null;
 };
 
-const basenameFromPath = (value: string): string => {
-  const normalized = value.trim();
-  if (!normalized) return '';
-  const parts = normalized.split(/[\\/]+/).filter(Boolean);
-  return parts.length > 0 ? parts[parts.length - 1] : normalized;
-};
-
 const getAuthFileDeleteIdentifiers = (file: AuthFileItem): string[] => {
   const path = normalizeDeleteText(file.path);
   const candidates = [
@@ -55,16 +48,9 @@ const getAuthFileDeleteIdentifiers = (file: AuthFileItem): string[] => {
     file['auth_index'],
     file.authIndex,
     path,
-    path ? basenameFromPath(path) : null,
+    path ? getPathBasename(path) : null,
   ];
-  const seen = new Set<string>();
-  return candidates.reduce<string[]>((result, value) => {
-    const normalized = String(value ?? '').trim();
-    if (!normalized || seen.has(normalized)) return result;
-    seen.add(normalized);
-    result.push(normalized);
-    return result;
-  }, []);
+  return normalizeAuthFileDeleteAliases(candidates);
 };
 
 const authFileMatchesDeletedIdentifiers = (file: AuthFileItem, deletedSet: Set<string>): boolean =>
@@ -100,6 +86,35 @@ export type AuthFilesListMeta = {
   typeCountsKey?: string;
 };
 
+const areRecentRequestBucketsEqual = (left: unknown, right: unknown): boolean => {
+  if (left === right) return true;
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) return false;
+
+  return left.every((entry, index) => {
+    const other = right[index];
+    if (!entry || typeof entry !== 'object' || !other || typeof other !== 'object') {
+      return entry === other;
+    }
+
+    const bucket = entry as Record<string, unknown>;
+    const otherBucket = other as Record<string, unknown>;
+    return (
+      readAuthFileNumericCount(bucket.success) === readAuthFileNumericCount(otherBucket.success) &&
+      readAuthFileNumericCount(bucket.failed ?? bucket.failure) ===
+        readAuthFileNumericCount(otherBucket.failed ?? otherBucket.failure) &&
+      bucket.time === otherBucket.time
+    );
+  });
+};
+
+const areAuthFileFieldValuesEqual = (key: string, left: unknown, right: unknown): boolean => {
+  if (Object.is(left, right)) return true;
+  if (key === 'recent_requests' || key === 'recentRequests') {
+    return areRecentRequestBucketsEqual(left, right);
+  }
+  return false;
+};
+
 const areRecordValuesShallowEqual = (
   left: Record<string, unknown> | undefined,
   right: Record<string, unknown> | undefined
@@ -111,7 +126,7 @@ const areRecordValuesShallowEqual = (
   const rightKeys = Object.keys(right);
   if (leftKeys.length !== rightKeys.length) return false;
 
-  return leftKeys.every((key) => Object.is(left[key], right[key]));
+  return leftKeys.every((key) => areAuthFileFieldValuesEqual(key, left[key], right[key]));
 };
 
 const areAuthFileItemsShallowEqual = (left: AuthFileItem, right: AuthFileItem): boolean =>
@@ -201,10 +216,7 @@ export type UseAuthFilesDataResult = {
   batchStatusUpdating: boolean;
   listMeta: AuthFilesListMeta;
   fileInputRef: RefObject<HTMLInputElement | null>;
-  loadFiles: (
-    overrideOptions?: Partial<AuthFilesListOptions>,
-    behaviorOptions?: LoadFilesBehaviorOptions
-  ) => Promise<void>;
+  loadFiles: (overrideOptions?: Partial<AuthFilesListOptions>) => Promise<void>;
   refreshFilesFromServer: (force?: boolean) => Promise<void>;
   handleUploadClick: () => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;

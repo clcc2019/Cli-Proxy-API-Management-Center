@@ -1,17 +1,12 @@
 import { memo, useCallback, useMemo, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconFilterAll } from '@/components/ui/icons';
-import {
-  getAuthFileIcon,
-  getTypeColor,
-  getTypeLabel,
-  type ResolvedTheme,
-} from '@/features/authFiles/constants';
-import styles from '@/pages/AuthFilesPage.module.scss';
+import type { ResolvedTheme } from '@/types';
+import { getAuthFileIcon, getTypeColor, getTypeLabel } from '@/features/authFiles/constants';
+import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 const ALL_FILTER_STYLE = {
-  '--filter-color': 'var(--text-primary)',
-  '--filter-surface': 'var(--bg-tertiary)',
+  '--filter-color': 'var(--mg-text)',
 } as CSSProperties;
 
 export interface FilterTagsRailProps {
@@ -45,31 +40,31 @@ const FilterTagButton = memo(function FilterTagButton({
   return (
     <button
       type="button"
-      className={`${styles.filterTag} ${active ? styles.filterTagActive : ''}`}
+      className={`${refreshStyles.providerTab} ${active ? refreshStyles.providerTabActive : ''}`}
       style={style}
       // 选中态此前仅靠配色与 2px 下划线表达，读屏器无法感知当前筛选项。
       aria-pressed={active}
       onClick={handleClick}
     >
-      <span className={styles.filterTagLabel}>
+      <span className={refreshStyles.providerTabLabel}>
         {type === 'all' ? (
-          <span className={`${styles.filterTagIconWrap} ${styles.filterAllIconWrap}`}>
-            <IconFilterAll className={styles.filterAllIcon} size={16} />
+          <span className={refreshStyles.providerTabIconBox}>
+            <IconFilterAll className={refreshStyles.providerTabIcon} size={15} />
           </span>
         ) : (
-          <span className={styles.filterTagIconWrap}>
+          <span className={refreshStyles.providerTabIconBox}>
             {iconSrc ? (
-              <img src={iconSrc} alt="" className={styles.filterTagIcon} />
+              <img src={iconSrc} alt="" className={refreshStyles.providerTabIcon} />
             ) : (
-              <span className={styles.filterTagIconFallback}>
+              <span className={refreshStyles.providerTabFallback}>
                 {label.slice(0, 1).toUpperCase()}
               </span>
             )}
           </span>
         )}
-        <span className={styles.filterTagText}>{label}</span>
+        <span className={refreshStyles.providerTabText}>{label}</span>
       </span>
-      <span className={styles.filterTagCount}>{count}</span>
+      <span className={refreshStyles.providerTabCount}>{count}</span>
     </button>
   );
 });
@@ -103,7 +98,6 @@ export const FilterTagsRail = memo(function FilterTagsRail({
   onSelect,
 }: FilterTagsRailProps) {
   const { t } = useTranslation();
-  const activeTextColor = resolvedTheme === 'dark' ? '#111827' : '#ffffff';
 
   // 按 type 预计算稳定的 label/icon/color/style，避免每次渲染对每个 tag
   // 重新构造对象/调用查找，否则 FilterTagButton 的 style prop 引用每次都变 → memo 失效。
@@ -125,17 +119,18 @@ export const FilterTagsRail = memo(function FilterTagsRail({
           iconSrc: getAuthFileIcon(type, resolvedTheme),
           style: {
             '--filter-color': color.text,
-            '--filter-surface': color.bg,
-            '--filter-active-text': activeTextColor,
           } as CSSProperties,
         };
       }),
-    [types, resolvedTheme, t, activeTextColor]
+    [types, resolvedTheme, t]
   );
 
   return (
-    <nav className={styles.filterRail} aria-label={t('auth_files.provider_filter_label')}>
-      <div className={styles.filterTags}>
+    <nav
+      className={refreshStyles.providerRail}
+      aria-label={t('auth_files.provider_filter_label')}
+    >
+      <div className={refreshStyles.providerTags}>
         {tags.map((tag) => (
           <FilterTagButton
             key={tag.type}

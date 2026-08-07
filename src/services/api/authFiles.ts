@@ -5,6 +5,7 @@
 import { apiClient, type ApiRequestConfig } from './client';
 import type { AuthFilesResponse } from '@/types/authFile';
 import { normalizeOAuthReasoningEffort } from '@/utils/oauthModelAlias';
+import { getPathBasename } from '@/utils/path';
 import type {
   CodexRateLimitResetConsumePayload,
   CodexRateLimitResetCreditsPayload,
@@ -82,7 +83,7 @@ export type AuthFilesListOptions = {
   premiumOnly?: boolean;
 };
 
-export const AUTH_FILE_INVALID_JSON_OBJECT_ERROR = 'AUTH_FILE_INVALID_JSON_OBJECT';
+const AUTH_FILE_INVALID_JSON_OBJECT_ERROR = 'AUTH_FILE_INVALID_JSON_OBJECT';
 
 const AUTH_FILE_CREDENTIAL_REQUEST_CONFIG: ApiRequestConfig = {
   skipUnauthorizedLogout: true,
@@ -168,20 +169,16 @@ const normalizeRequestedAuthFileNames = (names: string[]): string[] => {
 
 const normalizeDeleteIdentifier = (value: unknown): string => String(value ?? '').trim();
 
-const basenameFromPath = (value: string): string => {
-  const normalized = value.trim();
-  if (!normalized) return '';
-  const parts = normalized.split(/[\\/]+/).filter(Boolean);
-  return parts.length > 0 ? parts[parts.length - 1] : normalized;
-};
+export const normalizeAuthFileDeleteAliases = (candidates: unknown[]): string[] =>
+  normalizeRequestedAuthFileNames(candidates.map(normalizeDeleteIdentifier));
 
 const deleteTargetAliases = (target: AuthFileDeleteTarget): string[] => {
   const candidates = [target.authIndex, target.id, target.path, target.fileName, target.name];
-  const pathBase = basenameFromPath(normalizeDeleteIdentifier(target.path));
+  const pathBase = getPathBasename(normalizeDeleteIdentifier(target.path));
   if (pathBase) {
     candidates.push(pathBase);
   }
-  return normalizeRequestedAuthFileNames(candidates.map(normalizeDeleteIdentifier));
+  return normalizeAuthFileDeleteAliases(candidates);
 };
 
 const normalizeAuthFileDeleteTargets = (targets: Array<string | AuthFileDeleteTarget>) => {
@@ -544,9 +541,6 @@ const saveAuthFileText = async (name: string, text: string) => {
   const file = new File([text], name, { type: 'application/json' });
   await authFilesApi.upload(file);
 };
-
-export const isAuthFileInvalidJsonObjectError = (err: unknown): boolean =>
-  err instanceof Error && err.message === AUTH_FILE_INVALID_JSON_OBJECT_ERROR;
 
 const normalizeOauthExcludedModels = (payload: unknown): Record<string, string[]> => {
   if (!payload || typeof payload !== 'object') return {};

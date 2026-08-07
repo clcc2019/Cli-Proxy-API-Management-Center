@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { getQuotaProgressLevel, normalizeQuotaProgressPercent } from '@/utils/quota';
-import styles from '@/pages/AuthFilesPage.module.scss';
+import styles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 export type QuotaProgressBarProps = {
   percent: number | null;
@@ -22,9 +22,11 @@ export const QuotaProgressBar = memo(function QuotaProgressBar({
   const fillClass =
     progressLevel === 'high'
       ? styles.quotaBarFillHigh
-      : progressLevel === 'medium' || progressLevel === 'unknown'
+      : progressLevel === 'medium'
         ? styles.quotaBarFillMedium
-        : styles.quotaBarFillLow;
+        : progressLevel === 'low'
+          ? styles.quotaBarFillLow
+          : styles.quotaBarFillUnknown;
   const widthPercent = Math.round(normalized ?? 0);
   const ariaValue = normalized === null ? undefined : Math.round(normalized);
   const fillStyle = useMemo(

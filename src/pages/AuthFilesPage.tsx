@@ -18,8 +18,9 @@ import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } fr
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
+import { IconCheck, IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
+import { isQuotaProviderType, type QuotaProviderType } from '@/utils/quota';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 import { normalizeAuthIndex, type KeyUsageBucket } from '@/utils/usage';
 import {
@@ -31,14 +32,11 @@ import {
 import {
   MAX_CARD_PAGE_SIZE,
   MIN_CARD_PAGE_SIZE,
-  QUOTA_PROVIDER_TYPES,
   clampCardPageSize,
   getTypeLabel,
   hasAuthFileStatusMessage,
   normalizeProviderKey,
   resolveAuthFileUsageStats,
-  type QuotaProviderType,
-  type ResolvedTheme,
 } from '@/features/authFiles/constants';
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
 import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
@@ -97,8 +95,9 @@ import {
   type AuthFilesUiState,
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
-import type { AuthFileItem } from '@/types';
+import type { AuthFileItem, ResolvedTheme } from '@/types';
 import styles from './AuthFilesPage.module.scss';
+import refreshStyles from './AuthFilesPageRefresh.module.scss';
 
 const AuthFileModelsModal = lazy(() =>
   import('@/features/authFiles/components/AuthFileModelsModal').then((module) => ({
@@ -235,12 +234,12 @@ export function AuthFilesPage() {
       // Keep premiumOnly out of this request. The backend only has the auth-file
       // snapshot, while the Plus/Pro badge also incorporates the latest quota
       // data stored on the client.
-      return { codexSubscription: 'cache', summary: true, includeRecentRequests: false };
+      return { codexSubscription: 'cache', summary: true, includeRecentRequests: true };
     }
     return {
       codexSubscription: 'cache',
       summary: true,
-      includeRecentRequests: false,
+      includeRecentRequests: true,
       page: serverListPage,
       pageSize: serverListPageSize,
       search: serverListSearch,
@@ -404,10 +403,8 @@ export function AuthFilesPage() {
   const claudeQuota = useQuotaStore(selectClaudeQuotaForPlanSources);
   const codexQuota = useQuotaStore(selectCodexQuotaForPlanSources);
   const normalizedFilter = normalizeProviderKey(String(filter));
-  const quotaFilterType: QuotaProviderType | null = QUOTA_PROVIDER_TYPES.has(
-    normalizedFilter as QuotaProviderType
-  )
-    ? (normalizedFilter as QuotaProviderType)
+  const quotaFilterType: QuotaProviderType | null = isQuotaProviderType(normalizedFilter)
+    ? normalizedFilter
     : null;
   const planSources = useMemo<AuthFilePlanSources>(
     () => ({
@@ -484,7 +481,7 @@ export function AuthFilesPage() {
     setManualRefreshPending(true);
     try {
       await Promise.allSettled([
-        loadFiles({ codexSubscription: 'cache' }),
+        refreshFilesFromServer(true),
         refreshKeyStats(),
         loadExcluded(),
         loadModelAlias(),
@@ -495,7 +492,7 @@ export function AuthFilesPage() {
         setManualRefreshPending(false);
       }
     }
-  }, [loadFiles, refreshKeyStats, loadExcluded, loadModelAlias]);
+  }, [loadExcluded, loadModelAlias, refreshFilesFromServer, refreshKeyStats]);
 
   const handleToggleProblemOnly = useCallback(() => {
     captureAuthFileGridLayout();
@@ -833,11 +830,7 @@ export function AuthFilesPage() {
     return displayFilterSnapshotForRender.names
       .map((name) => fileByName.get(name))
       .filter((file): file is AuthFileItem => Boolean(file));
-  }, [
-    currentFilesMatchingDisplayFilters,
-    displayFilterSnapshotForRender,
-    fileByName,
-  ]);
+  }, [currentFilesMatchingDisplayFilters, displayFilterSnapshotForRender, fileByName]);
 
   const sortOptions = useMemo(
     () => [
@@ -1286,7 +1279,6 @@ export function AuthFilesPage() {
       if (!pageMountedRef.current) return;
       if (result.authFiles.length > 0) {
         applyLocalFileUpdates(result.authFiles);
-        await refreshFilesFromServer();
       }
       if (!pageMountedRef.current) return;
 
@@ -1313,7 +1305,6 @@ export function AuthFilesPage() {
     loading,
     pageItems.length,
     pageQuotaRefreshItems,
-    refreshFilesFromServer,
     showNotification,
     t,
   ]);
@@ -1459,15 +1450,20 @@ export function AuthFilesPage() {
 
   const titleNode = useMemo(
     () => (
-      <div className={styles.titleBlock}>
-        <span className={styles.pageEyebrow}>{t('auth_files.page_eyebrow')}</span>
-        <h1 className={styles.titleWrapper}>
+      <div className={refreshStyles.titleBlock}>
+        <h1 className={refreshStyles.titleWrapper}>
           <span>{t('auth_files.title_section')}</span>
+          <span
+            className={refreshStyles.titleCount}
+            aria-label={`${t('auth_files.summary_visible')}: ${listTotal}`}
+          >
+            {listTotal}
+          </span>
         </h1>
-        <p className={styles.pageDescription}>{t('auth_files.description')}</p>
+        <p className={refreshStyles.pageDescription}>{t('auth_files.description')}</p>
       </div>
     ),
-    [t]
+    [listTotal, t]
   );
 
   const deleteAllButtonLabel = useMemo(
@@ -1604,42 +1600,45 @@ export function AuthFilesPage() {
   ]);
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${refreshStyles.page}`}>
       <section className={styles.authFilesSection}>
-        <header className={styles.authFilesHeader}>
+        <header className={refreshStyles.pageHeader}>
           {titleNode}
-          <div className={styles.headerActions}>
+          <div className={refreshStyles.headerActions}>
             <Button
               variant="secondary"
               size="sm"
-              className={`${styles.headerActionButton} ${styles.headerActionMain}`}
+              className={refreshStyles.headerAction}
               onClick={handleHeaderRefresh}
               disabled={loading || refreshing || manualRefreshPending}
-              loading={manualRefreshPending}
+              aria-busy={manualRefreshPending}
             >
-              <IconRefreshCw className={styles.headerActionIcon} size={15} />
-              <span className={styles.headerActionText}>{t('common.refresh')}</span>
+              <IconRefreshCw
+                className={`${refreshStyles.headerActionIcon} ${manualRefreshPending ? styles.quotaRefreshIconSvgSpinning : ''}`}
+                size={15}
+              />
+              <span className={refreshStyles.headerActionText}>{t('common.refresh')}</span>
             </Button>
             <Button
               size="sm"
-              className={`${styles.headerActionButton} ${styles.headerActionMain} ${styles.headerActionUpload}`}
+              className={`${refreshStyles.headerAction} ${refreshStyles.uploadAction}`}
               onClick={handleUploadClick}
               disabled={disableControls || uploading}
               loading={uploading}
             >
-              <IconUpload className={styles.headerActionIcon} size={15} />
-              <span className={styles.headerActionText}>{t('auth_files.upload_button')}</span>
+              <IconUpload className={refreshStyles.headerActionIcon} size={15} />
+              <span className={refreshStyles.headerActionText}>{t('auth_files.upload_button')}</span>
             </Button>
             <Button
               variant="danger"
               size="sm"
-              className={`${styles.headerActionButton} ${styles.headerActionDanger}`}
+              className={`${refreshStyles.headerAction} ${refreshStyles.dangerAction}`}
               onClick={handleDeleteAllClick}
               disabled={disableControls || loading || refreshing || deletingAll}
               loading={deletingAll}
             >
-              <IconTrash2 className={styles.headerActionIcon} size={15} />
-              <span className={styles.headerActionText}>{deleteAllButtonLabel}</span>
+              <IconTrash2 className={refreshStyles.headerActionIcon} size={15} />
+              <span className={refreshStyles.headerActionText}>{deleteAllButtonLabel}</span>
             </Button>
             <input
               ref={fileInputRef}
@@ -1654,13 +1653,13 @@ export function AuthFilesPage() {
         </header>
 
         {error && (
-          <div className={styles.errorBox} role="alert">
+          <div className={refreshStyles.errorPanel} role="alert">
             {error}
           </div>
         )}
 
-        <div className={styles.filterSection}>
-          <div className={styles.filterToolbarRow}>
+        <div className={`${styles.filterSection} ${refreshStyles.workbench}`}>
+          <div className={`${styles.filterToolbarRow} ${refreshStyles.filterToolbar}`}>
             <FilterTagsRail
               types={existingTypes}
               activeFilter={filter}
@@ -1669,7 +1668,7 @@ export function AuthFilesPage() {
               onSelect={handleFilterTagSelect}
             />
 
-            <div className={styles.filterControlsPanel}>
+            <div className={refreshStyles.controlRail}>
               <SearchToolbar
                 search={search}
                 onSearchChange={handleSearchValue}
@@ -1686,44 +1685,53 @@ export function AuthFilesPage() {
                 pageSizeLabel={t('auth_files.page_size_label')}
               />
 
-              <div className={styles.filterChipRow}>
-                <span className={styles.filterChipRowLabel}>
+              <div className={refreshStyles.displayOptions}>
+                <span className={refreshStyles.displayOptionsLabel}>
                   {t('auth_files.display_options_label')}
                 </span>
                 <div
-                  className={styles.filterChipGroup}
+                  className={refreshStyles.displayOptionGroup}
                   role="group"
                   aria-label={t('auth_files.display_options_label')}
                 >
                   <button
                     type="button"
-                    className={`${styles.filterChip} ${problemOnly ? styles.filterChipActive : ''}`}
+                    className={refreshStyles.displayOption}
                     onClick={handleToggleProblemOnly}
                     aria-pressed={problemOnly}
                   >
-                    {t('auth_files.problem_filter_only')}
+                    <span className={refreshStyles.displayOptionMarker} aria-hidden="true">
+                      <IconCheck size={11} />
+                    </span>
+                    <span>{t('auth_files.problem_filter_only')}</span>
                   </button>
                   <button
                     type="button"
-                    className={`${styles.filterChip} ${disabledOnly ? styles.filterChipActive : ''}`}
+                    className={refreshStyles.displayOption}
                     onClick={handleToggleDisabledOnly}
                     aria-pressed={disabledOnly}
                   >
-                    {t('auth_files.disabled_filter_only')}
+                    <span className={refreshStyles.displayOptionMarker} aria-hidden="true">
+                      <IconCheck size={11} />
+                    </span>
+                    <span>{t('auth_files.disabled_filter_only')}</span>
                   </button>
                   <button
                     type="button"
-                    className={`${styles.filterChip} ${premiumOnly ? styles.filterChipActive : ''}`}
+                    className={refreshStyles.displayOption}
                     onClick={handleTogglePremiumOnly}
                     aria-pressed={premiumOnly}
                   >
-                    {t('auth_files.premium_filter_only')}
+                    <span className={refreshStyles.displayOptionMarker} aria-hidden="true">
+                      <IconCheck size={11} />
+                    </span>
+                    <span>{t('auth_files.premium_filter_only')}</span>
                   </button>
                 </div>
                 {hasActiveFilters && (
                   <button
                     type="button"
-                    className={styles.filterResetButton}
+                    className={refreshStyles.resetFilters}
                     onClick={handleClearFilters}
                   >
                     {t('auth_files.clear_filters')}
@@ -1734,16 +1742,18 @@ export function AuthFilesPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                className={`${styles.pageQuotaRefreshButton} ${pageQuotaRefreshing ? styles.quotaRefreshButtonSpinning : ''}`}
+                className={`${styles.pageQuotaRefreshButton} ${refreshStyles.quotaRefreshButton} ${pageQuotaRefreshing ? styles.quotaRefreshButtonSpinning : ''}`}
                 onClick={handlePageRefreshQuotaClick}
                 disabled={pageQuotaRefreshDisabled}
                 aria-busy={pageQuotaRefreshing}
                 aria-label={t('auth_files.refresh_page_quota_aria')}
                 title={t('auth_files.refresh_page_quota_aria')}
               >
-                <span className={styles.quotaRefreshIcon}>
+                <span
+                  className={`${styles.quotaRefreshIcon} ${pageQuotaRefreshing ? styles.quotaRefreshIconSpinning : ''}`}
+                >
                   <span
-                    className={`${styles.quotaButtonSpinner} ${pageQuotaRefreshing ? styles.quotaButtonSpinnerSpinning : ''}`}
+                    className={`${styles.quotaButtonSpinner} ${refreshStyles.quotaRefreshSpinner}`}
                     style={QUOTA_REFRESH_SPINNER_STYLE}
                     aria-hidden="true"
                   />
@@ -1753,11 +1763,11 @@ export function AuthFilesPage() {
           </div>
 
           <div
-            className={`${styles.filterContent} ${showListProgressVisual ? styles.listRefreshing : ''}`}
+            className={`${refreshStyles.contentRegion} ${showListProgressVisual ? refreshStyles.contentUpdating : ''}`}
             aria-busy={showInitialLoading || showListProgress}
           >
             <div
-              className={`${styles.listProgressBar} ${showListProgress ? styles.listProgressBarActive : ''}`}
+              className={`${refreshStyles.listProgress} ${showListProgress ? refreshStyles.listProgressActive : ''}`}
               aria-hidden="true"
             />
             {showInitialLoading ? (
@@ -1797,7 +1807,7 @@ export function AuthFilesPage() {
               )
             ) : (
               <div
-                className={`${styles.fileGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
+                className={`${styles.fileGrid} ${refreshStyles.cardGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
                 ref={authFileGridRef}
                 // 列表刷新期间整体屏蔽交互（含键盘焦点），等价于此前逐张卡片
                 // 传 disableControls，但不会触碰任何卡片的 props。
@@ -1808,7 +1818,10 @@ export function AuthFilesPage() {
             )}
 
             {!showInitialLoading && listTotal > pageSize && (
-              <nav className={styles.pagination} aria-label={t('auth_files.pagination_aria')}>
+              <nav
+                className={refreshStyles.pagination}
+                aria-label={t('auth_files.pagination_aria')}
+              >
                 <Button
                   variant="secondary"
                   size="sm"
@@ -1818,7 +1831,11 @@ export function AuthFilesPage() {
                   {t('auth_files.pagination_prev')}
                 </Button>
                 {/* 翻页后焦点常留在已禁用的按钮上，靠 live region 播报当前页 */}
-                <div className={styles.pageInfo} role="status" aria-live="polite">
+                <div
+                  className={refreshStyles.pageInfo}
+                  role="status"
+                  aria-live="polite"
+                >
                   {t('auth_files.pagination_info', {
                     current: currentPage,
                     total: totalPages,
@@ -1841,7 +1858,7 @@ export function AuthFilesPage() {
 
       {belowFoldCardsReady && (
         <Suspense fallback={null}>
-          <div className={styles.belowFoldCard}>
+          <div className={`${styles.belowFoldCard} ${refreshStyles.supportingPanel}`}>
             <OAuthModelRulesCard
               disableControls={disableControls}
               excludedError={excludedError}
@@ -1900,7 +1917,7 @@ export function AuthFilesPage() {
       {typeof document !== 'undefined'
         ? createPortal(
             <div
-              className={styles.batchActionContainer}
+              className={refreshStyles.batchContainer}
               ref={floatingBatchActionsRef}
               aria-hidden={!selectionActive}
               inert={!selectionActive}
@@ -1909,10 +1926,14 @@ export function AuthFilesPage() {
               role="region"
               aria-label={t('auth_files.batch_actions_aria')}
             >
-              <div className={styles.batchActionBar}>
-                <div className={styles.batchActionLeft}>
+              <div className={refreshStyles.batchBar}>
+                <div className={refreshStyles.batchGroup}>
                   {/* 选中数量会随勾选变化，用 live region 播报，否则读屏用户无从感知 */}
-                  <span className={styles.batchSelectionText} role="status" aria-live="polite">
+                  <span
+                    className={refreshStyles.batchSelection}
+                    role="status"
+                    aria-live="polite"
+                  >
                     {t('auth_files.batch_selected', { count: selectionCount })}
                   </span>
                   <Button
@@ -1943,7 +1964,9 @@ export function AuthFilesPage() {
                     {t('auth_files.batch_deselect')}
                   </Button>
                 </div>
-                <div className={styles.batchActionRight}>
+                <div
+                  className={`${refreshStyles.batchGroup} ${refreshStyles.batchCommandGroup}`}
+                >
                   <Button
                     variant="secondary"
                     size="sm"
