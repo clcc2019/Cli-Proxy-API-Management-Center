@@ -239,9 +239,7 @@ const RelativeTime = memo(function RelativeTime({
     const shouldSyncNow =
       !wasCurrentLayerRef.current || previousTimestampMsRef.current !== timestampMs;
     relativeTimeUpdateKeyRef.current = getRelativeTimeUpdateKey(nextNow, timestampMs);
-    if (shouldSyncNow) {
-      setNow(nextNow);
-    }
+    const syncTimerId = shouldSyncNow ? window.setTimeout(() => setNow(nextNow), 0) : null;
     wasCurrentLayerRef.current = true;
     previousTimestampMsRef.current = timestampMs;
     const subscriber = (next: number) => {
@@ -253,6 +251,7 @@ const RelativeTime = memo(function RelativeTime({
     relativeTimeSubscribers.add(subscriber);
     ensureRelativeTimer();
     return () => {
+      if (syncTimerId !== null) window.clearTimeout(syncTimerId);
       relativeTimeSubscribers.delete(subscriber);
       teardownRelativeTimer();
     };
@@ -530,9 +529,7 @@ export function RequestLogsPage() {
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const config = useConfigStore((state) => (isCurrentLayer ? state.config : null));
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const resolvedTheme = useThemeStore((state) =>
-    isCurrentLayer ? state.resolvedTheme : 'light'
-  );
+  const resolvedTheme = useThemeStore((state) => (isCurrentLayer ? state.resolvedTheme : 'light'));
   const connectionStatus = useAuthStore((state) =>
     isCurrentLayer ? state.connectionStatus : 'disconnected'
   );
@@ -603,7 +600,10 @@ export function RequestLogsPage() {
       void loadUsage();
     },
     AUTO_REFRESH_INTERVAL_MS,
-    { enabled: isCurrentLayer && connectionStatus === 'connected' }
+    {
+      enabled: isCurrentLayer && connectionStatus === 'connected',
+      minRefreshGapMs: AUTO_REFRESH_INTERVAL_MS / 2,
+    }
   );
 
   const latencyHint = useMemo(
@@ -724,9 +724,7 @@ export function RequestLogsPage() {
 
       <section className={styles.summaryGrid} aria-label={t('usage_stats.request_events_title')}>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>
-            {t('usage_stats.request_events_kpi_total')}
-          </span>
+          <span className={styles.summaryLabel}>{t('usage_stats.request_events_kpi_total')}</span>
           <div className={styles.summaryValueRow}>
             <strong className={styles.summaryValue}>{counts.total}</strong>
             <span className={styles.summaryUnit}>

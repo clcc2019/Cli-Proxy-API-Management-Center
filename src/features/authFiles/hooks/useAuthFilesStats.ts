@@ -170,7 +170,10 @@ const loadAuthFileUsageStats = async (
     return cached;
   }
 
-  if (!force && inFlightAuthFileUsageRequest?.scopeKey === scopeKey) {
+  // `force` bypasses the time-based cache, but it should still coalesce with a
+  // request that is already fetching the same scope. This prevents the page
+  // refresh action and the visible interval from duplicating the heavy aggregate.
+  if (inFlightAuthFileUsageRequest?.scopeKey === scopeKey) {
     return inFlightAuthFileUsageRequest.promise;
   }
 

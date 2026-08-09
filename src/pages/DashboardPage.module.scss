@@ -19,7 +19,7 @@
   --dashboard-warning: var(--mg-warning);
   --dashboard-danger: var(--mg-danger);
   --dashboard-radius: var(--mg-radius-card, 15px);
-  --dashboard-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dashboard-ease: var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
 
   position: relative;
   isolation: isolate;
@@ -115,7 +115,6 @@
     ),
     var(--dashboard-surface);
   box-shadow: 0 20px 65px rgb(0 0 0 / 0.055);
-  animation: heroEnter 500ms var(--dashboard-ease) 100ms both;
 }
 
 .heroWatermark {
@@ -132,7 +131,6 @@
   text-transform: uppercase;
   white-space: nowrap;
   opacity: 0.055;
-  animation: watermarkEnter 600ms var(--dashboard-ease) 200ms both;
 }
 
 .heroContent {
@@ -151,7 +149,6 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  animation: fadeSlideUp 500ms var(--dashboard-ease) 150ms both;
 }
 
 .heroGreeting::before {
@@ -162,12 +159,12 @@
   max-width: 14ch;
   margin: 0;
   color: var(--dashboard-text);
+  font-family: $font-display;
   font-size: clamp(42px, 5vw, 64px);
-  font-weight: 600;
+  font-weight: 650;
   line-height: 1;
   letter-spacing: -0.045em;
   text-wrap: balance;
-  animation: fadeSlideUp 500ms var(--dashboard-ease) 250ms both;
 }
 
 .heroCaring {
@@ -177,7 +174,6 @@
   font-size: 16px;
   line-height: 1.55;
   text-wrap: pretty;
-  animation: fadeSlideUp 500ms var(--dashboard-ease) 350ms both;
 }
 
 // ─── Hero status panel ──────────────────────────────────
@@ -196,7 +192,6 @@
   border-radius: var(--dashboard-radius);
   background: rgb(255 255 255 / 0.9);
   box-shadow: 0 2px 18px rgb(0 0 0 / 0.045);
-  animation: fadeSlideUp 500ms var(--dashboard-ease) 400ms both;
 }
 
 .dateTimeBlock {
@@ -208,6 +203,7 @@
 
 .time {
   color: var(--dashboard-text);
+  font-family: $font-display;
   font-size: 36px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -248,7 +244,7 @@
 
   &.connecting {
     background: var(--dashboard-warning);
-    animation: pulse 1s ease-in-out infinite;
+    animation: pulse 1.2s var(--motion-ease-standard) infinite;
   }
 
   &.disconnected {
@@ -333,9 +329,8 @@
   color: inherit;
   text-decoration: none;
   transition:
-    background-color 300ms ease,
-    color 300ms ease;
-  animation: cardEnter 500ms var(--dashboard-ease) both;
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &::after {
     content: '↗';
@@ -346,8 +341,8 @@
     font-size: 17px;
     line-height: 1;
     transition:
-      color 300ms ease,
-      transform 300ms var(--dashboard-ease);
+      color var(--motion-duration-fast) var(--motion-ease-standard),
+      transform var(--motion-duration-base) var(--dashboard-ease);
   }
 
   &:hover {
@@ -357,6 +352,10 @@
       color: var(--dashboard-sage-strong);
       transform: translate(2px, -2px);
     }
+  }
+
+  &:active {
+    background: var(--dashboard-surface-subtle);
   }
 
   &:focus-visible {
@@ -388,7 +387,7 @@
   border-radius: 12px;
   background: var(--dashboard-surface-subtle);
   color: var(--dashboard-sage-strong);
-  transition: background-color 300ms ease;
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .bentoCard:hover .bentoIcon {
@@ -404,6 +403,7 @@
 
 .bentoValue {
   color: var(--dashboard-text);
+  font-family: $font-display;
   font-size: 40px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -413,7 +413,7 @@
 
 .bentoValueLoading {
   color: var(--dashboard-text-tertiary);
-  animation: pulse 1.2s ease-in-out infinite;
+  animation: pulse 1.35s var(--motion-ease-standard) infinite;
 }
 
 .bentoLabel {
@@ -439,7 +439,6 @@
   border: 1px solid var(--dashboard-border);
   border-radius: var(--dashboard-radius);
   background: var(--dashboard-surface);
-  animation: cardEnter 500ms var(--dashboard-ease) 400ms both;
 }
 
 .configSection .sectionHeading {
@@ -470,7 +469,7 @@
   background: var(--dashboard-surface);
   color: var(--dashboard-text);
   font-size: 13px;
-  transition: background-color 300ms ease;
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background: var(--dashboard-surface-warm);
@@ -591,7 +590,7 @@
   font-size: 13px;
   line-height: 1.2;
   text-decoration: none;
-  transition: background-color 400ms ease;
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background: var(--mg-text-secondary, #565551);
@@ -608,7 +607,7 @@
 
 .viewMoreArrow {
   display: inline-flex;
-  transition: transform 300ms var(--dashboard-ease);
+  transition: transform var(--motion-duration-base) var(--dashboard-ease);
 }
 
 .viewMoreLink:hover .viewMoreArrow {
@@ -784,54 +783,6 @@
 
 // ─── Motion ─────────────────────────────────────────────
 
-@keyframes heroEnter {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes watermarkEnter {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-
-  to {
-    opacity: 0.055;
-    transform: translateX(0);
-  }
-}
-
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes cardEnter {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes pulse {
   0%,
   100% {
@@ -844,14 +795,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero,
-  .heroWatermark,
-  .heroGreeting,
-  .heroTitle,
-  .heroCaring,
-  .heroMeta,
-  .bentoCard,
-  .configSection,
   .statusDot.connecting,
   .bentoValueLoading {
     animation: none;

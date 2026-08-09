@@ -15,18 +15,18 @@ interface PageTransitionProps {
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
-const VERTICAL_TRANSITION_DURATION_MS = 260;
-const VERTICAL_TRAVEL_DISTANCE = 28;
-const IOS_TRANSITION_DURATION_MS = 320;
+const VERTICAL_TRANSITION_DURATION_MS = 200;
+const VERTICAL_TRAVEL_DISTANCE = 14;
+const IOS_TRANSITION_DURATION_MS = 240;
 const IOS_ENTER_FROM_X_PERCENT = 100;
 const IOS_EXIT_TO_X_PERCENT_FORWARD = -30;
 const IOS_EXIT_TO_X_PERCENT_BACKWARD = 100;
 const IOS_ENTER_FROM_X_PERCENT_BACKWARD = -30;
 const IOS_EXIT_DIM_OPACITY = 0.72;
 const IOS_SHADOW_VALUE = '-14px 0 24px rgba(0, 0, 0, 0.16)';
-const VERTICAL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
-const IOS_EASING = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
-const ANIMATION_COMPLETION_GRACE_MS = 120;
+const VERTICAL_EASING = 'cubic-bezier(0.2, 0, 0, 1)';
+const IOS_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
+const ANIMATION_COMPLETION_GRACE_MS = 80;
 
 const clearLayerStyles = (element: HTMLElement | null) => {
   if (!element) return;
@@ -210,10 +210,10 @@ export function PageTransition({
         return [nextCurrent];
       }
 
-      const exitingLayer: Layer = { ...previousCurrent, status: 'exiting' };
-
+      // 普通路由只保留新页面。复杂后台页面若同时保留并淡出旧树，切换期间会
+      // 叠加两份布局、绘制和订阅开销；轻量的新页入场已经足够表达导航方向。
       nextLayersRef.current = [nextCurrent];
-      return [exitingLayer, nextCurrent];
+      return [nextCurrent];
     });
     if (nextVariant !== 'none') {
       setIsAnimating(true);
@@ -254,7 +254,6 @@ export function PageTransition({
     const transitionDirection = transitionDirectionRef.current;
     const isForward = transitionDirection === 'forward';
     const enterFromY = isForward ? VERTICAL_TRAVEL_DISTANCE : -VERTICAL_TRAVEL_DISTANCE;
-    const exitToY = isForward ? -VERTICAL_TRAVEL_DISTANCE : VERTICAL_TRAVEL_DISTANCE;
     const exitBaseY = enterScrollOffset - exitScrollOffset;
     const activeAnimations: Animation[] = [];
     let cancelled = false;
@@ -332,29 +331,7 @@ export function PageTransition({
       );
       if (enterAnimation) activeAnimations.push(enterAnimation);
     } else {
-      // Exit animation: fade out with slight movement (runs simultaneously)
-      if (exitingLayerEl) {
-        const exitAnimation = animateLayer(
-          exitingLayerEl,
-          [
-            {
-              transform: `translate3d(0, ${exitBaseY}px, 0)`,
-              opacity: 1,
-              visibility: 'visible',
-            },
-            {
-              transform: `translate3d(0, ${exitBaseY + exitToY}px, 0)`,
-              opacity: 0,
-              visibility: 'visible',
-            },
-          ],
-          VERTICAL_TRANSITION_DURATION_MS,
-          VERTICAL_EASING
-        );
-        if (exitAnimation) activeAnimations.push(exitAnimation);
-      }
-
-      // Enter animation: fade in with slight movement (runs simultaneously)
+      // 普通桌面导航只动画新页面，避免同时合成两棵高密度页面树。
       const enterAnimation = animateLayer(
         currentLayerEl,
         [

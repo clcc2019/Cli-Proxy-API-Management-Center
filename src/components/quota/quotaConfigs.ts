@@ -96,6 +96,57 @@ interface RenderQuotaRowOptions {
   metaItems?: ReactNode[];
 }
 
+const QUOTA_OPTIONAL_ENRICHMENT_BUDGET_MS = 180;
+const QUOTA_OPTIONAL_ENRICHMENT_CACHE_TTL_MS = 10 * 60_000;
+
+type CachedQuotaEnrichment<T> = { value: T; fetchedAt: number };
+type CodexResetCreditsPayload = Awaited<
+  ReturnType<typeof authFilesApi.getCodexRateLimitResetCredits>
+>;
+
+const claudeProfileCache = new Map<string, CachedQuotaEnrichment<ClaudeProfileResponse>>();
+const codexResetCreditsCache = new Map<string, CachedQuotaEnrichment<CodexResetCreditsPayload>>();
+
+const readQuotaEnrichmentCache = <T>(
+  cache: Map<string, CachedQuotaEnrichment<T>>,
+  key: string
+): T | null => {
+  const cached = cache.get(key);
+  if (!cached) return null;
+  if (Date.now() - cached.fetchedAt <= QUOTA_OPTIONAL_ENRICHMENT_CACHE_TTL_MS) {
+    return cached.value;
+  }
+  cache.delete(key);
+  return null;
+};
+
+const writeQuotaEnrichmentCache = <T>(
+  cache: Map<string, CachedQuotaEnrichment<T>>,
+  key: string,
+  value: T
+) => {
+  cache.set(key, { value, fetchedAt: Date.now() });
+};
+
+const settleQuotaEnrichmentWithinBudget = async <T>(
+  request: Promise<T>
+): Promise<PromiseSettledResult<T> | null> => {
+  let timeoutId: number | null = null;
+  const settledRequest: Promise<PromiseSettledResult<T>> = request.then(
+    (value) => ({ status: 'fulfilled' as const, value }),
+    (reason: unknown) => ({ status: 'rejected' as const, reason })
+  );
+  const timeout = new Promise<null>((resolve) => {
+    timeoutId = window.setTimeout(() => resolve(null), QUOTA_OPTIONAL_ENRICHMENT_BUDGET_MS);
+  });
+
+  try {
+    return await Promise.race([settledRequest, timeout]);
+  } finally {
+    if (timeoutId !== null) window.clearTimeout(timeoutId);
+  }
+};
+
 const clampPercent = (value: number | null): number | null =>
   value === null ? null : Math.max(0, Math.min(100, value));
 
@@ -445,10 +496,25 @@ const fetchCodexQuota = async (
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   const planTypeFromFile = resolveCodexPlanType(file);
-  const [usagePayload, resetCreditsPayload] = await Promise.all([
-    authFilesApi.getCodexUsage(file.name, authIndex ?? undefined, 'refresh'),
-    authFilesApi.getCodexRateLimitResetCredits(file.name, authIndex ?? undefined).catch(() => null),
-  ]);
+  const resetCreditsCacheKey = `${file.name}:${authIndex ?? ''}`;
+  const resetCreditsResultPromise = settleQuotaEnrichmentWithinBudget(
+    authFilesApi
+      .getCodexRateLimitResetCredits(file.name, authIndex ?? undefined)
+      .then((resetCredits) => {
+        writeQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey, resetCredits);
+        return resetCredits;
+      })
+  );
+  const usagePayload = await authFilesApi.getCodexUsage(
+    file.name,
+    authIndex ?? undefined,
+    'refresh'
+  );
+  const resetCreditsResult = await resetCreditsResultPromise;
+  const resetCreditsPayload =
+    resetCreditsResult?.status === 'fulfilled'
+      ? resetCreditsResult.value
+      : readQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey);
   const detailedResetCredits =
     resetCreditsPayload?.rate_limit_reset_credits ?? resetCreditsPayload?.rateLimitResetCredits;
   const payload = detailedResetCredits
@@ -559,11 +625,12 @@ const renderCodexItems = (
   };
 
   const planLabel = getPlanLabel(planType);
-  const isPremiumPlan = PREMIUM_CODEX_PLAN_TYPES.has(normalizePlanType(planType) ?? '');
+  const normalizedPlanType = normalizePlanType(planType);
+  const isPaidPlan = Boolean(normalizedPlanType && normalizedPlanType !== 'free');
   const nodes: ReactNode[] = [];
 
   if (planLabel || subscriptionUntilLabel || subscriptionActiveDaysLabel) {
-    const valueClass = isPremiumPlan ? styleMap.premiumPlanValue : styleMap.codexPlanValue;
+    const valueClass = isPaidPlan ? styleMap.premiumPlanValue : styleMap.codexPlanValue;
     nodes.push(
       h(
         'div',
@@ -687,45 +754,49 @@ const fetchClaudeQuota = async (
     throw new Error(t('claude_quota.missing_auth_index'));
   }
 
-  const [usageResult, profileResult] = await Promise.allSettled([
-    apiCallApi.request({
-      authIndex,
-      method: 'GET',
-      url: CLAUDE_USAGE_URL,
-      header: { ...CLAUDE_REQUEST_HEADERS },
-    }),
-    apiCallApi.request({
-      authIndex,
-      method: 'GET',
-      url: CLAUDE_PROFILE_URL,
-      header: { ...CLAUDE_REQUEST_HEADERS },
-    }),
-  ]);
+  const profileResultPromise = settleQuotaEnrichmentWithinBudget(
+    apiCallApi
+      .request({
+        authIndex,
+        method: 'GET',
+        url: CLAUDE_PROFILE_URL,
+        header: { ...CLAUDE_REQUEST_HEADERS },
+      })
+      .then((profileResult) => {
+        if (profileResult.statusCode >= 200 && profileResult.statusCode < 300) {
+          const profile = parseClaudeProfilePayload(profileResult.body ?? profileResult.bodyText);
+          if (profile) writeQuotaEnrichmentCache(claudeProfileCache, authIndex, profile);
+        }
+        return profileResult;
+      })
+  );
+  const usageResult = await apiCallApi.request({
+    authIndex,
+    method: 'GET',
+    url: CLAUDE_USAGE_URL,
+    header: { ...CLAUDE_REQUEST_HEADERS },
+  });
+  const profileResult = await profileResultPromise;
 
-  if (usageResult.status === 'rejected') {
-    throw usageResult.reason;
+  if (usageResult.statusCode < 200 || usageResult.statusCode >= 300) {
+    throw createStatusError(getApiCallErrorMessage(usageResult), usageResult.statusCode);
   }
 
-  const result = usageResult.value;
-
-  if (result.statusCode < 200 || result.statusCode >= 300) {
-    throw createStatusError(getApiCallErrorMessage(result), result.statusCode);
-  }
-
-  const payload = parseClaudeUsagePayload(result.body ?? result.bodyText);
+  const payload = parseClaudeUsagePayload(usageResult.body ?? usageResult.bodyText);
   if (!payload) {
     throw new Error(t('claude_quota.empty_windows'));
   }
 
   const windows = buildClaudeQuotaWindows(payload, t);
-  const planType =
-    profileResult.status === 'fulfilled' &&
+  const freshProfile =
+    profileResult?.status === 'fulfilled' &&
     profileResult.value.statusCode >= 200 &&
     profileResult.value.statusCode < 300
-      ? resolveClaudePlanType(
-          parseClaudeProfilePayload(profileResult.value.body ?? profileResult.value.bodyText)
-        )
+      ? parseClaudeProfilePayload(profileResult.value.body ?? profileResult.value.bodyText)
       : null;
+  const planType = resolveClaudePlanType(
+    freshProfile ?? readQuotaEnrichmentCache(claudeProfileCache, authIndex)
+  );
 
   return { windows, extraUsage: payload.extra_usage, planType };
 };
@@ -743,12 +814,14 @@ const renderClaudeItems = (
   const nodes: ReactNode[] = [];
 
   if (planType) {
+    const valueClass =
+      planType === 'plan_free' ? styleMap.codexPlanValue : styleMap.premiumPlanValue;
     nodes.push(
       h(
         'div',
         { key: 'plan', className: styleMap.codexPlan },
         h('span', { className: styleMap.codexPlanLabel }, t('claude_quota.plan_label')),
-        h('span', { className: styleMap.codexPlanValue }, t(`claude_quota.${planType}`))
+        h('span', { className: valueClass }, t(`claude_quota.${planType}`))
       )
     );
   }

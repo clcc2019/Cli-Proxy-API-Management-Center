@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, type CSSProperties } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconFilterAll } from '@/components/ui/icons';
 import type { ResolvedTheme } from '@/types';
@@ -98,6 +98,8 @@ export const FilterTagsRail = memo(function FilterTagsRail({
   onSelect,
 }: FilterTagsRailProps) {
   const { t } = useTranslation();
+  const railRef = useRef<HTMLElement>(null);
+  const tagsRef = useRef<HTMLDivElement>(null);
 
   // 按 type 预计算稳定的 label/icon/color/style，避免每次渲染对每个 tag
   // 重新构造对象/调用查找，否则 FilterTagButton 的 style prop 引用每次都变 → memo 失效。
@@ -125,12 +127,43 @@ export const FilterTagsRail = memo(function FilterTagsRail({
     [types, resolvedTheme, t]
   );
 
+  useEffect(() => {
+    const rail = railRef.current;
+    const scroller = tagsRef.current;
+    if (!rail || !scroller) return undefined;
+
+    let frameId = 0;
+    const updateScrollEdges = () => {
+      frameId = 0;
+      const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      rail.dataset.canScrollBack = String(scroller.scrollLeft > 2);
+      rail.dataset.canScrollForward = String(scroller.scrollLeft < maxScrollLeft - 2);
+    };
+    const scheduleUpdate = () => {
+      if (frameId) return;
+      frameId = window.requestAnimationFrame(updateScrollEdges);
+    };
+
+    updateScrollEdges();
+    scroller.addEventListener('scroll', scheduleUpdate, { passive: true });
+    const resizeObserver = new ResizeObserver(scheduleUpdate);
+    resizeObserver.observe(scroller);
+    if (scroller.firstElementChild) resizeObserver.observe(scroller.firstElementChild);
+
+    return () => {
+      scroller.removeEventListener('scroll', scheduleUpdate);
+      resizeObserver.disconnect();
+      if (frameId) window.cancelAnimationFrame(frameId);
+    };
+  }, [tags]);
+
   return (
     <nav
+      ref={railRef}
       className={refreshStyles.providerRail}
       aria-label={t('auth_files.provider_filter_label')}
     >
-      <div className={refreshStyles.providerTags}>
+      <div ref={tagsRef} className={refreshStyles.providerTags}>
         {tags.map((tag) => (
           <FilterTagButton
             key={tag.type}

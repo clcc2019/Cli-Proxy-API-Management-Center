@@ -2,7 +2,7 @@ import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
-import { IconRefreshCw } from '@/components/ui/icons';
+import { IconAlertTriangle, IconRefreshCw } from '@/components/ui/icons';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useNotificationStore, useQuotaStore } from '@/stores';
 import { authFilesApi } from '@/services/api';
@@ -121,7 +121,6 @@ function useAuthFileQuotaRefresh(props: AuthFileQuotaSectionProps) {
       disableControls,
       t,
       onAuthFileUpdated: props.onAuthFileUpdated,
-      stabilizeCodexRefresh: quotaType === 'codex',
     });
 
     if (result.status === 'success') {
@@ -214,6 +213,9 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
     quota?.errorStatus,
     quota?.error || t('common.unknown_error')
   );
+  const quotaErrorDetails = t(`${config.i18nPrefix}.load_failed`, {
+    message: quotaErrorMessage,
+  });
   const isRefreshingCachedQuota =
     quotaStatus === 'loading' && quota?.__hasCachedQuotaSnapshot === true;
   const codexQuota = quotaType === 'codex' ? (quota as CodexQuotaState | undefined) : undefined;
@@ -391,7 +393,12 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           </div>
         )}
       </div>
-      <div className={styles.quotaContent} aria-busy={quotaStatus === 'loading'}>
+      <div
+        className={`${styles.quotaContent} ${
+          isRefreshingCachedQuota ? styles.quotaContentRefreshing : ''
+        }`}
+        aria-busy={quotaStatus === 'loading'}
+      >
         {quotaStatus === 'loading' && !isRefreshingCachedQuota ? (
           <div className={styles.quotaLoadingState} role="status" aria-busy="true">
             <LoadingSpinner size={16} />
@@ -399,9 +406,20 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           </div>
         ) : quotaStatus === 'error' ? (
           <div className={styles.quotaError} role="alert">
-            {t(`${config.i18nPrefix}.load_failed`, {
-              message: quotaErrorMessage,
-            })}
+            <button
+              type="button"
+              className={styles.cardErrorTrigger}
+              title={quotaErrorDetails}
+              aria-label={`${t('auth_files.quota_error_summary')}: ${quotaErrorDetails}`}
+            >
+              <IconAlertTriangle size={13} aria-hidden="true" />
+              <span className={styles.cardErrorSummary}>
+                {t('auth_files.quota_error_summary')}
+              </span>
+              <span className={styles.cardErrorTooltip} role="tooltip">
+                {quotaErrorDetails}
+              </span>
+            </button>
           </div>
         ) : quota && quotaStatus !== 'idle' ? (
           renderedQuotaItems

@@ -1,0 +1,105 @@
+@use '../../../styles/variables' as *;
+
+.hint {
+  padding: $spacing-lg;
+  color: var(--mg-text-tertiary);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+}
+
+.modelsList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.modelItem {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  appearance: none;
+  border: 1px solid var(--mg-border-fade);
+  border-radius: var(--mg-radius-control);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    background-color var(--mg-motion-fast) var(--mg-ease-standard),
+    border-color var(--mg-motion-fast) var(--mg-ease-standard);
+}
+
+.modelItem:hover {
+  border-color: var(--mg-border-hover);
+  background: var(--mg-surface-warm);
+}
+
+.modelItem:active {
+  border-color: var(--mg-border-strong);
+}
+
+.modelItem:focus-visible {
+  outline: 2px solid var(--mg-sage-strong);
+  outline-offset: 2px;
+  border-color: var(--mg-sage-strong);
+}
+
+.modelId {
+  color: var(--mg-text);
+  font-family: $font-mono;
+  font-size: 13px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.modelDisplayName {
+  flex-shrink: 0;
+  color: var(--mg-text-secondary);
+  font-size: 12px;
+}
+
+.modelType {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text-tertiary);
+  font-size: 11px;
+}
+
+.modelItemExcluded {
+  border-style: dashed;
+  background: var(--mg-surface-subtle);
+  opacity: 0.64;
+}
+
+.modelItemExcluded .modelId {
+  color: var(--mg-text-tertiary);
+  text-decoration: line-through;
+}
+
+.modelItemExcluded:hover {
+  border-color: var(--mg-danger);
+}
+
+.modelExcludedBadge {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--mg-danger) 44%, var(--mg-border));
+  border-radius: var(--mg-radius-pill);
+  background: color-mix(in srgb, var(--mg-danger) 9%, var(--mg-surface));
+  color: var(--mg-danger);
+  font-size: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modelItem {
+    transition: none;
+  }
+}

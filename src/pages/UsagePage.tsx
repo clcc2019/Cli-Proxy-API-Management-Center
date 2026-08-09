@@ -164,20 +164,26 @@ export function UsagePage() {
         <StatCards window={visibleWindow} loading={loading} modelPrices={modelPrices} />
       </section>
 
-      <Suspense fallback={buildSectionFallback(trendsTitle, trendsDescription)}>
-        <LazyUsageTrendsSection
-          initiallyCollapsed={false}
-          window={visibleWindow}
-          chartLines={chartLines}
-          chartDataLines={deferredChartLines}
-          modelNames={visibleModelNames}
-          isDark={isDark}
-          isMobile={isMobile}
-          loading={loading}
-          preferredPeriod={preferredChartPeriod}
-          onChartLinesChange={handleChartLinesChange}
-        />
-      </Suspense>
+      <DeferredRender
+        minHeight={420}
+        rootMargin="80px 0px"
+        placeholder={buildSectionFallback(trendsTitle, trendsDescription)}
+      >
+        <Suspense fallback={buildSectionFallback(trendsTitle, trendsDescription)}>
+          <LazyUsageTrendsSection
+            initiallyCollapsed={false}
+            window={visibleWindow}
+            chartLines={chartLines}
+            chartDataLines={deferredChartLines}
+            modelNames={visibleModelNames}
+            isDark={isDark}
+            isMobile={isMobile}
+            loading={loading}
+            preferredPeriod={preferredChartPeriod}
+            onChartLinesChange={handleChartLinesChange}
+          />
+        </Suspense>
+      </DeferredRender>
 
       <div id="usage-analysis" className={`${styles.anchorBlock} ${styles.motionSection}`}>
         <DeferredRender

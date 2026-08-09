@@ -238,7 +238,7 @@ export const CodexSection = memo(function CodexSection({
                     </div>
                   </div>
                 ) : null}
-                <ProviderStatusBar statusData={statusData} showRateLabel />
+                <ProviderStatusBar statusData={statusData} styles={styles} showRateLabel />
               </Fragment>
             );
           }}

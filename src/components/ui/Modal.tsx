@@ -4,11 +4,13 @@ import {
   useId,
   useRef,
   useState,
+  type AnimationEvent as ReactAnimationEvent,
   type PropsWithChildren,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { useReducedMotion } from '@/hooks';
 import { IconX } from './icons';
 
 interface ModalProps {
@@ -23,7 +25,7 @@ interface ModalProps {
   ariaDescribedBy?: string;
 }
 
-const CLOSE_ANIMATION_DURATION = 180;
+const CLOSE_ANIMATION_FALLBACK_MS = 230;
 const MODAL_LOCK_CLASS = 'modal-open';
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -131,10 +133,13 @@ export function Modal({
   children,
 }: PropsWithChildren<ModalProps>) {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const titleId = useId();
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const isClosingRef = useRef(false);
   const closeTimerRef = useRef<number | null>(null);
+  const notifyParentAfterCloseRef = useRef(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
@@ -146,20 +151,32 @@ export function Modal({
     );
   }, []);
 
+  const completeClose = useCallback(() => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    const notifyParent = notifyParentAfterCloseRef.current;
+    notifyParentAfterCloseRef.current = false;
+    isClosingRef.current = false;
+    setIsVisible(false);
+    setIsClosing(false);
+    if (notifyParent) onClose();
+  }, [onClose]);
+
   const startClose = useCallback(
     (notifyParent: boolean) => {
-      if (closeTimerRef.current !== null) return;
+      if (isClosingRef.current || closeTimerRef.current !== null) return;
+      notifyParentAfterCloseRef.current ||= notifyParent;
+      if (prefersReducedMotion) {
+        completeClose();
+        return;
+      }
+      isClosingRef.current = true;
       setIsClosing(true);
-      closeTimerRef.current = window.setTimeout(() => {
-        setIsVisible(false);
-        setIsClosing(false);
-        closeTimerRef.current = null;
-        if (notifyParent) {
-          onClose();
-        }
-      }, CLOSE_ANIMATION_DURATION);
+      closeTimerRef.current = window.setTimeout(completeClose, CLOSE_ANIMATION_FALLBACK_MS);
     },
-    [onClose]
+    [completeClose, prefersReducedMotion]
   );
 
   useEffect(() => {
@@ -170,6 +187,8 @@ export function Modal({
         window.clearTimeout(closeTimerRef.current);
         closeTimerRef.current = null;
       }
+      notifyParentAfterCloseRef.current = false;
+      isClosingRef.current = false;
       queueMicrotask(() => {
         if (cancelled) return;
         setIsVisible(true);
@@ -190,6 +209,14 @@ export function Modal({
   const handleClose = useCallback(() => {
     startClose(true);
   }, [startClose]);
+
+  const handleOverlayAnimationEnd = useCallback(
+    (event: ReactAnimationEvent<HTMLDivElement>) => {
+      if (event.currentTarget !== event.target || !isClosing) return;
+      completeClose();
+    },
+    [completeClose, isClosing]
+  );
 
   useEffect(() => {
     return () => {
@@ -290,7 +317,7 @@ export function Modal({
     .join(' ');
 
   const modalContent = (
-    <div className={overlayClass}>
+    <div className={overlayClass} onAnimationEnd={handleOverlayAnimationEnd}>
       <div
         ref={modalRef}
         className={modalClass}

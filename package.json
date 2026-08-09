@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:perf": "tsc && vite build --mode performance",
+    "perf:check": "npm run build:perf && node scripts/check-performance-budget.mjs",
     "build:singlefile": "tsc && vite build --mode singlefile",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",

@@ -96,7 +96,6 @@ import {
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from '@/stores';
 import type { AuthFileItem, ResolvedTheme } from '@/types';
-import styles from './AuthFilesPage.module.scss';
 import refreshStyles from './AuthFilesPageRefresh.module.scss';
 
 const AuthFileModelsModal = lazy(() =>
@@ -123,11 +122,11 @@ const OAuthModelRulesEditorModal = lazy(() =>
 const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
-const AUTH_FILE_GRID_MOTION_DURATION_MS = 260;
+const AUTH_FILE_GRID_MOTION_DURATION_MS = 180;
 const AUTH_FILE_GRID_MOTION_SNAPSHOT_TTL_MS = 1_500;
+const MAX_AUTH_FILE_GRID_MOTION_CARDS = 12;
 
 const EMPTY_AUTH_FILE_CARD_NODES: ReactNode[] = [];
-const QUOTA_REFRESH_SPINNER_STYLE = { width: 15, height: 15 } as const;
 
 export function AuthFilesPage() {
   const { t } = useTranslation();
@@ -234,12 +233,12 @@ export function AuthFilesPage() {
       // Keep premiumOnly out of this request. The backend only has the auth-file
       // snapshot, while the Plus/Pro badge also incorporates the latest quota
       // data stored on the client.
-      return { codexSubscription: 'cache', summary: true, includeRecentRequests: true };
+      return { codexSubscription: 'cache', summary: true, includeRecentRequests: false };
     }
     return {
       codexSubscription: 'cache',
       summary: true,
-      includeRecentRequests: true,
+      includeRecentRequests: false,
       page: serverListPage,
       pageSize: serverListPageSize,
       search: serverListSearch,
@@ -480,19 +479,23 @@ export function AuthFilesPage() {
     manualRefreshInFlightRef.current = true;
     setManualRefreshPending(true);
     try {
-      await Promise.allSettled([
-        refreshFilesFromServer(true),
-        refreshKeyStats(),
-        loadExcluded(),
-        loadModelAlias(),
-      ]);
+      // The file list is the primary refresh result. Expensive usage aggregation,
+      // compatibility status details, and below-fold OAuth rules should not keep
+      // the header action busy after the visible cards are current.
+      await refreshFilesFromServer(true);
     } finally {
       manualRefreshInFlightRef.current = false;
       if (pageMountedRef.current) {
         setManualRefreshPending(false);
+        void Promise.allSettled([
+          refreshKeyStats(),
+          refreshStatusDetails(),
+          loadExcluded(),
+          loadModelAlias(),
+        ]);
       }
     }
-  }, [loadExcluded, loadModelAlias, refreshFilesFromServer, refreshKeyStats]);
+  }, [loadExcluded, loadModelAlias, refreshFilesFromServer, refreshKeyStats, refreshStatusDetails]);
 
   const handleToggleProblemOnly = useCallback(() => {
     captureAuthFileGridLayout();
@@ -659,7 +662,8 @@ export function AuthFilesPage() {
     () => {
       void refreshKeyStats().catch(() => {});
     },
-    isCurrentLayer ? 240_000 : null
+    isCurrentLayer ? 240_000 : null,
+    { minRefreshGapMs: 120_000 }
   );
 
   useVisibleInterval(
@@ -670,7 +674,8 @@ export function AuthFilesPage() {
       }
       void refreshStatusDetails().catch(() => {});
     },
-    isCurrentLayer && files.length > 0 ? 60_000 : null
+    isCurrentLayer && files.length > 0 ? 60_000 : null,
+    { minRefreshGapMs: 30_000 }
   );
 
   const hasListMetaTypeCounts = Boolean(listMeta.typeCounts);
@@ -1076,18 +1081,22 @@ export function AuthFilesPage() {
     );
     const listMembershipChanged =
       cardNames.size !== snapshot.size || Array.from(cardNames).some((name) => !snapshot.has(name));
-    const moves = cards.flatMap((card) => {
-      const name = card.dataset.authFileName;
-      const previousRect = name ? snapshot.get(name) : undefined;
-      if (!previousRect) return [];
+    const moves = cards
+      .flatMap((card) => {
+        const name = card.dataset.authFileName;
+        const previousRect = name ? snapshot.get(name) : undefined;
+        if (!previousRect) return [];
 
-      const nextRect = card.getBoundingClientRect();
-      const translateX = previousRect.left - nextRect.left;
-      const translateY = previousRect.top - nextRect.top;
-      return Math.abs(translateX) > 0.5 || Math.abs(translateY) > 0.5
-        ? [[card, translateX, translateY] as const]
-        : [];
-    });
+        const nextRect = card.getBoundingClientRect();
+        const isVisible = nextRect.bottom > 0 && nextRect.top < window.innerHeight;
+        if (!isVisible) return [];
+        const translateX = previousRect.left - nextRect.left;
+        const translateY = previousRect.top - nextRect.top;
+        return Math.abs(translateX) > 0.5 || Math.abs(translateY) > 0.5
+          ? [[card, translateX, translateY] as const]
+          : [];
+      })
+      .slice(0, MAX_AUTH_FILE_GRID_MOTION_CARDS);
 
     // The first render after a server-side filter change can still contain the old
     // page. Retain the snapshot in that case so the eventual response can animate.
@@ -1455,6 +1464,7 @@ export function AuthFilesPage() {
           <span>{t('auth_files.title_section')}</span>
           <span
             className={refreshStyles.titleCount}
+            role="status"
             aria-label={`${t('auth_files.summary_visible')}: ${listTotal}`}
           >
             {listTotal}
@@ -1600,8 +1610,12 @@ export function AuthFilesPage() {
   ]);
 
   return (
-    <div className={`${styles.container} ${refreshStyles.page}`}>
-      <section className={styles.authFilesSection}>
+    <div
+      className={`${refreshStyles.page} ${
+        pageQuotaRefreshing ? refreshStyles.quotaBatchRefreshing : ''
+      }`}
+    >
+      <section className={refreshStyles.authFilesSection}>
         <header className={refreshStyles.pageHeader}>
           {titleNode}
           <div className={refreshStyles.headerActions}>
@@ -1614,7 +1628,7 @@ export function AuthFilesPage() {
               aria-busy={manualRefreshPending}
             >
               <IconRefreshCw
-                className={`${refreshStyles.headerActionIcon} ${manualRefreshPending ? styles.quotaRefreshIconSvgSpinning : ''}`}
+                className={`${refreshStyles.headerActionIcon} ${manualRefreshPending ? refreshStyles.quotaRefreshIconSpinning : ''}`}
                 size={15}
               />
               <span className={refreshStyles.headerActionText}>{t('common.refresh')}</span>
@@ -1627,7 +1641,9 @@ export function AuthFilesPage() {
               loading={uploading}
             >
               <IconUpload className={refreshStyles.headerActionIcon} size={15} />
-              <span className={refreshStyles.headerActionText}>{t('auth_files.upload_button')}</span>
+              <span className={refreshStyles.headerActionText}>
+                {t('auth_files.upload_button')}
+              </span>
             </Button>
             <Button
               variant="danger"
@@ -1658,8 +1674,8 @@ export function AuthFilesPage() {
           </div>
         )}
 
-        <div className={`${styles.filterSection} ${refreshStyles.workbench}`}>
-          <div className={`${styles.filterToolbarRow} ${refreshStyles.filterToolbar}`}>
+        <div className={refreshStyles.workbench}>
+          <div className={refreshStyles.filterToolbar}>
             <FilterTagsRail
               types={existingTypes}
               activeFilter={filter}
@@ -1742,7 +1758,7 @@ export function AuthFilesPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                className={`${styles.pageQuotaRefreshButton} ${refreshStyles.quotaRefreshButton} ${pageQuotaRefreshing ? styles.quotaRefreshButtonSpinning : ''}`}
+                className={`${refreshStyles.quotaRefreshButton} ${pageQuotaRefreshing ? refreshStyles.quotaRefreshButtonSpinning : ''}`}
                 onClick={handlePageRefreshQuotaClick}
                 disabled={pageQuotaRefreshDisabled}
                 aria-busy={pageQuotaRefreshing}
@@ -1750,11 +1766,13 @@ export function AuthFilesPage() {
                 title={t('auth_files.refresh_page_quota_aria')}
               >
                 <span
-                  className={`${styles.quotaRefreshIcon} ${pageQuotaRefreshing ? styles.quotaRefreshIconSpinning : ''}`}
+                  className={`${refreshStyles.quotaRefreshIcon} ${
+                    pageQuotaRefreshing ? refreshStyles.quotaRefreshIconSpinning : ''
+                  }`}
                 >
-                  <span
-                    className={`${styles.quotaButtonSpinner} ${refreshStyles.quotaRefreshSpinner}`}
-                    style={QUOTA_REFRESH_SPINNER_STYLE}
+                  <IconRefreshCw
+                    className={refreshStyles.quotaRefreshIconSvg}
+                    size={15}
                     aria-hidden="true"
                   />
                 </span>
@@ -1767,7 +1785,9 @@ export function AuthFilesPage() {
             aria-busy={showInitialLoading || showListProgress}
           >
             <div
-              className={`${refreshStyles.listProgress} ${showListProgress ? refreshStyles.listProgressActive : ''}`}
+              className={`${refreshStyles.listProgress} ${
+                showListProgress || pageQuotaRefreshing ? refreshStyles.listProgressActive : ''
+              }`}
               aria-hidden="true"
             />
             {showInitialLoading ? (
@@ -1807,7 +1827,7 @@ export function AuthFilesPage() {
               )
             ) : (
               <div
-                className={`${styles.fileGrid} ${refreshStyles.cardGrid} ${quotaFilterType ? styles.fileGridQuotaManaged : ''}`}
+                className={`${refreshStyles.cardGrid} ${quotaFilterType ? refreshStyles.cardGridQuotaManaged : ''}`}
                 ref={authFileGridRef}
                 // 列表刷新期间整体屏蔽交互（含键盘焦点），等价于此前逐张卡片
                 // 传 disableControls，但不会触碰任何卡片的 props。
@@ -1831,11 +1851,7 @@ export function AuthFilesPage() {
                   {t('auth_files.pagination_prev')}
                 </Button>
                 {/* 翻页后焦点常留在已禁用的按钮上，靠 live region 播报当前页 */}
-                <div
-                  className={refreshStyles.pageInfo}
-                  role="status"
-                  aria-live="polite"
-                >
+                <div className={refreshStyles.pageInfo} role="status" aria-live="polite">
                   {t('auth_files.pagination_info', {
                     current: currentPage,
                     total: totalPages,
@@ -1858,7 +1874,7 @@ export function AuthFilesPage() {
 
       {belowFoldCardsReady && (
         <Suspense fallback={null}>
-          <div className={`${styles.belowFoldCard} ${refreshStyles.supportingPanel}`}>
+          <div className={refreshStyles.supportingPanel}>
             <OAuthModelRulesCard
               disableControls={disableControls}
               excludedError={excludedError}
@@ -1929,11 +1945,7 @@ export function AuthFilesPage() {
               <div className={refreshStyles.batchBar}>
                 <div className={refreshStyles.batchGroup}>
                   {/* 选中数量会随勾选变化，用 live region 播报，否则读屏用户无从感知 */}
-                  <span
-                    className={refreshStyles.batchSelection}
-                    role="status"
-                    aria-live="polite"
-                  >
+                  <span className={refreshStyles.batchSelection} role="status" aria-live="polite">
                     {t('auth_files.batch_selected', { count: selectionCount })}
                   </span>
                   <Button
@@ -1964,9 +1976,7 @@ export function AuthFilesPage() {
                     {t('auth_files.batch_deselect')}
                   </Button>
                 </div>
-                <div
-                  className={`${refreshStyles.batchGroup} ${refreshStyles.batchCommandGroup}`}
-                >
+                <div className={`${refreshStyles.batchGroup} ${refreshStyles.batchCommandGroup}`}>
                   <Button
                     variant="secondary"
                     size="sm"

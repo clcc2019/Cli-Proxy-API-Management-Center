@@ -41,6 +41,7 @@ import {
   readAuthFileWebsockets,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
+import { AuthFileReauthorization } from '@/features/authFiles/components/AuthFileReauthorization';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 const AuthFileQuotaSection = lazy(() =>
@@ -510,6 +511,14 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           )}
         </section>
 
+        {!isRuntimeOnly && fileType === 'codex' && (
+          <AuthFileReauthorization
+            file={file}
+            disableControls={disableControls}
+            onAuthFileUpdated={onAuthFileUpdated}
+          />
+        )}
+
         <footer className={refreshStyles.cardFooter}>
           <div className={refreshStyles.cardFooterMain}>
             <div className={refreshStyles.cardFooterLeft}>
@@ -565,12 +574,17 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     variant="secondary"
                     size="sm"
                     onClick={handleShowModels}
-                    className={refreshStyles.cardActionButton}
+                    className={`${refreshStyles.cardActionButton} ${isRuntimeOnly ? refreshStyles.runtimeModelAction : ''}`}
                     title={t('auth_files.models_button')}
                     aria-label={t('auth_files.models_button')}
                     disabled={disableControls}
                   >
                     <IconModelCluster className={refreshStyles.cardActionIcon} size={18} />
+                    {isRuntimeOnly && (
+                      <span className={refreshStyles.runtimeModelActionLabel} aria-hidden="true">
+                        {t('auth_files.models_button')}
+                      </span>
+                    )}
                   </Button>
                 )}
                 {!isRuntimeOnly && (

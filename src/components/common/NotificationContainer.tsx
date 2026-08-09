@@ -1,27 +1,45 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type AnimationEvent as ReactAnimationEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationStore } from '@/stores';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 import { IconX } from '@/components/ui/icons';
-import { useTimeoutRegistry } from '@/hooks';
+import { useReducedMotion, useTimeoutRegistry } from '@/hooks';
 import type { Notification } from '@/types';
 
 interface AnimatedNotification extends Notification {
   isExiting?: boolean;
 }
 
-const ANIMATION_DURATION = 300; // ms
+const ANIMATION_FALLBACK_MS = 240;
 
 export function NotificationContainer() {
   const { t } = useTranslation();
   const notifications = useNotificationStore((state) => state.notifications);
   const removeNotification = useNotificationStore((state) => state.removeNotification);
+  const prefersReducedMotion = useReducedMotion();
   const [animatedNotifications, setAnimatedNotifications] = useState<AnimatedNotification[]>([]);
   const prevNotificationsRef = useRef<Notification[]>([]);
   const { scheduleTimeout } = useTimeoutRegistry();
 
-  const scheduleAfterAnimation = useCallback((callback: () => void) => {
-    scheduleTimeout(callback, ANIMATION_DURATION);
-  }, [scheduleTimeout]);
+  const scheduleAfterAnimation = useCallback(
+    (callback: () => void) => {
+      scheduleTimeout(callback, ANIMATION_FALLBACK_MS);
+    },
+    [scheduleTimeout]
+  );
+
+  const finishExit = useCallback(
+    (id: string) => {
+      setAnimatedNotifications((prev) => prev.filter((notification) => notification.id !== id));
+      removeNotification(id);
+    },
+    [removeNotification]
+  );
 
   useEffect(() => {
     const prevNotifications = prevNotificationsRef.current;
@@ -30,7 +48,9 @@ export function NotificationContainer() {
 
     const newNotifications = notifications.filter((n) => !prevIds.has(n.id));
 
-    const removedIds = new Set(prevNotifications.filter((n) => !currentIds.has(n.id)).map((n) => n.id));
+    const removedIds = new Set(
+      prevNotifications.filter((n) => !currentIds.has(n.id)).map((n) => n.id)
+    );
 
     setAnimatedNotifications((prev) => {
       let updated = prev.map((n) => (removedIds.has(n.id) ? { ...n, isExiting: true } : n));
@@ -46,22 +66,41 @@ export function NotificationContainer() {
       return updated;
     });
 
-    if (removedIds.size > 0) {
+    if (prefersReducedMotion && removedIds.size > 0) {
+      setAnimatedNotifications((prev) => prev.filter((n) => !removedIds.has(n.id)));
+    } else if (removedIds.size > 0) {
       scheduleAfterAnimation(() => {
         setAnimatedNotifications((prev) => prev.filter((n) => !removedIds.has(n.id)));
       });
     }
 
     prevNotificationsRef.current = notifications;
-  }, [notifications, scheduleAfterAnimation]);
+  }, [notifications, prefersReducedMotion, scheduleAfterAnimation]);
 
-  const handleClose = useCallback((id: string) => {
-    setAnimatedNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isExiting: true } : n)));
+  const handleClose = useCallback(
+    (id: string) => {
+      if (prefersReducedMotion) {
+        finishExit(id);
+        return;
+      }
+      setAnimatedNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isExiting: true } : n))
+      );
 
-    scheduleAfterAnimation(() => {
-      removeNotification(id);
-    });
-  }, [removeNotification, scheduleAfterAnimation]);
+      scheduleAfterAnimation(() => {
+        finishExit(id);
+      });
+    },
+    [finishExit, prefersReducedMotion, scheduleAfterAnimation]
+  );
+
+  const handleAnimationEnd = useCallback(
+    (event: ReactAnimationEvent<HTMLDivElement>, id: string, isExiting: boolean) => {
+      if (event.currentTarget !== event.target || !isExiting) return;
+      finishExit(id);
+    },
+    [finishExit]
+  );
 
   if (!animatedNotifications.length) return null;
 
@@ -72,6 +111,9 @@ export function NotificationContainer() {
           key={notification.id}
           className={`notification ${notification.type} ${notification.isExiting ? 'exiting' : 'entering'}`}
           role={notification.type === 'error' ? 'alert' : 'status'}
+          onAnimationEnd={(event) =>
+            handleAnimationEnd(event, notification.id, notification.isExiting === true)
+          }
         >
           <div className="message">{notification.message}</div>
           <button

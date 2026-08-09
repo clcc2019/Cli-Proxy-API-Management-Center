@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AuthState, LoginCredentials, ConnectionStatus } from '@/types';
-import { STORAGE_KEY_AUTH } from '@/utils/constants';
+import { STORAGE_KEY_AUTH, STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
 import { obfuscatedStorage } from '@/services/storage/secureStorage';
 import { apiClient } from '@/services/api/client';
 import { isAuthRecoveryActive, runWithAuthRecovery } from '@/services/auth/authRecovery';
@@ -17,9 +17,7 @@ import {
   writeSessionSnapshot,
 } from '@/services/storage/authSessionStorage';
 import { useConfigStore } from './useConfigStore';
-import { useUsageStatsStore } from './useUsageStatsStore';
-import { useModelsStore } from './useModelsStore';
-import { useQuotaStore } from './useQuotaStore';
+import { runSessionCleanup, runSessionCleanups } from './sessionCleanup';
 import { detectApiBaseFromLocation, normalizeApiBase } from '@/utils/connection';
 
 interface AuthStoreState extends AuthState {
@@ -133,7 +131,7 @@ export const useAuthStore = create<AuthStoreState>()(
 
         try {
           set({ connectionStatus: 'connecting' });
-          useModelsStore.getState().clearCache();
+          runSessionCleanup('models');
 
           // 配置 API 客户端
           apiClient.setConfig({
@@ -147,7 +145,8 @@ export const useAuthStore = create<AuthStoreState>()(
           );
 
           if (connectionChanged) {
-            useQuotaStore.getState().clearQuotaCache();
+            runSessionCleanup('quota-cache');
+            localStorage.removeItem(STORAGE_KEY_QUOTA_CACHE);
           }
 
           // 登录成功
@@ -188,9 +187,8 @@ export const useAuthStore = create<AuthStoreState>()(
       logout: () => {
         restoreSessionPromise = null;
         useConfigStore.getState().clearCache();
-        useUsageStatsStore.getState().clearUsageStats();
-        useModelsStore.getState().clearCache();
-        useQuotaStore.getState().clearQuotaCache();
+        runSessionCleanups();
+        localStorage.removeItem(STORAGE_KEY_QUOTA_CACHE);
         apiClient.setConfig({ apiBase: '', managementKey: '' });
         set({
           isAuthenticated: false,

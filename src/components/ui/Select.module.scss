@@ -42,9 +42,9 @@
   text-align: left;
   box-sizing: border-box;
   transition:
-    border-color 150ms ease,
-    background-color 150ms ease,
-    box-shadow 150ms ease;
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     border-color: var(--border-hover);
@@ -78,7 +78,7 @@
   display: inline-flex;
   color: var(--text-secondary);
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  transition: transform var(--motion-duration-base) var(--motion-ease-emphasized);
 
   [aria-expanded='true'] > & {
     transform: rotate(180deg);
@@ -120,7 +120,9 @@
   overflow-wrap: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
   flex-shrink: 0;
 
   &:hover {
@@ -128,7 +130,8 @@
   }
 
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 52%, transparent);
+    outline: 2px solid
+      color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 52%, transparent);
     outline-offset: 2px;
     background: var(--mg-surface-subtle, var(--bg-secondary));
   }

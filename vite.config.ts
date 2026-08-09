@@ -77,12 +77,28 @@ function resolveManualChunk(id: string) {
     return undefined;
   }
 
-  if (id.includes('react-chartjs-2') || id.includes('chart.js')) {
-    return 'charts';
+  // Resolve framework virtual/CommonJS proxy modules before feature packages.
+  // Some proxy ids include both the importer and React; assigning those to a
+  // feature chunk would make the application entry preload that feature.
+  if (
+    /node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|i18next|react-i18next|zustand)\//.test(
+      id
+    )
+  ) {
+    return 'framework';
   }
 
+  // Keep the chart stack with its lazy consumer. Under Rolldown, manually
+  // chunking either the React wrapper or Chart.js can claim shared runtime
+  // helpers and make the application entry preload the entire feature.
+  if (id.includes('react-chartjs-2') || id.includes('chart.js')) {
+    return undefined;
+  }
+
+  // The editor follows the same rule: all of its packages stay behind the
+  // lazy configuration editor boundary instead of becoming entry preload.
   if (id.includes('@uiw/react-codemirror') || id.includes('@codemirror/')) {
-    return 'editor';
+    return undefined;
   }
 
   // yaml 仅 ConfigPage 使用，走独立 chunk
@@ -93,15 +109,6 @@ function resolveManualChunk(id: string) {
   // axios 很稳定、很少变动，独立便于长缓存
   if (id.includes('/axios/')) {
     return 'http';
-  }
-
-  // 使用带边界的匹配，避免把 react-chartjs-2、react-i18next 等包误并入 framework。
-  if (
-    /node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|i18next|react-i18next|zustand)\//.test(
-      id
-    )
-  ) {
-    return 'framework';
   }
 
   return 'vendor';
@@ -185,6 +192,7 @@ function createDevManagementProxy(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const singleFileBuild = mode === 'singlefile' || process.env.SINGLE_FILE === 'true';
+  const performanceBuild = mode === 'performance';
 
   return {
     plugins: [
@@ -221,6 +229,7 @@ export default defineConfig(({ mode }) => {
       target: 'es2020',
       outDir: 'dist',
       cssCodeSplit: !singleFileBuild,
+      manifest: performanceBuild,
       ...(singleFileBuild
         ? {
             assetsInlineLimit: 100000000,

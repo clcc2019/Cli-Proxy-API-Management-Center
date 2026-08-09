@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
-import styles from '@/pages/AuthFilesPage.module.scss';
+import styles from './AuthFileWarningIndicator.module.scss';
 
 type AuthFileWarningIndicatorProps = {
   message: string;

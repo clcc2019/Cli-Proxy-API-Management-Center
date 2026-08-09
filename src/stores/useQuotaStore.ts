@@ -7,6 +7,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
 import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
+import { registerSessionCleanup } from './sessionCleanup';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
 type PersistableQuotaState = Pick<QuotaStoreState, 'claudeQuota' | 'codexQuota' | 'kimiQuota'>;
@@ -238,3 +239,7 @@ export const useQuotaStore = create<QuotaStoreState>()(
     }
   )
 );
+
+registerSessionCleanup('quota-cache', () => {
+  useQuotaStore.getState().clearQuotaCache();
+});

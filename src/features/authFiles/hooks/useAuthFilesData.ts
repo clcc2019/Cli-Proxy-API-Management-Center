@@ -24,6 +24,7 @@ import { getPathBasename } from '@/utils/path';
 import { AUTH_FILES_REFRESH_EVENT, MAX_AUTH_FILE_SIZE } from '@/utils/constants';
 import { downloadBlob } from '@/utils/download';
 import { isRuntimeOnlyAuthFile } from '@/utils/quota';
+import { createTrailingSingleFlight } from '@/utils/trailingSingleFlight';
 import { getTypeLabel, hasAuthFileStatusMessage } from '@/features/authFiles/constants';
 import { readAuthFileNumericCount } from '@/features/authFiles/stats';
 
@@ -274,7 +275,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const statusUpdatingRef = useRef<Record<string, boolean>>({});
   const visibleFileCountRef = useRef(0);
   const mountedRef = useRef(true);
-  const loadFilesInFlightRef = useRef<{ key: string; request: Promise<void> } | null>(null);
+  const loadFilesRequestsRef = useRef(createTrailingSingleFlight<string, void>());
   const loadFilesAbortRef = useRef<AbortController | null>(null);
   const loadFilesSeqRef = useRef(0);
   const selectionCount = selectedFiles.size;
@@ -504,128 +505,120 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         ? getAuthFilesListOptionsKey(effectiveListOptions)
         : listOptionsKey;
 
-      if (!force && loadFilesInFlightRef.current?.key === effectiveListOptionsKey) {
-        await loadFilesInFlightRef.current.request;
-        return;
-      }
+      await loadFilesRequestsRef.current.run(
+        effectiveListOptionsKey,
+        async () => {
+          loadFilesAbortRef.current?.abort();
+          const abortController = new AbortController();
+          loadFilesAbortRef.current = abortController;
 
-      loadFilesAbortRef.current?.abort();
-      const abortController = new AbortController();
-      loadFilesAbortRef.current = abortController;
+          const requestSeq = loadFilesSeqRef.current + 1;
+          loadFilesSeqRef.current = requestSeq;
 
-      const requestSeq = loadFilesSeqRef.current + 1;
-      loadFilesSeqRef.current = requestSeq;
+          if (!silent) {
+            setLoading(showFullLoading);
+            setRefreshing(showRefreshing);
+            setError('');
+          }
+          try {
+            const data = await authFilesApi.list(effectiveListOptions, {
+              signal: abortController.signal,
+            });
+            if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
 
-      const request = (async () => {
-        if (!silent) {
-          setLoading(showFullLoading);
-          setRefreshing(showRefreshing);
-          setError('');
-        }
-        try {
-          const data = await authFilesApi.list(effectiveListOptions, {
-            signal: abortController.signal,
-          });
-          if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
+            const nextFiles = reuseAuthFileItemReferences(filesRef.current, data?.files || []);
+            const nextPage =
+              typeof data?.page === 'number' && Number.isFinite(data.page)
+                ? data.page
+                : (effectiveListOptions.page ?? 1);
+            const nextPageSize =
+              typeof data?.page_size === 'number' && Number.isFinite(data.page_size)
+                ? data.page_size
+                : (effectiveListOptions.pageSize ?? nextFiles.length);
+            const resolvedDataKey = effectiveListOptions.pageSize
+              ? getAuthFilesListOptionsKey({
+                  ...effectiveListOptions,
+                  page: nextPage,
+                  pageSize: nextPageSize,
+                })
+              : effectiveListOptionsKey;
 
-          const nextFiles = reuseAuthFileItemReferences(filesRef.current, data?.files || []);
-          const nextPage =
-            typeof data?.page === 'number' && Number.isFinite(data.page)
-              ? data.page
-              : (effectiveListOptions.page ?? 1);
-          const nextPageSize =
-            typeof data?.page_size === 'number' && Number.isFinite(data.page_size)
-              ? data.page_size
-              : (effectiveListOptions.pageSize ?? nextFiles.length);
-          const resolvedDataKey = effectiveListOptions.pageSize
-            ? getAuthFilesListOptionsKey({
-                ...effectiveListOptions,
-                page: nextPage,
-                pageSize: nextPageSize,
-              })
-            : effectiveListOptionsKey;
-
-          applyFilesState(nextFiles);
-          setError('');
-          const nextListMeta: AuthFilesListMeta = {
-            total: typeof data?.total === 'number' ? data.total : nextFiles.length,
-            page: Math.max(1, Math.round(nextPage)),
-            pageSize: Math.max(0, Math.round(nextPageSize)),
-            paginated: Boolean(effectiveListOptions.pageSize),
-            hasMore: data?.has_more === true,
-            typeCounts: data?.type_counts,
-            premiumOnlyApplied:
-              effectiveListOptions.premiumOnly === true
-                ? data?.premium_only_applied === true
-                : undefined,
-            dataKey: effectiveListOptionsKey,
-            resolvedDataKey,
-            typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
-          };
-          onListMetaResolved?.(nextListMeta);
-          setListMeta((prev) =>
-            areAuthFilesListMetaEqual(prev, nextListMeta) ? prev : nextListMeta
-          );
-        } catch (err: unknown) {
-          if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
-          if (isCanceledRequestError(err)) return;
-          // Servers that reject an unknown query parameter take the same graceful
-          // path as servers that omit `premium_only_applied` from a successful
-          // response. AuthFilesPage will immediately request its compatible
-          // unpaginated view after it observes this capability marker.
-          if (effectiveListOptions.premiumOnly && isUnsupportedPremiumFilterError(err)) {
-            const unsupportedPremiumListMeta: AuthFilesListMeta = {
-              total: 0,
-              page: Math.max(1, Math.round(effectiveListOptions.page ?? 1)),
-              pageSize: Math.max(0, Math.round(effectiveListOptions.pageSize ?? 0)),
+            applyFilesState(nextFiles);
+            setError('');
+            const nextListMeta: AuthFilesListMeta = {
+              total: typeof data?.total === 'number' ? data.total : nextFiles.length,
+              page: Math.max(1, Math.round(nextPage)),
+              pageSize: Math.max(0, Math.round(nextPageSize)),
               paginated: Boolean(effectiveListOptions.pageSize),
-              hasMore: false,
-              premiumOnlyApplied: false,
+              hasMore: data?.has_more === true,
+              typeCounts: data?.type_counts,
+              premiumOnlyApplied:
+                effectiveListOptions.premiumOnly === true
+                  ? data?.premium_only_applied === true
+                  : undefined,
               dataKey: effectiveListOptionsKey,
-              resolvedDataKey: effectiveListOptionsKey,
+              resolvedDataKey,
               typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
             };
-            onListMetaResolved?.(unsupportedPremiumListMeta);
+            onListMetaResolved?.(nextListMeta);
             setListMeta((prev) =>
-              areAuthFilesListMetaEqual(prev, unsupportedPremiumListMeta)
-                ? prev
-                : unsupportedPremiumListMeta
+              areAuthFilesListMetaEqual(prev, nextListMeta) ? prev : nextListMeta
             );
-            return;
+          } catch (err: unknown) {
+            if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
+            if (isCanceledRequestError(err)) return;
+            // Servers that reject an unknown query parameter take the same graceful
+            // path as servers that omit `premium_only_applied` from a successful
+            // response. AuthFilesPage will immediately request its compatible
+            // unpaginated view after it observes this capability marker.
+            if (effectiveListOptions.premiumOnly && isUnsupportedPremiumFilterError(err)) {
+              const unsupportedPremiumListMeta: AuthFilesListMeta = {
+                total: 0,
+                page: Math.max(1, Math.round(effectiveListOptions.page ?? 1)),
+                pageSize: Math.max(0, Math.round(effectiveListOptions.pageSize ?? 0)),
+                paginated: Boolean(effectiveListOptions.pageSize),
+                hasMore: false,
+                premiumOnlyApplied: false,
+                dataKey: effectiveListOptionsKey,
+                resolvedDataKey: effectiveListOptionsKey,
+                typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
+              };
+              onListMetaResolved?.(unsupportedPremiumListMeta);
+              setListMeta((prev) =>
+                areAuthFilesListMetaEqual(prev, unsupportedPremiumListMeta)
+                  ? prev
+                  : unsupportedPremiumListMeta
+              );
+              return;
+            }
+            if (silent) return;
+            const errorMessage =
+              err instanceof Error ? err.message : t('notification.refresh_failed');
+            setError(errorMessage);
+          } finally {
+            if (mountedRef.current && loadFilesSeqRef.current === requestSeq) {
+              setLoading(false);
+              setRefreshing(false);
+            }
+            if (loadFilesAbortRef.current === abortController) {
+              loadFilesAbortRef.current = null;
+            }
           }
-          if (silent) return;
-          const errorMessage =
-            err instanceof Error ? err.message : t('notification.refresh_failed');
-          setError(errorMessage);
-        } finally {
-          if (mountedRef.current && loadFilesSeqRef.current === requestSeq) {
-            setLoading(false);
-            setRefreshing(false);
-          }
-        }
-      })();
-
-      loadFilesInFlightRef.current = { key: effectiveListOptionsKey, request };
-      try {
-        await request;
-      } finally {
-        if (loadFilesInFlightRef.current?.request === request) {
-          loadFilesInFlightRef.current = null;
-        }
-        if (loadFilesAbortRef.current === abortController) {
-          loadFilesAbortRef.current = null;
-        }
-      }
+        },
+        force ? 'refresh-after-current' : 'reuse'
+      );
     },
     [applyFilesState, listOptions, listOptionsKey, onListMetaResolved, t]
   );
 
   useEffect(() => {
+    const loadFilesRequests = loadFilesRequestsRef.current;
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       loadFilesSeqRef.current += 1;
       loadFilesAbortRef.current?.abort();
+      loadFilesRequests.clear();
     };
   }, []);
 

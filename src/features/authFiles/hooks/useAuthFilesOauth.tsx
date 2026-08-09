@@ -92,6 +92,8 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
   const mountedRef = useRef(true);
   const excludedLoadSequenceRef = useRef(0);
   const aliasesLoadSequenceRef = useRef(0);
+  const excludedInFlightRef = useRef<Promise<void> | null>(null);
+  const aliasesInFlightRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -103,60 +105,88 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
   }, []);
 
   const loadExcluded = useCallback(async () => {
+    if (excludedInFlightRef.current) {
+      await excludedInFlightRef.current;
+      return;
+    }
+
     const requestSequence = excludedLoadSequenceRef.current + 1;
     excludedLoadSequenceRef.current = requestSequence;
-    try {
-      const response = await authFilesApi.getOauthExcludedModels();
-      if (!mountedRef.current || excludedLoadSequenceRef.current !== requestSequence) return;
-      excludedUnsupportedRef.current = false;
-      const nextExcluded = response ?? {};
-      setExcluded((previous) =>
-        areExcludedRecordsEqual(previous, nextExcluded) ? previous : nextExcluded
-      );
-      setExcludedError(null);
-    } catch (error: unknown) {
-      if (!mountedRef.current || excludedLoadSequenceRef.current !== requestSequence) return;
-      const status =
-        typeof error === 'object' && error !== null && 'status' in error
-          ? (error as { status?: unknown }).status
-          : undefined;
-      if (status !== 404) return;
+    const request = (async () => {
+      try {
+        const response = await authFilesApi.getOauthExcludedModels();
+        if (!mountedRef.current || excludedLoadSequenceRef.current !== requestSequence) return;
+        excludedUnsupportedRef.current = false;
+        const nextExcluded = response ?? {};
+        setExcluded((previous) =>
+          areExcludedRecordsEqual(previous, nextExcluded) ? previous : nextExcluded
+        );
+        setExcludedError(null);
+      } catch (error: unknown) {
+        if (!mountedRef.current || excludedLoadSequenceRef.current !== requestSequence) return;
+        const status =
+          typeof error === 'object' && error !== null && 'status' in error
+            ? (error as { status?: unknown }).status
+            : undefined;
+        if (status !== 404) return;
 
-      setExcluded((previous) => (Object.keys(previous).length === 0 ? previous : {}));
-      setExcludedError('unsupported');
-      if (!excludedUnsupportedRef.current) {
-        excludedUnsupportedRef.current = true;
-        showNotification(t('oauth_excluded.upgrade_required'), 'warning');
+        setExcluded((previous) => (Object.keys(previous).length === 0 ? previous : {}));
+        setExcludedError('unsupported');
+        if (!excludedUnsupportedRef.current) {
+          excludedUnsupportedRef.current = true;
+          showNotification(t('oauth_excluded.upgrade_required'), 'warning');
+        }
       }
+    })();
+
+    excludedInFlightRef.current = request;
+    try {
+      await request;
+    } finally {
+      if (excludedInFlightRef.current === request) excludedInFlightRef.current = null;
     }
   }, [showNotification, t]);
 
   const loadModelAlias = useCallback(async () => {
+    if (aliasesInFlightRef.current) {
+      await aliasesInFlightRef.current;
+      return;
+    }
+
     const requestSequence = aliasesLoadSequenceRef.current + 1;
     aliasesLoadSequenceRef.current = requestSequence;
-    try {
-      const response = await authFilesApi.getOauthModelAlias();
-      if (!mountedRef.current || aliasesLoadSequenceRef.current !== requestSequence) return;
-      aliasesUnsupportedRef.current = false;
-      const nextModelAlias = response ?? {};
-      setModelAlias((previous) =>
-        areModelAliasRecordsEqual(previous, nextModelAlias) ? previous : nextModelAlias
-      );
-      setModelAliasError(null);
-    } catch (error: unknown) {
-      if (!mountedRef.current || aliasesLoadSequenceRef.current !== requestSequence) return;
-      const status =
-        typeof error === 'object' && error !== null && 'status' in error
-          ? (error as { status?: unknown }).status
-          : undefined;
-      if (status !== 404) return;
+    const request = (async () => {
+      try {
+        const response = await authFilesApi.getOauthModelAlias();
+        if (!mountedRef.current || aliasesLoadSequenceRef.current !== requestSequence) return;
+        aliasesUnsupportedRef.current = false;
+        const nextModelAlias = response ?? {};
+        setModelAlias((previous) =>
+          areModelAliasRecordsEqual(previous, nextModelAlias) ? previous : nextModelAlias
+        );
+        setModelAliasError(null);
+      } catch (error: unknown) {
+        if (!mountedRef.current || aliasesLoadSequenceRef.current !== requestSequence) return;
+        const status =
+          typeof error === 'object' && error !== null && 'status' in error
+            ? (error as { status?: unknown }).status
+            : undefined;
+        if (status !== 404) return;
 
-      setModelAlias((previous) => (Object.keys(previous).length === 0 ? previous : {}));
-      setModelAliasError('unsupported');
-      if (!aliasesUnsupportedRef.current) {
-        aliasesUnsupportedRef.current = true;
-        showNotification(t('oauth_model_alias.upgrade_required'), 'warning');
+        setModelAlias((previous) => (Object.keys(previous).length === 0 ? previous : {}));
+        setModelAliasError('unsupported');
+        if (!aliasesUnsupportedRef.current) {
+          aliasesUnsupportedRef.current = true;
+          showNotification(t('oauth_model_alias.upgrade_required'), 'warning');
+        }
       }
+    })();
+
+    aliasesInFlightRef.current = request;
+    try {
+      await request;
+    } finally {
+      if (aliasesInFlightRef.current === request) aliasesInFlightRef.current = null;
     }
   }, [showNotification, t]);
 

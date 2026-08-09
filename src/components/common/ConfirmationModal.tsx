@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { useNotificationStore } from '@/stores';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 
 export function ConfirmationModal() {
   const { t } = useTranslation();

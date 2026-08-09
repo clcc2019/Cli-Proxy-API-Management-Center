@@ -140,10 +140,14 @@ const HeroTimeBlock = memo(function HeroTimeBlock() {
       wasCurrentLayerRef.current = false;
       return;
     }
+    let refreshTimer: number | null = null;
     if (!wasCurrentLayerRef.current) {
-      setNow(new Date());
+      refreshTimer = window.setTimeout(() => setNow(new Date()), 0);
     }
     wasCurrentLayerRef.current = true;
+    return () => {
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+    };
   }, [isCurrentLayer]);
 
   useAlignedInterval(() => {
@@ -188,11 +192,17 @@ const HeroGreeting = memo(function HeroGreeting() {
       wasCurrentLayerRef.current = false;
       return;
     }
+    let refreshTimer: number | null = null;
     if (!wasCurrentLayerRef.current) {
-      const nextTimeOfDay = getTimeOfDay();
-      setTimeOfDay((previous) => (previous === nextTimeOfDay ? previous : nextTimeOfDay));
+      refreshTimer = window.setTimeout(() => {
+        const nextTimeOfDay = getTimeOfDay();
+        setTimeOfDay((previous) => (previous === nextTimeOfDay ? previous : nextTimeOfDay));
+      }, 0);
     }
     wasCurrentLayerRef.current = true;
+    return () => {
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+    };
   }, [isCurrentLayer]);
 
   useInterval(() => {
@@ -559,7 +569,6 @@ export function DashboardPage() {
               to={stat.path}
               className={`${styles.bentoCard} ${index === 0 ? styles.bentoLarge : ''}`}
               aria-label={`${stat.label}: ${stat.loading ? '…' : stat.value}`}
-              style={{ animationDelay: `${index * 80}ms` }}
             >
               <div className={styles.bentoIcon}>{stat.icon}</div>
               <div className={styles.bentoContent}>

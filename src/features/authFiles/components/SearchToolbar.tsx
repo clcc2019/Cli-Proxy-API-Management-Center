@@ -101,7 +101,7 @@ const PopoverButton = memo(function PopoverButton({
         }}
         aria-haspopup="dialog"
         aria-expanded={visibleOpen}
-        aria-controls={popoverId}
+        aria-controls={visibleOpen ? popoverId : undefined}
         aria-label={triggerSummary ? `${ariaLabel}: ${triggerSummary}` : ariaLabel}
         title={triggerSummary ? `${triggerLabel}: ${triggerSummary}` : triggerLabel}
       >

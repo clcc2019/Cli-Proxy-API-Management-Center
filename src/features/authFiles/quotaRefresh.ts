@@ -17,49 +17,14 @@ export type AuthFileQuotaState = {
 
 const quotaRequestVersions = new Map<string, number>();
 let nextQuotaRequestVersion = 0;
-const CODEX_REFRESH_SETTLE_DELAY_MS = 400;
-const MINIMUM_QUOTA_REFRESH_INDICATOR_MS = 420;
+const MINIMUM_QUOTA_REFRESH_INDICATOR_MS = 220;
 const AUTH_FILE_QUOTA_REFRESH_CONCURRENCY = 4;
-
-const waitForQuotaRefreshSettle = () =>
-  new Promise<void>((resolve) => window.setTimeout(resolve, CODEX_REFRESH_SETTLE_DELAY_MS));
 
 const waitForMinimumIndicatorDuration = (startedAt: number) => {
   const remaining = MINIMUM_QUOTA_REFRESH_INDICATOR_MS - (Date.now() - startedAt);
   return remaining > 0
     ? new Promise<void>((resolve) => window.setTimeout(resolve, remaining))
     : Promise.resolve();
-};
-
-type ComparableQuotaWindow = { id?: string; usedPercent?: number | null };
-type ComparableCodexQuotaData = { windows?: ComparableQuotaWindow[] };
-
-const stabilizeCodexQuotaData = (first: unknown, confirmation: unknown): unknown => {
-  if (!first || typeof first !== 'object' || !confirmation || typeof confirmation !== 'object') {
-    return confirmation;
-  }
-
-  const firstData = first as ComparableCodexQuotaData;
-  const confirmationData = confirmation as ComparableCodexQuotaData;
-  if (!Array.isArray(firstData.windows) || !Array.isArray(confirmationData.windows)) {
-    return confirmation;
-  }
-
-  const firstWindows = new Map(
-    firstData.windows.filter((window) => window.id).map((window) => [window.id as string, window])
-  );
-  const windows = confirmationData.windows.map((window) => {
-    const previous = window.id ? firstWindows.get(window.id) : undefined;
-    const previousUsed = previous?.usedPercent;
-    const confirmationUsed = window.usedPercent;
-    return typeof previousUsed === 'number' &&
-      typeof confirmationUsed === 'number' &&
-      previousUsed > confirmationUsed
-      ? previous
-      : window;
-  });
-
-  return { ...(confirmation as Record<string, unknown>), windows };
 };
 
 type AuthFileQuotaConfig = {
@@ -123,16 +88,8 @@ export async function refreshAuthFileQuota(options: {
   disableControls: boolean;
   t: TFunction;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
-  stabilizeCodexRefresh?: boolean;
 }): Promise<AuthFileQuotaRefreshResult> {
-  const {
-    file,
-    quotaType,
-    disableControls,
-    t,
-    onAuthFileUpdated,
-    stabilizeCodexRefresh = false,
-  } = options;
+  const { file, quotaType, disableControls, t, onAuthFileUpdated } = options;
   const fileName = file.name;
 
   if (disableControls) return { status: 'skipped', fileName };
@@ -169,17 +126,7 @@ export async function refreshAuthFileQuota(options: {
   });
 
   try {
-    let data = await config.fetchQuota(file, t);
-    if (quotaType === 'codex' && stabilizeCodexRefresh) {
-      await waitForQuotaRefreshSettle();
-      if (!isLatestRequest()) return { status: 'skipped', fileName };
-      try {
-        const confirmation = await config.fetchQuota(file, t);
-        data = stabilizeCodexQuotaData(data, confirmation);
-      } catch {
-        // The first successful snapshot remains usable when the confirmation read fails.
-      }
-    }
+    const data = await config.fetchQuota(file, t);
     await waitForMinimumIndicatorDuration(indicatorStartedAt);
     if (!isLatestRequest()) return { status: 'skipped', fileName };
     const authFile = config.extractAuthFileUpdate?.(data) ?? null;

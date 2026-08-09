@@ -30,7 +30,10 @@ import {
   IconSidebarSystem,
   IconSidebarUsage,
 } from '@/components/ui/icons';
-import { useAuthStore, useConfigStore, useLanguageStore, useNotificationStore } from '@/stores';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useConfigStore } from '@/stores/useConfigStore';
+import { useLanguageStore } from '@/stores/useLanguageStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 import { triggerHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
 import { isSupportedLanguage } from '@/utils/language';
@@ -103,7 +106,27 @@ const headerIcons = {
 };
 
 const NAVIGATION_PRELOAD_BUDGET_MS = 220;
+const NAVIGATION_INTENT_DELAY_MS = 75;
 const HEADER_MENU_ITEM_SELECTOR = '[role="menuitemradio"]:not(:disabled)';
+
+type NetworkInformationLike = {
+  effectiveType?: string;
+  saveData?: boolean;
+};
+
+const shouldSkipIntentPreload = () => {
+  if (typeof navigator === 'undefined') return false;
+  const connection = (
+    navigator as Navigator & {
+      connection?: NetworkInformationLike;
+    }
+  ).connection;
+  return (
+    connection?.saveData === true ||
+    connection?.effectiveType === '2g' ||
+    connection?.effectiveType === 'slow-2g'
+  );
+};
 
 const getHeaderMenuItems = (menu: HTMLDivElement | null) =>
   Array.from(menu?.querySelectorAll<HTMLButtonElement>(HEADER_MENU_ITEM_SELECTOR) ?? []);
@@ -132,6 +155,7 @@ export function MainLayout() {
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const navigationIntentRef = useRef(0);
+  const navigationPreloadTimerRef = useRef<number | null>(null);
 
   const isLogsPage = location.pathname.startsWith('/logs');
 
@@ -404,14 +428,32 @@ export function MainLayout() {
     showNotification(t('notification.data_refreshed'), 'success');
   };
 
-  const handleNavigationIntent = useCallback((path: string) => {
-    void preloadRoute(path).catch(() => {
-      // Route rendering still has a Suspense fallback if an intent preload fails.
-    });
+  const cancelNavigationIntent = useCallback(() => {
+    if (navigationPreloadTimerRef.current === null) return;
+    window.clearTimeout(navigationPreloadTimerRef.current);
+    navigationPreloadTimerRef.current = null;
   }, []);
+
+  const handleNavigationIntent = useCallback(
+    (path: string) => {
+      cancelNavigationIntent();
+      if (shouldSkipIntentPreload()) return;
+
+      navigationPreloadTimerRef.current = window.setTimeout(() => {
+        navigationPreloadTimerRef.current = null;
+        void preloadRoute(path).catch(() => {
+          // Route rendering still has a Suspense fallback if an intent preload fails.
+        });
+      }, NAVIGATION_INTENT_DELAY_MS);
+    },
+    [cancelNavigationIntent]
+  );
+
+  useEffect(() => cancelNavigationIntent, [cancelNavigationIntent]);
 
   const handleNavigationClick = useCallback(
     (event: ReactMouseEvent<HTMLAnchorElement>, path: string) => {
+      cancelNavigationIntent();
       setSidebarOpen(false);
 
       if (
@@ -444,7 +486,7 @@ export function MainLayout() {
         startTransition(() => navigate(path));
       });
     },
-    [location.pathname, navigate]
+    [cancelNavigationIntent, location.pathname, navigate]
   );
 
   return (
@@ -467,8 +509,9 @@ export function MainLayout() {
             className="brand-lockup"
             onClick={(event) => handleNavigationClick(event, '/')}
             onPointerEnter={() => handleNavigationIntent('/')}
-            onPointerDown={() => handleNavigationIntent('/')}
+            onPointerLeave={cancelNavigationIntent}
             onFocus={() => handleNavigationIntent('/')}
+            onBlur={cancelNavigationIntent}
             aria-label={t('title.main')}
           >
             <TokaMark className="brand-mark" aria-hidden="true" />
@@ -592,8 +635,9 @@ export function MainLayout() {
                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                 onClick={(event) => handleNavigationClick(event, item.path)}
                 onPointerEnter={() => handleNavigationIntent(item.path)}
-                onPointerDown={() => handleNavigationIntent(item.path)}
+                onPointerLeave={cancelNavigationIntent}
                 onFocus={() => handleNavigationIntent(item.path)}
+                onBlur={cancelNavigationIntent}
                 title={sidebarCollapsed ? item.label : undefined}
               >
                 <span className="nav-icon">{item.icon}</span>

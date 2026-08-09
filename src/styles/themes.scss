@@ -145,9 +145,13 @@
   --surface-sheen: rgb(255 255 255 / 0.5);
   --bg-canvas: var(--mg-canvas);
 
-  --motion-duration-fast: 140ms;
-  --motion-duration-base: 220ms;
-  --motion-duration-slow: 360ms;
+  --motion-duration-fast: 130ms;
+  --motion-duration-base: 190ms;
+  --motion-duration-slow: 240ms;
+  --motion-duration-exit: 150ms;
+  --motion-duration-emphasized: 240ms;
   --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
 }

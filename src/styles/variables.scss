@@ -67,4 +67,15 @@ $font-family:
   Arial,
   sans-serif;
 
+// Editorial display stack for destination/overview headings. It stays fully
+// local and falls back to the product UI stack when the platform font is absent.
+$font-display:
+  'Avenir Next',
+  'Segoe UI Variable Display',
+  'Segoe UI',
+  ui-sans-serif,
+  -apple-system,
+  BlinkMacSystemFont,
+  sans-serif;
+
 $font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;

@@ -3,7 +3,7 @@ import { Outlet, RouterProvider, createHashRouter } from 'react-router-dom';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { ProtectedRoute } from '@/router/ProtectedRoute';
 import { fullScreenRouteFallback, lazyNamed, renderLazyPage } from '@/router/lazyRoute';
-import { useLanguageStore } from '@/stores';
+import { useLanguageStore } from '@/stores/useLanguageStore';
 
 const LazyLoginPage = lazyNamed(() => import('@/pages/LoginPage'), 'LoginPage');
 const LazyMainLayout = lazyNamed(() => import('@/components/layout/MainLayout'), 'MainLayout');

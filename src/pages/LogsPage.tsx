@@ -1,4 +1,12 @@
-import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
@@ -178,19 +186,21 @@ export function LogsPage() {
 
       if (incremental && newLines.length > 0) {
         // 增量更新：追加新日志并限制缓冲区大小（避免内存与渲染膨胀）
-        setLogState((prev) => {
-          const prevRenderedCount = prev.buffer.length - prev.visibleFrom;
-          const combined = [...prev.buffer, ...newLines];
-          const dropCount = Math.max(combined.length - MAX_BUFFER_LINES, 0);
-          const buffer = dropCount > 0 ? combined.slice(dropCount) : combined;
-          let visibleFrom = Math.max(prev.visibleFrom - dropCount, 0);
+        startTransition(() => {
+          setLogState((prev) => {
+            const prevRenderedCount = prev.buffer.length - prev.visibleFrom;
+            const combined = [...prev.buffer, ...newLines];
+            const dropCount = Math.max(combined.length - MAX_BUFFER_LINES, 0);
+            const buffer = dropCount > 0 ? combined.slice(dropCount) : combined;
+            let visibleFrom = Math.max(prev.visibleFrom - dropCount, 0);
 
-          // 若用户停留在底部（跟随最新日志），则保持“渲染窗口”大小不变，避免无限增长
-          if (stickToBottom) {
-            visibleFrom = Math.max(buffer.length - prevRenderedCount, 0);
-          }
+            // 若用户停留在底部（跟随最新日志），则保持“渲染窗口”大小不变，避免无限增长
+            if (stickToBottom) {
+              visibleFrom = Math.max(buffer.length - prevRenderedCount, 0);
+            }
 
-          return { buffer, visibleFrom };
+            return { buffer, visibleFrom };
+          });
         });
       } else if (!incremental) {
         // 全量加载：默认只渲染最后 100 行，向上滚动再展开更多
@@ -320,7 +330,10 @@ export function LogsPage() {
       void loadLogs(true);
     },
     AUTO_REFRESH_INTERVAL_MS,
-    { enabled: isCurrentLayer && autoRefresh && connectionStatus === 'connected' }
+    {
+      enabled: isCurrentLayer && autoRefresh && connectionStatus === 'connected',
+      minRefreshGapMs: AUTO_REFRESH_INTERVAL_MS / 2,
+    }
   );
 
   const visibleLines = useMemo(

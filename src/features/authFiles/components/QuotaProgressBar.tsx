@@ -29,12 +29,12 @@ export const QuotaProgressBar = memo(function QuotaProgressBar({
           : styles.quotaBarFillUnknown;
   const widthPercent = Math.round(normalized ?? 0);
   const ariaValue = normalized === null ? undefined : Math.round(normalized);
+  const visualPercent = widthPercent > 0 ? Math.max(widthPercent, 2) : 0;
   const fillStyle = useMemo(
     () => ({
-      width: `${widthPercent}%`,
-      minWidth: widthPercent > 0 ? 4 : 0,
+      transform: `scaleX(${visualPercent / 100})`,
     }),
-    [widthPercent]
+    [visualPercent]
   );
 
   return (

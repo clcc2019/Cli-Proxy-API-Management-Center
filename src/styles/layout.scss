@@ -81,7 +81,6 @@
       min-width: auto;
       flex: 0 0 auto;
     }
-
   }
 
   .brand-lockup {
@@ -137,10 +136,10 @@
   }
 
   .brand-caption {
-    color: var(--mg-text-tertiary, var(--text-tertiary));
-    font-size: 9.5px;
+    color: var(--mg-text-secondary, var(--text-secondary));
+    font-size: 10.5px;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     line-height: 1.2;
     text-transform: uppercase;
   }
@@ -206,9 +205,9 @@
 
     @media (max-width: $breakpoint-mobile) {
       display: inline-flex;
-      width: 38px;
-      min-width: 38px;
-      height: 38px;
+      width: 40px;
+      min-width: 40px;
+      height: 40px;
       padding: 0;
       border: 1px solid var(--mg-border, var(--border-color));
       border-radius: var(--mg-radius-control, $radius-md);
@@ -346,6 +345,13 @@
     @media (max-width: $breakpoint-mobile) {
       gap: 1px;
       padding: 2px;
+
+      > .btn,
+      .language-menu > .btn {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+      }
     }
   }
 
@@ -539,9 +545,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition:
-    width var(--motion-duration-base, 220ms) var(--motion-ease-out, ease-out),
-    transform var(--motion-duration-base, 220ms) var(--motion-ease-out, ease-out);
+  transition: transform var(--motion-duration-base, 190ms)
+    var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
   overflow-y: auto;
   flex-shrink: 0;
   height: 100%;
@@ -737,14 +742,22 @@
     top: var(--header-height);
     bottom: 0;
     transform: translateX(-100%);
-    padding: 14px 12px calc(16px + env(safe-area-inset-bottom))
-      max(12px, env(safe-area-inset-left));
+    visibility: hidden;
+    pointer-events: none;
+    padding: 14px 12px calc(16px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     border-top-right-radius: 18px;
     border-bottom-right-radius: 18px;
     box-shadow: 18px 0 48px -28px rgb(44 42 37 / 0.42);
+    transition:
+      transform var(--motion-duration-base, 190ms)
+        var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+      visibility 0s linear var(--motion-duration-base, 190ms);
 
     &.open {
       transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+      transition-delay: 0s;
     }
 
     .nav-item {

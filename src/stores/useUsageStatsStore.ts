@@ -9,6 +9,7 @@ import {
 } from '@/utils/usage';
 import i18n from '@/i18n';
 import { getErrorMessageOr } from '@/utils/error';
+import { registerSessionCleanup } from './sessionCleanup';
 
 export const USAGE_STATS_STALE_TIME_MS = 240_000;
 
@@ -74,6 +75,15 @@ let inFlightUsageRequest: {
   promise: Promise<void>;
 } | null = null;
 
+let usageCleanupRegistered = false;
+const ensureUsageCleanupRegistered = () => {
+  if (usageCleanupRegistered) return;
+  usageCleanupRegistered = true;
+  registerSessionCleanup('usage-stats', () => {
+    useUsageStatsStore.getState().clearUsageStats();
+  });
+};
+
 // 复用共享实现（额外支持解包 `{ message }` 形状的错误体），
 // 取不到时回落到本地化文案。
 const getErrorMessage = (error: unknown) =>
@@ -106,6 +116,7 @@ export const useUsageStatsStore = create<UsageStatsState>((set, get) => ({
   scopeKey: '',
 
   loadUsageStats: async (options = {}) => {
+    ensureUsageCleanupRegistered();
     const force = options.force === true;
     const staleTimeMs = options.staleTimeMs ?? USAGE_STATS_STALE_TIME_MS;
     const requestMode = options.summaryOnly === true ? 'summary' : 'details';

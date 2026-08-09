@@ -1,5 +1,4 @@
 import { memo, useMemo } from 'react';
-import styles from '@/pages/AuthFilesPage.module.scss';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 const AUTH_FILE_SKELETON_MAX = 12;
@@ -22,36 +21,42 @@ export const AuthFilesSkeletonGrid = memo(function AuthFilesSkeletonGrid({
 
   return (
     <>
-      <span className={styles.visuallyHidden} role="status" aria-busy="true">
+      <span className={refreshStyles.visuallyHidden} role="status" aria-busy="true">
         {loadingLabel}
       </span>
       <div
-        className={`${styles.fileGrid} ${refreshStyles.cardGrid} ${styles.skeletonGrid} ${refreshStyles.loadingGrid} ${quotaManaged ? styles.fileGridQuotaManaged : ''}`}
+        className={`${refreshStyles.cardGrid} ${refreshStyles.loadingGrid} ${quotaManaged ? refreshStyles.cardGridQuotaManaged : ''}`}
         aria-hidden="true"
       >
         {items.map((_, index) => (
           <div
             key={index}
-            className={`${styles.fileCardSkeleton} ${refreshStyles.loadingCard} ${quotaManaged ? refreshStyles.loadingCardQuota : ''}`}
+            className={`${refreshStyles.loadingCard} ${quotaManaged ? refreshStyles.loadingCardQuota : ''}`}
           >
             <div className={refreshStyles.loadingHeader}>
-              <span className={`${styles.skeletonBlock} ${refreshStyles.loadingCheckbox}`} />
+              <span className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingCheckbox}`} />
               <div className={refreshStyles.loadingIdentity}>
-                <span className={`${styles.skeletonBlock} ${refreshStyles.loadingProvider}`} />
-                <span className={`${styles.skeletonBlock} ${refreshStyles.loadingName}`} />
+                <span className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingProvider}`} />
+                <span className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingName}`} />
               </div>
-              <span className={`${styles.skeletonBlock} ${refreshStyles.loadingPriority}`} />
+              <span className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingPriority}`} />
             </div>
 
             <div className={refreshStyles.loadingMetrics}>
               <div className={refreshStyles.loadingMetricHeader}>
-                <span className={`${styles.skeletonBlock} ${refreshStyles.loadingMetricLabel}`} />
-                <span className={`${styles.skeletonBlock} ${refreshStyles.loadingMetricValue}`} />
+                <span
+                  className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingMetricLabel}`}
+                />
+                <span
+                  className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingMetricValue}`}
+                />
               </div>
-              <span className={`${styles.skeletonBlock} ${refreshStyles.loadingStatusBar}`} />
+              <span
+                className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingStatusBar}`}
+              />
               <div className={refreshStyles.loadingMetricStats}>
                 {Array.from({ length: 3 }).map((__, statIndex) => (
-                  <span key={statIndex} className={styles.skeletonBlock} />
+                  <span key={statIndex} className={refreshStyles.skeletonBlock} />
                 ))}
               </div>
 
@@ -59,16 +64,18 @@ export const AuthFilesSkeletonGrid = memo(function AuthFilesSkeletonGrid({
                 <div className={refreshStyles.loadingQuota}>
                   <div className={refreshStyles.loadingMetricHeader}>
                     <span
-                      className={`${styles.skeletonBlock} ${refreshStyles.loadingMetricLabel}`}
+                      className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingMetricLabel}`}
                     />
                     <span
-                      className={`${styles.skeletonBlock} ${refreshStyles.loadingMetricValue}`}
+                      className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingMetricValue}`}
                     />
                   </div>
-                  <span className={`${styles.skeletonBlock} ${refreshStyles.loadingQuotaBar}`} />
+                  <span
+                    className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingQuotaBar}`}
+                  />
                   <div className={refreshStyles.loadingQuotaStats}>
-                    <span className={styles.skeletonBlock} />
-                    <span className={styles.skeletonBlock} />
+                    <span className={refreshStyles.skeletonBlock} />
+                    <span className={refreshStyles.skeletonBlock} />
                   </div>
                 </div>
               )}
@@ -76,15 +83,19 @@ export const AuthFilesSkeletonGrid = memo(function AuthFilesSkeletonGrid({
 
             <div className={refreshStyles.loadingFooter}>
               <div className={refreshStyles.loadingFooterLeft}>
-                <span className={`${styles.skeletonBlock} ${refreshStyles.loadingToggle}`} />
+                <span
+                  className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingToggle}`}
+                />
                 <div className={refreshStyles.loadingActions}>
                   {Array.from({ length: 5 }).map((__, actionIndex) => (
-                    <span key={actionIndex} className={styles.skeletonBlock} />
+                    <span key={actionIndex} className={refreshStyles.skeletonBlock} />
                   ))}
                 </div>
               </div>
               {quotaManaged && (
-                <span className={`${styles.skeletonBlock} ${refreshStyles.loadingRefresh}`} />
+                <span
+                  className={`${refreshStyles.skeletonBlock} ${refreshStyles.loadingRefresh}`}
+                />
               )}
             </div>
           </div>

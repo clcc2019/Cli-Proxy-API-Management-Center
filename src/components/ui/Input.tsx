@@ -45,11 +45,7 @@ export function Input({
     <div className="form-group">
       {label && <label htmlFor={inputId}>{label}</label>}
       <div className={controlClasses.join(' ')}>
-        {leftElement && (
-          <span className="input-affix input-affix-left" aria-hidden="true">
-            {leftElement}
-          </span>
-        )}
+        {leftElement && <span className="input-affix input-affix-left">{leftElement}</span>}
         <input
           {...rest}
           id={inputId}
@@ -57,11 +53,7 @@ export function Input({
           aria-invalid={invalid}
           aria-describedby={describedBy}
         />
-        {rightElement && (
-          <span className="input-affix input-affix-right" aria-hidden="true">
-            {rightElement}
-          </span>
-        )}
+        {rightElement && <span className="input-affix input-affix-right">{rightElement}</span>}
       </div>
       {hint && (
         <div id={hintId} className="hint">

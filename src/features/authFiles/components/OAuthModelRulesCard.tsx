@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconSettings } from '@/components/ui/icons';
 import type { OAuthModelAliasEntry } from '@/types';
-import styles from '@/pages/AuthFilesPage.module.scss';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 type UnsupportedError = 'unsupported' | null;
@@ -73,9 +72,9 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
   return (
     <Card
       flush
-      className={`${styles.oauthConfigCard} ${refreshStyles.rulesPanel}`}
+      className={refreshStyles.rulesPanel}
       title={t('oauth_model_rules.title')}
-      extra={
+      extra={rules.length > 0 ? (
         <Button
           size="sm"
           className={refreshStyles.rulesAddButton}
@@ -84,7 +83,7 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
         >
           {t('oauth_model_rules.add')}
         </Button>
-      }
+      ) : undefined}
     >
       {allUnavailable ? (
         <EmptyState
@@ -95,7 +94,7 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
         <>
           {(excludedUnavailable || aliasesUnavailable) && (
             <div
-              className={`${styles.modelRulesNotice} ${refreshStyles.rulesNotice}`}
+              className={refreshStyles.rulesNotice}
               role="status"
             >
               {excludedUnavailable && <span>{t('oauth_model_rules.excluded_unavailable')}</span>}
@@ -114,24 +113,24 @@ export const OAuthModelRulesCard = memo(function OAuthModelRulesCard({
               }
             />
           ) : (
-            <div className={`${styles.modelRulesList} ${refreshStyles.rulesList}`}>
+            <div className={refreshStyles.rulesList}>
               {rules.map((rule) => (
                 <div
                   key={getProviderKey(rule.provider)}
-                  className={`${styles.modelRulesItem} ${refreshStyles.rulesRow}`}
+                  className={refreshStyles.rulesRow}
                 >
-                  <div className={`${styles.modelRulesInfo} ${refreshStyles.rulesInfo}`}>
-                    <div className={`${styles.excludedProvider} ${refreshStyles.rulesProvider}`}>
+                  <div className={refreshStyles.rulesInfo}>
+                    <div className={refreshStyles.rulesProvider}>
                       {rule.provider}
                     </div>
-                    <div className={`${styles.modelRulesStats} ${refreshStyles.rulesStats}`}>
+                    <div className={refreshStyles.rulesStats}>
                       {!excludedUnavailable && (
-                        <span className={`${styles.modelRulesStat} ${refreshStyles.rulesStat}`}>
+                        <span className={refreshStyles.rulesStat}>
                           {t('oauth_excluded.model_count', { count: rule.disabledCount })}
                         </span>
                       )}
                       {!aliasesUnavailable && (
-                        <span className={`${styles.modelRulesStat} ${refreshStyles.rulesStat}`}>
+                        <span className={refreshStyles.rulesStat}>
                           {t('oauth_model_alias.model_count', { count: rule.aliasCount })}
                         </span>
                       )}

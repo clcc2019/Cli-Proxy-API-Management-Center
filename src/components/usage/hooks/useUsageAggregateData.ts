@@ -5,6 +5,7 @@ import { useAuthStore, useNotificationStore } from '@/stores';
 import { usageApi, type UsageExportPayload } from '@/services/api/usage';
 import { downloadBlob } from '@/utils/download';
 import { loadModelPrices, type ModelPrice } from '@/utils/usage';
+import { createTrailingSingleFlight } from '@/utils/trailingSingleFlight';
 import type { UsageAggregateSnapshot } from '@/types/usageAggregate';
 import { primeModelPrices, saveAndSyncModelPrices } from './usageModelPriceUtils';
 import {
@@ -49,14 +50,8 @@ interface AggregateUsageCacheEntry {
   fetchedAt: number;
 }
 
-let aggregateUsageRequestToken = 0;
-let inFlightAggregateUsageRequest: {
-  id: number;
-  scopeKey: string;
-  promise: Promise<AggregateUsageCacheEntry>;
-} | null = null;
-
 const aggregateUsageCache = new Map<string, AggregateUsageCacheEntry>();
+const aggregateUsageRequests = createTrailingSingleFlight<string, AggregateUsageCacheEntry>();
 
 const getUsageScopeKey = () => {
   const { apiBase = '', managementKey = '' } = useAuthStore.getState();
@@ -79,6 +74,7 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const isCurrentLayerRef = useRef(isCurrentLayer);
+  const loadRequestVersionRef = useRef(0);
   useLayoutEffect(() => {
     isCurrentLayerRef.current = isCurrentLayer;
   }, [isCurrentLayer]);
@@ -92,7 +88,9 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(
     () => initialCache?.generatedAt ?? null
   );
-  const [modelPrices, setModelPrices] = useState<Record<string, ModelPrice>>(() => loadModelPrices());
+  const [modelPrices, setModelPrices] = useState<Record<string, ModelPrice>>(() =>
+    loadModelPrices()
+  );
   const [exporting, setExporting] = useState(false);
   const [exportingDetailed, setExportingDetailed] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -128,61 +126,49 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
         }
       }
 
-      if (!force && inFlightAggregateUsageRequest?.scopeKey === scopeKey) {
-        if (isCurrentLayerRef.current) {
-          setLoading(true);
-          setError('');
-        }
-        try {
-          applyCacheEntry(await inFlightAggregateUsageRequest.promise);
-        } finally {
-          if (isCurrentLayerRef.current) {
-            startTransition(() => setLoading(false));
-          }
-        }
-        return;
-      }
-
-      if (inFlightAggregateUsageRequest && inFlightAggregateUsageRequest.scopeKey !== scopeKey) {
-        aggregateUsageRequestToken += 1;
-        inFlightAggregateUsageRequest = null;
-      }
-
       if (isCurrentLayerRef.current) {
         setLoading(true);
         setError('');
       }
-      const requestId = (aggregateUsageRequestToken += 1);
-      const requestPromise = (async (): Promise<AggregateUsageCacheEntry> => {
-        const response = await usageApi.getUsageAggregated();
-        const snapshot = asAggregateSnapshot(response?.usage ?? response);
-        const cacheEntry: AggregateUsageCacheEntry = {
-          snapshot,
-          generatedAt: resolveGeneratedAt(snapshot),
-          fetchedAt: Date.now(),
-        };
-        aggregateUsageCache.set(scopeKey, cacheEntry);
-        return cacheEntry;
-      })();
-
-      inFlightAggregateUsageRequest = { id: requestId, scopeKey, promise: requestPromise };
+      const requestVersion = loadRequestVersionRef.current + 1;
+      loadRequestVersionRef.current = requestVersion;
 
       try {
-        const cacheEntry = await requestPromise;
-        if (requestId !== aggregateUsageRequestToken) return;
+        const cacheEntry = await aggregateUsageRequests.run(
+          scopeKey,
+          async () => {
+            const response = await usageApi.getUsageAggregated();
+            const snapshot = asAggregateSnapshot(response?.usage ?? response);
+            const entry: AggregateUsageCacheEntry = {
+              snapshot,
+              generatedAt: resolveGeneratedAt(snapshot),
+              fetchedAt: Date.now(),
+            };
+            aggregateUsageCache.set(scopeKey, entry);
+            return entry;
+          },
+          force ? 'refresh-after-current' : 'reuse'
+        );
+        if (
+          requestVersion !== loadRequestVersionRef.current ||
+          scopeKey !== getUsageScopeKey() ||
+          !isCurrentLayerRef.current
+        ) {
+          return;
+        }
         applyCacheEntry(cacheEntry);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : t('usage_stats.loading_error');
-        if (requestId !== aggregateUsageRequestToken) return;
-        if (isCurrentLayerRef.current) {
+        if (
+          requestVersion === loadRequestVersionRef.current &&
+          scopeKey === getUsageScopeKey() &&
+          isCurrentLayerRef.current
+        ) {
           setError(message);
         }
         throw err;
       } finally {
-        if (inFlightAggregateUsageRequest?.id === requestId) {
-          inFlightAggregateUsageRequest = null;
-        }
-        if (requestId === aggregateUsageRequestToken && isCurrentLayerRef.current) {
+        if (requestVersion === loadRequestVersionRef.current && isCurrentLayerRef.current) {
           startTransition(() => setLoading(false));
         }
       }

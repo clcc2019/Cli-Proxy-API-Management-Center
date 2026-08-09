@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export function ProtectedRoute({ children }: { children: ReactElement }) {

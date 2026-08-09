@@ -13,7 +13,7 @@ import type {
   PrefixProxyEditorState,
 } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import { formatClientProfileJson } from '@/features/authFiles/clientProfileMetadata';
-import styles from '@/pages/AuthFilesPage.module.scss';
+import styles from './AuthFilesPrefixProxyEditorModal.module.scss';
 
 const compactJsonText = (text: string) => {
   if (!text) return '';

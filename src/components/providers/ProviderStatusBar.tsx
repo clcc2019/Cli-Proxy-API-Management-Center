@@ -14,7 +14,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
-import defaultStyles from '@/pages/AiProvidersPage.module.scss';
 
 /**
  * 根据成功率 (0–1) 在三个色标之间做 RGB 线性插值
@@ -54,7 +53,7 @@ type StylesModule = Record<string, string>;
 
 interface ProviderStatusBarProps {
   statusData: StatusBarData;
-  styles?: StylesModule;
+  styles: StylesModule;
   showRateLabel?: boolean;
   /**
    * 列表卡片有大量同构的状态条时，将 20 个可聚焦 block 合并为一个时间线控件。
@@ -172,7 +171,7 @@ function ProviderStatusBarImpl({
   const { t } = useTranslation();
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
-  const s = (stylesProp || defaultStyles) as StylesModule;
+  const s = stylesProp;
   const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
   // roving tabindex 的当前停靠点
   const [focusedIndex, setFocusedIndex] = useState(0);
