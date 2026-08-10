@@ -351,6 +351,9 @@
   },
   "login": {
     "subtitle": "请输入连接信息以访问管理界面",
+    "header_context": "管理 API",
+    "access_kicker": "安全管理入口",
+    "access_title": "连接到网关",
     "connection_title": "连接地址",
     "connection_current": "当前地址",
     "connection_auto_hint": "系统将自动使用当前访问地址进行连接",
@@ -2162,7 +2165,12 @@
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏",
     "toggle_expand": "展开侧边栏",
-    "toggle_collapse": "收起侧边栏"
+    "toggle_collapse": "收起侧边栏",
+    "groups": {
+      "workspace": "工作区",
+      "gateway": "网关接入",
+      "operations": "运行状态"
+    }
   },
   "footer": {
     "api_version": "Toka 后端版本",

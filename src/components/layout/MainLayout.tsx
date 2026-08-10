@@ -79,6 +79,12 @@ const headerIcons = {
       <path d="M4 17h16" />
     </svg>
   ),
+  close: (
+    <svg {...headerIconProps}>
+      <path d="m6 6 12 12" />
+      <path d="m18 6-12 12" />
+    </svg>
+  ),
   chevronLeft: (
     <svg {...headerIconProps}>
       <path d="m14 18-6-6 6-6" />
@@ -108,6 +114,7 @@ const headerIcons = {
 const NAVIGATION_PRELOAD_BUDGET_MS = 220;
 const NAVIGATION_INTENT_DELAY_MS = 75;
 const HEADER_MENU_ITEM_SELECTOR = '[role="menuitemradio"]:not(:disabled)';
+const MOBILE_NAVIGATION_TOGGLE_ID = 'mobile-navigation-toggle';
 
 type NetworkInformationLike = {
   effectiveType?: string;
@@ -130,6 +137,11 @@ const shouldSkipIntentPreload = () => {
 
 const getHeaderMenuItems = (menu: HTMLDivElement | null) =>
   Array.from(menu?.querySelectorAll<HTMLButtonElement>(HEADER_MENU_ITEM_SELECTOR) ?? []);
+
+const getMobileNavigationToggle = () => {
+  const element = document.getElementById(MOBILE_NAVIGATION_TOGGLE_ID);
+  return element instanceof HTMLButtonElement ? element : null;
+};
 
 export function MainLayout() {
   const { t } = useTranslation();
@@ -154,6 +166,7 @@ export function MainLayout() {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
+  const sidebarRef = useRef<HTMLElement | null>(null);
   const navigationIntentRef = useRef(0);
   const navigationPreloadTimerRef = useRef<number | null>(null);
 
@@ -317,6 +330,69 @@ export function MainLayout() {
     });
   }, [fetchConfig]);
 
+  useEffect(() => {
+    if (!sidebarOpen) return;
+
+    document.body.classList.add('sidebar-open');
+    const frame = window.requestAnimationFrame(() => {
+      const currentLink = sidebarRef.current?.querySelector<HTMLAnchorElement>(
+        '.nav-item[aria-current="page"], .nav-item.active'
+      );
+      const firstLink = sidebarRef.current?.querySelector<HTMLAnchorElement>('.nav-item');
+      (currentLink ?? firstLink)?.focus({ preventScroll: true });
+    });
+
+    const handleSidebarKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSidebarOpen(false);
+        window.requestAnimationFrame(() => {
+          getMobileNavigationToggle()?.focus({ preventScroll: true });
+        });
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const menuButton = getMobileNavigationToggle();
+      const links = Array.from(
+        sidebarRef.current?.querySelectorAll<HTMLAnchorElement>('.nav-item') ?? []
+      );
+      const firstLink = links[0];
+      const lastLink = links[links.length - 1];
+      if (!menuButton || !firstLink || !lastLink) return;
+
+      const activeElement = document.activeElement;
+      if (activeElement === menuButton) {
+        event.preventDefault();
+        (event.shiftKey ? lastLink : firstLink).focus();
+        return;
+      }
+      if (event.shiftKey && activeElement === firstLink) {
+        event.preventDefault();
+        menuButton.focus();
+        return;
+      }
+      if (!event.shiftKey && activeElement === lastLink) {
+        event.preventDefault();
+        menuButton.focus();
+        return;
+      }
+      if (!sidebarRef.current?.contains(activeElement)) {
+        event.preventDefault();
+        firstLink.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleSidebarKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', handleSidebarKeyDown);
+      document.body.classList.remove('sidebar-open');
+    };
+  }, [sidebarOpen]);
+
   const statusClass =
     connectionStatus === 'connected'
       ? 'success'
@@ -326,27 +402,43 @@ export function MainLayout() {
           ? 'error'
           : 'muted';
 
-  const navItems = useMemo(
+  const navGroups = useMemo(
     () => [
-      { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
-      { path: '/config', label: t('nav.config_management'), icon: sidebarIcons.config },
-      { path: '/api-keys', label: t('nav.api_keys'), icon: sidebarIcons.apiKeys },
-      { path: '/ai-providers', label: t('nav.ai_providers'), icon: sidebarIcons.aiProviders },
-      { path: '/auth-files', label: t('nav.auth_files'), icon: sidebarIcons.authFiles },
       {
-        path: '/oauth',
-        label: t('nav.oauth'),
-        icon: sidebarIcons.oauth,
+        id: 'workspace',
+        label: t('sidebar.groups.workspace'),
+        items: [
+          { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
+          { path: '/config', label: t('nav.config_management'), icon: sidebarIcons.config },
+        ],
       },
-      { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
-      { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
-      ...(config?.loggingToFile
-        ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
-        : []),
-      { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
+      {
+        id: 'gateway',
+        label: t('sidebar.groups.gateway'),
+        items: [
+          { path: '/api-keys', label: t('nav.api_keys'), icon: sidebarIcons.apiKeys },
+          { path: '/ai-providers', label: t('nav.ai_providers'), icon: sidebarIcons.aiProviders },
+          { path: '/auth-files', label: t('nav.auth_files'), icon: sidebarIcons.authFiles },
+          { path: '/oauth', label: t('nav.oauth'), icon: sidebarIcons.oauth },
+        ],
+      },
+      {
+        id: 'operations',
+        label: t('sidebar.groups.operations'),
+        items: [
+          { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
+          { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
+          ...(config?.loggingToFile
+            ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
+            : []),
+          { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
+        ],
+      },
     ],
     [t, config?.loggingToFile]
   );
+
+  const navItems = useMemo(() => navGroups.flatMap((group) => group.items), [navGroups]);
 
   const navOrder = useMemo(() => navItems.map((item) => item.path), [navItems]);
 
@@ -492,12 +584,13 @@ export function MainLayout() {
       <header className="main-header" ref={headerRef}>
         <div className="left">
           <IconButton
+            id={MOBILE_NAVIGATION_TOGGLE_ID}
             className="mobile-menu-btn"
             variant="ghost"
             size="sm"
-            icon={headerIcons.menu}
+            icon={sidebarOpen ? headerIcons.close : headerIcons.menu}
             onClick={() => setSidebarOpen((prev) => !prev)}
-            aria-label={t('sidebar.toggle_mobile')}
+            aria-label={sidebarOpen ? t('common.close') : t('sidebar.toggle_mobile')}
             aria-expanded={sidebarOpen}
             aria-controls="main-sidebar"
           />
@@ -610,35 +703,57 @@ export function MainLayout() {
         <button
           type="button"
           className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`}
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => {
+            setSidebarOpen(false);
+            window.requestAnimationFrame(() => {
+              getMobileNavigationToggle()?.focus({ preventScroll: true });
+            });
+          }}
           aria-label={t('common.close')}
           aria-hidden={!sidebarOpen}
           tabIndex={sidebarOpen ? 0 : -1}
         />
 
         <aside
+          ref={sidebarRef}
           id="main-sidebar"
           className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
-          aria-label={t('nav.navigation')}
         >
-          <div className="nav-section">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                onClick={(event) => handleNavigationClick(event, item.path)}
-                onPointerEnter={() => handleNavigationIntent(item.path)}
-                onPointerLeave={cancelNavigationIntent}
-                onFocus={() => handleNavigationIntent(item.path)}
-                onBlur={cancelNavigationIntent}
-                title={sidebarCollapsed ? item.label : undefined}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                {!sidebarCollapsed && <span className="nav-label">{item.label}</span>}
-              </NavLink>
+          <nav className="nav-section" aria-label={t('nav.navigation')}>
+            {navGroups.map((group) => (
+              <div className="nav-group" role="group" aria-label={group.label} key={group.id}>
+                <span className="nav-group-label" aria-hidden="true">
+                  {group.label}
+                </span>
+                <div className="nav-group-items">
+                  {group.items.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={({ isActive }) => {
+                        const active =
+                          isActive || (item.path === '/' && location.pathname === '/dashboard');
+                        return `nav-item ${active ? 'active' : ''}`;
+                      }}
+                      aria-current={
+                        item.path === '/' && location.pathname === '/dashboard' ? 'page' : undefined
+                      }
+                      onClick={(event) => handleNavigationClick(event, item.path)}
+                      onPointerEnter={() => handleNavigationIntent(item.path)}
+                      onPointerLeave={cancelNavigationIntent}
+                      onFocus={() => handleNavigationIntent(item.path)}
+                      onBlur={cancelNavigationIntent}
+                      title={sidebarCollapsed ? item.label : undefined}
+                    >
+                      <span className="nav-icon">{item.icon}</span>
+                      <span className="nav-label">{item.label}</span>
+                      <span className="nav-item-current" aria-hidden="true" />
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
             ))}
-          </div>
+          </nav>
         </aside>
 
         <div className={`content${isLogsPage ? ' content-logs' : ''}`} ref={contentRef}>

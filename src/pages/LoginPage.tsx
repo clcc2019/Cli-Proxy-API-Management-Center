@@ -85,7 +85,7 @@ export function LoginPage() {
     () =>
       LANGUAGE_ORDER.map((lang) => ({
         value: lang,
-        label: t(LANGUAGE_LABEL_KEYS[lang])
+        label: t(LANGUAGE_LABEL_KEYS[lang]),
       })),
     [t]
   );
@@ -152,7 +152,7 @@ export function LoginPage() {
       await login({
         apiBase: baseToUse,
         managementKey: managementKey.trim(),
-        rememberPassword
+        rememberPassword,
       });
       showNotification(t('common.connected_status'), 'success');
       navigate('/', { replace: true });
@@ -163,7 +163,16 @@ export function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }, [apiBase, detectedBase, login, managementKey, navigate, rememberPassword, showNotification, t]);
+  }, [
+    apiBase,
+    detectedBase,
+    login,
+    managementKey,
+    navigate,
+    rememberPassword,
+    showNotification,
+    t,
+  ]);
 
   const handleSubmitKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
@@ -184,122 +193,146 @@ export function LoginPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.brandPanel}>
-        <div className={styles.brandContent}>
-          <span className={styles.brandKicker}>{t('login.connection_title')}</span>
-          <span className={styles.brandWord}>TO</span>
-          <span className={styles.brandWord}>KA</span>
-          <p className={styles.brandCaption}>{t('login.subtitle')}</p>
-        </div>
-      </div>
-
-      <div className={styles.formPanel}>
-        {showSplash ? (
-          <div className={styles.splashContent}>
-            <TokaMark aria-label={t('title.main')} className={styles.splashLogo} />
-            <h1 className={styles.splashTitle}>{t('splash.title')}</h1>
-            <p className={styles.splashSubtitle}>{t('splash.subtitle')}</p>
-            <div className={styles.splashLoader}>
-              <div className={styles.splashLoaderBar} />
-            </div>
+      <header className={styles.pageHeader}>
+        <div className={styles.headerInner}>
+          <div className={styles.headerBrand}>
+            <span className={styles.headerMarkFrame} aria-hidden="true">
+              <TokaMark className={styles.headerMark} />
+            </span>
+            <span className={styles.headerBrandCopy}>
+              <span className={styles.headerBrandName}>{t('title.main')}</span>
+              <span className={styles.headerBrandMeta}>{t('splash.subtitle')}</span>
+            </span>
           </div>
-        ) : (
-          <div className={styles.formContent}>
-            <div className={styles.logoBadge}>
-              <TokaMark aria-label={t('title.main')} className={styles.logo} />
+
+          <div className={styles.headerActions}>
+            <span className={styles.headerContext}>
+              <span className={styles.headerContextDot} aria-hidden="true" />
+              {t('login.header_context')}
+            </span>
+            <Select
+              className={styles.headerLanguageSelect}
+              dropdownClassName={styles.headerLanguageDropdown}
+              value={language}
+              options={languageOptions}
+              onChange={handleLanguageChange}
+              fullWidth={false}
+              ariaLabel={t('language.switch')}
+            />
+          </div>
+        </div>
+      </header>
+
+      <main className={styles.loginShell}>
+        <div className={styles.brandPanel}>
+          <div className={styles.brandContent}>
+            <span className={styles.brandKicker}>{t('login.connection_title')}</span>
+            <span className={styles.brandWord}>TO</span>
+            <span className={styles.brandWord}>KA</span>
+            <p className={styles.brandCaption}>{t('login.subtitle')}</p>
+          </div>
+        </div>
+
+        <div className={styles.formPanel}>
+          {showSplash ? (
+            <div className={styles.splashContent}>
+              <TokaMark aria-label={t('title.main')} className={styles.splashLogo} />
+              <h1 className={styles.splashTitle}>{t('splash.title')}</h1>
+              <p className={styles.splashSubtitle}>{t('splash.subtitle')}</p>
+              <div className={styles.splashLoader}>
+                <div className={styles.splashLoaderBar} />
+              </div>
             </div>
-            <div className={styles.loginCard}>
-              <div className={styles.loginHeader}>
-                <div className={styles.titleRow}>
+          ) : (
+            <div className={styles.formContent}>
+              <div className={styles.loginCard}>
+                <div className={styles.loginHeader}>
+                  <span className={styles.loginKicker}>
+                    <span className={styles.loginKickerDot} aria-hidden="true" />
+                    {t('login.access_kicker')}
+                  </span>
                   <div className={styles.titleBlock}>
-                    <div className={styles.title}>{t('title.login')}</div>
-                    <div className={styles.subtitle}>{t('login.subtitle')}</div>
+                    <h1 className={styles.title}>{t('login.access_title')}</h1>
+                    <p className={styles.subtitle}>{t('login.subtitle')}</p>
                   </div>
-                  <Select
-                    className={styles.languageSelect}
-                    value={language}
-                    options={languageOptions}
-                    onChange={handleLanguageChange}
-                    fullWidth={false}
-                    ariaLabel={t('language.switch')}
+                </div>
+
+                <div className={styles.connectionBox}>
+                  <div className={styles.label}>
+                    <span className={styles.connectionStatusDot} aria-hidden="true" />
+                    {t('login.connection_current')}
+                  </div>
+                  <div className={styles.value}>{apiBase || detectedBase}</div>
+                  <div className={styles.hint}>{t('login.connection_auto_hint')}</div>
+                </div>
+
+                <div className={styles.toggleAdvanced}>
+                  <SelectionCheckbox
+                    className={styles.selectionCheckbox}
+                    checked={showCustomBase}
+                    onChange={setShowCustomBase}
+                    ariaLabel={t('login.custom_connection_label')}
+                    label={t('login.custom_connection_label')}
+                    labelClassName={styles.toggleLabel}
                   />
                 </div>
-              </div>
 
-              <div className={styles.connectionBox}>
-                <div className={styles.label}>{t('login.connection_current')}</div>
-                <div className={styles.value}>{apiBase || detectedBase}</div>
-                <div className={styles.hint}>{t('login.connection_auto_hint')}</div>
-              </div>
+                {showCustomBase && (
+                  <Input
+                    label={t('login.custom_connection_label')}
+                    placeholder={t('login.custom_connection_placeholder')}
+                    value={apiBase}
+                    onChange={(e) => setApiBase(e.target.value)}
+                    hint={t('login.custom_connection_hint')}
+                  />
+                )}
 
-              <div className={styles.toggleAdvanced}>
-                <SelectionCheckbox
-                  checked={showCustomBase}
-                  onChange={setShowCustomBase}
-                  ariaLabel={t('login.custom_connection_label')}
-                  label={t('login.custom_connection_label')}
-                  labelClassName={styles.toggleLabel}
-                />
-              </div>
-
-              {showCustomBase && (
                 <Input
-                  label={t('login.custom_connection_label')}
-                  placeholder={t('login.custom_connection_placeholder')}
-                  value={apiBase}
-                  onChange={(e) => setApiBase(e.target.value)}
-                  hint={t('login.custom_connection_hint')}
+                  autoFocus
+                  label={t('login.management_key_label')}
+                  placeholder={t('login.management_key_placeholder')}
+                  type={showKey ? 'text' : 'password'}
+                  value={managementKey}
+                  onChange={(e) => setManagementKey(e.target.value)}
+                  onKeyDown={handleSubmitKeyDown}
+                  rightElement={
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setShowKey((prev) => !prev)}
+                      aria-label={showKey ? t('login.hide_key') : t('login.show_key')}
+                      title={showKey ? t('login.hide_key') : t('login.show_key')}
+                    >
+                      {showKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                    </button>
+                  }
                 />
-              )}
 
-              <Input
-                autoFocus
-                label={t('login.management_key_label')}
-                placeholder={t('login.management_key_placeholder')}
-                type={showKey ? 'text' : 'password'}
-                value={managementKey}
-                onChange={(e) => setManagementKey(e.target.value)}
-                onKeyDown={handleSubmitKeyDown}
-                rightElement={
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => setShowKey((prev) => !prev)}
-                    aria-label={
-                      showKey ? t('login.hide_key') : t('login.show_key')
-                    }
-                    title={
-                      showKey ? t('login.hide_key') : t('login.show_key')
-                    }
-                  >
-                    {showKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-                  </button>
-                }
-              />
-
-              <div className={styles.toggleAdvanced}>
-                <SelectionCheckbox
-                  checked={rememberPassword}
-                  onChange={setRememberPassword}
-                  ariaLabel={t('login.remember_password_label')}
-                  label={t('login.remember_password_label')}
-                  labelClassName={styles.toggleLabel}
-                />
-              </div>
-
-              <Button fullWidth onClick={handleSubmit} loading={loading}>
-                {loading ? t('login.submitting') : t('login.submit_button')}
-              </Button>
-
-              {error && (
-                <div className={styles.errorBox} role="alert">
-                  {error}
+                <div className={styles.toggleAdvanced}>
+                  <SelectionCheckbox
+                    className={styles.selectionCheckbox}
+                    checked={rememberPassword}
+                    onChange={setRememberPassword}
+                    ariaLabel={t('login.remember_password_label')}
+                    label={t('login.remember_password_label')}
+                    labelClassName={styles.toggleLabel}
+                  />
                 </div>
-              )}
+
+                <Button fullWidth onClick={handleSubmit} loading={loading}>
+                  {loading ? t('login.submitting') : t('login.submit_button')}
+                </Button>
+
+                {error && (
+                  <div className={styles.errorBox} role="alert">
+                    {error}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

@@ -351,6 +351,9 @@
   },
   "login": {
     "subtitle": "Please enter connection information to access the management interface",
+    "header_context": "Management API",
+    "access_kicker": "Secure management access",
+    "access_title": "Connect to the gateway",
     "connection_title": "Connection Address",
     "connection_current": "Current URL",
     "connection_auto_hint": "The system will automatically use the current URL for connection",
@@ -2162,7 +2165,12 @@
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",
     "toggle_expand": "Expand sidebar",
-    "toggle_collapse": "Collapse sidebar"
+    "toggle_collapse": "Collapse sidebar",
+    "groups": {
+      "workspace": "Workspace",
+      "gateway": "Gateway",
+      "operations": "Operations"
+    }
   },
   "footer": {
     "api_version": "Toka Backend Version",
