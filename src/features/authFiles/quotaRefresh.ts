@@ -54,6 +54,14 @@ export type AuthFileQuotaRefreshSummary = {
   authFiles: AuthFileItem[];
 };
 
+export type AuthFileQuotaRefreshProgress = {
+  completed: number;
+  total: number;
+  success: number;
+  failed: number;
+  skipped: number;
+};
+
 export const getAuthFileQuotaConfig = (type: QuotaProviderType): AuthFileQuotaConfig => {
   const config = type === 'claude' ? CLAUDE_CONFIG : type === 'codex' ? CODEX_CONFIG : KIMI_CONFIG;
   return config as unknown as AuthFileQuotaConfig;
@@ -159,13 +167,21 @@ export async function refreshAuthFileQuotasInParallel(options: {
   t: TFunction;
   initialSkipped?: number;
   shouldContinue?: () => boolean;
+  onProgress?: (progress: AuthFileQuotaRefreshProgress) => void;
 }): Promise<AuthFileQuotaRefreshSummary> {
-  const { targets, disableControls, t, initialSkipped = 0, shouldContinue } = options;
+  const { targets, disableControls, t, initialSkipped = 0, shouldContinue, onProgress } = options;
   const summary: AuthFileQuotaRefreshSummary = {
     success: 0,
     failed: 0,
     skipped: Math.max(0, initialSkipped),
     authFiles: [],
+  };
+  const progress: AuthFileQuotaRefreshProgress = {
+    completed: 0,
+    total: targets.length,
+    success: 0,
+    failed: 0,
+    skipped: 0,
   };
 
   let nextTargetIndex = 0;
@@ -179,15 +195,22 @@ export async function refreshAuthFileQuotasInParallel(options: {
   };
 
   const recordResult = (result: AuthFileQuotaRefreshResult) => {
+    progress.completed += 1;
     if (result.status === 'success') {
       summary.success += 1;
+      progress.success += 1;
       if (result.authFile) summary.authFiles.push(result.authFile);
     } else if (result.status === 'error') {
       summary.failed += 1;
+      progress.failed += 1;
     } else {
       summary.skipped += 1;
+      progress.skipped += 1;
     }
+    onProgress?.({ ...progress });
   };
+
+  onProgress?.({ ...progress });
 
   const workerCount = Math.min(AUTH_FILE_QUOTA_REFRESH_CONCURRENCY, targets.length);
   const workers = Array.from({ length: workerCount }, async () => {
@@ -206,6 +229,9 @@ export async function refreshAuthFileQuotasInParallel(options: {
       } catch {
         // Keep the queue moving if an unexpected error escapes the per-file refresh path.
         summary.failed += 1;
+        progress.completed += 1;
+        progress.failed += 1;
+        onProgress?.({ ...progress });
       }
     }
   });

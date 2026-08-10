@@ -9,7 +9,7 @@
   --config-text-secondary: var(--mg-text-secondary);
   --config-text-muted: var(--mg-text-tertiary);
   --config-border: var(--mg-border);
-  --config-border-strong: #d8d8d3;
+  --config-border-strong: var(--mg-border-hover);
   --config-sage: var(--mg-sage);
   --config-sage-soft: var(--mg-sage-soft);
   --config-ink: var(--mg-ink-strong);
@@ -23,33 +23,6 @@
   padding-bottom: calc(
     var(--config-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom) + #{$spacing-md}
   );
-}
-
-.pageHeader {
-  @include management-page-header;
-  position: relative;
-  align-items: flex-end;
-  gap: 12px;
-  border-bottom: 1px solid var(--config-border);
-
-  @media (prefers-reduced-motion: no-preference) {
-    animation: configSectionEnter var(--motion-duration-base) var(--motion-ease-out) both;
-  }
-
-  @include mobile {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-.pageTitle {
-  @include management-page-title;
-  color: var(--config-text);
-  font-size: var(--page-title-size, clamp(26px, 2.2vw, 32px));
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .pageMeta {
@@ -407,16 +380,16 @@
 .floatingActionContainer {
   // This control is portaled to document.body, so it cannot inherit the
   // configuration-page tokens from .container.
-  --config-surface: #ffffff;
-  --config-surface-subtle: #f4f4f4;
-  --config-border: #eaeae9;
-  --config-border-strong: #d8d8d3;
-  --config-sage: #96a58d;
+  --config-surface: var(--mg-surface);
+  --config-surface-subtle: var(--mg-surface-subtle);
+  --config-border: var(--mg-border);
+  --config-border-strong: var(--mg-border-hover);
+  --config-sage: var(--mg-sage);
   position: fixed;
   left: var(--content-center-x, 50%);
   bottom: calc(16px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  z-index: 50;
+  z-index: var(--mg-z-popover);
   pointer-events: auto;
   width: fit-content;
   max-width: calc(100vw - 24px);
@@ -427,10 +400,10 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: #ffffff;
-  border: 1px solid var(--config-border-strong, #d8d8d3);
-  border-radius: 999px;
-  box-shadow: 0 18px 44px -28px rgb(44 42 37 / 0.32);
+  background: var(--mg-surface);
+  border: 1px solid var(--config-border-strong);
+  border-radius: var(--mg-radius-pill);
+  box-shadow: var(--mg-shadow-float);
   background-clip: padding-box;
   max-width: inherit;
   overflow-x: auto;
@@ -541,8 +514,8 @@
   }
 
   .floatingActionButton {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     flex: 0 0 auto;
   }
 }
@@ -553,14 +526,7 @@
   }
 }
 
-@media (max-width: 380px) {
-  .pageHeader {
-    padding: 2px 0 14px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .pageHeader,
   .workspaceShell {
     animation: none;
   }

@@ -19,6 +19,8 @@ interface CardProps {
   headerFlush?: boolean;
   /** 直接把 header 贴到卡片顶边（不占 padding） */
   headerBleed?: boolean;
+  /** 仅可点击卡片启用 hover 层级反馈 */
+  interactive?: boolean;
 }
 
 export function Card({
@@ -30,11 +32,13 @@ export function Card({
   flush = false,
   headerFlush = false,
   headerBleed = false,
+  interactive = false,
 }: PropsWithChildren<CardProps>) {
   const classes = ['card'];
   if (density === 'compact') classes.push('card-compact');
   if (density === 'cozy') classes.push('card-cozy');
   if (flush) classes.push('card-flush');
+  if (interactive) classes.push('card-interactive');
   if (className) classes.push(className);
 
   const headerClasses = ['card-header'];

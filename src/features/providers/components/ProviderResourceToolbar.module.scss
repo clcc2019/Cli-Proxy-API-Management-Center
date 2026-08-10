@@ -65,8 +65,8 @@
 }
 
 .dirBtn {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--mg-radius-control);
 }
 
@@ -76,7 +76,7 @@
 
 .filterTrigger {
   gap: 6px;
-  min-height: 34px;
+  min-height: 40px;
   max-width: 240px;
   padding: 0 10px;
   border-radius: 999px;
@@ -90,20 +90,21 @@
 }
 
 .filterPanel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 20;
+  --provider-surface: var(--mg-surface);
+  --provider-surface-subtle: var(--mg-surface-subtle);
+  --provider-text: var(--mg-text);
+  --provider-text-secondary: var(--mg-text-secondary);
+  --provider-text-tertiary: var(--mg-text-tertiary);
+  --provider-border: var(--mg-border);
+  --provider-border-strong: var(--mg-border-hover);
+  --provider-sage: var(--mg-sage);
   display: flex;
-  width: min(280px, calc(100vw - 48px));
-  max-width: 320px;
   flex-direction: column;
   gap: 8px;
   padding: 9px;
   border: 1px solid var(--provider-border, #eaeae9);
   border-radius: var(--mg-radius-medium);
   background: var(--provider-surface, #ffffff);
-  box-shadow: 0 20px 44px rgb(44 42 37 / 0.13);
 }
 
 .filterToolbar {

@@ -184,7 +184,7 @@ const loadAuthFileUsageStats = async (
 
   const requestId = (authFileUsageRequestToken += 1);
   const requestPromise = (async (): Promise<AuthFileUsageCacheEntry> => {
-    const response = await usageApi.getUsageAggregated();
+    const response = await usageApi.getAuthFileCredentialUsage();
     const snapshot = asAggregateSnapshot(response);
     const rawStats = computeAuthFileUsageStatsFromAggregate(snapshot?.windows?.all);
     const entry: AuthFileUsageCacheEntry = {

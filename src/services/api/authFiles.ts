@@ -71,6 +71,8 @@ export type AuthFilesListOptions = {
   summary?: boolean;
   /** Defer fixed-size recent request buckets when the page loads card metadata first. */
   includeRecentRequests?: boolean;
+  /** Request recent buckets only for the resolved server page. */
+  pageRecentRequests?: boolean;
   /** Ask the server for provider counts without constructing list entries. */
   typeCountsOnly?: boolean;
   page?: number;
@@ -480,7 +482,10 @@ const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
   if (options.summary) {
     params.summary = true;
   }
-  if (options.includeRecentRequests === false) {
+  if (options.pageRecentRequests) {
+    params.recent_requests = false;
+    params.page_recent_requests = true;
+  } else if (options.includeRecentRequests === false) {
     params.recent_requests = false;
   }
   if (options.typeCountsOnly) {

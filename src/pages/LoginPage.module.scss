@@ -359,8 +359,8 @@
 }
 
 .loginCard :global(.btn-ghost.btn-sm) {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   padding: 8px;
   border-radius: 10px;
 }
@@ -515,9 +515,9 @@
   }
 
   .loginCard :global(.btn-ghost.btn-sm) {
-    min-width: 34px;
-    min-height: 34px;
-    padding: 7px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px;
   }
 
   .errorBox {

@@ -134,6 +134,12 @@ export const usageApi = {
   getUsageAggregated: () =>
     apiClient.get<Record<string, unknown>>('/usage/aggregated', { timeout: USAGE_TIMEOUT_MS }),
 
+  getAuthFileCredentialUsage: () =>
+    apiClient.get<Record<string, unknown>>('/usage/aggregated', {
+      params: { window: 'all', fields: 'credentials' },
+      timeout: USAGE_TIMEOUT_MS,
+    }),
+
   async getModelPrices(): Promise<Record<string, ModelPrice>> {
     const data = await apiClient.get<Record<string, unknown>>('/model-prices');
     return normalizeModelPrices(data?.['model-prices'] ?? data?.modelPrices ?? data?.value ?? data);

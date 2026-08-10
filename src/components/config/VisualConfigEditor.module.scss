@@ -4,7 +4,7 @@
 .visualEditor {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   min-width: 0;
 
   :global(.form-group) {
@@ -13,7 +13,7 @@
   }
 
   :global(.form-group > label) {
-    color: #565551;
+    color: var(--mg-text-secondary);
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -22,16 +22,16 @@
   :global(.input) {
     min-height: 44px;
     border-radius: 8px;
-    background: #ffffff;
-    border-color: #eaeae9;
+    background: var(--mg-surface);
+    border-color: var(--mg-border);
     box-shadow: none;
     font-size: 14px;
   }
 
   :global(.input:focus) {
-    background: #ffffff;
-    border-color: #96a58d;
-    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.22);
+    background: var(--mg-surface);
+    border-color: var(--mg-sage-strong);
+    box-shadow: 0 0 0 3px var(--mg-focus-ring);
   }
 
   :global(textarea.input) {
@@ -39,7 +39,7 @@
   }
 
   :global(.hint) {
-    color: #807f7c;
+    color: var(--mg-text-tertiary);
     font-size: 12px;
     line-height: 1.6;
   }
@@ -56,8 +56,8 @@
   :global(.item-row) {
     border-radius: 12px;
     padding: 14px 16px;
-    background: #ffffff;
-    border-color: #eaeae9;
+    background: var(--mg-surface);
+    border-color: var(--mg-border);
 
     @include mobile {
       align-items: stretch;
@@ -88,9 +88,9 @@
   }
 
   :global(.pill) {
-    background: #f4f4f4;
-    border: 1px solid #eaeae9;
-    color: #565551;
+    background: var(--mg-surface-subtle);
+    border: 1px solid var(--mg-border);
+    color: var(--mg-text-secondary);
   }
 
   @include mobile {
@@ -172,8 +172,12 @@
 .sections {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
   min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
 }
 
 .sectionGrid {
@@ -194,7 +198,7 @@
 
 .divider {
   height: 1px;
-  background: #eaeae9;
+  background: var(--mg-border);
 }
 
 .toggleRow {
@@ -202,14 +206,14 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
   align-items: center;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #eaeae9;
-  background: #faf8f5;
+  padding: 12px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
-    padding: 16px;
+    padding: 12px 0;
   }
 }
 
@@ -221,14 +225,14 @@
 }
 
 .toggleTitle {
-  color: #2c2a25;
+  color: var(--mg-text);
   font-size: 14px;
   font-weight: 650;
   line-height: 1.2;
 }
 
 .toggleDescription {
-  color: #807f7c;
+  color: var(--mg-text-tertiary);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -241,7 +245,7 @@
 }
 
 .fieldLabel {
-  color: #565551;
+  color: var(--mg-text-secondary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -252,7 +256,7 @@
 }
 
 .fieldHint {
-  color: #807f7c;
+  color: var(--mg-text-tertiary);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -267,9 +271,9 @@
   min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid #eaeae9;
-  background: #f4f4f4;
-  color: #807f7c;
+  border: 1px solid var(--mg-border);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text-tertiary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -279,10 +283,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #eaeae9;
-  background: #faf8f5;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--mg-border);
+  border-radius: 0;
+  background: transparent;
 }
 
 .subsectionHeader {
@@ -339,10 +344,14 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+  padding: 14px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ruleCard + .ruleCard {
+  border-top: 1px solid var(--mg-border);
 }
 
 .ruleCardHeader {
@@ -374,12 +383,12 @@
 }
 
 .emptyState {
-  border: 1px dashed color-mix(in srgb, var(--border-color) 84%, transparent);
-  border-radius: 8px;
+  border: 0;
+  border-radius: var(--mg-radius-control);
   padding: 18px 16px;
   color: var(--text-secondary);
   text-align: center;
-  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+  background: var(--mg-surface-warm);
 }
 
 .stringList {
@@ -488,12 +497,12 @@
 
 @include mobile {
   .subsection {
-    padding: 16px;
-    border-radius: 10px;
+    padding: 14px 0 0;
+    border-radius: 0;
   }
 
   .toggleRow {
-    padding: 14px 16px;
+    padding: 12px 0;
   }
 
   .blockHeaderRow,
@@ -519,9 +528,12 @@
 }
 
 @media (max-width: 380px) {
-  .subsection,
+  .subsection {
+    padding: 14px 0 0;
+  }
+
   .ruleCard,
   .toggleRow {
-    padding: 14px;
+    padding: 12px 0;
   }
 }

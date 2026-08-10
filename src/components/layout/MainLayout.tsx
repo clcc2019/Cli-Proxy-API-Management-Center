@@ -13,7 +13,7 @@ import {
 } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/ui/IconButton';
 import { TokaMark } from '@/components/ui/TokaMark';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
@@ -166,9 +166,7 @@ export function MainLayout() {
       const headerHeight = headerRef.current?.offsetHeight;
       const contentRect = contentRef.current?.getBoundingClientRect();
       const nextHeaderValue = headerHeight ? `${headerHeight}px` : null;
-      const nextContentValue = contentRect
-        ? `${contentRect.left + contentRect.width / 2}px`
-        : null;
+      const nextContentValue = contentRect ? `${contentRect.left + contentRect.width / 2}px` : null;
 
       if (
         nextHeaderValue &&
@@ -493,17 +491,16 @@ export function MainLayout() {
     <div className="app-shell">
       <header className="main-header" ref={headerRef}>
         <div className="left">
-          <Button
+          <IconButton
             className="mobile-menu-btn"
             variant="ghost"
             size="sm"
+            icon={headerIcons.menu}
             onClick={() => setSidebarOpen((prev) => !prev)}
             aria-label={t('sidebar.toggle_mobile')}
             aria-expanded={sidebarOpen}
             aria-controls="main-sidebar"
-          >
-            {headerIcons.menu}
-          </Button>
+          />
           <NavLink
             to="/"
             className="brand-lockup"
@@ -520,17 +517,17 @@ export function MainLayout() {
               <span className="brand-caption">{t('splash.subtitle')}</span>
             </span>
           </NavLink>
-          <button
-            type="button"
+          <IconButton
             className="sidebar-toggle-header"
+            variant="secondary"
+            size="sm"
+            icon={sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
             onClick={() => setSidebarCollapsed((prev) => !prev)}
             aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
             aria-expanded={!sidebarCollapsed}
             aria-controls="main-sidebar"
             title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-          >
-            {sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
-          </button>
+          />
         </div>
 
         <div className="right">
@@ -548,30 +545,28 @@ export function MainLayout() {
           </div>
 
           <div className="header-actions">
-            <Button
+            <IconButton
               variant="ghost"
               size="sm"
+              icon={headerIcons.refresh}
               onClick={handleRefreshAll}
               title={t('header.refresh_all')}
               aria-label={t('header.refresh_all')}
-            >
-              {headerIcons.refresh}
-            </Button>
+            />
             <div
               className={`language-menu ${languageMenuOpen ? 'open' : ''}`}
               ref={languageMenuRef}
             >
-              <Button
+              <IconButton
                 variant="ghost"
                 size="sm"
+                icon={headerIcons.language}
                 onClick={toggleLanguageMenu}
                 title={t('language.switch')}
                 aria-label={t('language.switch')}
                 aria-haspopup="menu"
                 aria-expanded={languageMenuOpen}
-              >
-                {headerIcons.language}
-              </Button>
+              />
               {languageMenuOpen && (
                 <div
                   className="language-menu-popover"
@@ -599,15 +594,14 @@ export function MainLayout() {
                 </div>
               )}
             </div>
-            <Button
+            <IconButton
               variant="ghost"
               size="sm"
+              icon={headerIcons.logout}
               onClick={logout}
               title={t('header.logout')}
               aria-label={t('header.logout')}
-            >
-              {headerIcons.logout}
-            </Button>
+            />
           </div>
         </div>
       </header>

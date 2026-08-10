@@ -172,4 +172,6 @@ export interface AuthFilesResponse {
   type_counts?: Record<string, number>;
   /** Present only when the server has applied the requested `premium_only` filter. */
   premium_only_applied?: boolean;
+  /** Present when recent request buckets were populated after server pagination. */
+  page_recent_requests_applied?: boolean;
 }

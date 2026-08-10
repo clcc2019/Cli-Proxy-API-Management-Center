@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { TokaMark } from '@/components/ui/TokaMark';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useTimeoutRegistry } from '@/hooks';
 import {
@@ -135,9 +136,7 @@ export function SystemPage() {
   const requestLogWarningId = useId();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
-  const resolvedTheme = useThemeStore((state) =>
-    isCurrentLayer ? state.resolvedTheme : 'light'
-  );
+  const resolvedTheme = useThemeStore((state) => (isCurrentLayer ? state.resolvedTheme : 'light'));
   // 窄选择器：整店订阅会让任何无关字段变化（如全局 unauthorized 事件
   // 翻转 connectionStatus 之外的状态）都重渲染整个 SystemPage。
   const connectionStatus = useAuthStore((state) =>
@@ -429,12 +428,11 @@ export function SystemPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.pageHeader}>
-        <div>
-          <div className={styles.pageEyebrow}>{t('title.main')}</div>
-          <h1 className={styles.pageTitle}>{t('system_info.title')}</h1>
-        </div>
-      </header>
+      <ManagementPageHeader
+        className={styles.pageHeader}
+        context={t('title.main')}
+        title={t('system_info.title')}
+      />
       <div className={styles.content}>
         <section className={styles.systemOverview} aria-labelledby="system-overview-title">
           <div className={styles.serviceSummary}>

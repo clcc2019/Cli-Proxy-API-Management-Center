@@ -63,30 +63,6 @@
 
 // ─── Compact management-page introduction ───────────────
 
-.pageHeader {
-  @include management-page-header;
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 5px;
-  padding: 2px 1px 16px;
-
-  @include mobile {
-    align-items: stretch;
-  }
-}
-
-.pageTitle {
-  @include management-page-title;
-  color: var(--request-text);
-}
-
-.pageSubtitle {
-  @include management-page-description;
-  max-width: 76ch;
-  color: var(--request-text-secondary);
-  text-wrap: pretty;
-}
-
 // ─── Continuous KPI panel ───────────────────────────────
 
 .summaryGrid {
@@ -176,13 +152,12 @@
 }
 
 .toolbar {
-  display: grid;
-  min-width: 0;
   grid-template-columns: minmax(240px, 1fr) max-content minmax(172px, auto);
-  align-items: center;
   gap: 12px;
   padding: 16px 18px;
+  border: 0;
   border-bottom: 1px solid var(--request-border);
+  border-radius: 0;
   background: var(--request-surface);
 }
 
@@ -1063,14 +1038,6 @@
     gap: 16px;
   }
 
-  .pageTitle {
-    font-size: 28px;
-  }
-
-  .pageSubtitle {
-    font-size: 13.5px;
-  }
-
   .summaryGrid {
     grid-template-columns: 1fr;
   }
@@ -1199,29 +1166,5 @@
   .refreshButton:global(.btn.btn-sm),
   .eventStatusBadge {
     transition: none;
-  }
-}
-
-:global([data-theme='dark']) {
-  .page {
-    --request-surface: var(--surface-raised, #1d1d1b);
-    --request-surface-subtle: var(--bg-secondary, #242421);
-    --request-surface-warm: color-mix(in srgb, var(--bg-secondary) 82%, var(--bg-primary));
-    --request-text: var(--text-primary, #f3f3f0);
-    --request-text-secondary: var(--text-secondary, #c1c0bc);
-    --request-text-tertiary: var(--text-tertiary, #92918d);
-    --request-text-muted: var(--text-quaternary, #6f6e6a);
-    --request-border: var(--border-color, #363633);
-    --request-sage: #83947b;
-    --request-sage-strong: #b3c0ac;
-    --request-sage-soft: #354031;
-    --request-orange: #ff7a1a;
-    --request-success: #72a878;
-    --request-warning: #d5a454;
-    --request-danger: #d4746b;
-  }
-
-  .eventsPanel {
-    box-shadow: 0 20px 65px rgb(0 0 0 / 0.1);
   }
 }

@@ -30,30 +30,6 @@
   container-type: inline-size;
 }
 
-.pageHeader {
-  @include management-page-header;
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 5px;
-  padding: 2px 1px 16px;
-
-  @include mobile {
-    align-items: stretch;
-  }
-}
-
-.pageTitle {
-  @include management-page-title;
-  color: var(--oauth-text);
-}
-
-.pageSubtitle {
-  @include management-page-description;
-  max-width: 72ch;
-  color: var(--oauth-text-secondary);
-  text-wrap: pretty;
-}
-
 // One continuous provider surface replaces the previous floating-card mosaic.
 .content {
   min-width: 0;
@@ -81,7 +57,6 @@
   &:nth-child(2n) {
     border-right: 0;
   }
-
 }
 
 .providerCard:global(.card) {
@@ -289,10 +264,6 @@
 }
 
 @container oauth-page (max-width: 460px) {
-  .pageTitle {
-    font-size: 28px;
-  }
-
   .providerCard:global(.card) {
     min-height: 0;
     padding: 18px 16px;
@@ -318,29 +289,4 @@
   .container {
     gap: 16px;
   }
-}
-
-:global([data-theme='dark']) {
-  .container {
-    --oauth-surface: var(--surface-raised, #1d1d1b);
-    --oauth-surface-subtle: var(--bg-secondary, #242421);
-    --oauth-surface-warm: color-mix(in srgb, var(--bg-secondary) 82%, var(--bg-primary));
-    --oauth-text: var(--text-primary, #f3f3f0);
-    --oauth-text-secondary: var(--text-secondary, #c1c0bc);
-    --oauth-text-tertiary: var(--text-tertiary, #92918d);
-    --oauth-text-muted: var(--text-quaternary, #6f6e6a);
-    --oauth-border: var(--border-color, #363633);
-    --oauth-ink: #f3f3f0;
-    --oauth-sage: #83947b;
-    --oauth-sage-strong: #b3c0ac;
-    --oauth-sage-soft: #354031;
-    --oauth-success: #72a878;
-    --oauth-warning: #d5a454;
-    --oauth-danger: #d4746b;
-  }
-
-  .content {
-    box-shadow: 0 20px 65px rgb(0 0 0 / 0.1);
-  }
-
 }

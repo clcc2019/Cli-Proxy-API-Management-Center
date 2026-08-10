@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ApiKeysCardEditor } from '@/components/config/VisualConfigEditorBlocks';
+import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import {
   IconCheckCircle2,
   IconDollarSign,
@@ -122,29 +123,20 @@ export function ApiKeysPage() {
     setError('');
     try {
       const list = await apiKeysApi.list();
-      if (
-        loadRequestVersionRef.current !== requestVersion ||
-        !isCurrentLayerRef.current
-      ) {
+      if (loadRequestVersionRef.current !== requestVersion || !isCurrentLayerRef.current) {
         return;
       }
       const visualKeys = toVisualApiKeys(list);
       setApiKeys(visualKeys);
       setBaselineApiKeys(visualKeys);
     } catch (err: unknown) {
-      if (
-        loadRequestVersionRef.current !== requestVersion ||
-        !isCurrentLayerRef.current
-      ) {
+      if (loadRequestVersionRef.current !== requestVersion || !isCurrentLayerRef.current) {
         return;
       }
       const message = err instanceof Error ? err.message : t('api_keys.load_failed');
       setError(message);
     } finally {
-      if (
-        loadRequestVersionRef.current === requestVersion &&
-        isCurrentLayerRef.current
-      ) {
+      if (loadRequestVersionRef.current === requestVersion && isCurrentLayerRef.current) {
         setLoading(false);
       }
     }
@@ -222,40 +214,39 @@ export function ApiKeysPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.pageHeader}>
-        <div className={styles.pageHeaderMain}>
-          <span className={styles.pageEyebrow}>{t('api_keys.page_eyebrow')}</span>
-          <h1 className={styles.pageTitle}>{t('api_keys.title')}</h1>
-          <p className={styles.pageDescription}>{t('api_keys.page_description')}</p>
-        </div>
-
-        <div className={styles.pageHeaderAside}>
-          <div className={`${styles.statusBadge} ${statusClassName}`}>
-            <span className={styles.statusDot} aria-hidden="true" />
-            {statusText}
+      <ManagementPageHeader
+        context={t('api_keys.page_eyebrow')}
+        title={t('api_keys.title')}
+        description={t('api_keys.page_description')}
+        actions={
+          <div className={styles.pageHeaderAside}>
+            <div className={`${styles.statusBadge} ${statusClassName}`}>
+              <span className={styles.statusDot} aria-hidden="true" />
+              {statusText}
+            </div>
+            <div className={styles.tabBar}>
+              <button
+                type="button"
+                className={styles.tabItem}
+                onClick={handleReload}
+                disabled={loading || saving}
+              >
+                <IconRefreshCw size={15} aria-hidden="true" />
+                {t('common.refresh')}
+              </button>
+              <button
+                type="button"
+                className={`${styles.tabItem} ${isDirty ? styles.tabActive : ''}`}
+                onClick={() => void handleSave()}
+                disabled={disableControls || loading || saving || !isDirty}
+              >
+                <IconCheckCircle2 size={15} aria-hidden="true" />
+                {saving ? t('config_management.status_saving') : t('common.save')}
+              </button>
+            </div>
           </div>
-          <div className={styles.tabBar}>
-            <button
-              type="button"
-              className={styles.tabItem}
-              onClick={handleReload}
-              disabled={loading || saving}
-            >
-              <IconRefreshCw size={15} aria-hidden="true" />
-              {t('common.refresh')}
-            </button>
-            <button
-              type="button"
-              className={`${styles.tabItem} ${isDirty ? styles.tabActive : ''}`}
-              onClick={() => void handleSave()}
-              disabled={disableControls || loading || saving || !isDirty}
-            >
-              <IconCheckCircle2 size={15} aria-hidden="true" />
-              {saving ? t('config_management.status_saving') : t('common.save')}
-            </button>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className={styles.workspaceShell}>
         <div className={styles.content}>

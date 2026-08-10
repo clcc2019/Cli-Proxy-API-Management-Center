@@ -12,6 +12,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
+import { ManagementToolbar } from '@/components/ui/ManagementToolbar';
 import {
   IconCheck,
   IconFilterAll,
@@ -713,14 +715,12 @@ export function RequestLogsPage() {
         </div>
       )}
 
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('nav.request_logs')}</h1>
-        <p className={styles.pageSubtitle}>
-          {t('usage_stats.request_events_page_subtitle', {
-            limit: REQUEST_EVENT_ROWS_LIMIT,
-          })}
-        </p>
-      </header>
+      <ManagementPageHeader
+        title={t('nav.request_logs')}
+        description={t('usage_stats.request_events_page_subtitle', {
+          limit: REQUEST_EVENT_ROWS_LIMIT,
+        })}
+      />
 
       <section className={styles.summaryGrid} aria-label={t('usage_stats.request_events_title')}>
         <div className={styles.summaryItem}>
@@ -777,84 +777,90 @@ export function RequestLogsPage() {
 
       <section className={styles.eventsPanel} aria-label={t('usage_stats.request_events_title')}>
         {/* Filters */}
-        <div className={styles.toolbar}>
-          <label className={styles.searchBox}>
-            <IconSearch size={14} aria-hidden="true" />
-            <input
-              className={styles.searchInput}
-              type="search"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder={searchPlaceholder}
-              aria-label={searchPlaceholder}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className={styles.searchClearButton}
-                onClick={handleClearSearch}
-                aria-label={t('usage_stats.clear_filters')}
-              >
-                <IconX size={12} aria-hidden="true" />
-              </button>
-            )}
-          </label>
-
-          <div
-            className={styles.statusFilter}
-            role="tablist"
-            aria-label={requestEventLabels.columns.status}
-          >
-            <StatusFilterButton
-              active={statusFilter === 'all'}
-              count={counts.total}
-              icon={FILTER_ALL_ICON}
-              label={requestEventLabels.filterAll}
-              onClick={handleSelectAll}
-            />
-            <StatusFilterButton
-              active={statusFilter === 'success'}
-              count={counts.success}
-              disabled={counts.success === 0}
-              icon={FILTER_SUCCESS_ICON}
-              label={requestEventLabels.success}
-              toneClassName={styles.statusFilterSuccess}
-              onClick={handleSelectSuccess}
-            />
-            <StatusFilterButton
-              active={statusFilter === 'failed'}
-              count={counts.failed}
-              disabled={counts.failed === 0}
-              icon={FILTER_FAILED_ICON}
-              label={requestEventLabels.failure}
-              toneClassName={styles.statusFilterFailed}
-              onClick={handleSelectFailed}
-            />
-          </div>
-
-          <div className={styles.toolbarActions}>
-            <span className={styles.resultMeta} aria-live="polite" aria-atomic="true">
-              {t('usage_stats.request_events_result_count', {
-                shown: filteredRows.length,
-                total: counts.total,
-              })}
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              className={styles.refreshButton}
-              onClick={handleRefresh}
-              disabled={loading}
-            >
-              <IconRefreshCw
-                size={14}
-                className={loading ? styles.refreshIconSpinning : undefined}
-                aria-hidden="true"
+        <ManagementToolbar
+          className={styles.toolbar}
+          ariaLabel={t('usage_stats.request_events_title')}
+          primary={
+            <label className={styles.searchBox}>
+              <IconSearch size={14} aria-hidden="true" />
+              <input
+                className={styles.searchInput}
+                type="search"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
               />
-              {loading ? requestEventLabels.refreshing : requestEventLabels.refresh}
-            </Button>
-          </div>
-        </div>
+              {searchQuery && (
+                <button
+                  type="button"
+                  className={styles.searchClearButton}
+                  onClick={handleClearSearch}
+                  aria-label={t('usage_stats.clear_filters')}
+                >
+                  <IconX size={12} aria-hidden="true" />
+                </button>
+              )}
+            </label>
+          }
+          secondary={
+            <div
+              className={styles.statusFilter}
+              role="tablist"
+              aria-label={requestEventLabels.columns.status}
+            >
+              <StatusFilterButton
+                active={statusFilter === 'all'}
+                count={counts.total}
+                icon={FILTER_ALL_ICON}
+                label={requestEventLabels.filterAll}
+                onClick={handleSelectAll}
+              />
+              <StatusFilterButton
+                active={statusFilter === 'success'}
+                count={counts.success}
+                disabled={counts.success === 0}
+                icon={FILTER_SUCCESS_ICON}
+                label={requestEventLabels.success}
+                toneClassName={styles.statusFilterSuccess}
+                onClick={handleSelectSuccess}
+              />
+              <StatusFilterButton
+                active={statusFilter === 'failed'}
+                count={counts.failed}
+                disabled={counts.failed === 0}
+                icon={FILTER_FAILED_ICON}
+                label={requestEventLabels.failure}
+                toneClassName={styles.statusFilterFailed}
+                onClick={handleSelectFailed}
+              />
+            </div>
+          }
+          actions={
+            <div className={styles.toolbarActions}>
+              <span className={styles.resultMeta} aria-live="polite" aria-atomic="true">
+                {t('usage_stats.request_events_result_count', {
+                  shown: filteredRows.length,
+                  total: counts.total,
+                })}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                className={styles.refreshButton}
+                onClick={handleRefresh}
+                disabled={loading}
+              >
+                <IconRefreshCw
+                  size={14}
+                  className={loading ? styles.refreshIconSpinning : undefined}
+                  aria-hidden="true"
+                />
+                {loading ? requestEventLabels.refreshing : requestEventLabels.refresh}
+              </Button>
+            </div>
+          }
+        />
 
         {/* List / states */}
         {showSkeleton ? (

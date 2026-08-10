@@ -1,9 +1,10 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { IconChevronDown, IconChevronUp, IconSlidersHorizontal } from '@/components/ui/icons';
 import { Select } from '@/components/ui/Select';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
+import { AnchoredPopover } from '@/components/ui/AnchoredPopover';
 import type { ProviderSortBy, SortDir } from '../types';
 import styles from './ProviderResourceToolbar.module.scss';
 
@@ -52,10 +53,7 @@ export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const [filterOpen, setFilterOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const selectedModelsRef = useRef(selectedModels);
   const visibleFilterOpen = isCurrentLayer && filterOpen;
-  selectedModelsRef.current = selectedModels;
 
   const sortOptions = useMemo(
     () => [
@@ -69,26 +67,15 @@ export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
     [t]
   );
 
-  useEffect(() => {
-    if (!visibleFilterOpen) return;
-    const onClickOutside = (e: PointerEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setFilterOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', onClickOutside);
-    return () => document.removeEventListener('pointerdown', onClickOutside);
-  }, [visibleFilterOpen]);
-
   const toggleModel = useCallback(
     (name: string) => {
       if (!isCurrentLayer) return;
-      const next = new Set(selectedModelsRef.current);
+      const next = new Set(selectedModels);
       if (next.has(name)) next.delete(name);
       else next.add(name);
       onSelectedModelsChange(next);
     },
-    [isCurrentLayer, onSelectedModelsChange]
+    [isCurrentLayer, onSelectedModelsChange, selectedModels]
   );
 
   const selectAll = useCallback(() => {
@@ -141,56 +128,63 @@ export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
         </button>
       </div>
 
-      <div className={styles.filterGroup} ref={containerRef}>
-        <button
-          type="button"
-          className={styles.filterTrigger}
-          onClick={() => {
-            if (isCurrentLayer) setFilterOpen((v) => !v);
-          }}
-          disabled={availableModels.length === 0}
-        >
-          <IconSlidersHorizontal size={14} />
-          <span>{filterLabel}</span>
-          <IconChevronDown size={12} />
-        </button>
-        {visibleFilterOpen ? (
-          <div className={styles.filterPanel}>
-            <div className={styles.filterToolbar}>
-              <button
-                type="button"
-                className={styles.filterToolbarBtn}
-                onClick={selectAll}
-                disabled={availableModels.length === 0}
-              >
-                {t('providersPage.toolbar.filter.selectAll')}
-              </button>
-              <button
-                type="button"
-                className={styles.filterToolbarBtn}
-                onClick={clearAll}
-                disabled={selectedModels.size === 0}
-              >
-                {t('providersPage.toolbar.filter.clear')}
-              </button>
-            </div>
-            {availableModels.length === 0 ? (
-              <div className={styles.filterEmpty}>{t('providersPage.toolbar.filter.empty')}</div>
-            ) : (
-              <ul className={styles.filterList}>
-                {availableModels.map((name) => (
-                  <ProviderModelFilterItem
-                    key={name}
-                    name={name}
-                    selected={selectedModels.has(name)}
-                    onToggle={toggleModel}
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
-        ) : null}
-      </div>
+      <AnchoredPopover
+        open={visibleFilterOpen}
+        onOpenChange={(nextOpen) => {
+          if (isCurrentLayer) setFilterOpen(nextOpen);
+        }}
+        width={280}
+        maxHeight={340}
+        ariaLabel={filterLabel}
+        wrapperClassName={styles.filterGroup}
+        className={styles.filterPanel}
+        trigger={
+          <button
+            type="button"
+            className={styles.filterTrigger}
+            disabled={availableModels.length === 0}
+            aria-haspopup="dialog"
+            aria-label={filterLabel}
+          >
+            <IconSlidersHorizontal size={14} />
+            <span>{filterLabel}</span>
+            <IconChevronDown size={12} />
+          </button>
+        }
+      >
+        <div className={styles.filterToolbar}>
+          <button
+            type="button"
+            className={styles.filterToolbarBtn}
+            onClick={selectAll}
+            disabled={availableModels.length === 0}
+          >
+            {t('providersPage.toolbar.filter.selectAll')}
+          </button>
+          <button
+            type="button"
+            className={styles.filterToolbarBtn}
+            onClick={clearAll}
+            disabled={selectedModels.size === 0}
+          >
+            {t('providersPage.toolbar.filter.clear')}
+          </button>
+        </div>
+        {availableModels.length === 0 ? (
+          <div className={styles.filterEmpty}>{t('providersPage.toolbar.filter.empty')}</div>
+        ) : (
+          <ul className={styles.filterList}>
+            {availableModels.map((name) => (
+              <ProviderModelFilterItem
+                key={name}
+                name={name}
+                selected={selectedModels.has(name)}
+                onToggle={toggleModel}
+              />
+            ))}
+          </ul>
+        )}
+      </AnchoredPopover>
     </div>
   );
 });

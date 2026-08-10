@@ -4,7 +4,7 @@
 .splash-screen {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--mg-z-splash);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,7 +45,8 @@
 }
 
 @keyframes splash-logo-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {

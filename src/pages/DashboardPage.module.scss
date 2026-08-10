@@ -25,72 +25,10 @@
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 28px;
   width: 100%;
-  max-width: 1196px;
-  margin: 0 auto;
+  max-width: none;
   color: var(--dashboard-text);
-
-  &::before {
-    position: absolute;
-    z-index: -2;
-    top: -32px;
-    right: -32px;
-    bottom: -32px;
-    left: -32px;
-    background: var(--dashboard-surface);
-    content: '';
-    pointer-events: none;
-  }
-}
-
-// ─── Quiet sage atmosphere and contour lines ───────────
-
-.backgroundOrbs {
-  position: absolute;
-  z-index: 0;
-  top: -64px;
-  right: -72px;
-  left: -72px;
-  height: 420px;
-  overflow: hidden;
-  pointer-events: none;
-  background: radial-gradient(
-    68% 86% at 50% 0%,
-    var(--mg-sage-wash-soft),
-    color-mix(in srgb, var(--mg-sage-wash-soft) 45%, transparent) 48%,
-    transparent 78%
-  );
-}
-
-.orb1,
-.orb2 {
-  position: absolute;
-  border: 1px solid color-mix(in srgb, var(--dashboard-sage-strong) 24%, transparent);
-  background: transparent;
-  box-shadow:
-    0 0 0 18px color-mix(in srgb, var(--dashboard-sage-strong) 10%, transparent),
-    0 0 0 38px color-mix(in srgb, var(--dashboard-sage-strong) 7%, transparent),
-    0 0 0 62px color-mix(in srgb, var(--dashboard-sage-strong) 5%, transparent),
-    0 0 0 90px color-mix(in srgb, var(--dashboard-sage-strong) 3%, transparent);
-}
-
-.orb1 {
-  top: -252px;
-  right: -156px;
-  width: 480px;
-  height: 480px;
-  border-radius: 45% 55% 48% 52%;
-  transform: rotate(-12deg);
-}
-
-.orb2 {
-  bottom: -276px;
-  left: -196px;
-  width: 460px;
-  height: 460px;
-  border-radius: 53% 47% 57% 43%;
-  transform: rotate(16deg);
 }
 
 // ─── Editorial welcome hero ─────────────────────────────
@@ -101,36 +39,20 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 48px;
-  min-height: 272px;
-  padding: 48px;
+  gap: 32px;
+  min-height: 176px;
+  padding: 28px 32px;
   overflow: hidden;
   border: 1px solid var(--dashboard-border);
-  border-radius: 16px;
+  border-radius: var(--dashboard-radius);
   background:
     radial-gradient(
       78% 120% at 92% 0%,
-      color-mix(in srgb, var(--dashboard-sage) 18%, transparent),
+      color-mix(in srgb, var(--dashboard-sage) 12%, transparent),
       transparent 66%
     ),
     var(--dashboard-surface);
-  box-shadow: 0 20px 65px rgb(0 0 0 / 0.055);
-}
-
-.heroWatermark {
-  position: absolute;
-  right: 28px;
-  bottom: -15px;
-  pointer-events: none;
-  user-select: none;
-  color: var(--dashboard-sage-strong);
-  font-size: clamp(68px, 8vw, 108px);
-  font-weight: 600;
-  line-height: 0.9;
-  letter-spacing: -0.055em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: 0.055;
+  box-shadow: none;
 }
 
 .heroContent {
@@ -160,7 +82,7 @@
   margin: 0;
   color: var(--dashboard-text);
   font-family: $font-display;
-  font-size: clamp(42px, 5vw, 64px);
+  font-size: clamp(36px, 4vw, 48px);
   font-weight: 650;
   line-height: 1;
   letter-spacing: -0.045em;
@@ -171,7 +93,7 @@
   max-width: 56ch;
   margin: 12px 0 0;
   color: var(--dashboard-text-secondary);
-  font-size: 16px;
+  font-size: 14.5px;
   line-height: 1.55;
   text-wrap: pretty;
 }
@@ -182,16 +104,14 @@
   position: relative;
   z-index: 1;
   display: flex;
-  min-width: 244px;
+  min-width: 232px;
   flex: 0 0 auto;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
-  padding: 22px;
-  border: 1px solid var(--dashboard-border);
-  border-radius: var(--dashboard-radius);
-  background: rgb(255 255 255 / 0.9);
-  box-shadow: 0 2px 18px rgb(0 0 0 / 0.045);
+  gap: 10px;
+  padding: 4px 0 4px 24px;
+  border-left: 1px solid var(--dashboard-border);
+  background: transparent;
 }
 
 .dateTimeBlock {
@@ -204,7 +124,7 @@
 .time {
   color: var(--dashboard-text);
   font-family: $font-display;
-  font-size: 36px;
+  font-size: 30px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -284,7 +204,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   color: var(--dashboard-text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -310,18 +230,18 @@
   overflow: hidden;
   border-radius: var(--dashboard-radius);
   background: var(--dashboard-border);
-  box-shadow: 0 20px 65px rgb(0 0 0 / 0.045);
+  box-shadow: none;
 }
 
 .bentoCard {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 180px;
+  min-height: 128px;
   flex-direction: column;
   justify-content: space-between;
-  gap: 24px;
-  padding: 28px;
+  gap: 16px;
+  padding: 20px;
   border: 0;
   border-radius: 0;
   background: var(--dashboard-surface);
@@ -335,8 +255,8 @@
   &::after {
     content: '↗';
     position: absolute;
-    top: 25px;
-    right: 25px;
+    top: 18px;
+    right: 18px;
     color: var(--dashboard-text-tertiary);
     font-size: 17px;
     line-height: 1;
@@ -366,25 +286,21 @@
 }
 
 .bentoLarge {
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--dashboard-sage-soft) 68%, var(--dashboard-surface)),
-    var(--dashboard-surface) 70%
-  );
+  background: var(--mg-surface-selected);
 
   .bentoValue {
-    font-size: 46px;
+    font-size: 36px;
   }
 }
 
 .bentoIcon {
   display: flex;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--dashboard-border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--dashboard-surface-subtle);
   color: var(--dashboard-sage-strong);
   transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
@@ -404,7 +320,7 @@
 .bentoValue {
   color: var(--dashboard-text);
   font-family: $font-display;
-  font-size: 40px;
+  font-size: 32px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -434,8 +350,8 @@
 .configSection {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 28px;
+  gap: 16px;
+  padding: 20px;
   border: 1px solid var(--dashboard-border);
   border-radius: var(--dashboard-radius);
   background: var(--dashboard-surface);
@@ -458,7 +374,7 @@
 .configPill {
   display: flex;
   min-width: 0;
-  min-height: 72px;
+  min-height: 64px;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
@@ -469,11 +385,6 @@
   background: var(--dashboard-surface);
   color: var(--dashboard-text);
   font-size: 13px;
-  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
-
-  &:hover {
-    background: var(--dashboard-surface-warm);
-  }
 }
 
 .configPillWide {
@@ -586,7 +497,7 @@
   padding: 10px 18px;
   border-radius: $radius-full;
   background: var(--mg-ink-strong, #0e0d0c);
-  color: #ffffff;
+  color: var(--mg-text-inverse);
   font-size: 13px;
   line-height: 1.2;
   text-decoration: none;
@@ -594,7 +505,7 @@
 
   &:hover {
     background: var(--mg-text-secondary, #565551);
-    color: #ffffff;
+    color: var(--mg-text-inverse);
     text-decoration: none;
   }
 
@@ -618,36 +529,22 @@
 
 @media (max-width: $breakpoint-tablet) {
   .dashboard {
-    gap: 32px;
+    gap: 24px;
   }
 
   .hero {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 32px;
-    padding: 40px;
+    align-items: flex-end;
+    flex-direction: row;
+    gap: 24px;
+    padding: 26px 28px;
   }
 
   .heroContent {
-    max-width: 72%;
+    max-width: none;
   }
 
   .heroMeta {
-    min-width: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px 18px;
-    padding: 18px 20px;
-  }
-
-  .dateTimeBlock {
-    flex: 1 1 auto;
-  }
-
-  .buildDate {
-    margin-left: auto;
+    min-width: 210px;
   }
 
   .bentoGrid {
@@ -655,7 +552,7 @@
   }
 
   .bentoCard {
-    min-height: 164px;
+    min-height: 132px;
   }
 
   .configPillGrid {
@@ -668,42 +565,21 @@
     gap: 24px;
   }
 
-  .backgroundOrbs {
-    top: -40px;
-    right: -28px;
-    left: -28px;
-    height: 340px;
-  }
-
-  .orb1 {
-    right: -260px;
-  }
-
-  .orb2 {
-    left: -280px;
-  }
-
   .hero {
     min-height: 0;
     flex-direction: column;
     align-items: stretch;
-    gap: 28px;
-    padding: 30px 24px 24px;
+    gap: 20px;
+    padding: 24px 20px 20px;
   }
 
   .heroContent {
     max-width: none;
   }
 
-  .heroWatermark {
-    right: 10px;
-    bottom: -6px;
-    font-size: 58px;
-  }
-
   .heroTitle {
     max-width: 16ch;
-    font-size: clamp(38px, 12vw, 48px);
+    font-size: clamp(34px, 10vw, 42px);
   }
 
   .heroCaring {
@@ -713,44 +589,56 @@
   .heroMeta {
     width: 100%;
     min-width: 0;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 14px;
-    padding: 18px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--dashboard-border);
+    border-left: 0;
   }
 
   .dateTimeBlock {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
   }
 
   .buildDate {
+    flex-basis: 100%;
     margin-left: 0;
   }
 
   .time {
-    font-size: 32px;
+    font-size: 28px;
   }
 
-  .bentoGrid,
-  .configPillGrid {
-    grid-template-columns: 1fr;
+  .bentoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .bentoCard {
-    min-height: 138px;
-    gap: 20px;
-    padding: 24px;
+    min-height: 124px;
+    gap: 14px;
+    padding: 16px;
 
     &::after {
-      top: 22px;
-      right: 22px;
+      top: 15px;
+      right: 15px;
     }
   }
 
   .bentoLarge .bentoValue,
   .bentoValue {
-    font-size: 36px;
+    font-size: 30px;
+  }
+
+  .bentoIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .configPillGrid {
+    grid-template-columns: 1fr;
   }
 
   .configSection {
@@ -803,7 +691,6 @@
   .bentoCard,
   .bentoCard::after,
   .bentoIcon,
-  .configPill,
   .viewMoreLink,
   .viewMoreArrow {
     transition: none;

@@ -1,0 +1,32 @@
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--popover-enter-y, -4px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.wrapper {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.panel {
+  z-index: var(--mg-z-modal-popover);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--mg-floating-border);
+  border-radius: var(--mg-radius-medium);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-float);
+  animation: enter var(--mg-motion-fast) var(--mg-ease-emphasis);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}

@@ -319,8 +319,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   }, [selected, file.disabled]);
 
   const checkboxLabel = selected
-    ? t('auth_files.batch_deselect')
-    : t('auth_files.batch_select_all');
+    ? t('auth_files.deselect_file', { name: maskedAuthFileDisplayName })
+    : t('auth_files.select_file', { name: maskedAuthFileDisplayName });
 
   return (
     <article
@@ -630,7 +630,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     onAuthFileUpdated={onAuthFileUpdated}
                     className={`${refreshStyles.cardActionButton} ${refreshStyles.cardRefreshButton}`}
                     iconClassName={refreshStyles.cardActionIcon}
-                    iconSize={18}
+                    iconSize={16}
                   />
                 </Suspense>
               </div>

@@ -10,7 +10,7 @@
 .topBar {
   position: sticky;
   top: 4px;
-  z-index: 5;
+  z-index: var(--mg-z-sticky);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -97,7 +97,7 @@
   left: var(--content-center-x, 50%);
   bottom: calc(12px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  z-index: 50;
+  z-index: var(--mg-z-popover);
   pointer-events: none;
   width: fit-content;
   max-width: calc(100vw - 24px);
@@ -113,12 +113,6 @@
   background: var(--mg-surface);
   border: 1px solid var(--mg-border);
   box-shadow: var(--mg-shadow-float);
-}
-
-:global([data-theme='dark']) {
-  .floatingActionSurface {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  }
 }
 
 @media (max-width: 1200px) {
@@ -144,7 +138,7 @@
   }
 
   .backButton {
-    min-width: 34px;
+    min-width: 40px;
     padding-left: 6px;
     padding-right: 6px;
   }

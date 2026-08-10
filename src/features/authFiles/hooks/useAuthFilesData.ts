@@ -82,6 +82,7 @@ export type AuthFilesListMeta = {
   typeCounts?: Record<string, number>;
   /** Whether this response was filtered by the server's cached premium-plan snapshot. */
   premiumOnlyApplied?: boolean;
+  pageRecentRequestsApplied?: boolean;
   dataKey?: string;
   resolvedDataKey?: string;
   typeCountsKey?: string;
@@ -169,6 +170,7 @@ const areAuthFilesListMetaEqual = (left: AuthFilesListMeta, right: AuthFilesList
   left.paginated === right.paginated &&
   left.hasMore === right.hasMore &&
   left.premiumOnlyApplied === right.premiumOnlyApplied &&
+  left.pageRecentRequestsApplied === right.pageRecentRequestsApplied &&
   left.dataKey === right.dataKey &&
   left.resolvedDataKey === right.resolvedDataKey &&
   left.typeCountsKey === right.typeCountsKey &&
@@ -555,6 +557,10 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
               premiumOnlyApplied:
                 effectiveListOptions.premiumOnly === true
                   ? data?.premium_only_applied === true
+                  : undefined,
+              pageRecentRequestsApplied:
+                effectiveListOptions.pageRecentRequests === true
+                  ? data?.page_recent_requests_applied === true
                   : undefined,
               dataKey: effectiveListOptionsKey,
               resolvedDataKey,

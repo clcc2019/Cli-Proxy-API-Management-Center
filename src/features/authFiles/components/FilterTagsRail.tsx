@@ -48,11 +48,11 @@ const FilterTagButton = memo(function FilterTagButton({
     >
       <span className={refreshStyles.providerTabLabel}>
         {type === 'all' ? (
-          <span className={refreshStyles.providerTabIconBox}>
+          <span className={refreshStyles.providerTabIconBox} aria-hidden="true">
             <IconFilterAll className={refreshStyles.providerTabIcon} size={15} />
           </span>
         ) : (
-          <span className={refreshStyles.providerTabIconBox}>
+          <span className={refreshStyles.providerTabIconBox} aria-hidden="true">
             {iconSrc ? (
               <img src={iconSrc} alt="" className={refreshStyles.providerTabIcon} />
             ) : (

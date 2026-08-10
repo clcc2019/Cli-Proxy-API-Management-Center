@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist, type PersistStorage, type StorageValue } from 'zustand/middleware';
 import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
 import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
@@ -11,7 +11,7 @@ import { registerSessionCleanup } from './sessionCleanup';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
 type PersistableQuotaState = Pick<QuotaStoreState, 'claudeQuota' | 'codexQuota' | 'kimiQuota'>;
-type PersistedQuotaEnvelope = { state?: Partial<PersistableQuotaState>; version?: number };
+type PersistedQuotaEnvelope = StorageValue<Partial<PersistableQuotaState>>;
 type QuotaSnapshot = { status?: string };
 
 interface QuotaStoreState {
@@ -104,14 +104,17 @@ const mergePersistedQuotaState = (
   kimiQuota: mergeQuotaRecord(previous?.kimiQuota, next?.kimiQuota),
 });
 
-type PendingQuotaCacheWrite = { name: string; value: string };
+type PendingQuotaCacheWrite = {
+  name: string;
+  value: StorageValue<PersistableQuotaState>;
+};
 
 let pendingQuotaCacheWrite: PendingQuotaCacheWrite | null = null;
 let cancelScheduledQuotaCacheWrite: (() => void) | null = null;
 let quotaCacheFlushListenersInstalled = false;
 
-const getPersistedQuotaCacheValue = (name: string): string | null =>
-  window.localStorage.getItem(name);
+const readPersistedQuotaCache = (name: string): PersistedQuotaEnvelope | null =>
+  readPersistedQuotaEnvelope(window.localStorage.getItem(name));
 
 const flushPendingQuotaCacheWrite = () => {
   const pending = pendingQuotaCacheWrite;
@@ -121,7 +124,14 @@ const flushPendingQuotaCacheWrite = () => {
   cancelScheduledWrite?.();
   if (!pending) return;
 
-  window.localStorage.setItem(pending.name, pending.value);
+  const previous = readPersistedQuotaCache(pending.name);
+  window.localStorage.setItem(
+    pending.name,
+    JSON.stringify({
+      ...pending.value,
+      state: mergePersistedQuotaState(previous?.state, pending.value.state),
+    })
+  );
 };
 
 const ensureQuotaCacheFlushListeners = () => {
@@ -136,62 +146,37 @@ const ensureQuotaCacheFlushListeners = () => {
   });
 };
 
-const scheduleQuotaCacheWrite = (name: string, value: string) => {
-  const persistedValue = getPersistedQuotaCacheValue(name);
-  if (value === persistedValue) {
-    if (pendingQuotaCacheWrite?.name === name) {
-      pendingQuotaCacheWrite = null;
-      cancelScheduledQuotaCacheWrite?.();
-      cancelScheduledQuotaCacheWrite = null;
-    }
-    return;
-  }
-
+const scheduleQuotaCacheWrite = (name: string, value: StorageValue<PersistableQuotaState>) => {
   pendingQuotaCacheWrite = { name, value };
   ensureQuotaCacheFlushListeners();
   if (cancelScheduledQuotaCacheWrite) return;
 
-  // 一页配额刷新会在很短时间内产生多次 loading/success 更新。合并后在空闲期只写
-  // 最终快照，避免每次响应都同步序列化并写入整份 localStorage 缓存而阻塞主线程。
+  // Zustand 的 JSON storage 会在每次 set 时先同步序列化。这里保留结构化快照，
+  // 覆盖刷新期间的中间状态，只在空闲期合并、序列化并落盘一次。
   cancelScheduledQuotaCacheWrite = scheduleIdleTask(flushPendingQuotaCacheWrite, {
     delayMs: 120,
     timeoutMs: 1_000,
   });
 };
 
-const quotaPersistStorage = createJSONStorage<PersistableQuotaState>(() => ({
+const quotaPersistStorage: PersistStorage<PersistableQuotaState> = {
   getItem: (name) => {
-    const raw =
-      pendingQuotaCacheWrite?.name === name
-        ? pendingQuotaCacheWrite.value
-        : getPersistedQuotaCacheValue(name);
-    const persisted = readPersistedQuotaEnvelope(raw);
-    if (!persisted) return raw;
+    const pending = pendingQuotaCacheWrite?.name === name ? pendingQuotaCacheWrite.value : null;
+    const persisted = pending
+      ? {
+          ...pending,
+          state: mergePersistedQuotaState(readPersistedQuotaCache(name)?.state, pending.state),
+        }
+      : readPersistedQuotaCache(name);
+    if (!persisted) return null;
 
-    return JSON.stringify({
+    return {
       ...persisted,
       state: sanitizePersistedQuotaState(persisted.state),
-    });
+    };
   },
   setItem: (name, value) => {
-    const previousRaw =
-      pendingQuotaCacheWrite?.name === name
-        ? pendingQuotaCacheWrite.value
-        : getPersistedQuotaCacheValue(name);
-    const previous = readPersistedQuotaEnvelope(previousRaw);
-    const next = readPersistedQuotaEnvelope(value);
-    if (!next) {
-      scheduleQuotaCacheWrite(name, value);
-      return;
-    }
-
-    scheduleQuotaCacheWrite(
-      name,
-      JSON.stringify({
-        ...next,
-        state: mergePersistedQuotaState(previous?.state, next.state),
-      })
-    );
+    scheduleQuotaCacheWrite(name, value);
   },
   removeItem: (name) => {
     if (pendingQuotaCacheWrite?.name === name) {
@@ -201,7 +186,7 @@ const quotaPersistStorage = createJSONStorage<PersistableQuotaState>(() => ({
     }
     window.localStorage.removeItem(name);
   },
-}));
+};
 
 export const useQuotaStore = create<QuotaStoreState>()(
   persist(

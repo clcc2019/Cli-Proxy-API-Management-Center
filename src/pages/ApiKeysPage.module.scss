@@ -9,7 +9,7 @@
   --api-text-secondary: var(--mg-text-secondary);
   --api-text-tertiary: var(--mg-text-tertiary);
   --api-border: var(--mg-border);
-  --api-border-strong: #d8d8d3;
+  --api-border-strong: var(--mg-border-hover);
   --api-ink: var(--mg-ink-strong);
   --api-sage: var(--mg-sage);
   --api-sage-strong: var(--mg-sage-strong);
@@ -27,20 +27,6 @@
   color: var(--api-text);
 }
 
-.pageHeader {
-  @include management-page-header;
-  border-bottom-color: var(--api-border);
-}
-
-.pageHeaderMain {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.pageEyebrow,
 .sectionEyebrow {
   color: var(--api-text-tertiary);
   font-size: 11px;
@@ -48,17 +34,6 @@
   line-height: 1.25;
   letter-spacing: 0.085em;
   text-transform: uppercase;
-}
-
-.pageTitle {
-  @include management-page-title;
-  color: var(--api-text);
-}
-
-.pageDescription {
-  @include management-page-description;
-  max-width: 700px;
-  color: var(--api-text-secondary);
 }
 
 .pageHeaderAside {
@@ -317,12 +292,6 @@
 }
 
 @media (max-width: 980px) {
-  .pageHeader {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 14px;
-  }
-
   .pageHeaderAside {
     justify-content: flex-start;
   }
@@ -340,10 +309,6 @@
 @media (max-width: 640px) {
   .container {
     gap: 18px;
-  }
-
-  .pageHeader {
-    padding-bottom: 14px;
   }
 
   .pageHeaderAside {

@@ -6,6 +6,7 @@ import { parse as parseYaml, parseDocument } from 'yaml';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import {
   IconCheck,
   IconChevronDown,
@@ -50,9 +51,7 @@ export function ConfigPage() {
   const connectionStatus = useAuthStore((state) =>
     isCurrentLayer ? state.connectionStatus : 'disconnected'
   );
-  const resolvedTheme = useThemeStore((state) =>
-    isCurrentLayer ? state.resolvedTheme : 'light'
-  );
+  const resolvedTheme = useThemeStore((state) => (isCurrentLayer ? state.resolvedTheme : 'light'));
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const {
@@ -114,10 +113,7 @@ export function ConfigPage() {
     setError('');
     try {
       const data = await configFileApi.fetchConfigYaml();
-      if (
-        loadConfigVersionRef.current !== requestVersion ||
-        !isCurrentLayerRef.current
-      ) {
+      if (loadConfigVersionRef.current !== requestVersion || !isCurrentLayerRef.current) {
         return;
       }
       setContent(data);
@@ -127,19 +123,13 @@ export function ConfigPage() {
       setMergedYaml(data);
       loadVisualValuesFromYaml(data);
     } catch (err: unknown) {
-      if (
-        loadConfigVersionRef.current !== requestVersion ||
-        !isCurrentLayerRef.current
-      ) {
+      if (loadConfigVersionRef.current !== requestVersion || !isCurrentLayerRef.current) {
         return;
       }
       const message = err instanceof Error ? err.message : t('notification.refresh_failed');
       setError(message);
     } finally {
-      if (
-        loadConfigVersionRef.current === requestVersion &&
-        isCurrentLayerRef.current
-      ) {
+      if (loadConfigVersionRef.current === requestVersion && isCurrentLayerRef.current) {
         setLoading(false);
       }
     }
@@ -482,14 +472,11 @@ export function ConfigPage() {
 
   const getFloatingStatusText = () => {
     if (!isMobile) return getStatusText();
-    if (disableControls)
-      return t('config_management.status_disconnected_short');
+    if (disableControls) return t('config_management.status_disconnected_short');
     if (loading) return t('config_management.status_loading_short');
     if (error) return t('config_management.status_load_failed_short');
-    if (hasVisualModeError)
-      return t('config_management.visual_mode_unavailable_short');
-    if (hasVisualValidationErrors)
-      return t('config_management.visual.validation_blocked_short');
+    if (hasVisualModeError) return t('config_management.visual_mode_unavailable_short');
+    if (hasVisualValidationErrors) return t('config_management.visual.validation_blocked_short');
     if (saving) return t('config_management.status_saving_short');
     if (isDirty) return t('config_management.status_dirty_short');
     return t('config_management.status_loaded_short');
@@ -558,31 +545,32 @@ export function ConfigPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('config_management.title')}</h1>
-
-        <div className={styles.pageMeta}>
-          <div className={`${styles.statusBadge} ${getStatusClass()}`}>{getStatusText()}</div>
-          <div className={styles.tabBar}>
-            <button
-              type="button"
-              className={`${styles.tabItem} ${activeTab === 'visual' ? styles.tabActive : ''}`}
-              onClick={() => handleTabChange('visual')}
-              disabled={saving || loading}
-            >
-              {t('config_management.tabs.visual')}
-            </button>
-            <button
-              type="button"
-              className={`${styles.tabItem} ${activeTab === 'source' ? styles.tabActive : ''}`}
-              onClick={() => handleTabChange('source')}
-              disabled={saving || loading}
-            >
-              {t('config_management.tabs.source')}
-            </button>
+      <ManagementPageHeader
+        title={t('config_management.title')}
+        actions={
+          <div className={styles.pageMeta}>
+            <div className={`${styles.statusBadge} ${getStatusClass()}`}>{getStatusText()}</div>
+            <div className={styles.tabBar}>
+              <button
+                type="button"
+                className={`${styles.tabItem} ${activeTab === 'visual' ? styles.tabActive : ''}`}
+                onClick={() => handleTabChange('visual')}
+                disabled={saving || loading}
+              >
+                {t('config_management.tabs.visual')}
+              </button>
+              <button
+                type="button"
+                className={`${styles.tabItem} ${activeTab === 'source' ? styles.tabActive : ''}`}
+                onClick={() => handleTabChange('source')}
+                disabled={saving || loading}
+              >
+                {t('config_management.tabs.source')}
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className={styles.workspaceShell}>
         <div className={styles.content}>

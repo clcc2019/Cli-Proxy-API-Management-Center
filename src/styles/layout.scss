@@ -1,10 +1,10 @@
 @use './variables.scss' as *;
 
 :root {
-  --header-height: 64px;
-  --page-padding-inline: clamp(20px, 1.5vw, 24px);
-  --page-padding-block: clamp(20px, 2vw, 28px);
-  --page-content-gap: clamp(16px, 1.4vw, 24px);
+  --header-height: 60px;
+  --page-padding-inline: clamp(20px, 2.6vw, 40px);
+  --page-padding-block: clamp(24px, 2.5vw, 36px);
+  --page-content-gap: clamp(18px, 1.8vw, 28px);
   --page-title-size: clamp(24px, 2vw, 30px);
 }
 
@@ -43,14 +43,14 @@
 .main-header {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--mg-z-header);
   display: flex;
   width: 100%;
   min-height: var(--header-height);
   align-items: center;
   justify-content: space-between;
   gap: clamp(16px, 2vw, 28px);
-  padding: 10px clamp(16px, 2vw, 28px);
+  padding: 8px clamp(16px, 2.6vw, 40px);
   border-bottom: 1px solid var(--mg-border, var(--border-color));
   background: var(--mg-surface, var(--bg-canvas));
   box-shadow: 0 1px 0 rgb(44 42 37 / 0.025);
@@ -176,8 +176,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: var(--mg-control-height);
+    min-width: var(--mg-control-height);
+    height: var(--mg-control-height);
     flex-shrink: 0;
     line-height: 1;
     box-shadow: none;
@@ -247,7 +248,7 @@
         position: absolute;
         top: calc(100% + 8px);
         right: 0;
-        z-index: $z-dropdown;
+        z-index: var(--mg-z-dropdown);
         min-width: 172px;
         padding: 5px;
         display: flex;
@@ -319,9 +320,9 @@
 
     > .btn,
     .language-menu > .btn {
-      width: 32px;
-      min-width: 32px;
-      height: 32px;
+      width: var(--mg-control-height);
+      min-width: var(--mg-control-height);
+      height: var(--mg-control-height);
       padding: 0;
       border-radius: var(--mg-radius-control, $radius-md);
       color: var(--mg-text-secondary, var(--text-secondary));
@@ -348,9 +349,9 @@
 
       > .btn,
       .language-menu > .btn {
-        width: 36px;
-        min-width: 36px;
-        height: 36px;
+        width: var(--mg-control-height);
+        min-width: var(--mg-control-height);
+        height: var(--mg-control-height);
       }
     }
   }
@@ -526,7 +527,7 @@
     display: block;
     position: fixed;
     inset: var(--header-height) 0 0;
-    z-index: $z-dropdown - 1;
+    z-index: calc(var(--mg-z-dropdown) - 1);
 
     &.visible {
       opacity: 1;
@@ -539,7 +540,7 @@
   position: relative;
   z-index: 1;
   width: var(--sidebar-width);
-  background: var(--sidebar-surface, var(--mg-surface, var(--surface-overlay)));
+  background: var(--mg-surface-warm);
   border-right: 1px solid var(--mg-border, var(--border-color));
   padding: 14px 10px 16px;
   display: flex;
@@ -691,7 +692,7 @@
     }
 
     &.active {
-      background: var(--mg-surface, var(--surface-raised));
+      background: var(--mg-surface-selected);
       color: var(--mg-text, var(--text-primary));
       font-weight: var(--sidebar-label-active-weight);
       border-color: color-mix(
@@ -736,7 +737,7 @@
 
   @media (max-width: $breakpoint-mobile) {
     position: fixed;
-    z-index: $z-dropdown;
+    z-index: var(--mg-z-dropdown);
     width: min(86vw, 288px);
     left: 0;
     top: var(--header-height);

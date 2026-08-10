@@ -50,6 +50,42 @@
   --mg-shadow-rest: 0 1px 2px rgb(0 0 0 / 0.07);
   --mg-shadow-card: 0 20px 65px rgb(0 0 0 / 0.07);
   --mg-shadow-float: 0 2px 18px rgb(0 0 0 / 0.06);
+  --mg-space-1: 4px;
+  --mg-space-2: 8px;
+  --mg-space-3: 12px;
+  --mg-space-4: 16px;
+  --mg-space-5: 20px;
+  --mg-space-6: 24px;
+  --mg-space-8: 32px;
+  --mg-space-10: 40px;
+  --mg-space-12: 48px;
+  --mg-space-16: 64px;
+  --mg-space-24: 96px;
+  --mg-control-height-small: 32px;
+  --mg-control-height: 40px;
+  --mg-control-height-large: 48px;
+  --mg-hit-area: 44px;
+  --mg-content-max: 1196px;
+  --mg-font-display:
+    'Avenir Next', 'Segoe UI Variable Display', 'Segoe UI', ui-sans-serif, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --mg-font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  --mg-page-gutter: clamp(20px, 3vw, 40px);
+  --mg-motion-fast: 120ms;
+  --mg-motion-standard: 240ms;
+  --mg-motion-slow: 400ms;
+  --mg-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mg-ease-emphasis: cubic-bezier(0.22, 1, 0.36, 1);
+  --mg-z-base: 0;
+  --mg-z-sticky: 10;
+  --mg-z-header: 20;
+  --mg-z-page-overlay: 30;
+  --mg-z-dropdown: 40;
+  --mg-z-popover: 50;
+  --mg-z-modal: 80;
+  --mg-z-modal-popover: 90;
+  --mg-z-toast: 100;
+  --mg-z-splash: 110;
 
   --bg-secondary: #f7f7f5;
   --bg-primary: #ffffff;

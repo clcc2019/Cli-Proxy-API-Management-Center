@@ -29,8 +29,8 @@
     background: var(--mg-surface);
 
     :global(.btn.btn-sm) {
-      min-height: 34px;
-      border-radius: var(--mg-radius-pill);
+      min-height: 40px;
+      border-radius: var(--mg-radius-control);
       padding-inline: 13px;
     }
   }
@@ -149,28 +149,5 @@
 
   @include mobile {
     gap: 8px;
-  }
-}
-
-:global([data-theme='dark']) {
-  .modal {
-    border-color: color-mix(in srgb, var(--border-color) 82%, transparent);
-    background: var(--bg-primary);
-    box-shadow: 0 22px 54px rgba(0, 0, 0, 0.5);
-
-    :global(.modal-header),
-    :global(.modal-footer) {
-      background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
-      border-color: color-mix(in srgb, var(--border-color) 76%, transparent);
-    }
-
-    :global(.modal-body) {
-      background: color-mix(in srgb, var(--bg-tertiary) 22%, var(--bg-primary));
-    }
-  }
-
-  .titleAvatar {
-    border-color: color-mix(in srgb, var(--border-color) 76%, transparent);
-    background: color-mix(in srgb, var(--bg-tertiary) 44%, var(--surface-raised));
   }
 }

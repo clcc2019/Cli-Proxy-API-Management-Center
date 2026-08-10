@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconChevronDown,
@@ -603,9 +604,7 @@ export function LogsPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('logs.title')}</h1>
-      </header>
+      <ManagementPageHeader title={t('logs.title')} className={styles.pageHeader} />
 
       {/* role=tablist + 方向键切换：否则屏幕阅读器只能听到两个普通按钮，
           无法得知当前处于哪个视图 */}

@@ -150,9 +150,13 @@ const HeroTimeBlock = memo(function HeroTimeBlock() {
     };
   }, [isCurrentLayer]);
 
-  useAlignedInterval(() => {
-    setNow(new Date());
-  }, MINUTE_INTERVAL_MS, { enabled: isCurrentLayer });
+  useAlignedInterval(
+    () => {
+      setNow(new Date());
+    },
+    MINUTE_INTERVAL_MS,
+    { enabled: isCurrentLayer }
+  );
 
   const formattedTime = useMemo(
     () => now.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' }),
@@ -205,10 +209,13 @@ const HeroGreeting = memo(function HeroGreeting() {
     };
   }, [isCurrentLayer]);
 
-  useInterval(() => {
-    const tod = getTimeOfDay();
-    setTimeOfDay((prev) => (prev === tod ? prev : tod));
-  }, isCurrentLayer ? GREETING_REFRESH_INTERVAL_MS : null);
+  useInterval(
+    () => {
+      const tod = getTimeOfDay();
+      setTimeOfDay((prev) => (prev === tod ? prev : tod));
+    },
+    isCurrentLayer ? GREETING_REFRESH_INTERVAL_MS : null
+  );
 
   return (
     <>
@@ -516,16 +523,8 @@ export function DashboardPage() {
 
   return (
     <div className={styles.dashboard}>
-      <div className={styles.backgroundOrbs} aria-hidden="true">
-        <div className={styles.orb1} />
-        <div className={styles.orb2} />
-      </div>
-
       {/* Hero welcome section */}
       <section className={styles.hero} aria-labelledby="dashboard-hero-title">
-        <span className={styles.heroWatermark} aria-hidden="true">
-          OVERVIEW
-        </span>
         <div className={styles.heroContent}>
           <HeroGreeting />
         </div>

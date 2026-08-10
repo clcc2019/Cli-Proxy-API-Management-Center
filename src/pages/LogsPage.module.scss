@@ -17,12 +17,7 @@
 }
 
 .pageHeader {
-  @include management-page-header;
   margin-bottom: 16px;
-}
-
-.pageTitle {
-  @include management-page-title;
 }
 
 .tabBar {
@@ -74,7 +69,7 @@
 
 .tabActive {
   color: var(--mg-text);
-  border-color: #d8d8d3;
+  border-color: var(--mg-border-hover);
   background: var(--mg-surface);
   box-shadow: inset 0 -2px 0 var(--mg-ink-strong);
 }
@@ -841,11 +836,6 @@
 }
 
 @media (max-height: 820px) {
-  .pageTitle {
-    font-size: 24px;
-    margin-bottom: $spacing-md;
-  }
-
   .tabBar {
     margin-bottom: $spacing-md;
   }
@@ -878,11 +868,6 @@
 }
 
 @media (max-height: 600px) {
-  .pageTitle {
-    font-size: 20px;
-    margin-bottom: $spacing-sm;
-  }
-
   .tabBar {
     margin-bottom: $spacing-sm;
   }

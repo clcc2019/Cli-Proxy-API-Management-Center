@@ -8,7 +8,7 @@
   --system-surface-subtle: var(--mg-surface-subtle);
   --system-surface-muted: var(--mg-surface-warm);
   --system-border: var(--mg-border);
-  --system-border-strong: #d5d1cb;
+  --system-border-strong: var(--mg-border-hover);
   --system-text: var(--mg-text);
   --system-text-secondary: var(--mg-text-secondary);
   --system-text-tertiary: var(--mg-text-tertiary);
@@ -26,12 +26,9 @@
 }
 
 .pageHeader {
-  @include management-page-header;
   margin-bottom: 24px;
-  border-bottom-color: var(--system-border);
 }
 
-.pageEyebrow,
 .serviceEyebrow,
 .versionLabel {
   color: var(--system-text-tertiary);
@@ -40,15 +37,6 @@
   line-height: 1.3;
   letter-spacing: 0.075em;
   text-transform: uppercase;
-}
-
-.pageEyebrow {
-  margin-bottom: 5px;
-}
-
-.pageTitle {
-  @include management-page-title;
-  color: var(--system-text);
 }
 
 .content {
@@ -658,24 +646,6 @@
   .modelsCard :global(.item-row) {
     transition: none;
   }
-}
-
-:global([data-theme='dark']) .container,
-:global([data-theme='dark']) .requestLogModal {
-  --system-surface: var(--bg-primary);
-  --system-surface-subtle: var(--bg-secondary);
-  --system-surface-muted: color-mix(in srgb, var(--bg-secondary) 72%, var(--bg-primary));
-  --system-border: color-mix(in srgb, var(--border-color) 86%, transparent);
-  --system-border-strong: color-mix(in srgb, var(--text-tertiary) 42%, var(--border-color));
-  --system-text: var(--text-primary);
-  --system-text-secondary: var(--text-secondary);
-  --system-text-tertiary: var(--text-tertiary);
-  --system-ink: #f0f1eb;
-  --system-focus: rgb(179 190 169 / 0.34);
-}
-
-:global([data-theme='dark']) .requestLogModal :global(.btn.btn-primary) {
-  color: #1c1d1a;
 }
 
 .requestLogModal {

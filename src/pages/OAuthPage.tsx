@@ -12,6 +12,7 @@ import {
 } from '@/features/oauthLogin/useOAuthFlow';
 import { OAuthProviderCard } from '@/features/oauthLogin/components/OAuthProviderCard';
 import { OAuthLoginModal } from '@/features/oauthLogin/components/OAuthLoginModal';
+import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import styles from './OAuthPage.module.scss';
 
 type OAuthProviderGridProps = {
@@ -99,10 +100,7 @@ export function OAuthPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('nav.oauth')}</h1>
-        <p className={styles.pageSubtitle}>{t('auth_login.page_subtitle')}</p>
-      </header>
+      <ManagementPageHeader title={t('nav.oauth')} description={t('auth_login.page_subtitle')} />
 
       <section className={styles.content} aria-label={t('nav.oauth')}>
         <OAuthProviderGrid

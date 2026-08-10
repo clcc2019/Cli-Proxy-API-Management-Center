@@ -210,7 +210,6 @@ export function VisualConfigEditor({
         <div className={styles.sections}>
           <ConfigSection
             id="server"
-            indexLabel="01"
             icon={<IconSettings size={16} />}
             title={t('config_management.visual.sections.server.title')}
             description={t('config_management.visual.sections.server.description')}
@@ -237,7 +236,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="tls"
-            indexLabel="02"
             icon={<IconShield size={16} />}
             title={t('config_management.visual.sections.tls.title')}
             description={t('config_management.visual.sections.tls.description')}
@@ -277,7 +275,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="remote"
-            indexLabel="03"
             icon={<IconSatellite size={16} />}
             title={t('config_management.visual.sections.remote.title')}
             description={t('config_management.visual.sections.remote.description')}
@@ -319,7 +316,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="auth"
-            indexLabel="04"
             icon={<IconKey size={16} />}
             title={t('config_management.visual.sections.auth.title')}
             description={t('config_management.visual.sections.auth.description')}
@@ -338,7 +334,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="system"
-            indexLabel="05"
             icon={<IconDiamond size={16} />}
             title={t('config_management.visual.sections.system.title')}
             description={t('config_management.visual.sections.system.description')}
@@ -422,7 +417,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="redis"
-            indexLabel="06"
             icon={<IconDatabase size={16} />}
             title={t('config_management.visual.sections.redis.title')}
             description={t('config_management.visual.sections.redis.description')}
@@ -503,7 +497,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="network"
-            indexLabel="07"
             icon={<IconTrendingUp size={16} />}
             title={t('config_management.visual.sections.network.title')}
             description={t('config_management.visual.sections.network.description')}
@@ -616,7 +609,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="quota"
-            indexLabel="08"
             icon={<IconTimer size={16} />}
             title={t('config_management.visual.sections.quota.title')}
             description={t('config_management.visual.sections.quota.description')}
@@ -641,7 +633,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="streaming"
-            indexLabel="09"
             icon={<IconSatellite size={16} />}
             title={t('config_management.visual.sections.streaming.title')}
             description={t('config_management.visual.sections.streaming.description')}
@@ -753,7 +744,6 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="payload"
-            indexLabel="10"
             icon={<IconCode size={16} />}
             title={t('config_management.visual.sections.payload.title')}
             description={t('config_management.visual.sections.payload.description')}

@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconLoader2, IconPlus, IconRefreshCw } from '@/components/ui/icons';
+import { Button } from '@/components/ui/Button';
+import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
+import { IconPlus, IconRefreshCw } from '@/components/ui/icons';
 import styles from './ProviderHeaderCard.module.scss';
 
 interface ProviderHeaderCardProps {
@@ -28,37 +30,33 @@ export const ProviderHeaderCard = memo(function ProviderHeaderCard({
 
   return (
     <section className={styles.card}>
-      <div className={styles.row}>
-        <div className={styles.titleArea}>
-          <span className={styles.eyebrow}>{t('providersPage.header.eyebrow')}</span>
-          <h1 className={styles.title}>{t('providersPage.header.title')}</h1>
-          <p className={styles.subtitle}>{t('providersPage.header.description')}</p>
-        </div>
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnOutline}`}
-            onClick={onRefresh}
-            disabled={isFetching}
-          >
-            <span className={`${styles.btnIcon} ${isFetching ? styles.spin : ''}`}>
-              {isFetching ? <IconLoader2 size={16} /> : <IconRefreshCw size={16} />}
-            </span>
-            <span>
-              {isFetching ? t('providersPage.actions.syncing') : t('providersPage.actions.refresh')}
-            </span>
-          </button>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            onClick={onNew}
-            disabled={isNewDisabled}
-          >
-            <IconPlus size={16} />
-            <span>{t('providersPage.actions.new')}</span>
-          </button>
-        </div>
-      </div>
+      <ManagementPageHeader
+        context={t('providersPage.header.eyebrow')}
+        title={t('providersPage.header.title')}
+        description={t('providersPage.header.description')}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onRefresh}
+              disabled={isFetching}
+              loading={isFetching}
+            >
+              <IconRefreshCw size={16} />
+              <span>
+                {isFetching
+                  ? t('providersPage.actions.syncing')
+                  : t('providersPage.actions.refresh')}
+              </span>
+            </Button>
+            <Button size="sm" onClick={onNew} disabled={isNewDisabled}>
+              <IconPlus size={16} />
+              <span>{t('providersPage.actions.new')}</span>
+            </Button>
+          </>
+        }
+      />
 
       <div className={styles.summaryRail}>
         <div className={styles.summaryLead}>

@@ -1,14 +1,4 @@
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type KeyboardEvent,
-} from 'react';
+import { memo, useCallback, useMemo, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   IconSearch,
@@ -18,6 +8,7 @@ import {
   IconX,
 } from '@/components/ui/icons';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
+import { AnchoredPopover } from '@/components/ui/AnchoredPopover';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 interface SortOption {
@@ -64,63 +55,30 @@ const PopoverButton = memo(function PopoverButton({
 }: PopoverButtonProps) {
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const popoverId = useId();
   const visibleOpen = isCurrentLayer && open;
 
-  useEffect(() => {
-    if (!visibleOpen) return undefined;
-    const handlePointer = (event: MouseEvent) => {
-      if (!wrapperRef.current) return;
-      if (event.target instanceof Node && wrapperRef.current.contains(event.target)) return;
-      onOpenChange(false);
-    };
-    const handleKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onOpenChange(false);
-        triggerRef.current?.focus();
-      }
-    };
-    document.addEventListener('mousedown', handlePointer);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handlePointer);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [onOpenChange, visibleOpen]);
-
   return (
-    <div ref={wrapperRef} className={refreshStyles.popoverWrap}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className={`${refreshStyles.controlButton} ${visibleOpen ? refreshStyles.controlButtonActive : ''}`}
-        onClick={() => {
-          if (isCurrentLayer) onOpenChange(!open);
-        }}
-        aria-haspopup="dialog"
-        aria-expanded={visibleOpen}
-        aria-controls={visibleOpen ? popoverId : undefined}
-        aria-label={triggerSummary ? `${ariaLabel}: ${triggerSummary}` : ariaLabel}
-        title={triggerSummary ? `${triggerLabel}: ${triggerSummary}` : triggerLabel}
-      >
-        {triggerIcon}
-        {triggerSummary ? (
-          <span className={refreshStyles.controlButtonSummary}>{triggerSummary}</span>
-        ) : null}
-      </button>
-      {visibleOpen && (
-        <div
-          id={popoverId}
-          role="dialog"
-          aria-label={triggerLabel}
-          className={refreshStyles.controlPopover}
+    <AnchoredPopover
+      open={visibleOpen}
+      onOpenChange={(nextOpen) => {
+        if (isCurrentLayer) onOpenChange(nextOpen);
+      }}
+      ariaLabel={triggerLabel}
+      className={refreshStyles.controlPopover}
+      trigger={
+        <button
+          type="button"
+          className={`${refreshStyles.controlButton} ${visibleOpen ? refreshStyles.controlButtonActive : ''}`}
+          aria-haspopup="dialog"
+          aria-label={triggerSummary ? `${ariaLabel}: ${triggerSummary}` : ariaLabel}
+          title={triggerSummary ? `${triggerLabel}: ${triggerSummary}` : triggerLabel}
         >
-          {children}
-        </div>
-      )}
-    </div>
+          {triggerIcon}
+        </button>
+      }
+    >
+      {children}
+    </AnchoredPopover>
   );
 });
 
@@ -271,14 +229,8 @@ export const SearchToolbar = memo(function SearchToolbar({
       >
         {sortOpen ? (
           <>
-            <div className={refreshStyles.popoverHeading}>
-              {sortLabel}
-            </div>
-            <ul
-              className={refreshStyles.popoverOptionList}
-              role="listbox"
-              aria-label={sortLabel}
-            >
+            <div className={refreshStyles.popoverHeading}>{sortLabel}</div>
+            <ul className={refreshStyles.popoverOptionList} role="listbox" aria-label={sortLabel}>
               {sortOptions.map((option) => {
                 const active = option.value === sortValue;
                 return (
@@ -313,14 +265,8 @@ export const SearchToolbar = memo(function SearchToolbar({
       >
         {pageSizeOpen ? (
           <>
-            <div className={refreshStyles.popoverHeading}>
-              {pageSizeLabel}
-            </div>
-            <div
-              className={refreshStyles.presetGrid}
-              role="group"
-              aria-label={pageSizeLabel}
-            >
+            <div className={refreshStyles.popoverHeading}>{pageSizeLabel}</div>
+            <div className={refreshStyles.presetGrid} role="group" aria-label={pageSizeLabel}>
               {pageSizePresets.map((preset) => {
                 const active = preset === pageSize;
                 return (

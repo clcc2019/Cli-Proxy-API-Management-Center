@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   gap: $spacing-sm;
-  min-height: 40px;
+  min-height: var(--mg-control-height);
   border: 1px solid transparent;
   border-radius: var(--mg-radius-pill);
   padding: 10px 18px;
@@ -96,9 +96,27 @@
   }
 
   &.btn-sm {
-    min-height: 36px;
+    min-height: var(--mg-control-height);
     padding: 8px 14px;
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  &.icon-button {
+    width: var(--mg-control-height);
+    min-width: var(--mg-control-height);
+    padding: 0;
+  }
+
+  &.icon-button.btn-sm {
+    width: var(--mg-control-height);
+    min-width: var(--mg-control-height);
+    min-height: var(--mg-control-height);
+    padding: 0;
+  }
+
+  &.icon-button > span {
+    display: inline-grid;
+    place-items: center;
   }
 
   &:disabled {
@@ -242,15 +260,15 @@ textarea {
   background: var(--surface-card, var(--surface-raised));
   border: 1px solid var(--surface-card-border, var(--border-color));
   border-radius: var(--mg-radius-card);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   padding: clamp(14px, 1.2vw + 8px, 20px);
   transition:
     border-color $transition-fast,
     box-shadow $transition-fast;
 
-  &:hover {
+  &.card-interactive:hover {
     border-color: var(--surface-card-border-hover, var(--border-hover));
-    box-shadow: var(--shadow-card-hover);
+    box-shadow: var(--mg-shadow-rest);
   }
 }
 
@@ -361,7 +379,7 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: $spacing-sm;
-  z-index: $z-notification;
+  z-index: var(--mg-z-toast);
   max-width: 360px;
 }
 
@@ -506,7 +524,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: $z-modal;
+  z-index: var(--mg-z-modal);
   padding: $spacing-lg;
 
   &.modal-overlay-entering {
@@ -762,10 +780,10 @@ textarea {
 }
 
 .empty-state {
-  border: 1px dashed color-mix(in srgb, var(--border-hover) 64%, var(--border-color));
+  border: 1px solid var(--mg-border);
   border-radius: var(--mg-radius-medium);
   padding: $spacing-lg;
-  background: var(--mg-surface);
+  background: var(--mg-surface-warm);
   display: flex;
   justify-content: space-between;
   gap: $spacing-md;
@@ -782,11 +800,11 @@ textarea {
     width: 42px;
     height: 42px;
     border-radius: $radius-full;
-    border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+    border: 1px solid var(--mg-border);
     display: grid;
     place-items: center;
     color: var(--text-secondary);
-    background: color-mix(in srgb, var(--surface-raised-strong) 90%, transparent);
+    background: var(--mg-surface);
 
     svg {
       display: block;
