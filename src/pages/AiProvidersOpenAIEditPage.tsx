@@ -1,12 +1,29 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
-import { IconBot, IconX } from '@/components/ui/icons';
+import {
+  IconBot,
+  IconKey,
+  IconLink,
+  IconModelCluster,
+  IconSlidersHorizontal,
+  IconX,
+} from '@/components/ui/icons';
 import { Input } from '@/components/ui/Input';
 import { ModelInputList } from '@/components/ui/ModelInputList';
+import { Modal } from '@/components/ui/Modal';
+import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import type { ModelEntry } from '@/components/ui/modelInputListUtils';
 import { modelsToEntries } from '@/components/ui/modelInputListUtils';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
@@ -14,7 +31,7 @@ import { ProviderEditShell } from '@/components/common/ProviderEditShell';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useEventCallback } from '@/hooks';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
-import { providersApi } from '@/services/api';
+import { modelsApi, providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type {
   OpenAICompatibilityApiKeyEntry,
@@ -30,7 +47,8 @@ import {
 } from '@/utils/headers';
 import { isProviderPrefixValid, normalizeProviderPrefix } from '@/components/providers/utils';
 import { getErrorMessage } from '@/utils/error';
-import styles from './AiProvidersPage.module.scss';
+import type { ModelInfo } from '@/utils/models';
+import styles from './AiProvidersOpenAIEditPage.module.scss';
 
 type LocationState = { fromAiProviders?: boolean } | null;
 
@@ -41,6 +59,8 @@ type ApiKeyEntryForm = {
 };
 
 const EMPTY_OPENAI_API_KEY_ENTRY: ApiKeyEntryForm = { apiKey: '', proxyUrl: '' };
+const EMPTY_MODEL_INFO_LIST: ModelInfo[] = [];
+const EMPTY_MODEL_NAMES: string[] = [];
 
 type OpenAIFormState = {
   name: string;
@@ -132,14 +152,13 @@ const buildFormFromConfig = (config: OpenAICompatibilityConfig): OpenAIFormState
   baseUrl: config.baseUrl ?? '',
   disableCooling: Boolean(config.disableCooling),
   testModel: config.testModel ?? '',
-  apiKeyEntries:
-    config.apiKeyEntries?.length
-      ? config.apiKeyEntries.map((entry) => ({
-          apiKey: entry.apiKey ?? '',
-          proxyUrl: entry.proxyUrl ?? '',
-          authIndex: entry.authIndex,
-        }))
-      : [{ apiKey: '', proxyUrl: '' }],
+  apiKeyEntries: config.apiKeyEntries?.length
+    ? config.apiKeyEntries.map((entry) => ({
+        apiKey: entry.apiKey ?? '',
+        proxyUrl: entry.proxyUrl ?? '',
+        authIndex: entry.authIndex,
+      }))
+    : [{ apiKey: '', proxyUrl: '' }],
   headers: headersToEntries(config.headers),
   modelEntries: modelsToEntries(config.models),
 });
@@ -147,7 +166,9 @@ const buildFormFromConfig = (config: OpenAICompatibilityConfig): OpenAIFormState
 const buildOpenAIBaseline = (form: OpenAIFormState): OpenAIFormBaseline => ({
   name: String(form.name ?? '').trim(),
   priority:
-    form.priority !== undefined && Number.isFinite(form.priority) ? Math.trunc(form.priority) : null,
+    form.priority !== undefined && Number.isFinite(form.priority)
+      ? Math.trunc(form.priority)
+      : null,
   prefix: String(form.prefix ?? '').trim(),
   disabled: Boolean(form.disabled),
   poolMode: Boolean(form.poolMode),
@@ -268,9 +289,7 @@ const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
   const updateEntry = useEventCallback(
     (index: number, field: OpenAIApiKeyInputField, value: string) => {
       onChange(
-        currentEntries.map((entry, idx) =>
-          idx === index ? { ...entry, [field]: value } : entry
-        )
+        currentEntries.map((entry, idx) => (idx === index ? { ...entry, [field]: value } : entry))
       );
     }
   );
@@ -286,6 +305,11 @@ const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
 
   return (
     <div className={styles.openaiKeyInputList}>
+      <div className={styles.openaiKeyColumnLabels} aria-hidden="true">
+        <span>{t('ai_providers.openai_key_column_label')}</span>
+        <span>{t('ai_providers.openai_proxy_column_label')}</span>
+        <span />
+      </div>
       {currentEntries.map((entry, index) => (
         <OpenAIApiKeyInputRow
           key={index}
@@ -314,6 +338,76 @@ const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
   );
 });
 
+type OpenAIEditorSectionProps = {
+  id: string;
+  icon: ReactNode;
+  title: ReactNode;
+  description: ReactNode;
+  meta?: ReactNode;
+  children: ReactNode;
+};
+
+function OpenAIEditorSection({
+  id,
+  icon,
+  title,
+  description,
+  meta,
+  children,
+}: OpenAIEditorSectionProps) {
+  return (
+    <section className={styles.editorSection} aria-labelledby={id}>
+      <header className={styles.sectionHeader}>
+        <span className={styles.sectionIcon} aria-hidden="true">
+          {icon}
+        </span>
+        <div className={styles.sectionHeading}>
+          <h2 id={id}>{title}</h2>
+          <p>{description}</p>
+        </div>
+        {meta && <span className={styles.sectionMeta}>{meta}</span>}
+      </header>
+      <div className={styles.sectionBody}>{children}</div>
+    </section>
+  );
+}
+
+type OpenAIModelDiscoveryRowProps = {
+  model: ModelInfo;
+  checked: boolean;
+  disabled: boolean;
+  onToggle: (name: string) => void;
+};
+
+const OpenAIModelDiscoveryRow = memo(function OpenAIModelDiscoveryRow({
+  model,
+  checked,
+  disabled,
+  onToggle,
+}: OpenAIModelDiscoveryRowProps) {
+  return (
+    <SelectionCheckbox
+      checked={checked}
+      onChange={() => onToggle(model.name)}
+      disabled={disabled}
+      ariaLabel={model.name}
+      className={`${styles.modelDiscoveryRow} ${checked ? styles.modelDiscoveryRowSelected : ''}`}
+      labelClassName={styles.modelDiscoverySelectionLabel}
+      label={
+        <div className={styles.modelDiscoveryMeta}>
+          <div className={styles.modelDiscoveryName}>
+            {model.name}
+            {model.alias && <span className={styles.modelDiscoveryAlias}>{model.alias}</span>}
+          </div>
+          {model.description && (
+            <div className={styles.modelDiscoveryDescription}>{model.description}</div>
+          )}
+        </div>
+      }
+    />
+  );
+});
+
 export function AiProvidersOpenAIEditPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -336,6 +430,15 @@ export function AiProvidersOpenAIEditPage() {
   const [error, setError] = useState('');
   const [form, setForm] = useState<OpenAIFormState>(() => buildEmptyForm());
   const [baseline, setBaseline] = useState(() => buildOpenAIBaseline(buildEmptyForm()));
+  const [modelDiscoveryOpen, setModelDiscoveryOpen] = useState(false);
+  const [discoveredModels, setDiscoveredModels] = useState<ModelInfo[]>([]);
+  const [modelDiscoveryFetching, setModelDiscoveryFetching] = useState(false);
+  const [modelDiscoveryError, setModelDiscoveryError] = useState('');
+  const [modelDiscoverySearch, setModelDiscoverySearch] = useState('');
+  const [modelDiscoverySelected, setModelDiscoverySelected] = useState<Set<string>>(new Set());
+  const autoFetchSignatureRef = useRef('');
+  const modelDiscoveryRequestIdRef = useRef(0);
+  const modelDiscoveryHintId = useId();
 
   const hasIndexParam = typeof params.index === 'string';
   const editIndex = useMemo(() => parseIndexParam(params.index), [params.index]);
@@ -347,6 +450,14 @@ export function AiProvidersOpenAIEditPage() {
   }, [configs, editIndex]);
 
   const invalidIndex = editIndex !== null && !initialData;
+  const modelDiscoveryEndpoint = useMemo(
+    () => modelsApi.buildModelsEndpoint(form.baseUrl),
+    [form.baseUrl]
+  );
+  const firstApiKey = useMemo(
+    () => form.apiKeyEntries.find((entry) => entry.apiKey.trim())?.apiKey.trim() ?? '',
+    [form.apiKeyEntries]
+  );
   const title =
     editIndex !== null
       ? t('ai_providers.openai_edit_modal_title')
@@ -376,7 +487,9 @@ export function AiProvidersOpenAIEditPage() {
           if (cancelled) return;
           const nextConfigs = Array.isArray(value) ? value : [];
           const nextInitialData = editIndex === null ? undefined : nextConfigs[editIndex];
-          const nextForm = nextInitialData ? buildFormFromConfig(nextInitialData) : buildEmptyForm();
+          const nextForm = nextInitialData
+            ? buildFormFromConfig(nextInitialData)
+            : buildEmptyForm();
           setConfigs(nextConfigs);
           setForm(nextForm);
           setBaseline(buildOpenAIBaseline(nextForm));
@@ -413,6 +526,29 @@ export function AiProvidersOpenAIEditPage() {
         : null,
     [form.priority]
   );
+  const discoveredModelsFiltered = useMemo(() => {
+    if (!isCurrentLayer) return EMPTY_MODEL_INFO_LIST;
+
+    const filter = modelDiscoverySearch.trim().toLowerCase();
+    if (!filter) return discoveredModels;
+    return discoveredModels.filter((model) => {
+      const name = model.name.toLowerCase();
+      const alias = (model.alias ?? '').toLowerCase();
+      const description = (model.description ?? '').toLowerCase();
+      return name.includes(filter) || alias.includes(filter) || description.includes(filter);
+    });
+  }, [discoveredModels, isCurrentLayer, modelDiscoverySearch]);
+  const visibleDiscoveredModelNames = useMemo(
+    () =>
+      isCurrentLayer ? discoveredModelsFiltered.map((model) => model.name) : EMPTY_MODEL_NAMES,
+    [discoveredModelsFiltered, isCurrentLayer]
+  );
+  const allVisibleDiscoveredSelected = useMemo(
+    () =>
+      visibleDiscoveredModelNames.length > 0 &&
+      visibleDiscoveredModelNames.every((name) => modelDiscoverySelected.has(name)),
+    [modelDiscoverySelected, visibleDiscoveredModelNames]
+  );
 
   const isDirty =
     baseline.name !== form.name.trim() ||
@@ -442,6 +578,10 @@ export function AiProvidersOpenAIEditPage() {
   });
 
   const canSave = !disableControls && !saving && !loading && !invalidIndexParam && !invalidIndex;
+  const canOpenModelDiscovery =
+    !disableControls && !saving && !loading && !invalidIndexParam && !invalidIndex;
+  const canApplyModelDiscovery =
+    !disableControls && !saving && !modelDiscoveryFetching && modelDiscoverySelected.size > 0;
 
   const handleApiKeyEntriesChange = useCallback((apiKeyEntries: ApiKeyEntryForm[]) => {
     setForm((prev) => ({ ...prev, apiKeyEntries }));
@@ -454,6 +594,180 @@ export function AiProvidersOpenAIEditPage() {
   const handleModelEntriesChange = useCallback((modelEntries: ModelEntry[]) => {
     setForm((prev) => ({ ...prev, modelEntries }));
   }, []);
+
+  const commitDiscoveredModels = useCallback((nextModels: ModelInfo[]) => {
+    const availableNames = new Set(nextModels.map((model) => model.name));
+    setDiscoveredModels(nextModels);
+    setModelDiscoverySelected((prev) => {
+      const next = new Set(Array.from(prev).filter((name) => availableNames.has(name)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, []);
+
+  const mergeDiscoveredModels = useCallback(
+    (selectedModels: ModelInfo[]) => {
+      const existingNames = new Set(
+        form.modelEntries.map((entry) => entry.name.trim().toLowerCase()).filter(Boolean)
+      );
+      const additions = selectedModels.filter((model) => {
+        const key = model.name.trim().toLowerCase();
+        if (!key || existingNames.has(key)) return false;
+        existingNames.add(key);
+        return true;
+      });
+      if (!additions.length) return;
+
+      setForm((prev) => {
+        const entries = prev.modelEntries
+          .map((entry) => ({ name: entry.name.trim(), alias: entry.alias.trim() }))
+          .filter((entry) => entry.name || entry.alias);
+        const mergedNames = new Set(
+          entries.map((entry) => entry.name.toLowerCase()).filter(Boolean)
+        );
+
+        additions.forEach((model) => {
+          const name = model.name.trim();
+          const key = name.toLowerCase();
+          if (!name || mergedNames.has(key)) return;
+          mergedNames.add(key);
+          entries.push({ name, alias: model.alias?.trim() ?? '' });
+        });
+
+        return {
+          ...prev,
+          modelEntries: entries.length ? entries : [{ name: '', alias: '' }],
+        };
+      });
+
+      showNotification(
+        t('ai_providers.openai_models_fetch_added', { count: additions.length }),
+        'success'
+      );
+    },
+    [form.modelEntries, showNotification, t]
+  );
+
+  const fetchOpenAIModelDiscovery = useCallback(async () => {
+    const requestId = (modelDiscoveryRequestIdRef.current += 1);
+    setModelDiscoveryFetching(true);
+    setModelDiscoveryError('');
+
+    try {
+      const headerObject = buildHeaderObject(form.headers);
+      const hasCustomAuthorization = Object.keys(headerObject).some(
+        (key) => key.toLowerCase() === 'authorization'
+      );
+      const list = await modelsApi.fetchModelsViaApiCall(
+        form.baseUrl,
+        hasCustomAuthorization ? undefined : firstApiKey || undefined,
+        headerObject
+      );
+      if (modelDiscoveryRequestIdRef.current !== requestId) return;
+      commitDiscoveredModels(list);
+    } catch (err: unknown) {
+      if (modelDiscoveryRequestIdRef.current !== requestId) return;
+      commitDiscoveredModels([]);
+      setModelDiscoveryError(
+        `${t('ai_providers.openai_models_fetch_error')}: ${getErrorMessage(err)}`
+      );
+    } finally {
+      if (modelDiscoveryRequestIdRef.current === requestId) {
+        setModelDiscoveryFetching(false);
+      }
+    }
+  }, [commitDiscoveredModels, firstApiKey, form.baseUrl, form.headers, t]);
+
+  useEffect(
+    () => () => {
+      modelDiscoveryRequestIdRef.current += 1;
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!isCurrentLayer || !modelDiscoveryOpen) return undefined;
+
+    const headerObject = buildHeaderObject(form.headers);
+    const headerSignature = Object.entries(headerObject)
+      .sort(([a], [b]) => a.toLowerCase().localeCompare(b.toLowerCase()))
+      .map(([key, value]) => `${key}:${value}`)
+      .join('|');
+    const signature = `${modelDiscoveryEndpoint}||${firstApiKey}||${headerSignature}`;
+    if (autoFetchSignatureRef.current === signature) return undefined;
+
+    modelDiscoveryRequestIdRef.current += 1;
+    const taskId = window.setTimeout(() => {
+      autoFetchSignatureRef.current = signature;
+      setModelDiscoveryFetching(false);
+      setModelDiscoverySearch('');
+      setModelDiscoveryError('');
+      commitDiscoveredModels([]);
+      if (modelDiscoveryEndpoint) {
+        void fetchOpenAIModelDiscovery();
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(taskId);
+      modelDiscoveryRequestIdRef.current += 1;
+    };
+  }, [
+    commitDiscoveredModels,
+    fetchOpenAIModelDiscovery,
+    firstApiKey,
+    form.headers,
+    isCurrentLayer,
+    modelDiscoveryEndpoint,
+    modelDiscoveryOpen,
+  ]);
+
+  const handleOpenModelDiscovery = useCallback(() => {
+    if (!modelDiscoveryEndpoint) {
+      showNotification(t('ai_providers.openai_models_fetch_invalid_url'), 'error');
+      return;
+    }
+    setModelDiscoveryOpen(true);
+  }, [modelDiscoveryEndpoint, showNotification, t]);
+
+  const closeModelDiscovery = useCallback(() => {
+    autoFetchSignatureRef.current = '';
+    modelDiscoveryRequestIdRef.current += 1;
+    setModelDiscoveryFetching(false);
+    setModelDiscoverySelected(new Set());
+    setModelDiscoveryOpen(false);
+  }, []);
+
+  const toggleModelDiscoverySelection = useCallback((name: string) => {
+    setModelDiscoverySelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectVisibleDiscoveredModels = useCallback(() => {
+    setModelDiscoverySelected((prev) => {
+      const next = new Set(prev);
+      visibleDiscoveredModelNames.forEach((name) => next.add(name));
+      return next;
+    });
+  }, [visibleDiscoveredModelNames]);
+
+  const handleClearDiscoveredModelSelection = useCallback(() => {
+    setModelDiscoverySelected(new Set());
+  }, []);
+
+  const handleApplyDiscoveredModels = useCallback(() => {
+    const selectedModels = discoveredModels.filter((model) =>
+      modelDiscoverySelected.has(model.name)
+    );
+    mergeDiscoveredModels(selectedModels);
+    closeModelDiscovery();
+  }, [closeModelDiscovery, discoveredModels, mergeDiscoveredModels, modelDiscoverySelected]);
 
   const handleSave = useCallback(async () => {
     if (!canSave) return;
@@ -539,6 +853,9 @@ export function AiProvidersOpenAIEditPage() {
       title={title}
       leadingIcon={<IconBot size={17} />}
       onBack={handleBack}
+      className={styles.editorModal}
+      contentClassName={styles.editorContent}
+      width={960}
       floatingAction={
         <>
           <Button variant="secondary" size="sm" onClick={handleBack}>
@@ -552,64 +869,81 @@ export function AiProvidersOpenAIEditPage() {
       isLoading={loading}
       loadingLabel={t('common.loading')}
     >
-      <Card>
-        {error && (
-          <div className="error-box" role="alert">
-            {error}
-          </div>
-        )}
-        {invalidIndexParam || invalidIndex ? (
-          <div className="hint">{t('common.invalid_provider_index')}</div>
-        ) : (
-          <div className={styles.openaiEditForm}>
-            <Input
-              label={t('ai_providers.openai_add_modal_name_label')}
-              placeholder={t('ai_providers.openai_add_modal_name_placeholder')}
-              value={form.name}
-              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.priority_label')}
-              hint={t('ai_providers.priority_hint')}
-              type="number"
-              step={1}
-              value={form.priority ?? ''}
-              onChange={(event) => {
-                const raw = event.target.value;
-                const parsed = raw.trim() === '' ? undefined : Number(raw);
-                setForm((prev) => ({
-                  ...prev,
-                  priority: parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
-                }));
-              }}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.prefix_label')}
-              placeholder={t('ai_providers.prefix_placeholder')}
-              hint={t('ai_providers.prefix_hint')}
-              value={form.prefix}
-              onChange={(event) => setForm((prev) => ({ ...prev, prefix: event.target.value }))}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.openai_add_modal_url_label')}
-              placeholder={t('ai_providers.openai_add_modal_url_placeholder')}
-              value={form.baseUrl}
-              onChange={(event) => setForm((prev) => ({ ...prev, baseUrl: event.target.value }))}
-              disabled={disableControls || saving}
-            />
-            <Input
-              label={t('ai_providers.openai_test_model_placeholder')}
-              value={form.testModel}
-              onChange={(event) => setForm((prev) => ({ ...prev, testModel: event.target.value }))}
-              disabled={disableControls || saving}
-            />
+      {error && (
+        <div className={styles.errorBanner} role="alert">
+          {error}
+        </div>
+      )}
+
+      {invalidIndexParam || invalidIndex ? (
+        <div className={styles.invalidState} role="status">
+          {t('common.invalid_provider_index')}
+        </div>
+      ) : (
+        <div className={styles.openaiEditForm}>
+          <OpenAIEditorSection
+            id="openai-editor-basic"
+            icon={<IconLink size={16} />}
+            title={t('ai_providers.openai_editor_basic_title')}
+            description={t('ai_providers.openai_editor_basic_desc')}
+          >
+            <div className={styles.fieldGrid}>
+              <Input
+                label={t('ai_providers.openai_add_modal_name_label')}
+                placeholder={t('ai_providers.openai_add_modal_name_placeholder')}
+                value={form.name}
+                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                disabled={disableControls || saving}
+              />
+              <Input
+                label={t('ai_providers.openai_add_modal_url_label')}
+                placeholder={t('ai_providers.openai_add_modal_url_placeholder')}
+                value={form.baseUrl}
+                onChange={(event) => setForm((prev) => ({ ...prev, baseUrl: event.target.value }))}
+                disabled={disableControls || saving}
+              />
+            </div>
+          </OpenAIEditorSection>
+
+          <OpenAIEditorSection
+            id="openai-editor-routing"
+            icon={<IconSlidersHorizontal size={16} />}
+            title={t('ai_providers.openai_editor_routing_title')}
+            description={t('ai_providers.openai_editor_routing_desc')}
+          >
+            <div className={styles.fieldGrid}>
+              <Input
+                label={t('ai_providers.prefix_label')}
+                placeholder={t('ai_providers.prefix_placeholder')}
+                hint={t('ai_providers.prefix_hint')}
+                value={form.prefix}
+                onChange={(event) => setForm((prev) => ({ ...prev, prefix: event.target.value }))}
+                disabled={disableControls || saving}
+              />
+              <Input
+                label={t('ai_providers.priority_label')}
+                hint={t('ai_providers.priority_hint')}
+                type="number"
+                step={1}
+                value={form.priority ?? ''}
+                onChange={(event) => {
+                  const raw = event.target.value;
+                  const parsed = raw.trim() === '' ? undefined : Number(raw);
+                  setForm((prev) => ({
+                    ...prev,
+                    priority: parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
+                  }));
+                }}
+                disabled={disableControls || saving}
+              />
+            </div>
 
             <div className={styles.openaiSwitchGrid}>
-              <div className="form-group">
-                <span className="form-label">{t('ai_providers.config_toggle_label')}</span>
+              <div className={styles.switchOption}>
+                <div className={styles.switchCopy}>
+                  <span>{t('ai_providers.config_toggle_label')}</span>
+                  <p>{t('ai_providers.openai_enabled_hint')}</p>
+                </div>
                 <ToggleSwitch
                   checked={!form.disabled}
                   onChange={(value) => setForm((prev) => ({ ...prev, disabled: !value }))}
@@ -617,8 +951,11 @@ export function AiProvidersOpenAIEditPage() {
                   ariaLabel={t('ai_providers.config_toggle_label')}
                 />
               </div>
-              <div className="form-group">
-                <span className="form-label">{t('ai_providers.openai_pool_mode_label')}</span>
+              <div className={styles.switchOption}>
+                <div className={styles.switchCopy}>
+                  <span>{t('ai_providers.openai_pool_mode_label')}</span>
+                  <p>{t('ai_providers.openai_pool_mode_hint')}</p>
+                </div>
                 <ToggleSwitch
                   checked={Boolean(form.poolMode)}
                   onChange={(value) => setForm((prev) => ({ ...prev, poolMode: value }))}
@@ -626,8 +963,11 @@ export function AiProvidersOpenAIEditPage() {
                   ariaLabel={t('ai_providers.openai_pool_mode_label')}
                 />
               </div>
-              <div className="form-group">
-                <span className="form-label">{t('ai_providers.disable_cooling_label')}</span>
+              <div className={styles.switchOption}>
+                <div className={styles.switchCopy}>
+                  <span>{t('ai_providers.disable_cooling_label')}</span>
+                  <p>{t('ai_providers.openai_disable_cooling_hint')}</p>
+                </div>
                 <ToggleSwitch
                   checked={Boolean(form.disableCooling)}
                   onChange={(value) => setForm((prev) => ({ ...prev, disableCooling: value }))}
@@ -636,14 +976,22 @@ export function AiProvidersOpenAIEditPage() {
                 />
               </div>
             </div>
+          </OpenAIEditorSection>
 
-            <div className={styles.modelConfigSection}>
-              <div className={styles.modelConfigHeader}>
-                <span className={styles.modelConfigTitle}>
-                  {t('ai_providers.openai_add_modal_keys_label')}
-                </span>
+          <OpenAIEditorSection
+            id="openai-editor-credentials"
+            icon={<IconKey size={16} />}
+            title={t('ai_providers.openai_editor_credentials_title')}
+            description={t('ai_providers.openai_editor_credentials_desc')}
+            meta={t('ai_providers.openai_keys_summary', {
+              count: normalizedApiKeyEntries.length,
+            })}
+          >
+            <div className={styles.subsection}>
+              <div className={styles.subsectionHeader}>
+                <span>{t('ai_providers.openai_add_modal_keys_label')}</span>
+                <p>{t('ai_providers.openai_keys_hint')}</p>
               </div>
-              <div className={styles.sectionHint}>{t('ai_providers.openai_keys_hint')}</div>
               <OpenAIApiKeyInputList
                 entries={form.apiKeyEntries}
                 onChange={handleApiKeyEntriesChange}
@@ -651,24 +999,56 @@ export function AiProvidersOpenAIEditPage() {
               />
             </div>
 
-            <HeaderInputList
-              entries={form.headers}
-              onChange={handleHeaderEntriesChange}
-              addLabel={t('common.custom_headers_add')}
-              keyPlaceholder={t('common.custom_headers_key_placeholder')}
-              valuePlaceholder={t('common.custom_headers_value_placeholder')}
-              removeButtonTitle={t('common.delete')}
-              removeButtonAriaLabel={t('common.delete')}
+            <div className={styles.subsection}>
+              <div className={styles.subsectionHeader}>
+                <span>{t('common.custom_headers_label')}</span>
+                <p>{t('common.custom_headers_hint')}</p>
+              </div>
+              <div className={styles.customHeaders}>
+                <HeaderInputList
+                  entries={form.headers}
+                  onChange={handleHeaderEntriesChange}
+                  addLabel={t('common.custom_headers_add')}
+                  keyPlaceholder={t('common.custom_headers_key_placeholder')}
+                  valuePlaceholder={t('common.custom_headers_value_placeholder')}
+                  removeButtonTitle={t('common.delete')}
+                  removeButtonAriaLabel={t('common.delete')}
+                  disabled={disableControls || saving}
+                />
+              </div>
+            </div>
+          </OpenAIEditorSection>
+
+          <OpenAIEditorSection
+            id="openai-editor-models"
+            icon={<IconModelCluster size={16} />}
+            title={t('ai_providers.openai_editor_models_title')}
+            description={t('ai_providers.openai_editor_models_desc')}
+            meta={t('ai_providers.openai_models_summary', { count: normalizedModels.length })}
+          >
+            <Input
+              label={t('ai_providers.openai_test_model_placeholder')}
+              hint={t('ai_providers.openai_test_model_hint')}
+              value={form.testModel}
+              onChange={(event) => setForm((prev) => ({ ...prev, testModel: event.target.value }))}
               disabled={disableControls || saving}
             />
 
-            <div className={styles.modelConfigSection}>
-              <div className={styles.modelConfigHeader}>
-                <span className={styles.modelConfigTitle}>
-                  {t('ai_providers.openai_add_modal_models_label')}
-                </span>
+            <div className={styles.subsection}>
+              <div className={styles.subsectionHeaderRow}>
+                <div className={styles.subsectionHeader}>
+                  <span>{t('ai_providers.openai_add_modal_models_label')}</span>
+                  <p>{t('ai_providers.openai_models_hint')}</p>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleOpenModelDiscovery}
+                  disabled={!canOpenModelDiscovery}
+                >
+                  {t('ai_providers.openai_models_fetch_button')}
+                </Button>
               </div>
-              <div className={styles.sectionHint}>{t('ai_providers.openai_models_hint')}</div>
               <ModelInputList
                 entries={form.modelEntries}
                 onChange={handleModelEntriesChange}
@@ -684,9 +1064,139 @@ export function AiProvidersOpenAIEditPage() {
                 removeButtonAriaLabel={t('common.delete')}
               />
             </div>
-          </div>
-        )}
-      </Card>
+          </OpenAIEditorSection>
+
+          <Modal
+            open={modelDiscoveryOpen}
+            title={t('ai_providers.openai_models_fetch_title')}
+            onClose={closeModelDiscovery}
+            width={720}
+            className={styles.modelDiscoveryModal}
+            fullScreenOnMobile
+            ariaDescribedBy={modelDiscoveryHintId}
+            footer={
+              <div className={styles.modelDiscoveryFooter}>
+                <Button variant="secondary" size="sm" onClick={closeModelDiscovery}>
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleApplyDiscoveredModels}
+                  disabled={!canApplyModelDiscovery}
+                >
+                  {t('ai_providers.openai_models_fetch_apply')}
+                </Button>
+              </div>
+            }
+          >
+            <div className={styles.modelDiscoveryContent}>
+              <p id={modelDiscoveryHintId} className={styles.modelDiscoveryIntro}>
+                {t('ai_providers.openai_models_fetch_hint')}
+              </p>
+
+              <div className={styles.modelDiscoveryEndpoint}>
+                <span>{t('ai_providers.openai_models_fetch_url_label')}</span>
+                <div className={styles.modelDiscoveryEndpointControls}>
+                  <input
+                    className="input"
+                    value={modelDiscoveryEndpoint}
+                    aria-label={t('ai_providers.openai_models_fetch_url_label')}
+                    readOnly
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void fetchOpenAIModelDiscovery()}
+                    loading={modelDiscoveryFetching}
+                    disabled={disableControls || saving}
+                  >
+                    {t('ai_providers.openai_models_fetch_refresh')}
+                  </Button>
+                </div>
+              </div>
+
+              <Input
+                label={t('ai_providers.openai_models_search_label')}
+                placeholder={t('ai_providers.openai_models_search_placeholder')}
+                value={modelDiscoverySearch}
+                onChange={(event) => setModelDiscoverySearch(event.target.value)}
+                disabled={modelDiscoveryFetching}
+              />
+
+              {discoveredModels.length > 0 && (
+                <div className={styles.modelDiscoveryToolbar}>
+                  <div className={styles.modelDiscoveryToolbarActions}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleSelectVisibleDiscoveredModels}
+                      disabled={
+                        disableControls ||
+                        saving ||
+                        modelDiscoveryFetching ||
+                        discoveredModelsFiltered.length === 0 ||
+                        allVisibleDiscoveredSelected
+                      }
+                    >
+                      {t('ai_providers.model_discovery_select_visible')}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearDiscoveredModelSelection}
+                      disabled={
+                        disableControls ||
+                        saving ||
+                        modelDiscoveryFetching ||
+                        modelDiscoverySelected.size === 0
+                      }
+                    >
+                      {t('ai_providers.model_discovery_clear_selection')}
+                    </Button>
+                  </div>
+                  <span className={styles.modelDiscoverySelectionSummary}>
+                    {t('ai_providers.model_discovery_selected_count', {
+                      count: modelDiscoverySelected.size,
+                    })}
+                  </span>
+                </div>
+              )}
+
+              {modelDiscoveryError && (
+                <div className={styles.modelDiscoveryError} role="alert">
+                  {modelDiscoveryError}
+                </div>
+              )}
+
+              {modelDiscoveryFetching ? (
+                <div className={styles.modelDiscoveryState} role="status" aria-live="polite">
+                  {t('ai_providers.openai_models_fetch_loading')}
+                </div>
+              ) : discoveredModels.length === 0 ? (
+                <div className={styles.modelDiscoveryState} role="status">
+                  {t('ai_providers.openai_models_fetch_empty')}
+                </div>
+              ) : discoveredModelsFiltered.length === 0 ? (
+                <div className={styles.modelDiscoveryState} role="status">
+                  {t('ai_providers.openai_models_search_empty')}
+                </div>
+              ) : (
+                <div className={styles.modelDiscoveryList}>
+                  {discoveredModelsFiltered.map((model) => (
+                    <OpenAIModelDiscoveryRow
+                      key={model.name}
+                      model={model}
+                      checked={modelDiscoverySelected.has(model.name)}
+                      disabled={disableControls || saving || modelDiscoveryFetching}
+                      onToggle={toggleModelDiscoverySelection}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </Modal>
+        </div>
+      )}
     </ProviderEditShell>
   );
 }

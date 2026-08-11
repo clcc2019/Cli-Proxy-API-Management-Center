@@ -1778,22 +1778,25 @@ export function AuthFilesPage() {
               </nav>
             )}
           </div>
-
-          {belowFoldCardsReady && (
-            <Suspense fallback={null}>
-              <div className={refreshStyles.supportingPanel}>
-                <OAuthModelRulesCard
-                  disableControls={disableControls}
-                  excludedError={excludedError}
-                  modelAliasError={modelAliasError}
-                  excluded={excluded}
-                  modelAlias={modelAlias}
-                  onManage={openModelRulesEditor}
-                />
-              </div>
-            </Suspense>
-          )}
         </div>
+
+        {belowFoldCardsReady && (
+          <Suspense fallback={null}>
+            <section
+              className={refreshStyles.supportingPanel}
+              aria-label={t('oauth_model_rules.title')}
+            >
+              <OAuthModelRulesCard
+                disableControls={disableControls}
+                excludedError={excludedError}
+                modelAliasError={modelAliasError}
+                excluded={excluded}
+                modelAlias={modelAlias}
+                onManage={openModelRulesEditor}
+              />
+            </section>
+          </Suspense>
+        )}
       </section>
 
       {modelRulesEditor.open && (

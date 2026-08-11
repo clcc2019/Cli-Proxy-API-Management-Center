@@ -26,9 +26,12 @@ export function AuthFilesRefreshIndicator({
   const iconClasses = [styles.icon, iconClassName, refreshing ? styles.iconSpinning : '']
     .filter(Boolean)
     .join(' ');
+  const indicatorClasses = [styles.indicator, refreshing ? styles.indicatorRing : '']
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <span className={styles.indicator} aria-hidden="true">
+    <span className={indicatorClasses} aria-hidden="true">
       <IconRefreshCw className={iconClasses} size={iconSize} />
     </span>
   );

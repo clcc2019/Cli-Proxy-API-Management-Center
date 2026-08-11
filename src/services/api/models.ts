@@ -207,6 +207,10 @@ export const modelsApi = {
     return buildV1ModelsEndpoint(baseUrl);
   },
 
+  buildModelsEndpoint(baseUrl: string) {
+    return buildModelsEndpoint(baseUrl);
+  },
+
   buildClaudeModelsEndpoint(baseUrl: string) {
     return buildClaudeModelsEndpoint(baseUrl);
   },

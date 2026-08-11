@@ -389,7 +389,12 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           </div>
         )}
       </div>
-      <div className={styles.quotaContent} aria-busy={isQuotaRefreshing || undefined}>
+      <div
+        className={`${styles.quotaContent} ${
+          isQuotaRefreshing ? styles.quotaContentRefreshing : ''
+        }`}
+        aria-busy={isQuotaRefreshing || undefined}
+      >
         <div
           className={`${styles.quotaContentBody} ${
             isQuotaRefreshing ? styles.quotaContentBodyHidden : ''

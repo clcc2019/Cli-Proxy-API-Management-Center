@@ -4,6 +4,7 @@
 // owns the editor and OAuth modals, so this file deliberately scopes the page
 // refresh to classes that are opt-in from the list view and its cards.
 .page {
+  --auth-page-canvas: var(--bg-secondary, var(--mg-canvas));
   --auth-surface: var(--mg-surface);
   --auth-surface-muted: var(--mg-surface-subtle);
   --auth-control-surface: var(--mg-surface);
@@ -16,6 +17,8 @@
   --auth-workbench-border-strong: color-mix(in srgb, var(--mg-text-tertiary) 34%, var(--mg-border));
   --auth-workbench-surface: var(--mg-surface);
   --auth-workbench-subtle: color-mix(in srgb, var(--mg-surface-subtle) 76%, var(--mg-surface));
+  --auth-grid-surface: color-mix(in srgb, var(--auth-page-canvas) 82%, var(--mg-surface-warm));
+  --auth-card-border: color-mix(in srgb, var(--mg-border) 90%, var(--mg-text-tertiary));
   display: flex;
   width: 100%;
   min-width: 0;
@@ -26,6 +29,8 @@
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
+  background: var(--auth-page-canvas);
+  color: var(--auth-text-primary);
   overflow: visible;
   container-name: auth-files-page;
   container-type: inline-size;
@@ -196,6 +201,8 @@
   gap: 0;
   padding: 0 var(--mg-space-4) var(--mg-space-3);
   border-bottom: 1px solid var(--auth-workbench-border);
+  border-radius: calc(var(--mg-radius-card) - 1px) calc(var(--mg-radius-card) - 1px) 0 0;
+  background: var(--auth-workbench-surface);
   contain: layout style;
 }
 
@@ -221,12 +228,12 @@
 
 .page .providerRail::before {
   left: 0;
-  background: linear-gradient(90deg, var(--mg-surface) 18%, transparent);
+  background: linear-gradient(90deg, var(--auth-workbench-surface) 18%, transparent);
 }
 
 .page .providerRail::after {
   right: 0;
-  background: linear-gradient(270deg, var(--mg-surface) 18%, transparent);
+  background: linear-gradient(270deg, var(--auth-workbench-surface) 18%, transparent);
 }
 
 .page .providerRail[data-can-scroll-back='true']::before,
@@ -855,7 +862,12 @@
   flex-direction: column;
   gap: var(--mg-space-4);
   padding: var(--mg-space-4);
+  background: var(--auth-grid-surface);
   overflow: visible;
+}
+
+.page .contentRegion:last-child {
+  border-radius: 0 0 calc(var(--mg-radius-card) - 1px) calc(var(--mg-radius-card) - 1px);
 }
 
 .page .contentUpdating .cardGrid {
@@ -942,7 +954,7 @@
   max-width: 100%;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--auth-file-card-min-width)), 1fr));
   align-items: stretch;
-  gap: 14px;
+  gap: 12px;
   padding: 0 1px 1px 0;
   overflow: visible;
   contain: layout style;
@@ -983,10 +995,21 @@
   height: 14px;
   border-radius: 7px;
   background: color-mix(in srgb, var(--mg-text) 8%, var(--mg-surface-subtle));
+  animation: auth-files-skeleton-pulse 1.4s var(--motion-ease-standard) infinite;
 }
 
 .page .loadingGrid {
   align-items: stretch;
+}
+
+@keyframes auth-files-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 .page .loadingCard {
@@ -997,8 +1020,8 @@
   height: 100%;
   flex-direction: column;
   padding: 12px 12px 8px;
-  border-color: var(--mg-border);
-  border-radius: var(--mg-radius-card);
+  border-color: var(--auth-card-border);
+  border-radius: var(--mg-radius-medium);
   background: var(--mg-surface);
   box-shadow: var(--mg-shadow-rest);
   contain: layout style;
@@ -1014,6 +1037,7 @@
 
 .page .loadingCard span {
   background: color-mix(in srgb, var(--mg-text) 8%, var(--mg-surface-subtle));
+  animation: auth-files-skeleton-pulse 1.4s var(--motion-ease-standard) infinite;
 }
 
 .page .loadingHeader {
@@ -1181,11 +1205,11 @@
   height: 100%;
   flex-direction: column;
   padding: 12px 12px 8px;
-  border: 1px solid var(--mg-border);
-  border-radius: var(--mg-radius-card);
+  border: 1px solid var(--auth-card-border);
+  border-radius: var(--mg-radius-medium);
   background: var(--mg-surface);
   color: var(--mg-text);
-  box-shadow: none;
+  box-shadow: var(--mg-shadow-rest);
   overflow: clip;
   contain: layout style;
   content-visibility: auto;
@@ -1196,25 +1220,42 @@
     box-shadow var(--mg-motion-standard) var(--mg-ease-standard);
 }
 
+.page .credentialCard::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 2px;
+  border-radius: 0 var(--mg-radius-pill) var(--mg-radius-pill) 0;
+  background: transparent;
+  content: '';
+  pointer-events: none;
+  transition: background-color var(--mg-motion-standard) var(--mg-ease-standard);
+}
+
 .page .credentialCardDisabled {
   border-color: var(--mg-border);
-  background: var(--mg-surface-disabled);
-  box-shadow: none;
+  background: color-mix(in srgb, var(--mg-surface-disabled) 38%, var(--mg-surface));
+  box-shadow: var(--mg-shadow-rest);
 }
 
 .page .credentialCardSelected {
   border-color: color-mix(in srgb, var(--mg-sage-strong) 48%, var(--mg-border));
-  background: var(--mg-surface-selected);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mg-sage-strong) 30%, transparent);
+  background: var(--mg-surface);
+  box-shadow:
+    var(--mg-shadow-rest),
+    inset 0 0 0 1px color-mix(in srgb, var(--mg-sage-strong) 18%, transparent);
+}
+
+.page .credentialCardSelected::before {
+  background: var(--mg-sage-strong);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .page .credentialCard:not(.credentialCardSelected):hover {
-    border-color: var(--mg-border-hover);
-  }
-
   .page .credentialCard:not(.credentialCardDisabled):not(.credentialCardSelected):hover {
-    background: color-mix(in srgb, var(--mg-surface-warm) 42%, var(--mg-surface));
+    border-color: var(--mg-border-hover);
+    background: var(--mg-surface);
+    box-shadow: var(--mg-shadow-card);
   }
 }
 
@@ -1962,16 +2003,62 @@
   min-height: 32px;
   flex-direction: column;
   gap: 6px;
+  transition:
+    opacity var(--motion-duration-base) var(--motion-ease-standard),
+    filter var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .page .quotaContentBodyHidden {
-  visibility: hidden;
+  opacity: 0.24;
+  filter: saturate(0.35);
+  pointer-events: none;
 }
 
 .page .quotaRefreshingState {
   display: grid;
   place-items: center;
-  color: var(--mg-text-tertiary);
+  color: var(--mg-sage-strong);
+  animation: quota-refresh-enter var(--motion-duration-base) var(--motion-ease-out) both;
+}
+
+.page .quotaRefreshingState span {
+  filter: drop-shadow(0 0 6px rgb(93 145 77 / 35%));
+}
+
+@keyframes quota-refresh-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.page .quotaContentRefreshing .quotaBar {
+  overflow: hidden;
+}
+
+.page .quotaContentRefreshing .quotaBar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgb(255 255 255 / 0.75) 50%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  animation: quota-bar-shimmer 1.1s var(--motion-ease-standard) infinite;
+}
+
+@keyframes quota-bar-shimmer {
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .page .quotaRow {
@@ -2081,7 +2168,10 @@
   border-radius: inherit;
   background: var(--mg-success-fill);
   transform-origin: left center;
-  transition: transform var(--motion-duration-base) var(--motion-ease-standard);
+  transition:
+    transform var(--motion-duration-slow) var(--motion-ease-emphasized),
+    background-color var(--motion-duration-base) var(--motion-ease-standard);
+  will-change: transform;
 }
 
 .page .quotaBarFillHigh {
@@ -2845,10 +2935,10 @@
 
 .page .supportingPanel {
   min-width: 0;
+  margin-top: var(--mg-space-5);
   overflow: hidden;
-  border: 0;
-  border-top: 1px solid var(--auth-workbench-border);
-  border-radius: 0;
+  border: 1px solid var(--auth-workbench-border);
+  border-radius: var(--mg-radius-card);
   background: var(--mg-surface);
   box-shadow: none;
   content-visibility: auto;
@@ -3034,6 +3124,11 @@
   }
 
   .page .workbench {
+    border-radius: var(--mg-radius-medium);
+  }
+
+  .page .supportingPanel {
+    margin-top: var(--mg-space-4);
     border-radius: var(--mg-radius-medium);
   }
 
@@ -3610,11 +3705,23 @@
   .page .statusBlock,
   .page .quotaBarFill,
   .page .quotaMessageAction,
+  .page .quotaContentBody,
   .page .cardToggleSwitch > span:first-of-type,
   .page .cardToggleSwitch > span:first-of-type > span:last-child,
   .page .cardActionButton,
   .page .contentUpdating .cardGrid {
     transition: none;
+  }
+
+  .page .quotaRefreshingState,
+  .page .skeletonBlock,
+  .page .loadingCard span {
+    animation: none;
+  }
+
+  .page .quotaContentRefreshing .quotaBar::after {
+    animation: none;
+    content: none;
   }
 }
 

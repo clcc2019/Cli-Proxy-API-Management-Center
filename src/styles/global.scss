@@ -16,14 +16,16 @@ body,
 }
 
 html {
-  background: var(--bg-canvas);
+  background: var(--bg-secondary, #f6f6f3);
 }
 
 body {
   min-width: 320px;
   font-family: $font-family;
-  line-height: 1.5;
-  background: var(--bg-canvas);
+  font-size: 14.5px;
+  line-height: 1.55;
+  letter-spacing: -0.003em;
+  background: var(--bg-secondary, #f6f6f3);
   color: var(--text-primary);
   transition: background-color $transition-normal, color $transition-normal;
   text-rendering: optimizeLegibility;
