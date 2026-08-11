@@ -1,0 +1,43 @@
+.button:global(.btn):disabled[aria-busy='true'] {
+  cursor: progress;
+  opacity: 1;
+}
+
+.button:global(.btn-secondary):disabled[aria-busy='true'] {
+  border-color: color-mix(in srgb, var(--mg-sage-strong) 46%, var(--mg-border));
+  background: color-mix(in srgb, var(--mg-sage-strong) 7%, var(--mg-surface));
+  color: var(--mg-sage-strong);
+}
+
+.indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  pointer-events: none;
+}
+
+.icon {
+  display: block;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.iconSpinning {
+  animation: auth-files-refresh-spin 800ms linear infinite;
+  will-change: transform;
+}
+
+@keyframes auth-files-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconSpinning {
+    animation-duration: 800ms !important;
+    animation-iteration-count: infinite !important;
+  }
+}

@@ -19,8 +19,9 @@ import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer'
 import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { IconCheck, IconRefreshCw, IconTrash2, IconUpload } from '@/components/ui/icons';
+import { IconCheck, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
+import { REFRESH_FEEDBACK_MS } from '@/utils/refreshFeedback';
 import { isQuotaProviderType, type QuotaProviderType } from '@/utils/quota';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 import { normalizeAuthIndex, type KeyUsageBucket } from '@/utils/usage';
@@ -40,6 +41,7 @@ import {
   resolveAuthFileUsageStats,
 } from '@/features/authFiles/constants';
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
+import { AuthFilesRefreshButton } from '@/features/authFiles/components/AuthFilesRefreshButton';
 import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
 import { AuthFilesSkeletonGrid } from '@/features/authFiles/components/AuthFilesSkeletonGrid';
 import { SearchToolbar } from '@/features/authFiles/components/SearchToolbar';
@@ -51,6 +53,7 @@ import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModel
 import { useAuthFilesOauth } from '@/features/authFiles/hooks/useAuthFilesOauth';
 import { useAuthFilesPrefixProxyEditor } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import { extractAuthFileAccessToken } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
+import { useAuthFilesQuotaRefreshBatch } from '@/features/authFiles/hooks/useAuthFilesQuotaRefreshBatch';
 import {
   useAuthFilesStats,
   useAuthFilesStatusDetails,
@@ -123,14 +126,11 @@ const OAuthModelRulesEditorModal = lazy(() =>
 const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
-const MANUAL_REFRESH_FEEDBACK_MS = 360;
 const AUTH_FILE_GRID_MOTION_DURATION_MS = 180;
 const AUTH_FILE_GRID_MOTION_SNAPSHOT_TTL_MS = 1_500;
 const MAX_AUTH_FILE_GRID_MOTION_CARDS = 12;
-const QUOTA_PROGRESS_SETTLE_MS = 180;
 
 const EMPTY_AUTH_FILE_CARD_NODES: ReactNode[] = [];
-const EMPTY_PAGE_QUOTA_REFRESH_PROGRESS = { completed: 0, total: 0 };
 
 export function AuthFilesPage() {
   const { t } = useTranslation();
@@ -174,10 +174,6 @@ export function AuthFilesPage() {
   });
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
-  const [pageQuotaRefreshing, setPageQuotaRefreshing] = useState(false);
-  const [pageQuotaRefreshProgress, setPageQuotaRefreshProgress] = useState(
-    EMPTY_PAGE_QUOTA_REFRESH_PROGRESS
-  );
   const [manualRefreshPending, setManualRefreshPending] = useState(false);
   const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
   const [modelRulesEditor, setModelRulesEditor] = useState({ open: false, provider: '' });
@@ -201,9 +197,6 @@ export function AuthFilesPage() {
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
   const manualRefreshInFlightRef = useRef(false);
-  const pageQuotaRefreshInFlightRef = useRef(false);
-  const pageQuotaProgressFrameRef = useRef<number | null>(null);
-  const pendingPageQuotaProgressRef = useRef(EMPTY_PAGE_QUOTA_REFRESH_PROGRESS);
   const pageMountedRef = useRef(true);
   const deferredSearch = useDeferredValue(search);
   const normalizedSearch = search.trim();
@@ -489,7 +482,7 @@ export function AuthFilesPage() {
     manualRefreshInFlightRef.current = true;
     setManualRefreshPending(true);
     const feedbackDelay = new Promise<void>((resolve) =>
-      window.setTimeout(resolve, MANUAL_REFRESH_FEEDBACK_MS)
+      window.setTimeout(resolve, REFRESH_FEEDBACK_MS)
     );
     try {
       // The file list is the primary refresh result. Credential totals and the
@@ -586,10 +579,6 @@ export function AuthFilesPage() {
     pageMountedRef.current = true;
     return () => {
       pageMountedRef.current = false;
-      if (pageQuotaProgressFrameRef.current !== null) {
-        window.cancelAnimationFrame(pageQuotaProgressFrameRef.current);
-        pageQuotaProgressFrameRef.current = null;
-      }
     };
   }, []);
 
@@ -1183,11 +1172,17 @@ export function AuthFilesPage() {
     selectedNames.length === 0 ||
     batchStatusUpdating ||
     selectedHasStatusUpdating;
-  const pageQuotaRefreshDisabled =
-    disableControls || loading || listUpdating || pageQuotaRefreshing || pageItems.length === 0;
-  const pageQuotaRefreshLabel = pageQuotaRefreshing
-    ? t('auth_files.page_quota_refresh_progress', pageQuotaRefreshProgress)
-    : t('auth_files.refresh_page_quota_aria');
+  const {
+    refresh: handlePageRefreshQuota,
+    refreshing: pageQuotaRefreshing,
+    disabled: pageQuotaRefreshDisabled,
+    label: pageQuotaRefreshLabel,
+  } = useAuthFilesQuotaRefreshBatch({
+    disabled: disableControls || loading || listUpdating,
+    visibleCount: pageItems.length,
+    targets: pageQuotaRefreshItems,
+    onAuthFilesUpdated: applyLocalFileUpdates,
+  });
   const showListProgressVisual = useDelayedBoolean(showListProgress, LIST_PROGRESS_HIDE_DELAY_MS);
   const hasActiveFilters =
     filter !== 'all' || normalizedSearch.length > 0 || problemOnly || disabledOnly || premiumOnly;
@@ -1270,86 +1265,6 @@ export function AuthFilesPage() {
     },
     [applyLocalFileUpdates]
   );
-
-  const handlePageRefreshQuota = useCallback(async () => {
-    if (
-      disableControls ||
-      loading ||
-      listUpdating ||
-      pageQuotaRefreshInFlightRef.current ||
-      pageItems.length === 0
-    ) {
-      return;
-    }
-
-    if (pageQuotaRefreshItems.length === 0) {
-      showNotification(t('auth_files.page_quota_refresh_none'), 'info');
-      return;
-    }
-
-    pageQuotaRefreshInFlightRef.current = true;
-    const initialProgress = { completed: 0, total: pageQuotaRefreshItems.length };
-    pendingPageQuotaProgressRef.current = initialProgress;
-    setPageQuotaRefreshProgress(initialProgress);
-    setPageQuotaRefreshing(true);
-    try {
-      const { refreshAuthFileQuotasInParallel } = await import('@/features/authFiles/quotaRefresh');
-      if (!pageMountedRef.current) return;
-      const skippedBeforeRefresh = Math.max(0, pageItems.length - pageQuotaRefreshItems.length);
-      const result = await refreshAuthFileQuotasInParallel({
-        targets: pageQuotaRefreshItems,
-        disableControls,
-        t,
-        initialSkipped: skippedBeforeRefresh,
-        shouldContinue: () => pageMountedRef.current,
-        onProgress: ({ completed, total }) => {
-          if (!pageMountedRef.current) return;
-          pendingPageQuotaProgressRef.current = { completed, total };
-          if (pageQuotaProgressFrameRef.current !== null) return;
-          pageQuotaProgressFrameRef.current = window.requestAnimationFrame(() => {
-            pageQuotaProgressFrameRef.current = null;
-            if (!pageMountedRef.current) return;
-            setPageQuotaRefreshProgress(pendingPageQuotaProgressRef.current);
-          });
-        },
-      });
-      if (!pageMountedRef.current) return;
-      if (result.authFiles.length > 0) {
-        applyLocalFileUpdates(result.authFiles);
-      }
-      if (!pageMountedRef.current) return;
-
-      if (result.success === 0 && result.failed === 0) {
-        showNotification(t('auth_files.page_quota_refresh_none'), 'info');
-      } else if (result.failed === 0 && result.skipped === 0) {
-        showNotification(
-          t('auth_files.batch_quota_refresh_success', { count: result.success }),
-          'success'
-        );
-      } else {
-        showNotification(t('auth_files.batch_quota_refresh_partial', result), 'warning');
-      }
-      await new Promise<void>((resolve) => window.setTimeout(resolve, QUOTA_PROGRESS_SETTLE_MS));
-    } finally {
-      pageQuotaRefreshInFlightRef.current = false;
-      if (pageMountedRef.current) {
-        setPageQuotaRefreshing(false);
-      }
-    }
-  }, [
-    applyLocalFileUpdates,
-    disableControls,
-    listUpdating,
-    loading,
-    pageItems.length,
-    pageQuotaRefreshItems,
-    showNotification,
-    t,
-  ]);
-
-  const handlePageRefreshQuotaClick = useCallback(() => {
-    void handlePageRefreshQuota();
-  }, [handlePageRefreshQuota]);
 
   const openModelRulesEditor = useCallback(
     (provider?: string) => {
@@ -1620,11 +1535,7 @@ export function AuthFilesPage() {
   ]);
 
   return (
-    <div
-      className={`${refreshStyles.page} ${
-        pageQuotaRefreshing ? refreshStyles.quotaBatchRefreshing : ''
-      }`}
-    >
+    <div className={refreshStyles.page}>
       <section className={refreshStyles.authFilesSection}>
         <ManagementPageHeader
           className={refreshStyles.pageHeader}
@@ -1634,20 +1545,19 @@ export function AuthFilesPage() {
           countAriaLabel={`${t('auth_files.summary_visible')}: ${listTotal}`}
           actions={
             <div className={refreshStyles.headerActions}>
-              <Button
+              <AuthFilesRefreshButton
                 variant="secondary"
                 size="sm"
                 className={refreshStyles.headerAction}
                 onClick={handleHeaderRefresh}
-                disabled={loading || refreshing || manualRefreshPending}
-                aria-busy={manualRefreshPending}
+                disabled={loading || refreshing}
+                refreshing={manualRefreshPending}
+                label={t('common.refresh')}
+                iconSize={15}
+                iconClassName={refreshStyles.headerActionIcon}
               >
-                <IconRefreshCw
-                  className={`${refreshStyles.headerActionIcon} ${manualRefreshPending ? refreshStyles.quotaRefreshIconSpinning : ''}`}
-                  size={15}
-                />
                 <span className={refreshStyles.headerActionText}>{t('common.refresh')}</span>
-              </Button>
+              </AuthFilesRefreshButton>
               <Button
                 size="sm"
                 className={`${refreshStyles.headerAction} ${refreshStyles.uploadAction}`}
@@ -1771,32 +1681,23 @@ export function AuthFilesPage() {
                 )}
               </div>
 
-              <Button
+              <AuthFilesRefreshButton
                 variant="secondary"
                 size="sm"
-                className={`${refreshStyles.quotaRefreshButton} ${pageQuotaRefreshing ? refreshStyles.quotaRefreshButtonSpinning : ''}`}
-                onClick={handlePageRefreshQuotaClick}
+                className={refreshStyles.quotaRefreshButton}
+                onClick={handlePageRefreshQuota}
                 disabled={pageQuotaRefreshDisabled}
-                aria-busy={pageQuotaRefreshing}
-                aria-label={pageQuotaRefreshLabel}
+                refreshing={pageQuotaRefreshing}
+                label={pageQuotaRefreshLabel}
                 title={t('auth_files.refresh_page_quota_aria')}
-              >
-                <span className={refreshStyles.quotaRefreshIcon}>
-                  <IconRefreshCw
-                    className={`${refreshStyles.quotaRefreshIconSvg} ${
-                      pageQuotaRefreshing ? refreshStyles.quotaRefreshIconSpinning : ''
-                    }`}
-                    size={16}
-                    aria-hidden="true"
-                  />
-                </span>
-              </Button>
+                iconSize={16}
+              />
             </div>
           </div>
 
           <div
             className={`${refreshStyles.contentRegion} ${showListProgressVisual ? refreshStyles.contentUpdating : ''}`}
-            aria-busy={showInitialLoading || showListProgress}
+            aria-busy={showInitialLoading || showListProgress || pageQuotaRefreshing}
           >
             {showInitialLoading ? (
               <AuthFilesSkeletonGrid
