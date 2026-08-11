@@ -395,42 +395,42 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           }`}
           aria-hidden={isQuotaRefreshing || undefined}
         >
-          {suppressQuotaBodyDuringEmptyRefresh ? null : quotaStatus === 'loading' &&
-            !isRefreshingCachedQuota ? (
-            <div className={styles.quotaLoadingState} role="status" aria-busy="true">
-              <LoadingSpinner size={16} />
-              <span>{t(`${config.i18nPrefix}.loading`)}</span>
-            </div>
-          ) : quotaStatus === 'error' ? (
-            <div className={styles.quotaError} role="alert">
+          {!suppressQuotaBodyDuringEmptyRefresh &&
+            (quotaStatus === 'loading' && !isRefreshingCachedQuota ? (
+              <div className={styles.quotaLoadingState} role="status" aria-busy="true">
+                <LoadingSpinner size={16} />
+                <span>{t(`${config.i18nPrefix}.loading`)}</span>
+              </div>
+            ) : quotaStatus === 'error' ? (
+              <div className={styles.quotaError} role="alert">
+                <button
+                  type="button"
+                  className={styles.cardErrorTrigger}
+                  title={quotaErrorDetails}
+                  aria-label={`${t('auth_files.quota_error_summary')}: ${quotaErrorDetails}`}
+                >
+                  <IconAlertTriangle size={13} aria-hidden="true" />
+                  <span className={styles.cardErrorSummary}>
+                    {t('auth_files.quota_error_summary')}
+                  </span>
+                  <span className={styles.cardErrorTooltip} role="tooltip">
+                    {quotaErrorDetails}
+                  </span>
+                </button>
+              </div>
+            ) : quota && quotaStatus !== 'idle' ? (
+              renderedQuotaItems
+            ) : (
               <button
                 type="button"
-                className={styles.cardErrorTrigger}
-                title={quotaErrorDetails}
-                aria-label={`${t('auth_files.quota_error_summary')}: ${quotaErrorDetails}`}
+                className={`${styles.quotaMessage} ${styles.quotaMessageAction}`}
+                onClick={handleRefreshClick}
+                disabled={!canRefreshQuota}
+                title={refreshLabel}
               >
-                <IconAlertTriangle size={13} aria-hidden="true" />
-                <span className={styles.cardErrorSummary}>
-                  {t('auth_files.quota_error_summary')}
-                </span>
-                <span className={styles.cardErrorTooltip} role="tooltip">
-                  {quotaErrorDetails}
-                </span>
+                {t(`${config.i18nPrefix}.idle`)}
               </button>
-            </div>
-          ) : quota && quotaStatus !== 'idle' ? (
-            renderedQuotaItems
-          ) : (
-            <button
-              type="button"
-              className={`${styles.quotaMessage} ${styles.quotaMessageAction}`}
-              onClick={handleRefreshClick}
-              disabled={!canRefreshQuota}
-              title={refreshLabel}
-            >
-              {t(`${config.i18nPrefix}.idle`)}
-            </button>
-          )}
+            ))}
         </div>
         {isQuotaRefreshing && (
           <div
