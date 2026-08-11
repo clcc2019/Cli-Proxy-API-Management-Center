@@ -1,0 +1,4 @@
+interface:
+  display_name: "Merge Gateway Frontend Style"
+  short_description: "Apply Merge Gateway’s quiet enterprise SaaS aesthetic"
+  default_prompt: "Use $apply-merge-gateway-style to restyle this frontend with Merge Gateway’s visual system and interaction patterns."

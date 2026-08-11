@@ -86,7 +86,7 @@
   background: var(--api-surface-subtle);
 }
 
-.tabItem {
+.tabItem:global(.btn.btn-sm) {
   @include button-reset;
   display: inline-flex;
   align-items: center;
@@ -100,6 +100,7 @@
   font-size: 12px;
   font-weight: 650;
   white-space: nowrap;
+  box-shadow: none;
   transition:
     color var(--motion-duration-fast) var(--motion-ease-standard),
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -321,7 +322,7 @@
     width: 100%;
   }
 
-  .tabItem {
+  .tabItem:global(.btn.btn-sm) {
     flex: 1;
   }
 
@@ -335,7 +336,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tabItem {
+  .tabItem:global(.btn.btn-sm) {
     transition: none;
   }
 }

@@ -2,15 +2,15 @@
 
 :root {
   --header-height: 60px;
-  --page-padding-inline: clamp(20px, 2.6vw, 40px);
+  --page-padding-inline: clamp(16px, 1.8vw, 28px);
   --page-padding-block: clamp(24px, 2.5vw, 36px);
   --page-content-gap: clamp(18px, 1.8vw, 28px);
   --page-title-size: clamp(24px, 2vw, 30px);
 }
 
 .app-shell {
-  --sidebar-width: 232px;
-  --sidebar-collapsed-width: 68px;
+  --sidebar-width: 212px;
+  --sidebar-collapsed-width: 64px;
   --sidebar-item-height: 44px;
   --sidebar-label-size: 14px;
   --sidebar-label-weight: 450;
@@ -49,8 +49,8 @@
   min-height: var(--header-height);
   align-items: center;
   justify-content: space-between;
-  gap: clamp(16px, 2vw, 28px);
-  padding: 8px clamp(16px, 2.6vw, 40px);
+  gap: clamp(10px, 1.2vw, 18px);
+  padding: 8px clamp(10px, 1.4vw, 20px);
   border-bottom: 1px solid var(--mg-border, var(--border-color));
   background: var(--mg-surface, var(--bg-canvas));
   box-shadow: 0 1px 0 rgb(44 42 37 / 0.025);
@@ -63,16 +63,16 @@
     right: 0;
     min-height: var(--header-height);
     gap: 8px;
-    padding: 10px $spacing-md;
+    padding: 10px;
     justify-content: space-between;
-    padding-left: max(#{$spacing-md}, env(safe-area-inset-left));
-    padding-right: max(#{$spacing-md}, env(safe-area-inset-right));
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
   }
 
   .left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
     flex: 0 1 auto;
 
@@ -147,7 +147,7 @@
   .right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
     flex: 1 1 auto;
     justify-content: flex-end;
@@ -577,20 +577,6 @@
     transparent;
   scrollbar-width: thin;
 
-  &::before {
-    position: absolute;
-    top: 0;
-    left: 12px;
-    width: 34px;
-    height: 1px;
-    background: var(--sidebar-accent-line, #4f8048);
-    content: '';
-    pointer-events: none;
-    transition:
-      left 300ms ease,
-      width 300ms ease;
-  }
-
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -609,11 +595,6 @@
   &.collapsed {
     width: var(--sidebar-collapsed-width);
     padding: 18px 8px 20px;
-
-    &::before {
-      left: 17px;
-      width: 34px;
-    }
 
     .nav-section {
       gap: 12px;
@@ -866,11 +847,6 @@
       padding: 16px 12px calc(16px + env(safe-area-inset-bottom))
         max(12px, env(safe-area-inset-left));
 
-      &::before {
-        left: 12px;
-        width: 34px;
-      }
-
       .nav-section {
         gap: 18px;
       }
@@ -921,7 +897,6 @@
   .main-header .header-actions .btn,
   .main-header .language-menu-option,
   .sidebar,
-  .sidebar::before,
   .sidebar-backdrop,
   .sidebar .nav-group-label,
   .sidebar .nav-item,
@@ -1002,9 +977,9 @@
   }
 
   @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-md max(#{$spacing-md}, env(safe-area-inset-right))
+    padding: $spacing-md max(10px, env(safe-area-inset-right))
       calc(#{$spacing-md} + env(safe-area-inset-bottom))
-      max(#{$spacing-md}, env(safe-area-inset-left));
+      max(10px, env(safe-area-inset-left));
   }
 }
 

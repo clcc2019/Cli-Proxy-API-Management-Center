@@ -2,20 +2,15 @@
   "providersPage": {
     "header": {
       "title": "AI Providers",
-      "eyebrow": "Upstream routing workbench",
-      "description": "Review keys, model coverage, and routing status across Codex, Claude, and OpenAI-compatible upstreams.",
-      "inventoryLabel": "Configuration inventory",
-      "activeLabel": "Active resources",
-      "totalLabel": "Total resources",
-      "familiesLabel": "Provider families",
-      "activeResources": "{{active}}/{{total}} active resources",
-      "providerFamilies": "{{count}} provider families",
+      "activeLabel": "Enabled",
+      "totalLabel": "Configured",
+      "familiesLabel": "Types",
       "updatedAt": "Updated {{time}}"
     },
     "actions": {
       "refresh": "Refresh",
-      "syncing": "Syncing",
-      "new": "New",
+      "syncing": "Refreshing",
+      "new": "Add",
       "edit": "Edit",
       "view": "View",
       "delete": "Delete",
@@ -60,7 +55,7 @@
       },
       "websocketsTag": "WebSockets",
       "cloakTag": "Cloak",
-      "empty": "No resources yet, click \"New\" to add.",
+      "empty": "No resources yet. Add one to get started.",
       "filterPlaceholder": "Search keys, URLs, prefixes…",
       "description": "Manage resources under {{route}}"
     },

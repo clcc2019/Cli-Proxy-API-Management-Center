@@ -7,13 +7,8 @@ import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer'
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
-import {
-  IconCheck,
-  IconChevronDown,
-  IconChevronUp,
-  IconRefreshCw,
-  IconSearch,
-} from '@/components/ui/icons';
+import { RefreshButton } from '@/components/ui/RefreshButton';
+import { IconCheck, IconChevronDown, IconChevronUp, IconSearch } from '@/components/ui/icons';
 import { VisualConfigEditor } from '@/components/config/VisualConfigEditor';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useVisualConfig } from '@/hooks/useVisualConfig';
@@ -510,16 +505,16 @@ export function ConfigPage() {
         >
           {getFloatingStatusText()}
         </div>
-        <button
-          type="button"
+        <RefreshButton
+          variant="ghost"
+          size="sm"
           className={styles.floatingActionButton}
           onClick={handleReload}
           disabled={loading || saving}
-          title={t('config_management.reload')}
-          aria-label={t('config_management.reload')}
-        >
-          <IconRefreshCw size={16} />
-        </button>
+          loading={loading}
+          label={t('config_management.reload')}
+          iconSize={16}
+        />
         <button
           type="button"
           className={styles.floatingActionButton}

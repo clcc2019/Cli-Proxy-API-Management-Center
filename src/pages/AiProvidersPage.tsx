@@ -181,8 +181,7 @@ export function AiProvidersPage() {
     const filtered = activeGroup.resources.filter(
       (resource) =>
         matchesFilter(resource, normalized) &&
-        (selectedModels.size === 0 ||
-          resource.models.some((model) => selectedModels.has(model)))
+        (selectedModels.size === 0 || resource.models.some((model) => selectedModels.has(model)))
     );
     return [...filtered].sort((left, right) => {
       const result =
@@ -281,7 +280,7 @@ export function AiProvidersPage() {
   if (loading && providerSummary.configured === 0) {
     return (
       <div className={styles.page}>
-        <Skeleton height={120} />
+        <Skeleton height={88} />
         <div className={styles.layout}>
           <Skeleton height={420} />
           <Skeleton height={420} />

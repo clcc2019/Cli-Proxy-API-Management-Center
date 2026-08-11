@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
-import { IconPlus, IconRefreshCw } from '@/components/ui/icons';
+import { RefreshButton } from '@/components/ui/RefreshButton';
+import { IconPlus } from '@/components/ui/icons';
 import styles from './ProviderHeaderCard.module.scss';
 
 interface ProviderHeaderCardProps {
@@ -28,7 +29,7 @@ export const ProviderHeaderCard = memo(function ProviderHeaderCard({
   const { t } = useTranslation();
 
   return (
-    <section className={styles.card} aria-labelledby="providers-page-title">
+    <header className={styles.card}>
       <div className={styles.identity}>
         <h1 id="providers-page-title" className={styles.title}>
           {t('providersPage.header.title')}
@@ -55,27 +56,23 @@ export const ProviderHeaderCard = memo(function ProviderHeaderCard({
       </div>
 
       <div className={styles.actions}>
-        <Button
+        <RefreshButton
           variant="secondary"
           size="sm"
           onClick={onRefresh}
           disabled={isFetching}
           loading={isFetching}
+          label={t('providersPage.actions.refresh')}
+          iconSize={15}
           className={styles.actionButton}
         >
-          <IconRefreshCw size={15} />
-          {isFetching ? t('providersPage.actions.syncing') : t('providersPage.actions.refresh')}
-        </Button>
-        <Button
-          size="sm"
-          onClick={onNew}
-          disabled={isNewDisabled}
-          className={styles.actionButton}
-        >
+          {t('providersPage.actions.refresh')}
+        </RefreshButton>
+        <Button size="sm" onClick={onNew} disabled={isNewDisabled} className={styles.actionButton}>
           <IconPlus size={15} />
           {t('providersPage.actions.new')}
         </Button>
       </div>
-    </section>
+    </header>
   );
 });

@@ -2,20 +2,15 @@
   "providersPage": {
     "header": {
       "title": "AI 提供商",
-      "eyebrow": "上游路由工作台",
-      "description": "集中查看 Codex、Claude 与 OpenAI 兼容上游的密钥、模型覆盖和路由状态。",
-      "inventoryLabel": "配置概览",
-      "activeLabel": "活跃资源",
-      "totalLabel": "全部资源",
-      "familiesLabel": "提供商家族",
-      "activeResources": "{{active}}/{{total}} 个活跃资源",
-      "providerFamilies": "{{count}} 个提供商家族",
-      "updatedAt": "更新于 {{time}}"
+      "activeLabel": "启用",
+      "totalLabel": "配置",
+      "familiesLabel": "类型",
+      "updatedAt": "更新 {{time}}"
     },
     "actions": {
       "refresh": "刷新",
-      "syncing": "同步中",
-      "new": "新建",
+      "syncing": "刷新中",
+      "new": "添加",
       "edit": "编辑",
       "view": "查看",
       "delete": "删除",
@@ -60,7 +55,7 @@
       },
       "websocketsTag": "WebSockets",
       "cloakTag": "Cloak",
-      "empty": "尚未添加配置,点击右上角新建。",
+      "empty": "暂无配置，可直接添加。",
       "filterPlaceholder": "搜索密钥、地址、前缀…",
       "description": "在 {{route}} 下管理资源"
     },

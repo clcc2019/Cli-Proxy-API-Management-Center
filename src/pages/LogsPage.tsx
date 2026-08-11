@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconChevronDown,
@@ -22,7 +23,6 @@ import {
   IconCode,
   IconDownload,
   IconEyeOff,
-  IconRefreshCw,
   IconSearch,
   IconSlidersHorizontal,
   IconTimer,
@@ -809,18 +809,20 @@ export function LogsPage() {
                 />
 
                 <div className={styles.toolbar}>
-                  <Button
+                  <RefreshButton
                     variant="secondary"
                     size="sm"
                     onClick={() => loadLogs(false)}
                     disabled={disableControls || loading}
+                    loading={loading}
+                    label={t('logs.refresh_button')}
+                    iconSize={16}
                     className={styles.actionButton}
                   >
                     <span className={styles.buttonContent}>
-                      <IconRefreshCw size={16} />
                       {t('logs.refresh_button')}
                     </span>
-                  </Button>
+                  </RefreshButton>
                   <ToggleSwitch
                     checked={autoRefresh}
                     onChange={(value) => setAutoRefresh(value)}
@@ -942,15 +944,16 @@ export function LogsPage() {
           >
             <Card
               extra={
-                <Button
+                <RefreshButton
                   variant="secondary"
                   size="sm"
                   onClick={loadErrorLogs}
                   loading={loadingErrors}
                   disabled={disableControls}
+                  label={t('common.refresh')}
                 >
                   {t('common.refresh')}
-                </Button>
+                </RefreshButton>
               }
             >
               <div className="stack">
@@ -1084,7 +1087,7 @@ export function LogsPage() {
 
             <div className={styles.traceCandidatesHeader}>
               <h3 className={styles.traceSectionTitle}>{t('logs.trace_candidates_title')}</h3>
-              <Button
+              <RefreshButton
                 variant="secondary"
                 size="sm"
                 onClick={() => {
@@ -1092,9 +1095,10 @@ export function LogsPage() {
                 }}
                 loading={trace.traceLoading}
                 disabled={requestLogDownloading}
+                label={t('common.refresh')}
               >
                 {t('common.refresh')}
-              </Button>
+              </RefreshButton>
             </div>
             {trace.traceLoading ? (
               <div className="hint" role="status" aria-busy="true">

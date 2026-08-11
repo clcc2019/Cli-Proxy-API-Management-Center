@@ -1,62 +1,51 @@
-@use '../../../styles/mixins' as *;
-@use '../../../styles/variables' as *;
-
 .card {
   --provider-surface: var(--mg-surface);
-  --provider-surface-warm: var(--mg-surface-warm);
   --provider-text: var(--mg-text);
-  --provider-text-secondary: var(--mg-text-secondary);
   --provider-text-tertiary: var(--mg-text-tertiary);
   --provider-border: var(--mg-border);
-  --provider-border-strong: var(--mg-border-hover);
-  --provider-ink: var(--mg-ink-strong);
-  --provider-sage: var(--mg-sage);
-  --provider-sage-strong: var(--mg-sage-strong);
   --provider-success: var(--mg-success);
 
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  align-items: center;
+  gap: 16px 24px;
   min-width: 0;
-  flex-direction: column;
-  gap: 20px;
-  padding: 3px 1px 20px;
+  padding: 2px 1px 18px;
   border-bottom: 1px solid var(--provider-border);
 }
 
-.summaryEyebrow {
-  color: var(--provider-text-tertiary);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: 0.085em;
-  text-transform: uppercase;
+.identity {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
 }
 
-.summaryRail {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+.title {
   min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.summaryLead {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 5px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--provider-text);
+  font-family: var(--mg-font-display);
+  font-size: clamp(27px, 2.2vw, 32px);
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .summarySync {
   display: inline-flex;
+  width: fit-content;
+  min-width: 0;
   align-items: center;
   gap: 6px;
+  overflow: hidden;
   color: var(--provider-text-tertiary);
   font-size: 11px;
   line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .summaryDot {
@@ -69,62 +58,138 @@
 
 .chips {
   display: grid;
-  grid-template-columns: repeat(3, minmax(96px, 1fr));
-  gap: 0;
-  min-width: min(420px, 100%);
+  grid-template-columns: repeat(3, auto);
+  align-items: center;
+  min-width: 0;
 }
 
 .chip {
-  display: flex;
+  display: inline-flex;
   min-width: 0;
-  flex-direction: column;
-  gap: 3px;
-  padding: 4px 14px;
-  border: 0;
-  border-left: 1px solid var(--provider-border);
-  border-radius: 0;
-  background: transparent;
+  align-items: baseline;
+  gap: 5px;
+  padding: 2px 14px;
+  white-space: nowrap;
+
+  + .chip {
+    border-left: 1px solid var(--provider-border);
+  }
 }
 
 .chip strong {
   color: var(--provider-text);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 650;
-  line-height: 1;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .chip span {
-  overflow: hidden;
   color: var(--provider-text-tertiary);
-  font-size: 10px;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chipPrimary {
-  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .chipPrimary strong {
   color: var(--provider-success);
 }
 
-@media (max-width: 640px) {
-  .card {
-    gap: 16px;
-    padding-bottom: 15px;
+.actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.actionButton {
+  min-width: 0;
+  min-height: 40px;
+  padding-inline: 13px;
+  white-space: nowrap;
+
+  > :global(span:last-child) {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    line-height: 1;
+    white-space: nowrap;
   }
 
-  .summaryRail {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-    padding: 0;
+  svg {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 1080px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 13px 18px;
   }
 
   .chips {
-    min-width: 0;
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .chip:first-child {
+    padding-left: 0;
+  }
+
+  .actions {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+    padding-bottom: 15px;
+  }
+
+  .title {
+    font-size: 27px;
+    white-space: normal;
+  }
+
+  .chips {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .chip {
+    justify-content: center;
+    padding-inline: 8px;
+  }
+
+  .chip:first-child {
+    padding-left: 8px;
+  }
+
+  .actions {
+    display: grid;
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .actionButton {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionButton {
+    transition: none;
   }
 }

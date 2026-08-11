@@ -392,13 +392,6 @@
   }
 }
 
-.refreshIconSpinning {
-  animation: requestLogsSpin 0.85s linear infinite;
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-
 // ─── Request table ──────────────────────────────────────
 
 .eventTableShell {
@@ -1117,12 +1110,6 @@
 
 // ─── Motion and dark-theme adaptation ───────────────────
 
-@keyframes requestLogsSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes requestLogsSkeletonSweep {
   to {
     transform: translate3d(120%, 0, 0);
@@ -1154,7 +1141,6 @@
 @media (prefers-reduced-motion: reduce) {
   .errorBanner,
   .loadingOverlay,
-  .refreshIconSpinning,
   .skeletonRow::after {
     animation: none;
   }

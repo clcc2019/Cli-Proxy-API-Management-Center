@@ -2,13 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useTranslation } from 'react-i18next';
 import { ApiKeysCardEditor } from '@/components/config/VisualConfigEditorBlocks';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
-import {
-  IconCheckCircle2,
-  IconDollarSign,
-  IconKey,
-  IconRefreshCw,
-  IconShield,
-} from '@/components/ui/icons';
+import { RefreshButton } from '@/components/ui/RefreshButton';
+import { IconCheckCircle2, IconDollarSign, IconKey, IconShield } from '@/components/ui/icons';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { apiKeysApi } from '@/services/api/apiKeys';
@@ -225,15 +220,18 @@ export function ApiKeysPage() {
               {statusText}
             </div>
             <div className={styles.tabBar}>
-              <button
-                type="button"
+              <RefreshButton
+                variant="ghost"
+                size="sm"
                 className={styles.tabItem}
                 onClick={handleReload}
                 disabled={loading || saving}
+                loading={loading}
+                label={t('common.refresh')}
+                iconSize={15}
               >
-                <IconRefreshCw size={15} aria-hidden="true" />
                 {t('common.refresh')}
-              </button>
+              </RefreshButton>
               <button
                 type="button"
                 className={`${styles.tabItem} ${isDirty ? styles.tabActive : ''}`}

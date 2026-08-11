@@ -4299,9 +4299,9 @@
 }
 
 // Usage management surface — final composition.
-// Keep the page intentionally quiet: one white canvas, one panel grammar, and
-// explicit breakpoints. Older declarations above remain for component
-// compatibility, while this layer owns the visible page composition.
+// Share the application canvas and keep one panel grammar with explicit
+// breakpoints. Older declarations above remain for component compatibility,
+// while this layer owns the visible page composition.
 .container {
   --usage-canvas: var(--mg-canvas);
   --usage-surface: var(--mg-surface);
@@ -4330,7 +4330,7 @@
   gap: 20px;
   padding: 0 0 56px;
   overflow-x: clip;
-  background: var(--usage-canvas);
+  background: transparent;
   color: var(--usage-text);
 }
 
@@ -4907,5 +4907,5 @@
   --usage-danger: #e69a91;
   --usage-focus: rgb(179 190 169 / 0.38);
 
-  background: var(--usage-canvas);
+  background: transparent;
 }

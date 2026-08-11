@@ -14,11 +14,11 @@ import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { ManagementToolbar } from '@/components/ui/ManagementToolbar';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import {
   IconCheck,
   IconFilterAll,
   IconInbox,
-  IconRefreshCw,
   IconSearch,
   IconX,
 } from '@/components/ui/icons';
@@ -290,7 +290,6 @@ type RequestEventLabels = {
   };
   reasoning: string;
   refresh: string;
-  refreshing: string;
   success: string;
   failure: string;
 };
@@ -675,7 +674,6 @@ export function RequestLogsPage() {
       },
       reasoning: t('usage_stats.request_events_reasoning_label'),
       refresh: t('common.refresh'),
-      refreshing: t('common.refreshing'),
       success: t('stats.success'),
       failure: t('stats.failure'),
     }),
@@ -844,20 +842,18 @@ export function RequestLogsPage() {
                   total: counts.total,
                 })}
               </span>
-              <Button
+              <RefreshButton
                 variant="secondary"
                 size="sm"
                 className={styles.refreshButton}
                 onClick={handleRefresh}
                 disabled={loading}
+                loading={loading}
+                label={requestEventLabels.refresh}
+                iconSize={14}
               >
-                <IconRefreshCw
-                  size={14}
-                  className={loading ? styles.refreshIconSpinning : undefined}
-                  aria-hidden="true"
-                />
-                {loading ? requestEventLabels.refreshing : requestEventLabels.refresh}
-              </Button>
+                {requestEventLabels.refresh}
+              </RefreshButton>
             </div>
           }
         />

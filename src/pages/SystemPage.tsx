@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { TokaMark } from '@/components/ui/TokaMark';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useTimeoutRegistry } from '@/hooks';
 import {
@@ -495,14 +496,15 @@ export function SystemPage() {
           className={styles.modelsCard}
           title={t('system_info.models_title')}
           extra={
-            <Button
+            <RefreshButton
               variant="secondary"
               size="sm"
               onClick={() => fetchModels({ forceRefresh: true })}
               loading={modelsLoading}
+              label={t('common.refresh')}
             >
               {t('common.refresh')}
-            </Button>
+            </RefreshButton>
           }
         >
           <p className={styles.sectionDescription}>{t('system_info.models_desc')}</p>

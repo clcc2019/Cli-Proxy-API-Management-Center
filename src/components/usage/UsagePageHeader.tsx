@@ -2,8 +2,9 @@ import { memo, type ChangeEventHandler, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { Select } from '@/components/ui/Select';
-import { IconDatabase, IconDownload, IconFileText, IconRefreshCw } from '@/components/ui/icons';
+import { IconDatabase, IconDownload, IconFileText } from '@/components/ui/icons';
 import styles from './UsagePageHeader.module.scss';
 
 interface TimeRangeOption {
@@ -103,10 +104,17 @@ export const UsagePageHeader = memo(function UsagePageHeader({
                 <IconDatabase size={14} />
                 <span>{t('usage_stats.import')}</span>
               </Button>
-              <Button variant="secondary" size="sm" onClick={onRefresh} disabled={disableRefresh}>
-                <IconRefreshCw size={14} />
-                <span>{loading ? t('common.loading') : t('usage_stats.refresh')}</span>
-              </Button>
+              <RefreshButton
+                variant="secondary"
+                size="sm"
+                onClick={onRefresh}
+                disabled={disableRefresh}
+                loading={loading}
+                label={t('usage_stats.refresh')}
+                iconSize={14}
+              >
+                <span>{t('usage_stats.refresh')}</span>
+              </RefreshButton>
             </div>
           </div>
 

@@ -14,6 +14,7 @@ import {
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from '@/components/ui/IconButton';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { TokaMark } from '@/components/ui/TokaMark';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
@@ -66,12 +67,6 @@ const headerIconProps: SVGProps<SVGSVGElement> = {
 };
 
 const headerIcons = {
-  refresh: (
-    <svg {...headerIconProps}>
-      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-      <path d="M21 3v5h-5" />
-    </svg>
-  ),
   menu: (
     <svg {...headerIconProps}>
       <path d="M4 7h16" />
@@ -163,6 +158,7 @@ export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const [headerRefreshing, setHeaderRefreshing] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
@@ -499,23 +495,30 @@ export function MainLayout() {
   }, []);
 
   const handleRefreshAll = async () => {
-    clearCache();
-    const results = await Promise.allSettled([
-      fetchConfig(undefined, true),
-      triggerHeaderRefresh(),
-    ]);
-    const rejected = results.find((result) => result.status === 'rejected');
-    if (rejected && rejected.status === 'rejected') {
-      const reason = rejected.reason;
-      const message =
-        typeof reason === 'string' ? reason : reason instanceof Error ? reason.message : '';
-      showNotification(
-        `${t('notification.refresh_failed')}${message ? `: ${message}` : ''}`,
-        'error'
-      );
-      return;
+    if (headerRefreshing) return;
+
+    setHeaderRefreshing(true);
+    try {
+      clearCache();
+      const results = await Promise.allSettled([
+        fetchConfig(undefined, true),
+        triggerHeaderRefresh(),
+      ]);
+      const rejected = results.find((result) => result.status === 'rejected');
+      if (rejected && rejected.status === 'rejected') {
+        const reason = rejected.reason;
+        const message =
+          typeof reason === 'string' ? reason : reason instanceof Error ? reason.message : '';
+        showNotification(
+          `${t('notification.refresh_failed')}${message ? `: ${message}` : ''}`,
+          'error'
+        );
+        return;
+      }
+      showNotification(t('notification.data_refreshed'), 'success');
+    } finally {
+      setHeaderRefreshing(false);
     }
-    showNotification(t('notification.data_refreshed'), 'success');
   };
 
   const cancelNavigationIntent = useCallback(() => {
@@ -638,13 +641,14 @@ export function MainLayout() {
           </div>
 
           <div className="header-actions">
-            <IconButton
+            <RefreshButton
               variant="ghost"
               size="sm"
-              icon={headerIcons.refresh}
+              className="icon-button"
               onClick={handleRefreshAll}
-              title={t('header.refresh_all')}
-              aria-label={t('header.refresh_all')}
+              loading={headerRefreshing}
+              label={t('header.refresh_all')}
+              iconSize={16}
             />
             <div
               className={`language-menu ${languageMenuOpen ? 'open' : ''}`}

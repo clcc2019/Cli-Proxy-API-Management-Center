@@ -1694,90 +1694,87 @@ export function AuthFilesPage() {
               />
             </div>
           </div>
+        </div>
 
-          <div
-            className={`${refreshStyles.contentRegion} ${showListProgressVisual ? refreshStyles.contentUpdating : ''}`}
-            aria-busy={showInitialLoading || showListProgress || pageQuotaRefreshing}
-          >
-            {showInitialLoading ? (
-              <AuthFilesSkeletonGrid
-                count={pageSize}
-                quotaManaged={Boolean(quotaFilterType)}
-                loadingLabel={t('common.loading')}
+        <div
+          className={`${refreshStyles.contentRegion} ${showListProgressVisual ? refreshStyles.contentUpdating : ''}`}
+          aria-busy={showInitialLoading || showListProgress || pageQuotaRefreshing}
+        >
+          {showInitialLoading ? (
+            <AuthFilesSkeletonGrid
+              count={pageSize}
+              quotaManaged={Boolean(quotaFilterType)}
+              loadingLabel={t('common.loading')}
+            />
+          ) : pageItems.length === 0 ? (
+            // 区分「筛选无结果」与「一个文件都没有」：此前两种情况都显示
+            // 搜索无结果的文案，在全新实例上会误导用户以为是筛选没选对。
+            hasActiveFilters ? (
+              <EmptyState
+                title={t('auth_files.search_empty_title')}
+                description={t('auth_files.search_empty_desc')}
+                action={
+                  <Button variant="secondary" size="sm" onClick={handleClearFilters}>
+                    {t('auth_files.clear_filters')}
+                  </Button>
+                }
               />
-            ) : pageItems.length === 0 ? (
-              // 区分「筛选无结果」与「一个文件都没有」：此前两种情况都显示
-              // 搜索无结果的文案，在全新实例上会误导用户以为是筛选没选对。
-              hasActiveFilters ? (
-                <EmptyState
-                  title={t('auth_files.search_empty_title')}
-                  description={t('auth_files.search_empty_desc')}
-                  action={
-                    <Button variant="secondary" size="sm" onClick={handleClearFilters}>
-                      {t('auth_files.clear_filters')}
-                    </Button>
-                  }
-                />
-              ) : (
-                <EmptyState
-                  title={t('auth_files.empty_title')}
-                  description={t('auth_files.empty_desc')}
-                  action={
-                    <Button
-                      size="sm"
-                      onClick={handleUploadClick}
-                      disabled={disableControls || uploading}
-                      loading={uploading}
-                    >
-                      {t('auth_files.upload_button')}
-                    </Button>
-                  }
-                />
-              )
             ) : (
-              <div
-                className={`${refreshStyles.cardGrid} ${quotaFilterType ? refreshStyles.cardGridQuotaManaged : ''}`}
-                ref={authFileGridRef}
-                // 列表刷新期间整体屏蔽交互（含键盘焦点），等价于此前逐张卡片
-                // 传 disableControls，但不会触碰任何卡片的 props。
-                inert={listUpdating}
-              >
-                {authFileCardNodes}
-              </div>
-            )}
+              <EmptyState
+                title={t('auth_files.empty_title')}
+                description={t('auth_files.empty_desc')}
+                action={
+                  <Button
+                    size="sm"
+                    onClick={handleUploadClick}
+                    disabled={disableControls || uploading}
+                    loading={uploading}
+                  >
+                    {t('auth_files.upload_button')}
+                  </Button>
+                }
+              />
+            )
+          ) : (
+            <div
+              className={`${refreshStyles.cardGrid} ${quotaFilterType ? refreshStyles.cardGridQuotaManaged : ''}`}
+              ref={authFileGridRef}
+              // 列表刷新期间整体屏蔽交互（含键盘焦点），等价于此前逐张卡片
+              // 传 disableControls，但不会触碰任何卡片的 props。
+              inert={listUpdating}
+            >
+              {authFileCardNodes}
+            </div>
+          )}
 
-            {!showInitialLoading && listTotal > pageSize && (
-              <nav
-                className={refreshStyles.pagination}
-                aria-label={t('auth_files.pagination_aria')}
+          {!showInitialLoading && listTotal > pageSize && (
+            <nav className={refreshStyles.pagination} aria-label={t('auth_files.pagination_aria')}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={currentPage <= 1}
               >
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handlePreviousPage}
-                  disabled={currentPage <= 1}
-                >
-                  {t('auth_files.pagination_prev')}
-                </Button>
-                {/* 翻页后焦点常留在已禁用的按钮上，靠 live region 播报当前页 */}
-                <div className={refreshStyles.pageInfo} role="status" aria-live="polite">
-                  {t('auth_files.pagination_info', {
-                    current: currentPage,
-                    total: totalPages,
-                    count: listTotal,
-                  })}
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={currentPage >= totalPages}
-                >
-                  {t('auth_files.pagination_next')}
-                </Button>
-              </nav>
-            )}
-          </div>
+                {t('auth_files.pagination_prev')}
+              </Button>
+              {/* 翻页后焦点常留在已禁用的按钮上，靠 live region 播报当前页 */}
+              <div className={refreshStyles.pageInfo} role="status" aria-live="polite">
+                {t('auth_files.pagination_info', {
+                  current: currentPage,
+                  total: totalPages,
+                  count: listTotal,
+                })}
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage >= totalPages}
+              >
+                {t('auth_files.pagination_next')}
+              </Button>
+            </nav>
+          )}
         </div>
 
         {belowFoldCardsReady && (
