@@ -4,6 +4,7 @@ import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer'
 import { Button } from '@/components/ui/Button';
 import { IconAlertTriangle } from '@/components/ui/icons';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { useNotificationStore, useQuotaStore } from '@/stores';
 import { authFilesApi } from '@/services/api';
 import type {
@@ -18,10 +19,6 @@ import { resolveQuotaErrorMessage } from '@/features/authFiles/constants';
 import { mergeAuthFileUpdatePreservingRequestStats } from '@/features/authFiles/stats';
 
 import { QuotaProgressBar } from '@/features/authFiles/components/QuotaProgressBar';
-import {
-  AuthFilesRefreshButton,
-  AuthFilesRefreshIndicator,
-} from '@/features/authFiles/components/AuthFilesRefreshButton';
 import {
   getAuthFileQuotaConfig,
   refreshAuthFileQuota,
@@ -173,13 +170,13 @@ export const AuthFileQuotaRefreshButton = memo(function AuthFileQuotaRefreshButt
   }, [refreshQuotaForFile]);
 
   return (
-    <AuthFilesRefreshButton
+    <RefreshButton
       variant="secondary"
       size="sm"
       onClick={handleRefreshClick}
       disabled={!canRefreshQuota}
       className={className}
-      refreshing={isQuotaRefreshing}
+      loading={isQuotaRefreshing}
       label={refreshLabel}
       iconClassName={iconClassName}
       iconSize={iconSize}
@@ -214,6 +211,8 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   });
   const isRefreshingCachedQuota =
     quotaStatus === 'loading' && quota?.__hasCachedQuotaSnapshot === true;
+  const hasDisplayableQuotaSnapshot = quotaStatus === 'success' || isRefreshingCachedQuota;
+  const suppressQuotaBodyDuringEmptyRefresh = isQuotaRefreshing && !hasDisplayableQuotaSnapshot;
   const codexQuota = quotaType === 'codex' ? (quota as CodexQuotaState | undefined) : undefined;
   const resetCreditCount = codexQuota?.rateLimitResetCreditsAvailable ?? null;
   const resetCreditExpiration = useMemo(() => {
@@ -389,19 +388,15 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           </div>
         )}
       </div>
-      <div
-        className={`${styles.quotaContent} ${
-          isQuotaRefreshing ? styles.quotaContentRefreshing : ''
-        }`}
-        aria-busy={isQuotaRefreshing || undefined}
-      >
+      <div className={styles.quotaContent} aria-busy={isQuotaRefreshing || undefined}>
         <div
           className={`${styles.quotaContentBody} ${
             isQuotaRefreshing ? styles.quotaContentBodyHidden : ''
           }`}
           aria-hidden={isQuotaRefreshing || undefined}
         >
-          {quotaStatus === 'loading' && !isRefreshingCachedQuota ? (
+          {suppressQuotaBodyDuringEmptyRefresh ? null : quotaStatus === 'loading' &&
+            !isRefreshingCachedQuota ? (
             <div className={styles.quotaLoadingState} role="status" aria-busy="true">
               <LoadingSpinner size={16} />
               <span>{t(`${config.i18nPrefix}.loading`)}</span>
@@ -443,7 +438,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
             role="status"
             aria-label={t(`${config.i18nPrefix}.loading`)}
           >
-            <AuthFilesRefreshIndicator refreshing iconSize={16} />
+            <LoadingSpinner size={16} />
           </div>
         )}
       </div>

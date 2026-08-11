@@ -439,6 +439,7 @@
   font-size: 10px;
 }
 
+.floatingActionButton,
 .floatingActionButton:global(.btn.btn-sm) {
   @include button-reset;
   position: relative;
@@ -519,6 +520,7 @@
     padding: 0 8px;
   }
 
+  .floatingActionButton,
   .floatingActionButton:global(.btn.btn-sm) {
     width: 40px;
     height: 40px;
@@ -540,6 +542,7 @@
   .statusBadge,
   .tabItem,
   .searchButton,
+  .floatingActionButton,
   .floatingActionButton:global(.btn.btn-sm) {
     transition: none;
   }

@@ -819,9 +819,7 @@ export function LogsPage() {
                     iconSize={16}
                     className={styles.actionButton}
                   >
-                    <span className={styles.buttonContent}>
-                      {t('logs.refresh_button')}
-                    </span>
+                    <span className={styles.buttonContent}>{t('logs.refresh_button')}</span>
                   </RefreshButton>
                   <ToggleSwitch
                     checked={autoRefresh}

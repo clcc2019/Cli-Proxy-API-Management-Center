@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { ProviderEditShell } from '@/components/common/ProviderEditShell';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import iconClaude from '@/assets/icons/claude.svg';
@@ -235,15 +236,16 @@ export function AiProvidersClaudeModelsPage() {
                 readOnly
                 value={endpoint}
               />
-              <Button
+              <RefreshButton
                 variant="secondary"
                 size="sm"
                 onClick={() => void fetchClaudeModelDiscovery()}
                 loading={fetching}
                 disabled={disableControls || saving}
+                label={t('ai_providers.claude_models_fetch_refresh')}
               >
                 {t('ai_providers.claude_models_fetch_refresh')}
-              </Button>
+              </RefreshButton>
             </div>
           </div>
           <Input

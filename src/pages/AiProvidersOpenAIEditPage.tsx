@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { Modal } from '@/components/ui/Modal';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import type { ModelEntry } from '@/components/ui/modelInputListUtils';
 import { modelsToEntries } from '@/components/ui/modelInputListUtils';
@@ -1103,15 +1104,16 @@ export function AiProvidersOpenAIEditPage() {
                     aria-label={t('ai_providers.openai_models_fetch_url_label')}
                     readOnly
                   />
-                  <Button
+                  <RefreshButton
                     variant="secondary"
                     size="sm"
                     onClick={() => void fetchOpenAIModelDiscovery()}
                     loading={modelDiscoveryFetching}
                     disabled={disableControls || saving}
+                    label={t('ai_providers.openai_models_fetch_refresh')}
                   >
                     {t('ai_providers.openai_models_fetch_refresh')}
-                  </Button>
+                  </RefreshButton>
                 </div>
               </div>
 

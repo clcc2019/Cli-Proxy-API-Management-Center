@@ -86,6 +86,7 @@
   background: var(--api-surface-subtle);
 }
 
+.tabItem,
 .tabItem:global(.btn.btn-sm) {
   @include button-reset;
   display: inline-flex;
@@ -322,6 +323,7 @@
     width: 100%;
   }
 
+  .tabItem,
   .tabItem:global(.btn.btn-sm) {
     flex: 1;
   }
@@ -336,6 +338,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tabItem,
   .tabItem:global(.btn.btn-sm) {
     transition: none;
   }

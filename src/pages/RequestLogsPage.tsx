@@ -15,13 +15,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { ManagementToolbar } from '@/components/ui/ManagementToolbar';
 import { RefreshButton } from '@/components/ui/RefreshButton';
-import {
-  IconCheck,
-  IconFilterAll,
-  IconInbox,
-  IconSearch,
-  IconX,
-} from '@/components/ui/icons';
+import { IconCheck, IconFilterAll, IconInbox, IconSearch, IconX } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';

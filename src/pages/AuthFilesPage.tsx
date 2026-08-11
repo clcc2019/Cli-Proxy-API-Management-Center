@@ -18,6 +18,7 @@ import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } fr
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconCheck, IconTrash2, IconUpload } from '@/components/ui/icons';
 import { copyToClipboard } from '@/utils/clipboard';
@@ -41,7 +42,6 @@ import {
   resolveAuthFileUsageStats,
 } from '@/features/authFiles/constants';
 import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
-import { AuthFilesRefreshButton } from '@/features/authFiles/components/AuthFilesRefreshButton';
 import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
 import { AuthFilesSkeletonGrid } from '@/features/authFiles/components/AuthFilesSkeletonGrid';
 import { SearchToolbar } from '@/features/authFiles/components/SearchToolbar';
@@ -1545,19 +1545,19 @@ export function AuthFilesPage() {
           countAriaLabel={`${t('auth_files.summary_visible')}: ${listTotal}`}
           actions={
             <div className={refreshStyles.headerActions}>
-              <AuthFilesRefreshButton
+              <RefreshButton
                 variant="secondary"
                 size="sm"
                 className={refreshStyles.headerAction}
                 onClick={handleHeaderRefresh}
                 disabled={loading || refreshing}
-                refreshing={manualRefreshPending}
+                loading={manualRefreshPending}
                 label={t('common.refresh')}
                 iconSize={15}
                 iconClassName={refreshStyles.headerActionIcon}
               >
                 <span className={refreshStyles.headerActionText}>{t('common.refresh')}</span>
-              </AuthFilesRefreshButton>
+              </RefreshButton>
               <Button
                 size="sm"
                 className={`${refreshStyles.headerAction} ${refreshStyles.uploadAction}`}
@@ -1681,13 +1681,13 @@ export function AuthFilesPage() {
                 )}
               </div>
 
-              <AuthFilesRefreshButton
+              <RefreshButton
                 variant="secondary"
                 size="sm"
                 className={refreshStyles.quotaRefreshButton}
                 onClick={handlePageRefreshQuota}
                 disabled={pageQuotaRefreshDisabled}
-                refreshing={pageQuotaRefreshing}
+                loading={pageQuotaRefreshing}
                 label={pageQuotaRefreshLabel}
                 title={t('auth_files.refresh_page_quota_aria')}
                 iconSize={16}

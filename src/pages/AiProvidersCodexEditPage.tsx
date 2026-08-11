@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { Modal } from '@/components/ui/Modal';
+import { RefreshButton } from '@/components/ui/RefreshButton';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
@@ -16,7 +17,11 @@ import { modelsApi, providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type { ProviderKeyConfig } from '@/types';
 import { buildHeaderObject, headersToEntries, normalizeHeaderEntries } from '@/utils/headers';
-import { areKeyValueEntriesEqual, areModelEntriesEqual, areStringArraysEqual } from '@/utils/compare';
+import {
+  areKeyValueEntriesEqual,
+  areModelEntriesEqual,
+  areStringArraysEqual,
+} from '@/utils/compare';
 import { entriesToModels, modelsToEntries } from '@/components/ui/modelInputListUtils';
 import {
   excludedModelsToText,
@@ -93,7 +98,9 @@ type CodexFormBaseline = {
 const buildCodexBaseline = (form: ProviderFormState): CodexFormBaseline => ({
   apiKey: String(form.apiKey ?? '').trim(),
   priority:
-    form.priority !== undefined && Number.isFinite(form.priority) ? Math.trunc(form.priority) : null,
+    form.priority !== undefined && Number.isFinite(form.priority)
+      ? Math.trunc(form.priority)
+      : null,
   prefix: String(form.prefix ?? '').trim(),
   baseUrl: String(form.baseUrl ?? '').trim(),
   websockets: Boolean(form.websockets),
@@ -182,7 +189,9 @@ export function AiProvidersCodexEditPage() {
           if (cancelled) return;
           const nextConfigs = Array.isArray(value) ? (value as ProviderKeyConfig[]) : [];
           const nextInitialData = editIndex === null ? undefined : nextConfigs[editIndex];
-          const nextForm = nextInitialData ? buildFormFromConfig(nextInitialData) : buildEmptyForm();
+          const nextForm = nextInitialData
+            ? buildFormFromConfig(nextInitialData)
+            : buildEmptyForm();
           setConfigs(nextConfigs);
           setForm(nextForm);
           setBaseline(buildCodexBaseline(nextForm));
@@ -271,7 +280,8 @@ export function AiProvidersCodexEditPage() {
     });
   }, [discoveredModels, isCurrentLayer, modelDiscoverySearch]);
   const visibleDiscoveredModelNames = useMemo(
-    () => (isCurrentLayer ? discoveredModelsFiltered.map((model) => model.name) : EMPTY_MODEL_NAMES),
+    () =>
+      isCurrentLayer ? discoveredModelsFiltered.map((model) => model.name) : EMPTY_MODEL_NAMES,
     [discoveredModelsFiltered, isCurrentLayer]
   );
   const allVisibleDiscoveredSelected = useMemo(
@@ -746,15 +756,16 @@ export function AiProvidersCodexEditPage() {
                       readOnly
                       value={modelDiscoveryEndpoint}
                     />
-                    <Button
+                    <RefreshButton
                       variant="secondary"
                       size="sm"
                       onClick={() => void fetchCodexModelDiscovery()}
                       loading={modelDiscoveryFetching}
                       disabled={disableControls || saving}
+                      label={t('ai_providers.codex_models_fetch_refresh')}
                     >
                       {t('ai_providers.codex_models_fetch_refresh')}
-                    </Button>
+                    </RefreshButton>
                   </div>
                 </div>
                 <Input
