@@ -44,13 +44,16 @@ import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFi
 import { AuthFileReauthorization } from '@/features/authFiles/components/AuthFileReauthorization';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
+const loadAuthFilesDeferredPanels = () =>
+  import('@/features/authFiles/components/AuthFilesDeferredPanels');
+
 const AuthFileQuotaSection = lazy(() =>
-  import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
+  loadAuthFilesDeferredPanels().then((module) => ({
     default: module.AuthFileQuotaSection,
   }))
 );
 const AuthFileQuotaRefreshButton = lazy(() =>
-  import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
+  loadAuthFilesDeferredPanels().then((module) => ({
     default: module.AuthFileQuotaRefreshButton,
   }))
 );

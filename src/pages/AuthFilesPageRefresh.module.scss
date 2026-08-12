@@ -3086,6 +3086,12 @@
   }
 }
 
+@media (max-width: 768px) {
+  .page {
+    gap: 14px;
+  }
+}
+
 @container auth-files-page (max-width: 980px) {
   .page .pageHeader {
     grid-template-columns: minmax(0, 1fr);
@@ -3111,14 +3117,30 @@
 }
 
 @container auth-files-page (max-width: 720px) {
-  .page .loadingActions > span,
-  .page .loadingRefresh,
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
-    flex-basis: 44px;
+  .page .pageHeader > *:last-child {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page .headerActions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    align-items: stretch;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .page .headerAction:global(.btn.btn-sm) {
+    width: 100%;
+    min-width: 0;
+    min-height: var(--mg-hit-area);
+    padding-inline: 8px;
+    overflow: hidden;
+  }
+
+  .page .headerActions .dangerAction:global(.btn.btn-danger) {
+    margin-left: 0;
   }
 
   .page .filterToolbar {
@@ -3131,10 +3153,67 @@
     border-bottom: 1px solid var(--auth-workbench-border);
   }
 
+  .page .providerTab {
+    flex: 0 0 auto;
+    min-height: var(--mg-hit-area);
+  }
+
   .page .controlRail {
-    grid-template-columns: minmax(240px, 1fr) max-content 42px;
+    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area);
+    grid-template-areas:
+      'search search'
+      'chips refresh';
+    align-items: start;
     width: 100%;
+    min-width: 0;
     padding-top: 10px;
+  }
+
+  .page .searchToolbar {
+    max-width: none;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area) var(--mg-hit-area);
+  }
+
+  .page .searchToolbar > :not(.searchField) {
+    width: var(--mg-hit-area);
+    min-width: var(--mg-hit-area);
+    justify-self: stretch;
+  }
+
+  .page .searchField {
+    height: var(--mg-hit-area);
+  }
+
+  .page .controlButton,
+  .page .quotaRefreshButton:global(.btn.btn-sm) {
+    width: var(--mg-hit-area);
+    min-width: var(--mg-hit-area);
+    height: var(--mg-hit-area);
+    min-height: var(--mg-hit-area);
+    padding: 0;
+  }
+
+  .page .displayOptions {
+    min-width: 0;
+    width: 100%;
+    align-items: center;
+    flex-wrap: wrap;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .page .displayOptionGroup {
+    min-width: 0;
+    height: auto;
+    min-height: 40px;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+  }
+
+  .page .displayOption,
+  .page .resetFilters {
+    min-height: var(--mg-hit-area);
   }
 
   .page .pagination {
@@ -3156,10 +3235,6 @@
 }
 
 @container auth-files-page (max-width: 680px) {
-  .page {
-    gap: 14px;
-  }
-
   .page .workbench {
     border-radius: var(--mg-radius-medium);
   }
@@ -3170,7 +3245,7 @@
   }
 
   .page .filterToolbar {
-    padding: 0 8px 8px;
+    padding: 0 12px 10px;
     border-radius: calc(var(--mg-radius-medium) - 1px);
   }
 
@@ -3184,23 +3259,6 @@
     padding: 0 0 15px;
   }
 
-  .page .titleWrapper {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 6px 8px;
-    font-size: clamp(25px, 8vw, 30px);
-  }
-
-  .page .titleWrapper > span:first-child {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .page .titleCount {
-    flex: 0 0 auto;
-    align-self: center;
-  }
-
   .page .pageDescription {
     max-width: none;
     overflow-wrap: anywhere;
@@ -3208,70 +3266,16 @@
     line-height: 1.55;
   }
 
-  .page .headerActions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-    align-items: stretch;
-    padding: 0;
-    overflow: visible;
-  }
-
-  .page .headerAction:global(.btn.btn-sm) {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .page .headerActions .dangerAction:global(.btn.btn-danger) {
-    margin-left: 0;
-  }
-
-  .page .providerTab {
-    flex: 0 0 auto;
-    min-height: 44px;
-  }
-
   .page .controlRail {
-    gap: 7px;
+    gap: 8px;
     padding: 10px 0 0;
-  }
-
-  .page .searchToolbar {
-    grid-template-columns: minmax(0, 1fr) 42px 42px;
-  }
-
-  .page .controlButton {
-    width: 42px;
-    min-width: 42px;
-    padding: 0;
-  }
-
-  .page .displayOptions {
-    align-items: center;
-    flex-wrap: nowrap;
-    overflow: visible;
-    padding-bottom: 0;
-  }
-
-  .page .displayOptionGroup {
-    min-width: 0;
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
-  }
-
-  .page .displayOption {
-    min-width: 0;
-    flex: 0 0 auto;
-    justify-content: center;
-  }
-
-  .page .displayOptionsLabel {
-    display: none;
   }
 }
 
 @container auth-files-page (max-width: 560px) {
   .page .cardGrid {
+    --auth-file-card-min-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
     padding: 0;
   }
@@ -3311,6 +3315,11 @@
     gap: 7px;
   }
 
+  .page .cardNameGroup {
+    width: 100%;
+    max-width: 100%;
+  }
+
   .page .cardPriority {
     justify-self: start;
   }
@@ -3328,25 +3337,108 @@
     font-weight: 650;
   }
 
+  .page .priorityControl {
+    min-height: var(--mg-control-height);
+  }
+
+  .page .priorityStepper,
+  .page .priorityInput {
+    height: var(--mg-control-height);
+  }
+
+  .page .priorityStepButton {
+    width: 36px;
+    height: var(--mg-control-height);
+  }
+
+  .page .priorityInput {
+    min-width: 38px;
+  }
+
+  .page .cardSelection {
+    position: relative;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    margin: 2px 0 0;
+  }
+
+  .page .cardSelection::before {
+    position: absolute;
+    inset: -10px;
+    content: '';
+  }
+
+  .page .metricHeader {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas:
+      'label label'
+      'badges tokens';
+    column-gap: 6px;
+    row-gap: 6px;
+  }
+
+  .page .metricTitle {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .page .metricBadges {
+    justify-self: start;
+    max-width: 100%;
+  }
+
+  .page .badgeGroup {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
   .page .credentialCard .cardFooter {
-    min-height: 44px;
+    --card-footer-control-gap: 6px;
+    min-height: 0;
     margin-top: 2px;
     padding-top: 8px;
   }
 
-  .page .credentialCard .cardStatusControl,
-  .page .credentialCard .cardStatusToggle,
-  .page .credentialCard .cardToggleSwitch,
+  .page .credentialCard .cardFooterMain {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'status refresh'
+      'actions actions';
+    align-items: center;
+    gap: var(--card-footer-control-gap);
+  }
+
+  .page .credentialCard .cardFooterLeft {
+    display: contents;
+  }
+
+  .page .credentialCard .cardStatusControl {
+    grid-area: status;
+  }
+
+  .page .credentialCard .cardActions {
+    grid-area: actions;
+    width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+    touch-action: auto;
+  }
+
   .page .credentialCard .cardRefresh {
-    min-height: 44px;
+    grid-area: refresh;
+    margin-left: 0;
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
-    flex-basis: 44px;
+    width: var(--mg-control-height);
+    min-width: var(--mg-control-height);
+    height: var(--mg-control-height);
+    min-height: var(--mg-control-height);
+    flex-basis: var(--mg-control-height);
   }
 
   .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
@@ -3356,98 +3448,23 @@
     padding-inline: 12px;
   }
 
-  .page .priorityControl {
-    min-height: 44px;
-  }
-
-  .page .priorityStepper,
-  .page .priorityInput {
-    height: 44px;
-  }
-
-  .page .priorityStepButton {
-    width: 44px;
-    height: 44px;
-  }
-
-  .page .priorityInput {
-    min-width: 38px;
-  }
-
-  .page .cardSelection {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    flex-basis: 44px;
-    align-items: center;
-    justify-content: center;
-    margin: -10px 0 -8px -10px;
-  }
-
-  .page .headerAction:global(.btn.btn-sm) {
-    min-height: 44px;
-  }
-
-  .page .headerActions {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .page .controlRail {
-    grid-template-columns: minmax(0, 1fr) 44px;
-    grid-template-areas:
-      'search search'
-      'chips refresh';
-    align-items: start;
-  }
-
-  .page .searchToolbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .page .searchField {
-    grid-column: 1 / -1;
-  }
-
-  .page .controlButton {
-    width: 100%;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
-  }
-
-  .page .searchField {
-    height: 44px;
-  }
-
   .page .searchClear {
     width: 36px;
     height: 36px;
     flex-basis: 36px;
   }
 
-  .page .displayOption,
-  .page .resetFilters {
-    min-height: 44px;
-  }
-
   .page .reauthPrimaryButton:global(.btn.btn-sm),
   .page .reauthActions :global(.btn.btn-sm),
   .page .reauthResult :global(.btn.btn-sm),
   .page .reauthCancelButton {
-    min-height: 44px;
+    min-height: var(--mg-hit-area);
   }
 
   .page .reauthCancelButton {
-    width: 44px;
-    height: 44px;
-    flex-basis: 44px;
-  }
-
-  .page .quotaRefreshButton:global(.btn.btn-sm) {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
+    width: var(--mg-hit-area);
+    height: var(--mg-hit-area);
+    flex-basis: var(--mg-hit-area);
   }
 
   .page .controlPopover {
@@ -3458,11 +3475,11 @@
   .page .popoverOption,
   .page .preset,
   .page .customPageSizeInput {
-    min-height: 44px;
+    min-height: var(--mg-hit-area);
   }
 
   .page .customPageSizeInput {
-    height: 44px;
+    height: var(--mg-hit-area);
   }
 
   .page .contentRegion :global(.empty-state) {
@@ -3483,7 +3500,7 @@
   }
 
   .page .contentRegion :global(.empty-action) :global(.btn) {
-    min-height: 44px;
+    min-height: var(--mg-hit-area);
   }
 
   .page .rulesRow {
@@ -3499,7 +3516,7 @@
   }
 
   .page .rulesManageButton:global(.btn.btn-sm) {
-    min-height: 44px;
+    min-height: var(--mg-hit-area);
   }
 
   .page .rulesPanel :global(.empty-state) {
@@ -3515,18 +3532,55 @@
     padding: 12px 12px 8px;
   }
 
-  .page .loadingActions > span,
-  .page .loadingRefresh {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
-    flex-basis: 44px;
+  .page .loadingHeader {
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+  }
+
+  .page .loadingPriority {
+    grid-column: 2;
+    width: 112px;
   }
 
   .page .loadingFooter {
-    min-height: 44px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'toggle refresh'
+      'actions actions';
+    min-height: 0;
+    align-items: center;
+    gap: 6px;
     padding-top: 8px;
+  }
+
+  .page .loadingFooterLeft {
+    display: contents;
+  }
+
+  .page .loadingToggle {
+    grid-area: toggle;
+  }
+
+  .page .loadingActions {
+    grid-area: actions;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .page .loadingActions > span,
+  .page .loadingRefresh {
+    width: var(--mg-control-height);
+    min-width: var(--mg-control-height);
+    height: var(--mg-control-height);
+    min-height: var(--mg-control-height);
+    flex-basis: var(--mg-control-height);
+  }
+
+  .page .loadingRefresh {
+    grid-area: refresh;
+    margin-left: 0;
   }
 
   .page .loadingCardQuota {
@@ -3540,7 +3594,7 @@
   .page .pagination :global(.btn.btn-sm) {
     width: 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--mg-hit-area);
   }
 }
 
@@ -3599,93 +3653,9 @@
   .page .loadingCard {
     padding: 10px 10px 8px;
   }
-
-  .page .loadingFooter {
-    display: flex;
-    grid-template-columns: none;
-    grid-template-areas: none;
-    gap: 4px;
-  }
-
-  .page .loadingFooterLeft {
-    display: flex;
-  }
-
-  .page .loadingToggle {
-    grid-area: auto;
-  }
-
-  .page .loadingActions {
-    grid-area: auto;
-  }
-
-  .page .loadingRefresh {
-    grid-area: auto;
-    margin-left: auto;
-  }
-
-  .page .loadingHeader {
-    grid-template-columns: 20px minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .page .loadingPriority {
-    grid-column: auto;
-  }
 }
 
-// Only the genuinely narrow page layout uses two footer rows. Desktop cards
-// keep their footer on one line even when an individual grid cell is compact.
 @container auth-files-page (max-width: 380px) {
-  .page .credentialCard .cardFooter {
-    --card-footer-control-gap: 4px;
-  }
-
-  .page .credentialCard .cardFooterMain {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'status refresh'
-      'actions actions';
-    gap: var(--card-footer-control-gap);
-  }
-
-  .page .credentialCard .cardFooterLeft {
-    display: contents;
-  }
-
-  .page .credentialCard .cardStatusControl {
-    grid-area: status;
-  }
-
-  .page .credentialCard .cardActions {
-    grid-area: actions;
-    width: 100%;
-    overflow: visible;
-    touch-action: auto;
-  }
-
-  .page .credentialCard .cardRefresh {
-    grid-area: refresh;
-    margin-left: 0;
-  }
-}
-
-// Phone-only content reflow. Desktop four-column cards intentionally stay on
-// one line and rely on ellipsis for long provider and credential names.
-@container auth-files-page (max-width: 380px) {
-  .page .cardTitleRow {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'name'
-      'priority';
-    gap: 6px;
-  }
-
-  .page .cardPriority {
-    justify-self: start;
-  }
-
   .page .providerBadge {
     max-width: 100px;
   }
@@ -3713,30 +3683,6 @@
     padding-inline: 10px;
   }
 
-  .page .metricHeader {
-    grid-template-columns: minmax(0, 1fr) max-content;
-    grid-template-areas:
-      'label label'
-      'badges tokens';
-    column-gap: 6px;
-    row-gap: 6px;
-  }
-
-  .page .metricTitle {
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
-  }
-
-  .page .metricBadges {
-    justify-self: start;
-    max-width: 100%;
-  }
-
-  .page .badgeGroup {
-    justify-content: flex-start;
-  }
-
   .page .featureBadge {
     max-width: 72px;
   }
@@ -3757,29 +3703,6 @@
     padding-inline: 10px;
   }
 
-  .page .quotaSectionHeader {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-
-  .page .codexResetCredits {
-    width: 100%;
-  }
-
-  .page .codexResetCreditsText {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    overflow: visible;
-  }
-
-  .page .codexResetCreditExpiry {
-    flex-basis: 100%;
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
-  }
-
   .page .quotaRowHeader {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
@@ -3794,6 +3717,10 @@
 
   .page .quotaMeta {
     justify-content: flex-start;
+  }
+
+  .page .credentialCard .cardFooter {
+    --card-footer-control-gap: 4px;
   }
 }
 

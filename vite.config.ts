@@ -62,6 +62,41 @@ function getVersion(): string {
 }
 
 function resolveManualChunk(id: string) {
+  const sourceId = id.split('?', 1)[0];
+
+  // Small management endpoints share the same transport and are typically
+  // used together across operational routes. Consolidating them avoids one
+  // request per endpoint module while keeping feature components separate.
+  if (
+    /[\\/]src[\\/]services[\\/]api[\\/](apiKeys|configFile|logs|oauth)\.ts$/.test(sourceId)
+  ) {
+    return 'management-api';
+  }
+
+  // These dependency-free helpers are shared across management routes. If
+  // left to automatic splitting, each becomes a 0.3-0.7 KiB request. Keep the
+  // group deliberately leaf-only: grouping stores or API modules would let
+  // Rolldown recursively claim React or axios and inflate the initial graph.
+  if (
+    /[\\/]src[\\/]utils[\\/](clipboard|compare|constants|download|error|trailingSingleFlight)\.ts$/.test(
+      sourceId
+    )
+  ) {
+    return 'app-utils';
+  }
+
+  // Keep the small usage helpers in one lazy feature chunk instead of one
+  // request for a period helper, one for CSS-module bindings and another for
+  // import/export utilities.
+  if (
+    /[\\/]src[\\/]components[\\/]usage[\\/](UsageCharts\.module\.scss|chartPeriod\.ts)$/.test(
+      sourceId
+    ) ||
+    /[\\/]src[\\/]components[\\/]usage[\\/]hooks[\\/]usageFileUtils\.ts$/.test(sourceId)
+  ) {
+    return 'usage-shared';
+  }
+
   // The boot/session fallback only needs this tiny spinner. Keeping it out of
   // the shared UI chunk prevents the entry from preloading every UI primitive
   // before the router knows whether to show login or the management shell.

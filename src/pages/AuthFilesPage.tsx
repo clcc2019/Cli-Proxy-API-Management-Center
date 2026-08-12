@@ -102,8 +102,11 @@ import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from
 import type { AuthFileItem, ResolvedTheme } from '@/types';
 import refreshStyles from './AuthFilesPageRefresh.module.scss';
 
+const loadAuthFilesDeferredPanels = () =>
+  import('@/features/authFiles/components/AuthFilesDeferredPanels');
+
 const AuthFileModelsModal = lazy(() =>
-  import('@/features/authFiles/components/AuthFileModelsModal').then((module) => ({
+  loadAuthFilesDeferredPanels().then((module) => ({
     default: module.AuthFileModelsModal,
   }))
 );
@@ -113,7 +116,7 @@ const AuthFilesPrefixProxyEditorModal = lazy(() =>
   }))
 );
 const OAuthModelRulesCard = lazy(() =>
-  import('@/features/authFiles/components/OAuthModelRulesCard').then((module) => ({
+  loadAuthFilesDeferredPanels().then((module) => ({
     default: module.OAuthModelRulesCard,
   }))
 );

@@ -10,7 +10,7 @@ import { useUsageAggregateChartData } from './hooks/useUsageAggregateChartData';
 import styles from '@/pages/UsagePage.module.scss';
 
 const LazyUsageChart = lazy(async () => ({
-  default: (await import('./UsageChart')).UsageChart,
+  default: (await import('./UsageAnalysisCharts')).UsageChart,
 }));
 
 interface UsageTrendsContentProps {
