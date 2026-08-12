@@ -16,20 +16,22 @@ import { useUsageViewState } from '@/components/usage/hooks/useUsageViewState';
 import { getAggregateWindowModelNames } from '@/utils/usageAggregate';
 import styles from './UsagePage.module.scss';
 
+const loadUsageSections = () => import('@/components/usage/UsageSections');
+
 const LazyUsageDetailsSection = lazy(async () => ({
-  default: (await import('@/components/usage/UsageDetailsSection')).UsageDetailsSection,
+  default: (await loadUsageSections()).UsageDetailsSection,
 }));
 
 const LazyUsageSupportSection = lazy(async () => ({
-  default: (await import('@/components/usage/UsageSupportSection')).UsageSupportSection,
+  default: (await loadUsageSections()).UsageSupportSection,
 }));
 
 const LazyUsageTrendsSection = lazy(async () => ({
-  default: (await import('@/components/usage/UsageTrendsSection')).UsageTrendsSection,
+  default: (await loadUsageSections()).UsageTrendsSection,
 }));
 
 const LazyUsageAnalysisSection = lazy(async () => ({
-  default: (await import('@/components/usage/UsageAnalysisSection')).UsageAnalysisSection,
+  default: (await loadUsageSections()).UsageAnalysisSection,
 }));
 
 const EMPTY_USAGE_MODEL_NAMES: string[] = [];

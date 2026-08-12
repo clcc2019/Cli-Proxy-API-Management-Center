@@ -47,4 +47,22 @@
     justify-content: flex-start;
     overflow: visible;
   }
+
+  .primary,
+  .secondary,
+  .actions {
+    gap: 8px;
+  }
+
+  .primary > *,
+  .secondary > *,
+  .actions > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .toolbar button,
+  .toolbar :global(.btn) {
+    min-height: var(--mg-hit-area, 44px);
+  }
 }

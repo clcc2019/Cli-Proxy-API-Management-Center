@@ -3,9 +3,9 @@
 
 .section {
   display: grid;
-  grid-template-columns: minmax(0, 208px) minmax(0, 1fr);
-  gap: 32px;
-  padding: 28px;
+  grid-template-columns: minmax(180px, 0.28fr) minmax(0, 1fr);
+  gap: clamp(22px, 2.4vw, 32px);
+  padding: clamp(22px, 2.2vw, 28px);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -18,8 +18,8 @@
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
-    padding: 20px;
+    gap: 14px;
+    padding: 18px 16px;
     border-radius: 0;
     scroll-margin-top: 80px;
   }
@@ -45,11 +45,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--mg-sage-strong) 22%, var(--mg-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--mg-sage-soft) 58%, var(--mg-surface));
   color: var(--mg-sage-strong);
   flex: 0 0 auto;
 }
@@ -65,21 +65,21 @@
 
 .title {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.2;
   font-weight: 680;
   letter-spacing: -0.02em;
   color: var(--mg-text);
 
   @include mobile {
-    font-size: 20px;
+    font-size: 18px;
     line-height: 1.2;
   }
 }
 
 .description {
   margin: 0;
-  max-width: 30ch;
+  max-width: 28ch;
   color: var(--mg-text-tertiary);
   font-size: 13px;
   line-height: 1.55;
@@ -92,14 +92,14 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   min-width: 0;
   padding-left: clamp(20px, 2.4vw, 32px);
   border-left: 1px solid var(--mg-border);
 
   @include mobile {
     padding-left: 0;
-    padding-top: 18px;
+    padding-top: 14px;
     border-left: none;
     border-top: 1px solid var(--mg-border);
   }

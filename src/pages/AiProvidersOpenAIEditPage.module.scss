@@ -3,16 +3,16 @@
 .editorModal,
 .modelDiscoveryModal {
   --openai-editor-surface: var(--mg-surface, #ffffff);
-  --openai-editor-canvas: var(--mg-surface-warm, #faf8f5);
-  --openai-editor-subtle: var(--mg-surface-subtle, #f4f4f4);
-  --openai-editor-border: var(--mg-border, #eaeae9);
-  --openai-editor-border-strong: var(--mg-border-hover, #d8d8d3);
-  --openai-editor-text: var(--mg-text, #2c2a25);
-  --openai-editor-text-secondary: var(--mg-text-secondary, #565551);
-  --openai-editor-text-tertiary: var(--mg-text-tertiary, #807f7c);
+  --openai-editor-canvas: var(--mg-surface-warm, #f8fafc);
+  --openai-editor-subtle: var(--mg-surface-subtle, #f2f5f7);
+  --openai-editor-border: var(--mg-border, #e2e8f0);
+  --openai-editor-border-strong: var(--mg-border-hover, #cbd5e1);
+  --openai-editor-text: var(--mg-text, #1f2937);
+  --openai-editor-text-secondary: var(--mg-text-secondary, #475569);
+  --openai-editor-text-tertiary: var(--mg-text-tertiary, #64748b);
   --openai-editor-sage: var(--mg-sage, #96a58d);
   --openai-editor-sage-strong: var(--mg-sage-strong, #63725a);
-  --openai-editor-sage-soft: var(--mg-sage-soft, #e1e2d9);
+  --openai-editor-sage-soft: var(--mg-sage-soft, #eef2f6);
 
   // Keep shared form controls visually aligned with this focused editor.
   --bg-primary: var(--openai-editor-surface);
@@ -58,8 +58,8 @@
     font-size: 13px;
 
     &:focus {
-      border-color: var(--openai-editor-sage-strong);
-      box-shadow: 0 0 0 3px var(--focus-ring);
+      border-color: var(--openai-editor-border);
+      box-shadow: none;
     }
   }
 
@@ -312,11 +312,7 @@
     background-color $transition-fast;
 
   &:focus-within {
-    border-color: color-mix(
-      in srgb,
-      var(--openai-editor-sage-strong) 48%,
-      var(--openai-editor-border)
-    );
+    border-color: var(--openai-editor-border);
     background: var(--openai-editor-surface);
   }
 }

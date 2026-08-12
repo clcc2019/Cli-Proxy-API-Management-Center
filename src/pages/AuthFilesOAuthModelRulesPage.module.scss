@@ -6,19 +6,19 @@
 // the dialog because autocomplete and select menus can render in body portals.
 .modal {
   --oauth-modal-surface: var(--mg-surface, #ffffff);
-  --oauth-modal-surface-subtle: var(--mg-surface-subtle, #f4f4f4);
-  --oauth-modal-surface-warm: var(--mg-surface-warm, #faf8f5);
-  --oauth-modal-text: var(--mg-text, #2c2a25);
-  --oauth-modal-text-secondary: var(--mg-text-secondary, #565551);
-  --oauth-modal-text-tertiary: var(--mg-text-tertiary, #807f7c);
-  --oauth-modal-text-muted: var(--mg-text-muted, #abaaa8);
-  --oauth-modal-border: var(--mg-border, #eaeae9);
-  --oauth-modal-border-strong: #d8d8d3;
+  --oauth-modal-surface-subtle: var(--mg-surface-subtle, #f2f5f7);
+  --oauth-modal-surface-warm: var(--mg-surface-warm, #f8fafc);
+  --oauth-modal-text: var(--mg-text, #1f2937);
+  --oauth-modal-text-secondary: var(--mg-text-secondary, #475569);
+  --oauth-modal-text-tertiary: var(--mg-text-tertiary, #64748b);
+  --oauth-modal-text-muted: var(--mg-text-muted, #94a3b8);
+  --oauth-modal-border: var(--mg-border, #e2e8f0);
+  --oauth-modal-border-strong: #cbd5e1;
   --oauth-modal-ink: var(--mg-ink-strong, #0e0d0c);
   --oauth-modal-ink-text: #ffffff;
   --oauth-modal-sage: var(--mg-sage, #96a58d);
   --oauth-modal-sage-strong: var(--mg-sage-strong, #63725a);
-  --oauth-modal-sage-soft: var(--mg-sage-soft, #e1e2d9);
+  --oauth-modal-sage-soft: var(--mg-sage-soft, #eef2f6);
   --oauth-modal-success: var(--mg-success, #407345);
   --oauth-modal-warning: var(--mg-warning, #e5a947);
   --oauth-modal-danger: var(--mg-danger, #a53830);
@@ -49,7 +49,7 @@
   --floating-surface: var(--oauth-modal-surface);
   --floating-surface-material: var(--oauth-modal-surface);
   --floating-border: var(--oauth-modal-border);
-  --floating-shadow: 0 16px 34px -24px rgb(44 42 37 / 0.3);
+  --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
   --surface-inner-highlight: none;
   --surface-raised: var(--oauth-modal-surface);
   --surface-raised-strong: var(--oauth-modal-surface);
@@ -133,8 +133,8 @@
     font-size: 13px;
 
     &:focus {
-      border-color: var(--oauth-modal-sage-strong);
-      box-shadow: 0 0 0 3px rgb(150 165 141 / 0.2);
+      border-color: var(--oauth-modal-border);
+      box-shadow: none;
     }
   }
 
@@ -294,7 +294,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--oauth-modal-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 
@@ -305,12 +305,12 @@
 }
 
 .providerTagActive {
-  border-color: var(--oauth-modal-ink);
+  border-color: var(--oauth-modal-border);
   background: var(--oauth-modal-ink);
   color: var(--oauth-modal-ink-text);
 
   &:hover:not(:disabled) {
-    border-color: var(--oauth-modal-text-secondary);
+    border-color: var(--oauth-modal-border);
     background: var(--oauth-modal-text-secondary);
     color: var(--oauth-modal-ink-text);
   }
@@ -654,7 +654,7 @@
   }
 
   &:focus-visible {
-    outline-color: var(--oauth-modal-sage);
+    outline-color: var(--mg-focus-outline);
   }
 }
 
@@ -772,33 +772,33 @@
 
 // Portal-rendered menus do not inherit the modal's token bridge.
 .reasoningDropdown {
-  --bg-secondary: #f4f4f4;
-  --bg-tertiary: #faf8f5;
-  --text-primary: #2c2a25;
-  --text-secondary: #565551;
-  --text-tertiary: #807f7c;
-  --border-color: #eaeae9;
-  --border-primary: #eaeae9;
-  --border-hover: #d8d8d3;
+  --bg-secondary: #f2f5f7;
+  --bg-tertiary: #f8fafc;
+  --text-primary: #1f2937;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --border-color: #e2e8f0;
+  --border-primary: #e2e8f0;
+  --border-hover: #cbd5e1;
   --primary-color: #0e0d0c;
-  --primary-soft: #e1e2d9;
+  --primary-soft: #eef2f6;
   --focus-ring: rgb(150 165 141 / 0.28);
   --floating-surface: #ffffff;
   --floating-surface-material: #ffffff;
-  --floating-border: #eaeae9;
-  --floating-shadow: 0 16px 34px -24px rgb(44 42 37 / 0.3);
+  --floating-border: #e2e8f0;
+  --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
   --surface-inner-highlight: none;
 }
 
 .originalModelDropdown {
-  --bg-secondary: #f4f4f4;
-  --bg-tertiary: #faf8f5;
-  --text-primary: #2c2a25;
-  --text-secondary: #565551;
-  --text-tertiary: #807f7c;
-  --border-color: #eaeae9;
-  --border-primary: #eaeae9;
-  --border-hover: #d8d8d3;
+  --bg-secondary: #f2f5f7;
+  --bg-tertiary: #f8fafc;
+  --text-primary: #1f2937;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --border-color: #e2e8f0;
+  --border-primary: #e2e8f0;
+  --border-hover: #cbd5e1;
   --radius-md: 8px;
 }
 

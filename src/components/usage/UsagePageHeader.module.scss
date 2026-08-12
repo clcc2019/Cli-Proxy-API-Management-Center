@@ -1,14 +1,14 @@
 .tools {
   --header-surface: var(--usage-surface, var(--mg-surface, #ffffff));
-  --header-surface-warm: var(--usage-surface-warm, var(--mg-surface-warm, #faf8f5));
+  --header-surface-warm: var(--usage-surface-warm, var(--mg-surface-warm, #f8fafc));
   --header-surface-subtle: var(--usage-surface-subtle, var(--mg-surface-subtle, #f4f4f1));
-  --header-border: var(--usage-border, var(--mg-border, #eaeae9));
+  --header-border: var(--usage-border, var(--mg-border, #e2e8f0));
   --header-border-strong: var(--usage-border-strong, #d5d5d0);
-  --header-text: var(--usage-text, var(--mg-text, #2c2a25));
-  --header-text-secondary: var(--usage-text-secondary, var(--mg-text-secondary, #565551));
-  --header-text-tertiary: var(--usage-text-tertiary, var(--mg-text-tertiary, #807f7c));
+  --header-text: var(--usage-text, var(--mg-text, #1f2937));
+  --header-text-secondary: var(--usage-text-secondary, var(--mg-text-secondary, #475569));
+  --header-text-tertiary: var(--usage-text-tertiary, var(--mg-text-tertiary, #64748b));
   --header-sage: var(--usage-sage-strong, var(--mg-sage-strong, #63725a));
-  --header-sage-soft: var(--usage-sage-soft, var(--mg-sage-soft, #e1e2d9));
+  --header-sage-soft: var(--usage-sage-soft, var(--mg-sage-soft, #eef2f6));
   --header-ink: var(--usage-ink, var(--mg-ink-strong, #0e0d0c));
   --header-focus: var(--usage-focus, rgb(99 114 90 / 0.34));
 
@@ -126,8 +126,9 @@
 
 .rangeSelect :global(button):focus-visible,
 .actions :global(.btn):focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--header-focus);
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 @media (max-width: 1120px) {

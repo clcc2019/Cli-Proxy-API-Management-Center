@@ -518,7 +518,7 @@
 .tapTile:focus-visible,
 .content :global(.btn):focus-visible,
 .requestLogModal :global(.btn):focus-visible {
-  outline: 2px solid var(--system-focus);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
 }
 

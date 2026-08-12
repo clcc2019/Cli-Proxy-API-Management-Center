@@ -5,7 +5,7 @@
   min-width: 0;
   align-self: stretch;
   flex-direction: column;
-  border-right: 1px solid var(--provider-border, #eaeae9);
+  border-right: 1px solid var(--provider-border, #e2e8f0);
 }
 
 .aside {
@@ -19,7 +19,7 @@
 
 .eyebrow {
   margin: 2px 9px 10px;
-  color: var(--provider-text-tertiary, #807f7c);
+  color: var(--provider-text-tertiary, #64748b);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.085em;
@@ -45,7 +45,7 @@
   border: 1px solid transparent;
   border-radius: var(--mg-radius-control);
   background: transparent;
-  color: var(--provider-text, #2c2a25);
+  color: var(--provider-text, #1f2937);
   text-align: left;
   cursor: pointer;
   transition:
@@ -59,13 +59,13 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--provider-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 }
 
 .item.active {
-  border-color: color-mix(in srgb, var(--provider-sage) 34%, var(--provider-border));
+  border-color: var(--provider-border);
   background: color-mix(in srgb, var(--provider-sage) 12%, var(--provider-surface));
   color: var(--provider-text);
 
@@ -173,7 +173,7 @@
 @media (max-width: 1199px) {
   .stack {
     border-right: 0;
-    border-bottom: 1px solid var(--provider-border, #eaeae9);
+    border-bottom: 1px solid var(--provider-border, #e2e8f0);
   }
 
   .aside {

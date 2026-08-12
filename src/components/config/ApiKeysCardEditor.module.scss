@@ -2,13 +2,13 @@
 
 .editor {
   --key-surface: #ffffff;
-  --key-surface-subtle: #f7f7f5;
-  --key-surface-warm: #faf8f5;
-  --key-text: #2c2a25;
-  --key-text-secondary: #565551;
-  --key-text-tertiary: #807f7c;
-  --key-border: #eaeae9;
-  --key-border-strong: #d8d8d3;
+  --key-surface-subtle: #f2f5f7;
+  --key-surface-warm: #f8fafc;
+  --key-text: #1f2937;
+  --key-text-secondary: #475569;
+  --key-text-tertiary: #64748b;
+  --key-border: #e2e8f0;
+  --key-border-strong: #cbd5e1;
   --key-ink: #0e0d0c;
   --key-sage: #96a58d;
   --key-sage-strong: #63725a;
@@ -98,7 +98,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--key-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 }
@@ -129,9 +129,9 @@
     box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:focus-within {
-    border-color: var(--key-sage);
+    border-color: var(--key-border);
     background: var(--key-surface);
-    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.2);
+    box-shadow: none;
   }
 
   > svg {
@@ -186,7 +186,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--key-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 1px;
   }
 }
@@ -228,16 +228,16 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--key-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 }
 
 .filterButtonActive {
-  border-color: var(--key-border-strong);
+  border-color: var(--key-border);
   background: var(--key-surface);
   color: var(--key-text);
-  box-shadow: inset 0 -2px 0 var(--key-ink);
+  box-shadow: none;
 }
 
 .filterCount {
@@ -546,7 +546,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--key-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 }
@@ -661,19 +661,19 @@
   text-underline-offset: 3px;
 
   &:focus-visible {
-    outline: 2px solid var(--key-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 }
 
 .modal:global(.modal) {
   --key-surface: #ffffff;
-  --key-surface-subtle: #f7f7f5;
-  --key-surface-warm: #faf8f5;
-  --key-text: #2c2a25;
-  --key-text-secondary: #565551;
-  --key-text-tertiary: #807f7c;
-  --key-border: #eaeae9;
+  --key-surface-subtle: #f2f5f7;
+  --key-surface-warm: #f8fafc;
+  --key-text: #1f2937;
+  --key-text-secondary: #475569;
+  --key-text-tertiary: #64748b;
+  --key-border: #e2e8f0;
   --key-sage: #96a58d;
   --key-danger: #a53830;
 
@@ -737,8 +737,8 @@
   }
 
   :global(.input:focus) {
-    border-color: var(--key-sage);
-    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.2);
+    border-color: var(--key-border);
+    box-shadow: none;
   }
 
   :global(.hint) {

@@ -19,14 +19,16 @@ export interface UsageAnalysisSectionProps {
   onToggleCollapse?: () => void;
 }
 
+const loadUsageAnalysisCharts = () => import('./UsageAnalysisCharts');
+
 const LazyLatencyTrendChart = lazy(async () => ({
-  default: (await import('./LatencyTrendChart')).LatencyTrendChart,
+  default: (await loadUsageAnalysisCharts()).LatencyTrendChart,
 }));
 const LazyCostTrendChart = lazy(async () => ({
-  default: (await import('./CostTrendChart')).CostTrendChart,
+  default: (await loadUsageAnalysisCharts()).CostTrendChart,
 }));
 const LazyTokenBreakdownChart = lazy(async () => ({
-  default: (await import('./TokenBreakdownChart')).TokenBreakdownChart,
+  default: (await loadUsageAnalysisCharts()).TokenBreakdownChart,
 }));
 
 export const UsageAnalysisSection = memo(function UsageAnalysisSection({

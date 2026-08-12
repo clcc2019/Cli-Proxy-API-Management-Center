@@ -6,7 +6,7 @@
   --provider-page-surface-muted: var(--mg-surface-subtle);
   --provider-page-control: var(--mg-surface);
   --provider-page-border: var(--mg-border);
-  --provider-page-border-strong: #d8d8d3;
+  --provider-page-border-strong: #cbd5e1;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -426,10 +426,8 @@
   }
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--provider-accent) 44%, var(--border-color));
-    box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.06),
-      0 0 0 2px color-mix(in srgb, var(--provider-accent) 16%, transparent);
+    border-color: var(--border-color);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   }
 
   @media (hover: hover) {
@@ -1401,7 +1399,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -2147,7 +2145,7 @@
       background: color-mix(in srgb, var(--bg-tertiary) 30%, transparent);
 
       &:focus-within {
-        border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
+        border-color: var(--border-color);
         background: color-mix(in srgb, var(--bg-tertiary) 42%, transparent);
       }
     }
@@ -2165,7 +2163,7 @@
   }
 
   .modelInputRow:focus-within {
-    border-color: color-mix(in srgb, var(--primary-color) 44%, var(--border-color));
+    border-color: var(--border-color);
     background: color-mix(in srgb, var(--bg-tertiary) 42%, transparent);
   }
 }
@@ -2252,7 +2250,7 @@
   }
 
   :global(.header-input-row:focus-within) {
-    border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+    border-color: var(--border-color);
     background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
   }
 
@@ -2447,7 +2445,7 @@
   background: color-mix(in srgb, var(--bg-primary) 48%, transparent);
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+    border-color: var(--border-color);
     background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
   }
 
@@ -2497,7 +2495,7 @@
   background: color-mix(in srgb, var(--bg-primary) 48%, transparent);
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+    border-color: var(--border-color);
     background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
   }
 
@@ -2794,7 +2792,7 @@
   --provider-page-surface-muted: var(--mg-surface-subtle);
   --provider-page-control: var(--mg-surface);
   --provider-page-border: var(--mg-border);
-  --provider-page-border-strong: #d8d8d3;
+  --provider-page-border-strong: #cbd5e1;
 }
 
 .providerConfigItem {
@@ -2810,7 +2808,7 @@
   }
 
   &:hover {
-    border-color: #d8d8d3;
+    border-color: #cbd5e1;
     box-shadow: none;
   }
 

@@ -212,8 +212,9 @@
   }
 
   &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--request-focus);
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 2px;
+    box-shadow: none;
   }
 
   &:disabled {
@@ -297,9 +298,9 @@
   }
 
   &:focus-within {
-    border-color: var(--request-sage);
+    border-color: var(--request-border);
     background: var(--request-surface);
-    box-shadow: 0 0 0 2px var(--request-focus);
+    box-shadow: none;
   }
 
   svg {
@@ -351,8 +352,9 @@
   }
 
   &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--request-focus);
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 2px;
+    box-shadow: none;
   }
 }
 
@@ -463,7 +465,7 @@
   }
 
   &:focus-within {
-    box-shadow: inset 0 0 0 2px var(--request-focus);
+    box-shadow: none;
   }
 
   > * {
@@ -1081,7 +1083,7 @@
   .eventTime {
     position: sticky;
     left: 0;
-    box-shadow: 8px 0 10px -10px rgb(44 42 37 / 0.4);
+    box-shadow: 8px 0 10px -10px rgb(15 23 42 / 0.4);
   }
 
   .eventListHeader > :first-child {

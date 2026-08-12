@@ -5,15 +5,15 @@
 
 .dashboard {
   --dashboard-surface: var(--mg-surface);
-  --dashboard-surface-subtle: var(--mg-surface-subtle, #f4f4f4);
-  --dashboard-surface-warm: var(--mg-surface-warm, #faf8f5);
-  --dashboard-border: var(--mg-border, #eaeae9);
-  --dashboard-text: var(--text-primary, #2c2a25);
-  --dashboard-text-secondary: var(--text-secondary, #565551);
-  --dashboard-text-tertiary: var(--text-tertiary, #807f7c);
+  --dashboard-surface-subtle: var(--mg-surface-subtle, #f2f5f7);
+  --dashboard-surface-warm: var(--mg-surface-warm, #f8fafc);
+  --dashboard-border: var(--mg-border, #e2e8f0);
+  --dashboard-text: var(--text-primary, #1f2937);
+  --dashboard-text-secondary: var(--text-secondary, #475569);
+  --dashboard-text-tertiary: var(--text-tertiary, #64748b);
   --dashboard-sage: var(--mg-sage, #96a58d);
   --dashboard-sage-strong: var(--mg-sage-strong, #63725a);
-  --dashboard-sage-soft: var(--mg-sage-soft, #e1e2d9);
+  --dashboard-sage-soft: var(--mg-sage-soft, #eef2f6);
   --dashboard-success: var(--mg-success);
   --dashboard-warning: var(--mg-warning);
   --dashboard-danger: var(--mg-danger);
@@ -148,7 +148,7 @@
   height: 7px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: var(--dashboard-text-muted, #abaaa8);
+  background: var(--dashboard-text-muted, #94a3b8);
 
   &.connected {
     background: var(--dashboard-success);
@@ -272,8 +272,9 @@
 
   &:focus-visible {
     z-index: 1;
-    outline: none;
-    box-shadow: inset 0 0 0 2px var(--dashboard-sage);
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: -2px;
+    box-shadow: none;
   }
 }
 
@@ -417,7 +418,7 @@
   }
 
   &.on {
-    background: var(--dashboard-sage-soft);
+    background: var(--mg-sage-wash);
     color: var(--dashboard-sage-strong);
   }
 
@@ -488,13 +489,13 @@
   transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
-    background: var(--mg-text-secondary, #565551);
+    background: var(--mg-text-secondary, #475569);
     color: var(--mg-text-inverse);
     text-decoration: none;
   }
 
   &:focus-visible {
-    outline: 2px solid var(--dashboard-sage-strong);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 3px;
     box-shadow: none;
   }

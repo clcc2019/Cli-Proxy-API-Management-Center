@@ -2,17 +2,17 @@
 
 .oauthModal:global(.modal) {
   --oauth-modal-surface: var(--mg-surface, #ffffff);
-  --oauth-modal-subtle: var(--mg-surface-subtle, #f4f4f4);
-  --oauth-modal-warm: var(--mg-surface-warm, #faf8f5);
-  --oauth-modal-text: var(--mg-text, #2c2a25);
-  --oauth-modal-text-secondary: var(--mg-text-secondary, #565551);
-  --oauth-modal-text-tertiary: var(--mg-text-tertiary, #807f7c);
-  --oauth-modal-text-muted: var(--mg-text-muted, #abaaa8);
-  --oauth-modal-border: var(--mg-border, #eaeae9);
+  --oauth-modal-subtle: var(--mg-surface-subtle, #f2f5f7);
+  --oauth-modal-warm: var(--mg-surface-warm, #f8fafc);
+  --oauth-modal-text: var(--mg-text, #1f2937);
+  --oauth-modal-text-secondary: var(--mg-text-secondary, #475569);
+  --oauth-modal-text-tertiary: var(--mg-text-tertiary, #64748b);
+  --oauth-modal-text-muted: var(--mg-text-muted, #94a3b8);
+  --oauth-modal-border: var(--mg-border, #e2e8f0);
   --oauth-modal-ink: var(--mg-ink-strong, #0e0d0c);
   --oauth-modal-sage: var(--mg-sage, #96a58d);
   --oauth-modal-sage-strong: var(--mg-sage-strong, #63725a);
-  --oauth-modal-sage-soft: var(--mg-sage-soft, #e1e2d9);
+  --oauth-modal-sage-soft: var(--mg-sage-soft, #eef2f6);
   --oauth-modal-success: var(--mg-success, #407345);
   --oauth-modal-warning: var(--mg-warning, #a87428);
   --oauth-modal-danger: var(--mg-danger, #a53830);
@@ -81,7 +81,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid color-mix(in srgb, var(--oauth-modal-sage-strong) 42%, transparent);
+      outline: 1px solid var(--mg-focus-outline);
       outline-offset: 2px;
     }
   }

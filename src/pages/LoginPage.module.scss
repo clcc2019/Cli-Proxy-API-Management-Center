@@ -2,7 +2,7 @@
 
 .container {
   --login-header-height: 70px;
-  --login-canvas: #fafafa;
+  --login-canvas: #f8fafc;
   --login-surface: #ffffff;
   --login-surface-muted: #f2f2f2;
   --login-surface-selected: #ededed;
@@ -177,18 +177,18 @@
     }
 
     &[aria-expanded='true'] {
-      border-color: var(--login-border-strong);
+      border-color: var(--login-border);
       background: var(--login-surface-selected);
       box-shadow: none;
     }
 
     &:focus {
-      border-color: var(--login-border-strong);
+      border-color: var(--login-border);
       box-shadow: none;
     }
 
     &:focus-visible {
-      outline: 2px solid var(--login-focus);
+      outline: 1px solid var(--mg-focus-outline);
       outline-offset: 2px;
     }
   }
@@ -495,9 +495,8 @@
 }
 
 .loginCard :global(.input:focus) {
-  border-color: var(--login-border-strong);
-  outline: 2px solid var(--login-focus);
-  outline-offset: 2px;
+  border-color: var(--login-border);
+  outline: none;
   box-shadow: none;
 }
 
@@ -528,7 +527,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--login-focus);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 3px;
     box-shadow: none;
   }
@@ -547,7 +546,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--login-focus);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
     box-shadow: none;
   }

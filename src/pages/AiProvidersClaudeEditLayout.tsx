@@ -10,7 +10,11 @@ import type { ProviderKeyConfig } from '@/types';
 import type { ModelInfo } from '@/utils/models';
 import type { ModelEntry, ProviderFormState } from '@/components/providers/types';
 import { buildHeaderObject, headersToEntries, normalizeHeaderEntries } from '@/utils/headers';
-import { areKeyValueEntriesEqual, areModelEntriesEqual, areStringArraysEqual } from '@/utils/compare';
+import {
+  areKeyValueEntriesEqual,
+  areModelEntriesEqual,
+  areStringArraysEqual,
+} from '@/utils/compare';
 import {
   excludedModelsToText,
   isProviderPrefixValid,

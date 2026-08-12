@@ -16,7 +16,7 @@
     color: var(--mg-text-secondary);
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
   }
 
   :global(.input) {
@@ -30,8 +30,8 @@
 
   :global(.input:focus) {
     background: var(--mg-surface);
-    border-color: var(--mg-sage-strong);
-    box-shadow: 0 0 0 3px var(--mg-focus-ring);
+    border-color: var(--mg-border);
+    box-shadow: none;
   }
 
   :global(textarea.input) {
@@ -83,7 +83,7 @@
     @include mobile {
       flex: 1 1 calc(50% - 4px);
       justify-content: center;
-      min-height: 42px;
+      min-height: var(--mg-hit-area, 44px);
     }
   }
 
@@ -176,14 +176,14 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--mg-border);
-  border-radius: var(--mg-radius-card);
+  border-radius: 15px;
   background: var(--mg-surface);
 }
 
 .sectionGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  gap: 16px 14px;
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
@@ -206,21 +206,24 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
   align-items: center;
-  padding: 12px 0;
+  min-height: 58px;
+  padding: 10px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
 
   @include mobile {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 12px 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    min-height: 64px;
+    padding: 10px 0;
   }
 }
 
 .toggleCopy {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -234,13 +237,14 @@
 .toggleDescription {
   color: var(--mg-text-tertiary);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .fieldShell {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -248,7 +252,7 @@
   color: var(--mg-text-secondary);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .fieldControl {
@@ -309,6 +313,7 @@
   color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.65;
+  text-wrap: pretty;
 }
 
 .sectionIssueBadge {
@@ -380,15 +385,20 @@
 .actionRow {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
+
+  :global(.btn) {
+    min-height: 38px;
+  }
 }
 
 .emptyState {
-  border: 0;
+  border: 1px dashed var(--mg-border-hover);
   border-radius: var(--mg-radius-control);
   padding: 18px 16px;
   color: var(--text-secondary);
   text-align: center;
-  background: var(--mg-surface-warm);
+  background: color-mix(in srgb, var(--mg-surface-subtle) 72%, var(--mg-surface));
 }
 
 .stringList {
@@ -477,6 +487,10 @@
 }
 
 @media (max-width: 900px) {
+  .sectionGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .payloadRuleModelRow,
   .payloadRuleModelRowProtocolFirst,
   .payloadRuleParamRow,
@@ -515,6 +529,7 @@
   .actionRow :global(.btn),
   .stringListRow :global(.btn) {
     width: 100%;
+    min-height: var(--mg-hit-area, 44px);
     justify-content: center;
   }
 

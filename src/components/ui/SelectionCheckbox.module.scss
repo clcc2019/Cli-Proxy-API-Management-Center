@@ -56,9 +56,8 @@
 }
 
 .input:focus-visible + .box {
-  border-color: var(--mg-sage-strong, var(--primary-color));
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 18%, transparent);
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
 }
 
 .boxChecked {

@@ -98,8 +98,42 @@
     font-size: clamp(25px, 7vw, 30px);
   }
 
+  .titleRow {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .count {
+    align-self: center;
+  }
+
+  .description {
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+  }
+
   .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
+    gap: 8px;
     overflow: visible;
+  }
+
+  .actions > * {
+    min-width: 0;
+  }
+
+  .actions button,
+  .actions :global(.btn) {
+    min-height: var(--mg-hit-area, 44px);
+  }
+}
+
+@media (max-width: 420px) {
+  .title {
+    font-size: clamp(24px, 8vw, 28px);
+    overflow-wrap: anywhere;
   }
 }

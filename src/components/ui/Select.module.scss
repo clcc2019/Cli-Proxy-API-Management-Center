@@ -52,14 +52,15 @@
   }
 
   &:focus-visible {
-    outline: none;
-    border-color: var(--mg-sage-strong);
-    box-shadow: 0 0 0 3px var(--mg-focus-ring);
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 1px;
+    border-color: var(--mg-border);
+    box-shadow: none;
   }
 
   &[aria-expanded='true'] {
-    border-color: var(--mg-sage-strong);
-    box-shadow: 0 0 0 3px var(--mg-focus-ring);
+    border-color: var(--mg-border);
+    box-shadow: none;
   }
 
   &:disabled {
@@ -138,14 +139,14 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mg-sage-strong);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: -2px;
     background: var(--mg-surface-subtle);
   }
 }
 
 .optionActive {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 42%, var(--mg-border));
+  border-color: var(--mg-border);
   background: var(--mg-surface-selected);
   color: var(--mg-sage-strong);
   font-weight: 600;

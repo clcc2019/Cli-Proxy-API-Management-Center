@@ -4,15 +4,15 @@
 .providerTable {
   min-width: 900px;
   table-layout: fixed;
-  color: var(--provider-text, #2c2a25);
+  color: var(--provider-text, #1f2937);
 
   tbody tr:hover .actionsCell {
-    background: var(--provider-surface-warm, #faf8f5);
+    background: var(--provider-surface-warm, #f8fafc);
   }
 }
 
 .providerTableWrap {
-  border-color: var(--provider-border, #eaeae9);
+  border-color: var(--provider-border, #e2e8f0);
   border-radius: var(--mg-radius-medium);
   background: var(--provider-surface, #ffffff);
   box-shadow: none;
@@ -28,7 +28,7 @@
 .primaryName {
   overflow: hidden;
   max-width: 240px;
-  color: var(--provider-text, #2c2a25);
+  color: var(--provider-text, #1f2937);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.35;
@@ -40,7 +40,7 @@
 .baseUrl {
   overflow: hidden;
   max-width: 240px;
-  color: var(--provider-text-tertiary, #807f7c);
+  color: var(--provider-text-tertiary, #64748b);
   font-family: $font-mono;
   font-size: 11px;
   line-height: 1.4;
@@ -50,7 +50,7 @@
 
 .baseUrl {
   max-width: 250px;
-  color: var(--provider-text-secondary, #565551);
+  color: var(--provider-text-secondary, #475569);
 }
 
 .chip,
@@ -67,9 +67,9 @@
   max-width: 100%;
   overflow: hidden;
   padding: 4px 9px;
-  border: 1px solid var(--provider-border, #eaeae9);
-  background: var(--provider-surface-subtle, #f7f7f5);
-  color: var(--provider-text-secondary, #565551);
+  border: 1px solid var(--provider-border, #e2e8f0);
+  background: var(--provider-surface-subtle, #f2f5f7);
+  color: var(--provider-text-secondary, #475569);
   font-family: $font-mono;
   font-size: 11px;
   text-overflow: ellipsis;
@@ -86,17 +86,17 @@
 .metric {
   gap: 4px;
   padding: 4px 8px;
-  border: 1px solid var(--provider-border, #eaeae9);
-  background: var(--provider-surface-subtle, #f7f7f5);
+  border: 1px solid var(--provider-border, #e2e8f0);
+  background: var(--provider-surface-subtle, #f2f5f7);
   font-size: 11px;
 }
 
 .metricLabel {
-  color: var(--provider-text-tertiary, #807f7c);
+  color: var(--provider-text-tertiary, #64748b);
 }
 
 .metricValue {
-  color: var(--provider-text, #2c2a25);
+  color: var(--provider-text, #1f2937);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -147,12 +147,12 @@
   right: 0;
   width: 176px;
   min-width: 176px;
-  box-shadow: -12px 0 16px -18px rgb(44 42 37 / 0.45);
+  box-shadow: -12px 0 16px -18px rgb(15 23 42 / 0.45);
 }
 
 .actionsHead {
   z-index: 3;
-  background: var(--provider-surface-subtle, #f7f7f5);
+  background: var(--provider-surface-subtle, #f2f5f7);
 }
 
 .actionsCell {
@@ -181,10 +181,10 @@
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid var(--provider-border, #eaeae9);
+  border: 1px solid var(--provider-border, #e2e8f0);
   border-radius: var(--mg-radius-control);
   background: var(--provider-surface, #ffffff);
-  color: var(--provider-text-secondary, #565551);
+  color: var(--provider-text-secondary, #475569);
   cursor: pointer;
   transition:
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -192,9 +192,9 @@
     color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover:not(:disabled) {
-    border-color: var(--provider-border-strong, #d8d8d3);
-    background: var(--provider-surface-subtle, #f7f7f5);
-    color: var(--provider-text, #2c2a25);
+    border-color: var(--provider-border-strong, #cbd5e1);
+    background: var(--provider-surface-subtle, #f2f5f7);
+    color: var(--provider-text, #1f2937);
   }
 
   &:disabled {
@@ -203,7 +203,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--provider-sage, #96a58d);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 }

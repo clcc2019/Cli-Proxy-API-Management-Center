@@ -3,7 +3,7 @@
 /**
  * Global color tokens
  *
- * The application has one fixed, pure-white appearance. Semantic success,
+ * The application has one fixed, neutral light appearance. Semantic success,
  * warning, and error colors remain available for state communication.
  */
 
@@ -11,25 +11,26 @@
   color-scheme: light;
 
   // Merge Gateway-inspired semantic tokens used by the application shell.
-  --mg-canvas: #ffffff;
+  --mg-canvas: #f6f8fa;
   --mg-surface: #ffffff;
-  --mg-surface-subtle: #f5f5f3;
-  --mg-surface-warm: #fbfaf7;
-  --mg-text: #2c2a25;
-  --mg-text-secondary: #565551;
-  --mg-text-tertiary: #74716c;
-  --mg-text-muted: #9e9a92;
-  --mg-border: #e5e4e0;
-  --mg-border-hover: #cbc9c3;
-  --mg-border-strong: #b8b6af;
-  --mg-ink-strong: #0e0d0c;
+  --mg-surface-subtle: #f2f5f7;
+  --mg-surface-warm: #f8fafc;
+  --mg-text: #1f2937;
+  --mg-text-secondary: #475569;
+  --mg-text-tertiary: #64748b;
+  --mg-text-muted: #94a3b8;
+  --mg-border: #e2e8f0;
+  --mg-border-hover: #cbd5e1;
+  --mg-border-strong: #b6c2cf;
+  --mg-ink-strong: #111827;
   --mg-text-inverse: #ffffff;
   --mg-sage: #5d914d;
   --mg-sage-strong: #4f8048;
-  --mg-sage-soft: #eff2ed;
+  // Neutral selection fill; green remains in text, borders, status dots and focus rings.
+  --mg-sage-soft: #eef2f6;
   --mg-sage-wash: rgb(93 145 77 / 12%);
   --mg-sage-wash-soft: rgb(93 145 77 / 5%);
-  --mg-khaki-soft: #f4f5f1;
+  --mg-khaki-soft: #f2f5f7;
   --mg-teal: #1f6170;
   --mg-orange: #c2410c;
   --mg-success-fill: #16a34a;
@@ -37,21 +38,22 @@
   --mg-success: var(--mg-success-text);
   --mg-warning: #9b5b00;
   --mg-danger: #c53a32;
-  --mg-surface-selected: #f2f5f0;
-  --mg-surface-disabled: #f5f5f3;
-  --mg-floating-border: #deddd8;
-  --mg-border-fade: rgb(158 154 146 / 28%);
-  --mg-overlay: rgb(14 13 12 / 56%);
-  --mg-focus-ring: rgb(79 128 72 / 32%);
+  --mg-surface-selected: #eef2f6;
+  --mg-surface-disabled: #f2f5f7;
+  --mg-floating-border: #dbe3eb;
+  --mg-border-fade: rgb(100 116 139 / 24%);
+  --mg-overlay: rgb(15 23 42 / 56%);
+  --mg-focus-outline: rgb(116 113 108 / 46%);
+  --mg-focus-ring: rgb(116 113 108 / 16%);
   --mg-focus-ring-danger: rgb(197 58 50 / 28%);
   --mg-radius-control: 8px;
   --mg-radius-medium: 12px;
   --mg-radius-card: 15px;
   --mg-radius-large: 16px;
   --mg-radius-pill: 999px;
-  --mg-shadow-rest: 0 1px 2px rgb(23 20 16 / 0.05);
-  --mg-shadow-card: 0 1px 2px rgb(23 20 16 / 0.04), 0 8px 24px -12px rgb(23 20 16 / 0.1);
-  --mg-shadow-float: 0 4px 12px -4px rgb(23 20 16 / 0.08), 0 16px 40px -16px rgb(23 20 16 / 0.16);
+  --mg-shadow-rest: 0 1px 2px rgb(15 23 42 / 0.05);
+  --mg-shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.11);
+  --mg-shadow-float: 0 4px 12px -4px rgb(15 23 42 / 0.08), 0 16px 40px -16px rgb(15 23 42 / 0.16);
   --mg-space-1: 4px;
   --mg-space-2: 8px;
   --mg-space-3: 12px;
@@ -87,7 +89,7 @@
   --mg-z-toast: 100;
   --mg-z-splash: 110;
 
-  --bg-secondary: #f6f6f3;
+  --bg-secondary: var(--mg-canvas);
   --bg-primary: #ffffff;
   --bg-tertiary: var(--mg-surface-subtle);
   --bg-hover: var(--bg-tertiary);
@@ -112,10 +114,10 @@
   --primary-hover: var(--mg-text-secondary);
   --primary-active: var(--mg-text);
   --primary-contrast: var(--mg-text-inverse);
-  --primary-soft: color-mix(in srgb, var(--mg-sage-soft) 42%, var(--mg-surface));
+  --primary-soft: color-mix(in srgb, var(--mg-surface-selected) 82%, var(--mg-surface));
   --focus-ring: var(--mg-focus-ring);
-  --primary-shadow: 0 10px 22px -14px rgb(14 13 12 / 0.42);
-  --primary-shadow-hover: 0 14px 28px -16px rgb(14 13 12 / 0.5);
+  --primary-shadow: 0 10px 22px -14px rgb(15 23 42 / 0.42);
+  --primary-shadow-hover: 0 14px 28px -16px rgb(15 23 42 / 0.5);
 
   --accent-blue: var(--mg-teal);
   --accent-violet: var(--mg-teal);
@@ -150,8 +152,8 @@
   --count-badge-text: var(--primary-active);
 
   --shadow: var(--mg-shadow-rest);
-  --shadow-lg: 0 4px 12px -4px rgb(23 20 16 / 0.08), 0 16px 32px -12px rgb(23 20 16 / 0.14);
-  --shadow-soft: 0 16px 32px -20px rgb(23 20 16 / 0.2);
+  --shadow-lg: 0 4px 12px -4px rgb(15 23 42 / 0.08), 0 16px 32px -12px rgb(15 23 42 / 0.14);
+  --shadow-soft: 0 16px 32px -20px rgb(15 23 42 / 0.2);
   --header-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
   // Navigation tokens keep the shell on the same quiet surface hierarchy as
   // the rest of the Merge Gateway-inspired light theme.

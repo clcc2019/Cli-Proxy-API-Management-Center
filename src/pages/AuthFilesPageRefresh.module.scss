@@ -311,7 +311,7 @@
 }
 
 .page .providerTab:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: -2px;
 }
 
@@ -449,7 +449,7 @@
 }
 
 .page .displayOption:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: -2px;
 }
 
@@ -505,7 +505,7 @@
 }
 
 .page .resetFilters:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: -2px;
 }
 
@@ -572,9 +572,9 @@
 }
 
 .page .searchField:focus-within {
-  border-color: var(--mg-sage-strong);
+  border-color: var(--auth-workbench-border);
   background: var(--mg-surface);
-  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+  box-shadow: none;
 }
 
 .page .searchIcon {
@@ -638,7 +638,7 @@
 }
 
 .page .searchClear:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 1px;
 }
 
@@ -678,12 +678,12 @@
 }
 
 .page .controlButton:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
 }
 
 .page .controlButtonActive {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 46%, var(--mg-border));
+  border-color: var(--mg-border);
   background: color-mix(in srgb, var(--mg-sage-soft) 66%, var(--mg-surface));
   color: var(--mg-sage-strong);
   box-shadow: none;
@@ -743,7 +743,7 @@
 }
 
 .popoverOption:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: -2px;
   background: var(--mg-surface-subtle);
   color: var(--mg-text);
@@ -798,12 +798,12 @@
 }
 
 .preset:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 1px;
 }
 
 .preset[aria-pressed='true'] {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 46%, var(--mg-border));
+  border-color: var(--mg-border);
   background: color-mix(in srgb, var(--mg-sage-soft) 68%, var(--mg-surface));
   color: var(--mg-text);
 }
@@ -844,8 +844,8 @@
 
 .customPageSizeInput:focus {
   outline: 0;
-  border-color: var(--mg-sage-strong);
-  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+  border-color: var(--mg-border);
+  box-shadow: none;
 }
 
 .customPageSizeInput::-webkit-outer-spin-button,
@@ -945,13 +945,13 @@
 }
 
 .page .cardGrid {
-  --auth-file-card-min-width: 260px;
+  --auth-file-card-min-width: 268px;
   display: grid;
   min-width: 0;
   max-width: 100%;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--auth-file-card-min-width)), 1fr));
   align-items: stretch;
-  gap: 12px;
+  gap: 8px;
   padding: 0 1px 1px 0;
   overflow: visible;
   contain: layout style;
@@ -959,20 +959,18 @@
 }
 
 .page .cardGridQuotaManaged {
-  --auth-file-card-min-width: 280px;
+  --auth-file-card-min-width: 288px;
 }
 
 @container auth-files-page (min-width: 1080px) {
   .page .cardGrid:not(.cardGridQuotaManaged) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
   }
 }
 
 @container auth-files-page (min-width: 1160px) {
   .page .cardGridQuotaManaged {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
   }
 }
 
@@ -1406,8 +1404,9 @@
 }
 
 .page .cardNameButton:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .page .cardNameText {
@@ -1504,7 +1503,7 @@
 }
 
 .page .priorityStepButton:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: -2px;
 }
 
@@ -1769,7 +1768,7 @@
 }
 
 .page .statusBlocks:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 3px;
 }
 
@@ -1787,7 +1786,7 @@
 
 .page .statusBlockWrapper:focus-visible {
   border-radius: 3px;
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
 }
 
@@ -2192,7 +2191,7 @@
 }
 
 .page .codexPlanValue:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
 }
 
@@ -2279,9 +2278,10 @@
 }
 
 .page .codexResetCreditButton:global(.btn.btn-sm):focus-visible {
-  outline: none;
-  border-color: var(--mg-sage-strong);
-  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+  border-color: var(--mg-border);
+  box-shadow: none;
 }
 
 .page .quotaLoadingState,
@@ -2332,9 +2332,10 @@
 }
 
 .page .quotaMessageAction:focus-visible {
-  outline: none;
-  border-color: var(--mg-sage-strong);
-  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+  border-color: var(--mg-border);
+  box-shadow: none;
 }
 
 .page .quotaMessageAction:active:not(:disabled) {
@@ -2605,7 +2606,7 @@
 }
 
 .page .reauthCode:focus-visible {
-  outline: 2px solid var(--mg-sage-strong);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
 }
 
@@ -2662,7 +2663,7 @@
   }
 }
 
-@container auth-file-card (max-width: 360px) {
+@container auth-files-page (max-width: 380px) {
   .page .reauthWorkspace {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2822,9 +2823,10 @@
 }
 
 .page .credentialCard .cardActionButton:global(.btn.btn-sm):focus-visible {
-  outline: none;
-  border-color: var(--mg-sage-strong);
-  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+  border-color: var(--mg-border);
+  box-shadow: none;
 }
 
 .page .credentialCard .cardActionButton:global(.btn.btn-sm):active:not(:disabled) {
@@ -3001,6 +3003,87 @@
 
 .page .rulesPanel :global(.empty-icon) {
   flex: 0 0 42px;
+}
+
+// Four-column desktop density: preserve one-line identity, metrics and footer
+// controls by reclaiming small amounts of space from padding and control gaps.
+// This lives after the base card rules so the compact values win the cascade.
+@container auth-files-page (min-width: 1080px) {
+  .page .credentialCard {
+    padding: 10px 9px 7px;
+  }
+
+  .page .cardMain {
+    gap: 8px;
+  }
+
+  .page .cardHeader,
+  .page .cardTitleRow,
+  .page .cardNameGroup {
+    gap: 6px;
+  }
+
+  .page .providerBadge {
+    max-width: 88px;
+    height: 23px;
+    padding-inline: 4px;
+  }
+
+  .page .metricsPanel {
+    padding-inline: 8px;
+  }
+
+  .page .credentialCard .cardFooter {
+    --card-footer-control-gap: 4px;
+    padding-top: 8px;
+  }
+
+  .page .credentialCard .cardStatusControl,
+  .page .credentialCard .cardStatusToggle,
+  .page .credentialCard .cardToggleSwitch,
+  .page .credentialCard .cardRefresh {
+    min-height: 28px;
+  }
+
+  .page .credentialCard .cardStatusToggle {
+    min-width: 52px;
+  }
+
+  .page .credentialCard .cardToggleSwitch {
+    --card-toggle-track-width: 52px;
+    --card-toggle-thumb-size: 20px;
+  }
+
+  .page .credentialCard .cardToggleSwitch > span:first-of-type {
+    height: 26px;
+    min-height: 26px;
+    padding-right: 6px;
+    padding-left: 25px;
+  }
+
+  .page .credentialCard .cardToggleSwitch > input:checked + span:first-of-type {
+    padding-right: 25px;
+    padding-left: 6px;
+  }
+
+  .page .credentialCard .cardActions {
+    gap: var(--card-footer-control-gap);
+    overflow: visible;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    min-height: 28px;
+    flex-basis: 28px;
+  }
+
+  .page .credentialCard .cardActionButton :global(.loading-spinner),
+  .page .credentialCard .cardActionButton svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
 }
 
 @container auth-files-page (max-width: 980px) {
@@ -3246,24 +3329,24 @@
   }
 
   .page .credentialCard .cardFooter {
-    min-height: 40px;
+    min-height: 44px;
     margin-top: 2px;
-    padding-top: 3px;
+    padding-top: 8px;
   }
 
   .page .credentialCard .cardStatusControl,
   .page .credentialCard .cardStatusToggle,
   .page .credentialCard .cardToggleSwitch,
   .page .credentialCard .cardRefresh {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    min-height: 40px;
-    flex-basis: 40px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
   }
 
   .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
@@ -3274,21 +3357,31 @@
   }
 
   .page .priorityControl {
-    min-height: 32px;
+    min-height: 44px;
   }
 
   .page .priorityStepper,
   .page .priorityInput {
-    height: 32px;
+    height: 44px;
   }
 
   .page .priorityStepButton {
-    width: 30px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
   }
 
   .page .priorityInput {
-    min-width: 34px;
+    min-width: 38px;
+  }
+
+  .page .cardSelection {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+    align-items: center;
+    justify-content: center;
+    margin: -10px 0 -8px -10px;
   }
 
   .page .headerAction:global(.btn.btn-sm) {
@@ -3327,14 +3420,27 @@
   }
 
   .page .searchClear {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
   }
 
   .page .displayOption,
   .page .resetFilters {
-    min-height: 40px;
+    min-height: 44px;
+  }
+
+  .page .reauthPrimaryButton:global(.btn.btn-sm),
+  .page .reauthActions :global(.btn.btn-sm),
+  .page .reauthResult :global(.btn.btn-sm),
+  .page .reauthCancelButton {
+    min-height: 44px;
+  }
+
+  .page .reauthCancelButton {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
   }
 
   .page .quotaRefreshButton:global(.btn.btn-sm) {
@@ -3393,7 +3499,7 @@
   }
 
   .page .rulesManageButton:global(.btn.btn-sm) {
-    min-height: 42px;
+    min-height: 44px;
   }
 
   .page .rulesPanel :global(.empty-state) {
@@ -3411,16 +3517,16 @@
 
   .page .loadingActions > span,
   .page .loadingRefresh {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    min-height: 40px;
-    flex-basis: 40px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
   }
 
   .page .loadingFooter {
-    min-height: 40px;
-    padding-top: 3px;
+    min-height: 44px;
+    padding-top: 8px;
   }
 
   .page .loadingCardQuota {
@@ -3528,9 +3634,13 @@
   }
 }
 
-// Four-column cards use the compact composition below 300px so standard desktop
-// widths keep four stable columns without squeezing labels or footer actions.
-@container auth-file-card (max-width: 300px) {
+// Only the genuinely narrow page layout uses two footer rows. Desktop cards
+// keep their footer on one line even when an individual grid cell is compact.
+@container auth-files-page (max-width: 380px) {
+  .page .credentialCard .cardFooter {
+    --card-footer-control-gap: 4px;
+  }
+
   .page .credentialCard .cardFooterMain {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -3551,13 +3661,19 @@
   .page .credentialCard .cardActions {
     grid-area: actions;
     width: 100%;
+    overflow: visible;
+    touch-action: auto;
   }
 
   .page .credentialCard .cardRefresh {
     grid-area: refresh;
     margin-left: 0;
   }
+}
 
+// Phone-only content reflow. Desktop four-column cards intentionally stay on
+// one line and rely on ellipsis for long provider and credential names.
+@container auth-files-page (max-width: 380px) {
   .page .cardTitleRow {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:

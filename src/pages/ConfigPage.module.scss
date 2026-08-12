@@ -14,11 +14,12 @@
   --config-sage-soft: var(--mg-sage-soft);
   --config-ink: var(--mg-ink-strong);
   width: 100%;
+  max-width: 100%;
   min-width: 0;
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 18px;
   overflow-y: auto;
   padding-bottom: calc(
     var(--config-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom) + #{$spacing-md}
@@ -30,7 +31,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 
   @include mobile {
@@ -43,9 +44,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: 999px;
+  min-height: 36px;
+  gap: 7px;
+  padding: 0 11px;
+  border-radius: var(--mg-radius-control);
   border: 1px solid var(--config-border);
   background: var(--config-surface);
   color: var(--config-text-secondary);
@@ -56,8 +58,17 @@
   transition:
     color var(--motion-duration-fast) var(--motion-ease-standard),
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
-    border-color var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &::before {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 12%, transparent);
+    content: '';
+  }
 
   @include mobile {
     width: 100%;
@@ -65,10 +76,14 @@
 }
 
 .tabBar {
-  @include management-tabs;
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 3px;
   padding: 3px;
   background: var(--config-surface-subtle);
   border: 1px solid var(--config-border);
+  border-radius: calc(var(--mg-radius-control) + 3px);
   width: fit-content;
   max-width: 100%;
   overflow-x: auto;
@@ -85,8 +100,13 @@
 
 .tabItem {
   @include button-reset;
-  padding: 8px 14px;
-  border-radius: 999px;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border-radius: var(--mg-radius-control);
   border: 1px solid transparent;
   color: var(--config-text-secondary);
   font-size: 13px;
@@ -95,7 +115,6 @@
   transition:
     color var(--motion-duration-fast) var(--motion-ease-standard),
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
-    border-color var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard);
 
   @media (hover: hover) and (pointer: fine) {
@@ -112,7 +131,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--config-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 
@@ -125,8 +144,8 @@
 .tabActive {
   color: var(--config-text);
   background: var(--config-surface);
-  border-color: var(--config-border-strong);
-  box-shadow: inset 0 -2px 0 var(--config-ink);
+  border-color: var(--config-border);
+  box-shadow: none;
 }
 
 .workspaceShell {
@@ -151,7 +170,7 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   min-height: 0;
 }
 
@@ -163,32 +182,38 @@
   background: var(--config-surface);
 }
 
+.visualWorkspace,
+.sourceWorkspace {
+  min-width: 0;
+}
+
 .sourceWorkspace {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 20px;
+  gap: 0;
+  padding: 0;
   border: 1px solid var(--config-border);
   border-radius: 15px;
   background: var(--config-surface);
 
   @include mobile {
-    padding: 16px;
+    padding: 0;
     border-radius: 12px;
   }
   min-height: 0;
 }
 
 .sourceToolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: $spacing-sm;
-  padding-bottom: 14px;
+  gap: 8px;
+  padding: 12px;
   border-bottom: 1px solid var(--config-border);
 
   @include mobile {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
   }
 }
 
@@ -208,8 +233,9 @@
 .searchInput {
   flex: 1;
   border-color: var(--config-border) !important;
-  border-radius: 8px !important;
-  background: var(--config-surface) !important;
+  min-height: 42px !important;
+  border-radius: var(--mg-radius-control) !important;
+  background: var(--config-surface-subtle) !important;
   padding-right: 132px !important;
 }
 
@@ -222,16 +248,19 @@
 .searchCount {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--config-surface-subtle);
-  border: 1px solid var(--config-border);
+  min-height: 24px;
+  max-width: 96px;
+  padding: 0 7px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 6px;
+  background: var(--config-surface);
   color: var(--config-text-secondary);
   font-size: 12px;
   font-weight: 700;
   pointer-events: none;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .searchButton {
@@ -239,15 +268,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
   background: var(--config-ink);
   border: 1px solid var(--config-ink);
   color: #ffffff;
   transition:
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
-    border-color var(--motion-duration-fast) var(--motion-ease-standard),
     opacity var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard);
 
@@ -270,9 +298,9 @@
   flex-shrink: 0;
 
   button {
-    min-width: 36px;
-    width: 36px;
-    height: 36px;
+    min-width: 42px;
+    width: 42px;
+    height: 42px;
     padding: 0 !important;
     border-radius: 8px;
   }
@@ -291,8 +319,8 @@
   width: 100%;
   flex: 0 0 auto;
   height: clamp(420px, 64vh, 980px);
-  border: 1px solid var(--config-border);
-  border-radius: 12px;
+  border: 0;
+  border-radius: 0 0 14px 14px;
   overflow: hidden;
   background: var(--config-surface-warm);
 
@@ -398,11 +426,11 @@
 .floatingActionList {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: 6px;
+  padding: 6px;
   background: var(--mg-surface);
   border: 1px solid var(--config-border-strong);
-  border-radius: var(--mg-radius-pill);
+  border-radius: 14px;
   box-shadow: var(--mg-shadow-float);
   background-clip: padding-box;
   max-width: inherit;
@@ -418,9 +446,10 @@
   display: inline-flex;
   align-items: center;
   min-width: 0;
-  min-height: 28px;
+  min-height: 36px;
+  gap: 7px;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: 9px;
   border: 1px solid transparent;
   background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   color: var(--text-primary);
@@ -431,6 +460,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  &::before {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: currentColor;
+    content: '';
+  }
 }
 
 .floatingStatusCompact {
@@ -441,33 +479,23 @@
 
 .floatingActionButton,
 .floatingActionButton:global(.btn.btn-sm) {
-  @include button-reset;
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  min-width: 40px;
+  width: auto;
+  min-width: 0;
   height: 40px;
   min-height: 40px;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  box-shadow: none;
+  gap: 7px;
+  padding: 0 12px;
+  border-radius: 9px;
   cursor: pointer;
   color: var(--text-primary);
   transition:
-    background-color 0.2s ease,
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard),
     border-color var(--motion-duration-fast) var(--motion-ease-standard);
-
-  &:hover:not(:disabled) {
-    background: var(--config-surface-subtle);
-  }
-
-  &:active:not(:disabled) {
-    background: var(--config-sage-soft);
-  }
 
   &:disabled {
     opacity: 0.5;
@@ -475,9 +503,35 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--config-sage);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
+}
+
+.floatingActionButton:global(.btn) > span:not(:global(.loading-spinner)) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.floatingActionButton:global(.btn-secondary) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingActionButton:global(.btn-secondary):hover:not(:disabled) {
+  border-color: var(--config-border);
+  background: var(--config-surface-subtle);
+}
+
+.floatingSaveButton:global(.btn-primary) {
+  min-width: 88px;
+}
+
+.floatingActionLabel {
+  line-height: 1;
 }
 
 @keyframes configSectionEnter {
@@ -494,10 +548,10 @@
 
 .dirtyDot {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 7px;
-  height: 7px;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
   background: var(--warning-color);
   box-shadow: 0 0 0 2px rgba($warning-color, 0.25);
@@ -511,7 +565,7 @@
 
   .floatingActionList {
     gap: 6px;
-    padding: 8px 10px;
+    padding: 6px;
   }
 
   .floatingStatus {
@@ -522,15 +576,83 @@
 
   .floatingActionButton,
   .floatingActionButton:global(.btn.btn-sm) {
-    width: 40px;
+    width: auto;
     height: 40px;
     flex: 0 0 auto;
   }
 }
 
 @media (max-width: 480px) {
+  .container {
+    gap: 14px;
+  }
+
+  .pageMeta {
+    gap: 8px;
+  }
+
+  .statusBadge,
+  .tabItem {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .sourceWorkspace {
+    border-radius: 12px;
+  }
+
+  .sourceToolbar {
+    gap: 7px;
+  }
+
+  .searchInput {
+    min-height: 44px !important;
+    padding-right: 116px !important;
+  }
+
+  .searchRight {
+    gap: 4px;
+  }
+
+  .searchCount {
+    max-width: 60px;
+  }
+
+  .searchActions button,
+  .searchButton {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .searchButton {
+    width: var(--mg-hit-area, 44px);
+  }
+
+  .editorWrapper {
+    height: clamp(380px, 62dvh, 720px);
+    border-radius: 0 0 11px 11px;
+  }
+
   .floatingStatus {
     max-width: min(132px, 38vw);
+  }
+
+  .floatingActionButton,
+  .floatingActionButton:global(.btn.btn-sm) {
+    min-height: var(--mg-hit-area, 44px);
+    padding-inline: 11px;
+  }
+
+  .floatingActionList {
+    max-width: calc(100vw - 16px);
+  }
+}
+
+@media (max-width: 380px) {
+  .floatingStatus {
+    max-width: 84px;
+  }
+
+  .floatingActionLabel {
+    font-size: 12px;
   }
 }
 

@@ -6,17 +6,17 @@
 // =============================================================================
 .prefixProxyModal {
   --prefix-proxy-surface: #ffffff;
-  --prefix-proxy-surface-muted: #f4f4f4;
-  --prefix-proxy-surface-warm: #faf8f5;
+  --prefix-proxy-surface-muted: #f2f5f7;
+  --prefix-proxy-surface-warm: #f8fafc;
   --prefix-proxy-control: #ffffff;
-  --prefix-proxy-text: #2c2a25;
-  --prefix-proxy-text-secondary: #565551;
-  --prefix-proxy-text-muted: #807f7c;
-  --prefix-proxy-border: #eaeae9;
-  --prefix-proxy-border-strong: #d8d8d3;
+  --prefix-proxy-text: #1f2937;
+  --prefix-proxy-text-secondary: #475569;
+  --prefix-proxy-text-muted: #64748b;
+  --prefix-proxy-border: #e2e8f0;
+  --prefix-proxy-border-strong: #cbd5e1;
   --prefix-proxy-sage: #96a58d;
   --prefix-proxy-sage-strong: #63725a;
-  --prefix-proxy-sage-soft: #e1e2d9;
+  --prefix-proxy-sage-soft: #eef2f6;
   --prefix-proxy-ink: #0e0d0c;
   --prefix-proxy-danger: #a53830;
   --prefix-proxy-warning: #e5a947;
@@ -46,7 +46,7 @@
   --floating-surface: var(--prefix-proxy-surface);
   --floating-surface-material: var(--prefix-proxy-surface);
   --floating-border: var(--prefix-proxy-border);
-  --floating-shadow: 0 16px 34px -24px rgb(44 42 37 / 0.3);
+  --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
   --surface-inner-highlight: none;
   --surface-raised: var(--prefix-proxy-surface);
   --surface-raised-strong: var(--prefix-proxy-surface);
@@ -66,7 +66,7 @@
   border-radius: 16px;
   background: var(--prefix-proxy-surface);
   color: var(--prefix-proxy-text);
-  box-shadow: 0 20px 65px rgb(44 42 37 / 0.07);
+  box-shadow: 0 20px 65px rgb(15 23 42 / 0.07);
 
   :global(.modal-header) {
     min-height: 72px;
@@ -120,7 +120,7 @@
     }
 
     &:focus-visible {
-      outline-color: var(--prefix-proxy-sage);
+      outline-color: var(--mg-focus-outline);
     }
   }
 
@@ -133,8 +133,8 @@
     box-shadow: none;
 
     &:focus {
-      border-color: var(--prefix-proxy-sage);
-      box-shadow: 0 0 0 2px rgb(150 165 141 / 0.2);
+      border-color: var(--prefix-proxy-border);
+      box-shadow: none;
     }
   }
 
@@ -454,8 +454,8 @@
 
   :global(.input:focus),
   :global(textarea.input:focus) {
-    border-color: var(--prefix-proxy-sage);
-    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.2);
+    border-color: var(--prefix-proxy-border);
+    box-shadow: none;
   }
 }
 
@@ -632,7 +632,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--focus-ring);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: -2px;
   }
 }
@@ -690,8 +690,8 @@
 
   &:focus {
     outline: none;
-    border-color: var(--prefix-proxy-sage);
-    box-shadow: 0 0 0 2px rgb(150 165 141 / 0.2);
+    border-color: var(--prefix-proxy-border);
+    box-shadow: none;
   }
 }
 
@@ -711,20 +711,20 @@
 }
 
 .prefixProxyDropdown {
-  --bg-secondary: #f4f4f4;
-  --text-primary: #2c2a25;
-  --text-secondary: #565551;
-  --text-tertiary: #807f7c;
-  --border-color: #eaeae9;
-  --border-primary: #eaeae9;
-  --border-hover: #d8d8d3;
+  --bg-secondary: #f2f5f7;
+  --text-primary: #1f2937;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --border-color: #e2e8f0;
+  --border-primary: #e2e8f0;
+  --border-hover: #cbd5e1;
   --primary-color: #63725a;
-  --primary-soft: #e1e2d9;
+  --primary-soft: #eef2f6;
   --focus-ring: rgb(150 165 141 / 0.28);
   --floating-surface: #ffffff;
   --floating-surface-material: #ffffff;
-  --floating-border: #eaeae9;
-  --floating-shadow: 0 16px 34px -24px rgb(44 42 37 / 0.3);
+  --floating-border: #e2e8f0;
+  --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
   --surface-inner-highlight: none;
 }
 

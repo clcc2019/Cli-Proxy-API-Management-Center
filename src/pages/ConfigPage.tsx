@@ -502,11 +502,12 @@ export function ConfigPage() {
           className={`${styles.floatingStatus} ${
             isMobile ? styles.floatingStatusCompact : ''
           } ${getStatusClass()}`}
+          aria-hidden="true"
         >
           {getFloatingStatusText()}
         </div>
         <RefreshButton
-          variant="ghost"
+          variant="secondary"
           size="sm"
           className={styles.floatingActionButton}
           onClick={handleReload}
@@ -514,11 +515,15 @@ export function ConfigPage() {
           loading={loading}
           label={t('config_management.reload')}
           iconSize={16}
-        />
-        <button
-          type="button"
-          className={styles.floatingActionButton}
+        >
+          <span className={styles.floatingActionLabel}>{t('config_management.reload')}</span>
+        </RefreshButton>
+        <Button
+          variant="primary"
+          size="sm"
+          className={`${styles.floatingActionButton} ${styles.floatingSaveButton}`}
           onClick={handleSave}
+          loading={saving}
           disabled={
             disableControls ||
             loading ||
@@ -531,9 +536,10 @@ export function ConfigPage() {
           title={t('config_management.save')}
           aria-label={t('config_management.save')}
         >
-          <IconCheck size={16} />
+          <IconCheck size={16} aria-hidden="true" />
+          <span className={styles.floatingActionLabel}>{t('config_management.save')}</span>
           {isDirty && <span className={styles.dirtyDot} aria-hidden="true" />}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -542,25 +548,40 @@ export function ConfigPage() {
     <div className={styles.container}>
       <ManagementPageHeader
         title={t('config_management.title')}
+        description={t('config_management.description')}
         actions={
           <div className={styles.pageMeta}>
-            <div className={`${styles.statusBadge} ${getStatusClass()}`}>{getStatusText()}</div>
-            <div className={styles.tabBar}>
+            <div
+              className={`${styles.statusBadge} ${getStatusClass()}`}
+              role="status"
+              aria-live="polite"
+            >
+              {getStatusText()}
+            </div>
+            <div className={styles.tabBar} role="tablist" aria-label={t('config_management.title')}>
               <button
                 type="button"
+                id="config-tab-visual"
+                role="tab"
+                aria-selected={activeTab === 'visual'}
+                aria-controls="config-panel-visual"
                 className={`${styles.tabItem} ${activeTab === 'visual' ? styles.tabActive : ''}`}
                 onClick={() => handleTabChange('visual')}
                 disabled={saving || loading}
               >
-                {t('config_management.tabs.visual')}
+                <span>{t('config_management.tabs.visual')}</span>
               </button>
               <button
                 type="button"
+                id="config-tab-source"
+                role="tab"
+                aria-selected={activeTab === 'source'}
+                aria-controls="config-panel-source"
                 className={`${styles.tabItem} ${activeTab === 'source' ? styles.tabActive : ''}`}
                 onClick={() => handleTabChange('source')}
                 disabled={saving || loading}
               >
-                {t('config_management.tabs.source')}
+                <span>{t('config_management.tabs.source')}</span>
               </button>
             </div>
           </div>
@@ -581,15 +602,27 @@ export function ConfigPage() {
           )}
 
           {activeTab === 'visual' ? (
-            <VisualConfigEditor
-              values={visualValues}
-              validationErrors={visualValidationErrors}
-              hasPayloadValidationErrors={visualHasPayloadValidationErrors}
-              disabled={disableControls || loading}
-              onChange={setVisualValues}
-            />
+            <div
+              id="config-panel-visual"
+              role="tabpanel"
+              aria-labelledby="config-tab-visual"
+              className={styles.visualWorkspace}
+            >
+              <VisualConfigEditor
+                values={visualValues}
+                validationErrors={visualValidationErrors}
+                hasPayloadValidationErrors={visualHasPayloadValidationErrors}
+                disabled={disableControls || loading}
+                onChange={setVisualValues}
+              />
+            </div>
           ) : (
-            <div className={styles.sourceWorkspace}>
+            <div
+              id="config-panel-source"
+              role="tabpanel"
+              aria-labelledby="config-tab-source"
+              className={styles.sourceWorkspace}
+            >
               <div className={styles.sourceToolbar}>
                 <div className={styles.searchInputWrapper}>
                   <Input
@@ -632,8 +665,9 @@ export function ConfigPage() {
                       !searchQuery || lastSearchedQuery !== searchQuery || searchResults.total === 0
                     }
                     title={t('config_management.search_prev')}
+                    aria-label={t('config_management.search_prev')}
                   >
-                    <IconChevronUp size={16} />
+                    <IconChevronUp size={16} aria-hidden="true" />
                   </Button>
                   <Button
                     variant="secondary"
@@ -643,8 +677,9 @@ export function ConfigPage() {
                       !searchQuery || lastSearchedQuery !== searchQuery || searchResults.total === 0
                     }
                     title={t('config_management.search_next')}
+                    aria-label={t('config_management.search_next')}
                   >
-                    <IconChevronDown size={16} />
+                    <IconChevronDown size={16} aria-hidden="true" />
                   </Button>
                 </div>
               </div>

@@ -154,7 +154,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 
@@ -749,13 +749,13 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 1px;
   }
 }
 
 .apiSortBtnActive {
-  border-color: var(--border-primary);
+  border-color: var(--border-color);
   background: var(--bg-tertiary);
   color: var(--text-primary);
   font-weight: 600;
@@ -798,7 +798,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: -2px;
   }
 }
@@ -1026,7 +1026,7 @@
   cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
     border-radius: $radius-sm;
   }
@@ -1806,7 +1806,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--focus-ring, var(--warning-border));
+    outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 
@@ -2206,17 +2206,17 @@
 // =============================================================================
 .container {
   --usage-surface: #ffffff;
-  --usage-surface-warm: #faf8f5;
-  --usage-surface-subtle: #f4f4f4;
-  --usage-border: #eaeae9;
-  --usage-border-strong: #d8d8d3;
-  --usage-text: #2c2a25;
-  --usage-text-secondary: #565551;
-  --usage-text-tertiary: #807f7c;
-  --usage-text-muted: #abaaa8;
+  --usage-surface-warm: #f8fafc;
+  --usage-surface-subtle: #f2f5f7;
+  --usage-border: #e2e8f0;
+  --usage-border-strong: #cbd5e1;
+  --usage-text: #1f2937;
+  --usage-text-secondary: #475569;
+  --usage-text-tertiary: #64748b;
+  --usage-text-muted: #94a3b8;
   --usage-sage: #96a58d;
   --usage-sage-strong: #63725a;
-  --usage-sage-soft: #e1e2d9;
+  --usage-sage-soft: #eef2f6;
   --usage-ink: #0e0d0c;
   --usage-danger: #a53830;
   --usage-warning: #e5a947;
@@ -2619,7 +2619,7 @@
 .sectionToggle:focus-visible,
 .apiHeader:focus-visible,
 .sortHeaderButton:focus-visible {
-  outline: 2px solid var(--usage-sage);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
   box-shadow: none;
 }
@@ -2921,7 +2921,7 @@
   --usage-surface-warm: var(--mg-surface-warm);
   --usage-surface-subtle: var(--mg-surface-subtle);
   --usage-border: var(--mg-border);
-  --usage-border-strong: #d8d8d3;
+  --usage-border-strong: #cbd5e1;
   --usage-text: var(--mg-text);
   --usage-text-secondary: var(--mg-text-secondary);
   --usage-text-tertiary: var(--mg-text-tertiary);
@@ -2986,7 +2986,7 @@
   border: 1px solid var(--usage-border);
   border-radius: 999px;
   background: var(--usage-surface);
-  box-shadow: 0 2px 18px rgb(44 42 37 / 0.05);
+  box-shadow: 0 2px 18px rgb(15 23 42 / 0.05);
 }
 
 .sectionRailLabel {
@@ -3040,7 +3040,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--usage-sage);
+      outline: 1px solid var(--mg-focus-outline);
       outline-offset: 1px;
     }
   }
@@ -3052,7 +3052,7 @@
   border: 1px solid var(--usage-border);
   border-radius: 16px;
   background: var(--usage-surface);
-  box-shadow: 0 2px 18px rgb(44 42 37 / 0.035);
+  box-shadow: 0 2px 18px rgb(15 23 42 / 0.035);
 }
 
 .overviewPanel {
@@ -3237,7 +3237,7 @@
 
   &:hover,
   &.apiSortBtnActive {
-    border-color: var(--usage-border-strong);
+    border-color: var(--usage-border);
     background: var(--usage-surface-warm);
     color: var(--usage-text);
   }
@@ -3315,7 +3315,7 @@
   border-color: var(--usage-border);
   border-radius: 12px;
   background: var(--usage-surface);
-  box-shadow: 0 2px 18px rgb(44 42 37 / 0.08);
+  box-shadow: 0 2px 18px rgb(15 23 42 / 0.08);
 }
 
 .errorBox {
@@ -3330,7 +3330,7 @@
 .sectionRailLinks a:focus-visible,
 .apiHeader:focus-visible,
 .sortHeaderButton:focus-visible {
-  outline: 2px solid var(--usage-sage);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
   box-shadow: none;
 }
@@ -3487,19 +3487,19 @@
 // The route keeps its existing data and interaction contracts; this layer
 // gives every usage surface one quiet, responsive visual system.
 .container {
-  --usage-canvas: var(--mg-canvas, #f8f8f5);
+  --usage-canvas: var(--mg-canvas, #f6f8fa);
   --usage-surface: var(--mg-surface, #ffffff);
-  --usage-surface-warm: var(--mg-surface-warm, #faf8f5);
-  --usage-surface-subtle: var(--mg-surface-subtle, #f4f4f4);
-  --usage-border: var(--mg-border, #eaeae9);
-  --usage-border-strong: #d8d8d3;
-  --usage-text: var(--mg-text, #2c2a25);
-  --usage-text-secondary: var(--mg-text-secondary, #565551);
-  --usage-text-tertiary: var(--mg-text-tertiary, #807f7c);
-  --usage-text-muted: var(--mg-text-muted, #abaaa8);
+  --usage-surface-warm: var(--mg-surface-warm, #f8fafc);
+  --usage-surface-subtle: var(--mg-surface-subtle, #f2f5f7);
+  --usage-border: var(--mg-border, #e2e8f0);
+  --usage-border-strong: #cbd5e1;
+  --usage-text: var(--mg-text, #1f2937);
+  --usage-text-secondary: var(--mg-text-secondary, #475569);
+  --usage-text-tertiary: var(--mg-text-tertiary, #64748b);
+  --usage-text-muted: var(--mg-text-muted, #94a3b8);
   --usage-sage: var(--mg-sage, #96a58d);
   --usage-sage-strong: var(--mg-sage-strong, #63725a);
-  --usage-sage-soft: var(--mg-sage-soft, #e1e2d9);
+  --usage-sage-soft: var(--mg-sage-soft, #eef2f6);
   --usage-ink: var(--mg-ink-strong, #0e0d0c);
   --usage-success: var(--mg-success, #407345);
   --usage-warning: var(--mg-warning, #e5a947);
@@ -3565,7 +3565,7 @@
   border: 1px solid var(--usage-border);
   border-radius: 999px;
   background: var(--usage-surface);
-  box-shadow: 0 2px 18px rgb(44 42 37 / 0.045);
+  box-shadow: 0 2px 18px rgb(15 23 42 / 0.045);
 }
 
 .sectionRailLabel {
@@ -3626,7 +3626,7 @@
 .sectionToggle:focus-visible,
 .apiHeader:focus-visible,
 .sortHeaderButton:focus-visible {
-  outline: 2px solid var(--usage-focus);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
   box-shadow: none;
 }
@@ -3637,7 +3637,7 @@
   border: 1px solid var(--usage-border);
   border-radius: 16px;
   background: var(--usage-surface);
-  box-shadow: 0 2px 18px rgb(44 42 37 / 0.03);
+  box-shadow: 0 2px 18px rgb(15 23 42 / 0.03);
 }
 
 .sectionHeader {
@@ -3896,7 +3896,7 @@
 
 .apiSortBtn:hover,
 .apiSortBtn.apiSortBtnActive {
-  border-color: var(--usage-border-strong);
+  border-color: var(--usage-border);
   background: var(--usage-surface-warm);
   color: var(--usage-text);
 }
@@ -4024,7 +4024,7 @@
   border-color: var(--usage-border);
   border-radius: 11px;
   background: var(--usage-surface);
-  box-shadow: 0 8px 24px rgb(44 42 37 / 0.08);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
 }
 
 .loadingOverlaySpinner {
@@ -4635,7 +4635,7 @@
 
 .apiSortBtn:hover,
 .apiSortBtn.apiSortBtnActive {
-  border-color: var(--usage-border-strong);
+  border-color: var(--usage-border);
   background: var(--usage-surface-warm);
   color: var(--usage-text);
 }
@@ -4746,7 +4746,7 @@
   border-color: var(--usage-border);
   border-radius: 10px;
   background: var(--usage-surface);
-  box-shadow: 0 6px 20px rgb(44 42 37 / 0.07);
+  box-shadow: 0 6px 20px rgb(15 23 42 / 0.07);
 }
 
 .loadingOverlaySpinner {
@@ -4770,7 +4770,7 @@
 .sectionToggle:focus-visible,
 .apiHeader:focus-visible,
 .sortHeaderButton:focus-visible {
-  outline: 2px solid var(--usage-focus);
+  outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
   box-shadow: none;
 }

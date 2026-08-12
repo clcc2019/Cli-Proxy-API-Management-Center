@@ -28,8 +28,8 @@
   box-shadow: none;
 
   &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 2px;
   }
 
   &:active:not(:disabled) {
@@ -167,9 +167,14 @@ textarea {
 
   &:focus {
     outline: none;
-    border-color: var(--mg-sage-strong);
+    border-color: var(--mg-border);
     background-color: var(--mg-surface);
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 1px;
   }
 
   &[aria-invalid='true'] {
@@ -662,8 +667,8 @@ textarea {
   }
 
   &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--mg-focus-ring);
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 2px;
   }
 
   &:disabled {
@@ -753,7 +758,10 @@ textarea {
   }
 
   .modal-overlay {
-    padding: $spacing-md;
+    padding-top: max($spacing-md, env(safe-area-inset-top));
+    padding-right: max($spacing-md, env(safe-area-inset-right));
+    padding-bottom: max($spacing-md, env(safe-area-inset-bottom));
+    padding-left: max($spacing-md, env(safe-area-inset-left));
   }
 
   .modal {
@@ -770,6 +778,13 @@ textarea {
   .modal-header {
     padding: $spacing-md;
     padding-right: 52px;
+  }
+
+  .modal-close-floating {
+    top: 6px;
+    right: 6px;
+    width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
   }
 
   .modal-body {
@@ -791,6 +806,7 @@ textarea {
 
   .modal-footer .btn {
     width: 100%;
+    min-height: var(--mg-hit-area, 44px);
   }
 }
 
