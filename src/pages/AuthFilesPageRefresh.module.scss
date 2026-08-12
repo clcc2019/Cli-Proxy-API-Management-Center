@@ -1191,6 +1191,23 @@
 }
 
 .page .credentialCard {
+  // xAI's light product surfaces stay monochrome and border-led. Scope the
+  // neutral action/selection palette to the credential card so the page keeps
+  // its cold-white canvas while status colors remain explicitly semantic.
+  --auth-card-accent: #111214;
+  --auth-card-accent-soft: #f0f1f2;
+  --auth-card-attention: #c24e0b;
+  --auth-card-border: #dfe1e4;
+  --auth-workbench-border: #e6e7e9;
+  --auth-workbench-border-strong: #bfc2c6;
+  --auth-workbench-subtle: #f6f7f8;
+  --mg-sage: var(--auth-card-accent);
+  --mg-sage-strong: var(--auth-card-accent);
+  --mg-sage-soft: var(--auth-card-accent-soft);
+  --mg-surface-selected: var(--auth-card-accent-soft);
+  --mg-focus-outline: rgb(17 18 20 / 68%);
+  --mg-focus-ring: rgb(17 18 20 / 14%);
+
   container-name: auth-file-card;
   container-type: inline-size;
   position: relative;
@@ -1236,11 +1253,11 @@
 }
 
 .page .credentialCardSelected {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 48%, var(--mg-border));
+  border-color: var(--auth-card-accent);
   background: var(--mg-surface);
   box-shadow:
     var(--mg-shadow-rest),
-    inset 0 0 0 1px color-mix(in srgb, var(--mg-sage-strong) 18%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--auth-card-accent) 8%, transparent);
 }
 
 .page .credentialCardSelected::before {
@@ -1336,10 +1353,10 @@
   align-items: center;
   gap: 5px;
   padding: 0 5px;
-  border: 1px solid color-mix(in srgb, var(--provider-accent) 24%, var(--mg-border));
+  border: 1px solid var(--auth-workbench-border);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--provider-soft) 34%, var(--mg-surface));
-  color: color-mix(in srgb, var(--provider-accent) 82%, var(--mg-text));
+  background: var(--auth-workbench-subtle);
+  color: var(--mg-text-secondary);
   font-size: 10.5px;
   font-weight: 650;
   line-height: 1;
@@ -1680,9 +1697,9 @@
 .page .refreshTokenBadge {
   width: 20px;
   flex: 0 0 20px;
-  color: var(--mg-warning);
-  background: color-mix(in srgb, var(--mg-warning) 8%, var(--mg-surface));
-  border-color: color-mix(in srgb, var(--mg-warning) 24%, var(--mg-border));
+  color: var(--auth-card-attention);
+  background: color-mix(in srgb, var(--auth-card-attention) 6%, var(--mg-surface));
+  border-color: color-mix(in srgb, var(--auth-card-attention) 22%, var(--mg-border));
 }
 
 .page .featureBadgeEnabled {
@@ -1692,9 +1709,9 @@
 }
 
 .page .featureBadgeFast {
-  color: var(--mg-warning);
-  background: color-mix(in srgb, var(--mg-warning) 9%, var(--mg-surface));
-  border-color: color-mix(in srgb, var(--mg-warning) 26%, var(--mg-border));
+  color: var(--auth-card-attention);
+  background: color-mix(in srgb, var(--auth-card-attention) 7%, var(--mg-surface));
+  border-color: color-mix(in srgb, var(--auth-card-attention) 24%, var(--mg-border));
 }
 
 .page .featureBadgeIconOnly {
@@ -2180,12 +2197,10 @@
 }
 
 .page .premiumPlanValue {
-  border-color: color-mix(in srgb, var(--mg-warning) 42%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-warning) 14%, var(--mg-surface));
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 66%, transparent),
-    0 1px 2px color-mix(in srgb, var(--mg-warning) 12%, transparent);
-  color: color-mix(in srgb, var(--mg-warning) 90%, var(--mg-text));
+  border-color: var(--mg-border-hover);
+  background: var(--auth-workbench-subtle);
+  box-shadow: none;
+  color: var(--mg-text);
   font-weight: 720;
   letter-spacing: 0.015em;
 }

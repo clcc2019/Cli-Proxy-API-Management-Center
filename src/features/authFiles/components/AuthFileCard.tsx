@@ -5,7 +5,6 @@ import {
   useCallback,
   useMemo,
   useState,
-  type CSSProperties,
   type KeyboardEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +33,6 @@ import {
 import { formatMillionTokens, type KeyUsageBucket } from '@/utils/usage';
 import {
   getAuthFileIcon,
-  getTypeColor,
   getTypeLabel,
   parsePriorityValue,
   readAuthFileServiceTierPassthrough,
@@ -174,7 +172,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const showModelsButton = !isRuntimeOnly || isAistudio;
 
   const typeKey = file.type || 'unknown';
-  const typeColor = useMemo(() => getTypeColor(typeKey, resolvedTheme), [typeKey, resolvedTheme]);
   const providerLabel = useMemo(() => getTypeLabel(t, typeKey), [t, typeKey]);
   const providerIconSrc = useMemo(
     () => getAuthFileIcon(typeKey, resolvedTheme),
@@ -307,13 +304,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     void onCopyName(authFileDisplayName);
   });
 
-  const cardStyle = useMemo<CSSProperties>(() => {
-    return {
-      '--provider-accent': typeColor.text,
-      '--provider-soft': typeColor.bg,
-    } as CSSProperties;
-  }, [typeColor]);
-
   const cardClassName = useMemo(() => {
     const cls = [refreshStyles.credentialCard];
     if (selected) cls.push(refreshStyles.credentialCardSelected);
@@ -328,7 +318,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   return (
     <article
       className={cardClassName}
-      style={cardStyle}
       data-auth-file-name={file.name}
       aria-label={`${providerLabel}: ${maskedAuthFileDisplayName}`}
     >
