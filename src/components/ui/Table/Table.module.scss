@@ -2,15 +2,21 @@
 @use '../../../styles/variables' as *;
 
 .wrap {
-  border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
-  border-radius: var(--mg-radius-medium, 12px);
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-medium);
   overflow: hidden;
-  background: var(--surface-card, var(--surface-raised));
-  box-shadow: var(--shadow-card);
+  background: var(--mg-surface);
+  box-shadow: none;
 }
 
 .scroll {
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
+
+  &:focus-visible {
+    outline: 2px solid var(--mg-sage-strong);
+    outline-offset: -2px;
+  }
 }
 
 .table {
@@ -22,7 +28,7 @@
 }
 
 .head {
-  background: var(--muted-bg, var(--panel-surface-muted));
+  background: var(--mg-surface-warm);
 
   th {
     color: var(--muted-foreground, var(--text-secondary));
@@ -30,7 +36,7 @@
     font-size: 12px;
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+    border-bottom: 1px solid var(--mg-border);
     vertical-align: middle;
   }
 
@@ -40,7 +46,7 @@
 }
 
 .body {
-  background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
+  background: var(--mg-surface);
 }
 
 .row {
@@ -48,17 +54,17 @@
 
   td {
     padding: 12px 14px;
-    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+    border-bottom: 1px solid var(--mg-border);
     vertical-align: top;
     line-height: 1.5;
   }
 
   &:hover td {
-    background: var(--mg-surface-subtle, var(--surface-raised));
+    background: var(--mg-surface-warm);
   }
 
   &.selected td {
-    background: var(--primary-soft, color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 8%, transparent));
+    background: var(--mg-surface-selected);
   }
 }
 

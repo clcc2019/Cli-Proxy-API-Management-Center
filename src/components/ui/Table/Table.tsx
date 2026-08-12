@@ -22,9 +22,15 @@ export function Table({
   ...rest
 }: PropsWithChildren<TableProps>) {
   const tableCls = [styles.table, className].filter(Boolean).join(' ');
+  const scrollLabel = rest['aria-label'];
   return (
     <div className={[styles.wrap, wrapperClassName].filter(Boolean).join(' ')}>
-      <div className={styles.scroll}>
+      <div
+        className={styles.scroll}
+        role={scrollLabel ? 'region' : undefined}
+        aria-label={scrollLabel}
+        tabIndex={scrollLabel ? 0 : undefined}
+      >
         <table className={tableCls} {...rest}>
           {cols ? <colgroup>{cols}</colgroup> : null}
           {children}

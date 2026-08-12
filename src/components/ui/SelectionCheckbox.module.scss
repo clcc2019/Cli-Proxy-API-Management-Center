@@ -46,7 +46,8 @@
 
 .root:hover .box {
   border-color: var(--border-hover);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 12%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 12%, transparent);
 }
 
 .disabled:hover .box {
@@ -56,12 +57,13 @@
 
 .input:focus-visible + .box {
   border-color: var(--mg-sage-strong, var(--primary-color));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 18%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 18%, transparent);
 }
 
 .boxChecked {
-  border-color: var(--primary-color);
-  background: var(--brand-gradient, var(--primary-color));
+  border-color: var(--mg-sage-strong);
+  background: var(--mg-sage-strong);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16);
 }
 

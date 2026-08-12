@@ -56,15 +56,24 @@ $z-modal: 2000;
 $z-notification: 3000;
 
 // 字体
+// CJK 字体显式声明在拉丁字体之后、通用 sans-serif 之前：拉丁字形用 Inter/系统
+// UI 字体，中文字形回退到各平台的高质量 UI 黑体，避免操作系统随机回退导致的
+// 字重/字面不一致。
 $font-family:
   Inter,
-  ui-sans-serif,
   -apple-system,
   BlinkMacSystemFont,
   'Segoe UI',
   'Roboto',
   'Helvetica Neue',
   Arial,
+  'PingFang SC',
+  'Hiragino Sans GB',
+  'Microsoft YaHei',
+  'Noto Sans SC',
+  'Noto Sans CJK SC',
+  'Source Han Sans SC',
+  ui-sans-serif,
   sans-serif;
 
 // Editorial display stack for destination/overview headings. It stays fully
@@ -73,9 +82,14 @@ $font-display:
   'Avenir Next',
   'Segoe UI Variable Display',
   'Segoe UI',
-  ui-sans-serif,
   -apple-system,
   BlinkMacSystemFont,
+  'PingFang SC',
+  'Hiragino Sans GB',
+  'Microsoft YaHei',
+  'Noto Sans SC',
+  'Noto Sans CJK SC',
+  ui-sans-serif,
   sans-serif;
 
 $font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;

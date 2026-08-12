@@ -2,14 +2,14 @@
 
 :root {
   --header-height: 60px;
-  --page-padding-inline: clamp(16px, 1.8vw, 28px);
-  --page-padding-block: clamp(24px, 2.5vw, 36px);
-  --page-content-gap: clamp(18px, 1.8vw, 28px);
+  --page-padding-inline: var(--mg-page-gutter);
+  --page-padding-block: clamp(24px, 2.2vw, 32px);
+  --page-content-gap: clamp(18px, 1.6vw, 24px);
   --page-title-size: clamp(24px, 2vw, 30px);
 }
 
 .app-shell {
-  --sidebar-width: 212px;
+  --sidebar-width: 192px;
   --sidebar-collapsed-width: 64px;
   --sidebar-item-height: 44px;
   --sidebar-label-size: 14px;
@@ -432,7 +432,7 @@
 
     // 移动端：收成极简点状胶囊，继续传达连接状态
     @media (max-width: $breakpoint-mobile) {
-      max-width: min(34vw, 132px);
+      max-width: min(40vw, 160px);
       min-height: 34px;
       padding: 4px 8px;
       gap: 6px;
@@ -441,30 +441,14 @@
         padding: 0;
         border: none;
         background: transparent;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        font-size: 0;
-        color: transparent;
+        width: auto;
+        height: auto;
+        border-radius: 0;
+        color: var(--mg-text-secondary, var(--text-secondary));
+        font-size: 11px;
 
         &::before {
-          display: none;
-        }
-
-        &.success {
-          background: var(--success-color);
-        }
-
-        &.warning {
-          background: var(--quota-medium-color);
-        }
-
-        &.error {
-          background: var(--error-color);
-        }
-
-        &.muted {
-          background: var(--text-tertiary);
+          display: block;
         }
       }
 
@@ -490,8 +474,14 @@
     }
 
     .connection {
-      max-width: none;
+      max-width: min(26vw, 104px);
       padding-inline: 8px;
+
+      .status-badge {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
       .base {
         display: none;
@@ -559,7 +549,7 @@
   width: var(--sidebar-width);
   background: var(--sidebar-surface, #fafaf8);
   border-right: 1px solid var(--sidebar-border, #e7e6e1);
-  padding: 18px 12px 20px;
+  padding: 18px 10px 20px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -692,7 +682,7 @@
     min-height: var(--sidebar-item-height);
     align-items: center;
     gap: 10px;
-    padding: 5px 9px 5px 6px;
+    padding: 5px 7px 5px 5px;
     border-radius: 8px;
     border: 1px solid transparent;
     color: var(--sidebar-text-secondary, #55534e);
@@ -711,7 +701,7 @@
     &::before {
       content: '';
       position: absolute;
-      left: -7px;
+      left: -6px;
       top: 50%;
       width: 3px;
       height: 0;
@@ -726,8 +716,8 @@
 
     .nav-icon {
       display: inline-flex;
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
@@ -822,10 +812,8 @@
     padding: 16px 12px calc(16px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
-    background: rgb(250 250 250 / 94%);
-    box-shadow: 12px 0 30px rgb(13 13 13 / 0.08);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    background: var(--sidebar-surface, #fafaf8);
+    box-shadow: 12px 0 30px rgb(13 13 13 / 0.1);
     transition:
       transform 200ms ease,
       visibility 0s linear 200ms;
@@ -912,7 +900,7 @@
   }
 }
 
-  .content {
+.content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -977,9 +965,9 @@
   }
 
   @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-md max(10px, env(safe-area-inset-right))
-      calc(#{$spacing-md} + env(safe-area-inset-bottom))
-      max(10px, env(safe-area-inset-left));
+    padding: var(--mg-space-5) max(var(--mg-space-5), env(safe-area-inset-right))
+      calc(var(--mg-space-5) + env(safe-area-inset-bottom))
+      max(var(--mg-space-5), env(safe-area-inset-left));
   }
 }
 

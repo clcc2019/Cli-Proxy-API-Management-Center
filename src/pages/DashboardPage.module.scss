@@ -14,7 +14,6 @@
   --dashboard-sage: var(--mg-sage, #96a58d);
   --dashboard-sage-strong: var(--mg-sage-strong, #63725a);
   --dashboard-sage-soft: var(--mg-sage-soft, #e1e2d9);
-  --dashboard-orange: var(--mg-orange, #ff6e06);
   --dashboard-success: var(--mg-success);
   --dashboard-warning: var(--mg-warning);
   --dashboard-danger: var(--mg-danger);
@@ -25,13 +24,13 @@
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: var(--mg-space-6);
   width: 100%;
   max-width: none;
   color: var(--dashboard-text);
 }
 
-// ─── Editorial welcome hero ─────────────────────────────
+// ─── Restrained overview header ─────────────────────────
 
 .hero {
   position: relative;
@@ -40,18 +39,12 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 32px;
-  min-height: 176px;
-  padding: 28px 32px;
+  min-height: 156px;
+  padding: var(--mg-space-6) var(--mg-space-8);
   overflow: hidden;
   border: 1px solid var(--dashboard-border);
   border-radius: var(--dashboard-radius);
-  background:
-    radial-gradient(
-      78% 120% at 92% 0%,
-      color-mix(in srgb, var(--dashboard-sage) 12%, transparent),
-      transparent 66%
-    ),
-    var(--dashboard-surface);
+  background: var(--dashboard-surface);
   box-shadow: none;
 }
 
@@ -66,11 +59,10 @@
 }
 
 .heroGreeting {
-  color: var(--dashboard-orange);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--dashboard-sage-strong);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
 }
 
 .heroGreeting::before {
@@ -78,20 +70,20 @@
 }
 
 .heroTitle {
-  max-width: 14ch;
+  max-width: 18ch;
   margin: 0;
   color: var(--dashboard-text);
   font-family: $font-display;
-  font-size: clamp(36px, 4vw, 48px);
+  font-size: clamp(32px, 3.5vw, 42px);
   font-weight: 650;
-  line-height: 1;
-  letter-spacing: -0.045em;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
 .heroCaring {
   max-width: 56ch;
-  margin: 12px 0 0;
+  margin: var(--mg-space-2) 0 0;
   color: var(--dashboard-text-secondary);
   font-size: 14.5px;
   line-height: 1.55;
@@ -104,12 +96,12 @@
   position: relative;
   z-index: 0;
   display: flex;
-  min-width: 232px;
+  min-width: 220px;
   flex: 0 0 auto;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding: 4px 0 4px 24px;
+  padding: 2px 0 2px var(--mg-space-6);
   border-left: 1px solid var(--dashboard-border);
   background: transparent;
 }
@@ -146,7 +138,7 @@
   padding: 6px 11px;
   border: 1px solid var(--dashboard-border);
   border-radius: $radius-full;
-  background: var(--dashboard-surface-subtle);
+  background: var(--dashboard-surface-warm);
   color: var(--dashboard-text);
   font-size: 12px;
 }
@@ -285,14 +277,6 @@
   }
 }
 
-.bentoLarge {
-  background: var(--mg-surface-selected);
-
-  .bentoValue {
-    font-size: 36px;
-  }
-}
-
 .bentoIcon {
   display: flex;
   width: 38px;
@@ -302,12 +286,12 @@
   border: 1px solid var(--dashboard-border);
   border-radius: 10px;
   background: var(--dashboard-surface-subtle);
-  color: var(--dashboard-sage-strong);
+  color: var(--dashboard-text-secondary);
   transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .bentoCard:hover .bentoIcon {
-  background: var(--dashboard-sage-soft);
+  background: var(--dashboard-surface-subtle);
 }
 
 .bentoContent {
@@ -536,7 +520,7 @@
     align-items: flex-end;
     flex-direction: row;
     gap: 24px;
-    padding: 26px 28px;
+    padding: var(--mg-space-6);
   }
 
   .heroContent {
@@ -579,7 +563,7 @@
 
   .heroTitle {
     max-width: 16ch;
-    font-size: clamp(34px, 10vw, 42px);
+    font-size: clamp(32px, 9vw, 38px);
   }
 
   .heroCaring {
@@ -627,7 +611,6 @@
     }
   }
 
-  .bentoLarge .bentoValue,
   .bentoValue {
     font-size: 30px;
   }

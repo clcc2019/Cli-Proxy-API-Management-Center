@@ -306,7 +306,7 @@
 
 .page .providerTabActive::after,
 .page .providerTab[aria-pressed='true']::after {
-  background: var(--filter-color, var(--mg-sage-strong));
+  background: var(--mg-sage-strong);
 }
 
 .page .providerTab:focus-visible {
@@ -370,7 +370,7 @@
 
 .page .providerTabActive .providerTabCount,
 .page .providerTab[aria-pressed='true'] .providerTabCount {
-  background: color-mix(in srgb, var(--filter-color, var(--mg-text)) 10%, transparent);
+  background: var(--mg-sage-soft);
   color: var(--mg-text);
 }
 
@@ -565,9 +565,9 @@
 }
 
 .page .searchField:focus-within {
-  border-color: var(--mg-text-tertiary);
+  border-color: var(--mg-sage-strong);
   background: var(--mg-surface);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mg-text) 14%, transparent);
+  box-shadow: 0 0 0 3px var(--mg-focus-ring);
 }
 
 .page .searchIcon {
@@ -955,10 +955,17 @@
   --auth-file-card-min-width: 280px;
 }
 
-@container auth-files-page (min-width: 900px) {
-  .page .cardGrid {
+@container auth-files-page (min-width: 1080px) {
+  .page .cardGrid:not(.cardGridQuotaManaged) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
+    gap: 12px;
+  }
+}
+
+@container auth-files-page (min-width: 1160px) {
+  .page .cardGridQuotaManaged {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
   }
 }
 
@@ -3006,6 +3013,7 @@
 
   .page .headerActions {
     justify-self: start;
+    flex-wrap: wrap;
   }
 
   .page .controlRail {
@@ -3113,19 +3121,17 @@
   }
 
   .page .headerActions {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
-    justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 1px 0 3px;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    align-items: stretch;
+    padding: 0;
+    overflow: visible;
   }
 
-  .page .headerActions::-webkit-scrollbar {
-    display: none;
+  .page .headerAction:global(.btn.btn-sm) {
+    width: 100%;
+    min-width: 0;
   }
 
   .page .headerActions .dangerAction:global(.btn.btn-danger) {
@@ -3153,14 +3159,22 @@
   }
 
   .page .displayOptions {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 1px;
-    scrollbar-width: none;
+    align-items: stretch;
+    flex-wrap: wrap;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
-  .page .displayOptions::-webkit-scrollbar {
-    display: none;
+  .page .displayOptionGroup {
+    min-width: 0;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+
+  .page .displayOption {
+    min-width: 0;
+    flex: 1 1 auto;
+    justify-content: center;
   }
 
   .page .displayOptionsLabel {
@@ -3274,6 +3288,10 @@
 
   .page .headerAction:global(.btn.btn-sm) {
     min-height: 44px;
+  }
+
+  .page .headerActions {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .page .controlRail {

@@ -562,11 +562,11 @@ export function DashboardPage() {
           {t('dashboard.system_overview')}
         </h2>
         <div className={styles.bentoGrid}>
-          {quickStats.map((stat, index) => (
+          {quickStats.map((stat) => (
             <Link
               key={stat.path}
               to={stat.path}
-              className={`${styles.bentoCard} ${index === 0 ? styles.bentoLarge : ''}`}
+              className={styles.bentoCard}
               aria-label={`${stat.label}: ${stat.loading ? '…' : stat.value}`}
             >
               <div className={styles.bentoIcon}>{stat.icon}</div>

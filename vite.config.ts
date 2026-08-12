@@ -37,7 +37,10 @@ function getVersion(): string {
 
   // 2. Try git tag
   try {
-    const gitTag = execSync('git describe --tags --exact-match 2>/dev/null || git describe --tags 2>/dev/null || echo ""', { encoding: 'utf8' }).trim();
+    const gitTag = execSync(
+      'git describe --tags --exact-match 2>/dev/null || git describe --tags 2>/dev/null || echo ""',
+      { encoding: 'utf8' }
+    ).trim();
     if (gitTag) {
       return gitTag;
     }
@@ -59,6 +62,13 @@ function getVersion(): string {
 }
 
 function resolveManualChunk(id: string) {
+  // The boot/session fallback only needs this tiny spinner. Keeping it out of
+  // the shared UI chunk prevents the entry from preloading every UI primitive
+  // before the router knows whether to show login or the management shell.
+  if (/[\\/]src[\\/]components[\\/]ui[\\/]LoadingSpinner\.tsx(?:\?|$)/.test(id)) {
+    return undefined;
+  }
+
   // The UI primitives are shared by nearly every route. Keeping them in one
   // chunk avoids dozens of sub-5 KB requests without pulling page content
   // into the initial entry.
@@ -201,29 +211,29 @@ export default defineConfig(({ mode }) => {
       ...(singleFileBuild
         ? [
             viteSingleFile({
-              removeViteModuleLoader: true
+              removeViteModuleLoader: true,
             }),
           ]
         : []),
     ],
     define: {
-      __APP_VERSION__: JSON.stringify(getVersion())
+      __APP_VERSION__: JSON.stringify(getVersion()),
     },
     resolve: {
       alias: {
-        '@': path.resolve(PROJECT_ROOT, './src')
-      }
+        '@': path.resolve(PROJECT_ROOT, './src'),
+      },
     },
     css: {
       modules: {
         localsConvention: 'camelCase',
-        generateScopedName: '[name]__[local]___[hash:base64:5]'
+        generateScopedName: '[name]__[local]___[hash:base64:5]',
       },
       preprocessorOptions: {
         scss: {
-          additionalData: `@use "@/styles/variables.scss" as *;`
-        }
-      }
+          additionalData: `@use "@/styles/variables.scss" as *;`,
+        },
+      },
     },
     build: {
       target: 'es2020',
@@ -247,12 +257,12 @@ export default defineConfig(({ mode }) => {
         output: singleFileBuild
           ? {
               inlineDynamicImports: true,
-              manualChunks: undefined
+              manualChunks: undefined,
             }
           : {
-              manualChunks: resolveManualChunk
-            }
-      }
-    }
+              manualChunks: resolveManualChunk,
+            },
+      },
+    },
   };
 });

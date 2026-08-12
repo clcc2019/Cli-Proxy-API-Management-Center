@@ -7,7 +7,8 @@ const manifestPath = path.join(distRoot, '.vite', 'manifest.json');
 
 const limits = {
   entryJavaScript: 36 * 1024,
-  initialStaticJavaScript: 445 * 1024,
+  initialStaticJavaScript: 400 * 1024,
+  initialStaticCss: 50 * 1024,
   authFilesJavaScript: 98 * 1024,
   authFilesDirectCss: 140 * 1024,
 };
@@ -51,6 +52,7 @@ const collectStaticImports = (key, collected = new Set()) => {
 };
 
 const entryStaticKeys = collectStaticImports(entryKey);
+const entryStaticCss = new Set([...entryStaticKeys].flatMap((key) => manifest[key]?.css ?? []));
 const authFilesDirectCss = new Set(authFilesChunk.css ?? []);
 for (const importedKey of authFilesChunk.imports ?? []) {
   if (entryStaticKeys.has(importedKey)) continue;
@@ -75,6 +77,11 @@ const measurements = [
     limit: limits.initialStaticJavaScript,
   },
   {
+    label: 'Initial static CSS',
+    size: await sumAssetSizes([...entryStaticCss]),
+    limit: limits.initialStaticCss,
+  },
+  {
     label: 'Auth files route JavaScript',
     size: await assetSize(authFilesChunk.file),
     limit: limits.authFilesJavaScript,
@@ -92,7 +99,7 @@ const entryStaticGraph = [...entryStaticKeys].map((key) => {
 });
 
 const forbiddenEntryChunks = entryStaticGraph.filter((description) =>
-  /charts?|editor|codemirror|(?:^|[\/_-])(?:vendor|usage|stores|error)(?:[\/_\-.]|$)/i.test(
+  /charts?|editor|codemirror|(?:^|[\/_-])(?:vendor|usage|stores|error|http)(?:[\/_\-.]|$)/i.test(
     description
   )
 );
@@ -113,7 +120,9 @@ for (const { label, size, limit } of measurements) {
 }
 
 if (forbiddenEntryChunks.length === 0) {
-  console.log('  PASS  Deferred feature chunks are absent from the entry static dependency graph');
+  console.log(
+    '  PASS  Deferred feature and transport chunks are absent from the entry static dependency graph'
+  );
 } else {
   console.error('  FAIL  Entry statically depends on deferred chunks:');
   for (const chunk of forbiddenEntryChunks) {

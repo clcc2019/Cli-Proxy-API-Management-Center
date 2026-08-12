@@ -42,13 +42,9 @@
 
   .secondary,
   .actions {
+    width: 100%;
+    flex-wrap: wrap;
     justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .secondary::-webkit-scrollbar,
-  .actions::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
   }
 }

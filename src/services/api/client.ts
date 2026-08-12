@@ -3,7 +3,7 @@
  * 替代原项目 src/core/api-client.js
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ApiClientConfig, ApiError } from '@/types';
 import { BUILD_DATE_HEADER_KEYS, REQUEST_TIMEOUT_MS, VERSION_HEADER_KEYS } from '@/utils/constants';
 import { computeApiUrl } from '@/utils/connection';
@@ -13,20 +13,11 @@ export type ApiRequestConfig = AxiosRequestConfig & {
 };
 
 class ApiClient {
-  private instance: AxiosInstance;
+  private instance: AxiosInstance | null = null;
+  private instancePromise: Promise<AxiosInstance> | null = null;
   private apiBase: string = '';
   private managementKey: string = '';
-
-  constructor() {
-    this.instance = axios.create({
-      timeout: REQUEST_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    this.setupInterceptors();
-  }
+  private timeout = REQUEST_TIMEOUT_MS;
 
   /**
    * 设置 API 配置
@@ -34,12 +25,29 @@ class ApiClient {
   setConfig(config: ApiClientConfig): void {
     this.apiBase = computeApiUrl(config.apiBase);
     this.managementKey = config.managementKey;
+    this.timeout = config.timeout || REQUEST_TIMEOUT_MS;
 
-    if (config.timeout) {
-      this.instance.defaults.timeout = config.timeout;
-    } else {
-      this.instance.defaults.timeout = REQUEST_TIMEOUT_MS;
+    if (this.instance) {
+      this.instance.defaults.timeout = this.timeout;
     }
+  }
+
+  private getInstance(): Promise<AxiosInstance> {
+    if (!this.instancePromise) {
+      this.instancePromise = import('axios').then(({ default: axios }) => {
+        const instance = axios.create({
+          timeout: this.timeout,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        this.setupInterceptors(instance);
+        this.instance = instance;
+        return instance;
+      });
+    }
+
+    return this.instancePromise;
   }
 
   private readHeader(headers: Record<string, unknown> | undefined, keys: string[]): string | null {
@@ -83,9 +91,9 @@ class ApiClient {
   /**
    * 设置请求/响应拦截器
    */
-  private setupInterceptors(): void {
+  private setupInterceptors(instance: AxiosInstance): void {
     // 请求拦截器
-    this.instance.interceptors.request.use(
+    instance.interceptors.request.use(
       (config) => {
         // 设置 baseURL
         config.baseURL = this.apiBase;
@@ -105,7 +113,7 @@ class ApiClient {
     );
 
     // 响应拦截器
-    this.instance.interceptors.response.use(
+    instance.interceptors.response.use(
       (response) => {
         const headers = response.headers as Record<string, string | undefined>;
         const version = this.readHeader(headers, VERSION_HEADER_KEYS);
@@ -132,8 +140,10 @@ class ApiClient {
   private handleError(error: unknown): ApiError {
     const isRecord = (value: unknown): value is Record<string, unknown> =>
       value !== null && typeof value === 'object';
+    const isAxiosError = (value: unknown): value is AxiosError =>
+      isRecord(value) && value.isAxiosError === true;
 
-    if (axios.isAxiosError(error)) {
+    if (isAxiosError(error)) {
       const responseData: unknown = error.response?.data;
       const responseRecord = isRecord(responseData) ? responseData : null;
       const errorValue = responseRecord?.error;
@@ -178,7 +188,7 @@ class ApiClient {
    * GET 请求
    */
   async get<T = unknown>(url: string, config?: ApiRequestConfig): Promise<T> {
-    const response = await this.instance.get<T>(url, config);
+    const response = await (await this.getInstance()).get<T>(url, config);
     return response.data;
   }
 
@@ -186,7 +196,7 @@ class ApiClient {
    * POST 请求
    */
   async post<T = unknown>(url: string, data?: unknown, config?: ApiRequestConfig): Promise<T> {
-    const response = await this.instance.post<T>(url, data, config);
+    const response = await (await this.getInstance()).post<T>(url, data, config);
     return response.data;
   }
 
@@ -194,7 +204,7 @@ class ApiClient {
    * PUT 请求
    */
   async put<T = unknown>(url: string, data?: unknown, config?: ApiRequestConfig): Promise<T> {
-    const response = await this.instance.put<T>(url, data, config);
+    const response = await (await this.getInstance()).put<T>(url, data, config);
     return response.data;
   }
 
@@ -202,7 +212,7 @@ class ApiClient {
    * PATCH 请求
    */
   async patch<T = unknown>(url: string, data?: unknown, config?: ApiRequestConfig): Promise<T> {
-    const response = await this.instance.patch<T>(url, data, config);
+    const response = await (await this.getInstance()).patch<T>(url, data, config);
     return response.data;
   }
 
@@ -210,7 +220,7 @@ class ApiClient {
    * DELETE 请求
    */
   async delete<T = unknown>(url: string, config?: ApiRequestConfig): Promise<T> {
-    const response = await this.instance.delete<T>(url, config);
+    const response = await (await this.getInstance()).delete<T>(url, config);
     return response.data;
   }
 
@@ -218,7 +228,7 @@ class ApiClient {
    * 获取原始响应（用于下载等场景）
    */
   async getRaw(url: string, config?: ApiRequestConfig): Promise<AxiosResponse> {
-    return this.instance.get(url, config);
+    return (await this.getInstance()).get(url, config);
   }
 
   /**
@@ -229,7 +239,9 @@ class ApiClient {
     formData: FormData,
     config?: ApiRequestConfig
   ): Promise<T> {
-    const response = await this.instance.post<T>(url, formData, {
+    const response = await (
+      await this.getInstance()
+    ).post<T>(url, formData, {
       ...config,
       headers: {
         ...(config?.headers || {}),
@@ -243,7 +255,7 @@ class ApiClient {
    * 保留对 axios.request 的访问，便于下载等场景
    */
   async requestRaw(config: ApiRequestConfig): Promise<AxiosResponse> {
-    return this.instance.request(config);
+    return (await this.getInstance()).request(config);
   }
 }
 

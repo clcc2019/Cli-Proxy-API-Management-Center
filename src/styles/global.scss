@@ -27,10 +27,14 @@ body {
   letter-spacing: -0.003em;
   background: var(--bg-secondary, #f6f6f3);
   color: var(--text-primary);
-  transition: background-color $transition-normal, color $transition-normal;
+  transition:
+    background-color $transition-normal,
+    color $transition-normal;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  // 避免浏览器合成伪粗体或伪斜体，让拉丁与 CJK 字形保持清晰一致。
+  font-synthesis: none;
   // 避免 iOS Safari 横屏时字号自动膨胀
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -54,14 +58,15 @@ button,
 input,
 select,
 textarea {
-  accent-color: var(--primary-color);
+  accent-color: var(--mg-sage-strong);
   font: inherit;
   font-kerning: normal;
 }
 
+// 选中态用鼠尾草绿调，与设计系统中 sage=选择/上下文 的语义一致，比炭黑更精致
 ::selection {
-  background: color-mix(in srgb, var(--primary-color) 20%, transparent);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--mg-sage) 24%, transparent);
+  color: var(--mg-ink-strong);
 }
 
 :focus-visible {

@@ -1,3 +1,5 @@
+@use './variables.scss' as *;
+
 /**
  * Global color tokens
  *
@@ -66,10 +68,8 @@
   --mg-control-height-large: 48px;
   --mg-hit-area: 44px;
   --mg-content-max: 1196px;
-  --mg-font-display:
-    'Avenir Next', 'Segoe UI Variable Display', 'Segoe UI', ui-sans-serif, -apple-system,
-    BlinkMacSystemFont, sans-serif;
-  --mg-font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  --mg-font-display: #{$font-display};
+  --mg-font-mono: #{$font-mono};
   --mg-page-gutter: clamp(20px, 3vw, 40px);
   --mg-motion-fast: 120ms;
   --mg-motion-standard: 240ms;
@@ -93,9 +93,9 @@
   --bg-hover: var(--bg-tertiary);
   --bg-quinary: #ffffff;
   --bg-error-light: rgb(197 58 50 / 0.1);
-  --floating-surface: #ffffff;
-  --floating-border: #e5e5e5;
-  --floating-shadow: 0 6px 16px -6px rgb(23 20 16 / 0.12), 0 24px 56px -16px rgb(23 20 16 / 0.22);
+  --floating-surface: var(--mg-surface);
+  --floating-border: var(--mg-floating-border);
+  --floating-shadow: var(--mg-shadow-float);
 
   --text-primary: var(--mg-text);
   --text-secondary: var(--mg-text-secondary);
@@ -111,7 +111,7 @@
   --primary-color: var(--mg-ink-strong);
   --primary-hover: var(--mg-text-secondary);
   --primary-active: var(--mg-text);
-  --primary-contrast: #ffffff;
+  --primary-contrast: var(--mg-text-inverse);
   --primary-soft: color-mix(in srgb, var(--mg-sage-soft) 42%, var(--mg-surface));
   --focus-ring: var(--mg-focus-ring);
   --primary-shadow: 0 10px 22px -14px rgb(14 13 12 / 0.42);
@@ -149,47 +149,46 @@
   --count-badge-bg: rgb(139 134 128 / 0.18);
   --count-badge-text: var(--primary-active);
 
-  --shadow: 0 1px 2px rgb(23 20 16 / 0.05);
+  --shadow: var(--mg-shadow-rest);
   --shadow-lg: 0 4px 12px -4px rgb(23 20 16 / 0.08), 0 16px 32px -12px rgb(23 20 16 / 0.14);
   --shadow-soft: 0 16px 32px -20px rgb(23 20 16 / 0.2);
   --header-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
-  // DuckDB-inspired navigation tokens. These stay scoped to the application
-  // shell so page-level status colors and the existing component theme remain
-  // unchanged.
-  --sidebar-surface: #fafaf8;
-  --sidebar-surface-muted: #f1f0ec;
-  --sidebar-text: #1a1917;
-  --sidebar-text-secondary: #55534e;
-  --sidebar-text-tertiary: #8a877f;
-  --sidebar-border: #e7e6e1;
-  --sidebar-border-strong: #d4d2cb;
+  // Navigation tokens keep the shell on the same quiet surface hierarchy as
+  // the rest of the Merge Gateway-inspired light theme.
+  --sidebar-surface: var(--mg-surface);
+  --sidebar-surface-muted: var(--mg-surface-subtle);
+  --sidebar-text: var(--mg-text);
+  --sidebar-text-secondary: var(--mg-text-secondary);
+  --sidebar-text-tertiary: var(--mg-text-tertiary);
+  --sidebar-border: var(--mg-border);
+  --sidebar-border-strong: var(--mg-border-hover);
   --sidebar-accent: var(--mg-sage-strong);
   --sidebar-accent-line: var(--mg-sage-strong);
-  --sidebar-accent-surface: var(--mg-sage-soft);
-  --sidebar-accent-icon: rgb(93 145 77 / 16%);
+  --sidebar-accent-surface: var(--mg-surface-selected);
+  --sidebar-accent-icon: var(--mg-sage-wash);
   --sidebar-focus-ring: var(--mg-focus-ring);
   --sidebar-shadow: none;
-  --shadow-card: 0 1px 2px rgb(23 20 16 / 0.04), 0 6px 16px -10px rgb(23 20 16 / 0.08);
-  --shadow-card-hover: 0 1px 2px rgb(23 20 16 / 0.05), 0 12px 26px -12px rgb(23 20 16 / 0.14);
+  --shadow-card: var(--mg-shadow-rest);
+  --shadow-card-hover: var(--mg-shadow-card);
   --control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 1px 2px rgb(0 0 0 / 0.06);
 
   --radius-md: var(--mg-radius-control);
   --accent-tertiary: var(--bg-tertiary);
-  --surface-raised: #ffffff;
-  --surface-raised-strong: #ffffff;
+  --surface-raised: var(--mg-surface);
+  --surface-raised-strong: var(--mg-surface);
   --surface-overlay: rgb(255 255 255 / 0.96);
   --surface-hero: #ffffff;
-  --surface-card: #ffffff;
+  --surface-card: var(--mg-surface);
   --surface-card-muted: var(--mg-surface-subtle);
   --surface-card-border: var(--border-color);
   --surface-card-border-hover: var(--border-hover);
   --surface-inner-highlight: inset 0 1px 0 rgb(255 255 255 / 0.48);
-  --control-surface-gradient: #ffffff;
-  --floating-surface-material: #ffffff;
-  --header-surface: #ffffff;
-  --panel-surface: #ffffff;
+  --control-surface-gradient: var(--mg-surface);
+  --floating-surface-material: var(--mg-surface);
+  --header-surface: var(--mg-surface);
+  --panel-surface: var(--mg-surface);
   --panel-surface-muted: var(--mg-surface-subtle);
-  --control-surface: #ffffff;
+  --control-surface: var(--mg-surface);
   --neutral-accent: var(--mg-text-tertiary);
   --neutral-accent-strong: var(--mg-text-secondary);
   --surface-sheen: rgb(255 255 255 / 0.5);
