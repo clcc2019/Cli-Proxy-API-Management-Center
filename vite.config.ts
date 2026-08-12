@@ -7,6 +7,7 @@ import fs from 'fs';
 
 const DEV_PROXY_PREFIX = '/__dev_proxy__';
 const PROJECT_ROOT = import.meta.dirname;
+const MIN_SHARED_CHUNK_SIZE = 8 * 1024;
 const SKIP_REQUEST_HEADERS = new Set([
   'accept-encoding',
   'connection',
@@ -244,25 +245,31 @@ export default defineConfig(({ mode }) => {
         ? {
             assetsInlineLimit: 100000000,
             chunkSizeWarningLimit: 100000000,
-            rolldownOptions: {
-              output: {
-                codeSplitting: false,
-              },
-            },
           }
         : {
             chunkSizeWarningLimit: 900,
           }),
-      rollupOptions: {
+      rolldownOptions: {
         output: singleFileBuild
-          ? {
-              inlineDynamicImports: true,
-              manualChunks: undefined,
-            }
+          ? { codeSplitting: false }
           : {
-              manualChunks: resolveManualChunk,
+              // Keep route-level lazy loading, but fold tiny automatically
+              // shared modules into a useful cache group or route chunk. This
+              // avoids sub-8 KiB requests without making every route initial.
+              codeSplitting: {
+                minSize: MIN_SHARED_CHUNK_SIZE,
+                groups: [{ name: resolveManualChunk }],
+              },
             },
       },
+      rollupOptions: singleFileBuild
+        ? {
+            output: {
+              inlineDynamicImports: true,
+              manualChunks: undefined,
+            },
+          }
+        : undefined,
     },
   };
 });

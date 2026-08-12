@@ -588,7 +588,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   </Button>
                 )}
                 {!isRuntimeOnly && (
-                  <div className={refreshStyles.cardUtilityActions}>
+                  <>
                     <Button
                       variant="secondary"
                       size="sm"
@@ -615,7 +615,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                         <IconTrash2 className={refreshStyles.cardActionIcon} size={18} />
                       )}
                     </Button>
-                  </div>
+                  </>
                 )}
               </div>
             </div>

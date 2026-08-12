@@ -144,7 +144,6 @@ export function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const apiBase = useAuthStore((state) => state.apiBase);
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const logout = useAuthStore((state) => state.logout);
 
@@ -161,28 +160,21 @@ export function MainLayout() {
   const [headerRefreshing, setHeaderRefreshing] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
-  const headerRef = useRef<HTMLElement | null>(null);
   const sidebarRef = useRef<HTMLElement | null>(null);
   const navigationIntentRef = useRef(0);
   const navigationPreloadTimerRef = useRef<number | null>(null);
 
   const isLogsPage = location.pathname.startsWith('/logs');
 
-  // 将顶栏高度和主内容区中心点在同一帧内读取并写入，减少 resize 时的布局往返
+  // Keep bottom overlays aligned with the content column. Header height is
+  // intentionally CSS-owned so mobile safe areas can update without a JS
+  // pixel value overriding orientation and browser-chrome changes.
   useLayoutEffect(() => {
     let frame: number | null = null;
     const updateLayoutMetrics = () => {
-      const headerHeight = headerRef.current?.offsetHeight;
       const contentRect = contentRef.current?.getBoundingClientRect();
-      const nextHeaderValue = headerHeight ? `${headerHeight}px` : null;
       const nextContentValue = contentRect ? `${contentRect.left + contentRect.width / 2}px` : null;
 
-      if (
-        nextHeaderValue &&
-        document.documentElement.style.getPropertyValue('--header-height') !== nextHeaderValue
-      ) {
-        document.documentElement.style.setProperty('--header-height', nextHeaderValue);
-      }
       if (
         nextContentValue &&
         document.documentElement.style.getPropertyValue('--content-center-x') !== nextContentValue
@@ -200,18 +192,11 @@ export function MainLayout() {
 
     updateLayoutMetrics();
 
-    const headerResizeObserver =
-      typeof ResizeObserver !== 'undefined' && headerRef.current
-        ? new ResizeObserver(scheduleLayoutMetricsUpdate)
-        : null;
     const contentResizeObserver =
       typeof ResizeObserver !== 'undefined' && contentRef.current
         ? new ResizeObserver(scheduleLayoutMetricsUpdate)
         : null;
 
-    if (headerResizeObserver && headerRef.current) {
-      headerResizeObserver.observe(headerRef.current);
-    }
     if (contentResizeObserver && contentRef.current) {
       contentResizeObserver.observe(contentRef.current);
     }
@@ -221,7 +206,6 @@ export function MainLayout() {
       if (frame !== null) {
         window.cancelAnimationFrame(frame);
       }
-      headerResizeObserver?.disconnect();
       contentResizeObserver?.disconnect();
       window.removeEventListener('resize', scheduleLayoutMetricsUpdate);
       document.documentElement.style.removeProperty('--content-center-x');
@@ -329,6 +313,7 @@ export function MainLayout() {
   useEffect(() => {
     if (!sidebarOpen) return;
 
+    document.documentElement.classList.add('sidebar-open');
     document.body.classList.add('sidebar-open');
     const frame = window.requestAnimationFrame(() => {
       const currentLink = sidebarRef.current?.querySelector<HTMLAnchorElement>(
@@ -351,11 +336,11 @@ export function MainLayout() {
       if (event.key !== 'Tab') return;
 
       const menuButton = getMobileNavigationToggle();
-      const links = Array.from(
-        sidebarRef.current?.querySelectorAll<HTMLAnchorElement>('.nav-item') ?? []
+      const sidebarLinks = Array.from(
+        sidebarRef.current?.querySelectorAll<HTMLAnchorElement>('.sidebar-brand, .nav-item') ?? []
       );
-      const firstLink = links[0];
-      const lastLink = links[links.length - 1];
+      const firstLink = sidebarLinks[0];
+      const lastLink = sidebarLinks[sidebarLinks.length - 1];
       if (!menuButton || !firstLink || !lastLink) return;
 
       const activeElement = document.activeElement;
@@ -385,6 +370,7 @@ export function MainLayout() {
     return () => {
       window.cancelAnimationFrame(frame);
       document.removeEventListener('keydown', handleSidebarKeyDown);
+      document.documentElement.classList.remove('sidebar-open');
       document.body.classList.remove('sidebar-open');
     };
   }, [sidebarOpen]);
@@ -583,123 +569,119 @@ export function MainLayout() {
   );
 
   return (
-    <div className="app-shell">
-      <header className="main-header" ref={headerRef}>
-        <div className="left">
+    <div className={`app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
+      <div className="top-gradient-blur" aria-hidden="true" />
+
+      <header className="main-header">
+        <IconButton
+          className="sidebar-toggle-floating"
+          variant="secondary"
+          size="sm"
+          icon={sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
+          onClick={() => setSidebarCollapsed((prev) => !prev)}
+          aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+          aria-expanded={!sidebarCollapsed}
+          aria-controls="main-sidebar"
+          title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        />
+
+        <div className="mobile-sidebar-actions">
           <IconButton
             id={MOBILE_NAVIGATION_TOGGLE_ID}
             className="mobile-menu-btn"
             variant="ghost"
             size="sm"
             icon={sidebarOpen ? headerIcons.close : headerIcons.menu}
-            onClick={() => setSidebarOpen((prev) => !prev)}
+            onClick={() => {
+              setLanguageMenuOpen(false);
+              setSidebarOpen((prev) => !prev);
+            }}
             aria-label={sidebarOpen ? t('common.close') : t('sidebar.toggle_mobile')}
             aria-expanded={sidebarOpen}
             aria-controls="main-sidebar"
           />
-          <NavLink
-            to="/"
-            className="brand-lockup"
-            onClick={(event) => handleNavigationClick(event, '/')}
-            onPointerEnter={() => handleNavigationIntent('/')}
-            onPointerLeave={cancelNavigationIntent}
-            onFocus={() => handleNavigationIntent('/')}
-            onBlur={cancelNavigationIntent}
-            aria-label={t('title.main')}
-          >
-            <TokaMark className="brand-mark" aria-hidden="true" />
-            <span className="brand-copy">
-              <span className="brand-name">{t('title.main')}</span>
-              <span className="brand-caption">{t('splash.subtitle')}</span>
-            </span>
-          </NavLink>
-          <IconButton
-            className="sidebar-toggle-header"
-            variant="secondary"
-            size="sm"
-            icon={sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
-            onClick={() => setSidebarCollapsed((prev) => !prev)}
-            aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-            aria-expanded={!sidebarCollapsed}
-            aria-controls="main-sidebar"
-            title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-          />
         </div>
 
-        <div className="right">
-          <div className="connection">
+        <div className="header-actions floating-actions">
+          <div
+            className="connection"
+            role="status"
+            aria-label={t(
+              connectionStatus === 'connected'
+                ? 'common.connected_status'
+                : connectionStatus === 'connecting'
+                  ? 'common.connecting_status'
+                  : 'common.disconnected_status'
+            )}
+          >
             <span className={`status-badge ${statusClass}`}>
-              {t(
-                connectionStatus === 'connected'
-                  ? 'common.connected_status'
-                  : connectionStatus === 'connecting'
-                    ? 'common.connecting_status'
-                    : 'common.disconnected_status'
-              )}
+              <span className="status-label">
+                {t(
+                  connectionStatus === 'connected'
+                    ? 'common.connected_status'
+                    : connectionStatus === 'connecting'
+                      ? 'common.connecting_status'
+                      : 'common.disconnected_status'
+                )}
+              </span>
             </span>
-            <span className="base">{apiBase || '-'}</span>
           </div>
 
-          <div className="header-actions">
-            <RefreshButton
-              variant="ghost"
-              size="sm"
-              className="icon-button"
-              onClick={handleRefreshAll}
-              loading={headerRefreshing}
-              label={t('header.refresh_all')}
-              iconSize={16}
-            />
-            <div
-              className={`language-menu ${languageMenuOpen ? 'open' : ''}`}
-              ref={languageMenuRef}
-            >
-              <IconButton
-                variant="ghost"
-                size="sm"
-                icon={headerIcons.language}
-                onClick={toggleLanguageMenu}
-                title={t('language.switch')}
-                aria-label={t('language.switch')}
-                aria-haspopup="menu"
-                aria-expanded={languageMenuOpen}
-              />
-              {languageMenuOpen && (
-                <div
-                  className="language-menu-popover"
-                  role="menu"
-                  aria-label={t('language.switch')}
-                  onKeyDown={(event) =>
-                    handleHeaderMenuKeyDown(event, languageMenuRef.current, () =>
-                      setLanguageMenuOpen(false)
-                    )
-                  }
-                >
-                  {LANGUAGE_ORDER.map((lang) => (
-                    <button
-                      key={lang}
-                      type="button"
-                      className={`language-menu-option ${language === lang ? 'active' : ''}`}
-                      onClick={() => handleLanguageSelect(lang)}
-                      role="menuitemradio"
-                      aria-checked={language === lang}
-                    >
-                      <span>{t(LANGUAGE_LABEL_KEYS[lang])}</span>
-                      {language === lang ? <span className="language-menu-check">✓</span> : null}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <RefreshButton
+            variant="ghost"
+            size="sm"
+            className="icon-button"
+            onClick={handleRefreshAll}
+            loading={headerRefreshing}
+            label={t('header.refresh_all')}
+            iconSize={16}
+          />
+          <div className={`language-menu ${languageMenuOpen ? 'open' : ''}`} ref={languageMenuRef}>
             <IconButton
               variant="ghost"
               size="sm"
-              icon={headerIcons.logout}
-              onClick={logout}
-              title={t('header.logout')}
-              aria-label={t('header.logout')}
+              icon={headerIcons.language}
+              onClick={toggleLanguageMenu}
+              title={t('language.switch')}
+              aria-label={t('language.switch')}
+              aria-haspopup="menu"
+              aria-expanded={languageMenuOpen}
             />
+            {languageMenuOpen && (
+              <div
+                className="language-menu-popover"
+                role="menu"
+                aria-label={t('language.switch')}
+                onKeyDown={(event) =>
+                  handleHeaderMenuKeyDown(event, languageMenuRef.current, () =>
+                    setLanguageMenuOpen(false)
+                  )
+                }
+              >
+                {LANGUAGE_ORDER.map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    className={`language-menu-option ${language === lang ? 'active' : ''}`}
+                    onClick={() => handleLanguageSelect(lang)}
+                    role="menuitemradio"
+                    aria-checked={language === lang}
+                  >
+                    <span>{t(LANGUAGE_LABEL_KEYS[lang])}</span>
+                    {language === lang ? <span className="language-menu-check">✓</span> : null}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+          <IconButton
+            variant="ghost"
+            size="sm"
+            icon={headerIcons.logout}
+            onClick={logout}
+            title={t('header.logout')}
+            aria-label={t('header.logout')}
+          />
         </div>
       </header>
 
@@ -723,6 +705,26 @@ export function MainLayout() {
           id="main-sidebar"
           className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
         >
+          <div className="sidebar-header">
+            <NavLink
+              to="/"
+              className="sidebar-brand"
+              onClick={(event) => handleNavigationClick(event, '/')}
+              onPointerEnter={() => handleNavigationIntent('/')}
+              onPointerLeave={cancelNavigationIntent}
+              onFocus={() => handleNavigationIntent('/')}
+              onBlur={cancelNavigationIntent}
+              aria-label={t('title.main')}
+              title={sidebarCollapsed ? t('title.main') : undefined}
+            >
+              <TokaMark className="sidebar-brand-mark" aria-hidden="true" />
+              <span className="sidebar-brand-copy">
+                <span className="sidebar-brand-name">{t('title.main')}</span>
+                <span className="sidebar-brand-caption">{t('splash.subtitle')}</span>
+              </span>
+            </NavLink>
+          </div>
+
           <nav className="nav-section" aria-label={t('nav.navigation')}>
             {navGroups.map((group) => (
               <div className="nav-group" role="group" aria-label={group.label} key={group.id}>

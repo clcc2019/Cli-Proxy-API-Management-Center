@@ -76,6 +76,19 @@
   color: #ffffff;
   box-shadow: none;
 
+  > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+  }
+
+  svg {
+    display: block;
+    flex: 0 0 auto;
+  }
+
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
       border-color: var(--key-text-secondary);
