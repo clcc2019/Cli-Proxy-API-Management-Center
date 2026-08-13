@@ -17,10 +17,11 @@ Read this file before handoff. Do not claim high fidelity from code inspection a
 1. Identify the page/component's density context and primary task.
 2. Run the `content-icons.md` inventory. Verify every remaining text node and icon has one unique task role; remove duplicates, decorative affordances, and optional empty slots.
 3. Confirm all edited visual values resolve through `--xai-*` tokens or documented semantic/data exceptions.
-4. Inspect default and applicable hover, focus-visible, pressed, selected/current, disabled, loading, empty, error, and open states.
-5. Render target desktop plus 1024, 768, 480, and 360px when the scope is responsive.
-6. Capture the full page after segmented scrolling and lazy-load stabilization.
-7. Compare against the xAI contract and relevant evidence/pattern, then fix the largest-area mismatch first.
+4. Verify each semantic color from consequence rather than raw boolean. Confirm every colored dot/icon has adjacent text, ordinary inactive states stay neutral, and no row/card receives decorative color wash.
+5. Inspect default and applicable hover, focus-visible, pressed, selected/current, disabled, loading, empty, error, and open states.
+6. Render target desktop plus 1024, 768, 480, and 360px when the scope is responsive.
+7. Capture the full page after segmented scrolling and lazy-load stabilization.
+8. Compare against the xAI contract and relevant evidence/pattern, then fix the largest-area mismatch first.
 
 ## Computed-style checks
 

@@ -52,6 +52,7 @@ Use white, 1px 8% border, 18px radius, no shadow, 13.5px top and 15.75px remaini
 - Divider: exactly 1px, 6–8% black. No zebra striping by default.
 - Header background: white or 5% neutral; sticky header may use `rgb(255 255 255 / 92%)` with no blur.
 - Hover: 5% neutral; selected: 8% neutral with `aria-selected`; never colored wash.
+- Status markers may use a 6.75–9px semantic dot from `foundations.md`; keep row background neutral and pair the marker with readable state text.
 - Trailing actions use 36px icon buttons. Numeric/date columns use tabular figures and stable alignment.
 - Use tables for comparable columns and divider-led rows for chronology/heterogeneous summaries. Avoid a card per record.
 - Mobile: hide lower-priority columns, horizontally scroll with sticky identity column, or recompose into labeled rows. Do not scale text.

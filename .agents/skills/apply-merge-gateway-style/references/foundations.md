@@ -97,7 +97,20 @@ Install these tokens at the visual root. Do not create legacy aliases except as 
 | Fine border                  | `rgb(10 10 10 / 8%)`  | cards, controls, rows                               |
 | Strong/focus-adjacent border | `rgb(10 10 10 / 15%)` | hover/open boundary                                 |
 
-Do not use orange for navigation selection or broad fills. Use the measured success, warning, and danger values only when real semantic state requires them; never use them decoratively or as category colors. Pair semantic color with text/icon. If the host product has a legally or operationally required status palette, document that exception instead of silently mixing palettes.
+Do not use orange for navigation selection or broad fills. Use the measured success, warning, and danger values only when real semantic state requires them; never use them decoratively or as category colors. Orange `#ff640a` is also permitted as a compact xAI attention signal when a state deserves notice without implying failure. Pair semantic color with visible text/icon; color must not carry meaning alone. If the host product has a legally or operationally required status palette, document that exception instead of silently mixing palettes.
+
+### Semantic state mapping
+
+Map the consequence of the state, not the raw boolean:
+
+| Meaning                                            | Color                             | Examples                                                                           |
+| -------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------- |
+| Healthy, protected, recommended enabled            | `--xai-success`                   | connected, authentication enabled, telemetry required for analysis enabled         |
+| Attention, diagnostic, degraded, protection absent | `--xai-orange` or `--xai-warning` | debug enabled, verbose logging enabled, authentication disabled, quota approaching |
+| Ordinary inactive/off                              | `--xai-disabled` or secondary ink | optional debug/logging disabled                                                    |
+| Failure/destructive                                | `--xai-danger`                    | disconnected failure, invalid credential, destructive confirmation                 |
+
+Use `--xai-orange` for the xAI attention accent and `--xai-warning` when the product specifically communicates warning/quota severity. The dot/icon may be colored while adjacent text remains near-black. Do not tint the entire row/card unless a blocking error requires a bounded alert surface.
 
 ## Typography
 

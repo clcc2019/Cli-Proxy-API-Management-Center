@@ -317,8 +317,16 @@
   border-radius: 9999px;
   background: var(--xai-disabled);
 
-  &.on {
-    background: var(--xai-ink-console);
+  &.success {
+    background: var(--xai-success);
+  }
+
+  &.attention {
+    background: var(--xai-orange);
+  }
+
+  &.neutral {
+    background: var(--xai-disabled);
   }
 }
 

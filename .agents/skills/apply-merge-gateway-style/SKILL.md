@@ -54,7 +54,7 @@ These contexts adjust density and scale; they do not create separate design syst
 ## Non-negotiable visual rules
 
 - Use near-black `#080808`/`#0a0a0a`, white, warm `#f9f8f6`, cool gray `#7d8187`, and hairline black-alpha borders as the dominant system.
-- Use orange `#ff640a` only for New/Beta, a selected signal, an endpoint, or another rare high-information accent. Do not orange-wash navigation or layout.
+- Use orange `#ff640a` only for New/Beta, a selected signal, an endpoint, or a compact attention state. Use measured green only for confirmed healthy/success state. Keep normal/off/inactive states neutral and never color-wash navigation or layout.
 - Use the exact 4.5px-derived spatial rhythm. Fractional values are intentional and must remain centralized in tokens.
 - Use medium display headings with negative tracking. Avoid generic bold 700–900 SaaS headings.
 - Treat silence and empty space as interface elements. Do not add greetings, slogans, tips, explanatory restatements, decorative labels, redundant section headings, clocks, dates, build metadata, or helper copy unless they change a decision or prevent an error.
@@ -63,6 +63,7 @@ These contexts adjust density and scale; they do not create separate design syst
 - Use pills for principal actions, compact secondary actions, and segmented controls. Use 9–13.5px radii for fields, rows, and nested structures; use 18px for major cards and workbenches.
 - Keep navigation selection neutral: gray when idle, near-black when current, with no bright color wash.
 - Use dark surfaces only for code, terminal, source, or deliberate black editorial sections.
+- Assign semantic state colors from meaning, not boolean value: enabled security/telemetry may be green, enabled debug/logging may be orange, disabled optional diagnostics may be gray, and disabled protection may be orange. Keep color local to a dot, icon, short label, progress fill, or border; never tint the whole card or row.
 - Use restrained 120–240ms transitions. Never scale cards, bounce controls, add glass blur, or use decorative purple/blue AI gradients.
 - Do not introduce an arbitrary value when a specified xAI token or component rule applies. Do not mix legacy and xAI styling inside the edited scope.
 

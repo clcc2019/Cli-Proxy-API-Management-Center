@@ -19,7 +19,7 @@ interface QuickStat {
 interface ConfigSummaryItem {
   label: string;
   value: string;
-  active?: boolean;
+  tone?: 'success' | 'attention' | 'neutral';
 }
 
 interface ProviderStats {
@@ -382,22 +382,22 @@ export function DashboardPage() {
         {
           label: t('basic_settings.usage_statistics_title'),
           value: config.usageStatisticsEnabled ? t('common.yes') : t('common.no'),
-          active: config.usageStatisticsEnabled,
+          tone: config.usageStatisticsEnabled ? 'success' : 'attention',
         },
         {
           label: t('basic_settings.logging_title'),
           value: config.loggingToFile ? t('common.yes') : t('common.no'),
-          active: config.loggingToFile,
+          tone: config.loggingToFile ? 'attention' : 'neutral',
         },
         {
           label: t('basic_settings.ws_auth_title'),
           value: config.wsAuth ? t('common.yes') : t('common.no'),
-          active: config.wsAuth,
+          tone: config.wsAuth ? 'success' : 'attention',
         },
         {
           label: t('basic_settings.debug_title'),
           value: config.debug ? t('common.yes') : t('common.no'),
-          active: config.debug,
+          tone: config.debug ? 'attention' : 'neutral',
         },
       ]
     : [];
@@ -462,9 +462,9 @@ export function DashboardPage() {
               <div key={item.label} className={styles.configRow}>
                 <dt>{item.label}</dt>
                 <dd>
-                  {typeof item.active === 'boolean' && (
+                  {item.tone && (
                     <span
-                      className={`${styles.configStatus} ${item.active ? styles.on : styles.off}`}
+                      className={`${styles.configStatus} ${styles[item.tone]}`}
                       aria-hidden="true"
                     />
                   )}

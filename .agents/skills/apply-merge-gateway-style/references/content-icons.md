@@ -72,6 +72,7 @@ Prefer two strong layers—joined summary metrics plus a compact divider-led det
 - Show version/build identifiers only in diagnostics, About, deployment, or when compatibility is relevant. A gateway management dashboard may show a compact backend version beside its operational configuration, but not as a second header status cluster.
 - Show date/time only when the task is time-sensitive or the value timestamps data. A live clock is not dashboard content.
 - Show status only when it can change interpretation or action. Healthy state may be a compact text/dot; errors need actionable text.
+- Judge a state by consequence rather than `true`/`false`: enabled protection can be healthy, enabled diagnostics can require attention, and an ordinary disabled optional feature can remain neutral.
 - Use badges for exceptional state, not ordinary taxonomy. Do not badge values already expressed by labels or position.
 - Keep secondary metadata out of the first viewport when it belongs in a detail/settings route.
 
@@ -102,6 +103,7 @@ All other icons are rejected by default.
 - Make the whole metric cell a link only when its destination is unambiguous. Its accessible name should include label and value.
 - Keep a compact configuration summary when its values explain current system behavior; move editable controls and exhaustive detail to settings. Dashboard configuration should read as aligned rows, not duplicate the form.
 - In rows, keep one identity, one necessary summary, one state/value, and one action. Progressive disclosure owns the rest.
+- For compact configuration summaries, use a 6.75–9px semantic dot beside explicit text: green for healthy/recommended, orange for attention/degraded, gray for ordinary inactive, and red for failure. Never replace the text with color.
 - Empty state copy should explain why the region is empty or what action resolves it; omit cheerful filler and ornamental illustration by default.
 
 ## Responsive reduction
