@@ -13,12 +13,12 @@ import styles from '@/pages/UsagePage.module.scss';
 
 // 健康度渐变锚定到语义色板（--mg-danger / --mg-warning / --mg-success-fill），
 // 避免 Tailwind 默认色与暖中性界面冲突
-const SUCCESS_COLOR = '#16a34a';
+const SUCCESS_COLOR = '#0fa64b';
 
 const COLOR_STOPS = [
-  { r: 197, g: 58, b: 50 }, // #c53a32
-  { r: 214, g: 139, b: 22 }, // #d68b16
-  { r: 22, g: 163, b: 74 }, // #16a34a
+  { r: 204, g: 51, b: 43 }, // #cc332b
+  { r: 217, g: 119, b: 6 }, // #d97706
+  { r: 15, g: 166, b: 75 }, // #0fa64b
 ] as const;
 
 const TOOLTIP_OFFSET = 8;
@@ -290,8 +290,8 @@ export function ServiceHealthCard({ usage, loading }: ServiceHealthCardProps) {
         <span className={styles.healthLegendLabel}>{t('service_health.oldest')}</span>
         <div className={styles.healthLegendColors}>
           <div className={`${styles.healthLegendBlock} ${styles.healthBlockIdle}`} />
-          <div className={styles.healthLegendBlock} style={{ backgroundColor: '#c53a32' }} />
-          <div className={styles.healthLegendBlock} style={{ backgroundColor: '#d68b16' }} />
+          <div className={styles.healthLegendBlock} style={{ backgroundColor: '#cc332b' }} />
+          <div className={styles.healthLegendBlock} style={{ backgroundColor: '#d97706' }} />
           <div className={styles.healthLegendBlock} style={{ backgroundColor: SUCCESS_COLOR }} />
         </div>
         <span className={styles.healthLegendLabel}>{t('service_health.newest')}</span>

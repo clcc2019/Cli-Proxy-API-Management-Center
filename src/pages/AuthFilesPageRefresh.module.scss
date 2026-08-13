@@ -667,6 +667,13 @@
     color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
+.page .controlButtonText,
+.page .quotaRefreshText {
+  display: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .page .controlButton:hover {
   border-color: var(--mg-border-hover);
   background: var(--mg-surface);
@@ -674,7 +681,7 @@
 }
 
 .page .controlButton:active {
-  background: var(--mg-surface-subtle);
+  background: var(--mg-surface-pressed);
 }
 
 .page .controlButton:focus-visible {
@@ -951,7 +958,7 @@
   max-width: 100%;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--auth-file-card-min-width)), 1fr));
   align-items: stretch;
-  gap: 8px;
+  gap: 12px;
   padding: 0 1px 1px 0;
   overflow: visible;
   contain: layout style;
@@ -1012,14 +1019,14 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  min-height: 150px;
+  min-height: 168px;
   height: 100%;
   flex-direction: column;
-  padding: 12px 12px 8px;
+  padding: 14px 14px 12px;
   border-color: var(--auth-card-border);
-  border-radius: var(--mg-radius-medium);
+  border-radius: var(--mg-radius-large);
   background: var(--mg-surface);
-  box-shadow: var(--mg-shadow-rest);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.06);
   contain: layout style;
 }
 
@@ -1191,16 +1198,15 @@
 }
 
 .page .credentialCard {
-  // xAI's light product surfaces stay monochrome and border-led. Scope the
-  // neutral action/selection palette to the credential card so the page keeps
-  // its cold-white canvas while status colors remain explicitly semantic.
-  --auth-card-accent: #111214;
-  --auth-card-accent-soft: #f0f1f2;
+  // Keep the card chrome monochrome; semantic status colors remain local to
+  // request health, quota, reauthorization, and destructive actions.
+  --auth-card-accent: #000000;
+  --auth-card-accent-soft: #efefef;
   --auth-card-attention: #c24e0b;
-  --auth-card-border: #dfe1e4;
-  --auth-workbench-border: #e6e7e9;
-  --auth-workbench-border-strong: #bfc2c6;
-  --auth-workbench-subtle: #f6f7f8;
+  --auth-card-border: #e2e2e2;
+  --auth-workbench-border: #e2e2e2;
+  --auth-workbench-border-strong: #b6b6b6;
+  --auth-workbench-subtle: #f3f3f3;
   --mg-sage: var(--auth-card-accent);
   --mg-sage-strong: var(--auth-card-accent);
   --mg-sage-soft: var(--auth-card-accent-soft);
@@ -1217,12 +1223,12 @@
   min-height: 100%;
   height: 100%;
   flex-direction: column;
-  padding: 12px 12px 8px;
+  padding: 14px 14px 12px;
   border: 1px solid var(--auth-card-border);
-  border-radius: var(--mg-radius-medium);
+  border-radius: var(--mg-radius-large);
   background: var(--mg-surface);
   color: var(--mg-text);
-  box-shadow: var(--mg-shadow-rest);
+  box-shadow: var(--mg-shadow-card);
   overflow: clip;
   contain: layout style;
   content-visibility: auto;
@@ -1235,8 +1241,8 @@
 
 .page .credentialCard::before {
   position: absolute;
-  top: 12px;
-  bottom: 12px;
+  top: 16px;
+  bottom: 16px;
   left: 0;
   width: 2px;
   border-radius: 0 var(--mg-radius-pill) var(--mg-radius-pill) 0;
@@ -1248,16 +1254,16 @@
 
 .page .credentialCardDisabled {
   border-color: var(--mg-border);
-  background: color-mix(in srgb, var(--mg-surface-disabled) 38%, var(--mg-surface));
-  box-shadow: var(--mg-shadow-rest);
+  background: var(--mg-surface-subtle);
+  box-shadow: none;
 }
 
 .page .credentialCardSelected {
-  border-color: var(--auth-card-accent);
+  border-color: var(--mg-action);
   background: var(--mg-surface);
   box-shadow:
-    var(--mg-shadow-rest),
-    inset 0 0 0 1px color-mix(in srgb, var(--auth-card-accent) 8%, transparent);
+    var(--mg-shadow-card),
+    inset 0 0 0 1px rgb(0 0 0 / 0.08);
 }
 
 .page .credentialCardSelected::before {
@@ -1279,24 +1285,24 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .page .cardHeader {
   display: flex;
   min-width: 0;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   padding: 0;
 }
 
 .page .cardSelection {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  flex: 0 0 20px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  flex: 0 0 24px;
   align-self: flex-start;
-  margin: 2px 0 0;
+  margin: 0;
   padding: 0;
   border-radius: 5px;
   background: transparent;
@@ -1323,17 +1329,17 @@
   min-width: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .page .cardTitleRow {
   display: grid;
   min-width: 0;
-  min-height: 26px;
+  min-height: 32px;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas: 'name priority';
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .page .cardNameGroup {
@@ -1347,18 +1353,18 @@
 .providerBadge {
   display: inline-flex;
   min-width: 0;
-  max-width: 108px;
-  height: 24px;
+  max-width: 116px;
+  height: 28px;
   flex: 0 1 auto;
   align-items: center;
-  gap: 5px;
-  padding: 0 5px;
-  border: 1px solid var(--auth-workbench-border);
-  border-radius: 8px;
-  background: var(--auth-workbench-subtle);
-  color: var(--mg-text-secondary);
-  font-size: 10.5px;
-  font-weight: 650;
+  gap: 6px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text);
+  font-size: 11px;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -1391,23 +1397,23 @@
   width: auto;
   min-width: 0;
   max-width: 100%;
-  min-height: 24px;
+  min-height: 32px;
   flex: 1 1 auto;
   align-items: center;
-  gap: 4px;
-  margin: 0 -4px 0 0;
-  padding: 1px 4px;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 8px;
   overflow: hidden;
   border: 0;
-  border-radius: var(--mg-radius-control);
+  border-radius: var(--mg-radius-pill);
   appearance: none;
   background: transparent;
   color: var(--mg-text);
   font: inherit;
-  font-size: 14px;
-  font-weight: 680;
-  line-height: 1.35;
-  letter-spacing: -0.018em;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: normal;
   text-align: left;
   cursor: copy;
   transition:
@@ -1464,11 +1470,11 @@
   width: fit-content;
   min-width: 0;
   max-width: 100%;
-  min-height: 26px;
+  min-height: 32px;
   align-items: center;
   overflow: hidden;
   border: 1px solid var(--auth-workbench-border);
-  border-radius: var(--mg-radius-control);
+  border-radius: var(--mg-radius-pill);
   background: var(--auth-workbench-subtle);
 }
 
@@ -1490,7 +1496,7 @@
 
 .page .priorityStepper {
   display: inline-flex;
-  height: 26px;
+  height: 30px;
   align-items: center;
   overflow: hidden;
 }
@@ -1537,7 +1543,7 @@
   width: auto;
   min-width: 30px;
   max-width: 56px;
-  height: 26px;
+  height: 30px;
   padding: 0 3px;
   border: 0;
   border-inline: 1px solid var(--auth-workbench-border);
@@ -1584,10 +1590,10 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   gap: 5px;
-  padding-top: 6px;
+  padding-top: 8px;
   border-top: 1px solid var(--auth-workbench-border);
   color: var(--mg-text-tertiary);
-  font-size: 11.25px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -1613,21 +1619,21 @@
   flex: 1 1 auto;
   flex-direction: column;
   margin-top: 0;
-  padding-inline: 10px;
-  border: 1px solid var(--mg-border);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--mg-surface-subtle) 52%, var(--mg-surface));
+  padding-inline: 12px;
+  border: 0;
+  border-radius: var(--mg-radius-medium);
+  background: var(--mg-surface-subtle);
   box-shadow: none;
 }
 
 .page .healthPanel {
   display: flex;
   min-width: 0;
-  min-height: 40px;
+  min-height: 44px;
   flex: 1 1 auto;
   flex-direction: column;
   justify-content: center;
-  padding-block: 7px;
+  padding-block: 10px;
 }
 
 .page .metricHeader {
@@ -1636,8 +1642,8 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, max-content) max-content;
   grid-template-areas: 'label badges tokens';
   align-items: center;
-  gap: 6px;
-  margin-bottom: 5px;
+  gap: 8px;
+  margin-bottom: 7px;
 }
 
 .page .metricTitle {
@@ -1679,7 +1685,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--auth-workbench-border);
-  border-radius: 6px;
+  border-radius: var(--mg-radius-pill);
   font-size: 10px;
   font-weight: 650;
   line-height: 1;
@@ -1732,14 +1738,14 @@
 .page .tokenMetric {
   display: inline-flex;
   min-width: max-content;
-  height: 22px;
+  height: 24px;
   grid-area: tokens;
   align-items: center;
   justify-self: end;
-  gap: 4px;
-  padding-inline: 6px;
-  border: 1px solid var(--auth-workbench-border);
-  border-radius: 7px;
+  gap: 5px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: var(--mg-radius-pill);
   background: var(--mg-surface);
   color: var(--mg-text-tertiary);
   font-family: $font-mono;
@@ -1927,7 +1933,7 @@
   padding-inline: 6px;
   overflow: hidden;
   border: 1px solid var(--mg-border);
-  border-radius: 6px;
+  border-radius: var(--mg-radius-pill);
   background: var(--mg-surface-subtle);
   color: var(--mg-text-tertiary);
   font-family: $font-mono;
@@ -1969,8 +1975,8 @@
 
 .page .quotaSlot {
   min-width: 0;
-  margin-inline: -10px;
-  padding-inline: 10px;
+  margin-inline: -12px;
+  padding-inline: 12px;
   border-top: 1px solid var(--mg-border);
 }
 
@@ -2463,10 +2469,10 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   margin-top: 0;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--mg-border);
 }
 
@@ -2804,14 +2810,14 @@
 }
 
 .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-  width: 30px;
-  min-width: 30px;
-  height: 30px;
-  min-height: 30px;
-  flex: 0 0 30px;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  flex: 0 0 34px;
   padding: 0;
   border: 1px solid var(--mg-border);
-  border-radius: var(--mg-radius-control);
+  border-radius: var(--mg-radius-pill);
   background: var(--mg-surface);
   color: var(--mg-text-secondary);
   box-shadow: none;
@@ -3025,11 +3031,11 @@
 // This lives after the base card rules so the compact values win the cascade.
 @container auth-files-page (min-width: 1080px) {
   .page .credentialCard {
-    padding: 10px 9px 7px;
+    padding: 12px 11px 10px;
   }
 
   .page .cardMain {
-    gap: 8px;
+    gap: 10px;
   }
 
   .page .cardHeader,
@@ -3040,17 +3046,17 @@
 
   .page .providerBadge {
     max-width: 88px;
-    height: 23px;
-    padding-inline: 4px;
+    height: 25px;
+    padding-inline: 6px;
   }
 
   .page .metricsPanel {
-    padding-inline: 8px;
+    padding-inline: 10px;
   }
 
   .page .credentialCard .cardFooter {
     --card-footer-control-gap: 4px;
-    padding-top: 8px;
+    padding-top: 10px;
   }
 
   .page .credentialCard .cardStatusControl,
@@ -3087,11 +3093,11 @@
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: 28px;
-    min-width: 28px;
-    height: 28px;
-    min-height: 28px;
-    flex-basis: 28px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    flex-basis: 32px;
   }
 
   .page .credentialCard .cardActionButton :global(.loading-spinner),
@@ -3139,9 +3145,10 @@
 
   .page .headerActions {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
     align-items: stretch;
+    gap: 8px;
     padding: 0;
     overflow: visible;
   }
@@ -3150,8 +3157,21 @@
     width: 100%;
     min-width: 0;
     min-height: var(--mg-hit-area);
-    padding-inline: 8px;
-    overflow: hidden;
+    padding: 8px 12px;
+    overflow: visible;
+    white-space: normal;
+  }
+
+  .page .headerAction:global(.btn.btn-sm) > span {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .page .headerActionText {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .page .headerActions .dangerAction:global(.btn.btn-danger) {
@@ -3168,31 +3188,51 @@
     border-bottom: 1px solid var(--auth-workbench-border);
   }
 
+  .page .providerTags {
+    flex-wrap: wrap;
+    gap: 2px;
+    overflow: visible;
+    padding-block: 4px;
+  }
+
   .page .providerTab {
-    flex: 0 0 auto;
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    min-width: 0;
     min-height: var(--mg-hit-area);
   }
 
+  .page .providerTabCount {
+    margin-left: auto;
+  }
+
   .page .controlRail {
-    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area);
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      'search search'
-      'chips refresh';
-    align-items: start;
+      'search'
+      'chips'
+      'refresh';
+    align-items: stretch;
     width: 100%;
     min-width: 0;
-    padding-top: 10px;
+    padding-top: 12px;
   }
 
   .page .searchToolbar {
     max-width: none;
     width: 100%;
-    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area) var(--mg-hit-area);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .page .searchToolbar > * {
+    width: 100%;
+    min-width: 0;
   }
 
   .page .searchToolbar > :not(.searchField) {
-    width: var(--mg-hit-area);
-    min-width: var(--mg-hit-area);
+    width: 100%;
+    min-width: 0;
     justify-self: stretch;
   }
 
@@ -3202,33 +3242,85 @@
 
   .page .controlButton,
   .page .quotaRefreshButton:global(.btn.btn-sm) {
-    width: var(--mg-hit-area);
-    min-width: var(--mg-hit-area);
+    width: 100%;
+    min-width: 0;
     height: var(--mg-hit-area);
     min-height: var(--mg-hit-area);
-    padding: 0;
+    justify-content: flex-start;
+    padding: 0 12px;
+    text-align: left;
+  }
+
+  .page .controlButton {
+    gap: 8px;
+  }
+
+  .page .controlButtonText,
+  .page .quotaRefreshText {
+    display: inline;
+  }
+
+  .page .controlButtonText {
+    flex: 1 1 auto;
+    text-align: left;
+  }
+
+  .page .quotaRefreshButton:global(.btn.btn-sm) > span:not(:global(.loading-spinner)) {
+    display: inline-flex;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.25;
   }
 
   .page .displayOptions {
     min-width: 0;
     width: 100%;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 8px;
     overflow: visible;
     padding-bottom: 0;
   }
 
-  .page .displayOptionGroup {
-    min-width: 0;
-    height: auto;
-    min-height: 40px;
-    flex: 1 1 auto;
-    flex-wrap: wrap;
+  .page .displayOptionsLabel {
+    display: block;
+    white-space: normal;
   }
 
-  .page .displayOption,
-  .page .resetFilters {
+  .page .displayOptionGroup {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    flex: 0 0 auto;
+    gap: 2px;
+  }
+
+  .page .displayOption {
+    width: 100%;
+    justify-content: flex-start;
     min-height: var(--mg-hit-area);
+    padding-inline: 10px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .page .resetFilters {
+    align-self: stretch;
+    min-height: var(--mg-hit-area);
+    padding-inline: 10px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .page .quotaRefreshButton:global(.btn.btn-sm) {
+    grid-area: refresh;
   }
 
   .page .pagination {
@@ -3297,7 +3389,26 @@
 
   .page .credentialCard {
     min-height: 0;
-    padding: 10px 10px 8px;
+    padding: 12px 12px 10px;
+  }
+
+  .page .cardNameText,
+  .page .providerBadgeLabel {
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .page .cardNameButton {
+    align-items: flex-start;
+    overflow: visible;
+    text-wrap: pretty;
+  }
+
+  .page .providerBadge {
+    height: auto;
+    min-height: 28px;
+    padding-block: 6px;
   }
 
   .page .quotaSectionHeader {
@@ -3353,17 +3464,17 @@
   }
 
   .page .priorityControl {
-    min-height: var(--mg-control-height);
+    min-height: var(--mg-hit-area);
   }
 
   .page .priorityStepper,
   .page .priorityInput {
-    height: var(--mg-control-height);
+    height: var(--mg-hit-area);
   }
 
   .page .priorityStepButton {
     width: 36px;
-    height: var(--mg-control-height);
+    height: var(--mg-hit-area);
   }
 
   .page .priorityInput {
@@ -3372,11 +3483,11 @@
 
   .page .cardSelection {
     position: relative;
-    width: 20px;
-    min-width: 20px;
-    height: 20px;
-    flex-basis: 20px;
-    margin: 2px 0 0;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    margin: 0;
   }
 
   .page .cardSelection::before {
@@ -3414,16 +3525,17 @@
     --card-footer-control-gap: 6px;
     min-height: 0;
     margin-top: 2px;
-    padding-top: 8px;
+    padding-top: 10px;
   }
 
   .page .credentialCard .cardFooterMain {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      'status refresh'
-      'actions actions';
-    align-items: center;
+      'status'
+      'refresh'
+      'actions';
+    align-items: stretch;
     gap: var(--card-footer-control-gap);
   }
 
@@ -3433,6 +3545,7 @@
 
   .page .credentialCard .cardStatusControl {
     grid-area: status;
+    width: 100%;
   }
 
   .page .credentialCard .cardActions {
@@ -3445,15 +3558,18 @@
 
   .page .credentialCard .cardRefresh {
     grid-area: refresh;
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
     margin-left: 0;
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: var(--mg-control-height);
-    min-width: var(--mg-control-height);
-    height: var(--mg-control-height);
-    min-height: var(--mg-control-height);
-    flex-basis: var(--mg-control-height);
+    width: var(--mg-hit-area);
+    min-width: var(--mg-hit-area);
+    height: var(--mg-hit-area);
+    min-height: var(--mg-hit-area);
+    flex-basis: var(--mg-hit-area);
   }
 
   .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
@@ -3461,6 +3577,89 @@
     min-width: 0;
     flex-basis: auto;
     padding-inline: 12px;
+  }
+
+  .page .loadingFooter {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'toggle'
+      'refresh'
+      'actions';
+    align-items: stretch;
+  }
+
+  .page .loadingFooterLeft {
+    display: contents;
+  }
+
+  .page .loadingToggle,
+  .page .loadingActions,
+  .page .loadingRefresh {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page .loadingActions {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .page .loadingActions > span,
+  .page .loadingRefresh {
+    width: var(--mg-hit-area);
+    min-width: var(--mg-hit-area);
+    height: var(--mg-hit-area);
+    min-height: var(--mg-hit-area);
+    flex-basis: var(--mg-hit-area);
+  }
+
+  .page .loadingRefresh {
+    margin-left: 0;
+  }
+
+  .page .reauthHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .page .reauthHeaderText span {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .page .reauthPrimaryButton:global(.btn.btn-sm) {
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
+
+  .page .reauthWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .page .reauthActions {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .page .reauthActions :global(.btn.btn-sm) {
+    width: 100%;
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+
+  .page .reauthResult {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page .reauthResult .cardErrorTrigger,
+  .page .reauthResult :global(.btn.btn-sm) {
+    width: 100%;
   }
 
   .page .searchClear {
@@ -3894,16 +4093,9 @@
 
   .batchGroup {
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    flex-wrap: wrap;
+    overflow: visible;
     padding-bottom: 1px;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .batchGroup::-webkit-scrollbar {
-    display: none;
   }
 
   .batchCommandGroup {
@@ -3922,7 +4114,7 @@
   }
 
   .batchBar {
-    max-height: calc(100dvh - 20px - env(safe-area-inset-bottom));
+    max-height: min(620px, calc(100dvh - 20px - env(safe-area-inset-bottom)));
     gap: 8px;
     overflow-y: auto;
     padding: 10px;
@@ -3931,7 +4123,7 @@
 
   .batchGroup {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 6px;
     overflow: visible;
     padding-bottom: 0;
@@ -3950,22 +4142,12 @@
   }
 
   .batchSelection {
-    grid-column: 1 / -1;
+    grid-column: auto;
     justify-content: center;
     min-height: 40px;
     margin: 0;
     line-height: 1.3;
     text-align: center;
     white-space: normal;
-  }
-}
-
-@media (max-width: 360px) {
-  .batchGroup {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .batchSelection {
-    grid-column: auto;
   }
 }

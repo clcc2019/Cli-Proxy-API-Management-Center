@@ -1,146 +1,62 @@
-# Product visual recipes
+# Product data and visual surfaces
 
-Use this reference to create the “images inside the page”: high-fidelity product fragments that explain reliability, cost, routing, security, and customer controls.
+Create visuals as credible parts of this management console. Prefer live components backed by real data contracts over decorative mockups.
 
-## Contents
+## Delivery choice
 
-- Core construction and internal UI grammar
-- Asset fidelity, accessibility, and responsive delivery
-- Reliability, budget, routing, and request-log recipes
-- Tenant controls and hero code panels
-- Composition rules and anti-patterns
+| Need | Use |
+|---|---|
+| Interactive/localized data | React + semantic HTML |
+| Trends and distributions | existing Chart.js wrappers and chart utilities |
+| Compact trends | existing SVG sparkline |
+| YAML/source/diff | existing CodeMirror components |
+| Static topology or explanation | accessible SVG with `viewBox` |
+| Supplied screenshot | compressed raster with correct alt/decorative treatment |
 
-## Core construction
+Do not generate raster UI screenshots when the surface must localize, respond, expose state, or display live data. Never invent a production claim or present sample values as live.
 
-Create each visual from one recognizable application surface, not an abstract illustration:
+## Shared visual grammar
 
-- Use a transparent or white canvas.
-- Use a 15–16px outer radius and a 1px `#eaeae9` border when the visual has a containing card.
-- Use charcoal `#2c2a25` for headings and strong values, `#565551` for body/UI text, and `#807f7c` or `#abaaa8` for secondary metadata.
-- Use a soft shadow only for a floating alert, tooltip, or dominant card.
-- Use cropped edges intentionally so the product feels larger than the illustration frame.
-- Render at 2× pixel density when exporting raster assets. Prefer SVG for line art, tables, labels, and UI mockups.
-- Keep text as real HTML when localization, accessibility, or live data matters. Keep SVG text as text where the delivery pipeline supports the required fonts.
+- Use a white surface, 1px `--mg-border`, 12–15px radius, and little or no shadow.
+- Use 12–14px labels, 16–20px key values, tabular numerals, and mono for IDs/timestamps.
+- Use one semantic accent per visual; keep axes, grids, secondary series, and metadata neutral.
+- Keep final labels readable. Crop or simplify secondary data instead of scaling the whole surface.
+- Pair any chart with a visible summary, legend, tooltip semantics, or accessible data alternative.
+- Preserve loading, empty, error, and partial-data states in the same frame.
 
-## Asset and fidelity contract
+## Dashboard overview
 
-Choose the delivery format by behavior, not by convenience:
+Use one restrained overview card followed by joined metric cells. Place greeting/title and concise description on the left; place time, version, and connection state in a compact divided meta region. Use 32–42px only for the overview title. Keep metric cards joined by 1px rails and use subtle arrow movement only on real links.
 
-| Visual need | Preferred format | Minimum contract |
-|---|---|---|
-| Live data, localized copy, keyboard interaction | HTML/CSS/React/Vue | real semantics, responsive reflow, loading/empty/error states |
-| Static line art, contour, routing diagram | SVG | `viewBox`, meaningful `title`/`desc` or `aria-hidden`, no clipped essential labels |
-| Supplied screenshot or decorative texture | raster/WebP/PNG | 2× export density, compressed file, meaningful alt text or decorative treatment |
-| Chart or table that communicates a decision | live chart/table | visible summary and an accessible data representation |
+## Usage analytics
 
-When a visual is illustrative rather than live, label mock data as sample data if a reasonable user could mistake it for production values. Do not invent a provider, customer, security state, or performance claim that the surrounding copy does not support.
+- Put time range and export/import/refresh actions in the shared page header or toolbar.
+- Divide content into summary, trends, analysis, and details with compact section introductions.
+- Reuse `USAGE_CHART_COLORS`, `getUsageSeriesColor`, and `buildUsageAreaGradient`; do not create a competing palette in a page.
+- Keep success green, failure red, cost amber, and the remaining series muted charcoal/teal tones.
+- Use restrained area alpha, light grid lines, clear units, stable chart height, and deferred rendering for below-fold heavy charts.
+- On mobile, simplify legends and controls while retaining the decision-driving series and visible summary.
 
-Fidelity checks for every product visual:
+## Provider workbench
 
-- Keep the dominant frame between 15–16px radius and 1px border; use one floating element at most and keep its anchor obvious.
-- Keep final-size labels at least 12px and line-height around 1.4. If the visual cannot support readable labels, crop it to one meaningful fragment instead of shrinking the whole dashboard.
-- Define a safe inset for the claim, status marks, and controls. Responsive cropping may remove decoration or secondary rows, never the primary signal.
-- Preserve the same empty/loading/error language as the real product. A marketing mockup should still look like an intentional state, not a broken screenshot.
-- Check the asset on white and pale sage/khaki backgrounds, at 100% browser zoom, and with images disabled. Essential information must remain available as text outside the asset.
+Use one bordered two-column frame: 205–224px category/navigation rail and a flexible resource panel. Keep category, header, toolbar, table/list, and details visually connected. Collapse to one column below the established 1199px breakpoint. Provider colors may identify a provider compactly, but must not tint the entire workspace.
 
-## Internal UI grammar
+## Credentials and quota
 
-- Use 1px dividers and control strokes.
-- Use 8px input radii, 12px medium containers, and 15px outer cards.
-- Use 12–14px labels and metadata, 16–20px control values, and 24–32px feature-card headings at the final display size.
-- Use uppercase section labels with moderate letter spacing for small category headings.
-- Use low-contrast gray chips and sage selection rings.
-- Use monospaced text for request IDs, code, tokens, and logs.
-- Use icons as thin outline geometry. Avoid glossy icon tiles.
+Use compact cards or joined rows with provider identity, account/model metadata, actions, and quota state. Progress tracks stay thin; label percentage and reset window. Use warning/red only when thresholds warrant them. Keep batch search/filter controls in a toolbar and card actions stable across loading/refresh.
 
-## Recipe: reliability and fallback routing
+## Request logs and status timelines
 
-Compose a vertical system diagram:
+Let the log surface span the shell width. Use a compact filter/action header, stable columns, mono IDs/timestamps, and hairline rows. Pair routed/fallback/failed color with text. For dense status timelines, preserve keyboard access and roving tabindex; do not expose dozens of independent tab stops when a grouped control communicates the same detail.
 
-1. Place a compact “model uptime” status card at the top.
-2. Represent uptime as a row of thin vertical ticks: mostly green, occasional amber, rare red.
-3. Place a primary provider/model row below with two bordered selects.
-4. Connect it with a thin muted line to partially cropped fallback rows numbered 2 and 3.
-5. Use white surfaces, 15px radii, subtle shadows, and no decorative background.
+## Forms, source, and diff editors
 
-Communicate the sequence spatially. Do not add arrows and labels everywhere; the offset rows and connector line should carry the story.
+Use a focused surface with clear sections and one primary save action. Keep visual/source modes explicit. Reuse CodeMirror for YAML and diff behavior, preserve stable editor height, and keep search/fold/selection behavior. Errors must identify the affected section or line and remain readable outside color.
 
-## Recipe: budget and spend control
+## Static explanatory SVG
 
-Compose a simple chart on a transparent canvas:
+Use SVG only when an actual UI surface cannot explain a topology or flow. Match the console palette and hairline geometry, include a meaningful `title`/`desc` or mark it decorative, and keep essential labels inside a safe responsive inset. Avoid perspective, glow, generic browser chrome, floating-card collages, and marketing illustrations.
 
-1. Use a green cumulative area/line chart with thin light grid lines.
-2. Put a large amber warning zone above a soft-stop threshold and a dark red hard-limit zone at the top.
-3. Add one dashed threshold line and one compact label.
-4. Float a white notification card over the chart: bold event summary, gray status/time metadata, 15px radius, soft shadow.
-5. Keep axes and weekday labels subdued.
+## Responsive states
 
-Use orange/amber because it has operational meaning. Avoid decorative gradients inside the chart.
-
-## Recipe: routing policy builder
-
-Compose a two-column configuration card:
-
-1. Use a title row separated by a hairline.
-2. Put large radio rows on the left: Priority, Intelligent, and Build your own.
-3. Emphasize the selected row with a sage border/ring and stronger text.
-4. Put benchmark rows on the right with neutral category chips, source metadata, and right-aligned percentages.
-5. Use red only for the one low or problematic score.
-
-Keep the UI flat. Let alignment, rules, and the selected ring create hierarchy.
-
-## Recipe: request/security log
-
-Compose a table fragment:
-
-1. Place a search field across the top.
-2. Put a compact row of filter controls beneath it.
-3. Use clear column headers, 1px row dividers, and 12–14px table text.
-4. Use a small status dot before routed, fallback, blocked, and cached labels.
-5. Use green, amber, and red dots semantically; keep the rest monochrome.
-6. Optionally include a large outline cursor near one filter to imply configurability.
-
-Crop the provider/model column or lower rows rather than shrinking the table.
-
-When this recipe becomes a real authenticated log page, let the live table span the available application-shell width and keep the page title compact. The marketing-page 1196px container and decorative hero treatment do not apply when they reduce visible columns or push operational content below the fold.
-
-## Recipe: end-user or tenant controls
-
-Compose a narrow vertical management card:
-
-1. Use a header with a left title and right “+ New …” action.
-2. Use a two-column table header and generous row height.
-3. For each customer, show a bold name, a muted routing policy, a spend cap, a thin progress track, a percentage, and a muted ownership badge.
-4. Use soft sage badges for “own key,” neutral gray for “managed,” and orange for the one near-limit progress bar.
-5. Crop the card vertically after two or three complete examples to imply a longer list.
-
-## Recipe: hero code panel
-
-Build this as HTML when possible:
-
-- Use a 15px white card with 1px border, clipped overflow, and `0 20px 65px rgb(0 0 0 / 7%)`.
-- Put language tabs at the top and provider pills at the bottom.
-- Keep code in the center with line numbers or syntax colors at low saturation.
-- Show only the copy control for the visible code sample.
-- Keep the card height stable while switching language/provider.
-- Make copy feedback visible, short-lived, keyboard operable, and announced to assistive technology.
-
-## Composition rules
-
-- Match the illustration subject to the adjacent claim. Reliability needs routing/fallback; cost needs thresholds; control needs policy UI; security needs logs or filters.
-- Put the strongest visual weight near the text baseline, not centered mechanically inside a huge empty box.
-- Use one dominant frame, one secondary floating element at most, and one semantic accent.
-- Keep important text and status marks inside a safe inset so responsive cropping does not remove the story.
-- Ensure transparent assets remain legible on both pure white and pale sage/khaki sections.
-- Keep the DOM/source order aligned with the claim: heading → explanation → action → visual proof is the safe default. If CSS reorders columns, verify mobile reading order and focus order separately.
-- For responsive visuals, define three states explicitly: full desktop composition, simplified tablet composition, and essential mobile crop/recomposition. Do not rely on one `transform: scale()` rule.
-- Use `alt=""` for purely decorative visuals and put the explanation in nearby text; use a concise alt for a meaningful static visual; use a live accessible representation for data-bearing visuals.
-
-## Avoid
-
-- Avoid generic browser chrome unless the browser itself matters.
-- Avoid fake 3D perspective, neon glows, translucent glass cards, and purple/cyan AI gradients.
-- Avoid tiny unreadable dashboard screenshots used as decoration.
-- Avoid equal use of every status color.
-- Avoid more than two shadow depths in one visual.
-- Avoid copying Merge's logos, customer names, exact sample data, or original source assets.
+Define desktop, tablet, and mobile compositions. Remove decoration first, then secondary metadata; never remove the primary signal, action, status label, or accessible summary. Preserve source/focus order even when columns stack or crop.

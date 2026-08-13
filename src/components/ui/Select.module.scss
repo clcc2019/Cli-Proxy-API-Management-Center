@@ -48,7 +48,12 @@
 
   &:hover:not(:disabled) {
     border-color: var(--mg-border-hover);
-    background: var(--mg-surface-subtle);
+    background: var(--mg-surface-hover);
+  }
+
+  &:active:not(:disabled) {
+    border-color: var(--mg-border-strong);
+    background: var(--mg-surface-pressed);
   }
 
   &:focus-visible {
@@ -59,7 +64,8 @@
   }
 
   &[aria-expanded='true'] {
-    border-color: var(--mg-border);
+    border-color: var(--mg-border-strong);
+    background: var(--mg-surface-pressed);
     box-shadow: none;
   }
 
@@ -135,13 +141,17 @@
   flex-shrink: 0;
 
   &:hover {
-    background: var(--mg-surface-subtle);
+    background: var(--mg-surface-hover);
+  }
+
+  &:active {
+    background: var(--mg-surface-pressed);
   }
 
   &:focus-visible {
     outline: 1px solid var(--mg-focus-outline);
     outline-offset: -2px;
-    background: var(--mg-surface-subtle);
+    background: var(--mg-surface-hover);
   }
 }
 
@@ -153,5 +163,5 @@
 }
 
 .optionHighlighted {
-  background: var(--mg-surface-subtle);
+  background: var(--mg-surface-hover);
 }

@@ -388,21 +388,21 @@
 }
 
 .modified {
-  color: #9a6b1d;
-  background: rgb(229 169 71 / 0.16);
-  border-color: rgb(229 169 71 / 0.34);
+  color: var(--mg-warning);
+  background: color-mix(in srgb, var(--mg-warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--mg-warning) 34%, transparent);
 }
 
 .saved {
-  color: #407345;
-  background: rgb(64 115 69 / 0.1);
-  border-color: rgb(64 115 69 / 0.22);
+  color: var(--mg-success-text);
+  background: color-mix(in srgb, var(--mg-success-fill) 10%, transparent);
+  border-color: color-mix(in srgb, var(--mg-success-fill) 28%, transparent);
 }
 
 .error {
-  color: #a53830;
-  background: rgb(165 56 48 / 0.1);
-  border-color: rgb(165 56 48 / 0.24);
+  color: var(--mg-danger);
+  background: color-mix(in srgb, var(--mg-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--mg-danger) 28%, transparent);
 }
 
 .floatingActionContainer {

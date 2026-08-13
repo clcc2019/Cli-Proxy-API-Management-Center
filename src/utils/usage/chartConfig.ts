@@ -8,17 +8,17 @@ import type { ChartOptions, ScriptableContext } from 'chart.js';
 export type UsageChartMetric = 'requests' | 'tokens';
 
 export const USAGE_CHART_COLORS = {
-  requests: '#8b8680',
-  tokens: '#6d6760',
-  rpm: '#75827c',
-  tpm: '#c65f3d',
-  cost: '#b7791f',
-  latency: '#77726d',
-  success: '#16a34a',
-  failure: '#c53a32',
-  neutral: '#a29c95',
-  cyan: '#1f6170',
-  pink: '#b76b61',
+  requests: '#0e7490',
+  tokens: '#4f46b8',
+  rpm: '#13836b',
+  tpm: '#c9480b',
+  cost: '#a65c00',
+  latency: '#7c3f98',
+  success: '#0fa64b',
+  failure: '#cc332b',
+  neutral: '#6b7280',
+  cyan: '#087f8c',
+  pink: '#b23a68',
 } as const;
 
 const REQUEST_SERIES_COLORS = [

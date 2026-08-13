@@ -17,12 +17,12 @@ import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
 
 /**
  * 根据成功率 (0–1) 在三个色标之间做 RGB 线性插值
- * 0 → 红 (#c53a32)  →  0.5 → 琥珀 (#d68b16)  →  1 → 纯绿 (#16a34a)
+ * 0 → 红 (#cc332b)  →  0.5 → 琥珀 (#d97706)  →  1 → 纯绿 (#0fa64b)
  */
 const COLOR_STOPS = [
-  { r: 197, g: 58, b: 50 }, // #c53a32
-  { r: 214, g: 139, b: 22 }, // #d68b16
-  { r: 22, g: 163, b: 74 }, // #16a34a
+  { r: 204, g: 51, b: 43 }, // #cc332b
+  { r: 217, g: 119, b: 6 }, // #d97706
+  { r: 15, g: 166, b: 75 }, // #0fa64b
 ] as const;
 
 function rateToColor(rate: number): string {
@@ -470,7 +470,12 @@ function ProviderStatusBarImpl({
           ))}
         </div>
       ) : (
-        <div className={s.statusBlocks} ref={blocksRef} role="group" aria-label={t('status_bar.label')}>
+        <div
+          className={s.statusBlocks}
+          ref={blocksRef}
+          role="group"
+          aria-label={t('status_bar.label')}
+        >
           {blockItems.map((item, idx) => (
             <StatusBlockItem
               key={idx}

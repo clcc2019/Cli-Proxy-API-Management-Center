@@ -11,9 +11,9 @@
   --dashboard-text: var(--text-primary, #1f2937);
   --dashboard-text-secondary: var(--text-secondary, #475569);
   --dashboard-text-tertiary: var(--text-tertiary, #64748b);
-  --dashboard-sage: var(--mg-sage, #96a58d);
-  --dashboard-sage-strong: var(--mg-sage-strong, #63725a);
-  --dashboard-sage-soft: var(--mg-sage-soft, #eef2f6);
+  --dashboard-sage: var(--mg-sage);
+  --dashboard-sage-strong: var(--mg-sage-strong);
+  --dashboard-sage-soft: var(--mg-sage-soft);
   --dashboard-success: var(--mg-success);
   --dashboard-warning: var(--mg-warning);
   --dashboard-danger: var(--mg-danger);
@@ -36,7 +36,7 @@
   position: relative;
   z-index: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: space-between;
   gap: 32px;
   min-height: 156px;
@@ -55,6 +55,7 @@
   min-width: 0;
   flex: 1 1 auto;
   flex-direction: column;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -73,7 +74,7 @@
   max-width: 18ch;
   margin: 0;
   color: var(--dashboard-text);
-  font-family: $font-display;
+  font-family: var(--mg-font-display);
   font-size: clamp(32px, 3.5vw, 42px);
   font-weight: 650;
   line-height: 1.05;
@@ -100,8 +101,9 @@
   flex: 0 0 auto;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 10px;
-  padding: 2px 0 2px var(--mg-space-6);
+  padding: 0 0 0 var(--mg-space-6);
   border-left: 1px solid var(--dashboard-border);
   background: transparent;
 }
@@ -115,7 +117,7 @@
 
 .time {
   color: var(--dashboard-text);
-  font-family: $font-display;
+  font-family: var(--mg-font-display);
   font-size: 30px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -208,7 +210,7 @@
     content: '';
     height: 1px;
     flex: 1 1 auto;
-    background: linear-gradient(90deg, var(--dashboard-border), rgb(171 170 168 / 0.18));
+    background: var(--dashboard-border);
   }
 }
 
@@ -257,17 +259,19 @@
       transform var(--motion-duration-base) var(--dashboard-ease);
   }
 
-  &:hover {
-    background: var(--dashboard-surface-warm);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--dashboard-surface-warm);
 
-    &::after {
-      color: var(--dashboard-sage-strong);
-      transform: translate(2px, -2px);
+      &::after {
+        color: var(--dashboard-sage-strong);
+        transform: translate(2px, -2px);
+      }
     }
   }
 
   &:active {
-    background: var(--dashboard-surface-subtle);
+    background: var(--mg-surface-pressed);
   }
 
   &:focus-visible {
@@ -285,14 +289,16 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--dashboard-border);
-  border-radius: 10px;
+  border-radius: var(--mg-radius-control, 8px);
   background: var(--dashboard-surface-subtle);
   color: var(--dashboard-text-secondary);
   transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
-.bentoCard:hover .bentoIcon {
-  background: var(--dashboard-surface-subtle);
+@media (hover: hover) and (pointer: fine) {
+  .bentoCard:hover .bentoIcon {
+    background: var(--dashboard-surface-subtle);
+  }
 }
 
 .bentoContent {
@@ -304,7 +310,7 @@
 
 .bentoValue {
   color: var(--dashboard-text);
-  font-family: $font-display;
+  font-family: var(--mg-font-display);
   font-size: 32px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -462,8 +468,8 @@
 }
 
 .configBadgeFillFirst {
-  border-color: rgb(64 115 69 / 0.18);
-  background: rgb(64 115 69 / 0.1);
+  border-color: color-mix(in srgb, var(--dashboard-success) 32%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-success) 10%, var(--dashboard-surface));
   color: var(--dashboard-success);
 }
 
@@ -480,18 +486,20 @@
   justify-content: center;
   gap: 8px;
   padding: 10px 18px;
-  border-radius: $radius-full;
-  background: var(--mg-ink-strong, #0e0d0c);
+  border-radius: var(--mg-radius-control, 8px);
+  background: var(--mg-action, #000000);
   color: var(--mg-text-inverse);
   font-size: 13px;
   line-height: 1.2;
   text-decoration: none;
   transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 
-  &:hover {
-    background: var(--mg-text-secondary, #475569);
-    color: var(--mg-text-inverse);
-    text-decoration: none;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--mg-action-hover, #282828);
+      color: var(--mg-text-inverse);
+      text-decoration: none;
+    }
   }
 
   &:focus-visible {
@@ -506,8 +514,10 @@
   transition: transform var(--motion-duration-base) var(--dashboard-ease);
 }
 
-.viewMoreLink:hover .viewMoreArrow {
-  transform: translateX(3px);
+@media (hover: hover) and (pointer: fine) {
+  .viewMoreLink:hover .viewMoreArrow {
+    transform: translateX(3px);
+  }
 }
 
 // ─── Responsive layout ─────────────────────────────────
@@ -650,6 +660,16 @@
 
   .viewMoreLink {
     width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .bentoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bentoCard {
+    min-height: 112px;
   }
 }
 

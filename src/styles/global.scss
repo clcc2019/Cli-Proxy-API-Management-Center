@@ -75,8 +75,8 @@ textarea {
 }
 
 // Browsers keep text inputs focus-visible after a pointer click. Track the
-// current input modality so mouse/touch interaction never adds a dark or
-// colored focus edge, while keyboard navigation remains discoverable.
+// current input modality so mouse/touch interaction never adds a dark focus
+// edge, while keyboard navigation remains discoverable.
 html[data-input-modality='pointer'] :focus,
 html[data-input-modality='pointer'] :focus-visible {
   outline: none !important;
@@ -113,13 +113,17 @@ html[data-input-modality='pointer'] :focus-visible {
     --border-color: #98a4b6;
     --border-primary: #7e8ca1;
     --text-secondary: #354055;
-    --focus-ring: rgb(68 68 170 / 0.48);
+    --mg-focus-outline: #000000;
+    --mg-focus-ring: rgb(0 0 0 / 32%);
+    --focus-ring: var(--mg-focus-ring);
   }
   [data-theme='dark'] {
     --border-color: #7d8ba3;
     --border-primary: #9aa7ba;
     --text-secondary: #e7ebf3;
-    --focus-ring: rgb(196 199 255 / 0.58);
+    --mg-focus-outline: #ffffff;
+    --mg-focus-ring: rgb(255 255 255 / 42%);
+    --focus-ring: var(--mg-focus-ring);
   }
 }
 

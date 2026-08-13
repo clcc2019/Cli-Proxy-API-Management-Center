@@ -8,6 +8,24 @@
   text-align: center;
 }
 
+.modelsModal {
+  min-width: 0;
+
+  :global(.modal-title) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
+  }
+
+  :global(.modal-body) {
+    min-width: 0;
+  }
+
+  :global(.modal-footer) {
+    flex-wrap: wrap;
+  }
+}
+
 .modelsList {
   display: flex;
   flex-direction: column;
@@ -36,11 +54,12 @@
 
 .modelItem:hover {
   border-color: var(--mg-border-hover);
-  background: var(--mg-surface-warm);
+  background: var(--mg-surface-hover);
 }
 
 .modelItem:active {
-  border-color: var(--mg-border);
+  border-color: var(--mg-border-strong);
+  background: var(--mg-surface-pressed);
 }
 
 .modelItem:focus-visible {
@@ -58,7 +77,8 @@
 }
 
 .modelDisplayName {
-  flex-shrink: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--mg-text-secondary);
   font-size: 12px;
 }
@@ -89,13 +109,57 @@
 }
 
 .modelExcludedBadge {
-  flex-shrink: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 2px 6px;
   border: 1px solid color-mix(in srgb, var(--mg-danger) 44%, var(--mg-border));
   border-radius: var(--mg-radius-pill);
   background: color-mix(in srgb, var(--mg-danger) 9%, var(--mg-surface));
   color: var(--mg-danger);
   font-size: 10px;
+}
+
+@media (max-width: 767px) {
+  .modelsModal {
+    :global(.modal-header) {
+      min-height: 64px;
+      padding: max(16px, env(safe-area-inset-top)) 56px 14px 16px;
+    }
+
+    :global(.modal-body) {
+      padding: 16px;
+    }
+
+    :global(.modal-footer) {
+      padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    }
+
+    :global(.modal-footer) > :global(.btn) {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .modelItem {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .modelId {
+    width: 100%;
+    line-height: 1.45;
+  }
+
+  .modelDisplayName {
+    flex: 1 1 100%;
+    line-height: 1.4;
+  }
+
+  .modelType,
+  .modelExcludedBadge {
+    margin-left: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

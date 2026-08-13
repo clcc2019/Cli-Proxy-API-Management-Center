@@ -74,6 +74,7 @@ const PopoverButton = memo(function PopoverButton({
           title={triggerSummary ? `${triggerLabel}: ${triggerSummary}` : triggerLabel}
         >
           {triggerIcon}
+          <span className={refreshStyles.controlButtonText}>{triggerLabel}</span>
         </button>
       }
     >

@@ -10,11 +10,11 @@
   --key-border: #e2e8f0;
   --key-border-strong: #cbd5e1;
   --key-ink: #0e0d0c;
-  --key-sage: #96a58d;
-  --key-sage-strong: #63725a;
-  --key-success: #407345;
-  --key-warning: #a36e1f;
-  --key-danger: #a53830;
+  --key-sage: var(--mg-sage);
+  --key-sage-strong: var(--mg-sage-strong);
+  --key-success: var(--mg-success-text);
+  --key-warning: var(--mg-warning);
+  --key-danger: var(--mg-danger);
 
   width: 100%;
   min-width: 0;
@@ -674,8 +674,8 @@
   --key-text-secondary: #475569;
   --key-text-tertiary: #64748b;
   --key-border: #e2e8f0;
-  --key-sage: #96a58d;
-  --key-danger: #a53830;
+  --key-sage: var(--mg-sage);
+  --key-danger: var(--mg-danger);
 
   border-color: var(--key-border);
   border-radius: 15px;

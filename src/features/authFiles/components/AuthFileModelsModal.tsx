@@ -82,6 +82,8 @@ export const AuthFileModelsModal = memo(
       <Modal
         open={open}
         onClose={onClose}
+        fullScreenOnMobile
+        className={styles.modelsModal}
         title={`${t('auth_files.models_title')} - ${fileName}`}
         footer={
           <Button variant="secondary" onClick={onClose}>

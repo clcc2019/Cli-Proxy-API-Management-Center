@@ -5,7 +5,7 @@
   --login-canvas: #f8fafc;
   --login-surface: #ffffff;
   --login-surface-muted: #f2f2f2;
-  --login-surface-selected: #ededed;
+  --login-surface-selected: var(--mg-surface-pressed);
   --login-header-surface: rgb(250 250 250 / 85%);
   --login-header-border: rgb(204 204 204 / 30%);
   --login-dark-surface: #0d0d0d;
@@ -20,8 +20,8 @@
   --login-border-strong: #cccccc;
   --login-signal: #998b00;
   --login-signal-on-dark: #eddd0c;
-  --login-action: #0d0d0d;
-  --login-action-hover: #333333;
+  --login-action: var(--mg-action);
+  --login-action-hover: var(--mg-action-hover);
   --login-action-text: #fafafa;
   --login-focus: #0d0d0d;
   min-height: 100vh;

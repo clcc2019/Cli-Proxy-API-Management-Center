@@ -63,8 +63,6 @@
     background $transition-fast;
 }
 
-// 开关表达持续状态而非动作：选中态用 sage（产品的选中/上下文色），
-// 与侧栏激活项、下拉选中项的 sage 语言一致；charcoal 填充只留给动作按钮。
 .root input:checked + .track {
   background: var(--mg-sage-strong, var(--primary-color));
   border-color: color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 62%, transparent);
@@ -74,6 +72,16 @@
 .root input:focus-visible + .track {
   outline: 1px solid var(--mg-focus-outline);
   outline-offset: 3px;
+}
+
+.root:hover input:not(:checked):not(:disabled) + .track {
+  background: var(--mg-surface-hover);
+  border-color: var(--mg-border-hover);
+}
+
+.root:active input:not(:checked):not(:disabled) + .track {
+  background: var(--mg-surface-pressed);
+  border-color: var(--mg-border-strong);
 }
 
 .root input:disabled + .track {

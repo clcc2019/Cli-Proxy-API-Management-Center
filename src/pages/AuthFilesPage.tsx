@@ -1694,7 +1694,11 @@ export function AuthFilesPage() {
                 label={pageQuotaRefreshLabel}
                 title={t('auth_files.refresh_page_quota_aria')}
                 iconSize={16}
-              />
+              >
+                <span className={refreshStyles.quotaRefreshText}>
+                  {t('auth_files.refresh_page_quota')}
+                </span>
+              </RefreshButton>
             </div>
           </div>
         </div>

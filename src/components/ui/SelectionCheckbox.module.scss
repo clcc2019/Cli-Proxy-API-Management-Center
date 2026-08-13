@@ -44,10 +44,10 @@
     box-shadow $transition-fast;
 }
 
-.root:hover .box {
+.root:hover .input:not(:checked):not(:disabled) + .box {
   border-color: var(--border-hover);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 12%, transparent);
+  background: var(--mg-surface-hover);
+  box-shadow: none;
 }
 
 .disabled:hover .box {
@@ -58,6 +58,11 @@
 .input:focus-visible + .box {
   outline: 1px solid var(--mg-focus-outline);
   outline-offset: 2px;
+}
+
+.root:active .input:not(:checked):not(:disabled) + .box {
+  border-color: var(--mg-border-strong);
+  background: var(--mg-surface-pressed);
 }
 
 .boxChecked {

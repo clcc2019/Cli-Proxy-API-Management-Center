@@ -1,102 +1,62 @@
 ---
 name: apply-merge-gateway-style
-description: "Analyze, design, restyle, or implement frontend pages and components in the visual language of Merge Gateway: quiet enterprise AI/SaaS layouts, hairline borders, restrained charcoal/sage/orange colors, editorial typography, product-UI illustrations, code panels, tabs, and subtle motion. Use when the user mentions Merge Gateway, merge.dev/gateway, asks to match that site's borders/colors/type/images/interactions, requests a calm technical B2B aesthetic, or wants later HTML/CSS/React/Vue frontend changes to follow this style."
+description: "Analyze, design, restyle, or implement frontend pages and components for the CLI Proxy API Management Center in its current Merge Gateway-derived visual system: fixed light theme, cool-gray canvas, white operational surfaces, charcoal primary actions, sage selection/context, hairline borders, compact editorial headings, dense management layouts, and restrained motion. Use when changing this repository's React/SCSS UI, extending its design system, creating management pages, dashboards, workbenches, tables, forms, dialogs, charts, or asking later frontend work to match the current product style."
 ---
 
-# Apply Merge Gateway Style
+# Apply the Current Management Center Style
 
-Recreate the design logic of Merge Gateway without copying its brand, logo, marketing copy, or original image assets. Preserve the product's information architecture and existing frontend conventions while applying the style systematically.
+Treat the repository's current frontend as the source of truth. Preserve its React 19, SCSS, CSS Modules, routing, i18n, data flow, accessibility semantics, and public component APIs while extending one coherent visual system.
 
-## Load the references
+## Load only what the task needs
 
-- Read [references/style-system.md](references/style-system.md) before changing visual styles, layout, typography, components, or motion.
-- Read [references/component-spec.md](references/component-spec.md) before creating or auditing any individual component. It defines the anatomy, state matrix, motion, and anti-patterns for every primitive (buttons, inputs, selects, checkboxes, toggles, cards, dividers, tables, badges, stat cards, tabs, modals, toasts, empty/error/permission states, skeletons, code panels, charts, progress, navigation, page headers, toolbars, pagination, tooltips, accordions, forms). Work through it component by component instead of restyling ad hoc.
-- Read [references/product-visuals.md](references/product-visuals.md) when creating or revising screenshots, dashboard mockups, SVG illustrations, charts, code panels, tables, routing diagrams, or other product imagery.
+- Read [references/style-system.md](references/style-system.md) before any visual or layout change.
+- Read [references/component-spec.md](references/component-spec.md) before creating or changing a primitive or interactive state.
+- Read [references/product-visuals.md](references/product-visuals.md) for dashboards, charts, logs, provider workbenches, code editors, or illustrative product UI.
 
-Choose the minimum reference set that covers the task, but always load the style system first:
-
-| Task | Required references |
-|---|---|
-| Audit or restyle a page | `style-system.md` + the touched sections of `component-spec.md` |
-| Create or change a primitive | `style-system.md` + all of that primitive's `component-spec.md` section |
-| Create product imagery or a visual mockup | `style-system.md` + `product-visuals.md` + the relevant component sections |
-| Change only behavior/content | inspect the references for constraints, then avoid visual edits unless the behavior exposes a state gap |
-
-Do not treat the references as a mood board. The token names, page mode, state matrix, accessibility contract, and anti-patterns are implementation requirements.
+Inspect the live repository before editing because implementation may have evolved. In a CodeGraph-indexed repository, use CodeGraph first to locate tokens, shared primitives, call paths, and representative consumers.
 
 ## Work in this order
 
-1. Inspect the existing frontend stack, design tokens, shared components, page structure, responsive rules, and current user changes.
-2. Classify the screen as marketing/editorial, overview/dashboard, dense management, or secondary/edit before choosing its width and header treatment.
-3. Identify what must remain unchanged: content hierarchy, routes, behavior, data flow, accessibility semantics, and public component APIs.
-4. Map the current UI to the reference system instead of scattering one-off CSS values.
-5. Add or revise semantic tokens first: canvas, surface, text, border, accent, radius, shadow, spacing, and motion.
-6. Update shared primitives next, auditing each one against its section in [references/component-spec.md](references/component-spec.md): typography, buttons, inputs, selects, checkboxes, toggles, cards, dividers, tabs, tables, badges, modals, toasts, empty/error/permission states, skeletons, code panels, charts, accordions, and focus states. Fix the primitive, not the consumer; when two implementations of the same primitive exist (e.g. a global class and a component module), converge them to one spec-compliant source.
-7. Recompose around the primary task: use an editorial hero only when the page itself is a destination; keep routine management headers compact and let the operational surface dominate.
-8. Add motion last. Keep it short, purposeful, transform/opacity-based, and safe under `prefers-reduced-motion`.
-9. Verify desktop, tablet, and mobile layouts. Exercise hover, keyboard focus, active, copied, expanded, loading, empty, and error states where relevant.
+1. Classify the screen as overview, management, workbench, or secondary/edit.
+2. State four internal decisions: primary task, dominant surface, information density, and semantic accent.
+3. Preserve behavior, routes, copy hierarchy, i18n, keyboard behavior, and user changes.
+4. Reuse the shell, tokens, and shared primitives. Fix a shared primitive before patching repeated consumers.
+5. Compose the page around the operational surface; add motion only after layout and states are complete.
+6. Verify responsive composition, interaction states, accessibility, and the repository's relevant type/lint/build checks.
 
-Before editing, write a short internal design brief with four decisions: page mode, primary task/action, largest visual surface, and the one semantic accent. Use it to reject decorative changes that compete with the task.
+## Choose the page pattern
 
-For a reference-site refresh, first capture one desktop view of the relevant reference area and identify its surface hierarchy, action contrast, divider rhythm, and density. Translate those relationships into the target product; do not copy its brand, assets, or marketing composition wholesale.
+| Mode | Header | Dominant surface | Width |
+|---|---|---|---|
+| Overview | restrained overview card or `ManagementPageHeader` | joined metrics and one primary data region | full shell width |
+| Management | `ManagementPageHeader` + optional `ManagementToolbar` | table, list, log, or card collection | full shell width |
+| Workbench | compact header | bordered navigation/resource split | full shell width; collapse below its breakpoint |
+| Secondary/edit | contextual title/back action | focused form, detail, diff, or editor | full shell width or readable local cap |
 
-## Choose width and hierarchy by page type
+Use the dashboard's larger 32–42px title only for a true overview. Routine pages use the shared 26–32px management title. Do not add marketing heroes, oversized display copy, decorative gradients, or an inner centered max-width to operational screens.
 
-- Use this decision table before choosing a container or hero:
+## Implementation rules
 
-| Page mode | Width | Header | Dominant surface | Accent budget |
-|---|---|---|---|---|
-| Marketing / destination | centered `--mg-content-max` | editorial hero is allowed | product proof or code panel | orange eyebrow/CTA detail; sage atmosphere |
-| Overview / dashboard | shell width, wide where data needs it | compact or restrained overview header | summary strip + primary chart/workflow | one status or threshold cue |
-| Dense management | available shell width | compact title + required actions | table, log, form, or workbench | semantic states only |
-| Secondary / edit | shell width or readable form cap | title + back/context action | form or focused detail panel | primary action plus validation colors |
+- Consume existing semantic variables from `src/styles/themes.scss`; do not invent a parallel token namespace in a page module.
+- Keep the application fixed light unless the user explicitly requests a product-wide theme change. Do not add isolated dark-mode branches.
+- Use `src/styles/components.scss` and the React wrappers for global `Button`, `Card`, `Input`, and `Modal`; use the canonical CSS Module primitives for `Select`, `Table`, `ToggleSwitch`, `SelectionCheckbox`, headers, and toolbars.
+- Keep canvas gray and operational surfaces white. Use borders, spacing, alignment, and joined panels before adding fill or shadow.
+- Reserve charcoal fill for primary/destructive actions by semantic variant. Use sage for selection and persistent context, teal for information, and green/amber/red for real states.
+- Keep values compact: 40px controls, 8px control radii, 12px nested containers, 15px main cards, 1px borders, and 14–22px normal panel padding.
+- Keep motion between 130–240ms, primarily color, opacity, and small transforms. Honor `prefers-reduced-motion`.
+- Build data-bearing visuals as semantic HTML, SVG, canvas/chart components, or the existing editor; use raster assets only for static supplied imagery.
+- Do not introduce a UI library or image-generation dependency for this style.
+- Do not use `agent-browser` unless the user explicitly requests browser verification.
 
-- Let dense admin tables, logs, charts, and configuration workbenches inherit the available application-shell width. Avoid placing a second centered marketing max-width inside an already padded shell.
-- Keep routine management headers to a title, optional one-line description, and necessary actions. Do not wrap them in a decorative hero card unless the header communicates a critical state or primary action.
-- Reserve large sage atmospheres, contour art, display-scale headings, and generous hero padding for marketing pages, onboarding, landing views, and selected overview dashboards.
-- Inspect the effective width as `viewport - sidebar - shell gutters - page max-width`. Remove compounded constraints before shrinking columns or typography.
-- Make the primary operational panel the largest and earliest visual mass on management pages.
+## Reject drift
 
-## Make implementation decisions
+Reject glassmorphism, neon or purple AI gradients, blurred shells, thick borders, excessive pills, floating-card collages, decorative 3D art, bouncy motion, hover scaling, tinted full-page sections, and color used without semantic meaning. Avoid copying Merge branding or marketing composition; this skill represents the product's current management-console adaptation.
 
-- Reuse the project's framework and component system. Avoid introducing a new UI library solely for this look.
-- Prefer CSS variables or the project's token mechanism over literal values inside components.
-- Preserve existing fonts if they are part of the product identity. If a close Merge-like result is requested, use a licensed geometric display sans for headings and Inter/system sans for body copy; never fetch proprietary fonts without authorization.
-- Build product visuals as accessible HTML/CSS/SVG when they must respond to data, localization, theme, or user interaction. Use raster images only for static decorative art or supplied screenshots.
-- Keep diagrams illustrative rather than deceptive. Label mock data as sample data when users could mistake it for live values.
-- Keep orange rare. Reserve it for the primary attention cue, a critical progress state, or one editorial accent—not every button and icon.
-- Use shadows only to establish hierarchy. Let borders, spacing, and alignment carry most of the structure.
-- Prefer one convincing product fragment over a collage of unrelated floating cards.
-- On operational screens, give the primary action the sole high-contrast fill (usually warm charcoal); keep companion actions white with hairline borders.
-- Use the existing primitive API and DOM semantics unless a change is explicitly requested. Visual restyling must not silently change routes, form submission, keyboard behavior, data loading, or public props.
-- Make every touched primitive pass the shared state matrix in `component-spec.md`; if a state is not supported, decide whether the component should gain it or whether the consumer must use a different primitive.
-- Keep layout stable across state changes: reserve slots for icons, validation text, loading indicators, tab panels, and sticky headers. Avoid JS-driven measurements when CSS layout can express the relationship.
-- Add tokens before adding component values. If a value appears twice, it probably belongs in a token; if it appears once, document why it is an intentional exception.
+## Definition of done
 
-## Preserve the signature feel
-
-- Use warm charcoal rather than pure black for most text.
-- Use white and near-white surfaces with low-contrast gray or khaki/sage atmosphere.
-- Use 1px hairline borders, 15–16px primary card radii, 8–12px control radii, and full pills for navigation and actions.
-- Set display headings tightly with compact line height and negative tracking; set body copy at a relaxed 1.5 line height.
-- Alternate editorial text blocks with high-fidelity product UI fragments.
-- Use status colors semantically: green for healthy/routed, amber for fallback/warning, red for blocked/error, orange for spend or a single priority signal.
-- Let mobile layouts stack naturally. Do not shrink dense desktop dashboards until their labels become unreadable; crop, simplify, or switch to a mobile composition.
-
-## Avoid style drift
-
-Do not add neon gradients, purple AI glows, glassmorphism, thick borders, exaggerated blur, bouncy motion, scale-on-every-hover, crowded card mosaics, or decorative 3D objects. Do not make every section sage or orange. The style depends on white space and restraint.
-
-## Validate the result
-
-- Compare the implementation at approximately 1440px, 1024px, 768px, and 390px widths.
-- Walk each touched component through its full state matrix from [references/component-spec.md](references/component-spec.md) (default, hover, focus-visible, active/selected, disabled, loading, empty, error) instead of only checking the resting state.
-- Confirm body text contrast, visible keyboard focus, minimum 44px touch targets where practical, and reduced-motion behavior.
-- Confirm that cards remain aligned to the page grid and that 1px dividers render crisply.
-- Confirm that tab changes, copy feedback, accordions, and sticky/header states communicate state without layout shift.
-- Confirm that the page still reads correctly with images unavailable.
-- Confirm the heading outline, accessible names, status text, error associations, focus restoration, and keyboard order at the stacked/mobile composition.
-- Confirm no essential information depends on hover, color alone, an image, or an animation.
-- Report the work in this format: `page mode and primary task`; `files changed`; `tokens/primitives reused or added`; `states and viewports verified`; `intentional deviations and why`; `remaining risks or follow-ups`.
-
-Definition of done: the page has one clear visual hierarchy, all touched primitives use semantic tokens, responsive behavior is an intentional re-composition, interactive states are complete, and the result preserves existing behavior and accessibility semantics.
+- One task and one dominant surface are visually obvious.
+- Touched components use the existing tokens and canonical primitives.
+- Default, hover, focus-visible, active/selected, disabled, loading, empty, and error states are handled where applicable.
+- Desktop, tablet, 768px mobile, and narrow 360–480px compositions remain usable without scaled-down desktop UI.
+- Focus order, accessible names, status text, reduced motion, touch targets, and layout stability remain correct.
+- Report files changed, primitives/tokens reused, checks run, and any intentional exception in a compact handoff.

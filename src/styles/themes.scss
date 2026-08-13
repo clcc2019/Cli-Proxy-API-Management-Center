@@ -15,6 +15,13 @@
   --mg-surface: #ffffff;
   --mg-surface-subtle: #f2f5f7;
   --mg-surface-warm: #f8fafc;
+  // DESIGN.md interaction palette: neutral hover/press surfaces and one
+  // black action anchor. These are deliberately separate from selection and
+  // status colors so focus/click feedback never reads as success or context.
+  --mg-surface-hover: #efefef;
+  --mg-surface-pressed: #e2e2e2;
+  --mg-action: #000000;
+  --mg-action-hover: #282828;
   --mg-text: #1f2937;
   --mg-text-secondary: #475569;
   --mg-text-tertiary: #64748b;
@@ -24,28 +31,27 @@
   --mg-border-strong: #b6c2cf;
   --mg-ink-strong: #111827;
   --mg-text-inverse: #ffffff;
-  --mg-sage: #5d914d;
-  --mg-sage-strong: #4f8048;
-  // Neutral selection fill; green remains in text, borders, status dots and focus rings.
-  --mg-sage-soft: #eef2f6;
-  --mg-sage-wash: rgb(93 145 77 / 12%);
-  --mg-sage-wash-soft: rgb(93 145 77 / 5%);
-  --mg-khaki-soft: #f2f5f7;
-  --mg-teal: #1f6170;
-  --mg-orange: #c2410c;
-  --mg-success-fill: #16a34a;
-  --mg-success-text: #15803d;
+  --mg-sage: #2f9e44;
+  --mg-sage-strong: #237a3b;
+  --mg-sage-soft: #e7f5ea;
+  --mg-sage-wash: rgb(47 158 68 / 16%);
+  --mg-sage-wash-soft: rgb(47 158 68 / 7%);
+  --mg-khaki-soft: #f1f6ed;
+  --mg-teal: #0e7490;
+  --mg-orange: #c9480b;
+  --mg-success-fill: #0fa64b;
+  --mg-success-text: #087a39;
   --mg-success: var(--mg-success-text);
-  --mg-warning: #9b5b00;
-  --mg-danger: #c53a32;
-  --mg-surface-selected: #eef2f6;
+  --mg-warning: #a65c00;
+  --mg-danger: #cc332b;
+  --mg-surface-selected: #e9f7ec;
   --mg-surface-disabled: #f2f5f7;
   --mg-floating-border: #dbe3eb;
   --mg-border-fade: rgb(100 116 139 / 24%);
   --mg-overlay: rgb(15 23 42 / 56%);
-  --mg-focus-outline: rgb(116 113 108 / 46%);
-  --mg-focus-ring: rgb(116 113 108 / 16%);
-  --mg-focus-ring-danger: rgb(197 58 50 / 28%);
+  --mg-focus-outline: rgb(0 0 0 / 72%);
+  --mg-focus-ring: rgb(0 0 0 / 18%);
+  --mg-focus-ring-danger: rgb(204 51 43 / 30%);
   --mg-radius-control: 8px;
   --mg-radius-medium: 12px;
   --mg-radius-card: 15px;
@@ -92,9 +98,9 @@
   --bg-secondary: var(--mg-canvas);
   --bg-primary: #ffffff;
   --bg-tertiary: var(--mg-surface-subtle);
-  --bg-hover: var(--bg-tertiary);
+  --bg-hover: var(--mg-surface-hover);
   --bg-quinary: #ffffff;
-  --bg-error-light: rgb(197 58 50 / 0.1);
+  --bg-error-light: rgb(204 51 43 / 0.1);
   --floating-surface: var(--mg-surface);
   --floating-border: var(--mg-floating-border);
   --floating-shadow: var(--mg-shadow-float);
@@ -110,9 +116,9 @@
   --border-primary: var(--mg-border-strong);
   --border-hover: var(--mg-border-hover);
 
-  --primary-color: var(--mg-ink-strong);
-  --primary-hover: var(--mg-text-secondary);
-  --primary-active: var(--mg-text);
+  --primary-color: var(--mg-action);
+  --primary-hover: var(--mg-action-hover);
+  --primary-active: var(--mg-action);
   --primary-contrast: var(--mg-text-inverse);
   --primary-soft: color-mix(in srgb, var(--mg-surface-selected) 82%, var(--mg-surface));
   --focus-ring: var(--mg-focus-ring);
@@ -122,7 +128,7 @@
   --accent-blue: var(--mg-teal);
   --accent-violet: var(--mg-teal);
   --accent-cyan: var(--mg-teal);
-  --accent-amber: #b7791f;
+  --accent-amber: #b96400;
   --accent-orange: var(--mg-orange);
   --accent-rose: var(--mg-danger);
   --accent-green: var(--mg-success-fill);
@@ -134,20 +140,20 @@
   --warning-color: var(--mg-warning);
   --error-color: var(--mg-danger);
   --danger-color: var(--error-color);
-  --danger-hover: #a82f29;
+  --danger-hover: #a82823;
   --danger-contrast: #ffffff;
   --info-color: var(--mg-teal);
 
-  --warning-bg: rgb(155 91 0 / 0.12);
-  --warning-border: rgb(155 91 0 / 0.32);
+  --warning-bg: rgb(166 92 0 / 0.12);
+  --warning-border: rgb(166 92 0 / 0.34);
   --warning-text: var(--warning-color);
 
   --success-badge-bg: var(--mg-surface);
   --success-badge-text: var(--mg-success-text);
-  --success-badge-border: rgb(22 163 74 / 0.38);
-  --failure-badge-bg: rgb(197 58 50 / 0.1);
+  --success-badge-border: rgb(15 166 75 / 0.4);
+  --failure-badge-bg: rgb(204 51 43 / 0.1);
   --failure-badge-text: var(--mg-danger);
-  --failure-badge-border: rgb(197 58 50 / 0.28);
+  --failure-badge-border: rgb(204 51 43 / 0.3);
   --count-badge-bg: rgb(139 134 128 / 0.18);
   --count-badge-text: var(--primary-active);
 
@@ -164,9 +170,11 @@
   --sidebar-text-tertiary: var(--mg-text-tertiary);
   --sidebar-border: var(--mg-border);
   --sidebar-border-strong: var(--mg-border-hover);
+  // Sage is reserved for persistent navigation context; action charcoal stays
+  // exclusive to primary/destructive controls.
   --sidebar-accent: var(--mg-sage-strong);
   --sidebar-accent-line: var(--mg-sage-strong);
-  --sidebar-accent-surface: var(--mg-surface-selected);
+  --sidebar-accent-surface: var(--mg-sage-soft);
   --sidebar-accent-icon: var(--mg-sage-wash);
   --sidebar-focus-ring: var(--mg-focus-ring);
   --sidebar-shadow: none;
