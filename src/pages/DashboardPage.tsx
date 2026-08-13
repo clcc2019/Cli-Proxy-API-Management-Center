@@ -1,9 +1,6 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { IconKey, IconBot, IconFileText, IconSatellite } from '@/components/ui/icons';
-import { useAlignedInterval } from '@/hooks/useAlignedInterval';
-import { useInterval } from '@/hooks/useInterval';
 import { useAuthStore, useConfigStore, useModelsStore } from '@/stores';
 import { apiKeysApi, providersApi, authFilesApi } from '@/services/api';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
@@ -15,10 +12,14 @@ import styles from './DashboardPage.module.scss';
 interface QuickStat {
   label: string;
   value: number | string;
-  icon: React.ReactNode;
   path: string;
   loading?: boolean;
-  sublabel?: string;
+}
+
+interface ConfigSummaryItem {
+  label: string;
+  value: string;
+  active?: boolean;
 }
 
 interface ProviderStats {
@@ -26,10 +27,6 @@ interface ProviderStats {
   claude: number | null;
 }
 
-type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
-
-const MINUTE_INTERVAL_MS = 60_000;
-const GREETING_REFRESH_INTERVAL_MS = 5 * 60_000;
 const MODELS_IDLE_LOAD_DELAY_MS = 320;
 const MODELS_IDLE_LOAD_TIMEOUT_MS = 1_500;
 const DASHBOARD_STATS_CACHE_TTL_MS = 1_000;
@@ -116,127 +113,14 @@ const loadDashboardStats = (
   return request;
 };
 
-function getTimeOfDay(date = new Date()): TimeOfDay {
-  const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 17) return 'afternoon';
-  if (hour >= 17 && hour < 21) return 'evening';
-  return 'night';
-}
-
-/**
- * 时间区域单独抽组件，避免分钟级 tick 触发整个 Dashboard 重渲染。
- * React.memo 避免父组件传 prop 变化时无谓重渲。
- */
-const HeroTimeBlock = memo(function HeroTimeBlock() {
-  const { i18n } = useTranslation();
-  const pageTransitionLayer = usePageTransitionLayer();
-  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
-  const [now, setNow] = useState<Date>(() => new Date());
-  const wasCurrentLayerRef = useRef(isCurrentLayer);
-
-  useEffect(() => {
-    if (!isCurrentLayer) {
-      wasCurrentLayerRef.current = false;
-      return;
-    }
-    let refreshTimer: number | null = null;
-    if (!wasCurrentLayerRef.current) {
-      refreshTimer = window.setTimeout(() => setNow(new Date()), 0);
-    }
-    wasCurrentLayerRef.current = true;
-    return () => {
-      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
-    };
-  }, [isCurrentLayer]);
-
-  useAlignedInterval(
-    () => {
-      setNow(new Date());
-    },
-    MINUTE_INTERVAL_MS,
-    { enabled: isCurrentLayer }
-  );
-
-  const formattedTime = useMemo(
-    () => now.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' }),
-    [now, i18n.language]
-  );
-  const formattedDate = useMemo(
-    () =>
-      now.toLocaleDateString(i18n.language, {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-    [now, i18n.language]
-  );
-
-  return (
-    <div className={styles.dateTimeBlock}>
-      <span className={styles.time}>{formattedTime}</span>
-      <span className={styles.date}>{formattedDate}</span>
-    </div>
-  );
-});
-
-/**
- * 问候语也独立，读同一个时间源（每 5 分钟检查足够），减少重渲。
- */
-const HeroGreeting = memo(function HeroGreeting() {
-  const { t } = useTranslation();
-  const pageTransitionLayer = usePageTransitionLayer();
-  const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay);
-  const wasCurrentLayerRef = useRef(isCurrentLayer);
-
-  useEffect(() => {
-    if (!isCurrentLayer) {
-      wasCurrentLayerRef.current = false;
-      return;
-    }
-    let refreshTimer: number | null = null;
-    if (!wasCurrentLayerRef.current) {
-      refreshTimer = window.setTimeout(() => {
-        const nextTimeOfDay = getTimeOfDay();
-        setTimeOfDay((previous) => (previous === nextTimeOfDay ? previous : nextTimeOfDay));
-      }, 0);
-    }
-    wasCurrentLayerRef.current = true;
-    return () => {
-      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
-    };
-  }, [isCurrentLayer]);
-
-  useInterval(
-    () => {
-      const tod = getTimeOfDay();
-      setTimeOfDay((prev) => (prev === tod ? prev : tod));
-    },
-    isCurrentLayer ? GREETING_REFRESH_INTERVAL_MS : null
-  );
-
-  return (
-    <>
-      <span className={styles.heroGreeting}>{t(`dashboard.greeting_${timeOfDay}`)}</span>
-      <h1 id="dashboard-hero-title" className={styles.heroTitle}>
-        {t('dashboard.welcome_back')}
-      </h1>
-      <p className={styles.heroCaring}>{t(`dashboard.caring_${timeOfDay}`)}</p>
-    </>
-  );
-});
-
 export function DashboardPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const connectionStatus = useAuthStore((state) =>
     isCurrentLayer ? state.connectionStatus : 'disconnected'
   );
   const serverVersion = useAuthStore((state) => (isCurrentLayer ? state.serverVersion : ''));
-  const serverBuildDate = useAuthStore((state) => (isCurrentLayer ? state.serverBuildDate : ''));
   const apiBase = useAuthStore((state) => (isCurrentLayer ? state.apiBase : ''));
   const config = useConfigStore((state) => (isCurrentLayer ? state.config : null));
   const configError = useConfigStore((state) => (isCurrentLayer ? state.error : ''));
@@ -433,7 +317,6 @@ export function DashboardPage() {
 
   const isStatsLoading = connectionStatus === 'connected' && loading;
   const providerStatsReady = providerStats.codex !== null && providerStats.claude !== null;
-  const hasProviderStats = providerStats.codex !== null || providerStats.claude !== null;
   const totalProviderKeys = providerStatsReady
     ? (providerStats.codex ?? 0) + (providerStats.claude ?? 0)
     : 0;
@@ -443,39 +326,26 @@ export function DashboardPage() {
       {
         label: t('dashboard.management_keys'),
         value: stats.apiKeys ?? '-',
-        icon: <IconKey size={18} />,
         path: '/config',
         loading: isStatsLoading && stats.apiKeys === null,
-        sublabel: t('nav.config_management'),
       },
       {
         label: t('nav.ai_providers'),
         value: isStatsLoading ? '-' : providerStatsReady ? totalProviderKeys : '-',
-        icon: <IconBot size={18} />,
         path: '/ai-providers',
         loading: isStatsLoading,
-        sublabel: hasProviderStats
-          ? t('dashboard.provider_keys_detail', {
-              codex: providerStats.codex ?? '-',
-              claude: providerStats.claude ?? '-',
-            })
-          : undefined,
       },
       {
         label: t('nav.auth_files'),
         value: stats.authFiles ?? '-',
-        icon: <IconFileText size={18} />,
         path: '/auth-files',
         loading: isStatsLoading && stats.authFiles === null,
-        sublabel: t('dashboard.oauth_credentials'),
       },
       {
         label: t('dashboard.available_models'),
         value: modelsLoading ? '-' : models.length,
-        icon: <IconSatellite size={18} />,
         path: '/system',
         loading: modelsLoading,
-        sublabel: t('dashboard.available_models_desc'),
       },
     ],
     [
@@ -485,9 +355,6 @@ export function DashboardPage() {
       isStatsLoading,
       providerStatsReady,
       totalProviderKeys,
-      hasProviderStats,
-      providerStats.codex,
-      providerStats.claude,
       modelsLoading,
       models.length,
     ]
@@ -501,64 +368,54 @@ export function DashboardPage() {
       : routingStrategyRaw === 'fill-first'
         ? t('basic_settings.routing_strategy_fill_first')
         : routingStrategyRaw;
-  const routingStrategyBadgeClass = !routingStrategyRaw
-    ? styles.configBadgeUnknown
-    : routingStrategyRaw === 'round-robin'
-      ? styles.configBadgeRoundRobin
-      : routingStrategyRaw === 'fill-first'
-        ? styles.configBadgeFillFirst
-        : styles.configBadgeUnknown;
 
-  const buildDateText = useMemo(
-    () => (serverBuildDate ? new Date(serverBuildDate).toLocaleDateString(i18n.language) : null),
-    [serverBuildDate, i18n.language]
-  );
-
-  const statusLabel =
-    connectionStatus === 'connected'
-      ? 'common.connected'
-      : connectionStatus === 'connecting'
-        ? 'common.connecting'
-        : 'common.disconnected';
+  const configSummary: ConfigSummaryItem[] = config
+    ? [
+        {
+          label: t('dashboard.routing_strategy'),
+          value: routingStrategyDisplay,
+        },
+        {
+          label: t('basic_settings.retry_title'),
+          value: String(config.requestRetry ?? 0),
+        },
+        {
+          label: t('basic_settings.usage_statistics_title'),
+          value: config.usageStatisticsEnabled ? t('common.yes') : t('common.no'),
+          active: config.usageStatisticsEnabled,
+        },
+        {
+          label: t('basic_settings.logging_title'),
+          value: config.loggingToFile ? t('common.yes') : t('common.no'),
+          active: config.loggingToFile,
+        },
+        {
+          label: t('basic_settings.ws_auth_title'),
+          value: config.wsAuth ? t('common.yes') : t('common.no'),
+          active: config.wsAuth,
+        },
+        {
+          label: t('basic_settings.debug_title'),
+          value: config.debug ? t('common.yes') : t('common.no'),
+          active: config.debug,
+        },
+      ]
+    : [];
 
   return (
     <div className={styles.dashboard}>
-      {/* Hero welcome section */}
       <section className={styles.hero} aria-labelledby="dashboard-hero-title">
-        <div className={styles.heroContent}>
-          <HeroGreeting />
-        </div>
-        <div className={styles.heroMeta}>
-          <HeroTimeBlock />
-          <div className={styles.connectionPill} role="status" aria-live="polite">
-            <span
-              className={`${styles.statusDot} ${
-                connectionStatus === 'connected'
-                  ? styles.connected
-                  : connectionStatus === 'connecting'
-                    ? styles.connecting
-                    : styles.disconnected
-              }`}
-              aria-hidden="true"
-            />
-            <span className={styles.pillText}>{t(statusLabel)}</span>
-            {serverVersion && (
-              <span className={styles.pillVersion}>
-                v{serverVersion.trim().replace(/^[vV]+/, '')}
-              </span>
-            )}
-          </div>
-          {buildDateText && <span className={styles.buildDate}>{buildDateText}</span>}
-        </div>
+        <h1 id="dashboard-hero-title" className={styles.heroTitle}>
+          {t('nav.dashboard')}
+        </h1>
       </section>
 
-      {/* Bento stats grid */}
       <section
         className={styles.statsSection}
         aria-labelledby="dashboard-stats-title"
         aria-busy={isStatsLoading}
       >
-        <h2 id="dashboard-stats-title" className={styles.sectionHeading}>
+        <h2 id="dashboard-stats-title" className={styles.sectionTitle}>
           {t('dashboard.system_overview')}
         </h2>
         <div className={styles.bentoGrid}>
@@ -569,7 +426,6 @@ export function DashboardPage() {
               className={styles.bentoCard}
               aria-label={`${stat.label}: ${stat.loading ? '…' : stat.value}`}
             >
-              <div className={styles.bentoIcon}>{stat.icon}</div>
               <div className={styles.bentoContent}>
                 <span
                   className={`${styles.bentoValue} ${stat.loading ? styles.bentoValueLoading : ''}`}
@@ -577,89 +433,52 @@ export function DashboardPage() {
                   {stat.loading ? '…' : stat.value}
                 </span>
                 <span className={styles.bentoLabel}>{stat.label}</span>
-                {stat.sublabel && !stat.loading && (
-                  <span className={styles.bentoSublabel}>{stat.sublabel}</span>
-                )}
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Config pills section */}
       {config && (
-        <section className={styles.configSection} aria-labelledby="dashboard-config-title">
-          <h2 id="dashboard-config-title" className={styles.sectionHeading}>
-            {t('dashboard.current_config')}
-          </h2>
-          <div className={styles.configPillGrid}>
-            <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>{t('basic_settings.debug_enable')}</span>
-              <span
-                className={`${styles.configPillValue} ${config.debug ? styles.on : styles.off}`}
-              >
-                {config.debug ? t('common.yes') : t('common.no')}
-              </span>
+        <section className={styles.gatewaySection} aria-labelledby="dashboard-gateway-title">
+          <header className={styles.gatewayHeader}>
+            <div>
+              <h2 id="dashboard-gateway-title" className={styles.sectionTitle}>
+                {t('dashboard.current_config')}
+              </h2>
+              {serverVersion && (
+                <p className={styles.gatewayMeta}>
+                  {t('footer.api_version')} · v{serverVersion.trim().replace(/^[vV]+/, '')}
+                </p>
+              )}
             </div>
-            <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>
-                {t('basic_settings.usage_statistics_enable')}
-              </span>
-              <span
-                className={`${styles.configPillValue} ${
-                  config.usageStatisticsEnabled ? styles.on : styles.off
-                }`}
-              >
-                {config.usageStatisticsEnabled ? t('common.yes') : t('common.no')}
-              </span>
-            </div>
-            <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>
-                {t('basic_settings.logging_to_file_enable')}
-              </span>
-              <span
-                className={`${styles.configPillValue} ${
-                  config.loggingToFile ? styles.on : styles.off
-                }`}
-              >
-                {config.loggingToFile ? t('common.yes') : t('common.no')}
-              </span>
-            </div>
-            <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>
-                {t('basic_settings.retry_count_label')}
-              </span>
-              <span className={styles.configPillValue}>{config.requestRetry ?? 0}</span>
-            </div>
-            <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>{t('basic_settings.ws_auth_enable')}</span>
-              <span
-                className={`${styles.configPillValue} ${config.wsAuth ? styles.on : styles.off}`}
-              >
-                {config.wsAuth ? t('common.yes') : t('common.no')}
-              </span>
-            </div>
-            <div className={styles.configPill}>
-              <span className={styles.configPillLabel}>{t('dashboard.routing_strategy')}</span>
-              <span className={`${styles.configBadge} ${routingStrategyBadgeClass}`}>
-                {routingStrategyDisplay}
-              </span>
-            </div>
+            <Link to="/config" className={styles.configLink}>
+              {t('dashboard.edit_settings')}
+            </Link>
+          </header>
+
+          <dl className={styles.configList}>
+            {configSummary.map((item) => (
+              <div key={item.label} className={styles.configRow}>
+                <dt>{item.label}</dt>
+                <dd>
+                  {typeof item.active === 'boolean' && (
+                    <span
+                      className={`${styles.configStatus} ${item.active ? styles.on : styles.off}`}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {item.value}
+                </dd>
+              </div>
+            ))}
             {config.proxyUrl && (
-              <div className={`${styles.configPill} ${styles.configPillWide}`}>
-                <span className={styles.configPillLabel}>
-                  {t('basic_settings.proxy_url_label')}
-                </span>
-                <span className={styles.configPillMono}>{config.proxyUrl}</span>
+              <div className={`${styles.configRow} ${styles.configRowWide}`}>
+                <dt>{t('basic_settings.proxy_title')}</dt>
+                <dd className={styles.monoValue}>{config.proxyUrl}</dd>
               </div>
             )}
-          </div>
-          <Link to="/config" className={styles.viewMoreLink}>
-            <span>{t('dashboard.edit_settings')}</span>
-            <span className={styles.viewMoreArrow} aria-hidden="true">
-              →
-            </span>
-          </Link>
+          </dl>
         </section>
       )}
     </div>

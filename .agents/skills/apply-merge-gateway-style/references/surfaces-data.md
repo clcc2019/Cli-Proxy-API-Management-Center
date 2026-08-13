@@ -16,19 +16,21 @@ Use this file for bounded content, repeated data, technical UI, overlays, and fe
 
 ## Surface hierarchy
 
-| Level | Background | Border | Radius | Shadow | Padding |
-|---|---|---|---:|---|---:|
-| Page canvas | white | none | 0 | none | layout-owned |
-| Warm group | `#f9f8f6` | none | 18px | none | 18–27px |
-| White detail | white | 1px 8% black | 13.5–18px | none | 13.5–22.5px |
-| Nested technical group | white/5% neutral | 1px 6–8% | 9–13.5px | none | 9–18px |
-| Dark technical panel | `#0a0a0a` | 1px 6% white | 18px | none | 18–27px |
-| Floating menu | white | 1px 8% black | 13.5px | menu shadow | 9px |
-| Modal | white or warm | 1px 8% black | 18px | dialog shadow | 22.5–27px |
+| Level                  | Background       | Border       |    Radius | Shadow        |      Padding |
+| ---------------------- | ---------------- | ------------ | --------: | ------------- | -----------: |
+| Page canvas            | white            | none         |         0 | none          | layout-owned |
+| Warm group             | `#f9f8f6`        | none         |      18px | none          |      18–27px |
+| White detail           | white            | 1px 8% black | 13.5–18px | none          |  13.5–22.5px |
+| Nested technical group | white/5% neutral | 1px 6–8%     |  9–13.5px | none          |       9–18px |
+| Dark technical panel   | `#0a0a0a`        | 1px 6% white |      18px | none          |      18–27px |
+| Floating menu          | white            | 1px 8% black |    13.5px | menu shadow   |          9px |
+| Modal                  | white or warm    | 1px 8% black |      18px | dialog shadow |    22.5–27px |
 
 Allow at most two visibly rounded surface levels. Do not put a card around every subsection.
 
 ## Cards and feature blocks
+
+Apply `content-icons.md` before choosing card contents. Surface specifications govern elements that survive the necessity audit; they do not authorize decorative icons, repeated sublabels, or corner arrows.
 
 ### Discovery/summary card
 
@@ -56,6 +58,7 @@ Use white, 1px 8% border, 18px radius, no shadow, 13.5px top and 15.75px remaini
 
 ## Charts and metrics
 
+- A routine summary metric is value + label, with delta/unit only when it changes interpretation. Omit category icons, explanatory route sublabels, and generic link arrows.
 - Use near-black/gray as the baseline. Reserve orange for one selected series, point, endpoint, or threshold.
 - Chart grid: 1px at 4–6% black. Axis/legend: 13–13.5px secondary text. Tooltip: white, 1px 8% border, 10–13.5px radius, menu shadow, 9–13.5px padding.
 - Standard operational chart height: 270–360px (**normalized**); preserve a stable skeleton/error height.

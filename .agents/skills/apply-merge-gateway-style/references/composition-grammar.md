@@ -23,19 +23,21 @@ Before drawing the interface, answer:
 4. Is the density operational, technical, or editorial?
 5. What must remain visible above the fold, and what is the meaningful below-fold sequence?
 
+Before selecting a pattern, run the inventory and necessity test in `content-icons.md`. Composition begins after redundant copy, metadata, icons, badges, and duplicated actions have been removed.
+
 Then select patterns by semantic fit:
 
-| Content need | xAI composition |
-|---|---|
-| Summary/discovery | warm 18px groups, medium heading, quiet description, bottom-aligned action |
-| Comparable detail | white bordered cards or a flat table with aligned attributes |
-| Repeated history/resources | divider-led rows with identity left and metadata/action right |
-| Filters plus analysis | flat filter rail followed by one dominant chart/data surface |
-| Configuration/form | focused sections, hairline separation, one black primary action |
-| Code/source/onboarding | connected warm workbench with a contained technical panel |
-| Conversation/prompting | one connected workspace with anchored composer |
-| Public narrative | large type, broad white/black/warm fields, asymmetric media and controlled long rhythm |
-| Plan/capability comparison | aligned warm choices followed by a flat comparison matrix |
+| Content need               | xAI composition                                                                        |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| Summary/discovery          | warm 18px groups, medium heading, quiet description, bottom-aligned action             |
+| Comparable detail          | white bordered cards or a flat table with aligned attributes                           |
+| Repeated history/resources | divider-led rows with identity left and metadata/action right                          |
+| Filters plus analysis      | flat filter rail followed by one dominant chart/data surface                           |
+| Configuration/form         | focused sections, hairline separation, one black primary action                        |
+| Code/source/onboarding     | connected warm workbench with a contained technical panel                              |
+| Conversation/prompting     | one connected workspace with anchored composer                                         |
+| Public narrative           | large type, broad white/black/warm fields, asymmetric media and controlled long rhythm |
+| Plan/capability comparison | aligned warm choices followed by a flat comparison matrix                              |
 
 Combine only patterns required by the content. A settings page does not need a public hero; a marketing page does not need a Console rail; a list does not become cards merely to look designed.
 
@@ -54,7 +56,7 @@ Combine only patterns required by the content. A settings page does not need a p
 
 ### Page header
 
-Use a direct 27px medium title. Put a concise description below only when it improves orientation. Align the primary black pill, filters, date controls, or compact utilities to the title rail or immediately beneath it. Do not insert a marketing hero into routine work.
+Use a direct 27px medium title. Put a concise description below only when removing it creates real ambiguity. Align the primary black pill, filters, date controls, or compact utilities to the title rail or immediately beneath it. Do not insert a marketing hero, greeting, slogan, live clock, date, version, or build metadata into routine work unless the task specifically depends on that information.
 
 ### Navigation shell
 
@@ -136,18 +138,18 @@ Reduce columns, stack connected regions in source order, wrap toolbars, prioriti
 
 Use this map only to find precedent for a design decision:
 
-| Observed source | Reusable evidence |
-|---|---|
-| Console Dashboard | task-first warm setup surface with one nested technical detail frame |
-| Models | warm discovery layer followed by white comparable detail |
-| Usage | text-led filters, dominant/subordinate analytical hierarchy |
-| API Keys, Billing, Storage | compact management rows, masked/sensitive state, quota and action discipline |
-| Code and Chat | connected workbench, anchored action/composer, quiet suggestion surfaces |
-| Docs overview | warm explanation plus contained near-black code panel |
-| x.ai home | product collage, API/media split, proof metrics, restrained get-started choices |
-| Grok and Company | asymmetric media-led long-form storytelling and black/white contrast chapters |
-| Pricing | warm choices, exhaustive flat matrix, custom capability grouping |
-| News | featured priority followed by a very long divider-led archive |
+| Observed source            | Reusable evidence                                                               |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| Console Dashboard          | task-first warm setup surface with one nested technical detail frame            |
+| Models                     | warm discovery layer followed by white comparable detail                        |
+| Usage                      | text-led filters, dominant/subordinate analytical hierarchy                     |
+| API Keys, Billing, Storage | compact management rows, masked/sensitive state, quota and action discipline    |
+| Code and Chat              | connected workbench, anchored action/composer, quiet suggestion surfaces        |
+| Docs overview              | warm explanation plus contained near-black code panel                           |
+| x.ai home                  | product collage, API/media split, proof metrics, restrained get-started choices |
+| Grok and Company           | asymmetric media-led long-form storytelling and black/white contrast chapters   |
+| Pricing                    | warm choices, exhaustive flat matrix, custom capability grouping                |
+| News                       | featured priority followed by a very long divider-led archive                   |
 
 Do not reproduce an observed source's section order unless the requested content naturally has the same sequence.
 

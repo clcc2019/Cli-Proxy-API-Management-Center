@@ -4,7 +4,7 @@
   --xai-white: #ffffff;
   --xai-inverse: #fafafa;
   --xai-warm: #f9f8f6;
-  --xai-secondary: #7d8187;
+  --xai-secondary: #6b6f74;
   --xai-disabled: rgb(10 10 10 / 30%);
   --xai-fill-soft: rgb(10 10 10 / 5%);
   --xai-fill-hover: rgb(10 10 10 / 8%);
@@ -84,25 +84,10 @@
 .hero {
   display: flex;
   min-width: 0;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 27px;
-  padding: 4.5px 0 0;
-}
-
-.heroContent {
-  display: flex;
-  min-width: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 4.5px;
-}
-
-.heroGreeting {
-  color: var(--xai-secondary);
-  font-size: 13.5px;
-  font-weight: 500;
-  line-height: 18px;
+  padding-top: 4.5px;
 }
 
 .heroTitle {
@@ -117,113 +102,11 @@
   text-wrap: balance;
 }
 
-.heroCaring {
-  max-width: 72ch;
-  margin: 4.5px 0 0;
-  color: var(--xai-secondary);
-  font-size: 15.75px;
-  font-weight: 400;
-  line-height: 22.5px;
-  text-wrap: pretty;
-}
-
-.heroMeta {
-  display: grid;
-  min-width: 0;
-  flex: 0 0 auto;
-  grid-template-columns: auto auto;
-  align-items: end;
-  gap: 6.75px 13.5px;
-}
-
-.dateTimeBlock {
-  display: flex;
-  grid-row: 1 / span 2;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4.5px;
-}
-
-.time {
-  color: var(--xai-ink-console);
-  font-family: var(--xai-font-display);
-  font-size: 27px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 31.5px;
-  letter-spacing: -0.675px;
-}
-
-.date,
-.buildDate {
-  color: var(--xai-secondary);
-  font-size: 13.5px;
-  font-variant-numeric: tabular-nums;
-  line-height: 18px;
-}
-
-.connectionPill {
-  display: inline-flex;
-  min-height: 27px;
-  align-items: center;
-  gap: 6.75px;
-  padding: 4.5px 9px;
-  border: 1px solid var(--xai-border);
-  border-radius: 9999px;
-  background: var(--xai-white);
-  color: var(--xai-ink-console);
-  font-size: 13.5px;
-  line-height: 18px;
-}
-
-.statusDot {
-  width: 6.75px;
-  height: 6.75px;
-  flex: 0 0 auto;
-  border-radius: 9999px;
-  background: var(--xai-disabled);
-
-  &.connected {
-    background: var(--xai-success);
-  }
-
-  &.connecting {
-    background: var(--xai-warning);
-    animation: status-pulse 1200ms var(--xai-ease-standard) infinite;
-  }
-
-  &.disconnected {
-    background: var(--xai-danger);
-  }
-}
-
-.pillText {
-  font-weight: 500;
-}
-
-.pillVersion {
-  padding-left: 6.75px;
-  border-left: 1px solid var(--xai-border);
-  color: var(--xai-secondary);
-  font-family: var(--xai-font-mono);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  line-height: 18px;
-}
-
-.buildDate {
-  justify-self: end;
-}
-
-.statsSection,
-.configSection {
+.statsSection {
   min-width: 0;
 }
 
-.sectionHeading {
-  display: flex;
-  align-items: center;
-  gap: 13.5px;
+.sectionTitle {
   margin: 0 0 13.5px;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
@@ -231,13 +114,6 @@
   font-weight: 500;
   line-height: 27px;
   letter-spacing: -0.45px;
-
-  &::after {
-    content: '';
-    height: 1px;
-    flex: 1 1 auto;
-    background: var(--xai-border-subtle);
-  }
 }
 
 // One dominant warm data surface with joined cells and hairline separation.
@@ -250,13 +126,11 @@
 }
 
 .bentoCard {
-  position: relative;
   display: flex;
   min-width: 0;
-  min-height: 162px;
+  min-height: 126px;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 22.5px;
+  justify-content: center;
   padding: 22.5px;
   border: 0;
   border-right: 1px solid var(--xai-border-subtle);
@@ -273,24 +147,9 @@
     border-right: 0;
   }
 
-  &::after {
-    content: '↗';
-    position: absolute;
-    top: 22.5px;
-    right: 22.5px;
-    color: var(--xai-secondary);
-    font-size: 18px;
-    line-height: 18px;
-    transition: color 150ms var(--xai-ease-standard);
-  }
-
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       background: var(--xai-fill-soft);
-
-      &::after {
-        color: var(--xai-ink-console);
-      }
     }
   }
 
@@ -304,15 +163,6 @@
     outline: 1px solid var(--xai-ink-console);
     outline-offset: -4.5px;
   }
-}
-
-.bentoIcon {
-  display: flex;
-  width: 18px;
-  height: 18px;
-  align-items: center;
-  justify-content: center;
-  color: var(--xai-secondary);
 }
 
 .bentoContent {
@@ -344,148 +194,41 @@
   line-height: 22.5px;
 }
 
-.bentoSublabel {
-  min-height: 18px;
+.gatewaySection {
   overflow: hidden;
-  color: var(--xai-secondary);
-  font-size: 13.5px;
-  line-height: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-// White comparable detail surface; configuration reads as rows, not mini cards.
-.configSection {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 22.5px;
   border: 1px solid var(--xai-border);
   border-radius: 18px;
   background: var(--xai-white);
 }
 
-.configSection .sectionHeading {
+.gatewayHeader {
+  display: flex;
+  min-height: 81px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 22.5px;
+  border-bottom: 1px solid var(--xai-border-subtle);
+}
+
+.gatewayHeader .sectionTitle {
   margin-bottom: 0;
 }
 
-.configPillGrid {
-  display: grid;
-  overflow: hidden;
-  border: 1px solid var(--xai-border);
-  border-radius: 13.5px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.configPill {
-  display: flex;
-  min-width: 0;
-  min-height: 67.5px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6.75px;
-  padding: 13.5px 18px;
-  border-right: 1px solid var(--xai-border-subtle);
-  border-bottom: 1px solid var(--xai-border-subtle);
-  background: var(--xai-white);
-  color: var(--xai-ink-console);
-
-  &:nth-child(3n) {
-    border-right: 0;
-  }
-
-  &:nth-child(n + 4) {
-    border-bottom: 0;
-  }
-}
-
-.configPillWide {
-  grid-column: 1 / -1;
-  min-height: 54px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 13.5px;
-  border-right: 0;
-  border-top: 1px solid var(--xai-border-subtle);
-  border-bottom: 0;
-}
-
-.configPillLabel {
-  color: var(--xai-secondary);
-  font-size: 13.5px;
-  font-weight: 400;
-  line-height: 18px;
-}
-
-.configPillWide .configPillLabel {
-  flex: 0 0 auto;
-}
-
-.configPillValue,
-.configBadge {
-  display: inline-flex;
-  min-height: 27px;
-  max-width: 100%;
-  align-items: center;
-  gap: 6.75px;
-  padding: 4.5px 9px;
-  overflow: hidden;
-  border: 1px solid var(--xai-border);
-  border-radius: 9999px;
-  background: var(--xai-white);
-  color: var(--xai-ink-console);
-  font-size: 13.5px;
-  font-weight: 500;
-  line-height: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.configPillValue {
-  &.on,
-  &.off {
-    &::before {
-      content: '';
-      width: 6.75px;
-      height: 6.75px;
-      flex: 0 0 auto;
-      border-radius: 9999px;
-      background: currentColor;
-      opacity: 0.65;
-    }
-  }
-
-  &.off {
-    color: var(--xai-secondary);
-  }
-}
-
-.configPillMono {
-  min-width: 0;
-  overflow: hidden;
+.gatewayMeta {
+  margin: 4.5px 0 0;
   color: var(--xai-secondary);
   font-family: var(--xai-font-mono);
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.configBadgeRoundRobin,
-.configBadgeFillFirst,
-.configBadgeUnknown {
-  color: var(--xai-ink-console);
-}
-
-.viewMoreLink {
+.configLink {
   display: inline-flex;
-  width: fit-content;
   min-height: 36px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: 6.75px;
   padding: 6.75px 13.5px;
   border: 1px solid var(--xai-ink-console);
   border-radius: 9999px;
@@ -505,7 +248,6 @@
     &:hover {
       border-color: #242424;
       background: #242424;
-      color: var(--xai-inverse);
     }
   }
 
@@ -519,8 +261,84 @@
   }
 }
 
-.viewMoreArrow {
-  display: inline-flex;
+.configList {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.configRow {
+  display: flex;
+  min-width: 0;
+  min-height: 67.5px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13.5px;
+  padding: 13.5px 18px;
+  border-right: 1px solid var(--xai-border-subtle);
+  border-bottom: 1px solid var(--xai-border-subtle);
+
+  &:nth-child(3n) {
+    border-right: 0;
+  }
+
+  &:nth-last-child(-n + 3) {
+    border-bottom: 0;
+  }
+
+  dt,
+  dd {
+    min-width: 0;
+    margin: 0;
+  }
+
+  dt {
+    color: var(--xai-secondary);
+    font-size: 13.5px;
+    line-height: 18px;
+  }
+
+  dd {
+    display: inline-flex;
+    align-items: center;
+    gap: 6.75px;
+    color: var(--xai-ink-console);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 18px;
+    text-align: right;
+  }
+}
+
+.configStatus {
+  width: 6.75px;
+  height: 6.75px;
+  flex: 0 0 auto;
+  border-radius: 9999px;
+  background: var(--xai-disabled);
+
+  &.on {
+    background: var(--xai-ink-console);
+  }
+}
+
+.configRowWide {
+  grid-column: 1 / -1;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.configList:has(.configRowWide) .configRow:nth-last-child(-n + 4):not(.configRowWide) {
+  border-bottom: 1px solid var(--xai-border-subtle);
+}
+
+.monoValue {
+  overflow: hidden;
+  color: var(--xai-secondary) !important;
+  font-family: var(--xai-font-mono);
+  font-weight: 400 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 1024px) {
@@ -529,6 +347,10 @@
   }
 
   .bentoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .configList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -544,11 +366,7 @@
     }
   }
 
-  .configPillGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .configPill {
+  .configRow {
     border-right: 1px solid var(--xai-border-subtle);
     border-bottom: 1px solid var(--xai-border-subtle);
 
@@ -560,15 +378,22 @@
       border-right: 0;
     }
 
-    &:nth-child(n + 5) {
+    &:nth-last-child(-n + 3) {
+      border-bottom: 1px solid var(--xai-border-subtle);
+    }
+
+    &:nth-last-child(-n + 2) {
       border-bottom: 0;
     }
   }
 
-  .configPillWide {
-    border-top: 1px solid var(--xai-border-subtle);
+  .configRowWide {
     border-right: 0;
     border-bottom: 0;
+  }
+
+  .configList:has(.configRowWide) .configRow:nth-last-child(-n + 3):not(.configRowWide) {
+    border-bottom: 1px solid var(--xai-border-subtle);
   }
 }
 
@@ -578,41 +403,19 @@
   }
 
   .hero {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .heroMeta {
-    width: 100%;
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding-top: 18px;
-    border-top: 1px solid var(--xai-border-subtle);
-  }
-
-  .dateTimeBlock {
-    align-items: flex-start;
-  }
-
-  .buildDate {
-    justify-self: end;
+    align-items: center;
   }
 
   .bentoCard {
-    min-height: 148.5px;
-    padding: 18px;
-
-    &::after {
-      top: 18px;
-      right: 18px;
-    }
-  }
-
-  .configSection {
+    min-height: 117px;
     padding: 18px;
   }
 
-  .viewMoreLink {
+  .gatewayHeader {
+    padding-inline: 18px;
+  }
+
+  .configLink {
     min-height: 44px;
   }
 }
@@ -623,26 +426,25 @@
     line-height: 36px;
   }
 
-  .heroMeta {
+  .bentoGrid {
     grid-template-columns: 1fr;
   }
 
-  .dateTimeBlock {
-    grid-row: auto;
+  .gatewayHeader {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .connectionPill,
-  .buildDate {
-    justify-self: start;
+  .configLink {
+    width: 100%;
   }
 
-  .bentoGrid,
-  .configPillGrid {
+  .configList {
     grid-template-columns: 1fr;
   }
 
   .bentoCard {
-    min-height: 135px;
+    min-height: 108px;
     border-right: 0;
     border-bottom: 1px solid var(--xai-border-subtle);
 
@@ -656,51 +458,34 @@
     }
   }
 
-  .configPill {
+  .configRow {
     border-right: 0;
     border-bottom: 1px solid var(--xai-border-subtle);
 
-    &:nth-child(3n),
     &:nth-child(2n),
-    &:nth-child(n + 5) {
+    &:nth-child(3n),
+    &:nth-last-child(-n + 3),
+    &:nth-last-child(-n + 2) {
       border-right: 0;
       border-bottom: 1px solid var(--xai-border-subtle);
     }
+
+    &:last-child {
+      border-bottom: 0;
+    }
   }
 
-  .configPillWide,
-  .configPill:last-child {
-    border-right: 0;
-    border-bottom: 0;
-  }
-
-  .configPillWide {
-    min-width: 0;
-    flex-direction: column;
+  .configRowWide {
     align-items: flex-start;
+    flex-direction: column;
   }
 
-  .configPillMono {
-    width: 100%;
+  .monoValue {
     overflow: visible;
+    text-align: left !important;
     text-overflow: clip;
     white-space: normal;
     word-break: break-all;
-  }
-
-  .viewMoreLink {
-    width: 100%;
-  }
-}
-
-@keyframes status-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.4;
   }
 }
 
@@ -716,14 +501,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .statusDot.connecting,
   .bentoValueLoading {
     animation: none;
   }
 
   .bentoCard,
-  .bentoCard::after,
-  .viewMoreLink {
+  .configLink {
     transition-duration: 0.01ms;
   }
 }

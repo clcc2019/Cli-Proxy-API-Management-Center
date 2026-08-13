@@ -15,11 +15,12 @@ Read this file before handoff. Do not claim high fidelity from code inspection a
 ## Required audit
 
 1. Identify the page/component's density context and primary task.
-2. Confirm all edited visual values resolve through `--xai-*` tokens or documented semantic/data exceptions.
-3. Inspect default and applicable hover, focus-visible, pressed, selected/current, disabled, loading, empty, error, and open states.
-4. Render target desktop plus 1024, 768, 480, and 360px when the scope is responsive.
-5. Capture the full page after segmented scrolling and lazy-load stabilization.
-6. Compare against the xAI contract and relevant evidence/pattern, then fix the largest-area mismatch first.
+2. Run the `content-icons.md` inventory. Verify every remaining text node and icon has one unique task role; remove duplicates, decorative affordances, and optional empty slots.
+3. Confirm all edited visual values resolve through `--xai-*` tokens or documented semantic/data exceptions.
+4. Inspect default and applicable hover, focus-visible, pressed, selected/current, disabled, loading, empty, error, and open states.
+5. Render target desktop plus 1024, 768, 480, and 360px when the scope is responsive.
+6. Capture the full page after segmented scrolling and lazy-load stabilization.
+7. Compare against the xAI contract and relevant evidence/pattern, then fix the largest-area mismatch first.
 
 ## Computed-style checks
 
@@ -68,17 +69,17 @@ Record/confirm `font-family`, `font-size`, `font-weight`, `line-height`, `letter
 
 Use these acceptance tolerances when comparing an implementation to this skill's parameters:
 
-| Property | Tolerance |
-|---|---:|
-| Color channel | exact token; max ±2 only for browser color-space conversion |
-| Border width | exact 1px |
-| Radius | exact token; max ±0.5px raster/computed conversion |
-| Font size/line height/tracking | exact computed value; max ±0.5px |
-| Control height | exact specified tier; max ±1px |
-| Padding/gap | exact token; max ±0.5px |
-| Icon box | exact tier; max ±1px optical SVG bounds |
-| Motion duration | exact token; max ±10ms library scheduling |
-| Major layout width/offset | max ±4px at reference viewport |
+| Property                       |                                                   Tolerance |
+| ------------------------------ | ----------------------------------------------------------: |
+| Color channel                  | exact token; max ±2 only for browser color-space conversion |
+| Border width                   |                                                   exact 1px |
+| Radius                         |          exact token; max ±0.5px raster/computed conversion |
+| Font size/line height/tracking |                            exact computed value; max ±0.5px |
+| Control height                 |                              exact specified tier; max ±1px |
+| Padding/gap                    |                                     exact token; max ±0.5px |
+| Icon box                       |                     exact tier; max ±1px optical SVG bounds |
+| Motion duration                |                   exact token; max ±10ms library scheduling |
+| Major layout width/offset      |                              max ±4px at reference viewport |
 
 Do not use tolerance to justify a different scale. Normalize browser rounding at the component root rather than accumulating drift.
 

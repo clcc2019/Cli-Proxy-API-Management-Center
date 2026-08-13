@@ -72,29 +72,30 @@ Install these tokens at the visual root. Do not create legacy aliases except as 
   --xai-shadow-menu: 0 12px 36px -18px rgb(0 0 0 / 24%);
   --xai-shadow-dialog: 0 24px 72px -28px rgb(0 0 0 / 28%);
 
-  --xai-font-ui: universalSans, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-  --xai-font-display: universalSansDisplay, universalSans, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-  --xai-font-mono: GeistMono, "SFMono-Regular", "Roboto Mono", Menlo, Monaco, Consolas, monospace;
+  --xai-font-ui: universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-display:
+    universalSansDisplay, universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
 }
 ```
 
 ## Color roles
 
-| Role | Value | Rule |
-|---|---|---|
-| Console strongest ink/action | `#080808` | headings, active icons, primary button |
-| General/public strongest ink | `#0a0a0a` | body, headings, dark panel |
-| Canvas/detail surface | `#ffffff` | default page and controls |
-| Warm grouping surface | `#f9f8f6` | discovery, setup, summary, explanation, bounded CTA |
-| Secondary Console text | `#7d8187` | descriptions, idle navigation, placeholders |
-| Secondary public text | `rgb(10 10 10 / 50%)` | editorial metadata/body de-emphasis |
-| Inverse text | `#fafafa` | black actions and panels |
-| Accent | `#ff640a` | New/Beta or one rare selected signal only |
-| Success | `hsl(132 41% 42%)` | measured healthy/success state only |
-| Warning | `hsl(44 80% 34%)` | measured warning/quota state only |
-| Danger | `hsl(353 53% 43%)` | measured failure/destructive state only |
-| Fine border | `rgb(10 10 10 / 8%)` | cards, controls, rows |
-| Strong/focus-adjacent border | `rgb(10 10 10 / 15%)` | hover/open boundary |
+| Role                         | Value                 | Rule                                                |
+| ---------------------------- | --------------------- | --------------------------------------------------- |
+| Console strongest ink/action | `#080808`             | headings, active icons, primary button              |
+| General/public strongest ink | `#0a0a0a`             | body, headings, dark panel                          |
+| Canvas/detail surface        | `#ffffff`             | default page and controls                           |
+| Warm grouping surface        | `#f9f8f6`             | discovery, setup, summary, explanation, bounded CTA |
+| Secondary Console text       | `#7d8187`             | descriptions, idle navigation, placeholders         |
+| Secondary public text        | `rgb(10 10 10 / 50%)` | editorial metadata/body de-emphasis                 |
+| Inverse text                 | `#fafafa`             | black actions and panels                            |
+| Accent                       | `#ff640a`             | New/Beta or one rare selected signal only           |
+| Success                      | `hsl(132 41% 42%)`    | measured healthy/success state only                 |
+| Warning                      | `hsl(44 80% 34%)`     | measured warning/quota state only                   |
+| Danger                       | `hsl(353 53% 43%)`    | measured failure/destructive state only             |
+| Fine border                  | `rgb(10 10 10 / 8%)`  | cards, controls, rows                               |
+| Strong/focus-adjacent border | `rgb(10 10 10 / 15%)` | hover/open boundary                                 |
 
 Do not use orange for navigation selection or broad fills. Use the measured success, warning, and danger values only when real semantic state requires them; never use them decoratively or as category colors. Pair semantic color with text/icon. If the host product has a legally or operationally required status palette, document that exception instead of silently mixing palettes.
 
@@ -102,20 +103,20 @@ Do not use orange for navigation selection or broad fills. Use the measured succ
 
 Use licensed `universalSans`, `universalSansDisplay`, and `GeistMono` when supplied or legally available. Otherwise use the token fallbacks; never extract private font files.
 
-| Token/role | Font | Size | Line | Weight | Tracking |
-|---|---|---:|---:|---:|---:|
-| Operational H1 | display | 27px | 36px | 500 | -0.675px |
-| Operational H2 | display | 22.5px | 31.5px | 500 | -0.5625px |
-| H3/card title | display | 18px | 27px | 500 | -0.45px |
-| Body | UI | 18px | 27px | 400 | 0 |
-| Control/nav | UI | 15.75px | 22.5px | 400/500 | 0 |
-| Compact label/button | UI | 13.5px | 18px | 500 | 0 |
-| Dense nav label | UI | 13px | 18.57px | 500 | 0 |
-| Compact body | UI | 13.5px | 18–21.94px | 400 | 0 |
-| Code | mono | 13.5px | 18–22.5px | 400/500 | 0 |
-| Editorial H1 | display | 67.5px | 67.5px | 500 | -1.6875px |
-| Compact editorial H1 | display | 54px | 54–59.4px | 500 | -1.35px |
-| Editorial H2 | display | 33.75–40.5px | 40.5–49.5px | 400/500 | -0.02em |
+| Token/role           | Font    |         Size |        Line |  Weight |  Tracking |
+| -------------------- | ------- | -----------: | ----------: | ------: | --------: |
+| Operational H1       | display |         27px |        36px |     500 |  -0.675px |
+| Operational H2       | display |       22.5px |      31.5px |     500 | -0.5625px |
+| H3/card title        | display |         18px |        27px |     500 |   -0.45px |
+| Body                 | UI      |         18px |        27px |     400 |         0 |
+| Control/nav          | UI      |      15.75px |      22.5px | 400/500 |         0 |
+| Compact label/button | UI      |       13.5px |        18px |     500 |         0 |
+| Dense nav label      | UI      |         13px |     18.57px |     500 |         0 |
+| Compact body         | UI      |       13.5px |  18–21.94px |     400 |         0 |
+| Code                 | mono    |       13.5px |   18–22.5px | 400/500 |         0 |
+| Editorial H1         | display |       67.5px |      67.5px |     500 | -1.6875px |
+| Compact editorial H1 | display |         54px |   54–59.4px |     500 |   -1.35px |
+| Editorial H2         | display | 33.75–40.5px | 40.5–49.5px | 400/500 |   -0.02em |
 
 Use 500 as the normal heading emphasis; do not substitute 700–900. Use tabular numbers for prices, dates, quotas, metrics, and tables. Keep normal copy at 55–72ch. Use `text-wrap: balance` on short display headings where supported.
 
@@ -123,16 +124,16 @@ Use 500 as the normal heading emphasis; do not substitute 700–900. Use tabular
 
 Use only the declared 4.5px-derived tokens for designed gaps and padding. Permitted optical exceptions are 1px borders and intrinsic media dimensions.
 
-| Purpose | Values |
-|---|---|
-| Icon/text and tiny internal gap | 4.5px or 6.75px |
-| Dense row/control gap | 9px |
-| Compact inline padding | 9px or 11.25px |
-| Standard inline padding | 13.5px |
-| Large button inline padding | 18px or 22.5px |
-| Card internal spacing | 18px, 22.5px, or 27px |
-| Operational section gap | 27px, 31.5px, or 40.5px |
-| Editorial section gap | 54px, 67.5px, 81px, 108px, or 135px |
+| Purpose                         | Values                              |
+| ------------------------------- | ----------------------------------- |
+| Icon/text and tiny internal gap | 4.5px or 6.75px                     |
+| Dense row/control gap           | 9px                                 |
+| Compact inline padding          | 9px or 11.25px                      |
+| Standard inline padding         | 13.5px                              |
+| Large button inline padding     | 18px or 22.5px                      |
+| Card internal spacing           | 18px, 22.5px, or 27px               |
+| Operational section gap         | 27px, 31.5px, or 40.5px             |
+| Editorial section gap           | 54px, 67.5px, 81px, 108px, or 135px |
 
 Do not introduce conventional 8/12/16/24px values in the edited visual scope.
 
@@ -148,32 +149,32 @@ Do not introduce conventional 8/12/16/24px values in the edited visual scope.
 
 ## Radius
 
-| Radius | Use |
-|---:|---|
-| 0 | text links, flat list/table rows, unframed code tabs |
-| 6.75px | tiny selectors, utility media, compact rectangular controls |
-| 9px | small fields and technical tabs |
-| 10px | normal fields, navigation rows, dropdown surfaces |
-| 13.5px | nested panels, menus, contained detail groups |
-| 18px | primary cards, workbenches, dialogs, composer, framed media |
+| Radius | Use                                                                |
+| -----: | ------------------------------------------------------------------ |
+|      0 | text links, flat list/table rows, unframed code tabs               |
+| 6.75px | tiny selectors, utility media, compact rectangular controls        |
+|    9px | small fields and technical tabs                                    |
+|   10px | normal fields, navigation rows, dropdown surfaces                  |
+| 13.5px | nested panels, menus, contained detail groups                      |
+|   18px | primary cards, workbenches, dialogs, composer, framed media        |
 | 9999px | primary/secondary actions, icon circles, segmented controls, chips |
 
 Do not use 18px on every nested element. Do not nest more than two rounded surface levels.
 
 ## Shadows and elevation
 
-| Surface | Shadow |
-|---|---|
-| Card/table/row/workbench | `none` |
-| Black primary button | `--xai-shadow-button` |
-| Menu/popover | `--xai-shadow-menu` (**normalized**) |
-| Dialog | `--xai-shadow-dialog` (**normalized**) |
+| Surface                  | Shadow                                 |
+| ------------------------ | -------------------------------------- |
+| Card/table/row/workbench | `none`                                 |
+| Black primary button     | `--xai-shadow-button`                  |
+| Menu/popover             | `--xai-shadow-menu` (**normalized**)   |
+| Dialog                   | `--xai-shadow-dialog` (**normalized**) |
 
 Use borders and surface contrast before shadow. Never use glow, colored shadow, or card-hover lift.
 
 ## Icons
 
-Use one line-icon family: 18px default, 16px compact, 20px prominent; usually a 24×24 viewBox; `1.5–2px` stroke; `currentColor`; `fill: none`; round caps and joins. Idle color is `#7d8187`, active is near-black, inverse is white. Do not use colored square/circular icon tiles.
+First apply the semantic gate in `content-icons.md`; omission is the default. For icons that pass, use one line-icon family: 18px default, 16px compact, 20px prominent; usually a 24×24 viewBox; `1.5–2px` stroke; `currentColor`; `fill: none`; round caps and joins. Idle color is `#7d8187`, active is near-black, inverse is white. Do not use colored square/circular icon tiles.
 
 ## Layer order
 

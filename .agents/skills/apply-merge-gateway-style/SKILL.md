@@ -1,6 +1,6 @@
 ---
 name: apply-merge-gateway-style
-description: "Design, build, restyle, optimize, or audit any frontend page or component in a strict, high-fidelity xAI visual system. Use for React, Vue, Svelte, HTML/CSS, dashboards, settings, tables, forms, dialogs, navigation, cards, charts, editors, chat, documentation, landing pages, or any new/custom interface whenever Codex must apply the typography, palette, spacing, geometry, surfaces, icons, interactions, responsive behavior, and visual discipline of console.x.ai, docs.x.ai, x.ai, or Grok—without forcing the product into a copied xAI page template."
+description: 'Design, build, restyle, optimize, or audit any frontend page or component in a strict, high-fidelity xAI visual system. Use for React, Vue, Svelte, HTML/CSS, dashboards, settings, tables, forms, dialogs, navigation, cards, charts, editors, chat, documentation, landing pages, or any new/custom interface whenever Codex must apply the typography, palette, spacing, geometry, surfaces, icons, interactions, responsive behavior, and visual discipline of console.x.ai, docs.x.ai, x.ai, or Grok—without forcing the product into a copied xAI page template.'
 ---
 
 # Reproduce the xAI Frontend System
@@ -16,13 +16,14 @@ The goal is the closest reproducible result permitted by available fonts, media,
 Use progressive disclosure. Always read the foundations and verification contract, then load every category touched by the task:
 
 1. Always read [references/foundations.md](references/foundations.md) for the mandatory palette, type scale, spacing, borders, radii, shadows, layers, and token source.
-2. Read [references/controls.md](references/controls.md) for buttons, icon buttons, links, inputs, search, selects, tabs, segmented controls, checkboxes, radios, toggles, badges, and progress.
-3. Read [references/surfaces-data.md](references/surfaces-data.md) for cards, rows, tables, lists, charts, code, chat, menus, dialogs, toasts, loading, empty, and error surfaces.
-4. Read [references/layout-responsive.md](references/layout-responsive.md) for a page, shell, navigation, grid, toolbar, public/editorial layout, or responsive change.
-5. Read [references/motion-interaction.md](references/motion-interaction.md) whenever an element is interactive, opens, closes, enters, exits, loads, scrolls, or changes state.
-6. Read [references/composition-grammar.md](references/composition-grammar.md) when designing or restructuring a page/section. Use patterns as grammar, never as mandatory templates.
-7. Always read [references/verification.md](references/verification.md) before handoff and enforce its computed-style, state, responsive, and screenshot gates.
-8. Read [references/observed-evidence.md](references/observed-evidence.md) only to trace a parameter to the captured xAI pages or resolve ambiguity between measured and normalized values.
+2. Always read [references/content-icons.md](references/content-icons.md) and run its necessity audit before composing UI. It governs information density, copy, labels, metadata, icons, badges, and decorative affordances.
+3. Read [references/controls.md](references/controls.md) for buttons, icon buttons, links, inputs, search, selects, tabs, segmented controls, checkboxes, radios, toggles, badges, and progress.
+4. Read [references/surfaces-data.md](references/surfaces-data.md) for cards, rows, tables, lists, charts, code, chat, menus, dialogs, toasts, loading, empty, and error surfaces.
+5. Read [references/layout-responsive.md](references/layout-responsive.md) for a page, shell, navigation, grid, toolbar, public/editorial layout, or responsive change.
+6. Read [references/motion-interaction.md](references/motion-interaction.md) whenever an element is interactive, opens, closes, enters, exits, loads, scrolls, or changes state.
+7. Read [references/composition-grammar.md](references/composition-grammar.md) when designing or restructuring a page/section. Use patterns as grammar, never as mandatory templates.
+8. Always read [references/verification.md](references/verification.md) before handoff and enforce its computed-style, state, responsive, and screenshot gates.
+9. Read [references/observed-evidence.md](references/observed-evidence.md) only to trace a parameter to the captured xAI pages or resolve ambiguity between measured and normalized values.
 
 Do not substitute memory or framework defaults for a referenced parameter. If the applicable reference defines a value, use that value through a shared `--xai-*` token or component variable.
 
@@ -30,10 +31,10 @@ Do not substitute memory or framework defaults for a referenced parameter. If th
 
 Do not average the three xAI modes into a generic SaaS aesthetic.
 
-| Context | Use for | Governing traits |
-|---|---|---|
-| Console | authenticated dashboards and management tools | 306px rail, compact 13.5–27px type, white canvas, warm summary cards, fine borders, black pill actions |
-| Docs | developer documentation, onboarding, API examples, editors | 306px rail, warm 18px workbench, editorial explanation, contained near-black code panel |
+| Context   | Use for                                                         | Governing traits                                                                                                                 |
+| --------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Console   | authenticated dashboards and management tools                   | 306px rail, compact 13.5–27px type, white canvas, warm summary cards, fine borders, black pill actions                           |
+| Docs      | developer documentation, onboarding, API examples, editors      | 306px rail, warm 18px workbench, editorial explanation, contained near-black code panel                                          |
 | Marketing | home, Grok, company, pricing, news, public product storytelling | 54–67.5px display type, long vertical rhythm, alternating black/white/warm fields, media-led sections, CTA band and ruled footer |
 
 These contexts adjust density and scale; they do not create separate design systems. Shared colors, type character, 4.5px rhythm, radii, icons, actions, surfaces, and motion remain consistent. A custom page may combine operational density with a technical workbench or a restrained editorial introduction when its task requires it. Scope context adjustments with `[data-xai-mode]` and never copy an unrelated route structure.
@@ -41,13 +42,14 @@ These contexts adjust density and scale; they do not create separate design syst
 ## Implementation workflow
 
 1. Inspect the existing routes, components, state, and responsive behavior. Preserve function, not appearance.
-2. Model the page from its actual user task: identify information hierarchy, primary action, dominant surface, density, repeated data, technical content, and below-the-fold sequence. Do not start from an observed page name.
-3. Install the `--xai-*` token contract from `foundations.md` at the highest visual root. Map legacy variables to it temporarily, then remove conflicting local values from the edited scope.
-4. Establish font loading, page grid, shell width, gutters, type scale, surface hierarchy, and border/radius geometry before component polish.
-5. Rebuild shared primitives once, then create the task-appropriate composition from those primitives and the pattern grammar. Avoid page-local imitations and one-off values.
-6. Implement default, hover, focus-visible, pressed, current/selected, disabled, loading, empty, error, open, and reduced-motion behavior.
-7. Recompose for desktop, tablet, and mobile. Do not shrink a desktop canvas.
-8. Execute every applicable gate in `verification.md`. Validate at target viewports with computed styles, interaction states, full-page screenshots, and overlay/diff comparison. Scroll every long page in segments before capture so lazy content and below-fold design are included.
+2. Inventory every visible text node, icon, badge, status, metric, section heading, helper line, and action. Apply the necessity test in `content-icons.md`; delete redundant presentation before changing layout.
+3. Model the page from its actual user task: identify information hierarchy, primary action, dominant surface, density, repeated data, technical content, and below-the-fold sequence. Do not start from an observed page name.
+4. Install the `--xai-*` token contract from `foundations.md` at the highest visual root. Map legacy variables to it temporarily, then remove conflicting local values from the edited scope.
+5. Establish font loading, page grid, shell width, gutters, type scale, surface hierarchy, and border/radius geometry before component polish.
+6. Rebuild shared primitives once, then create the task-appropriate composition from those primitives and the pattern grammar. Avoid page-local imitations and one-off values.
+7. Implement default, hover, focus-visible, pressed, current/selected, disabled, loading, empty, error, open, and reduced-motion behavior.
+8. Recompose for desktop, tablet, and mobile. Do not shrink a desktop canvas.
+9. Execute every applicable gate in `verification.md`. Validate at target viewports with computed styles, interaction states, full-page screenshots, and overlay/diff comparison. Scroll every long page in segments before capture so lazy content and below-fold design are included.
 
 ## Non-negotiable visual rules
 
@@ -55,8 +57,9 @@ These contexts adjust density and scale; they do not create separate design syst
 - Use orange `#ff640a` only for New/Beta, a selected signal, an endpoint, or another rare high-information accent. Do not orange-wash navigation or layout.
 - Use the exact 4.5px-derived spatial rhythm. Fractional values are intentional and must remain centralized in tokens.
 - Use medium display headings with negative tracking. Avoid generic bold 700–900 SaaS headings.
+- Treat silence and empty space as interface elements. Do not add greetings, slogans, tips, explanatory restatements, decorative labels, redundant section headings, clocks, dates, build metadata, or helper copy unless they change a decision or prevent an error.
 - Keep ordinary cards flat. Do not add shadows except to black primary pills and truly floating layers.
-- Use 16–20px thin monochrome line icons with consistent stroke, round caps, and no colored icon tiles.
+- Use 16–20px thin monochrome line icons only after the icon passes the semantic gate in `content-icons.md`. Never add an icon merely to fill space, decorate a card, repeat a text label, or indicate that an entire card is clickable.
 - Use pills for principal actions, compact secondary actions, and segmented controls. Use 9–13.5px radii for fields, rows, and nested structures; use 18px for major cards and workbenches.
 - Keep navigation selection neutral: gray when idle, near-black when current, with no bright color wash.
 - Use dark surfaces only for code, terminal, source, or deliberate black editorial sections.
@@ -67,6 +70,7 @@ These contexts adjust density and scale; they do not create separate design syst
 
 - Preserve the product's required content, workflows, routes, and section meaning. Reorder only when it materially improves the user task.
 - Establish one dominant surface or narrative per viewport. Use hierarchy, alignment, whitespace, warm grouping, and hairlines before adding more containers.
+- Default to one title and one primary action per routine operational viewport. Add a description, subtitle, section heading, icon, badge, or trailing affordance only when removing it would make the task ambiguous, unsafe, or materially slower.
 - Choose components by content semantics: tables for comparable columns, divider-led rows for histories, warm cards for discovery/grouping, white bordered cards for comparable details, connected frames for workbenches, and broad fields for editorial storytelling.
 - Use observed Dashboard, Models, Usage, Docs, Home, Pricing, and News structures only as examples of these decisions. Never add pricing cards, a news archive, a 306px rail, a code panel, an engineering grid, a CTA band, or a footer merely because an xAI reference page contains one.
 - Make a new or unfamiliar component look native to xAI by applying the same token, typography, geometry, icon, surface, state, density, and motion contracts—not by visually quoting an unrelated component.
