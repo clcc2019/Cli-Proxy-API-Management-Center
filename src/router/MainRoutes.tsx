@@ -6,6 +6,7 @@ import {
   loadAuthFilesPage,
   loadConfigPage,
   loadDashboardPage,
+  loadDeRouterPage,
   loadLogsPage,
   loadOAuthPage,
   loadRequestLogsPage,
@@ -43,6 +44,7 @@ const LazyAuthFilesOAuthModelRulesPage = lazyNamed(
 );
 const LazyOAuthPage = lazyNamed(loadOAuthPage, 'OAuthPage');
 const LazyRequestLogsPage = lazyNamed(loadRequestLogsPage, 'RequestLogsPage');
+const LazyDeRouterPage = lazyNamed(loadDeRouterPage, 'DeRouterPage');
 const LazyUsagePage = lazyNamed(loadUsagePage, 'UsagePage');
 const LazyConfigPage = lazyNamed(loadConfigPage, 'ConfigPage');
 const LazyLogsPage = lazyNamed(loadLogsPage, 'LogsPage');
@@ -91,6 +93,7 @@ const mainRoutes = [
   { path: '/oauth', element: renderLazyPage(LazyOAuthPage) },
   { path: '/usage', element: renderLazyPage(LazyUsagePage) },
   { path: '/request-logs', element: renderLazyPage(LazyRequestLogsPage) },
+  { path: '/derouter', element: renderLazyPage(LazyDeRouterPage) },
   { path: '/config', element: renderLazyPage(LazyConfigPage) },
   { path: '/logs', element: renderLazyPage(LazyLogsPage) },
   { path: '/system', element: renderLazyPage(LazySystemPage) },

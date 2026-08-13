@@ -1,12 +1,4 @@
-import {
-  lazy,
-  memo,
-  Suspense,
-  useCallback,
-  useMemo,
-  useState,
-  type KeyboardEvent,
-} from 'react';
+import { lazy, memo, Suspense, useCallback, useMemo, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventCallback } from '@/hooks';
 import { Button } from '@/components/ui/Button';
@@ -42,16 +34,13 @@ import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFi
 import { AuthFileReauthorization } from '@/features/authFiles/components/AuthFileReauthorization';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
-const loadAuthFilesDeferredPanels = () =>
-  import('@/features/authFiles/components/AuthFilesDeferredPanels');
-
 const AuthFileQuotaSection = lazy(() =>
-  loadAuthFilesDeferredPanels().then((module) => ({
+  import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
     default: module.AuthFileQuotaSection,
   }))
 );
 const AuthFileQuotaRefreshButton = lazy(() =>
-  loadAuthFilesDeferredPanels().then((module) => ({
+  import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
     default: module.AuthFileQuotaRefreshButton,
   }))
 );
@@ -318,7 +307,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   return (
     <article
       className={cardClassName}
-      data-auth-file-name={file.name}
       aria-label={`${providerLabel}: ${maskedAuthFileDisplayName}`}
     >
       <div className={refreshStyles.cardMain}>
@@ -353,11 +341,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   aria-label={`${t('common.copy')}: ${maskedAuthFileDisplayName}`}
                 >
                   <span className={refreshStyles.cardNameText}>{maskedAuthFileDisplayName}</span>
-                  <IconCopy
-                    className={refreshStyles.cardCopyIcon}
-                    size={13}
-                    aria-hidden="true"
-                  />
+                  <IconCopy className={refreshStyles.cardCopyIcon} size={13} aria-hidden="true" />
                 </button>
               </div>
 
@@ -409,9 +393,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                         </button>
                       </div>
                     ) : (
-                      <span className={refreshStyles.priorityValue}>
-                        {priorityValue}
-                      </span>
+                      <span className={refreshStyles.priorityValue}>{priorityValue}</span>
                     )}
                   </div>
                 </div>
@@ -620,7 +602,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     quotaType={quotaType}
                     disableControls={disableControls}
                     onAuthFileUpdated={onAuthFileUpdated}
-                    className={`${refreshStyles.cardActionButton} ${refreshStyles.cardRefreshButton}`}
+                    className={refreshStyles.cardActionButton}
                     iconClassName={refreshStyles.cardActionIcon}
                     iconSize={16}
                   />

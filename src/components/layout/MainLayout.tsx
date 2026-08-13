@@ -28,6 +28,7 @@ import {
   IconSidebarLogs,
   IconSidebarOauth,
   IconSidebarProviders,
+  IconSidebarQuota,
   IconSidebarSystem,
   IconSidebarUsage,
 } from '@/components/ui/icons';
@@ -47,6 +48,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   oauth: <IconSidebarOauth size={18} />,
   usage: <IconSidebarUsage size={18} />,
   requestLogs: <IconFileText size={18} />,
+  derouter: <IconSidebarQuota size={18} />,
   config: <IconSidebarConfig size={18} />,
   logs: <IconSidebarLogs size={18} />,
   system: <IconSidebarSystem size={18} />,
@@ -410,6 +412,7 @@ export function MainLayout() {
         items: [
           { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
           { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
+          { path: '/derouter', label: t('nav.derouter'), icon: sidebarIcons.derouter },
           ...(config?.loggingToFile
             ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
             : []),

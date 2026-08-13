@@ -14,7 +14,6 @@ import {
   readCodexAuthFileServiceTierPassthrough,
   readCodexAuthFileWebsockets,
 } from '@/features/authFiles/constants';
-import { stripAuthFileRuntimeMetadata } from '@/features/authFiles/runtimeMetadata';
 import { resolveAuthFileClientProfileMetadata } from '@/features/authFiles/clientProfileMetadata';
 
 type AuthFileHeaders = Record<string, string>;
@@ -33,6 +32,30 @@ const SERVICE_TIER_PASSTHROUGH_KEYS = [
   'service-tier-passthrough',
   'serviceTierPassthrough',
   'fast',
+] as const;
+const RUNTIME_FIELD_KEYS = [
+  'cliproxy_runtime_state',
+  'runtime_state',
+  'runtimeState',
+  'runtime_metadata',
+  'runtimeMetadata',
+  'runtime_updated_at',
+  'runtimeUpdatedAt',
+  'runtime_saved_at',
+  'runtimeSavedAt',
+  'next_retry_after',
+  'nextRetryAfter',
+  'quota',
+  'last_error',
+  'lastError',
+  'model_states',
+  'modelStates',
+  'unavailable',
+  'success',
+  'failed',
+  'failure',
+  'recent_requests',
+  'recentRequests',
 ] as const;
 
 export type PrefixProxyEditorField =
@@ -113,6 +136,14 @@ const deleteFields = (value: Record<string, unknown>, keys: readonly string[]): 
   keys.forEach((key) => {
     delete value[key];
   });
+};
+
+const stripAuthFileRuntimeMetadata = (
+  source: Record<string, unknown>
+): Record<string, unknown> => {
+  const next = { ...source };
+  deleteFields(next, RUNTIME_FIELD_KEYS);
+  return next;
 };
 
 const readFirstDefinedField = (

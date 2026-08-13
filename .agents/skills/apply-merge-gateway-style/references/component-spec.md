@@ -1,120 +1,92 @@
-# Component specification
+# xAI component specification
 
-Use this reference as a state and composition contract. Inspect the canonical implementation before editing it and preserve public props and semantics unless the task requires an API change.
+Build the primitives required by the requested interface once in the target framework and compose any page or component from them. Preserve semantic HTML, behavior, and accessibility while replacing legacy appearance. Every applicable visual value must come from the xAI token and state contracts; do not keep a legacy component appearance merely because the component already exists.
 
-## Canonical ownership
+## Contents
 
-| Primitive | Source of behavior | Source of visual style |
-|---|---|---|
-| Button | `components/ui/Button.tsx` | global `.btn*` in `styles/components.scss` |
-| Card | `components/ui/Card.tsx` | global `.card*` in `styles/components.scss` |
-| Input | `components/ui/Input.tsx` | global input/form classes in `styles/components.scss` |
-| Modal | `components/ui/Modal.tsx` | global modal classes in `styles/components.scss` |
-| Select | `components/ui/Select.tsx` | `Select.module.scss` |
-| Table | `components/ui/Table/` | `Table.module.scss` |
-| Toggle/checkbox | `components/ui/ToggleSwitch.tsx`, `SelectionCheckbox.tsx` | adjacent modules |
-| Page header/toolbar | `ManagementPageHeader.tsx`, `ManagementToolbar.tsx` | adjacent modules |
+- State contract
+- Buttons and icon buttons
+- Navigation and icons
+- Fields and selectors
+- Cards, lists, and tables
+- Tabs, badges, and status
+- Code, chat, and data visualization
+- Menus, dialogs, and feedback
 
-Extend these sources when a reusable state is missing. Use a feature module only for feature-specific composition.
+## State contract
 
-## Shared state matrix
+Every interactive primitive must define default, hover, focus-visible, active/pressed, current/selected, disabled, loading/busy, invalid/error, and open/expanded states where applicable. Reserve icon/spinner/error space to avoid layout shift. Use native controls first, associated labels, `aria-current`, `aria-expanded`, `aria-invalid`, `aria-describedby`, and live status only where their semantics are real.
 
-Implement the applicable states without layout shift: default, pointer hover, focus-visible, active/pressed, selected/checked/current, disabled, loading/busy, invalid/error, empty, and expanded/open.
+## Buttons and icon buttons
 
-- Keep native elements and labels. Use ARIA to expose real state, not replace semantics.
-- Use at least a 40px visual control and a 44px mobile/touch target where practical.
-- Reserve icon, spinner, hint, error, and action space when state changes would otherwise reflow nearby content.
-- Keep hover inside `@media (hover: hover) and (pointer: fine)` when it could create sticky touch behavior.
-- Associate errors through `aria-invalid` and `aria-describedby`; announce asynchronous status with an appropriate live region.
+- Primary: near-black fill, `#fafafa` text, 36–40.5px height, 13.5–18px inline padding, 13.5px gap, pill radius, 13.5–15.75px medium label, subtle button shadow.
+- Secondary: white/transparent, 1px black-alpha border or ring, black text, pill radius, no shadow.
+- Tertiary: transparent, no border; gain only a 5–8% neutral fill on hover.
+- Destructive: use red only when the action is destructive, never as a generic secondary style.
+- Disabled: reduce ink contrast and remove shadow; retain readable text and explain unavailable actions nearby.
+- Loading: retain width, set `aria-busy`, and replace/precede the icon without shifting the label.
+- Icon-only: 36px target on desktop, 44px on touch, 16–20px icon, circular or unframed. Always provide an accessible name and tooltip where meaning is not obvious.
 
-## Button
+## Navigation and icons
 
-- Use `primary` for the single leading action: 40px, 8px radius, charcoal fill, white text.
-- Use `secondary` for companion actions: white surface, hairline border, minimal rest shadow.
-- Use `ghost` for tertiary or inline actions; do not use it when the hit boundary would be ambiguous.
-- Use `danger` only for destructive confirmation or irreversible actions.
-- Use `sm` for density, not a smaller height: the current shared component keeps 40px height.
-- Keep the built-in loading spinner, disabled behavior, `aria-busy`, and no duplicate submission.
-- Allow only the existing 1px pressed translation; do not add hover lift/scale to buttons.
+When the page needs a persistent Console/Docs rail, use the measured 306px independently scrolling form, 27px outer spacing, and 36px rows. Otherwise apply the same row, icon, color, grouping, and state grammar to the navigation form the content actually needs. Group items with whitespace and small labels, not tinted boxes. Idle icon/text uses `#7d8187`; current uses `#080808` and medium weight. A current row may use a barely visible 5% neutral fill, but no orange/green wash, thick bar, or colored icon tile.
 
-## Input and form fields
+Use inline SVG from one consistent line-icon family:
 
-- Use `Input` for label, hint, error, affixes, generated IDs, and described-by wiring.
-- Keep 40px height, 8px radius, white surface, and 12px horizontal padding; `sm` is 32px only in genuinely dense contexts.
-- Use neutral hover borders. Keyboard focus uses the global outline; errors use red border/ring.
-- Keep labels above controls, 600 weight, and hints at 13px/1.5.
-- Do not encode required, invalid, or disabled state with placeholder text alone.
-- Group related fields with spacing or one nested bordered group before adding separate cards.
+- 16–20px box; 18px default;
+- normally a 24×24 viewBox;
+- 1.5–2px stroke, `currentColor`, `fill="none"`, round linecap/linejoin;
+- optical alignment within text rows;
+- fill only intrinsically filled marks, not every utility icon.
 
-## Select, popover, and menu
+Public header navigation is sparse, can float over media when contrast is controlled, and uses pill actions. On mobile, use a deliberate menu panel and preserve focus trap, Escape, and scroll lock.
 
-- Use the shared `Select`, not a styled native select or a new menu implementation.
-- Keep trigger height 40px, option height 40px, 8px option radius, and 12px dropdown radius.
-- Use fixed/portal positioning and collision-aware placement as implemented; keep dropdowns above modal content with `--mg-z-modal-popover`.
-- Use subtle surface hover, neutral selected fill, sage selected text, and a visible check/state rather than color alone.
-- Preserve arrow-key navigation, Enter/Space selection, Escape dismissal, outside-click behavior, active descendant/labels, and scroll containment.
+## Fields and selectors
 
-## Checkbox and toggle
+- Text/search/number inputs: 36–40.5px height, 9–10px radius or pill for standalone search, 13.5px inline padding, white surface, 1px neutral border, 15.75px text.
+- Labels: 13.5px/18px medium. Help and placeholder: `#7d8187`. Error appears adjacent in text, not color alone.
+- Hover strengthens the border to 15–18% black. Focus keeps geometry stable and adds the 1px external focus ring.
+- Textarea/code input follows the same frame but uses content-appropriate height and mono type for source.
+- Select/listbox/popover aligns to its trigger, uses a 10–13.5px radius, white surface, fine border, floating shadow, 36px option rows, checkmark for current, keyboard navigation, and collision-aware placement.
+- Checkbox/radio/toggle remain compact and monochrome. Checked/current may be near-black. Green is reserved for actual success status.
 
-- Use `SelectionCheckbox` for discrete selection and `ToggleSwitch` for an immediate persistent setting.
-- Keep checkbox geometry compact but preserve a usable label/hit target.
-- Use sage for checked/on state; charcoal belongs to actions.
-- Preserve native input focus, disabled semantics, and textual labels. Do not replace state with a decorative colored track.
+## Cards, lists, and tables
 
-## Card and joined panels
+Use two card levels:
 
-- Use `Card` for a true bounded unit. Default radius is 15px; `compact` uses 12px/14px padding; `cozy` uses 16–22px padding; `flush` delegates framing to the parent.
-- Set `interactive` only when the entire card performs one action and has correct keyboard semantics at the consumer.
-- Use a divider-led header for distinct content sections; use `headerFlush` when spacing already communicates hierarchy.
-- Prefer a single joined panel with internal dividers for metrics, tables, or workbench regions. Avoid nested card stacks and decorative hover elevation.
+1. Discovery/summary: warm `#f9f8f6`, 18px radius, no border unless needed, no shadow, 18–27px padding.
+2. Comparable detail: white, 1px 6–10% black border, 13.5–18px radius, no shadow, internal dividers.
 
-## Management page header and toolbar
+Anchor repeated card actions to a common bottom baseline. Do not nest a third rounded card level. Hover only changes border/fill when the whole card is interactive; never lift or scale it.
 
-- Use one H1 per route. Keep context above, count beside the title, and an optional one-line description below.
-- Put only route-level actions in the page header. Search, filters, view options, and batch actions belong in `ManagementToolbar`.
-- Keep action priority explicit: normally one primary, remaining secondary/ghost.
-- At 1100px the header actions stack; at 1024px the toolbar simplifies; at 768px both become a single-column mobile composition with 44px controls.
+For histories, news, logs, keys, billing records, and compact resources, prefer one flat frame or no outer frame with divider-led rows. Put identity/title and summary left; date, state, value, or action right. Use stable columns and 9–13.5px row gaps.
 
-## Table and dense data
+Tables use a white surface, neutral header, 13.5px labels, tabular numbers, hairline row separators, and a quiet neutral hover. Avoid zebra striping unless density requires it. Keep actions at the trailing edge. At narrow widths, prioritize/hide secondary columns, allow horizontal scroll, or recompose each row into a labeled summary. Keep loading, empty, and error states inside the same geometry.
 
-- Use the shared table wrapper: white 12px frame, warm header, 12px header text, 13px body text, hairline rows, 10–14px padding.
-- Use tabular numbers and right alignment for comparable numeric data.
-- Keep row hover subtle and selection neutral/sage-contextual. Pair status dots with text.
-- Put actions in a stable final column and keep essential identity/status columns visible.
-- Provide a labeled scroll region for horizontal overflow. On narrow screens, scroll, prioritize columns, or recompose to labeled summaries; never shrink the entire table.
-- Empty, loading, and error rows must preserve table width and explain the next action.
+## Tabs, badges, and status
 
-## Modal, secondary screen, and editor
+- Prominent mode/range selectors use a pill rail. Current may be near-black with inverse text or a warm neutral fill with black text.
+- Tabs inside a code panel are text-only in the header rail: white current, muted inactive, no colorful underline.
+- Feature/category chips are soft neutral pills with black text and compact 13–13.5px type.
+- New/Beta is orange text or a fine orange outline. Avoid saturated badge fills.
+- Success/warning/failure colors describe state only and always pair with visible text or an accessible label.
+- Progress uses a thin neutral track, semantic fill only if meaningful, tabular percentage/reset data, and accessible determinate value.
 
-- Use `Modal` for bounded tasks. Preserve focus trap/restoration, Escape behavior, scroll lock, close animation, title labeling, and `closeDisabled` during critical work.
-- Keep a 15px floating frame, solid overlay, hairline header/footer, 24px body padding, and warm footer surface.
-- Use `fullScreenOnMobile` for complex forms, model lists, diffs, and editors that cannot remain usable in a small centered dialog.
-- Use a routed secondary screen when the task needs deep linking, substantial data loading, or more room than a modal.
-- Preserve the existing CodeMirror configuration for source/diff editors; do not fake code with a styled textarea.
+## Code, chat, and data visualization
 
-## Status, badge, progress, and notification
+Code panels are contained near-black 18px frames with a compact tab/action rail, `GeistMono`-like 13.5px type, restrained accessible syntax colors, and horizontal scrolling. The surrounding page stays light. Copy buttons are quiet icon controls and confirm success without moving content.
 
-- Use green only for healthy/success, amber for warning/quota, red for failure/destructive, teal for neutral information, and sage for selection/context.
-- Pair dots and colored bars with visible text or an accessible name.
-- Keep badges compact and border-led. Avoid turning every category into a saturated pill.
-- Keep progress determinate when a value exists and expose the value to assistive technology.
-- Notifications must state the outcome and avoid covering primary controls on narrow screens.
+Chat uses one connected workbench. The empty state may show a small set of large white 18px suggestion cards with fine borders and no shadow. Keep the composer anchored, 18px rounded, and visually heavier than secondary settings. Preserve streamed/partial messages, retry, code/markdown rendering, attachment progress, errors, and model controls. Colors inside generated content do not recolor the shell.
 
-## Loading, empty, error, and permission states
+Charts use charcoal/gray as the baseline and orange for only one selected series, endpoint, or threshold. Keep grids very light, axes compact, units explicit, heights stable, and tooltips keyboard/readout accessible. Use tabular numbers. Do not create rainbow KPI tiles or decorative gradients.
 
-- Use skeletons when the final geometry is known; match its blocks closely enough to avoid layout shift.
-- Use a spinner only for a bounded action or indeterminate region, not as the entire page structure.
-- Empty states explain what is absent and offer one relevant action when available.
-- Inline errors sit near their failed region; route-level failures use a restrained banner or state panel.
-- Disabled is not an explanation. Add concise reason text when users cannot infer why an action is unavailable.
+## Menus, dialogs, and feedback
 
-## Navigation and shell
+- Menus/popovers: white 10–13.5px frame, 1px border, floating shadow, compact rows, collision handling, outside-click and Escape dismissal, focus return.
+- Dialogs: solid dim overlay, white or warm 18px panel, floating shadow, clearly separated title/body/actions, focus trap/restore, scroll lock. Use a full-screen mobile treatment for complex editors or comparison flows.
+- Toasts: restrained neutral frame; semantic icon/text for outcomes. Do not cover primary mobile actions.
+- Skeletons match final geometry. Spinners belong to bounded regions/actions. Empty states explain absence and offer at most one useful action. Inline errors stay near their failed region.
 
-- Preserve the 192px/64px desktop sidebar, grouped navigation, 44px items, active sage context, and off-canvas mobile drawer.
-- Keep brand/navigation in the sidebar and utility/connection controls in the lightweight top layer.
-- Preserve safe-area insets, backdrop dismissal, body scroll lock, and accessible expanded/current states.
-- Avoid feature-specific z-indexes or page containers that fight the shell.
+## Component rejection list
 
-## Verification
-
-Check keyboard-only use, 200% zoom, reduced motion, long translated strings, loading/error transitions, and 1024/768/480/360px compositions. Run the smallest relevant combination of `npm run type-check`, `npm run lint`, and `npm run build`; do not use `agent-browser` unless explicitly requested.
+Reject glassmorphism, blurred cards, thick borders, pervasive shadows, gradient buttons, blue focus defaults, colored navigation tiles, huge illustrative icons, nested rounded containers, card hover scaling, rainbow chart/category colors, and generic 12/16/24px Material-style spacing that erases the xAI rhythm.

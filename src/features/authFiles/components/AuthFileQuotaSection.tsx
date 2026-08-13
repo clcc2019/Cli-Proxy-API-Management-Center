@@ -1,4 +1,10 @@
-import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
@@ -13,18 +19,21 @@ import type {
   CodexRateLimitResetConsumePayload,
   CodexRateLimitResetCredit,
 } from '@/types';
-import type { QuotaProviderType } from '@/utils/quota';
+import {
+  getQuotaProgressLevel,
+  normalizeQuotaProgressPercent,
+  type QuotaProviderType,
+} from '@/utils/quota';
 import { normalizeAuthIndex } from '@/utils/usage';
 import { resolveQuotaErrorMessage } from '@/features/authFiles/constants';
 import { mergeAuthFileUpdatePreservingRequestStats } from '@/features/authFiles/stats';
 
-import { QuotaProgressBar } from '@/features/authFiles/components/QuotaProgressBar';
 import {
   getAuthFileQuotaConfig,
   refreshAuthFileQuota,
+  useAuthFileQuotaRefreshing,
   type AuthFileQuotaState,
 } from '@/features/authFiles/quotaRefresh';
-import { useAuthFileQuotaRefreshing } from '@/features/authFiles/quotaRefreshActivity';
 import styles from '@/pages/AuthFilesPageRefresh.module.scss';
 
 export type AuthFileQuotaSectionProps = {
@@ -39,6 +48,54 @@ type AuthFileQuotaRefreshButtonProps = AuthFileQuotaSectionProps & {
   iconClassName?: string;
   iconSize?: number;
 };
+
+type QuotaProgressBarProps = {
+  percent: number | null;
+  highThreshold?: number;
+  mediumThreshold?: number;
+  ariaLabel?: string;
+  ariaValueText?: string;
+};
+
+const QuotaProgressBar = memo(function QuotaProgressBar({
+  percent,
+  highThreshold,
+  mediumThreshold,
+  ariaLabel,
+  ariaValueText,
+}: QuotaProgressBarProps) {
+  const normalized = normalizeQuotaProgressPercent(percent);
+  const progressLevel = getQuotaProgressLevel(percent, highThreshold, mediumThreshold);
+  const fillClass =
+    progressLevel === 'high'
+      ? styles.quotaBarFillHigh
+      : progressLevel === 'medium'
+        ? styles.quotaBarFillMedium
+        : progressLevel === 'low'
+          ? styles.quotaBarFillLow
+          : styles.quotaBarFillUnknown;
+  const widthPercent = Math.round(normalized ?? 0);
+  const ariaValue = normalized === null ? undefined : Math.round(normalized);
+  const visualPercent = widthPercent > 0 ? Math.max(widthPercent, 2) : 0;
+  const fillStyle = useMemo(
+    () => ({ transform: `scaleX(${visualPercent / 100})` }),
+    [visualPercent]
+  );
+
+  return (
+    <div
+      className={styles.quotaBar}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={ariaValue}
+      aria-label={ariaLabel}
+      aria-valuetext={ariaValueText}
+    >
+      <div className={`${styles.quotaBarFill} ${fillClass}`} style={fillStyle} />
+    </div>
+  );
+});
 
 const readResetCreditCount = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;

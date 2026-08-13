@@ -358,6 +358,17 @@
       }
     }
 
+    > .btn.icon-button[aria-busy='true'] {
+      position: relative;
+
+      > .loading-spinner {
+        position: absolute;
+        inset: 0;
+        display: block;
+        margin: auto;
+      }
+    }
+
     .language-menu.open > .btn {
       background: var(--mg-surface-subtle, var(--bg-tertiary));
       color: var(--mg-text, var(--text-primary));

@@ -1,4 +1,14 @@
-import { memo, useCallback, useMemo, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import {
+  memo,
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   IconSearch,
@@ -104,17 +114,48 @@ export const SearchToolbar = memo(function SearchToolbar({
   const [sortOpen, setSortOpen] = useState(false);
   const [pageSizeOpen, setPageSizeOpen] = useState(false);
   const [pageSizeDraft, setPageSizeDraft] = useState(String(pageSize));
+  const [searchDraft, setSearchDraft] = useState(search);
+  const pendingSearchValuesRef = useRef<string[]>([]);
 
-  const handleSearchInput = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      onSearchChange(event.target.value);
+  useEffect(() => {
+    const pendingValues = pendingSearchValuesRef.current;
+    const acknowledgedIndex = pendingValues.indexOf(search);
+    if (acknowledgedIndex >= 0) {
+      pendingValues.splice(0, acknowledgedIndex + 1);
+      return;
+    }
+
+    // This value did not originate from the input, so it came from another
+    // page action (for example "clear filters"). Discard pending acknowledgements
+    // and synchronize the local field without waiting for another keystroke.
+    pendingValues.length = 0;
+    setSearchDraft((current) => (current === search ? current : search));
+  }, [search]);
+
+  const updateSearch = useCallback(
+    (value: string) => {
+      const pendingValues = pendingSearchValuesRef.current;
+      pendingValues.push(value);
+      if (pendingValues.length > 32) pendingValues.splice(0, pendingValues.length - 32);
+      setSearchDraft(value);
+      // Keep typing and the clear affordance on the urgent lane. Updating the
+      // page can rebuild filters and card nodes, so let React schedule it as a
+      // transition without delaying the controlled input itself.
+      startTransition(() => onSearchChange(value));
     },
     [onSearchChange]
   );
 
+  const handleSearchInput = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      updateSearch(event.target.value);
+    },
+    [updateSearch]
+  );
+
   const handleSearchClear = useCallback(() => {
-    onSearchChange('');
-  }, [onSearchChange]);
+    updateSearch('');
+  }, [updateSearch]);
 
   const handleSortOpenChange = useCallback((open: boolean) => {
     if (open) setPageSizeOpen(false);
@@ -200,14 +241,14 @@ export const SearchToolbar = memo(function SearchToolbar({
         <input
           type="search"
           className={refreshStyles.searchInput}
-          value={search}
+          value={searchDraft}
           onChange={handleSearchInput}
           placeholder={searchPlaceholder}
           aria-label={searchPlaceholder}
           autoComplete="off"
           spellCheck={false}
         />
-        {search && (
+        {searchDraft && (
           <button
             type="button"
             className={refreshStyles.searchClear}

@@ -1,9 +1,10 @@
 import type { TFunction } from 'i18next';
+import { create } from 'zustand';
 import { CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from '@/components/quota';
 import { useQuotaStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import { getStatusFromError, isRuntimeOnlyAuthFile, type QuotaProviderType } from '@/utils/quota';
-import { beginQuotaRefreshActivity } from '@/features/authFiles/quotaRefreshActivity';
+import { REFRESH_FEEDBACK_MS } from '@/utils/refreshFeedback';
 
 export type AuthFileQuotaState = {
   status?: string;
@@ -51,6 +52,64 @@ type AuthFileQuotaMap = Record<string, AuthFileQuotaState>;
 type AuthFileQuotaUpdater = (updater: (previous: AuthFileQuotaMap) => AuthFileQuotaMap) => void;
 
 const AUTH_FILE_QUOTA_REFRESH_CONCURRENCY = 4;
+
+type QuotaRefreshActivityState = {
+  activeKeys: ReadonlySet<string>;
+};
+
+type QuotaRefreshActivity = {
+  finish: () => void;
+};
+
+const useQuotaRefreshActivityStore = create<QuotaRefreshActivityState>(() => ({
+  activeKeys: new Set(),
+}));
+
+const getActivityKey = (quotaType: QuotaProviderType, fileName: string) =>
+  `${quotaType}\u0000${fileName}`;
+
+const stopActivity = (key: string) => {
+  const { activeKeys } = useQuotaRefreshActivityStore.getState();
+  if (!activeKeys.has(key)) return;
+
+  const next = new Set(activeKeys);
+  next.delete(key);
+  useQuotaRefreshActivityStore.setState({ activeKeys: next });
+};
+
+const beginQuotaRefreshActivity = (
+  quotaType: QuotaProviderType,
+  fileName: string
+): QuotaRefreshActivity | null => {
+  const key = getActivityKey(quotaType, fileName);
+  const { activeKeys } = useQuotaRefreshActivityStore.getState();
+  if (activeKeys.has(key)) return null;
+
+  useQuotaRefreshActivityStore.setState({ activeKeys: new Set(activeKeys).add(key) });
+  const startedAt = performance.now();
+  let finished = false;
+
+  return {
+    finish: () => {
+      if (finished) return;
+      finished = true;
+      const remaining = REFRESH_FEEDBACK_MS - (performance.now() - startedAt);
+      if (remaining <= 0) {
+        stopActivity(key);
+        return;
+      }
+      window.setTimeout(() => stopActivity(key), remaining);
+    },
+  };
+};
+
+export const useAuthFileQuotaRefreshing = (
+  quotaType: QuotaProviderType,
+  fileName: string
+): boolean => {
+  const key = getActivityKey(quotaType, fileName);
+  return useQuotaRefreshActivityStore((state) => state.activeKeys.has(key));
+};
 
 export const getAuthFileQuotaConfig = (type: QuotaProviderType): AuthFileQuotaConfig => {
   const config = type === 'claude' ? CLAUDE_CONFIG : type === 'codex' ? CODEX_CONFIG : KIMI_CONFIG;

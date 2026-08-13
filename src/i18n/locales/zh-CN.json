@@ -269,6 +269,69 @@
       "notLoaded": "未加载"
     }
   },
+  "derouter": {
+    "context": "DeRouter 网络",
+    "title": "DeRouter 数据",
+    "description": "通过后端数据接口查看当前账户的容器运行状态、账户容量与收益统计。",
+    "container_count": "共 {{count}} 个容器",
+    "updated_at": "更新于 {{time}}",
+    "disconnected_title": "管理服务未连接",
+    "disconnected_description": "连接到 Toka 后端后即可读取 DeRouter 数据。",
+    "partial_title": "部分数据暂不可用",
+    "not_configured_title": "尚未配置 DeRouter",
+    "not_configured_description": "请在 Toka 后端配置文件中设置 derouter-token，然后重新加载配置或重启后端服务。",
+    "unsupported_title": "当前后端不支持此页面",
+    "unsupported_description": "请更新 Toka 后端，确保已提供 /derouter/containers 和 /derouter/earnings 管理接口。",
+    "load_failed_title": "DeRouter 数据加载失败",
+    "empty_title": "暂无 DeRouter 容器",
+    "empty_description": "接口连接正常，但当前账户还没有可展示的容器。",
+    "errors": {
+      "containers": "容器数据加载失败",
+      "earnings": "收益数据加载失败"
+    },
+    "metrics": {
+      "label": "DeRouter 收益概览",
+      "today": "今日收益",
+      "week": "本周收益",
+      "all_time": "累计收益",
+      "requests": "累计请求",
+      "tasks": "{{count}} 个任务",
+      "running": "{{running}} / {{total}} 个容器运行中"
+    },
+    "containers": {
+      "eyebrow": "运行资源",
+      "title": "容器与账户",
+      "running": "运行中",
+      "accounts": "活跃账户",
+      "auth_mode": "认证模式",
+      "region": "代理区域",
+      "account_count": "活跃 / 总账户",
+      "tasks": "任务数",
+      "reputation": "信誉分"
+    },
+    "status": {
+      "running": "运行中",
+      "active": "活跃",
+      "online": "在线",
+      "healthy": "健康",
+      "ready": "就绪",
+      "connected": "已连接",
+      "pending": "等待中",
+      "authenticating": "认证中",
+      "starting": "启动中",
+      "initializing": "初始化中",
+      "processing": "处理中",
+      "stopped": "已停止",
+      "inactive": "未活跃",
+      "offline": "离线",
+      "error": "错误",
+      "failed": "失败",
+      "banned": "已封禁",
+      "expired": "已过期",
+      "unhealthy": "异常",
+      "unknown": "未知"
+    }
+  },
   "common": {
     "login": "登录",
     "logout": "登出",
@@ -397,6 +460,7 @@
     "oauth": "OAuth 登录",
     "usage_stats": "使用统计",
     "request_logs": "请求详情",
+    "derouter": "DeRouter 数据",
     "config_management": "配置面板",
     "logs": "日志查看",
     "system_info": "中心信息"

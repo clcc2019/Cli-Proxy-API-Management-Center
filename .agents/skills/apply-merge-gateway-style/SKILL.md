@@ -1,62 +1,88 @@
 ---
 name: apply-merge-gateway-style
-description: "Analyze, design, restyle, or implement frontend pages and components for the CLI Proxy API Management Center in its current Merge Gateway-derived visual system: fixed light theme, cool-gray canvas, white operational surfaces, charcoal primary actions, sage selection/context, hairline borders, compact editorial headings, dense management layouts, and restrained motion. Use when changing this repository's React/SCSS UI, extending its design system, creating management pages, dashboards, workbenches, tables, forms, dialogs, charts, or asking later frontend work to match the current product style."
+description: "Design, build, restyle, optimize, or audit any frontend page or component in a strict, high-fidelity xAI visual system. Use for React, Vue, Svelte, HTML/CSS, dashboards, settings, tables, forms, dialogs, navigation, cards, charts, editors, chat, documentation, landing pages, or any new/custom interface whenever Codex must apply the typography, palette, spacing, geometry, surfaces, icons, interactions, responsive behavior, and visual discipline of console.x.ai, docs.x.ai, x.ai, or Grok—without forcing the product into a copied xAI page template."
 ---
 
-# Apply the Current Management Center Style
+# Reproduce the xAI Frontend System
 
-Treat the repository's current frontend as the source of truth. Preserve its React 19, SCSS, CSS Modules, routing, i18n, data flow, accessibility semantics, and public component APIs while extending one coherent visual system.
+Use xAI as the sole visual authority for every page and component in scope. Preserve the target application's behavior, information architecture, content meaning, accessibility, and data flow. Do not preserve its previous visual language when it conflicts with this skill. Replace the visual layer—including typography, palette, spacing, geometry, surface hierarchy, icons, states, and motion—with the xAI system described here.
 
-## Load only what the task needs
+Do not copy the information architecture or section order of an observed xAI page unless it solves the same content problem. The observations are a design grammar and evidence library, not templates. Design the requested interface around its own task, then express every visual decision through the shared xAI grammar.
 
-- Read [references/style-system.md](references/style-system.md) before any visual or layout change.
-- Read [references/component-spec.md](references/component-spec.md) before creating or changing a primitive or interactive state.
-- Read [references/product-visuals.md](references/product-visuals.md) for dashboards, charts, logs, provider workbenches, code editors, or illustrative product UI.
+The goal is the closest reproducible result permitted by available fonts, media, framework, and content. Never claim literal pixel identity without a screenshot comparison. If licensed xAI fonts or brand assets are supplied, use them; otherwise use the metric-compatible fallbacks and original project content described in the references.
 
-Inspect the live repository before editing because implementation may have evolved. In a CodeGraph-indexed repository, use CodeGraph first to locate tokens, shared primitives, call paths, and representative consumers.
+## Read the references
 
-## Work in this order
+Read only the files required by the task, but always read the first two before implementation:
 
-1. Classify the screen as overview, management, workbench, or secondary/edit.
-2. State four internal decisions: primary task, dominant surface, information density, and semantic accent.
-3. Preserve behavior, routes, copy hierarchy, i18n, keyboard behavior, and user changes.
-4. Reuse the shell, tokens, and shared primitives. Fix a shared primitive before patching repeated consumers.
-5. Compose the page around the operational surface; add motion only after layout and states are complete.
-6. Verify responsive composition, interaction states, accessibility, and the repository's relevant type/lint/build checks.
+1. Read [references/style-system.md](references/style-system.md) for exact tokens, typography, layout, responsive behavior, backgrounds, borders, radius, motion, and CSS recipes.
+2. Read [references/component-spec.md](references/component-spec.md) for primitives, interaction states, icons, navigation, forms, data surfaces, overlays, chat, and code UI.
+3. Read [references/product-visuals.md](references/product-visuals.md) for task-driven composition rules and reusable patterns derived from Console, Docs, home, Grok, company, pricing, and news. Use them as grammar, never as mandatory page templates.
+4. Read [references/xai-visual-reference.md](references/xai-visual-reference.md) when auditing fidelity or resolving a design decision against the measured source observations.
 
-## Choose the page pattern
+## Select a density context before styling
 
-| Mode | Header | Dominant surface | Width |
-|---|---|---|---|
-| Overview | restrained overview card or `ManagementPageHeader` | joined metrics and one primary data region | full shell width |
-| Management | `ManagementPageHeader` + optional `ManagementToolbar` | table, list, log, or card collection | full shell width |
-| Workbench | compact header | bordered navigation/resource split | full shell width; collapse below its breakpoint |
-| Secondary/edit | contextual title/back action | focused form, detail, diff, or editor | full shell width or readable local cap |
+Do not average the three xAI modes into a generic SaaS aesthetic.
 
-Use the dashboard's larger 32–42px title only for a true overview. Routine pages use the shared 26–32px management title. Do not add marketing heroes, oversized display copy, decorative gradients, or an inner centered max-width to operational screens.
+| Context | Use for | Governing traits |
+|---|---|---|
+| Console | authenticated dashboards and management tools | 306px rail, compact 13.5–27px type, white canvas, warm summary cards, fine borders, black pill actions |
+| Docs | developer documentation, onboarding, API examples, editors | 306px rail, warm 18px workbench, editorial explanation, contained near-black code panel |
+| Marketing | home, Grok, company, pricing, news, public product storytelling | 54–67.5px display type, long vertical rhythm, alternating black/white/warm fields, media-led sections, CTA band and ruled footer |
 
-## Implementation rules
+These contexts adjust density and scale; they do not create separate design systems. Shared colors, type character, 4.5px rhythm, radii, icons, actions, surfaces, and motion remain consistent. A custom page may combine operational density with a technical workbench or a restrained editorial introduction when its task requires it. Scope context adjustments with `[data-xai-mode]` and never copy an unrelated route structure.
 
-- Consume existing semantic variables from `src/styles/themes.scss`; do not invent a parallel token namespace in a page module.
-- Keep the application fixed light unless the user explicitly requests a product-wide theme change. Do not add isolated dark-mode branches.
-- Use `src/styles/components.scss` and the React wrappers for global `Button`, `Card`, `Input`, and `Modal`; use the canonical CSS Module primitives for `Select`, `Table`, `ToggleSwitch`, `SelectionCheckbox`, headers, and toolbars.
-- Keep canvas gray and operational surfaces white. Use borders, spacing, alignment, and joined panels before adding fill or shadow.
-- Reserve charcoal fill for primary/destructive actions by semantic variant. Use sage for selection and persistent context, teal for information, and green/amber/red for real states.
-- Keep values compact: 40px controls, 8px control radii, 12px nested containers, 15px main cards, 1px borders, and 14–22px normal panel padding.
-- Keep motion between 130–240ms, primarily color, opacity, and small transforms. Honor `prefers-reduced-motion`.
-- Build data-bearing visuals as semantic HTML, SVG, canvas/chart components, or the existing editor; use raster assets only for static supplied imagery.
-- Do not introduce a UI library or image-generation dependency for this style.
-- Do not use `agent-browser` unless the user explicitly requests browser verification.
+## Implementation workflow
 
-## Reject drift
+1. Inspect the existing routes, components, state, and responsive behavior. Preserve function, not appearance.
+2. Model the page from its actual user task: identify information hierarchy, primary action, dominant surface, density, repeated data, technical content, and below-the-fold sequence. Do not start from an observed page name.
+3. Install the `--xai-*` token contract from the style-system reference at the highest visual root. Map legacy variables to it temporarily, then remove conflicting local values from the edited scope.
+4. Establish font loading, page grid, shell width, gutters, type scale, surface hierarchy, and border/radius geometry before component polish.
+5. Rebuild shared primitives once, then create the task-appropriate composition from those primitives and the pattern grammar. Avoid page-local imitations and one-off values.
+6. Implement default, hover, focus-visible, pressed, current/selected, disabled, loading, empty, error, open, and reduced-motion behavior.
+7. Recompose for desktop, tablet, and mobile. Do not shrink a desktop canvas.
+8. Validate at the target viewport with full-page screenshots, computed styles, and overlay/diff comparison. Scroll every long page in segments before capture so lazy content and below-fold design are included.
 
-Reject glassmorphism, neon or purple AI gradients, blurred shells, thick borders, excessive pills, floating-card collages, decorative 3D art, bouncy motion, hover scaling, tinted full-page sections, and color used without semantic meaning. Avoid copying Merge branding or marketing composition; this skill represents the product's current management-console adaptation.
+## Non-negotiable visual rules
 
-## Definition of done
+- Use near-black `#080808`/`#0a0a0a`, white, warm `#f9f8f6`, cool gray `#7d8187`, and hairline black-alpha borders as the dominant system.
+- Use orange `#ff640a` only for New/Beta, a selected signal, an endpoint, or another rare high-information accent. Do not orange-wash navigation or layout.
+- Use the exact 4.5px-derived spatial rhythm. Fractional values are intentional and must remain centralized in tokens.
+- Use medium display headings with negative tracking. Avoid generic bold 700–900 SaaS headings.
+- Keep ordinary cards flat. Do not add shadows except to black primary pills and truly floating layers.
+- Use 16–20px thin monochrome line icons with consistent stroke, round caps, and no colored icon tiles.
+- Use pills for principal actions, compact secondary actions, and segmented controls. Use 9–13.5px radii for fields, rows, and nested structures; use 18px for major cards and workbenches.
+- Keep navigation selection neutral: gray when idle, near-black when current, with no bright color wash.
+- Use dark surfaces only for code, terminal, source, or deliberate black editorial sections.
+- Use restrained 120–240ms transitions. Never scale cards, bounce controls, add glass blur, or use decorative purple/blue AI gradients.
+- Do not introduce an arbitrary value when a specified xAI token or component rule applies. Do not mix legacy and xAI styling inside the edited scope.
 
-- One task and one dominant surface are visually obvious.
-- Touched components use the existing tokens and canonical primitives.
-- Default, hover, focus-visible, active/selected, disabled, loading, empty, and error states are handled where applicable.
-- Desktop, tablet, 768px mobile, and narrow 360–480px compositions remain usable without scaled-down desktop UI.
-- Focus order, accessible names, status text, reduced motion, touch targets, and layout stability remain correct.
-- Report files changed, primitives/tokens reused, checks run, and any intentional exception in a compact handoff.
+## Composition rules
+
+- Preserve the product's required content, workflows, routes, and section meaning. Reorder only when it materially improves the user task.
+- Establish one dominant surface or narrative per viewport. Use hierarchy, alignment, whitespace, warm grouping, and hairlines before adding more containers.
+- Choose components by content semantics: tables for comparable columns, divider-led rows for histories, warm cards for discovery/grouping, white bordered cards for comparable details, connected frames for workbenches, and broad fields for editorial storytelling.
+- Use observed Dashboard, Models, Usage, Docs, Home, Pricing, and News structures only as examples of these decisions. Never add pricing cards, a news archive, a 306px rail, a code panel, an engineering grid, a CTA band, or a footer merely because an xAI reference page contains one.
+- Make a new or unfamiliar component look native to xAI by applying the same token, typography, geometry, icon, surface, state, density, and motion contracts—not by visually quoting an unrelated component.
+
+## Asset and font policy
+
+- Prefer licensed `universalSans`, `universalSansDisplay`, and `GeistMono` files when the user provides them or the target already legally loads them.
+- Otherwise use the fallback stacks in `style-system.md`; do not download or extract private font binaries from xAI.
+- Use the target product's own logo, copy, imagery, and data unless the user supplies xAI assets and authorizes their use. Reproduce layout, crop logic, contrast, texture, and motion—not protected content by scraping it.
+- Implement live UI with semantic HTML, CSS, SVG, canvas/chart libraries, and real state. Do not paste screenshots into interactive surfaces.
+
+## Fidelity gates
+
+Do not call the work complete until all applicable checks pass:
+
+- The interface is immediately recognizable as one coherent xAI system without relying on a logo or copied page content.
+- Computed font sizes, line heights, weights, tracking, primary colors, common gaps, control heights, radii, and shell dimensions match the token contract.
+- The composition serves the requested page or component rather than mimicking an unrelated reference route; every visual choice is traceable to an xAI token, component rule, or composition principle.
+- Long pages have been scrolled fully and lazy-loaded before capture. At the target viewport, compare screenshots and computed styles against the xAI contract; fix high-area errors first: shell, section rhythm, typography, alignment, media crops, and surfaces.
+- At 1280, 1024, 768, 480, and 360px, content recomposes without clipped actions, unreadable code, broken focus order, or tiny desktop UI.
+- Keyboard navigation, focus visibility, labels, reduced motion, contrast, loading, empty, error, and long-content states remain usable.
+- No legacy palette, radius system, shadow language, font scale, decorative icon tiles, or unrelated design-system conventions remain in the edited visual scope.
+- No unsanctioned color, spacing, radius, type size, shadow, icon treatment, or interaction pattern remains without a documented content/accessibility reason.
+
+Report any unavoidable fidelity exception explicitly, especially missing licensed fonts, missing reference media, dynamic content differences, or browser-rendering variance.

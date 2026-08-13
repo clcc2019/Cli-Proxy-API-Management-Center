@@ -1,151 +1,165 @@
-# Current frontend style system
+# xAI style system
 
-This reference records the CLI Proxy API Management Center's implemented design language. Verify the current source before editing; when documentation and code differ, the repository wins.
+Use this as the strict implementation contract for any frontend designed with this skill. Values come from computed-style inspection at a 1512×680 CSS-pixel desktop viewport (DPR 2) and full-page captures. Keep exact fractional values in tokens. Unless content, accessibility, or the target viewport makes a documented exception necessary, use these values rather than approximations or legacy design tokens.
 
-## Source map
+## Contents
 
-| Concern | Authority |
-|---|---|
-| Semantic theme and aliases | `src/styles/themes.scss` |
-| SCSS spacing, breakpoints, font stacks | `src/styles/variables.scss` |
-| Body, focus, reduced motion, scrollbars | `src/styles/global.scss` |
-| App shell, sidebar, page gutters | `src/styles/layout.scss` |
-| Global buttons, inputs, cards, badges, modals | `src/styles/components.scss` |
-| Shared React primitives | `src/components/ui/` |
-| Dashboard overview grammar | `src/pages/DashboardPage.module.scss` |
-| Usage/data grammar | `src/pages/UsagePage.module.scss`, `src/components/usage/` |
-| Workbench grammar | `src/features/providers/` |
+- Token foundation
+- Fonts and typography
+- Spacing and geometry
+- Shells and page grids
+- Surfaces and backgrounds
+- Responsive rules
+- Motion and fidelity CSS
 
-Prefer these shared sources over copying styles from a feature page. Page-local variables may alias global tokens for readability, but must not redefine their semantic roles.
-
-## Visual thesis
-
-Build a quiet, information-dense enterprise console. The shell uses a cool-gray canvas; cards, controls, and panels are white; warm charcoal carries actions and strong data; sage marks selection or persistent context. Most hierarchy comes from spacing, alignment, 1px dividers, typography, and joined surfaces rather than decoration.
-
-The application is intentionally fixed light. `useThemeStore` resolves to `light`; old dark-theme compatibility code is not an invitation to create new dark branches.
-
-## Token contract
-
-Use the established `--mg-*` tokens for new shared styles and the compatibility aliases when extending an existing component that already uses them.
+## Token foundation
 
 ```css
 :root {
-  --mg-canvas: #f6f8fa;
-  --mg-surface: #ffffff;
-  --mg-surface-subtle: #f2f5f7;
-  --mg-surface-warm: #f8fafc;
+  color-scheme: light;
+  --xai-black: #080808;
+  --xai-ink: #0a0a0a;
+  --xai-white: #fff;
+  --xai-inverse: #fafafa;
+  --xai-warm: #f9f8f6;
+  --xai-neutral-soft: rgb(10 10 10 / 5%);
+  --xai-neutral-hover: rgb(10 10 10 / 8%);
+  --xai-neutral-pressed: rgb(10 10 10 / 12%);
+  --xai-secondary: #7d8187;
+  --xai-border-cool: #d5d9e2;
+  --xai-border: rgb(10 10 10 / 8%);
+  --xai-border-strong: rgb(10 10 10 / 15%);
+  --xai-orange: #ff640a;
+  --xai-code: #0a0a0a;
 
-  --mg-text: #1f2937;
-  --mg-text-secondary: #475569;
-  --mg-text-tertiary: #64748b;
-  --mg-text-muted: #94a3b8;
-  --mg-border: #e2e8f0;
-  --mg-border-hover: #cbd5e1;
-  --mg-border-strong: #b6c2cf;
-  --mg-ink-strong: #111827;
+  --xai-s-1: 4.5px;
+  --xai-s-1-5: 6.75px;
+  --xai-s-2: 9px;
+  --xai-s-3: 13.5px;
+  --xai-s-4: 18px;
+  --xai-s-5: 22.5px;
+  --xai-s-6: 27px;
+  --xai-s-7: 31.5px;
+  --xai-s-8: 36px;
+  --xai-s-9: 40.5px;
+  --xai-s-12: 54px;
+  --xai-s-15: 67.5px;
 
-  --mg-sage: #5d914d;
-  --mg-sage-strong: #4f8048;
-  --mg-sage-soft: #eef2f6;
-  --mg-teal: #1f6170;
-  --mg-orange: #c2410c;
-  --mg-success: #15803d;
-  --mg-warning: #9b5b00;
-  --mg-danger: #c53a32;
+  --xai-r-micro: 6.75px;
+  --xai-r-small: 9px;
+  --xai-r-control: 10px;
+  --xai-r-panel: 13.5px;
+  --xai-r-card: 18px;
+  --xai-r-pill: 9999px;
 
-  --mg-radius-control: 8px;
-  --mg-radius-medium: 12px;
-  --mg-radius-card: 15px;
-  --mg-radius-large: 16px;
-  --mg-radius-pill: 999px;
-  --mg-shadow-rest: 0 1px 2px rgb(15 23 42 / 0.05);
-  --mg-shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.11);
-  --mg-shadow-float: 0 4px 12px -4px rgb(15 23 42 / 0.08), 0 16px 40px -16px rgb(15 23 42 / 0.16);
-
-  --mg-control-height-small: 32px;
-  --mg-control-height: 40px;
-  --mg-control-height-large: 48px;
-  --mg-hit-area: 44px;
-  --mg-page-gutter: clamp(20px, 3vw, 40px);
+  --xai-shadow-button: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+  --xai-shadow-float: 0 20px 60px -24px rgb(0 0 0 / 24%);
+  --xai-sidebar: 306px;
+  --xai-control: 36px;
+  --xai-control-large: 40.5px;
+  --xai-icon: 18px;
+  --xai-page-inline: 27px;
+  --xai-transition-fast: 120ms;
+  --xai-transition: 180ms;
+  --xai-transition-slow: 240ms;
 }
 ```
 
-The spacing scale is 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, and 96px through `--mg-space-*`. Use it before introducing an exception.
+Do not add a second palette or approximate these with a colorful framework default. Semantic success/warning/error colors may exist for real states, but they are outside the decorative palette.
 
-### Semantic roles
+## Fonts and typography
 
-| Role | Use | Avoid |
-|---|---|---|
-| Canvas | route background and shell negative space | card grouping |
-| Surface | cards, controls, panels, table body | disabled emphasis |
-| Subtle/warm surface | hover, selected neutrals, headers, skeletons | whole-page tint |
-| Strong ink | primary action and strongest value | selection or status |
-| Sage | selected item, active context, switch-on state | every icon or button |
-| Teal | informational accent and selected data series | decoration |
-| Green/amber/red | healthy, warning, error/destructive state | category variety |
-| Orange | scarce threshold or operational warning | default CTA |
+Use supplied licensed faces through `@font-face`; otherwise use these substitutions:
 
-Never rely on color alone. Pair status colors with text, icons, position, or accessible state.
+```css
+:root {
+  --xai-font-ui: universalSans, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-display: universalSansDisplay, universalSans, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-mono: GeistMono, "SFMono-Regular", "Roboto Mono", Menlo, Monaco, Consolas, monospace;
+}
+body { font: 400 18px/27px var(--xai-font-ui); color: var(--xai-ink); text-rendering: optimizeLegibility; }
+```
 
-## Typography
+| Role | Size / line | Weight | Tracking |
+|---|---:|---:|---:|
+| Console H1 | 27 / 36px | 500 | -0.675px |
+| Console H2 | 22.5 / 31.5px | 500 | -0.5625px |
+| Console H3/card title | 18 / 27px | 500–600 | -0.45px |
+| Console nav/tab/control | 15.75 / 22.5px | 400–500 | normal |
+| Console compact label/button | 13.5 / 18px | 500 | normal |
+| Console compact body | 13.5 / 18–21.94px | 400 | normal |
+| Public hero H1 | 67.5 / 67.5px | 500 | -1.6875px |
+| Docs/News hero H1 | 54 / 54–59.4px | 500 | -1.35px |
+| Public section H2 | 33.75–40.5 / 40.5–49.5px | 400 | about -0.02em |
+| Docs H2 | 33.75 / 40.5px | 500 | about -0.02em |
+| Public/body | 18 / 27px | 400 | normal |
+| Code | 13.5 / 18–22.5px | 400–500 | normal |
 
-- Use the existing Inter/system/CJK stack for body and controls; never fetch a new web font for ordinary work.
-- Use `--mg-font-display` for management titles, dashboard overview titles, major modal titles, and intentionally editorial metrics.
-- Use `--mg-font-mono` for IDs, timestamps, versions, code, logs, and fixed-width technical values.
-- Body baseline: 14.5px, 1.55 line height, `-0.003em` tracking.
-- Management H1: `clamp(26px, 2.2vw, 32px)`, 650, 1.08 line height, `-0.04em` tracking.
-- Dashboard overview H1: `clamp(32px, 3.5vw, 42px)` only.
-- Section title: about 20px/700; card title: about 16px/700; labels and table text: 12–14px.
-- Use `font-variant-numeric: tabular-nums` for counts, percentages, timestamps, quotas, and chart axes.
-- Keep descriptions at 65–72ch and use balanced/pretty wrapping only for headings or short prose.
+Use medium weight and size/space contrast, not heavy bold. Set `font-variant-numeric: tabular-nums` on prices, metrics, dates, quotas, tables, and charts. Keep paragraph measure near 55–72ch; large marketing copy may use 12–18 words per line. Use balanced headings where supported.
 
-Do not use marketing-scale 48–74px headings inside the authenticated shell.
+## Spacing and geometry
 
-## Surface and density
+- Use only the 4.5px scale for intentional gaps/padding. A 1px border and optical exceptions are allowed.
+- Micro icon/text gaps: 4.5–6.75px. Compact rows: 9–13.5px. Controls/cards: 13.5–22.5px. Sections: 31.5–67.5px. Public vertical fields: 81–162px as multiples of 4.5.
+- Controls are normally 36px or 40.5px high. Primary compact actions may be about 32px when the composition requires it.
+- Major cards/workbenches use 18px radius. Detail cards use 13.5–18px. Fields and row controls use 9–10px. Tiny media/utilities use 6.75–7px. Pills use a true full radius.
+- Ordinary cards, tables, and bands have `box-shadow: none`. Black pills use only `--xai-shadow-button`. Menus/modals may use `--xai-shadow-float`.
+- Use 1px borders at 6–15% black or the observed cool `#d5d9e2`. Avoid thick outlines and shadow-as-border.
 
-- Keep panels nearly flat. Use `--mg-shadow-rest` on ordinary cards and `--mg-shadow-float` only on dropdowns, popovers, modals, and clearly elevated feedback.
-- Use a 15px radius for primary cards/panels, 12px for nested groups and tables, 8px for controls, and pills only for compact statuses/counts.
-- Join related metrics or rows with a 1px gap/divider inside one outer frame instead of making every item a floating card.
-- Use 14px compact, 14–20px regular, and 16–22px cozy card padding. Dense tables use 10–14px cell padding.
-- Let tables, logs, charts, editors, and workbenches span the available shell width.
+## Contextual shells and page grids
 
-## Page hierarchy
+Shells are content-dependent compositions, not mandatory templates. Apply a shell only when the requested interface needs that navigation and information hierarchy. Components embedded in an existing page inherit the surrounding grid while still using every applicable xAI token and component rule.
 
-### Overview
+### Console
 
-Allow one restrained bordered overview card. Pair a 32–42px title with a compact status/meta region, then lead into joined metric panels and one primary data section. Keep backgrounds white and remove decorative art.
+When the product requires a full xAI-style persistent Console rail, use `grid-template-columns: 306px minmax(0, 1fr)`. The sidebar independently scrolls and remains white/borderless. At 1512px the content region is roughly 1177–1188px after gutters. Keep page top/inline padding near 27px and use full available width for operational surfaces. Side navigation controls are 36px high; a full-width team selector is approximately 288×36px with 10px radius. Do not add or widen a sidebar for a component-only task or when the content model does not need persistent navigation.
 
-### Management
+### Docs
 
-Use `ManagementPageHeader`: title/context/description on the left and required actions on the right, divided from content by one hairline. Follow with `ManagementToolbar` when search, filters, secondary controls, or batch actions are needed. Make the table, list, log, or card collection the largest mass.
+When a documentation product requires persistent categorized navigation, use the same 306px stable rail. A technical workbench may use a warm 18px connected frame with explanation/context and a near-black code region. Use only the regions required by the task; do not add code or navigation decoratively.
 
-### Workbench
+### Marketing
 
-Use one bordered 15px frame with navigation/category rail and resource panel sharing the boundary. Collapse to one column around the feature's established breakpoint; do not turn every subsection into an unrelated card.
+For a public/editorial task, use a full-width canvas with content aligned to a consistent inner grid. Choose only the required heroes, contrast fields, metrics, demonstrations, comparisons, CTAs, and footer. Prefer broad two-column splits, 12-column alignment, and generous 54–135px section padding where narrative pacing requires it. Do not manufacture sections to resemble a captured route, and do not wrap every section in a centered SaaS card.
 
-### Secondary/edit
+## Surfaces and backgrounds
 
-Use contextual navigation, a compact title, and a focused form/editor/detail surface. Limit only the readable form content, not the entire page shell.
+- White is the default Console/Docs canvas. Warm `#f9f8f6` groups summary, discovery, feature, pricing, CTA, or explanation regions.
+- Near-black fields are deliberate contrast chapters or code panels; inverse copy is `#fafafa` with muted white-alpha secondary text.
+- Engineering grids use two 1px linear gradients at extremely low contrast, aligned to the spacing rhythm:
 
-## Shell and responsive rules
+```css
+.xai-grid {
+  background-color: var(--xai-white);
+  background-image:
+    linear-gradient(rgb(10 10 10 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(10 10 10 / 4%) 1px, transparent 1px);
+  background-size: 54px 54px;
+}
+```
 
-- Desktop sidebar: 192px; collapsed: 64px. Main content remains full width with `clamp(20px, 3vw, 40px)` inline gutters.
-- The header is a lightweight floating control layer; navigation and brand ownership remain in the sidebar.
-- At 1024px, multi-column grids and toolbars begin simplifying.
-- At 768px, the sidebar becomes an off-canvas drawer, page headers/actions stack, touch targets reach 44px, and page content accounts for safe areas.
-- At 480px, inline page padding becomes 16px; at 360px it becomes 12px.
-- Recompose dense UI: allow horizontal table scrolling, hide only secondary columns with a clear priority, or stack labeled fields. Never scale a desktop surface.
-- Preserve DOM order when CSS changes visual layout.
+- Warm red/orange API media fields are allowed only behind a contained white code card. Keep texture low-frequency and restrained; never use a generic purple/blue AI gradient.
+- Images/video use edge-to-edge crops inside 18px frames when framed. Preserve subject focal point with `object-fit: cover` and explicit `object-position`.
 
-## Motion, focus, and layers
+## Responsive rules
 
-- Use existing motion durations: fast 130ms, base 190ms, slow/emphasized 240ms.
-- Use opacity, background/border color, a 1px press, a small 4–8px entrance, or an occasional 1px card lift. Do not scale on hover.
-- Use `mg-popover-enter` for anchored surfaces; preserve stable panel dimensions while content changes.
-- Honor the global reduced-motion rule and never encode information only in animation.
-- Use the existing 1px `--mg-focus-outline` with offset. Do not remove keyboard focus; pointer modality is already handled globally.
-- Consume the existing z-index scale. Dropdown/popover placement must escape sticky content; modal popovers sit above modals; toasts remain highest among working UI.
+Use content-driven breakpoints near 1280, 1024, 768, 480, and 360px.
 
-## Anti-patterns
+- Below 1024px, reduce public H1 with `clamp(45px, 7vw, 67.5px)`, simplify grids, and move 3–4 columns to two.
+- Below 768px, turn 306px rails into an off-canvas drawer, stack workbench/hero splits in source order, make toolbars wrap, and keep 44px touch targets.
+- Below 480px, use 18px page gutters (13.5px at 360px if necessary), full-width primary actions where useful, one-column pricing/capability grids, and horizontally scrollable code/table regions.
+- Hide secondary metadata before primary actions or meaning. Never scale the whole page or reduce operational text below readable sizes.
+- Preserve DOM/focus order through visual rearrangement.
 
-Do not add glass blur, colored glows, heavy shadows, gradient text, thick frames, alternating tinted sections, oversized empty padding, decorative hero illustrations, dense bento mosaics, or local raw colors that duplicate an existing semantic token. Do not add a second theme or component library for a single page.
+## Motion and fidelity CSS
+
+Transition only `color`, `background-color`, `border-color`, `opacity`, and small `transform` values. Use 120–240ms with a standard ease-out. Hover may change neutral fill/border; press may translate 1px. Do not scale cards or use bounce/spring motion.
+
+```css
+:focus-visible { outline: 1px solid var(--xai-black); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+```
+
+Use CSS reset rules deliberately: border-box sizing, inherited font on controls, zero default margins, responsive media, and stable scrollbars. Avoid framework defaults that introduce blue focus rings, gray page fills, 8px radii everywhere, or box shadows.
