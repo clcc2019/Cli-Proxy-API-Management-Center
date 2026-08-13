@@ -1,351 +1,320 @@
-@use '../styles/variables.scss' as *;
-
-// Merge Gateway-inspired management overview: quiet editorial hierarchy,
-// hairline structure, product-like data surfaces, and semantic color only.
-
 .dashboard {
-  --dashboard-surface: var(--mg-surface);
-  --dashboard-surface-subtle: var(--mg-surface-subtle, #f2f5f7);
-  --dashboard-surface-warm: var(--mg-surface-warm, #f8fafc);
-  --dashboard-border: var(--mg-border, #e2e8f0);
-  --dashboard-text: var(--text-primary, #1f2937);
-  --dashboard-text-secondary: var(--text-secondary, #475569);
-  --dashboard-text-tertiary: var(--text-tertiary, #64748b);
-  --dashboard-sage: var(--mg-sage);
-  --dashboard-sage-strong: var(--mg-sage-strong);
-  --dashboard-sage-soft: var(--mg-sage-soft);
-  --dashboard-success: var(--mg-success);
-  --dashboard-warning: var(--mg-warning);
-  --dashboard-danger: var(--mg-danger);
-  --dashboard-radius: var(--mg-radius-card, 15px);
-  --dashboard-ease: var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+  --xai-ink-console: #080808;
+  --xai-ink: #0a0a0a;
+  --xai-white: #ffffff;
+  --xai-inverse: #fafafa;
+  --xai-warm: #f9f8f6;
+  --xai-secondary: #7d8187;
+  --xai-disabled: rgb(10 10 10 / 30%);
+  --xai-fill-soft: rgb(10 10 10 / 5%);
+  --xai-fill-hover: rgb(10 10 10 / 8%);
+  --xai-fill-pressed: rgb(10 10 10 / 12%);
+  --xai-border-subtle: rgb(10 10 10 / 6%);
+  --xai-border: rgb(10 10 10 / 8%);
+  --xai-border-hover: rgb(10 10 10 / 15%);
+  --xai-success: hsl(132 41% 42%);
+  --xai-warning: hsl(44 80% 34%);
+  --xai-danger: hsl(353 53% 43%);
+  --xai-font-ui: universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-display:
+    universalSansDisplay, universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
+  --xai-shadow-button: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+  --xai-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --xai-ease-out: cubic-bezier(0, 0, 0.2, 1);
 
-  position: relative;
-  isolation: isolate;
   display: flex;
-  flex-direction: column;
-  gap: var(--mg-space-6);
   width: 100%;
-  max-width: none;
-  color: var(--dashboard-text);
+  min-width: 0;
+  flex-direction: column;
+  gap: 31.5px;
+  color: var(--xai-ink-console);
+  font-family: var(--xai-font-ui);
 }
 
-// ─── Restrained overview header ─────────────────────────
-
+// Direct operational header — no marketing card treatment.
 .hero {
-  position: relative;
-  z-index: 0;
   display: flex;
-  align-items: stretch;
+  min-width: 0;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 32px;
-  min-height: 156px;
-  padding: var(--mg-space-6) var(--mg-space-8);
-  overflow: hidden;
-  border: 1px solid var(--dashboard-border);
-  border-radius: var(--dashboard-radius);
-  background: var(--dashboard-surface);
-  box-shadow: none;
+  gap: 27px;
+  padding: 4.5px 0 0;
 }
 
 .heroContent {
-  position: relative;
-  z-index: 0;
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  justify-content: center;
-  gap: 8px;
+  gap: 4.5px;
 }
 
 .heroGreeting {
-  color: var(--dashboard-sage-strong);
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-}
-
-.heroGreeting::before {
-  content: none;
+  color: var(--xai-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 18px;
 }
 
 .heroTitle {
-  max-width: 18ch;
+  max-width: 24ch;
   margin: 0;
-  color: var(--dashboard-text);
-  font-family: var(--mg-font-display);
-  font-size: clamp(32px, 3.5vw, 42px);
-  font-weight: 650;
-  line-height: 1.05;
-  letter-spacing: -0.04em;
+  color: var(--xai-ink-console);
+  font-family: var(--xai-font-display);
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -0.675px;
   text-wrap: balance;
 }
 
 .heroCaring {
-  max-width: 56ch;
-  margin: var(--mg-space-2) 0 0;
-  color: var(--dashboard-text-secondary);
-  font-size: 14.5px;
-  line-height: 1.55;
+  max-width: 72ch;
+  margin: 4.5px 0 0;
+  color: var(--xai-secondary);
+  font-size: 15.75px;
+  font-weight: 400;
+  line-height: 22.5px;
   text-wrap: pretty;
 }
 
-// ─── Hero status panel ──────────────────────────────────
-
 .heroMeta {
-  position: relative;
-  z-index: 0;
-  display: flex;
-  min-width: 220px;
+  display: grid;
+  min-width: 0;
   flex: 0 0 auto;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 0 0 var(--mg-space-6);
-  border-left: 1px solid var(--dashboard-border);
-  background: transparent;
+  grid-template-columns: auto auto;
+  align-items: end;
+  gap: 6.75px 13.5px;
 }
 
 .dateTimeBlock {
   display: flex;
+  grid-row: 1 / span 2;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: flex-end;
+  gap: 4.5px;
 }
 
 .time {
-  color: var(--dashboard-text);
-  font-family: var(--mg-font-display);
-  font-size: 30px;
-  font-weight: 600;
+  color: var(--xai-ink-console);
+  font-family: var(--xai-font-display);
+  font-size: 27px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
-  letter-spacing: -0.04em;
+  line-height: 31.5px;
+  letter-spacing: -0.675px;
 }
 
-.date {
-  color: var(--dashboard-text-tertiary);
-  font-size: 12px;
+.date,
+.buildDate {
+  color: var(--xai-secondary);
+  font-size: 13.5px;
   font-variant-numeric: tabular-nums;
-  line-height: 1.5;
+  line-height: 18px;
 }
 
 .connectionPill {
   display: inline-flex;
-  min-height: 34px;
+  min-height: 27px;
   align-items: center;
-  gap: 8px;
-  padding: 6px 11px;
-  border: 1px solid var(--dashboard-border);
-  border-radius: $radius-full;
-  background: var(--dashboard-surface-warm);
-  color: var(--dashboard-text);
-  font-size: 12px;
+  gap: 6.75px;
+  padding: 4.5px 9px;
+  border: 1px solid var(--xai-border);
+  border-radius: 9999px;
+  background: var(--xai-white);
+  color: var(--xai-ink-console);
+  font-size: 13.5px;
+  line-height: 18px;
 }
 
 .statusDot {
-  width: 7px;
-  height: 7px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--dashboard-text-muted, #94a3b8);
+  width: 6.75px;
+  height: 6.75px;
+  flex: 0 0 auto;
+  border-radius: 9999px;
+  background: var(--xai-disabled);
 
   &.connected {
-    background: var(--dashboard-success);
+    background: var(--xai-success);
   }
 
   &.connecting {
-    background: var(--dashboard-warning);
-    animation: pulse 1.2s var(--motion-ease-standard) infinite;
+    background: var(--xai-warning);
+    animation: status-pulse 1200ms var(--xai-ease-standard) infinite;
   }
 
   &.disconnected {
-    background: var(--dashboard-danger);
+    background: var(--xai-danger);
   }
 }
 
 .pillText {
-  color: var(--dashboard-text);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .pillVersion {
-  padding-left: 8px;
-  border-left: 1px solid var(--dashboard-border);
-  color: var(--dashboard-text-tertiary);
-  font-family: $font-mono;
-  font-size: 11px;
+  padding-left: 6.75px;
+  border-left: 1px solid var(--xai-border);
+  color: var(--xai-secondary);
+  font-family: var(--xai-font-mono);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
+  line-height: 18px;
 }
 
 .buildDate {
-  color: var(--dashboard-text-tertiary);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
+  justify-self: end;
 }
-
-// ─── Shared section heading ─────────────────────────────
 
 .statsSection,
 .configSection {
-  position: relative;
-  z-index: 0;
+  min-width: 0;
 }
 
 .sectionHeading {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin: 0 0 12px;
-  color: var(--dashboard-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  line-height: 1.5;
-  text-transform: uppercase;
+  gap: 13.5px;
+  margin: 0 0 13.5px;
+  color: var(--xai-ink-console);
+  font-family: var(--xai-font-display);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.45px;
 
   &::after {
     content: '';
     height: 1px;
     flex: 1 1 auto;
-    background: var(--dashboard-border);
+    background: var(--xai-border-subtle);
   }
 }
 
-// ─── Joined system metrics panel ────────────────────────
-
+// One dominant warm data surface with joined cells and hairline separation.
 .bentoGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  padding: 1px;
   overflow: hidden;
-  border-radius: var(--dashboard-radius);
-  background: var(--dashboard-border);
-  box-shadow: none;
+  border-radius: 18px;
+  background: var(--xai-warm);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .bentoCard {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 128px;
+  min-height: 162px;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
-  padding: 20px;
+  gap: 22.5px;
+  padding: 22.5px;
   border: 0;
+  border-right: 1px solid var(--xai-border-subtle);
   border-radius: 0;
-  background: var(--dashboard-surface);
-  box-shadow: none;
+  background: transparent;
   color: inherit;
   text-decoration: none;
   transition:
-    background-color var(--motion-duration-fast) var(--motion-ease-standard),
-    color var(--motion-duration-fast) var(--motion-ease-standard);
+    background-color 150ms var(--xai-ease-standard),
+    color 150ms var(--xai-ease-standard),
+    transform 120ms var(--xai-ease-out);
+
+  &:last-child {
+    border-right: 0;
+  }
 
   &::after {
     content: '↗';
     position: absolute;
-    top: 18px;
-    right: 18px;
-    color: var(--dashboard-text-tertiary);
-    font-size: 17px;
-    line-height: 1;
-    transition:
-      color var(--motion-duration-fast) var(--motion-ease-standard),
-      transform var(--motion-duration-base) var(--dashboard-ease);
+    top: 22.5px;
+    right: 22.5px;
+    color: var(--xai-secondary);
+    font-size: 18px;
+    line-height: 18px;
+    transition: color 150ms var(--xai-ease-standard);
   }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: var(--dashboard-surface-warm);
+      background: var(--xai-fill-soft);
 
       &::after {
-        color: var(--dashboard-sage-strong);
-        transform: translate(2px, -2px);
+        color: var(--xai-ink-console);
       }
     }
   }
 
   &:active {
-    background: var(--mg-surface-pressed);
+    background: var(--xai-fill-hover);
+    transform: translateY(1px);
   }
 
   &:focus-visible {
     z-index: 1;
-    outline: 1px solid var(--mg-focus-outline);
-    outline-offset: -2px;
-    box-shadow: none;
+    outline: 1px solid var(--xai-ink-console);
+    outline-offset: -4.5px;
   }
 }
 
 .bentoIcon {
   display: flex;
-  width: 38px;
-  height: 38px;
+  width: 18px;
+  height: 18px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--dashboard-border);
-  border-radius: var(--mg-radius-control, 8px);
-  background: var(--dashboard-surface-subtle);
-  color: var(--dashboard-text-secondary);
-  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .bentoCard:hover .bentoIcon {
-    background: var(--dashboard-surface-subtle);
-  }
+  color: var(--xai-secondary);
 }
 
 .bentoContent {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 5px;
+  gap: 4.5px;
 }
 
 .bentoValue {
-  color: var(--dashboard-text);
-  font-family: var(--mg-font-display);
-  font-size: 32px;
-  font-weight: 600;
+  color: var(--xai-ink-console);
+  font-family: var(--xai-font-display);
+  font-size: 40.5px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
-  letter-spacing: -0.04em;
+  line-height: 40.5px;
+  letter-spacing: -1.0125px;
 }
 
 .bentoValueLoading {
-  color: var(--dashboard-text-tertiary);
-  animation: pulse 1.35s var(--motion-ease-standard) infinite;
+  color: var(--xai-secondary);
+  animation: loading-pulse 1200ms var(--xai-ease-standard) infinite;
 }
 
 .bentoLabel {
-  color: var(--dashboard-text);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
+  color: var(--xai-ink-console);
+  font-size: 15.75px;
+  font-weight: 500;
+  line-height: 22.5px;
 }
 
 .bentoSublabel {
-  color: var(--dashboard-text-secondary);
-  font-size: 12px;
-  line-height: 1.5;
+  min-height: 18px;
+  overflow: hidden;
+  color: var(--xai-secondary);
+  font-size: 13.5px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-// ─── Current configuration surface ─────────────────────
-
+// White comparable detail surface; configuration reads as rows, not mini cards.
 .configSection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  border: 1px solid var(--dashboard-border);
-  border-radius: var(--dashboard-radius);
-  background: var(--dashboard-surface);
+  gap: 18px;
+  padding: 22.5px;
+  border: 1px solid var(--xai-border);
+  border-radius: 18px;
+  background: var(--xai-white);
 }
 
 .configSection .sectionHeading {
@@ -354,192 +323,161 @@
 
 .configPillGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  padding: 1px;
   overflow: hidden;
-  border-radius: 12px;
-  background: var(--dashboard-border);
+  border: 1px solid var(--xai-border);
+  border-radius: 13.5px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .configPill {
   display: flex;
   min-width: 0;
-  min-height: 64px;
+  min-height: 67.5px;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 7px;
-  padding: 15px 17px;
-  border: 0;
-  border-radius: 0;
-  background: var(--dashboard-surface);
-  color: var(--dashboard-text);
-  font-size: 13px;
+  gap: 6.75px;
+  padding: 13.5px 18px;
+  border-right: 1px solid var(--xai-border-subtle);
+  border-bottom: 1px solid var(--xai-border-subtle);
+  background: var(--xai-white);
+  color: var(--xai-ink-console);
+
+  &:nth-child(3n) {
+    border-right: 0;
+  }
+
+  &:nth-child(n + 4) {
+    border-bottom: 0;
+  }
 }
 
 .configPillWide {
   grid-column: 1 / -1;
-  min-height: 68px;
+  min-height: 54px;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
+  gap: 13.5px;
+  border-right: 0;
+  border-top: 1px solid var(--xai-border-subtle);
+  border-bottom: 0;
 }
 
 .configPillLabel {
-  color: var(--dashboard-text-secondary);
-  font-size: 12px;
-  line-height: 1.45;
+  color: var(--xai-secondary);
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 18px;
 }
 
 .configPillWide .configPillLabel {
   flex: 0 0 auto;
 }
 
-.configPillValue {
+.configPillValue,
+.configBadge {
   display: inline-flex;
-  min-height: 24px;
+  min-height: 27px;
+  max-width: 100%;
   align-items: center;
-  gap: 7px;
-  padding: 3px 9px;
-  border-radius: $radius-full;
-  background: var(--dashboard-surface-subtle);
-  color: var(--dashboard-text);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.4;
+  gap: 6.75px;
+  padding: 4.5px 9px;
+  overflow: hidden;
+  border: 1px solid var(--xai-border);
+  border-radius: 9999px;
+  background: var(--xai-white);
+  color: var(--xai-ink-console);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
+.configPillValue {
   &.on,
   &.off {
     &::before {
       content: '';
-      width: 6px;
-      height: 6px;
+      width: 6.75px;
+      height: 6.75px;
       flex: 0 0 auto;
-      border-radius: 50%;
+      border-radius: 9999px;
       background: currentColor;
-      opacity: 0.72;
+      opacity: 0.65;
     }
   }
 
-  &.on {
-    background: var(--mg-sage-wash);
-    color: var(--dashboard-sage-strong);
-  }
-
   &.off {
-    color: var(--dashboard-text-secondary);
+    color: var(--xai-secondary);
   }
 }
 
 .configPillMono {
   min-width: 0;
   overflow: hidden;
-  color: var(--dashboard-text-secondary);
-  font-family: $font-mono;
-  font-size: 12px;
-  line-height: 1.5;
+  color: var(--xai-secondary);
+  font-family: var(--xai-font-mono);
+  font-size: 13.5px;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.configBadge {
-  display: inline-flex;
-  min-height: 24px;
-  max-width: 100%;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 9px;
-  overflow: hidden;
-  border: 1px solid var(--dashboard-border);
-  border-radius: $radius-full;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.configBadgeRoundRobin {
-  border-color: color-mix(in srgb, var(--dashboard-sage-strong) 32%, var(--dashboard-border));
-  background: var(--dashboard-sage-soft);
-  color: var(--dashboard-sage-strong);
-}
-
-.configBadgeFillFirst {
-  border-color: color-mix(in srgb, var(--dashboard-success) 32%, var(--dashboard-border));
-  background: color-mix(in srgb, var(--dashboard-success) 10%, var(--dashboard-surface));
-  color: var(--dashboard-success);
-}
-
+.configBadgeRoundRobin,
+.configBadgeFillFirst,
 .configBadgeUnknown {
-  background: var(--dashboard-surface-subtle);
-  color: var(--dashboard-text-secondary);
+  color: var(--xai-ink-console);
 }
 
 .viewMoreLink {
   display: inline-flex;
   width: fit-content;
-  min-height: 44px;
+  min-height: 36px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: var(--mg-radius-control, 8px);
-  background: var(--mg-action, #000000);
-  color: var(--mg-text-inverse);
-  font-size: 13px;
-  line-height: 1.2;
+  gap: 6.75px;
+  padding: 6.75px 13.5px;
+  border: 1px solid var(--xai-ink-console);
+  border-radius: 9999px;
+  background: var(--xai-ink-console);
+  box-shadow: var(--xai-shadow-button);
+  color: var(--xai-inverse);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 18px;
   text-decoration: none;
-  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition:
+    background-color 150ms var(--xai-ease-standard),
+    border-color 150ms var(--xai-ease-standard),
+    transform 120ms var(--xai-ease-out);
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: var(--mg-action-hover, #282828);
-      color: var(--mg-text-inverse);
-      text-decoration: none;
+      border-color: #242424;
+      background: #242424;
+      color: var(--xai-inverse);
     }
   }
 
+  &:active {
+    transform: translateY(1px);
+  }
+
   &:focus-visible {
-    outline: 1px solid var(--mg-focus-outline);
+    outline: 1px solid var(--xai-ink-console);
     outline-offset: 3px;
-    box-shadow: none;
   }
 }
 
 .viewMoreArrow {
   display: inline-flex;
-  transition: transform var(--motion-duration-base) var(--dashboard-ease);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .viewMoreLink:hover .viewMoreArrow {
-    transform: translateX(3px);
-  }
-}
-
-// ─── Responsive layout ─────────────────────────────────
-
-@media (max-width: $breakpoint-tablet) {
+@media (max-width: 1024px) {
   .dashboard {
-    gap: 24px;
-  }
-
-  .hero {
-    align-items: flex-end;
-    flex-direction: row;
-    gap: 24px;
-    padding: var(--mg-space-6);
-  }
-
-  .heroContent {
-    max-width: none;
-  }
-
-  .heroMeta {
-    min-width: 210px;
+    gap: 27px;
   }
 
   .bentoGrid {
@@ -547,101 +485,145 @@
   }
 
   .bentoCard {
-    min-height: 132px;
+    border-bottom: 1px solid var(--xai-border-subtle);
+
+    &:nth-child(2n) {
+      border-right: 0;
+    }
+
+    &:nth-last-child(-n + 2) {
+      border-bottom: 0;
+    }
   }
 
   .configPillGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .configPill {
+    border-right: 1px solid var(--xai-border-subtle);
+    border-bottom: 1px solid var(--xai-border-subtle);
+
+    &:nth-child(3n) {
+      border-right: 1px solid var(--xai-border-subtle);
+    }
+
+    &:nth-child(2n) {
+      border-right: 0;
+    }
+
+    &:nth-child(n + 5) {
+      border-bottom: 0;
+    }
+  }
+
+  .configPillWide {
+    border-top: 1px solid var(--xai-border-subtle);
+    border-right: 0;
+    border-bottom: 0;
+  }
 }
 
-@media (max-width: $breakpoint-mobile) {
+@media (max-width: 768px) {
   .dashboard {
-    gap: 24px;
+    gap: 27px;
   }
 
   .hero {
-    min-height: 0;
-    flex-direction: column;
     align-items: stretch;
-    gap: 20px;
-    padding: 24px 20px 20px;
-  }
-
-  .heroContent {
-    max-width: none;
-  }
-
-  .heroTitle {
-    max-width: 16ch;
-    font-size: clamp(32px, 9vw, 38px);
-  }
-
-  .heroCaring {
-    font-size: 15px;
+    flex-direction: column;
+    gap: 18px;
   }
 
   .heroMeta {
     width: 100%;
-    min-width: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px 16px;
-    padding: 16px 0 0;
-    border-top: 1px solid var(--dashboard-border);
-    border-left: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-top: 18px;
+    border-top: 1px solid var(--xai-border-subtle);
   }
 
   .dateTimeBlock {
-    flex: 1 1 auto;
+    align-items: flex-start;
   }
 
   .buildDate {
-    flex-basis: 100%;
-    margin-left: 0;
-  }
-
-  .time {
-    font-size: 28px;
-  }
-
-  .bentoGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-self: end;
   }
 
   .bentoCard {
-    min-height: 124px;
-    gap: 14px;
-    padding: 16px;
+    min-height: 148.5px;
+    padding: 18px;
 
     &::after {
-      top: 15px;
-      right: 15px;
+      top: 18px;
+      right: 18px;
     }
   }
 
-  .bentoValue {
-    font-size: 30px;
+  .configSection {
+    padding: 18px;
   }
 
-  .bentoIcon {
-    width: 34px;
-    height: 34px;
+  .viewMoreLink {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 27px;
+    line-height: 36px;
   }
 
+  .heroMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .dateTimeBlock {
+    grid-row: auto;
+  }
+
+  .connectionPill,
+  .buildDate {
+    justify-self: start;
+  }
+
+  .bentoGrid,
   .configPillGrid {
     grid-template-columns: 1fr;
   }
 
-  .configSection {
-    gap: 16px;
-    padding: 20px;
+  .bentoCard {
+    min-height: 135px;
+    border-right: 0;
+    border-bottom: 1px solid var(--xai-border-subtle);
+
+    &:nth-child(2n),
+    &:nth-last-child(-n + 2) {
+      border-bottom: 1px solid var(--xai-border-subtle);
+    }
+
+    &:last-child {
+      border-bottom: 0;
+    }
   }
 
   .configPill {
-    min-height: 64px;
+    border-right: 0;
+    border-bottom: 1px solid var(--xai-border-subtle);
+
+    &:nth-child(3n),
+    &:nth-child(2n),
+    &:nth-child(n + 5) {
+      border-right: 0;
+      border-bottom: 1px solid var(--xai-border-subtle);
+    }
+  }
+
+  .configPillWide,
+  .configPill:last-child {
+    border-right: 0;
+    border-bottom: 0;
   }
 
   .configPillWide {
@@ -650,7 +632,7 @@
     align-items: flex-start;
   }
 
-  .configPillWide .configPillMono {
+  .configPillMono {
     width: 100%;
     overflow: visible;
     text-overflow: clip;
@@ -663,26 +645,25 @@
   }
 }
 
-@media (max-width: 420px) {
-  .bentoGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .bentoCard {
-    min-height: 112px;
-  }
-}
-
-// ─── Motion ─────────────────────────────────────────────
-
-@keyframes pulse {
+@keyframes status-pulse {
   0%,
   100% {
     opacity: 1;
   }
 
   50% {
-    opacity: 0.45;
+    opacity: 0.4;
+  }
+}
+
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.8;
   }
 }
 
@@ -694,9 +675,7 @@
 
   .bentoCard,
   .bentoCard::after,
-  .bentoIcon,
-  .viewMoreLink,
-  .viewMoreArrow {
-    transition: none;
+  .viewMoreLink {
+    transition-duration: 0.01ms;
   }
 }

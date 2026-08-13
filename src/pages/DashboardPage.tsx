@@ -443,7 +443,7 @@ export function DashboardPage() {
       {
         label: t('dashboard.management_keys'),
         value: stats.apiKeys ?? '-',
-        icon: <IconKey size={24} />,
+        icon: <IconKey size={18} />,
         path: '/config',
         loading: isStatsLoading && stats.apiKeys === null,
         sublabel: t('nav.config_management'),
@@ -451,7 +451,7 @@ export function DashboardPage() {
       {
         label: t('nav.ai_providers'),
         value: isStatsLoading ? '-' : providerStatsReady ? totalProviderKeys : '-',
-        icon: <IconBot size={24} />,
+        icon: <IconBot size={18} />,
         path: '/ai-providers',
         loading: isStatsLoading,
         sublabel: hasProviderStats
@@ -464,7 +464,7 @@ export function DashboardPage() {
       {
         label: t('nav.auth_files'),
         value: stats.authFiles ?? '-',
-        icon: <IconFileText size={24} />,
+        icon: <IconFileText size={18} />,
         path: '/auth-files',
         loading: isStatsLoading && stats.authFiles === null,
         sublabel: t('dashboard.oauth_credentials'),
@@ -472,7 +472,7 @@ export function DashboardPage() {
       {
         label: t('dashboard.available_models'),
         value: modelsLoading ? '-' : models.length,
-        icon: <IconSatellite size={24} />,
+        icon: <IconSatellite size={18} />,
         path: '/system',
         loading: modelsLoading,
         sublabel: t('dashboard.available_models_desc'),
