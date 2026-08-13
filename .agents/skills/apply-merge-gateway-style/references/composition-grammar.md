@@ -1,4 +1,4 @@
-# xAI composition and pattern grammar
+# xAI composition grammar
 
 Use this reference to design any page or component from its actual content and user task. The named xAI pages are observational evidence for reusable decisions, not layouts to copy. Never add a section, shell, or component merely because it appears on an xAI page.
 

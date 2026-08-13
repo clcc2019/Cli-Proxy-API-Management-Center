@@ -13,12 +13,18 @@ The goal is the closest reproducible result permitted by available fonts, media,
 
 ## Read the references
 
-Read only the files required by the task, but always read the first two before implementation:
+Use progressive disclosure. Always read the foundations and verification contract, then load every category touched by the task:
 
-1. Read [references/style-system.md](references/style-system.md) for exact tokens, typography, layout, responsive behavior, backgrounds, borders, radius, motion, and CSS recipes.
-2. Read [references/component-spec.md](references/component-spec.md) for primitives, interaction states, icons, navigation, forms, data surfaces, overlays, chat, and code UI.
-3. Read [references/product-visuals.md](references/product-visuals.md) for task-driven composition rules and reusable patterns derived from Console, Docs, home, Grok, company, pricing, and news. Use them as grammar, never as mandatory page templates.
-4. Read [references/xai-visual-reference.md](references/xai-visual-reference.md) when auditing fidelity or resolving a design decision against the measured source observations.
+1. Always read [references/foundations.md](references/foundations.md) for the mandatory palette, type scale, spacing, borders, radii, shadows, layers, and token source.
+2. Read [references/controls.md](references/controls.md) for buttons, icon buttons, links, inputs, search, selects, tabs, segmented controls, checkboxes, radios, toggles, badges, and progress.
+3. Read [references/surfaces-data.md](references/surfaces-data.md) for cards, rows, tables, lists, charts, code, chat, menus, dialogs, toasts, loading, empty, and error surfaces.
+4. Read [references/layout-responsive.md](references/layout-responsive.md) for a page, shell, navigation, grid, toolbar, public/editorial layout, or responsive change.
+5. Read [references/motion-interaction.md](references/motion-interaction.md) whenever an element is interactive, opens, closes, enters, exits, loads, scrolls, or changes state.
+6. Read [references/composition-grammar.md](references/composition-grammar.md) when designing or restructuring a page/section. Use patterns as grammar, never as mandatory templates.
+7. Always read [references/verification.md](references/verification.md) before handoff and enforce its computed-style, state, responsive, and screenshot gates.
+8. Read [references/observed-evidence.md](references/observed-evidence.md) only to trace a parameter to the captured xAI pages or resolve ambiguity between measured and normalized values.
+
+Do not substitute memory or framework defaults for a referenced parameter. If the applicable reference defines a value, use that value through a shared `--xai-*` token or component variable.
 
 ## Select a density context before styling
 
@@ -36,12 +42,12 @@ These contexts adjust density and scale; they do not create separate design syst
 
 1. Inspect the existing routes, components, state, and responsive behavior. Preserve function, not appearance.
 2. Model the page from its actual user task: identify information hierarchy, primary action, dominant surface, density, repeated data, technical content, and below-the-fold sequence. Do not start from an observed page name.
-3. Install the `--xai-*` token contract from the style-system reference at the highest visual root. Map legacy variables to it temporarily, then remove conflicting local values from the edited scope.
+3. Install the `--xai-*` token contract from `foundations.md` at the highest visual root. Map legacy variables to it temporarily, then remove conflicting local values from the edited scope.
 4. Establish font loading, page grid, shell width, gutters, type scale, surface hierarchy, and border/radius geometry before component polish.
 5. Rebuild shared primitives once, then create the task-appropriate composition from those primitives and the pattern grammar. Avoid page-local imitations and one-off values.
 6. Implement default, hover, focus-visible, pressed, current/selected, disabled, loading, empty, error, open, and reduced-motion behavior.
 7. Recompose for desktop, tablet, and mobile. Do not shrink a desktop canvas.
-8. Validate at the target viewport with full-page screenshots, computed styles, and overlay/diff comparison. Scroll every long page in segments before capture so lazy content and below-fold design are included.
+8. Execute every applicable gate in `verification.md`. Validate at target viewports with computed styles, interaction states, full-page screenshots, and overlay/diff comparison. Scroll every long page in segments before capture so lazy content and below-fold design are included.
 
 ## Non-negotiable visual rules
 
@@ -68,13 +74,13 @@ These contexts adjust density and scale; they do not create separate design syst
 ## Asset and font policy
 
 - Prefer licensed `universalSans`, `universalSansDisplay`, and `GeistMono` files when the user provides them or the target already legally loads them.
-- Otherwise use the fallback stacks in `style-system.md`; do not download or extract private font binaries from xAI.
+- Otherwise use the fallback stacks in `foundations.md`; do not download or extract private font binaries from xAI.
 - Use the target product's own logo, copy, imagery, and data unless the user supplies xAI assets and authorizes their use. Reproduce layout, crop logic, contrast, texture, and motion—not protected content by scraping it.
 - Implement live UI with semantic HTML, CSS, SVG, canvas/chart libraries, and real state. Do not paste screenshots into interactive surfaces.
 
 ## Fidelity gates
 
-Do not call the work complete until all applicable checks pass:
+Treat `verification.md` as the complete acceptance contract. At minimum, do not call the work complete until all of these pass:
 
 - The interface is immediately recognizable as one coherent xAI system without relying on a logo or copied page content.
 - Computed font sizes, line heights, weights, tracking, primary colors, common gaps, control heights, radii, and shell dimensions match the token contract.

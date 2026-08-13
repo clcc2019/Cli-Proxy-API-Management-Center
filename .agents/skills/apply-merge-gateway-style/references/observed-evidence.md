@@ -1,6 +1,6 @@
-# Measured xAI visual reference
+# Observed xAI evidence
 
-This file records direct Chrome DevTools observations made on 2026-08-13/14 from authenticated Console and public xAI pages. It is the evidence layer behind the implementation rules. Measurements reflect a 1512×680 CSS-pixel viewport at DPR 2; content and branding may change over time.
+This file records direct Chrome DevTools observations made on 2026-08-13/14 from authenticated Console and public xAI pages. It is the evidence layer behind the classified implementation references. Measurements reflect a 1512×680 CSS-pixel viewport at DPR 2; content and branding may change over time. Use `foundations.md`, `controls.md`, `surfaces-data.md`, `layout-responsive.md`, and `motion-interaction.md` for implementation; use this file only for provenance and ambiguity resolution.
 
 ## Contents
 
@@ -10,6 +10,12 @@ This file records direct Chrome DevTools observations made on 2026-08-13/14 from
 - Docs observations
 - Public observations
 - Fidelity interpretation
+
+## Evidence labels
+
+- **Measured** means the value appeared in captured computed styles or exposed CSS variables.
+- **Normalized** means the specification consolidates repeated measured relationships into a stable reusable component system.
+- Normalized values are implementation rules, not claims that every observed page used that exact value.
 
 ## Audit coverage and method
 
@@ -33,6 +39,7 @@ Observed loaded families include `universalSans` (400 and 550), `universalSansDi
 - Warm surfaces: `rgb(249,248,246)` / `#f9f8f6`.
 - Inverse: `rgb(250,250,250)` / `#fafafa`.
 - Orange: `rgb(255,100,10)` / `#ff640a`; only a handful of occurrences on a typical Console page.
+- Exposed semantic foreground variables: success `hsl(132 41% 42%)`, warning `hsl(44 80% 34%)`, danger `hsl(353 53% 43%)`.
 - Borders: `#d5d9e2` and black at about 6%, 8%, or 15% alpha.
 - Common neutral fills: black at about 5% alpha.
 
@@ -41,6 +48,14 @@ The visual system is almost monochrome. Semantic/data colors occur only where co
 ### Rhythm, radius, and shadow
 
 Recurring dimensions: `4.5, 6.75, 9, 13.5, 18, 22.5, 27, 31.5, 36, 40.5, 54, 67.5px`. Common radii in Console computed styles were full pill, 13.5px, 10px, 9px, and 6.75px. Major warm cards/workbenches visually reach 18px. Ordinary cards had no shadow. Filled primary pills used `0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%)`.
+
+### Controls and motion
+
+- Primary actions were observed at 32px, 36px, and 41px heights. Common labels were 13.5px/18px or 15.75px/22.5px at weight 500.
+- Common primary horizontal padding was 13.5px or 18px; Docs/public large actions reached 22.5px. Common icon gaps were 6.75px or 9px.
+- Utility icon buttons were commonly 36×36px; period/navigation controls reached 41×41px; compact utilities appeared at 27×27px and 32×32px.
+- Operational pill tabs were commonly 36px high with 6.75px block and 13.5px inline padding. Public/Docs large segments reached 41px with 9px block and 22.5px inline padding. Dark code tabs used 13.5px/18px compact text.
+- Default exposed transition duration was `.15s`; default easing was `cubic-bezier(.4,0,.2,1)`. Exposed ease-out was `cubic-bezier(0,0,.2,1)` and page-slide easing was `cubic-bezier(.22,1,.36,1)`.
 
 ### Icons
 
