@@ -1,0 +1,81 @@
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--xai-space-4);
+  color: var(--xai-ink);
+  background: var(--xai-white);
+  font-family: var(--xai-font-ui);
+}
+
+.panel {
+  width: min(100%, 540px);
+  padding: var(--xai-space-7);
+  border-radius: var(--xai-radius-card);
+  background: var(--xai-warm);
+}
+
+.title {
+  margin: 0;
+  font: 500 27px/36px var(--xai-font-display);
+  letter-spacing: -0.675px;
+  text-wrap: balance;
+}
+
+.description {
+  max-width: 55ch;
+  margin: var(--xai-space-2) 0 0;
+  color: var(--xai-secondary);
+  font-size: 15.75px;
+  line-height: 22.5px;
+}
+
+.action {
+  min-height: var(--xai-space-9);
+  margin-top: var(--xai-space-5);
+  padding: var(--xai-space-2) var(--xai-space-4);
+  border: 1px solid var(--xai-ink-console);
+  border-radius: var(--xai-radius-pill);
+  color: var(--xai-inverse);
+  background: var(--xai-ink-console);
+  box-shadow: var(--xai-shadow-button);
+  font: 500 15.75px/22.5px var(--xai-font-ui);
+  cursor: pointer;
+  transition:
+    background-color var(--xai-duration-default) var(--xai-ease-standard),
+    border-color var(--xai-duration-default) var(--xai-ease-standard),
+    transform var(--xai-duration-fast) var(--xai-ease-out);
+
+  &:focus-visible {
+    outline: 1px solid var(--xai-ink-console);
+    outline-offset: 3px;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+@supports (min-height: 100dvh) {
+  .page {
+    min-height: 100dvh;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    border-color: #242424;
+    background: #242424;
+  }
+}
+
+@media (max-width: 767px) {
+  .panel {
+    padding: var(--xai-space-5);
+  }
+
+  .action {
+    min-height: var(--xai-space-12);
+  }
+}

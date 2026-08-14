@@ -2,7 +2,6 @@ import { Suspense, lazy, useCallback, useDeferredValue, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DeferredRender } from '@/components/common/DeferredRender';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { IconChartLine } from '@/components/ui/icons';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useConfigStore, useThemeStore } from '@/stores';
@@ -115,7 +114,7 @@ export function UsagePage() {
     void loadUsage({ force: true }).catch(() => {});
   }, [loadUsage]);
   return (
-    <main className={styles.container}>
+    <main className={styles.container} data-xai-mode="console">
       {loading && !usage && (
         <div className={styles.loadingOverlay} role="status" aria-busy="true">
           <div className={styles.loadingOverlayContent}>
@@ -156,12 +155,6 @@ export function UsagePage() {
         <UsageSectionIntro
           title={t('usage_stats.overview_title')}
           description={t('usage_stats.overview_desc')}
-          eyebrow={
-            <>
-              <IconChartLine size={15} />
-              {t('usage_stats.core_overview')}
-            </>
-          }
         />
         <StatCards window={visibleWindow} loading={loading} modelPrices={modelPrices} />
       </section>

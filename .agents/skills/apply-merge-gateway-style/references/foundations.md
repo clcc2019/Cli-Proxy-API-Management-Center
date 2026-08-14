@@ -43,6 +43,14 @@ Install these tokens at the visual root. Do not create legacy aliases except as 
   --xai-success: hsl(132 41% 42%);
   --xai-warning: hsl(44 80% 34%);
   --xai-danger: hsl(353 53% 43%);
+  --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 10%, transparent);
+  --xai-success-soft: color-mix(in srgb, var(--xai-success) 10%, transparent);
+  --xai-warning-soft: color-mix(in srgb, var(--xai-warning) 10%, transparent);
+  --xai-danger-soft: color-mix(in srgb, var(--xai-danger) 10%, transparent);
+  --xai-orange-border: color-mix(in srgb, var(--xai-orange) 28%, transparent);
+  --xai-success-border: color-mix(in srgb, var(--xai-success) 28%, transparent);
+  --xai-warning-border: color-mix(in srgb, var(--xai-warning) 28%, transparent);
+  --xai-danger-border: color-mix(in srgb, var(--xai-danger) 28%, transparent);
   --xai-code: #0a0a0a;
 
   --xai-space-1: 4.5px;
@@ -97,7 +105,9 @@ Install these tokens at the visual root. Do not create legacy aliases except as 
 | Fine border                  | `rgb(10 10 10 / 8%)`  | cards, controls, rows                               |
 | Strong/focus-adjacent border | `rgb(10 10 10 / 15%)` | hover/open boundary                                 |
 
-Do not use orange for navigation selection or broad fills. Use the measured success, warning, and danger values only when real semantic state requires them; never use them decoratively or as category colors. Orange `#ff640a` is also permitted as a compact xAI attention signal when a state deserves notice without implying failure. Pair semantic color with visible text/icon; color must not carry meaning alone. If the host product has a legally or operationally required status palette, document that exception instead of silently mixing palettes.
+Do not use orange for navigation selection or broad fills. Use success, warning, and danger only for real semantic state. Orange `#ff640a` is also permitted as a compact xAI attention signal. Provider identity or a documented category may retain its official/established foreground when it materially improves scanning; keep ordinary taxonomy neutral and document colors outside this token set. Pair color with visible text, icon, or shape; color must not carry meaning alone.
+
+Use one hue per compact carrier. A capsule/tag may use the matching soft fill and border token with a dot, glyph, or short label; keep label text near-black unless the semantic foreground passes contrast. Never apply semantic fill to a whole page, card, row, navigation item, or utility control, and never introduce pale blue as a structural surface.
 
 ### Semantic state mapping
 
@@ -110,7 +120,7 @@ Map the consequence of the state, not the raw boolean:
 | Ordinary inactive/off                              | `--xai-disabled` or secondary ink | optional debug/logging disabled                                                    |
 | Failure/destructive                                | `--xai-danger`                    | disconnected failure, invalid credential, destructive confirmation                 |
 
-Use `--xai-orange` for the xAI attention accent and `--xai-warning` when the product specifically communicates warning/quota severity. The dot/icon may be colored while adjacent text remains near-black. Do not tint the entire row/card unless a blocking error requires a bounded alert surface.
+Use `--xai-orange` for the xAI attention accent and `--xai-warning` when the product specifically communicates warning/quota severity. Provider/category identity is not state: use its documented color consistently across tags, allowed icons, and charts. Do not tint the entire row/card unless a blocking error requires a bounded alert surface.
 
 ## Typography
 
@@ -187,7 +197,7 @@ Use borders and surface contrast before shadow. Never use glow, colored shadow, 
 
 ## Icons
 
-First apply the semantic gate in `content-icons.md`; omission is the default. For icons that pass, use one line-icon family: 18px default, 16px compact, 20px prominent; usually a 24×24 viewBox; `1.5–2px` stroke; `currentColor`; `fill: none`; round caps and joins. Idle color is `#7d8187`, active is near-black, inverse is white. Do not use colored square/circular icon tiles.
+First apply the semantic gate in `content-icons.md`; omission is the default. For icons that pass, use one line-icon family: 18px default, 16px compact, 20px prominent; usually a 24×24 viewBox; `1.5–2px` stroke; `currentColor`; `fill: none`; round caps and joins. Utility/navigation icons are gray when idle, near-black when active, and white when inverse; state, risk, provider, and documented-category icons may use their mapped color. Do not use colored square/circular icon tiles.
 
 ## Layer order
 

@@ -10,48 +10,132 @@
 :root {
   color-scheme: light;
 
+  // xAI visual contract. Licensed xAI font files are not bundled with this
+  // project, so these stacks intentionally resolve through the documented
+  // metric-compatible system fallbacks.
+  --xai-ink-console: #080808;
+  --xai-ink: #0a0a0a;
+  --xai-white: #ffffff;
+  --xai-inverse: #fafafa;
+  --xai-warm: #f9f8f6;
+  --xai-secondary: #7d8187;
+  --xai-muted: rgb(10 10 10 / 50%);
+  --xai-subtle: rgb(10 10 10 / 40%);
+  --xai-disabled: rgb(10 10 10 / 30%);
+  --xai-fill-soft: rgb(10 10 10 / 5%);
+  --xai-fill-hover: rgb(10 10 10 / 8%);
+  --xai-fill-pressed: rgb(10 10 10 / 12%);
+  --xai-border-cool: #d5d9e2;
+  --xai-border-subtle: rgb(10 10 10 / 6%);
+  --xai-border: rgb(10 10 10 / 8%);
+  --xai-border-hover: rgb(10 10 10 / 15%);
+  --xai-orange: #ff640a;
+  --xai-success: hsl(132 41% 42%);
+  --xai-warning: hsl(44 80% 34%);
+  --xai-danger: hsl(353 53% 43%);
+  --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 9%, var(--xai-white));
+  --xai-orange-border: color-mix(in srgb, var(--xai-orange) 24%, var(--xai-white));
+  --xai-success-soft: color-mix(in srgb, var(--xai-success) 9%, var(--xai-white));
+  --xai-success-border: color-mix(in srgb, var(--xai-success) 24%, var(--xai-white));
+  --xai-warning-soft: color-mix(in srgb, var(--xai-warning) 9%, var(--xai-white));
+  --xai-warning-border: color-mix(in srgb, var(--xai-warning) 24%, var(--xai-white));
+  --xai-danger-soft: color-mix(in srgb, var(--xai-danger) 9%, var(--xai-white));
+  --xai-danger-border: color-mix(in srgb, var(--xai-danger) 24%, var(--xai-white));
+  --xai-code: #0a0a0a;
+
+  --xai-space-1: 4.5px;
+  --xai-space-1-5: 6.75px;
+  --xai-space-2: 9px;
+  --xai-space-2-5: 11.25px;
+  --xai-space-3: 13.5px;
+  --xai-space-3-5: 15.75px;
+  --xai-space-4: 18px;
+  --xai-space-5: 22.5px;
+  --xai-space-6: 27px;
+  --xai-space-7: 31.5px;
+  --xai-space-8: 36px;
+  --xai-space-9: 40.5px;
+  --xai-space-12: 54px;
+  --xai-space-15: 67.5px;
+
+  --xai-radius-micro: 6.75px;
+  --xai-radius-small: 9px;
+  --xai-radius-control: 10px;
+  --xai-radius-panel: 13.5px;
+  --xai-radius-card: 18px;
+  --xai-radius-pill: 9999px;
+
+  --xai-border-width: 1px;
+  --xai-shadow-button: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+  --xai-shadow-menu: 0 12px 36px -18px rgb(0 0 0 / 24%);
+  --xai-shadow-dialog: 0 24px 72px -28px rgb(0 0 0 / 28%);
+
+  --xai-font-ui: universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-display:
+    universalSansDisplay, universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
+
+  --xai-duration-instant: 80ms;
+  --xai-duration-fast: 120ms;
+  --xai-duration-default: 150ms;
+  --xai-duration-medium: 180ms;
+  --xai-duration-slow: 240ms;
+  --xai-duration-drawer: 300ms;
+  --xai-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --xai-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --xai-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --xai-ease-page: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --xai-z-content: 0;
+  --xai-z-sticky: 10;
+  --xai-z-dropdown: 30;
+  --xai-z-overlay: 40;
+  --xai-z-dialog: 50;
+  --xai-z-toast: 60;
+  --xai-overlay: rgb(10 10 10 / 35%);
+
   // Merge Gateway-inspired semantic tokens used by the application shell.
-  --mg-canvas: #f6f8fa;
-  --mg-surface: #ffffff;
-  --mg-surface-subtle: #f2f5f7;
-  --mg-surface-warm: #f8fafc;
+  --mg-canvas: var(--xai-white);
+  --mg-surface: var(--xai-white);
+  --mg-surface-subtle: var(--xai-fill-soft);
+  --mg-surface-warm: var(--xai-warm);
   // DESIGN.md interaction palette: neutral hover/press surfaces and one
   // black action anchor. These are deliberately separate from selection and
   // status colors so focus/click feedback never reads as success or context.
-  --mg-surface-hover: #efefef;
-  --mg-surface-pressed: #e2e2e2;
-  --mg-action: #000000;
-  --mg-action-hover: #282828;
-  --mg-text: #1f2937;
-  --mg-text-secondary: #475569;
-  --mg-text-tertiary: #64748b;
-  --mg-text-muted: #94a3b8;
-  --mg-border: #e2e8f0;
-  --mg-border-hover: #cbd5e1;
-  --mg-border-strong: #b6c2cf;
-  --mg-ink-strong: #111827;
-  --mg-text-inverse: #ffffff;
-  --mg-sage: #2f9e44;
-  --mg-sage-strong: #237a3b;
-  --mg-sage-soft: #e7f5ea;
-  --mg-sage-wash: rgb(47 158 68 / 16%);
-  --mg-sage-wash-soft: rgb(47 158 68 / 7%);
-  --mg-khaki-soft: #f1f6ed;
+  --mg-surface-hover: var(--xai-fill-soft);
+  --mg-surface-pressed: var(--xai-fill-hover);
+  --mg-action: var(--xai-ink-console);
+  --mg-action-hover: #242424;
+  --mg-text: var(--xai-ink);
+  --mg-text-secondary: var(--xai-secondary);
+  --mg-text-tertiary: var(--xai-muted);
+  --mg-text-muted: var(--xai-disabled);
+  --mg-border: var(--xai-border);
+  --mg-border-hover: var(--xai-border-hover);
+  --mg-border-strong: var(--xai-border-cool);
+  --mg-ink-strong: var(--xai-ink-console);
+  --mg-text-inverse: var(--xai-inverse);
+  --mg-sage: var(--xai-secondary);
+  --mg-sage-strong: var(--xai-ink-console);
+  --mg-sage-soft: var(--xai-warm);
+  --mg-sage-wash: var(--xai-fill-hover);
+  --mg-sage-wash-soft: var(--xai-fill-soft);
+  --mg-khaki-soft: var(--xai-warm);
   --mg-teal: #0e7490;
-  --mg-orange: #c9480b;
-  --mg-success-fill: #0fa64b;
-  --mg-success-text: #087a39;
+  --mg-orange: var(--xai-orange);
+  --mg-success-fill: var(--xai-success);
+  --mg-success-text: var(--xai-success);
   --mg-success: var(--mg-success-text);
-  --mg-warning: #a65c00;
-  --mg-danger: #cc332b;
-  --mg-surface-selected: #e9f7ec;
-  --mg-surface-disabled: #f2f5f7;
-  --mg-floating-border: #dbe3eb;
-  --mg-border-fade: rgb(100 116 139 / 24%);
-  --mg-overlay: rgb(15 23 42 / 56%);
-  --mg-focus-outline: rgb(0 0 0 / 72%);
-  --mg-focus-ring: rgb(0 0 0 / 18%);
-  --mg-focus-ring-danger: rgb(204 51 43 / 30%);
+  --mg-warning: var(--xai-warning);
+  --mg-danger: var(--xai-danger);
+  --mg-surface-selected: var(--xai-fill-soft);
+  --mg-surface-disabled: var(--xai-fill-soft);
+  --mg-floating-border: var(--xai-border);
+  --mg-border-fade: var(--xai-border-hover);
+  --mg-overlay: var(--xai-overlay);
+  --mg-focus-outline: var(--xai-ink-console);
+  --mg-focus-ring: rgb(10 10 10 / 18%);
+  --mg-focus-ring-danger: color-mix(in srgb, var(--xai-danger) 30%, transparent);
   --mg-radius-control: 8px;
   --mg-radius-medium: 12px;
   --mg-radius-card: 15px;
@@ -96,11 +180,11 @@
   --mg-z-splash: 110;
 
   --bg-secondary: var(--mg-canvas);
-  --bg-primary: #ffffff;
+  --bg-primary: var(--xai-white);
   --bg-tertiary: var(--mg-surface-subtle);
   --bg-hover: var(--mg-surface-hover);
-  --bg-quinary: #ffffff;
-  --bg-error-light: rgb(204 51 43 / 0.1);
+  --bg-quinary: var(--xai-white);
+  --bg-error-light: var(--xai-danger-soft);
   --floating-surface: var(--mg-surface);
   --floating-border: var(--mg-floating-border);
   --floating-shadow: var(--mg-shadow-float);
@@ -128,7 +212,7 @@
   --accent-blue: var(--mg-teal);
   --accent-violet: var(--mg-teal);
   --accent-cyan: var(--mg-teal);
-  --accent-amber: #b96400;
+  --accent-amber: var(--xai-warning);
   --accent-orange: var(--mg-orange);
   --accent-rose: var(--mg-danger);
   --accent-green: var(--mg-success-fill);
@@ -140,20 +224,20 @@
   --warning-color: var(--mg-warning);
   --error-color: var(--mg-danger);
   --danger-color: var(--error-color);
-  --danger-hover: #a82823;
-  --danger-contrast: #ffffff;
+  --danger-hover: color-mix(in srgb, var(--xai-danger) 86%, var(--xai-ink));
+  --danger-contrast: var(--xai-white);
   --info-color: var(--mg-teal);
 
-  --warning-bg: rgb(166 92 0 / 0.12);
-  --warning-border: rgb(166 92 0 / 0.34);
+  --warning-bg: var(--xai-warning-soft);
+  --warning-border: var(--xai-warning-border);
   --warning-text: var(--warning-color);
 
-  --success-badge-bg: var(--mg-surface);
+  --success-badge-bg: var(--xai-success-soft);
   --success-badge-text: var(--mg-success-text);
-  --success-badge-border: rgb(15 166 75 / 0.4);
-  --failure-badge-bg: rgb(204 51 43 / 0.1);
+  --success-badge-border: var(--xai-success-border);
+  --failure-badge-bg: var(--xai-danger-soft);
   --failure-badge-text: var(--mg-danger);
-  --failure-badge-border: rgb(204 51 43 / 0.3);
+  --failure-badge-border: var(--xai-danger-border);
   --count-badge-bg: rgb(139 134 128 / 0.18);
   --count-badge-text: var(--primary-active);
 
@@ -161,22 +245,19 @@
   --shadow-lg: 0 4px 12px -4px rgb(15 23 42 / 0.08), 0 16px 32px -12px rgb(15 23 42 / 0.14);
   --shadow-soft: 0 16px 32px -20px rgb(15 23 42 / 0.2);
   --header-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
-  // Navigation tokens keep the shell on the same quiet surface hierarchy as
-  // the rest of the Merge Gateway-inspired light theme.
-  --sidebar-surface: #fbfaf7;
-  --sidebar-surface-muted: #f5f5f3;
-  --sidebar-text: #2c2a25;
-  --sidebar-text-secondary: #565551;
-  --sidebar-text-tertiary: #74716c;
-  --sidebar-border: #e5e4e0;
-  --sidebar-border-strong: #cbc9c3;
-  // Sage is reserved for persistent navigation context; action charcoal stays
-  // exclusive to primary/destructive controls.
-  --sidebar-accent: #4f8048;
+  // xAI Console rail aliases. Navigation remains monochrome and uses surface,
+  // weight, and ink changes instead of colored selection treatments.
+  --sidebar-surface: var(--xai-white);
+  --sidebar-surface-muted: var(--xai-fill-soft);
+  --sidebar-text: var(--xai-ink-console);
+  --sidebar-text-secondary: var(--xai-secondary);
+  --sidebar-text-tertiary: var(--xai-muted);
+  --sidebar-border: var(--xai-border);
+  --sidebar-border-strong: var(--xai-border-hover);
+  --sidebar-accent: var(--xai-ink-console);
   --sidebar-accent-line: var(--sidebar-accent);
-  --sidebar-accent-surface: #eff2ed;
-  --sidebar-accent-icon: rgb(79 128 72 / 12%);
-  --sidebar-focus-ring: var(--mg-focus-ring);
+  --sidebar-accent-surface: var(--xai-fill-soft);
+  --sidebar-accent-icon: transparent;
   --sidebar-shadow: none;
   --shadow-card: var(--mg-shadow-rest);
   --shadow-card-hover: var(--mg-shadow-card);

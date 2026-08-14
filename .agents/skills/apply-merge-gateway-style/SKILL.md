@@ -42,7 +42,7 @@ These contexts adjust density and scale; they do not create separate design syst
 ## Implementation workflow
 
 1. Inspect the existing routes, components, state, and responsive behavior. Preserve function, not appearance.
-2. Inventory every visible text node, icon, badge, status, metric, section heading, helper line, and action. Apply the necessity test in `content-icons.md`; delete redundant presentation before changing layout.
+2. Inventory every visible text node, icon, badge, status, metric, section heading, helper line, and action. Apply the necessity test in `content-icons.md`; delete redundant presentation, then map every surviving state, risk, provider/category identity, progress, and data signal to one stable color before changing layout.
 3. Model the page from its actual user task: identify information hierarchy, primary action, dominant surface, density, repeated data, technical content, and below-the-fold sequence. Do not start from an observed page name.
 4. Install the `--xai-*` token contract from `foundations.md` at the highest visual root. Map legacy variables to it temporarily, then remove conflicting local values from the edited scope.
 5. Establish font loading, page grid, shell width, gutters, type scale, surface hierarchy, and border/radius geometry before component polish.
@@ -54,16 +54,16 @@ These contexts adjust density and scale; they do not create separate design syst
 ## Non-negotiable visual rules
 
 - Use near-black `#080808`/`#0a0a0a`, white, warm `#f9f8f6`, cool gray `#7d8187`, and hairline black-alpha borders as the dominant system.
-- Use orange `#ff640a` only for New/Beta, a selected signal, an endpoint, or a compact attention state. Use measured green only for confirmed healthy/success state. Keep normal/off/inactive states neutral and never color-wash navigation or layout.
+- Keep page, card, row, navigation, and utility-control surfaces neutral. Use governed color on compact semantic capsules/tags, state or identity icons, short labels, progress, decision-relevant deltas, and chart signals; keep ordinary taxonomy, pure counts, and normal/off/inactive states neutral.
 - Use the exact 4.5px-derived spatial rhythm. Fractional values are intentional and must remain centralized in tokens.
 - Use medium display headings with negative tracking. Avoid generic bold 700–900 SaaS headings.
 - Treat silence and empty space as interface elements. Do not add greetings, slogans, tips, explanatory restatements, decorative labels, redundant section headings, clocks, dates, build metadata, or helper copy unless they change a decision or prevent an error.
 - Keep ordinary cards flat. Do not add shadows except to black primary pills and truly floating layers.
-- Use 16–20px thin monochrome line icons only after the icon passes the semantic gate in `content-icons.md`. Never add an icon merely to fill space, decorate a card, repeat a text label, or indicate that an entire card is clickable.
+- Use 16–20px thin line icons only after the icon passes the semantic gate in `content-icons.md`. Keep utility/navigation icons neutral; color only state, risk, provider, or documented-category icons from their stable mapping. Never add an icon merely to fill space, decorate a card, repeat a text label, or indicate that an entire card is clickable.
 - Use pills for principal actions, compact secondary actions, and segmented controls. Use 9–13.5px radii for fields, rows, and nested structures; use 18px for major cards and workbenches.
 - Keep navigation selection neutral: gray when idle, near-black when current, with no bright color wash.
 - Use dark surfaces only for code, terminal, source, or deliberate black editorial sections.
-- Assign semantic state colors from meaning, not boolean value: enabled security/telemetry may be green, enabled debug/logging may be orange, disabled optional diagnostics may be gray, and disabled protection may be orange. Keep color local to a dot, icon, short label, progress fill, or border; never tint the whole card or row.
+- Assign semantic state colors from meaning, not boolean value: enabled security/telemetry may be green, enabled debug/logging may be orange, disabled optional diagnostics may be gray, and disabled protection may be orange. Keep color local to a capsule/tag, dot, icon, short label, progress fill, chart signal, or border; use soft semantic fills only on compact carriers and never tint the whole card or row.
 - Use restrained 120–240ms transitions. Never scale cards, bounce controls, add glass blur, or use decorative purple/blue AI gradients.
 - Do not introduce an arbitrary value when a specified xAI token or component rule applies. Do not mix legacy and xAI styling inside the edited scope.
 
@@ -95,5 +95,6 @@ Treat `verification.md` as the complete acceptance contract. At minimum, do not 
 - Keyboard navigation, focus visibility, labels, reduced motion, contrast, loading, empty, error, and long-content states remain usable.
 - No legacy palette, radius system, shadow language, font scale, decorative icon tiles, or unrelated design-system conventions remain in the edited visual scope.
 - No unsanctioned color, spacing, radius, type size, shadow, icon treatment, or interaction pattern remains without a documented content/accessibility reason.
+- No blanket grayscale treatment removes meaningful state, risk, provider/category, progress, or chart cues; every retained hue has one stable meaning and a non-color cue.
 
 Report any unavoidable fidelity exception explicitly, especially missing licensed fonts, missing reference media, dynamic content differences, or browser-rendering variance.

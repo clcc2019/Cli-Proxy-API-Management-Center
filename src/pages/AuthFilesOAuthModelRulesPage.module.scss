@@ -16,9 +16,9 @@
   --oauth-modal-border-strong: #cbd5e1;
   --oauth-modal-ink: var(--mg-ink-strong, #0e0d0c);
   --oauth-modal-ink-text: #ffffff;
-  --oauth-modal-sage: var(--mg-sage, #2f9e44);
-  --oauth-modal-sage-strong: var(--mg-sage-strong, #237a3b);
-  --oauth-modal-sage-soft: var(--mg-sage-soft, #e7f5ea);
+  --oauth-modal-sage: var(--mg-sage, #7d8187);
+  --oauth-modal-sage-strong: var(--mg-sage-strong, #080808);
+  --oauth-modal-sage-soft: var(--mg-sage-soft, #f9f8f6);
   --oauth-modal-success: var(--mg-success, #087a39);
   --oauth-modal-warning: var(--mg-warning, #a65c00);
   --oauth-modal-danger: var(--mg-danger, #cc332b);
@@ -40,7 +40,7 @@
   --primary-active: var(--oauth-modal-ink);
   --primary-contrast: var(--oauth-modal-ink-text);
   --primary-soft: var(--oauth-modal-sage-soft);
-  --focus-ring: rgb(99 114 90 / 0.28);
+  --focus-ring: rgb(10 10 10 / 18%);
   --brand-gradient: var(--oauth-modal-ink);
   --brand-gradient-hover: var(--oauth-modal-text-secondary);
   --control-surface: var(--oauth-modal-surface);
@@ -782,7 +782,7 @@
   --border-hover: #cbd5e1;
   --primary-color: #0e0d0c;
   --primary-soft: #eef2f6;
-  --focus-ring: rgb(150 165 141 / 0.28);
+  --focus-ring: rgb(10 10 10 / 18%);
   --floating-surface: #ffffff;
   --floating-surface-material: #ffffff;
   --floating-border: #e2e8f0;

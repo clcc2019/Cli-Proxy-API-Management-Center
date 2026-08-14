@@ -197,10 +197,10 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid rgb(99 114 90 / 0.22);
+  border: 1px solid var(--xai-border, rgb(10 10 10 / 8%));
   border-radius: 11px;
-  background: rgb(150 165 141 / 0.14);
-  color: var(--provider-sage-strong, #63725a);
+  background: var(--xai-fill-soft, rgb(10 10 10 / 5%));
+  color: var(--provider-text-secondary, #7d8187);
 }
 
 .emptyCopy {

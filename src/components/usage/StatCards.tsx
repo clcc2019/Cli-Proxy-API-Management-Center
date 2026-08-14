@@ -1,6 +1,5 @@
 import { memo, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconDiamond, IconDollarSign, IconSatellite, IconTimer } from '@/components/ui/icons';
 import {
   LATENCY_SOURCE_FIELD,
   formatCompactNumber,
@@ -9,7 +8,6 @@ import {
   formatUsd,
   type ModelPrice,
 } from '@/utils/usage';
-import { USAGE_CHART_COLORS, withUsageColorAlpha } from '@/utils/usage/chartConfig';
 import { getAggregateOverviewMetrics } from '@/utils/usageAggregate';
 import type { UsageAggregateWindow } from '@/types/usageAggregate';
 import { StatCard } from './StatCard';
@@ -43,45 +41,25 @@ export const StatCards = memo(function StatCards({ window, loading, modelPrices 
     [modelPrices, window]
   );
 
-  // 卡片结构数据：不含 loading/metrics 派生的 value/meta，仅含稳定的 label/icon/accent。
-  // 依赖 t（i18n）与 metrics（用于派生 cost 卡片的 hasPrices 等少量分支），不依赖 loading，
-  // 因此 loading 翻转时此 memo 命中缓存，避免重建四张卡片的 value/meta JSX 树。
   const cards = useMemo(() => {
-    const base = [
+    return [
       {
         key: 'requests',
         label: t('usage_stats.total_requests'),
-        icon: <IconSatellite size={16} />,
-        accent: USAGE_CHART_COLORS.requests,
-        accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.requests, 0.16),
-        accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.requests, 0.32),
       },
       {
         key: 'tokens',
         label: t('usage_stats.total_tokens'),
-        icon: <IconDiamond size={16} />,
-        accent: USAGE_CHART_COLORS.tokens,
-        accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.tokens, 0.16),
-        accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.tokens, 0.32),
       },
       {
         key: 'rate',
         label: t('usage_stats.rate_30m'),
-        icon: <IconTimer size={16} />,
-        accent: USAGE_CHART_COLORS.rpm,
-        accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.16),
-        accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.rpm, 0.32),
       },
       {
         key: 'cost',
         label: t('usage_stats.total_cost'),
-        icon: <IconDollarSign size={16} />,
-        accent: USAGE_CHART_COLORS.cost,
-        accentSoft: withUsageColorAlpha(USAGE_CHART_COLORS.cost, 0.16),
-        accentBorder: withUsageColorAlpha(USAGE_CHART_COLORS.cost, 0.32),
       },
     ];
-    return base;
   }, [t]);
 
   const requestsValue = loading ? '-' : metrics.totalRequests.toLocaleString();
@@ -199,10 +177,6 @@ export const StatCards = memo(function StatCards({ window, loading, modelPrices 
           key={card.key}
           cardKey={card.key}
           label={card.label}
-          icon={card.icon}
-          accent={card.accent}
-          accentSoft={card.accentSoft}
-          accentBorder={card.accentBorder}
           value={values[card.key]}
           meta={metas[card.key]}
         />

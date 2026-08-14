@@ -201,11 +201,13 @@ export function ApiKeysPage() {
   })();
   const statusClassName = error
     ? styles.error
-    : isDirty
-      ? styles.modified
-      : !loading && !saving
-        ? styles.saved
-        : '';
+    : disableControls
+      ? styles.disconnected
+      : isDirty
+        ? styles.modified
+        : !loading && !saving
+          ? styles.saved
+          : '';
 
   return (
     <div className={styles.container}>

@@ -255,8 +255,8 @@
 }
 
 .filterButtonActive .filterCount {
-  background: rgb(150 165 141 / 0.18);
-  color: var(--key-sage-strong);
+  background: var(--xai-fill-hover);
+  color: var(--key-text);
 }
 
 .resultCount {
@@ -350,10 +350,10 @@
   width: 36px;
   height: 36px;
   flex: 0 0 auto;
-  border: 1px solid rgb(99 114 90 / 0.2);
+  border: 1px solid var(--xai-orange-border);
   border-radius: 10px;
-  background: rgb(150 165 141 / 0.12);
-  color: var(--key-sage-strong);
+  background: var(--xai-orange-soft);
+  color: var(--xai-orange);
 }
 
 .identityCopy {
@@ -569,16 +569,16 @@
 }
 
 .deleteButton:global(.btn.btn-sm.btn-danger) {
-  border-color: rgb(165 56 48 / 0.3);
-  background: rgb(165 56 48 / 0.07);
+  border-color: var(--xai-danger-border);
+  background: var(--xai-danger-soft);
   color: var(--key-danger);
   box-shadow: none;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
-      border-color: rgb(165 56 48 / 0.48);
-      background: rgb(165 56 48 / 0.14);
-      color: #8d302a;
+      border-color: color-mix(in srgb, var(--xai-danger) 40%, var(--xai-white));
+      background: color-mix(in srgb, var(--xai-danger) 13%, var(--xai-white));
+      color: var(--xai-danger);
       transform: none;
     }
   }
@@ -598,9 +598,7 @@
   padding: 24px;
   border: 1px dashed var(--key-border-strong);
   border-radius: 12px;
-  background:
-    radial-gradient(circle at 0 0, rgb(150 165 141 / 0.12), transparent 56%),
-    var(--key-surface-warm);
+  background: var(--key-surface-warm);
 }
 
 .emptyIcon {
@@ -610,10 +608,10 @@
   width: 42px;
   height: 42px;
   flex: 0 0 auto;
-  border: 1px solid rgb(99 114 90 / 0.22);
+  border: 1px solid var(--xai-orange-border);
   border-radius: 12px;
-  background: rgb(150 165 141 / 0.14);
-  color: var(--key-sage-strong);
+  background: var(--xai-orange-soft);
+  color: var(--xai-orange);
 }
 
 .emptyCopy {

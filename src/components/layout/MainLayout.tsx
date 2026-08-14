@@ -11,12 +11,15 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from '@/components/ui/IconButton';
 import { RefreshButton } from '@/components/ui/RefreshButton';
-import { TokaMark } from '@/components/ui/TokaMark';
 import { PageTransition } from '@/components/common/PageTransition';
+import {
+  SidebarNavigation,
+  type SidebarNavigationGroup,
+} from '@/components/layout/SidebarNavigation';
 import { MainRoutes } from '@/router/MainRoutes';
 import { preloadRoute } from '@/router/routeLoaders';
 import {
@@ -80,16 +83,6 @@ const headerIcons = {
     <svg {...headerIconProps}>
       <path d="m6 6 12 12" />
       <path d="m18 6-12 12" />
-    </svg>
-  ),
-  chevronLeft: (
-    <svg {...headerIconProps}>
-      <path d="m14 18-6-6 6-6" />
-    </svg>
-  ),
-  chevronRight: (
-    <svg {...headerIconProps}>
-      <path d="m10 6 6 6-6 6" />
     </svg>
   ),
   language: (
@@ -386,7 +379,7 @@ export function MainLayout() {
           ? 'error'
           : 'muted';
 
-  const navGroups = useMemo(
+  const navGroups = useMemo<SidebarNavigationGroup[]>(
     () => [
       {
         id: 'workspace',
@@ -576,18 +569,6 @@ export function MainLayout() {
       <div className="top-gradient-blur" aria-hidden="true" />
 
       <header className="main-header">
-        <IconButton
-          className="sidebar-toggle-floating"
-          variant="secondary"
-          size="sm"
-          icon={sidebarCollapsed ? headerIcons.chevronRight : headerIcons.chevronLeft}
-          onClick={() => setSidebarCollapsed((prev) => !prev)}
-          aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-          aria-expanded={!sidebarCollapsed}
-          aria-controls="main-sidebar"
-          title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-        />
-
         <div className="mobile-sidebar-actions">
           <IconButton
             id={MOBILE_NAVIGATION_TOGGLE_ID}
@@ -703,67 +684,21 @@ export function MainLayout() {
           tabIndex={sidebarOpen ? 0 : -1}
         />
 
-        <aside
+        <SidebarNavigation
           ref={sidebarRef}
-          id="main-sidebar"
-          className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
-        >
-          <div className="sidebar-header">
-            <NavLink
-              to="/"
-              className="sidebar-brand"
-              onClick={(event) => handleNavigationClick(event, '/')}
-              onPointerEnter={() => handleNavigationIntent('/')}
-              onPointerLeave={cancelNavigationIntent}
-              onFocus={() => handleNavigationIntent('/')}
-              onBlur={cancelNavigationIntent}
-              aria-label={t('title.main')}
-              title={sidebarCollapsed ? t('title.main') : undefined}
-            >
-              <TokaMark className="sidebar-brand-mark" aria-hidden="true" />
-              <span className="sidebar-brand-copy">
-                <span className="sidebar-brand-name">{t('title.main')}</span>
-                <span className="sidebar-brand-caption">{t('splash.subtitle')}</span>
-              </span>
-            </NavLink>
-          </div>
-
-          <nav className="nav-section" aria-label={t('nav.navigation')}>
-            {navGroups.map((group) => (
-              <div className="nav-group" role="group" aria-label={group.label} key={group.id}>
-                <span className="nav-group-label" aria-hidden="true">
-                  {group.label}
-                </span>
-                <div className="nav-group-items">
-                  {group.items.map((item) => (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      className={({ isActive }) => {
-                        const active =
-                          isActive || (item.path === '/' && location.pathname === '/dashboard');
-                        return `nav-item ${active ? 'active' : ''}`;
-                      }}
-                      aria-current={
-                        item.path === '/' && location.pathname === '/dashboard' ? 'page' : undefined
-                      }
-                      onClick={(event) => handleNavigationClick(event, item.path)}
-                      onPointerEnter={() => handleNavigationIntent(item.path)}
-                      onPointerLeave={cancelNavigationIntent}
-                      onFocus={() => handleNavigationIntent(item.path)}
-                      onBlur={cancelNavigationIntent}
-                      title={sidebarCollapsed ? item.label : undefined}
-                    >
-                      <span className="nav-icon">{item.icon}</span>
-                      <span className="nav-label">{item.label}</span>
-                      <span className="nav-item-current" aria-hidden="true" />
-                    </NavLink>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </nav>
-        </aside>
+          groups={navGroups}
+          currentPathname={location.pathname}
+          open={sidebarOpen}
+          collapsed={sidebarCollapsed}
+          brandName={t('title.main')}
+          navigationLabel={t('nav.navigation')}
+          collapseLabel={t('sidebar.collapse')}
+          expandLabel={t('sidebar.expand')}
+          onNavigate={handleNavigationClick}
+          onNavigationIntent={handleNavigationIntent}
+          onCancelNavigationIntent={cancelNavigationIntent}
+          onToggleCollapsed={() => setSidebarCollapsed((prev) => !prev)}
+        />
 
         <div className={`content${isLogsPage ? ' content-logs' : ''}`} ref={contentRef}>
           <main className={`main-content${isLogsPage ? ' main-content-logs' : ''}`}>

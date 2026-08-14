@@ -1,28 +1,4 @@
 .dashboard {
-  --xai-ink-console: #080808;
-  --xai-ink: #0a0a0a;
-  --xai-white: #ffffff;
-  --xai-inverse: #fafafa;
-  --xai-warm: #f9f8f6;
-  --xai-secondary: #6b6f74;
-  --xai-disabled: rgb(10 10 10 / 30%);
-  --xai-fill-soft: rgb(10 10 10 / 5%);
-  --xai-fill-hover: rgb(10 10 10 / 8%);
-  --xai-fill-pressed: rgb(10 10 10 / 12%);
-  --xai-border-subtle: rgb(10 10 10 / 6%);
-  --xai-border: rgb(10 10 10 / 8%);
-  --xai-border-hover: rgb(10 10 10 / 15%);
-  --xai-success: hsl(132 41% 42%);
-  --xai-warning: hsl(44 80% 34%);
-  --xai-danger: hsl(353 53% 43%);
-  --xai-font-ui: universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
-  --xai-font-display:
-    universalSansDisplay, universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
-  --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
-  --xai-shadow-button: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
-  --xai-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --xai-ease-out: cubic-bezier(0, 0, 0.2, 1);
-
   display: flex;
   width: 100%;
   min-width: 0;

@@ -630,7 +630,12 @@ const renderCodexItems = (
   const nodes: ReactNode[] = [];
 
   if (planLabel || subscriptionUntilLabel || subscriptionActiveDaysLabel) {
-    const valueClass = isPaidPlan ? styleMap.premiumPlanValue : styleMap.codexPlanValue;
+    const valueClass =
+      normalizedPlanType === 'free'
+        ? styleMap.freePlanValue
+        : isPaidPlan
+          ? styleMap.premiumPlanValue
+          : styleMap.codexPlanValue;
     nodes.push(
       h(
         'div',
@@ -815,7 +820,7 @@ const renderClaudeItems = (
 
   if (planType) {
     const valueClass =
-      planType === 'plan_free' ? styleMap.codexPlanValue : styleMap.premiumPlanValue;
+      planType === 'plan_free' ? styleMap.freePlanValue : styleMap.premiumPlanValue;
     nodes.push(
       h(
         'div',

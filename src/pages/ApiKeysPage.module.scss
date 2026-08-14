@@ -2,20 +2,18 @@
 @use '../styles/variables' as *;
 
 .container {
-  --api-surface: var(--mg-surface);
-  --api-surface-subtle: var(--mg-surface-subtle);
-  --api-surface-warm: var(--mg-surface-warm);
-  --api-text: var(--mg-text);
-  --api-text-secondary: var(--mg-text-secondary);
-  --api-text-tertiary: var(--mg-text-tertiary);
-  --api-border: var(--mg-border);
-  --api-border-strong: var(--mg-border-hover);
-  --api-ink: var(--mg-ink-strong);
-  --api-sage: var(--mg-sage);
-  --api-sage-strong: var(--mg-sage-strong);
-  --api-success: var(--mg-success);
-  --api-warning: var(--mg-warning);
-  --api-danger: var(--mg-danger);
+  --api-surface: var(--xai-white);
+  --api-surface-subtle: var(--xai-fill-soft);
+  --api-surface-warm: var(--xai-warm);
+  --api-text: var(--xai-ink-console);
+  --api-text-secondary: var(--xai-secondary);
+  --api-text-tertiary: var(--xai-muted);
+  --api-border: var(--xai-border);
+  --api-border-strong: var(--xai-border-hover);
+  --api-ink: var(--xai-ink-console);
+  --api-success: var(--xai-success);
+  --api-warning: var(--xai-warning);
+  --api-danger: var(--xai-danger);
 
   width: 100%;
   min-width: 0;
@@ -58,6 +56,10 @@
   font-size: 12px;
   font-weight: 650;
   white-space: nowrap;
+  transition:
+    background-color var(--xai-duration-default) var(--xai-ease-standard),
+    border-color var(--xai-duration-default) var(--xai-ease-standard),
+    color var(--xai-duration-default) var(--xai-ease-standard);
 }
 
 .statusDot {
@@ -68,16 +70,44 @@
   background: var(--api-text-tertiary);
 }
 
+.statusBadge.saved {
+  border-color: var(--xai-success-border);
+  background: var(--xai-success-soft);
+  color: var(--api-text);
+}
+
 .saved .statusDot {
   background: var(--api-success);
+}
+
+.statusBadge.modified {
+  border-color: var(--xai-warning-border);
+  background: var(--xai-warning-soft);
+  color: var(--api-text);
 }
 
 .modified .statusDot {
   background: var(--api-warning);
 }
 
+.statusBadge.error {
+  border-color: var(--xai-danger-border);
+  background: var(--xai-danger-soft);
+  color: var(--api-text);
+}
+
 .error .statusDot {
   background: var(--api-danger);
+}
+
+.statusBadge.disconnected {
+  border-color: var(--xai-orange-border);
+  background: var(--xai-orange-soft);
+  color: var(--api-text);
+}
+
+.disconnected .statusDot {
+  background: var(--xai-orange);
 }
 
 .tabBar {
@@ -166,9 +196,9 @@
 
 .content :global(.error-box) {
   margin: 0;
-  border: 1px solid rgb(165 56 48 / 0.28);
+  border: 1px solid var(--xai-danger-border);
   border-radius: 12px;
-  background: rgb(165 56 48 / 0.07);
+  background: var(--xai-danger-soft);
   color: var(--api-danger);
 }
 
@@ -189,9 +219,7 @@
   gap: 8px;
   padding: 25px 26px;
   border-right: 1px solid var(--api-border);
-  background:
-    radial-gradient(circle at 0 0, rgb(150 165 141 / 0.18), transparent 62%),
-    var(--api-surface-warm);
+  background: var(--api-surface-warm);
 }
 
 .overviewTitle {
@@ -257,15 +285,15 @@
 }
 
 .metricIconKey {
-  color: var(--api-sage-strong);
-  border-color: rgb(99 114 90 / 0.2);
-  background: rgb(150 165 141 / 0.13);
+  color: var(--xai-orange);
+  border-color: var(--xai-orange-border);
+  background: var(--xai-orange-soft);
 }
 
 .metricIconSuccess {
   color: var(--api-success);
-  border-color: rgb(64 115 69 / 0.2);
-  background: rgb(64 115 69 / 0.08);
+  border-color: var(--xai-success-border);
+  background: var(--xai-success-soft);
 }
 
 .metricIconRules {
@@ -274,8 +302,8 @@
 
 .metricIconQuota {
   color: var(--api-warning);
-  border-color: rgb(229 169 71 / 0.28);
-  background: rgb(229 169 71 / 0.1);
+  border-color: var(--xai-warning-border);
+  background: var(--xai-warning-soft);
 }
 
 .metricItem > div {

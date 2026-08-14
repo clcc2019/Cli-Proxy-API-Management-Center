@@ -2,9 +2,7 @@ import { memo, type ChangeEventHandler, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
-import { RefreshButton } from '@/components/ui/RefreshButton';
 import { Select } from '@/components/ui/Select';
-import { IconDatabase, IconDownload, IconFileText } from '@/components/ui/icons';
 import styles from './UsagePageHeader.module.scss';
 
 interface TimeRangeOption {
@@ -52,6 +50,7 @@ export const UsagePageHeader = memo(function UsagePageHeader({
 
   return (
     <ManagementPageHeader
+      className={styles.header}
       titleId="usage-page-title"
       title={t('usage_stats.title')}
       actions={
@@ -59,7 +58,6 @@ export const UsagePageHeader = memo(function UsagePageHeader({
           <div className={styles.tools}>
             <div className={styles.rangeField}>
               <div className={styles.rangeLabel}>
-                <IconDatabase size={14} aria-hidden="true" />
                 <span>{t('usage_stats.range_filter')}</span>
               </div>
               <Select
@@ -67,6 +65,7 @@ export const UsagePageHeader = memo(function UsagePageHeader({
                 options={timeRangeOptions}
                 onChange={onTimeRangeChange}
                 className={styles.rangeSelect}
+                dropdownClassName={styles.rangeDropdown}
                 ariaLabel={t('usage_stats.range_filter')}
                 fullWidth={false}
               />
@@ -81,7 +80,6 @@ export const UsagePageHeader = memo(function UsagePageHeader({
                 disabled={disableExport}
                 className={styles.primaryAction}
               >
-                <IconDownload size={14} />
                 <span>{t('usage_stats.export')}</span>
               </Button>
               <Button
@@ -91,7 +89,6 @@ export const UsagePageHeader = memo(function UsagePageHeader({
                 loading={exportingDetailed}
                 disabled={disableExportDetailed}
               >
-                <IconFileText size={14} />
                 <span>{t('usage_stats.export_details')}</span>
               </Button>
               <Button
@@ -101,20 +98,17 @@ export const UsagePageHeader = memo(function UsagePageHeader({
                 loading={importing}
                 disabled={disableImport}
               >
-                <IconDatabase size={14} />
                 <span>{t('usage_stats.import')}</span>
               </Button>
-              <RefreshButton
+              <Button
                 variant="secondary"
                 size="sm"
                 onClick={onRefresh}
                 disabled={disableRefresh}
                 loading={loading}
-                label={t('usage_stats.refresh')}
-                iconSize={14}
               >
                 <span>{t('usage_stats.refresh')}</span>
-              </RefreshButton>
+              </Button>
             </div>
           </div>
 

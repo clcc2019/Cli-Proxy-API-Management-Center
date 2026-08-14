@@ -16,7 +16,7 @@ body,
 }
 
 html {
-  background: var(--bg-secondary, #f6f8fa);
+  background: var(--xai-white, #ffffff);
 }
 
 body {
@@ -25,7 +25,7 @@ body {
   font-size: 14.5px;
   line-height: 1.55;
   letter-spacing: -0.003em;
-  background: var(--bg-secondary, #f6f8fa);
+  background: var(--xai-white, #ffffff);
   color: var(--text-primary);
   transition:
     background-color $transition-normal,
@@ -63,10 +63,11 @@ textarea {
   font-kerning: normal;
 }
 
-// 选中态用鼠尾草绿调，与设计系统中 sage=选择/上下文 的语义一致，比炭黑更精致
+// Text selection is structural feedback, so it stays neutral rather than
+// borrowing success, warning, or provider identity color.
 ::selection {
-  background: color-mix(in srgb, var(--mg-sage) 24%, transparent);
-  color: var(--mg-ink-strong);
+  background: var(--xai-fill-pressed);
+  color: var(--xai-ink-console);
 }
 
 :focus-visible {

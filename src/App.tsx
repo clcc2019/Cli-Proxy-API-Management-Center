@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { Outlet, RouterProvider, createHashRouter } from 'react-router-dom';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { RouteErrorFallback } from '@/components/common/RouteErrorFallback';
 import { ProtectedRoute } from '@/router/ProtectedRoute';
 import { fullScreenRouteFallback, lazyNamed, renderLazyPage } from '@/router/lazyRoute';
 import { useLanguageStore } from '@/stores/useLanguageStore';
@@ -37,6 +38,7 @@ function RootShell() {
 const router = createHashRouter([
   {
     element: <RootShell />,
+    errorElement: <RouteErrorFallback />,
     children: [
       { path: '/login', element: renderLazyPage(LazyLoginPage, fullScreenRouteFallback) },
       {

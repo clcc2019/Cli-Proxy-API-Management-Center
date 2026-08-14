@@ -26,6 +26,21 @@ document.addEventListener(
   { capture: true }
 );
 
+const PRELOAD_RELOAD_KEY = 'toka:preload-reload';
+const PRELOAD_RELOAD_COOLDOWN_MS = 10_000;
+
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    const lastReload = Number(sessionStorage.getItem(PRELOAD_RELOAD_KEY));
+    if (Date.now() - lastReload < PRELOAD_RELOAD_COOLDOWN_MS) return;
+    sessionStorage.setItem(PRELOAD_RELOAD_KEY, String(Date.now()));
+    event.preventDefault();
+    window.location.reload();
+  } catch {
+    // Let the route error boundary handle environments without session storage.
+  }
+});
+
 const bootstrap = async () => {
   await initializeI18n();
 

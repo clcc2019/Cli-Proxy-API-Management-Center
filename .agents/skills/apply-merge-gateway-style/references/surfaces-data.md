@@ -52,7 +52,7 @@ Use white, 1px 8% border, 18px radius, no shadow, 13.5px top and 15.75px remaini
 - Divider: exactly 1px, 6–8% black. No zebra striping by default.
 - Header background: white or 5% neutral; sticky header may use `rgb(255 255 255 / 92%)` with no blur.
 - Hover: 5% neutral; selected: 8% neutral with `aria-selected`; never colored wash.
-- Status markers may use a 6.75–9px semantic dot from `foundations.md`; keep row background neutral and pair the marker with readable state text.
+- Status, risk, provider, or documented-category cells may use a compact mapped capsule/tag or 6.75–9px dot; keep row background neutral and pair color with readable text or a distinct glyph.
 - Trailing actions use 36px icon buttons. Numeric/date columns use tabular figures and stable alignment.
 - Use tables for comparable columns and divider-led rows for chronology/heterogeneous summaries. Avoid a card per record.
 - Mobile: hide lower-priority columns, horizontally scroll with sticky identity column, or recompose into labeled rows. Do not scale text.
@@ -60,12 +60,12 @@ Use white, 1px 8% border, 18px radius, no shadow, 13.5px top and 15.75px remaini
 ## Charts and metrics
 
 - A routine summary metric is value + label, with delta/unit only when it changes interpretation. Omit category icons, explanatory route sublabels, and generic link arrows.
-- Use near-black/gray as the baseline. Reserve orange for one selected series, point, endpoint, or threshold.
+- Use near-black/gray for value-only data. Give decision-relevant state, threshold, provider, or documented-category signals stable mapped colors across chart, legend, tooltip, and related tags; reserve orange for attention or one selected signal when no category mapping applies.
 - Chart grid: 1px at 4–6% black. Axis/legend: 13–13.5px secondary text. Tooltip: white, 1px 8% border, 10–13.5px radius, menu shadow, 9–13.5px padding.
 - Standard operational chart height: 270–360px (**normalized**); preserve a stable skeleton/error height.
 - Metric label: 15.75px/22.5px secondary. Primary value: 27–40.5px display with tabular figures. Delta/unit: 13.5px.
 - Large analytical card padding: 18–27px. Legend gap: 13.5px; marker: 9px square/circle.
-- Do not use rainbow series, glossy gradients, floating KPI mosaics, or unlabeled color-only encoding.
+- Do not use arbitrary rainbow series, glossy gradients, floating KPI mosaics, or unlabeled color-only encoding. Each retained hue must distinguish a real meaning and remain legible by label, shape, line style, or icon without color.
 
 ## Code and editors
 

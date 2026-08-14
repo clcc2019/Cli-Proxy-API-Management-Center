@@ -73,7 +73,7 @@ Prefer two strong layers—joined summary metrics plus a compact divider-led det
 - Show date/time only when the task is time-sensitive or the value timestamps data. A live clock is not dashboard content.
 - Show status only when it can change interpretation or action. Healthy state may be a compact text/dot; errors need actionable text.
 - Judge a state by consequence rather than `true`/`false`: enabled protection can be healthy, enabled diagnostics can require attention, and an ordinary disabled optional feature can remain neutral.
-- Use badges for exceptional state, not ordinary taxonomy. Do not badge values already expressed by labels or position.
+- Use capsules/tags for real state, risk, provider identity, or documented categories that materially improve scanning; keep ordinary taxonomy neutral and do not badge values already expressed by labels or position.
 - Keep secondary metadata out of the first viewport when it belongs in a detail/settings route.
 
 ## Icon gate
@@ -82,7 +82,7 @@ An icon is allowed only for one of these roles:
 
 1. persistent navigation where repeated scanning benefits from a stable symbol;
 2. a conventional compact action such as close, search, copy, reveal, overflow, attach, or send;
-3. a state that benefits from redundant non-color encoding, such as warning or failure;
+3. a state, risk, provider identity, or documented category that benefits from a compact visual cue;
 4. a spatial control where words would be slower or wider, such as chevrons in disclosure and previous/next controls;
 5. brand identity or real media supplied by the product.
 
@@ -92,8 +92,8 @@ All other icons are rejected by default.
 - Do not add arrows to every link or clickable card. Hover, focus, cursor, and semantics already communicate interaction. Use an arrow only when direction or external navigation is itself meaningful.
 - Do not pair a familiar text button with a decorative icon. Add an icon only when it materially improves scanning or disambiguates the action.
 - Do not use icons as bullets, title ornaments, empty corner decoration, or substitutes for whitespace.
-- Do not repeat the same meaning with icon + label + badge + color.
-- When an icon is allowed, follow the 16/18/20px monochrome line specifications in `foundations.md`; icon styling does not justify icon existence.
+- Do not stack multiple carriers for one meaning. A compact capsule may combine one dot/glyph, one short label, and one mapped hue; add no second badge or repeated copy.
+- When an icon is allowed, follow the 16/18/20px line specifications in `foundations.md`. Keep utility/navigation icons neutral and apply mapped color only to state, risk, provider, or documented-category icons; icon styling does not justify icon existence.
 
 ## Metrics, cards, and rows
 
@@ -103,7 +103,7 @@ All other icons are rejected by default.
 - Make the whole metric cell a link only when its destination is unambiguous. Its accessible name should include label and value.
 - Keep a compact configuration summary when its values explain current system behavior; move editable controls and exhaustive detail to settings. Dashboard configuration should read as aligned rows, not duplicate the form.
 - In rows, keep one identity, one necessary summary, one state/value, and one action. Progressive disclosure owns the rest.
-- For compact configuration summaries, use a 6.75–9px semantic dot beside explicit text: green for healthy/recommended, orange for attention/degraded, gray for ordinary inactive, and red for failure. Never replace the text with color.
+- For compact configuration summaries, use a semantic capsule/tag or a 6.75–9px dot beside explicit text: green for healthy/recommended, orange for attention/degraded, gray for ordinary inactive, and red for failure. Preserve documented provider/category colors and never replace text with color.
 - Empty state copy should explain why the region is empty or what action resolves it; omit cheerful filler and ornamental illustration by default.
 
 ## Responsive reduction
@@ -123,6 +123,7 @@ Before handoff, produce an internal inventory for the edited scope and verify:
 
 - every remaining text node has a unique task role;
 - every icon maps to an allowed icon role above;
+- every colored capsule, tag, icon, label, progress fill, or data signal maps to one stable meaning and retains a non-color cue;
 - no title, label, status, value, or action is stated twice;
 - no decorative pseudo-element inserts arrows, symbols, or copy;
 - no optional content leaves reserved empty height;

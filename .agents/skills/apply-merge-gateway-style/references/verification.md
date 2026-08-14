@@ -17,7 +17,7 @@ Read this file before handoff. Do not claim high fidelity from code inspection a
 1. Identify the page/component's density context and primary task.
 2. Run the `content-icons.md` inventory. Verify every remaining text node and icon has one unique task role; remove duplicates, decorative affordances, and optional empty slots.
 3. Confirm all edited visual values resolve through `--xai-*` tokens or documented semantic/data exceptions.
-4. Verify each semantic color from consequence rather than raw boolean. Confirm every colored dot/icon has adjacent text, ordinary inactive states stay neutral, and no row/card receives decorative color wash.
+4. Audit a representative capsule/tag, allowed icon, short label, progress fill, and chart signal where present. Verify stable meaning, a non-color cue, neutral inactive/utility states, and no page/card/row/navigation color wash.
 5. Inspect default and applicable hover, focus-visible, pressed, selected/current, disabled, loading, empty, error, and open states.
 6. Render target desktop plus 1024, 768, 480, and 360px when the scope is responsive.
 7. Capture the full page after segmented scrolling and lazy-load stabilization.
@@ -33,6 +33,7 @@ Inspect representative elements in DevTools or browser automation:
 - warm card, white detail, row divider, floating surface;
 - navigation idle/current;
 - dialog/menu or any changed overlay.
+- semantic capsule/tag, colored state/identity icon, progress fill, and chart signal where present.
 
 Record/confirm `font-family`, `font-size`, `font-weight`, `line-height`, `letter-spacing`, `color`, `background-color`, `border-width/color`, `border-radius`, `box-shadow`, `padding`, `gap`, `width/height`, and transition values. Reject accidental browser/framework defaults.
 
@@ -42,6 +43,7 @@ Record/confirm `font-family`, `font-size`, `font-weight`, `line-height`, `letter
 - One dominant task/surface/narrative is clear. The interface does not become a generic card grid.
 - Alignment and repeated baselines remain exact. Long labels, translations, numeric changes, and empty/loading states do not shift the layout.
 - No unexpected blue/purple gradients, green selection, colored icon tiles, glass blur, thick borders, heavy shadow, or hover lift remains.
+- No blanket grayscale removes meaningful state, risk, provider/category, progress, or chart cues; no arbitrary rainbow palette or pale-blue structural surface appears.
 - At each breakpoint, columns recompose, controls remain usable, and primary content/actions survive before secondary metadata.
 - There is no accidental horizontal page overflow. Code/table overflow is contained.
 

@@ -106,10 +106,10 @@ Use normalized implementations where exact controls were not exposed by the coll
 
 ## Chips, badges, progress
 
-- Chip: 27px minimum height, 13–13.5px/18px, 9px inline padding, 4.5px gap, pill radius, 5% neutral fill.
-- New/Beta: orange text or 1px orange outline on transparent background; never saturated fill.
-- Status badge: compact neutral shell plus semantic dot/text when state is real.
-- Progress track: 4.5px high, pill, 8% neutral; semantic or near-black fill. Put value/reset text outside and use native/ARIA progress semantics.
+- Neutral chip: 27px minimum height, 13–13.5px/18px, 9px inline padding, 4.5px gap, pill radius, 5% neutral fill; use for filters and ordinary taxonomy.
+- Semantic capsule/tag: the same compact geometry with one mapped hue, matching soft fill and border, and one dot/glyph plus a short label. Keep the label near-black unless a colored foreground passes contrast; never use a saturated fill.
+- New/Beta uses the orange mapping. Status/risk uses the state mapping; provider identity or documented category may use its established mapping.
+- Progress track: 4.5px high, pill, 8% neutral; use mapped semantic fill when progress communicates state or threshold, otherwise near-black. Put value/reset text outside and use native/ARIA progress semantics.
 
 ## Reference CSS
 
