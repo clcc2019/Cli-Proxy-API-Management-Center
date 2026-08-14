@@ -46,38 +46,6 @@
     background: #ffffff;
     box-shadow: none;
   }
-
-  :global(.sidebar) {
-    border-color: rgb(10 10 10 / 6%);
-    background: #ffffff;
-  }
-
-  :global(.sidebar .nav-item) {
-    border-radius: 10px;
-    color: #7d8187;
-  }
-
-  :global(.sidebar .nav-item::before) {
-    background: transparent;
-  }
-
-  :global(.sidebar .nav-item .nav-icon) {
-    background: transparent;
-    color: currentColor;
-  }
-
-  :global(.sidebar .nav-item.active) {
-    background: rgb(10 10 10 / 5%);
-    color: #080808;
-    font-weight: 500;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    :global(.sidebar .nav-item:hover) {
-      background: rgb(10 10 10 / 5%);
-      color: #080808;
-    }
-  }
 }
 
 // Direct operational header — no marketing card treatment.

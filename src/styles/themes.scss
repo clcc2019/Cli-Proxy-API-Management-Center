@@ -163,19 +163,19 @@
   --header-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
   // Navigation tokens keep the shell on the same quiet surface hierarchy as
   // the rest of the Merge Gateway-inspired light theme.
-  --sidebar-surface: var(--mg-surface);
-  --sidebar-surface-muted: var(--mg-surface-subtle);
-  --sidebar-text: var(--mg-text);
-  --sidebar-text-secondary: var(--mg-text-secondary);
-  --sidebar-text-tertiary: var(--mg-text-tertiary);
-  --sidebar-border: var(--mg-border);
-  --sidebar-border-strong: var(--mg-border-hover);
+  --sidebar-surface: #fbfaf7;
+  --sidebar-surface-muted: #f5f5f3;
+  --sidebar-text: #2c2a25;
+  --sidebar-text-secondary: #565551;
+  --sidebar-text-tertiary: #74716c;
+  --sidebar-border: #e5e4e0;
+  --sidebar-border-strong: #cbc9c3;
   // Sage is reserved for persistent navigation context; action charcoal stays
   // exclusive to primary/destructive controls.
-  --sidebar-accent: var(--mg-sage-strong);
-  --sidebar-accent-line: var(--mg-sage-strong);
-  --sidebar-accent-surface: var(--mg-sage-soft);
-  --sidebar-accent-icon: var(--mg-sage-wash);
+  --sidebar-accent: #4f8048;
+  --sidebar-accent-line: var(--sidebar-accent);
+  --sidebar-accent-surface: #eff2ed;
+  --sidebar-accent-icon: rgb(79 128 72 / 12%);
   --sidebar-focus-ring: var(--mg-focus-ring);
   --sidebar-shadow: none;
   --shadow-card: var(--mg-shadow-rest);
