@@ -137,6 +137,7 @@
 
   @include mobile {
     flex: 1;
+    min-height: var(--mg-hit-area, 44px);
     text-align: center;
   }
 }
@@ -579,6 +580,14 @@
     width: auto;
     height: 40px;
     flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .floatingActionButton,
+  .floatingActionButton:global(.btn.btn-sm) {
+    min-height: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
   }
 }
 

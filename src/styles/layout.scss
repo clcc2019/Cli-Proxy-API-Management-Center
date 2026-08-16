@@ -309,6 +309,10 @@ $breakpoint-shell-compact: 1023px;
       letter-spacing: 0;
       line-height: 18px;
 
+      .status-symbol {
+        display: none;
+      }
+
       &::before {
         width: var(--xai-space-1-5);
         height: var(--xai-space-1-5);
@@ -1004,8 +1008,32 @@ $breakpoint-shell-compact: 1023px;
         gap: 0;
 
         &::before {
-          width: var(--xai-space-1-5);
-          height: var(--xai-space-1-5);
+          display: none;
+        }
+
+        .status-symbol {
+          display: inline-grid;
+          place-items: center;
+
+          svg {
+            display: block;
+          }
+        }
+
+        &.success .status-symbol {
+          color: var(--xai-success);
+        }
+
+        &.warning .status-symbol {
+          color: var(--xai-orange);
+        }
+
+        &.error .status-symbol {
+          color: var(--xai-danger);
+        }
+
+        &.muted .status-symbol {
+          color: var(--xai-secondary);
         }
       }
 

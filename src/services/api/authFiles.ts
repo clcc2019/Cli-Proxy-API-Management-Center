@@ -15,6 +15,11 @@ import type {
 
 type StatusError = { status?: number };
 type AuthFileStatusResponse = { status: string; disabled: boolean };
+export type AuthFilePromotionEligibilityResponse = {
+  coupon: string;
+  state: string;
+  eligible: boolean;
+};
 type AuthFileEntry = AuthFilesResponse['files'][number];
 type AuthFileBatchFailure = { name: string; error: string };
 type AuthFileBatchUploadResponse = {
@@ -657,6 +662,12 @@ export const authFilesApi = {
 
   setStatus: (name: string, disabled: boolean) =>
     apiClient.patch<AuthFileStatusResponse>('/auth-files/status', { name, disabled }),
+
+  checkPromotionEligibility: (name: string) =>
+    apiClient.get<AuthFilePromotionEligibilityResponse>('/auth-files/promotion-eligibility', {
+      ...AUTH_FILE_CREDENTIAL_REQUEST_CONFIG,
+      params: { name },
+    }),
 
   patchFields: (payload: PatchAuthFileFieldsPayload) =>
     apiClient.patch<PatchAuthFileFieldsResponse>('/auth-files/fields', payload),

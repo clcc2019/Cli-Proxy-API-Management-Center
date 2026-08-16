@@ -7,7 +7,6 @@
 @use './reset.scss';
 @use './themes.scss';
 @use './components.scss';
-@use './layout.scss';
 
 html,
 body,
@@ -21,10 +20,10 @@ html {
 
 body {
   min-width: 320px;
-  font-family: $font-family;
-  font-size: 14.5px;
-  line-height: 1.55;
-  letter-spacing: -0.003em;
+  font-family: var(--xai-font-ui);
+  font-size: 13.5px;
+  line-height: 18px;
+  letter-spacing: 0;
   background: var(--xai-white, #ffffff);
   color: var(--text-primary);
   transition:
@@ -58,7 +57,7 @@ button,
 input,
 select,
 textarea {
-  accent-color: var(--mg-sage-strong);
+  accent-color: var(--xai-ink-console);
   font: inherit;
   font-kerning: normal;
 }

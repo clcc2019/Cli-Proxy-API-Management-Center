@@ -63,6 +63,10 @@
 
     :global(.modal-footer) {
       padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+
+      :global(.btn) {
+        min-height: 44px;
+      }
     }
   }
 }

@@ -9,6 +9,7 @@ import {
   IconChartLine,
   IconCopy,
   IconDownload,
+  IconDollarSign,
   IconKey,
   IconModelCluster,
   IconSatellite,
@@ -47,6 +48,11 @@ const AuthFileQuotaRefreshButton = lazy(() =>
 
 const AUTH_FILE_NAME_MASK = '*';
 
+export type AuthFilePromotionResult =
+  | { status: 'eligible'; coupon: string }
+  | { status: 'ineligible'; state: string }
+  | { status: 'error'; message: string };
+
 const getStableMaskSeed = (value: string): number => {
   let hash = 2166136261;
   for (const char of value) {
@@ -84,6 +90,8 @@ export type AuthFileCardProps = {
   deleting: boolean;
   statusUpdating: boolean;
   accessTokenCopying: boolean;
+  promotionChecking: boolean;
+  promotionResult?: AuthFilePromotionResult;
   priorityUpdating: boolean;
   quotaFilterType: QuotaProviderType | null;
   // 由父组件预计算并按文件名缓存，usage stats 不变时引用稳定，避免列表大规模重渲染
@@ -93,6 +101,7 @@ export type AuthFileCardProps = {
   onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
   onCopyAccessToken: (file: AuthFileItem) => void;
+  onCheckPromotion: (file: AuthFileItem) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
@@ -138,6 +147,8 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     deleting,
     statusUpdating,
     accessTokenCopying,
+    promotionChecking,
+    promotionResult,
     priorityUpdating,
     quotaFilterType,
     fileUsageStats,
@@ -146,6 +157,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onCopyName,
     onDownload,
     onCopyAccessToken,
+    onCheckPromotion,
     onPriorityChange,
     onOpenPrefixProxyEditor,
     onAuthFileUpdated,
@@ -267,9 +279,26 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleShowModels = useEventCallback(() => onShowModels(file));
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
+  const handleCheckPromotion = useEventCallback(() => onCheckPromotion(file));
   const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
   const handleDelete = useEventCallback(() => onDelete(file.name));
   const handleToggleStatus = useEventCallback((value: boolean) => onToggleStatus(file, value));
+
+  const promotionResultTitle = promotionResult
+    ? t(
+        promotionResult.status === 'eligible'
+          ? 'auth_files.promotion_eligible'
+          : promotionResult.status === 'ineligible'
+            ? 'auth_files.promotion_ineligible'
+            : 'auth_files.promotion_check_failed',
+        {
+          name: file.name,
+          coupon: promotionResult.status === 'eligible' ? promotionResult.coupon : '',
+          state: promotionResult.status === 'ineligible' ? promotionResult.state : '',
+          message: promotionResult.status === 'error' ? promotionResult.message : '',
+        }
+      )
+    : undefined;
 
   const noteValue = useMemo(() => (typeof file.note === 'string' ? file.note.trim() : ''), [file]);
   const tokenDisplay = useMemo(
@@ -303,6 +332,46 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const checkboxLabel = selected
     ? t('auth_files.deselect_file', { name: maskedAuthFileDisplayName })
     : t('auth_files.select_file', { name: maskedAuthFileDisplayName });
+  const promotionAction =
+    !isRuntimeOnly && fileType === 'codex' ? (
+      <>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleCheckPromotion}
+          className={refreshStyles.promotionPlanButton}
+          title={t('auth_files.promotion_check_button')}
+          aria-label={t('auth_files.promotion_check_button')}
+          disabled={disableControls || promotionChecking}
+        >
+          {promotionChecking ? (
+            <LoadingSpinner size={13} />
+          ) : (
+            <IconDollarSign className={refreshStyles.cardActionIcon} size={13} />
+          )}
+        </Button>
+        {promotionResult && (
+          <span
+            className={`${refreshStyles.promotionResult} ${
+              promotionResult.status === 'eligible'
+                ? refreshStyles.promotionResultEligible
+                : promotionResult.status === 'error'
+                  ? refreshStyles.promotionResultError
+                  : ''
+            }`}
+            title={promotionResultTitle}
+          >
+            {t(
+              promotionResult.status === 'eligible'
+                ? 'auth_files.promotion_available'
+                : promotionResult.status === 'ineligible'
+                  ? 'auth_files.promotion_unavailable'
+                  : 'auth_files.promotion_error'
+            )}
+          </span>
+        )}
+      </>
+    ) : null;
 
   return (
     <article
@@ -478,6 +547,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   file={file}
                   quotaType={quotaType}
                   disableControls={disableControls}
+                  promotionAction={promotionAction}
                   onAuthFileUpdated={onAuthFileUpdated}
                 />
               </Suspense>

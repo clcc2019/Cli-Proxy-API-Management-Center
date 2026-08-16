@@ -252,7 +252,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .header {
     padding: 18px 16px 14px;
   }
@@ -266,6 +266,11 @@
     width: 100%;
     min-width: 0;
     flex-basis: auto;
+  }
+
+  .searchInput {
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
   }
 
   .headerToolbarRow {
@@ -293,5 +298,6 @@
 
   .emptyActionButton {
     width: 100%;
+    min-height: var(--mg-hit-area, 44px);
   }
 }

@@ -261,6 +261,10 @@
     min-height: 174px;
     padding: 20px;
   }
+
+  .cardFooter :global(.btn) {
+    min-height: var(--mg-hit-area, 44px);
+  }
 }
 
 @container oauth-page (max-width: 460px) {

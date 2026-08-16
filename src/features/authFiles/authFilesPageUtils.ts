@@ -11,7 +11,7 @@ import {
   parsePriorityValue,
   type AuthFileUsageBucketCache,
 } from '@/features/authFiles/constants';
-import type { AuthFilePlanSources } from '@/features/authFiles/planMetadata';
+import type { AuthFilePlanFilter, AuthFilePlanSources } from '@/features/authFiles/planMetadata';
 import type { AuthFileQuotaRefreshTarget } from '@/features/authFiles/quotaRefresh';
 import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
 
@@ -23,6 +23,7 @@ export type AuthFilesUiState = {
   filter?: string;
   problemOnly?: boolean;
   disabledOnly?: boolean;
+  planFilter?: AuthFilePlanFilter;
   premiumOnly?: boolean;
   search?: string;
   page?: number;
@@ -98,8 +99,7 @@ export const EMPTY_CODEX_QUOTA: Record<string, CodexQuotaState> = {};
  */
 export const FILE_USAGE_BUCKET_CACHE: AuthFileUsageBucketCache = new WeakMap();
 
-const escapeWildcardSearchSegment = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeWildcardSearchSegment = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const buildWildcardSearch = (value: string): RegExp | null => {
   if (!value.includes('*')) return null;
@@ -141,9 +141,7 @@ const resolveQuotaRefreshTarget = (file: AuthFileItem): AuthFileQuotaRefreshTarg
   return { file, quotaType };
 };
 
-export const resolveQuotaRefreshTargets = (
-  files: AuthFileItem[]
-): AuthFileQuotaRefreshTarget[] => {
+export const resolveQuotaRefreshTargets = (files: AuthFileItem[]): AuthFileQuotaRefreshTarget[] => {
   const targets = files.reduce<AuthFileQuotaRefreshTarget[]>((items, file) => {
     const target = resolveQuotaRefreshTarget(file);
     if (target) items.push(target);

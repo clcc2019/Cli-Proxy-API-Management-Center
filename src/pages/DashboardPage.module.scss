@@ -9,7 +9,7 @@
 }
 
 // Route-scoped shell calibration: activate only while a Dashboard layer exists.
-:global(.app-shell:has([class*='DashboardPage-module__dashboard'])) {
+:global(.app-shell:has([data-page='dashboard'])) {
   background: #ffffff;
 
   :global(.content),

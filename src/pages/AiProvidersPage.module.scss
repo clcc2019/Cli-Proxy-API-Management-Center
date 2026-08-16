@@ -2818,3 +2818,30 @@
     box-shadow: none;
   }
 }
+
+// Provider cards contain several icon-only actions that were intentionally
+// compact on desktop. Restore a consistent touch target once the page is in
+// the mobile composition; the visible icon stays optically compact inside it.
+@media (max-width: 768px) {
+  .providerSectionAction :global(.btn.btn-sm),
+  .modelConfigToolbar :global(.btn.btn-sm),
+  .modelTestAllButton,
+  .openaiTestSelect :global(button[role='combobox']) {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .providerConfigItem :global(.provider-card-action.btn.btn-sm),
+  .modelRowRemoveButton,
+  .openaiKeyInputRow :global(.btn.btn-sm),
+  .container :global(.header-input-row .btn.btn-sm) {
+    width: var(--mg-hit-area, 44px);
+    min-width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
+    border-radius: var(--xai-radius-control, 10px);
+  }
+
+  .container :global(.header-input-row) {
+    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area, 44px);
+  }
+}

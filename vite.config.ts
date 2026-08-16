@@ -235,7 +235,7 @@ function createDevManagementProxy(): Plugin {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const singleFileBuild = mode === 'singlefile' || process.env.SINGLE_FILE === 'true';
   const performanceBuild = mode === 'performance';
 
@@ -262,7 +262,8 @@ export default defineConfig(({ mode }) => {
     css: {
       modules: {
         localsConvention: 'camelCase',
-        generateScopedName: '[name]__[local]___[hash:base64:5]',
+        generateScopedName:
+          command === 'serve' ? '[name]__[local]___[hash:base64:5]' : 'm_[hash:base64:6]',
       },
       preprocessorOptions: {
         scss: {

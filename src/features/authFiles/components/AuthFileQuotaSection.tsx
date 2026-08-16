@@ -1,10 +1,4 @@
-import {
-  memo,
-  useCallback,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +34,7 @@ export type AuthFileQuotaSectionProps = {
   file: AuthFileItem;
   quotaType: QuotaProviderType;
   disableControls: boolean;
+  promotionAction?: ReactNode;
   onAuthFileUpdated?: (file: AuthFileItem) => void;
 };
 
@@ -244,7 +239,7 @@ export const AuthFileQuotaRefreshButton = memo(function AuthFileQuotaRefreshButt
 export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   props: AuthFileQuotaSectionProps
 ) {
-  const { file, quotaType, onAuthFileUpdated } = props;
+  const { file, quotaType, promotionAction, onAuthFileUpdated } = props;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const setCodexQuota = useQuotaStore((state) => state.setCodexQuota);
@@ -396,7 +391,10 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   const handleRefreshClick = useCallback(() => {
     void refreshQuotaForFile();
   }, [refreshQuotaForFile]);
-  const quotaRenderHelpers = useMemo(() => ({ styles, QuotaProgressBar, item: file }), [file]);
+  const quotaRenderHelpers = useMemo(
+    () => ({ styles, QuotaProgressBar, item: file, promotionAction }),
+    [file, promotionAction]
+  );
   const renderedQuotaItems = useMemo(
     () => (quota ? (config.renderQuotaItems(quota, t, quotaRenderHelpers) as ReactNode) : null),
     [config, quota, quotaRenderHelpers, t]

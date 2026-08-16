@@ -87,6 +87,7 @@ interface QuotaRenderHelpers {
   styles: Record<string, string>;
   QuotaProgressBar: (props: QuotaProgressBarProps) => ReactElement;
   item?: AuthFileItem;
+  promotionAction?: ReactNode;
 }
 
 interface RenderQuotaRowOptions {
@@ -642,6 +643,7 @@ const renderCodexItems = (
         { key: 'plan', className: styleMap.codexPlan },
         h('span', { className: styleMap.codexPlanLabel }, t('codex_quota.plan_label')),
         h('span', { className: valueClass }, planLabel ?? t('codex_quota.plan_unknown')),
+        normalizedPlanType === 'free' ? helpers.promotionAction : null,
         subscriptionUntilLabel
           ? h('span', { className: styleMap.codexPlanExpiry }, subscriptionUntilLabel)
           : null,

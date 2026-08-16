@@ -822,7 +822,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .modal {
     max-height: none;
 
@@ -843,6 +843,19 @@
 
   .providerContext {
     padding: 18px 16px 20px;
+  }
+
+  .providerContextControls :global(.form-group) > div > input[role='combobox'] {
+    min-height: var(--mg-hit-area, 44px);
+    padding-right: var(--mg-hit-area, 44px) !important;
+  }
+
+  .providerContextControls :global(.form-group) > div > button {
+    width: var(--mg-hit-area, 44px) !important;
+    min-width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px) !important;
+    min-height: var(--mg-hit-area, 44px);
+    right: 0 !important;
   }
 
   .sectionHeader,
@@ -996,4 +1009,30 @@
   --border-color: #33352f;
   --border-primary: #33352f;
   --border-hover: #4a4d44;
+}
+
+@media (max-width: 768px) {
+  // The dialog header close action and mapping removal action must stay easy
+  // to hit even though their glyphs remain visually compact.
+  .modal :global(.modal-close-floating),
+  .mappingRemove:global(.btn.btn-sm) {
+    width: var(--mg-hit-area, 44px);
+    min-width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .modal :global(.modal-close-floating) {
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+  }
+
+  .mappingRowMain {
+    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area, 44px);
+  }
+
+  .manualModelDetails summary,
+  .reasoningDetails summary {
+    min-height: var(--mg-hit-area, 44px);
+  }
 }

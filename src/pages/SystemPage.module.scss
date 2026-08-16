@@ -609,6 +609,15 @@
     text-align: left;
   }
 
+  .tileAction:global(.btn) {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .modelsCard :global(.btn.btn-sm),
+  .dangerCard :global(.btn.btn-danger) {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
   .modelsCard :global(.item-row) {
     display: flex;
     align-items: flex-start;
@@ -635,6 +644,14 @@
   .clearLoginActions,
   .dangerCard :global(.btn.btn-danger) {
     width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .tileAction:global(.btn),
+  .content :global(.btn),
+  .dangerCard :global(.btn.btn-danger) {
+    min-height: var(--mg-hit-area, 44px);
   }
 }
 

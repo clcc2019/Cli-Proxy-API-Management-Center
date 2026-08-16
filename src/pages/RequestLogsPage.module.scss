@@ -329,6 +329,18 @@
   }
 }
 
+@media (max-width: 768px) {
+  .searchBox {
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .searchInput {
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
+  }
+}
+
 .searchClearButton {
   display: inline-flex;
   width: 26px;
@@ -355,6 +367,13 @@
     outline: 1px solid var(--mg-focus-outline);
     outline-offset: 2px;
     box-shadow: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .searchClearButton {
+    width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
   }
 }
 
@@ -1013,12 +1032,22 @@
 
   .statusFilterButton {
     width: 100%;
-    min-height: 40px;
+    min-height: 44px;
     padding-inline: 8px;
   }
 
   .searchBox {
     height: 44px;
+  }
+
+  .searchClearButton {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .refreshButton:global(.btn.btn-sm) {
+    min-height: 44px;
   }
 
   .toolbarActions {

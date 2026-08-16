@@ -851,6 +851,7 @@
 
   .addButton:global(.btn.btn-primary) {
     width: 100%;
+    min-height: var(--mg-hit-area, 44px);
     justify-content: center;
   }
 
@@ -915,6 +916,19 @@
   .noResults {
     margin: 12px;
     padding: 20px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .addButton:global(.btn.btn-primary),
+  .iconButton:global(.btn.btn-sm) {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .iconButton:global(.btn.btn-sm) {
+    width: var(--mg-hit-area, 44px);
+    min-width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
   }
 }
 

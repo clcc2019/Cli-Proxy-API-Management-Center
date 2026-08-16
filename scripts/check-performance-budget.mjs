@@ -8,9 +8,9 @@ const manifestPath = path.join(distRoot, '.vite', 'manifest.json');
 const limits = {
   entryJavaScript: 36 * 1024,
   initialStaticJavaScript: 400 * 1024,
-  initialStaticCss: 50 * 1024,
+  initialStaticCss: 45 * 1024,
   authFilesJavaScript: 98 * 1024,
-  authFilesDirectCss: 140 * 1024,
+  authFilesDirectCss: 126 * 1024,
 };
 
 const formatKiB = (bytes) => `${(bytes / 1024).toFixed(2)} KiB`;

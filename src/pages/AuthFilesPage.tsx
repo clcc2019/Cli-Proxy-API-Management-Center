@@ -20,6 +20,7 @@ import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { RefreshButton } from '@/components/ui/RefreshButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconCheck, IconTrash2, IconUpload } from '@/components/ui/icons';
+import { Select } from '@/components/ui/Select';
 import { copyToClipboard } from '@/utils/clipboard';
 import { REFRESH_FEEDBACK_MS } from '@/utils/refreshFeedback';
 import { isQuotaProviderType, type QuotaProviderType } from '@/utils/quota';
@@ -40,7 +41,10 @@ import {
   normalizeProviderKey,
   resolveAuthFileUsageStats,
 } from '@/features/authFiles/constants';
-import { AuthFileCard } from '@/features/authFiles/components/AuthFileCard';
+import {
+  AuthFileCard,
+  type AuthFilePromotionResult,
+} from '@/features/authFiles/components/AuthFileCard';
 import { FilterTagsRail } from '@/features/authFiles/components/FilterTagsRail';
 import { AuthFilesSkeletonGrid } from '@/features/authFiles/components/AuthFilesSkeletonGrid';
 import { SearchToolbar } from '@/features/authFiles/components/SearchToolbar';
@@ -62,8 +66,10 @@ import {
   useAuthFilesStatusBarCache,
 } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
 import {
-  hasPremiumAuthFilePlan,
+  isAuthFilePlanFilter,
+  matchesAuthFilePlanFilter,
   type AuthFilePlanSources,
+  type AuthFilePlanFilter,
 } from '@/features/authFiles/planMetadata';
 import { authFileIncludesRecentRequestSummary } from '@/features/authFiles/stats';
 import {
@@ -143,9 +149,17 @@ export function AuthFilesPage() {
     const value = persistedUiState?.filter;
     return typeof value === 'string' && value.trim() ? value : 'all';
   });
-  const [problemOnly, setProblemOnly] = useState(() => persistedUiState?.problemOnly === true);
+  const [problemOnly, setProblemOnly] = useState(false);
   const [disabledOnly, setDisabledOnly] = useState(() => persistedUiState?.disabledOnly === true);
-  const [premiumOnly, setPremiumOnly] = useState(() => persistedUiState?.premiumOnly === true);
+  const [planFilter, setPlanFilter] = useState<AuthFilePlanFilter>(() => {
+    if (isAuthFilePlanFilter(persistedUiState?.planFilter)) {
+      return persistedUiState.planFilter;
+    }
+    return persistedUiState?.premiumOnly === true ? 'premium' : 'all';
+  });
+  const premiumOnly = planFilter === 'premium';
+  const planFilterActive = planFilter !== 'all';
+  const exactPlanFilterActive = planFilterActive && !premiumOnly;
   const [premiumServerFilterSupported, setPremiumServerFilterSupported] = useState<boolean | null>(
     null
   );
@@ -167,6 +181,10 @@ export function AuthFilesPage() {
     return isAuthFilesSortMode(value) ? value : 'default';
   });
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
+  const [promotionChecking, setPromotionChecking] = useState<Record<string, boolean>>({});
+  const [promotionResults, setPromotionResults] = useState<Record<string, AuthFilePromotionResult>>(
+    {}
+  );
   const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   const [manualRefreshPending, setManualRefreshPending] = useState(false);
   const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
@@ -195,7 +213,8 @@ export function AuthFilesPage() {
   // paginated probe; an older server then falls back to the established local
   // full-list path without ever filtering a partial server page client-side.
   const requestServerPremiumFilter = premiumOnly && premiumServerFilterSupported !== false;
-  const serverPaginationEnabled = !premiumOnly || requestServerPremiumFilter;
+  const serverPaginationEnabled =
+    !exactPlanFilterActive && (!premiumOnly || requestServerPremiumFilter);
   const serverSearchPending = serverPaginationEnabled && normalizedSearch !== debouncedSearch;
   const serverListPage = serverPaginationEnabled ? page : undefined;
   const serverListPageSize = serverPaginationEnabled ? pageSize : undefined;
@@ -209,13 +228,14 @@ export function AuthFilesPage() {
       filter,
       problemOnly,
       disabledOnly,
+      planFilter,
       premiumOnly,
       search,
       page,
       pageSize,
       sortMode,
     }),
-    [disabledOnly, filter, page, pageSize, premiumOnly, problemOnly, search, sortMode]
+    [disabledOnly, filter, page, pageSize, planFilter, premiumOnly, problemOnly, search, sortMode]
   );
   const debouncedAuthFilesUiState = useDebounce(authFilesUiState, 300);
   const authFilesListOptions = useMemo<AuthFilesListOptions>(() => {
@@ -379,7 +399,7 @@ export function AuthFilesPage() {
   const needsPlanSources =
     isCurrentLayer &&
     !premiumFilterServerSide &&
-    (premiumOnly || (!listMeta.paginated && sortMode === 'subscription_expiry'));
+    (planFilterActive || (!listMeta.paginated && sortMode === 'subscription_expiry'));
   const selectClaudeQuotaForPlanSources = useCallback(
     (state: ReturnType<typeof useQuotaStore.getState>) =>
       needsPlanSources ? state.claudeQuota : EMPTY_CLAUDE_QUOTA,
@@ -409,7 +429,7 @@ export function AuthFilesPage() {
     writeAuthFilesUiState(debouncedAuthFilesUiState);
   }, [debouncedAuthFilesUiState]);
 
-  const displayOptionsActive = problemOnly || disabledOnly || premiumOnly;
+  const displayOptionsActive = problemOnly || disabledOnly || planFilterActive;
   const listUpdating = refreshing || serverSearchPending;
 
   useEffect(() => {
@@ -451,22 +471,21 @@ export function AuthFilesPage() {
     }
   }, [refreshFilesFromServer, refreshKeyStats, refreshStatusDetails]);
 
-  const handleToggleProblemOnly = useCallback(() => {
-    setProblemOnly((prev) => !prev);
-    setPage(1);
-  }, []);
   const handleToggleDisabledOnly = useCallback(() => {
     setDisabledOnly((prev) => !prev);
     setPage(1);
   }, []);
-  const handleTogglePremiumOnly = useCallback(() => {
-    const nextPremiumOnly = !premiumOnly;
-    setPremiumOnly(nextPremiumOnly);
-    if (!nextPremiumOnly) {
-      setPremiumServerFilterSupported(null);
-    }
-    setPage(1);
-  }, [premiumOnly]);
+  const handlePlanFilterChange = useCallback(
+    (value: string) => {
+      if (!isAuthFilePlanFilter(value) || value === planFilter) return;
+      setPlanFilter(value);
+      if (value !== 'premium') {
+        setPremiumServerFilterSupported(null);
+      }
+      setPage(1);
+    },
+    [planFilter]
+  );
   const handleSearchValue = useEventCallback((value: string) => {
     setSearch(value);
     setPage(1);
@@ -476,7 +495,7 @@ export function AuthFilesPage() {
       filter === 'all' &&
       !problemOnly &&
       !disabledOnly &&
-      !premiumOnly &&
+      !planFilterActive &&
       search === '' &&
       page === 1
     ) {
@@ -485,13 +504,13 @@ export function AuthFilesPage() {
     setFilter('all');
     setProblemOnly(false);
     setDisabledOnly(false);
-    setPremiumOnly(false);
-    if (premiumOnly) {
+    setPlanFilter('all');
+    if (planFilterActive) {
       setPremiumServerFilterSupported(null);
     }
     setSearch('');
     setPage(1);
-  }, [disabledOnly, filter, page, premiumOnly, problemOnly, search]);
+  }, [disabledOnly, filter, page, planFilterActive, problemOnly, search]);
   const handleFilterTagSelect = useCallback(
     (value: string) => {
       if (value === filter) return;
@@ -655,14 +674,17 @@ export function AuthFilesPage() {
       if (disabledOnly && file.disabled !== true) {
         return false;
       }
-      // Older servers do not expose cached plan filtering. Only that compatibility
-      // path needs the complete client-side plan check.
-      if (premiumOnly && !premiumFilterServerSide && !hasPremiumAuthFilePlan(file, planSources)) {
+      // Exact plan filters and older-server premium filters use the complete list.
+      if (
+        planFilterActive &&
+        !premiumFilterServerSide &&
+        !matchesAuthFilePlanFilter(file, planFilter, planSources)
+      ) {
         return false;
       }
       return true;
     },
-    [disabledOnly, planSources, premiumFilterServerSide, premiumOnly]
+    [disabledOnly, planFilter, planFilterActive, planSources, premiumFilterServerSide]
   );
   const matchesDisplayFilters = useCallback(
     (file: (typeof files)[number]) => {
@@ -678,7 +700,8 @@ export function AuthFilesPage() {
   );
   const serverPageResultSettled = serverPaginated && !refreshing && !serverSearchPending;
   const shouldApplyLocalDisplayFilters =
-    displayOptionsActive && (!serverPageResultSettled || (premiumOnly && !premiumFilterServerSide));
+    displayOptionsActive &&
+    (!serverPageResultSettled || (planFilterActive && !premiumFilterServerSide));
   const currentFilesMatchingDisplayFilters = useMemo(
     () =>
       !isCurrentLayer
@@ -690,19 +713,19 @@ export function AuthFilesPage() {
   );
   const currentDisplayFilterNames = useMemo(
     () =>
-      isCurrentLayer && displayOptionsActive && !serverPaginated && !premiumOnly
+      isCurrentLayer && displayOptionsActive && !serverPaginated && !planFilterActive
         ? currentFilesMatchingDisplayFilters.map((file) => file.name)
         : EMPTY_AUTH_FILE_NAMES,
     [
       currentFilesMatchingDisplayFilters,
       displayOptionsActive,
       isCurrentLayer,
-      premiumOnly,
+      planFilterActive,
       serverPaginated,
     ]
   );
   const currentDisplayFilterSortSnapshot = useMemo(() => {
-    if (!isCurrentLayer || !displayOptionsActive || serverPaginated || premiumOnly) {
+    if (!isCurrentLayer || !displayOptionsActive || serverPaginated || planFilterActive) {
       return EMPTY_SORT_SNAPSHOT;
     }
     return Object.fromEntries(
@@ -715,15 +738,15 @@ export function AuthFilesPage() {
     currentFilesMatchingDisplayFilters,
     displayOptionsActive,
     isCurrentLayer,
+    planFilterActive,
     planSources,
-    premiumOnly,
     serverPaginated,
     sortSnapshotByName,
   ]);
   // Plan membership is derived from live quota data. Retaining a name snapshot
-  // here would keep files in (or out of) the Plus/Pro view after a quota refresh.
+  // here would keep files in (or out of) the selected plan after a quota refresh.
   const shouldSnapshotDisplayFilters =
-    isCurrentLayer && displayOptionsActive && !serverPaginated && !premiumOnly;
+    isCurrentLayer && displayOptionsActive && !serverPaginated && !planFilterActive;
   const fileByName = useMemo(
     () =>
       shouldSnapshotDisplayFilters
@@ -735,7 +758,7 @@ export function AuthFilesPage() {
     ? [
         problemOnly ? 'problem' : 'normal',
         disabledOnly ? 'disabled' : 'any-status',
-        premiumOnly ? 'premium' : 'any-plan',
+        planFilter,
         displayFilterRefreshVersion,
       ].join('|')
     : null;
@@ -781,6 +804,20 @@ export function AuthFilesPage() {
       { value: 'az', label: t('auth_files.sort_az') },
       { value: 'priority', label: t('auth_files.sort_priority') },
       { value: 'subscription_expiry', label: t('auth_files.sort_subscription_expiry') },
+    ],
+    [t]
+  );
+  const planFilterOptions = useMemo(
+    () => [
+      { value: 'all', label: t('auth_files.plan_filter_all') },
+      { value: 'premium', label: t('auth_files.premium_filter_only') },
+      { value: 'free', label: t('codex_quota.plan_free') },
+      { value: 'plus', label: t('codex_quota.plan_plus') },
+      { value: 'pro', label: t('codex_quota.plan_pro') },
+      { value: 'prolite', label: t('codex_quota.plan_prolite') },
+      { value: 'team', label: t('codex_quota.plan_team') },
+      { value: 'max', label: t('claude_quota.plan_max') },
+      { value: 'unknown', label: t('codex_quota.plan_unknown') },
     ],
     [t]
   );
@@ -901,22 +938,22 @@ export function AuthFilesPage() {
         : EMPTY_AUTH_FILE_TYPE_COUNTS,
     [filesMatchingDisplayFilters, isCurrentLayer, needsLocalTypeCounts]
   );
-  const premiumTypeCounts = useMemo(
+  const planTypeCounts = useMemo(
     () =>
-      isCurrentLayer && premiumOnly && !premiumFilterServerSide
+      isCurrentLayer && planFilterActive && !premiumFilterServerSide
         ? countAuthFilesByType(filesMatchingDisplayFilters.filter(matchesDisplaySearch))
         : EMPTY_AUTH_FILE_TYPE_COUNTS,
     [
       filesMatchingDisplayFilters,
       isCurrentLayer,
       matchesDisplaySearch,
+      planFilterActive,
       premiumFilterServerSide,
-      premiumOnly,
     ]
   );
   const typeCounts =
-    premiumOnly && !premiumFilterServerSide
-      ? premiumTypeCounts
+    planFilterActive && !premiumFilterServerSide
+      ? planTypeCounts
       : scopedTypeCountsKey
         ? (currentScopedServerTypeCounts ?? currentScopedFallbackTypeCounts ?? localTypeCounts)
         : (listMeta.typeCounts ?? localTypeCounts);
@@ -1038,7 +1075,12 @@ export function AuthFilesPage() {
   });
   const showListProgressVisual = useDelayedBoolean(showListProgress, LIST_PROGRESS_HIDE_DELAY_MS);
   const hasActiveFilters =
-    filter !== 'all' || normalizedSearch.length > 0 || problemOnly || disabledOnly || premiumOnly;
+    filter !== 'all' ||
+    normalizedSearch.length > 0 ||
+    problemOnly ||
+    disabledOnly ||
+    planFilterActive;
+  const showWorkbench = showInitialLoading || files.length > 0 || hasActiveFilters;
 
   const copyTextWithNotification = useCallback(
     async (text: string) => {
@@ -1072,6 +1114,39 @@ export function AuthFilesPage() {
     } finally {
       if (pageMountedRef.current) {
         setAccessTokenCopying((prev) => {
+          if (!prev[fileName]) return prev;
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
+    }
+  });
+
+  const handleCheckPromotion = useEventCallback(async (file: AuthFileItem) => {
+    const fileName = file.name;
+    if (disableControls || promotionChecking[fileName]) return;
+
+    setPromotionChecking((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
+    try {
+      const result = await authFilesApi.checkPromotionEligibility(fileName);
+      if (!pageMountedRef.current) return;
+      setPromotionResults((prev) => ({
+        ...prev,
+        [fileName]: result.eligible
+          ? { status: 'eligible', coupon: result.coupon }
+          : { status: 'ineligible', state: result.state || 'unknown' },
+      }));
+    } catch (error) {
+      if (!pageMountedRef.current) return;
+      const message = error instanceof Error ? error.message : String(error);
+      setPromotionResults((prev) => ({
+        ...prev,
+        [fileName]: { status: 'error', message },
+      }));
+    } finally {
+      if (pageMountedRef.current) {
+        setPromotionChecking((prev) => {
           if (!prev[fileName]) return prev;
           const next = { ...prev };
           delete next[fileName];
@@ -1268,7 +1343,7 @@ export function AuthFilesPage() {
       filter,
       problemOnly,
       matchDisplayFilter:
-        disabledOnly || premiumOnly ? matchesSupplementalDisplayFilters : undefined,
+        disabledOnly || planFilterActive ? matchesSupplementalDisplayFilters : undefined,
       onResetFilterToAll: () => setFilter('all'),
       onResetProblemOnly: () => setProblemOnly(false),
     });
@@ -1277,7 +1352,7 @@ export function AuthFilesPage() {
     filter,
     handleDeleteAll,
     matchesSupplementalDisplayFilters,
-    premiumOnly,
+    planFilterActive,
     problemOnly,
   ]);
 
@@ -1340,6 +1415,8 @@ export function AuthFilesPage() {
           deleting={deleting === file.name}
           statusUpdating={statusUpdating[file.name] === true}
           accessTokenCopying={accessTokenCopying[file.name] === true}
+          promotionChecking={promotionChecking[file.name] === true}
+          promotionResult={promotionResults[file.name]}
           priorityUpdating={priorityUpdating[file.name] === true}
           quotaFilterType={quotaFilterType}
           fileUsageStats={fileUsageStats}
@@ -1348,6 +1425,7 @@ export function AuthFilesPage() {
           onCopyName={copyTextWithNotification}
           onDownload={handleDownload}
           onCopyAccessToken={handleCopyAccessToken}
+          onCheckPromotion={handleCheckPromotion}
           onPriorityChange={handlePriorityChange}
           onOpenPrefixProxyEditor={openPrefixProxyEditor}
           onAuthFileUpdated={handleAuthFileUpdated}
@@ -1365,6 +1443,7 @@ export function AuthFilesPage() {
     fileUsageStatsByName,
     handleAuthFileUpdated,
     handleCopyAccessToken,
+    handleCheckPromotion,
     handleDelete,
     handleDownload,
     handlePriorityChange,
@@ -1373,6 +1452,8 @@ export function AuthFilesPage() {
     openPrefixProxyEditor,
     pageItems,
     priorityUpdating,
+    promotionChecking,
+    promotionResults,
     quotaFilterType,
     resolvedTheme,
     selectedFiles,
@@ -1418,17 +1499,19 @@ export function AuthFilesPage() {
                   {t('auth_files.upload_button')}
                 </span>
               </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                className={`${refreshStyles.headerAction} ${refreshStyles.dangerAction}`}
-                onClick={handleDeleteAllClick}
-                disabled={disableControls || loading || refreshing || deletingAll}
-                loading={deletingAll}
-              >
-                <IconTrash2 className={refreshStyles.headerActionIcon} size={15} />
-                <span className={refreshStyles.headerActionText}>{deleteAllButtonLabel}</span>
-              </Button>
+              {listTotal > 0 && (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  className={`${refreshStyles.headerAction} ${refreshStyles.dangerAction}`}
+                  onClick={handleDeleteAllClick}
+                  disabled={disableControls || loading || refreshing || deletingAll}
+                  loading={deletingAll}
+                >
+                  <IconTrash2 className={refreshStyles.headerActionIcon} size={16} />
+                  <span className={refreshStyles.headerActionText}>{deleteAllButtonLabel}</span>
+                </Button>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1448,53 +1531,35 @@ export function AuthFilesPage() {
           </div>
         )}
 
-        <div className={refreshStyles.workbench}>
-          <div className={refreshStyles.filterToolbar}>
-            <FilterTagsRail
-              types={existingTypes}
-              activeFilter={filter}
-              typeCounts={filterTagTypeCounts}
-              resolvedTheme={resolvedTheme}
-              onSelect={handleFilterTagSelect}
-            />
-
-            <div className={refreshStyles.controlRail}>
-              <SearchToolbar
-                search={search}
-                onSearchChange={handleSearchValue}
-                searchPlaceholder={t('auth_files.search_placeholder')}
-                sortValue={sortMode}
-                sortOptions={sortOptions}
-                onSortChange={handleSortModeChange}
-                sortLabel={t('auth_files.sort_label')}
-                pageSize={pageSize}
-                pageSizePresets={PAGE_SIZE_PRESETS}
-                pageSizeMin={MIN_CARD_PAGE_SIZE}
-                pageSizeMax={MAX_CARD_PAGE_SIZE}
-                onPageSizeChange={handlePageSizeCommit}
-                pageSizeLabel={t('auth_files.page_size_label')}
+        {showWorkbench && (
+          <div className={refreshStyles.workbench}>
+            <div className={refreshStyles.filterToolbar}>
+              <FilterTagsRail
+                types={existingTypes}
+                activeFilter={filter}
+                typeCounts={filterTagTypeCounts}
+                resolvedTheme={resolvedTheme}
+                onSelect={handleFilterTagSelect}
               />
 
-              <div className={refreshStyles.displayOptions}>
-                <span className={refreshStyles.displayOptionsLabel}>
-                  {t('auth_files.display_options_label')}
-                </span>
-                <div
-                  className={refreshStyles.displayOptionGroup}
-                  role="group"
-                  aria-label={t('auth_files.display_options_label')}
-                >
-                  <button
-                    type="button"
-                    className={refreshStyles.displayOption}
-                    onClick={handleToggleProblemOnly}
-                    aria-pressed={problemOnly}
-                  >
-                    <span className={refreshStyles.displayOptionMarker} aria-hidden="true">
-                      <IconCheck size={11} />
-                    </span>
-                    <span>{t('auth_files.problem_filter_only')}</span>
-                  </button>
+              <div className={refreshStyles.controlRail}>
+                <SearchToolbar
+                  search={search}
+                  onSearchChange={handleSearchValue}
+                  searchPlaceholder={t('auth_files.search_placeholder')}
+                  sortValue={sortMode}
+                  sortOptions={sortOptions}
+                  onSortChange={handleSortModeChange}
+                  sortLabel={t('auth_files.sort_label')}
+                  pageSize={pageSize}
+                  pageSizePresets={PAGE_SIZE_PRESETS}
+                  pageSizeMin={MIN_CARD_PAGE_SIZE}
+                  pageSizeMax={MAX_CARD_PAGE_SIZE}
+                  onPageSizeChange={handlePageSizeCommit}
+                  pageSizeLabel={t('auth_files.page_size_label')}
+                />
+
+                <div className={refreshStyles.displayOptions}>
                   <button
                     type="button"
                     className={refreshStyles.displayOption}
@@ -1506,47 +1571,45 @@ export function AuthFilesPage() {
                     </span>
                     <span>{t('auth_files.disabled_filter_only')}</span>
                   </button>
-                  <button
-                    type="button"
-                    className={refreshStyles.displayOption}
-                    onClick={handleTogglePremiumOnly}
-                    aria-pressed={premiumOnly}
-                  >
-                    <span className={refreshStyles.displayOptionMarker} aria-hidden="true">
-                      <IconCheck size={11} />
-                    </span>
-                    <span>{t('auth_files.premium_filter_only')}</span>
-                  </button>
+                  <Select
+                    value={planFilter}
+                    options={planFilterOptions}
+                    onChange={handlePlanFilterChange}
+                    ariaLabel={t('auth_files.plan_filter_label')}
+                    className={refreshStyles.planFilterSelect}
+                    dropdownClassName={refreshStyles.planFilterDropdown}
+                    fullWidth={false}
+                  />
+                  {hasActiveFilters && (
+                    <button
+                      type="button"
+                      className={refreshStyles.resetFilters}
+                      onClick={handleClearFilters}
+                    >
+                      {t('auth_files.clear_filters')}
+                    </button>
+                  )}
                 </div>
-                {hasActiveFilters && (
-                  <button
-                    type="button"
-                    className={refreshStyles.resetFilters}
-                    onClick={handleClearFilters}
-                  >
-                    {t('auth_files.clear_filters')}
-                  </button>
-                )}
-              </div>
 
-              <RefreshButton
-                variant="secondary"
-                size="sm"
-                className={refreshStyles.quotaRefreshButton}
-                onClick={handlePageRefreshQuota}
-                disabled={pageQuotaRefreshDisabled}
-                loading={pageQuotaRefreshing}
-                label={pageQuotaRefreshLabel}
-                title={t('auth_files.refresh_page_quota_aria')}
-                iconSize={16}
-              >
-                <span className={refreshStyles.quotaRefreshText}>
-                  {t('auth_files.refresh_page_quota')}
-                </span>
-              </RefreshButton>
+                <RefreshButton
+                  variant="secondary"
+                  size="sm"
+                  className={refreshStyles.quotaRefreshButton}
+                  onClick={handlePageRefreshQuota}
+                  disabled={pageQuotaRefreshDisabled}
+                  loading={pageQuotaRefreshing}
+                  label={pageQuotaRefreshLabel}
+                  title={t('auth_files.refresh_page_quota_aria')}
+                  iconSize={16}
+                >
+                  <span className={refreshStyles.quotaRefreshText}>
+                    {t('auth_files.refresh_page_quota')}
+                  </span>
+                </RefreshButton>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div
           className={`${refreshStyles.contentRegion} ${showListProgressVisual ? refreshStyles.contentUpdating : ''}`}
@@ -1575,16 +1638,6 @@ export function AuthFilesPage() {
               <EmptyState
                 title={t('auth_files.empty_title')}
                 description={t('auth_files.empty_desc')}
-                action={
-                  <Button
-                    size="sm"
-                    onClick={handleUploadClick}
-                    disabled={disableControls || uploading}
-                    loading={uploading}
-                  >
-                    {t('auth_files.upload_button')}
-                  </Button>
-                }
               />
             )
           ) : (

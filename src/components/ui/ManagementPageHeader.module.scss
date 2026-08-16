@@ -4,8 +4,8 @@
   align-items: start;
   gap: var(--mg-space-4) var(--mg-space-6);
   min-width: 0;
-  padding: 2px 0 var(--mg-space-5);
-  border-bottom: 1px solid var(--mg-border);
+  padding: var(--xai-space-1) 0 0;
+  border-bottom: 0;
 }
 
 .identity {
@@ -16,17 +16,17 @@
 }
 
 .context {
-  color: var(--mg-sage-strong);
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.4;
+  color: var(--xai-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 18px;
 }
 
 .titleRow {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 10px;
+  gap: var(--xai-space-2);
 }
 
 .title {
@@ -34,27 +34,27 @@
   margin: 0;
   color: var(--mg-text);
   font-family: var(--mg-font-display);
-  font-size: clamp(26px, 2.2vw, 32px);
-  font-weight: 650;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -0.675px;
   text-wrap: balance;
 }
 
 .count {
   display: inline-grid;
-  min-width: 28px;
-  height: 25px;
+  min-width: var(--xai-space-6);
+  height: var(--xai-space-5);
   flex: 0 0 auto;
   place-items: center;
-  padding: 0 8px;
+  padding: 0 var(--xai-space-2);
   border: 1px solid var(--mg-border-hover);
   border-radius: var(--mg-radius-pill);
   color: var(--mg-text-secondary);
   font-family: var(--mg-font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: 500;
 }
 
 .description {
@@ -62,7 +62,7 @@
   margin: 0;
   color: var(--mg-text-secondary);
   font-size: 13.5px;
-  line-height: 1.55;
+  line-height: 18px;
 }
 
 .actions {
@@ -70,8 +70,8 @@
   min-width: 0;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
-  padding-top: 1px;
+  gap: var(--xai-space-1-5);
+  padding-top: var(--xai-space-1);
 }
 
 @media (max-width: 1100px) {

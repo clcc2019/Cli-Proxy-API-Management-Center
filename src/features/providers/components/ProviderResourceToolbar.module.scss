@@ -176,7 +176,7 @@
   word-break: break-all;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .root {
     justify-content: flex-start;
   }
@@ -185,8 +185,20 @@
     min-width: 0;
   }
 
+  .sortSelect :global(button[role='combobox']) {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .dirBtn {
+    width: var(--mg-hit-area, 44px);
+    min-width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
+  }
+
   .filterTrigger {
     max-width: min(240px, 68vw);
+    min-height: var(--mg-hit-area, 44px);
   }
 }
 

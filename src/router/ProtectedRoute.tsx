@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { PageLoadFallback } from '@/components/common/PageLoadFallback';
 
 export function ProtectedRoute({ children }: { children: ReactElement }) {
   const location = useLocation();
@@ -34,11 +34,7 @@ export function ProtectedRoute({ children }: { children: ReactElement }) {
   }, [isAuthenticated, restoreSession]);
 
   if (checking && !isAuthenticated) {
-    return (
-      <div className="main-content">
-        <LoadingSpinner />
-      </div>
-    );
+    return <PageLoadFallback fullScreen />;
   }
 
   if (!isAuthenticated) {

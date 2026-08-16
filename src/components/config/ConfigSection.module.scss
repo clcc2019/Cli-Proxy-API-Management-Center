@@ -4,13 +4,13 @@
 .section {
   display: grid;
   grid-template-columns: minmax(180px, 0.28fr) minmax(0, 1fr);
-  gap: clamp(22px, 2.4vw, 32px);
-  padding: clamp(22px, 2.2vw, 28px);
+  gap: var(--xai-space-6);
+  padding: var(--xai-space-6);
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  scroll-margin-top: 96px;
+  scroll-margin-top: 108px;
 
   & + & {
     border-top: 1px solid var(--mg-border);
@@ -18,27 +18,23 @@
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    padding: 18px 16px;
+    gap: var(--xai-space-3);
+    padding: var(--xai-space-4);
     border-radius: 0;
-    scroll-margin-top: 80px;
+    scroll-margin-top: 81px;
   }
 }
 
 .header {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   align-content: start;
-  gap: 10px;
+  gap: var(--xai-space-2);
   min-width: 0;
 }
 
 .titleRow {
-  display: flex;
-  grid-column: 1;
-  grid-row: 1;
-  align-items: center;
-  min-width: 0;
+  display: none;
 }
 
 .iconBadge {
@@ -56,24 +52,22 @@
 
 .headingGroup {
   display: flex;
-  grid-column: 2;
-  grid-row: 1;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--xai-space-1);
   min-width: 0;
 }
 
 .title {
   margin: 0;
   font-size: 18px;
-  line-height: 1.2;
-  font-weight: 680;
-  letter-spacing: -0.02em;
+  line-height: 27px;
+  font-weight: 500;
+  letter-spacing: -0.45px;
   color: var(--mg-text);
 
   @include mobile {
     font-size: 18px;
-    line-height: 1.2;
+    line-height: 27px;
   }
 }
 
@@ -81,8 +75,8 @@
   margin: 0;
   max-width: 28ch;
   color: var(--mg-text-tertiary);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 13.5px;
+  line-height: 18px;
 
   @include mobile {
     max-width: none;
@@ -92,14 +86,14 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--xai-space-4);
   min-width: 0;
-  padding-left: clamp(20px, 2.4vw, 32px);
+  padding-left: var(--xai-space-6);
   border-left: 1px solid var(--mg-border);
 
   @include mobile {
     padding-left: 0;
-    padding-top: 14px;
+    padding-top: var(--xai-space-3);
     border-left: none;
     border-top: 1px solid var(--mg-border);
   }

@@ -11,6 +11,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
+import '@/styles/layout.scss';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from '@/components/ui/IconButton';
@@ -23,17 +24,21 @@ import {
 import { MainRoutes } from '@/router/MainRoutes';
 import { preloadRoute } from '@/router/routeLoaders';
 import {
+  IconAlertTriangle,
+  IconCheck,
   IconSidebarAuthFiles,
   IconSidebarConfig,
   IconSidebarDashboard,
   IconFileText,
   IconKey,
+  IconLoader2,
   IconSidebarLogs,
   IconSidebarOauth,
   IconSidebarProviders,
   IconSidebarQuota,
   IconSidebarSystem,
   IconSidebarUsage,
+  IconX,
 } from '@/components/ui/icons';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useConfigStore } from '@/stores/useConfigStore';
@@ -378,6 +383,16 @@ export function MainLayout() {
         : connectionStatus === 'error'
           ? 'error'
           : 'muted';
+  const statusIcon =
+    connectionStatus === 'connected' ? (
+      <IconCheck size={14} />
+    ) : connectionStatus === 'connecting' ? (
+      <IconLoader2 size={14} />
+    ) : connectionStatus === 'error' ? (
+      <IconAlertTriangle size={14} />
+    ) : (
+      <IconX size={14} />
+    );
 
   const navGroups = useMemo<SidebarNavigationGroup[]>(
     () => [
@@ -599,6 +614,9 @@ export function MainLayout() {
             )}
           >
             <span className={`status-badge ${statusClass}`}>
+              <span className="status-symbol" aria-hidden="true">
+                {statusIcon}
+              </span>
               <span className="status-label">
                 {t(
                   connectionStatus === 'connected'

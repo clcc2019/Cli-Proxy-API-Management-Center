@@ -133,6 +133,13 @@
   }
 }
 
+@media (max-width: 768px) {
+  .filters :global(.input-control),
+  .filters :global(.input) {
+    min-height: var(--mg-hit-area, 44px);
+  }
+}
+
 .searchWrapper {
   flex: 1;
   min-width: 220px;
@@ -288,6 +295,14 @@
 
   &:hover {
     background: var(--bg-secondary);
+  }
+}
+
+@media (max-width: 768px) {
+  .filters .searchClear {
+    width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
+    right: 0;
   }
 }
 
@@ -833,6 +848,36 @@
 
   @include mobile {
     grid-template-columns: 1fr;
+  }
+}
+
+// The log page is frequently used from a phone. Let filter controls occupy
+// the full content column and keep every action reachable without relying on
+// a tiny icon target.
+@include mobile {
+  .tabItem {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .searchWrapper {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .searchClear,
+  .traceButton {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
+  .searchClear {
+    width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
+  }
+
+  .filterChip {
+    min-height: var(--mg-hit-area, 44px);
   }
 }
 

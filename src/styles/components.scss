@@ -4,32 +4,32 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: $spacing-sm;
+  gap: var(--xai-space-1-5);
   min-height: var(--mg-control-height);
   border: 1px solid transparent;
-  border-radius: var(--mg-radius-control);
-  padding: 10px 18px;
+  border-radius: var(--xai-radius-pill);
+  padding: var(--xai-space-1-5) var(--xai-space-3);
   font: inherit;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.005em;
+  font-size: 15.75px;
+  font-weight: 500;
+  line-height: 22.5px;
+  letter-spacing: 0;
   white-space: nowrap;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   transition:
-    border-color var(--motion-duration-fast) var(--motion-ease-standard),
-    background-color var(--motion-duration-fast) var(--motion-ease-standard),
-    color var(--motion-duration-fast) var(--motion-ease-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
-    transform var(--motion-duration-fast) var(--motion-ease-standard);
+    border-color var(--xai-duration-default) var(--xai-ease-standard),
+    background-color var(--xai-duration-default) var(--xai-ease-standard),
+    color var(--xai-duration-default) var(--xai-ease-standard),
+    transform var(--xai-duration-fast) var(--xai-ease-out);
   background-color: var(--control-surface, var(--surface-raised));
   color: var(--text-primary);
   box-shadow: none;
 
   &:focus-visible {
     outline: 1px solid var(--mg-focus-outline);
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
 
   &:active:not(:disabled) {
@@ -40,39 +40,37 @@
     background: var(--mg-action);
     color: var(--primary-contrast, #fff);
     border-color: var(--mg-action);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.08),
-      0 1px 2px rgb(14 13 12 / 0.22);
+    box-shadow: var(--xai-shadow-button);
 
     &:hover:not(:disabled) {
       background: var(--mg-action-hover);
       border-color: var(--mg-action-hover);
-      box-shadow: 0 2px 6px -2px rgb(14 13 12 / 0.28);
+      box-shadow: var(--xai-shadow-button);
     }
 
     &:active:not(:disabled) {
       background: var(--mg-action);
       border-color: var(--mg-action);
-      box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.24);
+      box-shadow: var(--xai-shadow-button);
     }
   }
 
   &.btn-secondary {
     background: var(--mg-surface);
-    border-color: var(--mg-border);
+    border-color: var(--xai-border-hover);
     color: var(--mg-text);
-    box-shadow: var(--mg-shadow-rest);
+    box-shadow: none;
 
     &:hover:not(:disabled) {
       background: var(--mg-surface-hover);
       border-color: var(--mg-border-hover);
-      box-shadow: var(--mg-shadow-rest);
+      box-shadow: none;
     }
 
     &:active:not(:disabled) {
       background: var(--mg-surface-pressed);
       border-color: var(--mg-border-strong);
-      box-shadow: var(--mg-shadow-rest);
+      box-shadow: none;
     }
   }
 
@@ -115,9 +113,10 @@
   }
 
   &.btn-sm {
-    min-height: var(--mg-control-height);
-    padding: 8px 14px;
-    font-size: 13px;
+    min-height: var(--mg-control-height-small);
+    padding: var(--xai-space-1-5) var(--xai-space-3);
+    font-size: 13.5px;
+    line-height: 18px;
   }
 
   &.icon-button {
@@ -127,9 +126,9 @@
   }
 
   &.icon-button.btn-sm {
-    width: var(--mg-control-height);
-    min-width: var(--mg-control-height);
-    min-height: var(--mg-control-height);
+    width: var(--mg-control-height-small);
+    min-width: var(--mg-control-height-small);
+    min-height: var(--mg-control-height-small);
     padding: 0;
   }
 
@@ -151,11 +150,11 @@ textarea {
   width: 100%;
   border: 1px solid var(--mg-border);
   border-radius: var(--mg-radius-control);
-  padding: 10px 12px;
-  min-height: 40px;
+  padding: var(--xai-space-2-5) var(--xai-space-3);
+  min-height: var(--xai-space-9);
   background-color: var(--mg-surface);
   color: var(--mg-text);
-  caret-color: var(--mg-sage-strong);
+  caret-color: var(--xai-ink-console);
   box-shadow: none;
   transition:
     border-color $transition-fast,
@@ -260,12 +259,13 @@ textarea {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
-  margin-bottom: $spacing-md;
+  gap: var(--xai-space-1-5);
+  margin-bottom: var(--xai-space-4);
 
   label,
   .form-label {
-    font-weight: 600;
+    font-size: 13.5px;
+    font-weight: 500;
     color: var(--text-primary);
     line-height: 1.35;
   }
@@ -282,12 +282,11 @@ textarea {
   background: var(--surface-card, var(--surface-raised));
   border: 1px solid var(--surface-card-border, var(--border-color));
   border-radius: var(--mg-radius-card);
-  box-shadow: var(--shadow-card);
-  padding: clamp(14px, 1.2vw + 8px, 20px);
+  box-shadow: none;
+  padding: var(--xai-space-5);
   transition:
     border-color var(--motion-duration-base) var(--motion-ease-standard),
-    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
-    transform var(--motion-duration-base) var(--motion-ease-standard);
+    background-color var(--xai-duration-default) var(--xai-ease-standard);
 
   &.card-interactive {
     cursor: pointer;
@@ -295,25 +294,25 @@ textarea {
 
   &.card-interactive:hover {
     border-color: var(--surface-card-border-hover, var(--border-hover));
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-1px);
+    background: var(--xai-fill-soft);
+    box-shadow: none;
   }
 
   &.card-interactive:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-card);
+    background: var(--xai-fill-hover);
+    box-shadow: none;
   }
 }
 
 // 紧凑密度：14px 内边距、12px 圆角，适合密集列表场景
 .card.card-compact {
-  padding: 14px;
+  padding: var(--xai-space-3);
   border-radius: var(--mg-radius-medium);
 }
 
 // 舒适密度：20px 内边距，适合需要呼吸感的重要卡片
 .card.card-cozy {
-  padding: clamp(16px, 1.4vw + 10px, 22px);
+  padding: var(--xai-space-5);
 }
 
 // flush: 去边框/阴影，让父容器自己带视觉层级
@@ -829,13 +828,13 @@ textarea {
 }
 
 .empty-state {
-  border: 1px solid var(--mg-border);
-  border-radius: var(--mg-radius-medium);
-  padding: $spacing-lg;
+  border: 0;
+  border-radius: var(--xai-radius-card);
+  padding: var(--xai-space-5);
   background: var(--mg-surface-warm);
   display: flex;
   justify-content: space-between;
-  gap: $spacing-md;
+  gap: var(--xai-space-4);
   align-items: center;
   box-shadow: none;
 
@@ -843,33 +842,22 @@ textarea {
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: $spacing-md;
-  }
-
-  .empty-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: $radius-full;
-    border: 1px solid var(--mg-border);
-    display: grid;
-    place-items: center;
-    color: var(--text-secondary);
-    background: var(--mg-surface);
-
-    svg {
-      display: block;
-    }
   }
 
   .empty-title {
-    font-weight: 650;
+    font-family: var(--xai-font-display);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 27px;
+    letter-spacing: -0.45px;
     color: var(--text-primary);
   }
 
   .empty-desc {
     color: var(--text-secondary);
-    margin-top: 4px;
-    line-height: 1.5;
+    margin-top: var(--xai-space-1);
+    font-size: 13.5px;
+    line-height: 18px;
   }
 }
 
@@ -877,7 +865,7 @@ textarea {
   .empty-state {
     align-items: stretch;
     flex-direction: column;
-    padding: var(--mg-space-4);
+    padding: var(--xai-space-4);
 
     .empty-content {
       align-items: flex-start;
@@ -887,6 +875,58 @@ textarea {
     .empty-action .btn {
       width: 100%;
     }
+  }
+}
+
+// Match the application shell's tablet/drawer threshold.
+@media (max-width: 1023px) {
+  .btn.btn-sm {
+    min-height: var(--mg-hit-area);
+  }
+
+  .btn.icon-button.btn-sm {
+    width: var(--mg-hit-area);
+    min-width: var(--mg-hit-area);
+    min-height: var(--mg-hit-area);
+  }
+}
+
+// Keep shared rows usable when a page is rendered in the mobile drawer
+// layout. Page-specific editors can still opt into a denser visual treatment,
+// but the interactive target remains touch-safe and the row can shrink to the
+// available content column.
+@media (max-width: $breakpoint-mobile) {
+  .header-input-list .header-input-row {
+    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area, 44px);
+    gap: var(--xai-space-1-5);
+
+    .header-separator {
+      display: none;
+    }
+
+    > input:nth-of-type(2) {
+      grid-column: 1;
+    }
+
+    > button {
+      grid-column: 2;
+      grid-row: 1;
+      width: var(--mg-hit-area, 44px);
+      min-width: var(--mg-hit-area, 44px);
+      min-height: var(--mg-hit-area, 44px);
+    }
+  }
+
+  .item-actions {
+    width: 100%;
+
+    > .btn {
+      min-height: var(--mg-hit-area, 44px);
+    }
+  }
+
+  .pagination {
+    flex-wrap: wrap;
   }
 }
 

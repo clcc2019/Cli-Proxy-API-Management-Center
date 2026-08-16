@@ -403,7 +403,7 @@ export function DashboardPage() {
     : [];
 
   return (
-    <div className={styles.dashboard}>
+    <div className={styles.dashboard} data-page="dashboard">
       <section className={styles.hero} aria-labelledby="dashboard-hero-title">
         <h1 id="dashboard-hero-title" className={styles.heroTitle}>
           {t('nav.dashboard')}
@@ -412,12 +412,9 @@ export function DashboardPage() {
 
       <section
         className={styles.statsSection}
-        aria-labelledby="dashboard-stats-title"
+        aria-label={t('dashboard.system_overview')}
         aria-busy={isStatsLoading}
       >
-        <h2 id="dashboard-stats-title" className={styles.sectionTitle}>
-          {t('dashboard.system_overview')}
-        </h2>
         <div className={styles.bentoGrid}>
           {quickStats.map((stat) => (
             <Link

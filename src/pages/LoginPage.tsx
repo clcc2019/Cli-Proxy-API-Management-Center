@@ -226,7 +226,6 @@ export function LoginPage() {
       <main className={styles.loginShell}>
         <div className={styles.brandPanel}>
           <div className={styles.brandContent}>
-            <span className={styles.brandKicker}>{t('login.connection_title')}</span>
             <span className={styles.brandWord}>TO</span>
             <span className={styles.brandWord}>KA</span>
             <p className={styles.brandCaption}>{t('login.subtitle')}</p>
@@ -244,13 +243,9 @@ export function LoginPage() {
               </div>
             </div>
           ) : (
-            <div className={styles.formContent}>
+              <div className={styles.formContent}>
               <div className={styles.loginCard}>
                 <div className={styles.loginHeader}>
-                  <span className={styles.loginKicker}>
-                    <span className={styles.loginKickerDot} aria-hidden="true" />
-                    {t('login.access_kicker')}
-                  </span>
                   <div className={styles.titleBlock}>
                     <h1 className={styles.title}>{t('login.access_title')}</h1>
                     <p className={styles.subtitle}>{t('login.subtitle')}</p>

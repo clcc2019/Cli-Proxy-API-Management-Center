@@ -364,6 +364,7 @@
   .tabItem,
   .tabItem:global(.btn.btn-sm) {
     flex: 1;
+    min-height: var(--mg-hit-area, 44px);
   }
 
   .overviewCopy {
@@ -372,6 +373,13 @@
 
   .metricItem {
     padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabItem,
+  .tabItem:global(.btn.btn-sm) {
+    min-height: var(--mg-hit-area, 44px);
   }
 }
 
