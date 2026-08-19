@@ -1372,9 +1372,9 @@
   color: var(--mg-text);
   font: inherit;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 20px;
-  letter-spacing: normal;
+  letter-spacing: 0;
   text-align: left;
   cursor: copy;
   transition:
@@ -4231,7 +4231,7 @@
     border-radius: var(--xai-radius-pill);
     color: var(--xai-ink-console);
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 500;
     line-height: 20px;
   }
 
@@ -4728,5 +4728,136 @@
     color: var(--xai-ink-console);
     font-size: 13px;
     font-weight: 500;
+  }
+}
+
+// Keep mobile targets touch-safe while giving the card footer a compact visual rhythm.
+@container auth-files-page (max-width: 767px) {
+  .page .cardTitleRow {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page .cardNameGroup {
+    width: 100%;
+  }
+
+  .page .cardNameButton {
+    min-width: 0;
+    flex-basis: 0;
+  }
+
+  .page .cardPriority {
+    align-self: flex-start;
+  }
+
+  .page .credentialCard .cardActions {
+    gap: var(--xai-space-1);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm),
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm) {
+    position: relative;
+    width: var(--mg-hit-area, 44px);
+    min-width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
+    flex-basis: var(--mg-hit-area, 44px);
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm)::before,
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm)::before {
+    position: absolute;
+    inset: var(--xai-space-1);
+    border: 1px solid var(--xai-border);
+    border-radius: var(--xai-radius-control);
+    background: var(--xai-white);
+    content: '';
+    pointer-events: none;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) > span:not(:global(.loading-spinner)),
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm) > span:not(:global(.loading-spinner)) {
+    position: relative;
+    z-index: 1;
+    width: var(--xai-space-7);
+    height: var(--xai-space-7);
+    border-radius: var(--xai-radius-control);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) > :global(.loading-spinner),
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm) > :global(.loading-spinner) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm):hover:not(:disabled),
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm):hover:not(:disabled) {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm):hover:not(:disabled)::before,
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm):hover:not(:disabled)::before {
+    border-color: var(--xai-border-hover);
+    background: var(--xai-fill-soft);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm):focus-visible,
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm):focus-visible {
+    border-color: transparent;
+    outline: 1px solid var(--xai-ink-console);
+    outline-offset: 3px;
+    box-shadow: none;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm)::before {
+    border-color: var(--xai-danger-border);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm):hover:not(:disabled)::before {
+    border-color: var(--xai-danger-border);
+    background: var(--xai-danger-soft);
+  }
+
+  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
+    width: auto;
+    min-width: var(--mg-hit-area, 44px);
+    flex-basis: auto;
+    padding-inline: var(--xai-space-1-5);
+  }
+
+  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm)::before {
+    border-radius: var(--xai-radius-pill);
+  }
+
+  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) > span:not(:global(.loading-spinner)) {
+    width: auto;
+    height: var(--xai-space-7);
+    gap: var(--xai-space-1);
+    padding-inline: var(--xai-space-1);
+  }
+}
+
+@container auth-files-page (max-width: 560px) {
+  .page .cardNote {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--xai-space-1-5);
+  }
+
+  .page .noteLabel {
+    white-space: nowrap;
+  }
+
+  .page .noteValue {
+    display: block;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

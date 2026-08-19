@@ -84,6 +84,7 @@ import {
   EMPTY_AUTH_FILE_USAGE_STATS_MAP,
   EMPTY_CLAUDE_QUOTA,
   EMPTY_CODEX_QUOTA,
+  EMPTY_KIMI_QUOTA,
   EMPTY_SORT_SNAPSHOT,
   FILE_USAGE_BUCKET_CACHE,
   areAuthFileTypeCountsEqual,
@@ -399,7 +400,8 @@ export function AuthFilesPage() {
   const needsPlanSources =
     isCurrentLayer &&
     !premiumFilterServerSide &&
-    (planFilterActive || (!listMeta.paginated && sortMode === 'subscription_expiry'));
+    (planFilterActive ||
+      (!listMeta.paginated && ['subscription_expiry', 'quota_reset'].includes(sortMode)));
   const selectClaudeQuotaForPlanSources = useCallback(
     (state: ReturnType<typeof useQuotaStore.getState>) =>
       needsPlanSources ? state.claudeQuota : EMPTY_CLAUDE_QUOTA,
@@ -410,8 +412,14 @@ export function AuthFilesPage() {
       needsPlanSources ? state.codexQuota : EMPTY_CODEX_QUOTA,
     [needsPlanSources]
   );
+  const selectKimiQuotaForPlanSources = useCallback(
+    (state: ReturnType<typeof useQuotaStore.getState>) =>
+      needsPlanSources ? state.kimiQuota : EMPTY_KIMI_QUOTA,
+    [needsPlanSources]
+  );
   const claudeQuota = useQuotaStore(selectClaudeQuotaForPlanSources);
   const codexQuota = useQuotaStore(selectCodexQuotaForPlanSources);
+  const kimiQuota = useQuotaStore(selectKimiQuotaForPlanSources);
   const normalizedFilter = normalizeProviderKey(String(filter));
   const quotaFilterType: QuotaProviderType | null = isQuotaProviderType(normalizedFilter)
     ? normalizedFilter
@@ -420,8 +428,9 @@ export function AuthFilesPage() {
     () => ({
       claudeQuota,
       codexQuota,
+      kimiQuota,
     }),
-    [claudeQuota, codexQuota]
+    [claudeQuota, codexQuota, kimiQuota]
   );
 
   useEffect(() => {
@@ -804,6 +813,7 @@ export function AuthFilesPage() {
       { value: 'az', label: t('auth_files.sort_az') },
       { value: 'priority', label: t('auth_files.sort_priority') },
       { value: 'subscription_expiry', label: t('auth_files.sort_subscription_expiry') },
+      { value: 'quota_reset', label: t('auth_files.sort_quota_reset') },
     ],
     [t]
   );

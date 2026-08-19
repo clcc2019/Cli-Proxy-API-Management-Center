@@ -2,7 +2,7 @@
  * Quota management types.
  */
 
-import type { AuthFileItem } from './authFile';
+import type { AuthFileItem, CodexCreditsSnapshot, CodexExpiringBalanceDetail } from './authFile';
 
 // Theme types
 export type ThemeColors = { bg: string; text: string; border?: string };
@@ -42,6 +42,11 @@ export interface CodexAdditionalRateLimit {
 export interface CodexUsagePayload {
   auth_file?: AuthFileItem | null;
   authFile?: AuthFileItem | null;
+  credits?: CodexCreditsSnapshot | null;
+  remaining_balance?: number | string | null;
+  remainingBalance?: number | string | null;
+  expiring_balance_details?: CodexExpiringBalanceDetail[] | null;
+  expiringBalanceDetails?: CodexExpiringBalanceDetail[] | null;
   rate_limit_reset_credits?: CodexRateLimitResetCredits | null;
   rateLimitResetCredits?: CodexRateLimitResetCredits | null;
   plan_type?: string;
@@ -177,6 +182,7 @@ export interface ClaudeQuotaWindow {
   labelKey?: string;
   usedPercent: number | null;
   resetLabel: string;
+  resetAt?: number;
 }
 
 export interface ClaudeQuotaState {
@@ -195,11 +201,13 @@ export interface CodexQuotaWindow {
   labelParams?: Record<string, string | number>;
   usedPercent: number | null;
   resetLabel: string;
+  resetAt?: number;
 }
 
 export interface CodexQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   windows: CodexQuotaWindow[];
+  credits?: CodexCreditsSnapshot | null;
   rateLimitResetCreditsAvailable?: number | null;
   rateLimitResetCredits?: CodexRateLimitResetCredit[];
   planType?: string | null;
@@ -263,6 +271,7 @@ export interface KimiQuotaRow {
   used: number;
   limit: number;
   resetHint?: string;
+  resetAt?: number;
 }
 
 export interface KimiQuotaState {

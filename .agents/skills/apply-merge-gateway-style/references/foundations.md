@@ -83,7 +83,14 @@ Install these tokens at the visual root. Do not create legacy aliases except as 
   --xai-font-ui: universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
   --xai-font-display:
     universalSansDisplay, universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-zh-hans:
+    'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
+}
+
+html:lang(zh-Hans) {
+  --xai-font-ui: universalSans, var(--xai-font-zh-hans);
+  --xai-font-display: universalSansDisplay, universalSans, var(--xai-font-zh-hans);
 }
 ```
 
@@ -125,6 +132,8 @@ Use `--xai-orange` for the xAI attention accent and `--xai-warning` when the pro
 ## Typography
 
 Use licensed `universalSans`, `universalSansDisplay`, and `GeistMono` when supplied or legally available. Otherwise use the token fallbacks; never extract private font files.
+
+For Simplified Chinese, set `lang="zh-Hans"` and use the locale override above instead of relying on incidental browser fallback. The [OpenAI Research index](https://openai.com/zh-Hans-CN/research/index/) observed on 2026-08-17 uses `"OpenAI Sans SC", "OpenAI Sans", "OpenAI Sans Variable Scripts", sans-serif`; its SC face is a normal-style variable font spanning weights 300–700. Treat that split-font technique as implementation evidence, not a license or xAI visual authority. If the target already legally loads `OpenAI Sans SC` or the user supplies an authorized copy, place it first in `--xai-font-zh-hans`; otherwise keep the open/system fallback stack. Never copy or hotlink OpenAI's CDN font files.
 
 | Token/role           | Font    |         Size |        Line |  Weight |  Tracking |
 | -------------------- | ------- | -----------: | ----------: | ------: | --------: |

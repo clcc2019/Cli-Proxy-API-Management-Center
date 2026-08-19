@@ -33,8 +33,8 @@ Do not average the three xAI modes into a generic SaaS aesthetic.
 
 | Context   | Use for                                                         | Governing traits                                                                                                                 |
 | --------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Console   | authenticated dashboards and management tools                   | 306px rail, compact 13.5–27px type, white canvas, warm summary cards, fine borders, black pill actions                           |
-| Docs      | developer documentation, onboarding, API examples, editors      | 306px rail, warm 18px workbench, editorial explanation, contained near-black code panel                                          |
+| Console   | authenticated dashboards and management tools                   | 214px rail, compact 13.5–27px type, white canvas, warm summary cards, fine borders, black pill actions                           |
+| Docs      | developer documentation, onboarding, API examples, editors      | 214px rail, warm 18px workbench, editorial explanation, contained near-black code panel                                          |
 | Marketing | home, Grok, company, pricing, news, public product storytelling | 54–67.5px display type, long vertical rhythm, alternating black/white/warm fields, media-led sections, CTA band and ruled footer |
 
 These contexts adjust density and scale; they do not create separate design systems. Shared colors, type character, 4.5px rhythm, radii, icons, actions, surfaces, and motion remain consistent. A custom page may combine operational density with a technical workbench or a restrained editorial introduction when its task requires it. Scope context adjustments with `[data-xai-mode]` and never copy an unrelated route structure.
@@ -73,12 +73,13 @@ These contexts adjust density and scale; they do not create separate design syst
 - Establish one dominant surface or narrative per viewport. Use hierarchy, alignment, whitespace, warm grouping, and hairlines before adding more containers.
 - Default to one title and one primary action per routine operational viewport. Add a description, subtitle, section heading, icon, badge, or trailing affordance only when removing it would make the task ambiguous, unsafe, or materially slower.
 - Choose components by content semantics: tables for comparable columns, divider-led rows for histories, warm cards for discovery/grouping, white bordered cards for comparable details, connected frames for workbenches, and broad fields for editorial storytelling.
-- Use observed Dashboard, Models, Usage, Docs, Home, Pricing, and News structures only as examples of these decisions. Never add pricing cards, a news archive, a 306px rail, a code panel, an engineering grid, a CTA band, or a footer merely because an xAI reference page contains one.
+- Use observed Dashboard, Models, Usage, Docs, Home, Pricing, and News structures only as examples of these decisions. Never add pricing cards, a news archive, a 214px rail, a code panel, an engineering grid, a CTA band, or a footer merely because an xAI reference page contains one.
 - Make a new or unfamiliar component look native to xAI by applying the same token, typography, geometry, icon, surface, state, density, and motion contracts—not by visually quoting an unrelated component.
 
 ## Asset and font policy
 
 - Prefer licensed `universalSans`, `universalSansDisplay`, and `GeistMono` files when the user provides them or the target already legally loads them.
+- For Simplified Chinese, apply the locale-aware stack in `foundations.md`. Use `OpenAI Sans SC` only when the target already legally loads it or the user supplies an authorized copy; never scrape, bundle, or hotlink OpenAI's CDN font files.
 - Otherwise use the fallback stacks in `foundations.md`; do not download or extract private font binaries from xAI.
 - Use the target product's own logo, copy, imagery, and data unless the user supplies xAI assets and authorizes their use. Reproduce layout, crop logic, contrast, texture, and motion—not protected content by scraping it.
 - Implement live UI with semantic HTML, CSS, SVG, canvas/chart libraries, and real state. Do not paste screenshots into interactive surfaces.

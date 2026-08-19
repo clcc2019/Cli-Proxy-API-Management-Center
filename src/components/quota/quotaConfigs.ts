@@ -15,6 +15,7 @@ import type {
   CodexRateLimitInfo,
   CodexRateLimitResetCredit,
   CodexRateLimitResetCredits,
+  CodexCreditsSnapshot,
   CodexQuotaState,
   CodexUsageWindow,
   CodexQuotaWindow,
@@ -23,6 +24,7 @@ import type {
   KimiQuotaState,
 } from '@/types';
 import { apiCallApi, authFilesApi, getApiCallErrorMessage } from '@/services/api';
+import { isAuthFileDisableCoolingEnabled } from '@/features/authFiles/constants';
 import { mergeAuthFileUpdatePreservingRequestStats } from '@/features/authFiles/stats';
 
 import {
@@ -42,6 +44,8 @@ import {
   resolveCodexSubscriptionActiveStart,
   resolveCodexSubscriptionActiveUntil,
   formatCodexResetLabel,
+  resolveCodexResetTimeMs,
+  resolveQuotaResetTimeMs,
   formatQuotaResetTime,
   formatKimiResetHint,
   getQuotaProgressLevel,
@@ -239,6 +243,7 @@ const buildCodexQuotaWindows = (
   ) => {
     if (!window) return;
     const resetLabel = formatCodexResetLabel(window);
+    const resetAt = resolveCodexResetTimeMs(window);
     const usedPercentRaw = normalizeNumberValue(window.used_percent ?? window.usedPercent);
     const isLimitReached = Boolean(limitReached) || allowed === false;
     const usedPercent =
@@ -252,6 +257,7 @@ const buildCodexQuotaWindows = (
       labelParams,
       usedPercent,
       resetLabel,
+      resetAt: resetAt ?? undefined,
     });
   };
 
@@ -443,16 +449,55 @@ const resolveCodexRateLimitResetCreditDetails = (
   );
 };
 
+const resolveCodexCreditsSnapshot = (
+  payload: CodexUsagePayload,
+  fallback?: AuthFileItem | null
+): CodexCreditsSnapshot | null => {
+  const authFile = payload.auth_file ?? payload.authFile;
+  const credits =
+    payload.credits ??
+    (authFile && typeof authFile === 'object' ? authFile.credits : null) ??
+    fallback?.credits;
+  const expiringBalanceDetails = payload.expiring_balance_details ?? payload.expiringBalanceDetails;
+  if (credits) {
+    const existingDetails = credits.expiring_balance_details ?? credits.expiringBalanceDetails;
+    return expiringBalanceDetails && !existingDetails
+      ? { ...credits, expiring_balance_details: expiringBalanceDetails }
+      : credits;
+  }
+
+  const balance = normalizeStringValue(payload.remaining_balance ?? payload.remainingBalance);
+  return balance === null
+    ? null
+    : {
+        has_credits: true,
+        unlimited: false,
+        balance,
+        expiring_balance_details: expiringBalanceDetails,
+      };
+};
+
 const resolveCodexUpdatedAuthFile = (
   file: AuthFileItem,
   payload: CodexUsagePayload
 ): AuthFileItem | null => {
+  const creditsEnabled = isAuthFileDisableCoolingEnabled(file);
   const snapshot = payload.auth_file ?? payload.authFile;
   if (snapshot && typeof snapshot === 'object') {
-    return mergeAuthFileUpdatePreservingRequestStats(file, snapshot as AuthFileItem);
+    const update = snapshot as AuthFileItem;
+    if (!creditsEnabled) {
+      return mergeAuthFileUpdatePreservingRequestStats(file, { ...update, credits: null });
+    }
+    const credits = resolveCodexCreditsSnapshot(payload);
+    const mergedCredits = credits ? { ...(update.credits ?? {}), ...credits } : update.credits;
+    return mergeAuthFileUpdatePreservingRequestStats(
+      file,
+      mergedCredits ? { ...update, credits: mergedCredits } : update
+    );
   }
 
-  const patch: Partial<AuthFileItem> = {};
+  const credits = creditsEnabled ? resolveCodexCreditsSnapshot(payload) : null;
+  const patch: Partial<AuthFileItem> = { credits: creditsEnabled ? credits : null };
   const planType = normalizePlanType(
     payload.plan_type ?? payload.planType ?? payload.chatgpt_plan_type ?? payload.chatgptPlanType
   );
@@ -492,30 +537,37 @@ const fetchCodexQuota = async (
   rateLimitReachedType: string | null;
   rateLimitResetCreditsAvailable: number | null;
   rateLimitResetCredits: CodexRateLimitResetCredit[];
+  credits: CodexCreditsSnapshot | null;
   windows: CodexQuotaWindow[];
 }> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   const planTypeFromFile = resolveCodexPlanType(file);
+  const creditsEnabled = isAuthFileDisableCoolingEnabled(file);
   const resetCreditsCacheKey = `${file.name}:${authIndex ?? ''}`;
-  const resetCreditsResultPromise = settleQuotaEnrichmentWithinBudget(
-    authFilesApi
-      .getCodexRateLimitResetCredits(file.name, authIndex ?? undefined)
-      .then((resetCredits) => {
-        writeQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey, resetCredits);
-        return resetCredits;
-      })
-  );
+  const resetCreditsResultPromise = creditsEnabled
+    ? settleQuotaEnrichmentWithinBudget(
+        authFilesApi
+          .getCodexRateLimitResetCredits(file.name, authIndex ?? undefined)
+          .then((resetCredits) => {
+            writeQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey, resetCredits);
+            return resetCredits;
+          })
+      )
+    : null;
   const usagePayload = await authFilesApi.getCodexUsage(
     file.name,
     authIndex ?? undefined,
     'refresh'
   );
-  const resetCreditsResult = await resetCreditsResultPromise;
-  const resetCreditsPayload =
-    resetCreditsResult?.status === 'fulfilled'
+  const resetCreditsResult = resetCreditsResultPromise
+    ? await resetCreditsResultPromise
+    : null;
+  const resetCreditsPayload = creditsEnabled
+    ? resetCreditsResult?.status === 'fulfilled'
       ? resetCreditsResult.value
-      : readQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey);
+      : readQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey)
+    : null;
   const detailedResetCredits =
     resetCreditsPayload?.rate_limit_reset_credits ?? resetCreditsPayload?.rateLimitResetCredits;
   const payload = detailedResetCredits
@@ -540,10 +592,15 @@ const fetchCodexQuota = async (
   const subscriptionActiveStart = resolveCodexSubscriptionActiveStart(subscriptionSource);
   const subscriptionActiveDays = resolveCodexSubscriptionActiveDays(subscriptionSource);
   const subscriptionUntil = resolveCodexSubscriptionActiveUntil(subscriptionSource);
+  const credits = creditsEnabled ? resolveCodexCreditsSnapshot(payload, file) : null;
   const windows = buildCodexQuotaWindows(payload, t, planTypeFromUsage ?? planTypeFromFile);
   const rateLimitReachedType = resolveCodexRateLimitReachedType(payload);
-  const rateLimitResetCreditsAvailable = resolveCodexRateLimitResetCreditsAvailable(payload);
-  const rateLimitResetCredits = resolveCodexRateLimitResetCreditDetails(payload);
+  const rateLimitResetCreditsAvailable = creditsEnabled
+    ? resolveCodexRateLimitResetCreditsAvailable(payload)
+    : null;
+  const rateLimitResetCredits = creditsEnabled
+    ? resolveCodexRateLimitResetCreditDetails(payload)
+    : [];
   const authFile = resolveCodexUpdatedAuthFile(file, payload);
   return {
     authFile,
@@ -554,6 +611,7 @@ const fetchCodexQuota = async (
     rateLimitReachedType,
     rateLimitResetCreditsAvailable,
     rateLimitResetCredits,
+    credits,
     windows,
   };
 };
@@ -596,6 +654,44 @@ const resolveCodexSubscriptionActiveDaysLabel = (
   return t('codex_quota.subscription_active_days', { days });
 };
 
+const isTruthyCodexFlag = (value: unknown): boolean =>
+  value === true ||
+  value === 1 ||
+  (typeof value === 'string' && ['1', 'true'].includes(value.trim().toLowerCase()));
+
+const formatCodexCreditsBalance = (value: unknown): string | null => {
+  const numeric = normalizeNumberValue(value);
+  if (numeric !== null) {
+    return numeric.toLocaleString(undefined, { maximumFractionDigits: 4 });
+  }
+  return normalizeStringValue(value);
+};
+
+const resolveCodexCreditsProgress = (
+  credits: CodexCreditsSnapshot | null
+): { remainingPercent: number; used: number; remaining: number; granted: number } | null => {
+  const details = credits?.expiring_balance_details ?? credits?.expiringBalanceDetails;
+  if (!Array.isArray(details)) return null;
+
+  let granted = 0;
+  let remaining = 0;
+  details.forEach((detail) => {
+    const amountGranted = normalizeNumberValue(detail?.amount_granted);
+    const amountRemaining = normalizeNumberValue(detail?.amount_remaining);
+    if (amountGranted === null || amountGranted <= 0 || amountRemaining === null) return;
+    granted += amountGranted;
+    remaining += Math.min(amountGranted, Math.max(0, amountRemaining));
+  });
+
+  if (granted <= 0) return null;
+  return {
+    remainingPercent: clampPercent((remaining / granted) * 100) ?? 0,
+    used: Math.max(0, granted - remaining),
+    remaining,
+    granted,
+  };
+};
+
 const renderCodexItems = (
   quota: CodexQuotaState,
   t: TFunction,
@@ -605,6 +701,25 @@ const renderCodexItems = (
   const { createElement: h, Fragment } = React;
   const windows = quota.windows ?? [];
   const planType = quota.planType ?? null;
+  const creditsEnabled = Boolean(helpers.item && isAuthFileDisableCoolingEnabled(helpers.item));
+  const credits = creditsEnabled ? (quota.credits ?? helpers.item?.credits ?? null) : null;
+  const creditBalance = formatCodexCreditsBalance(credits?.balance);
+  const showCredits = Boolean(
+    credits &&
+    (creditBalance !== null ||
+      isTruthyCodexFlag(credits.unlimited) ||
+      isTruthyCodexFlag(credits.has_credits ?? credits.hasCredits))
+  );
+  const creditProgress = resolveCodexCreditsProgress(credits);
+  const mainQuotaWindows = windows.filter((window) => ['five-hour', 'weekly'].includes(window.id));
+  const quotaWindows = mainQuotaWindows.length > 0 ? mainQuotaWindows : windows;
+  const hasQuotaRemaining = quotaWindows.some((window) => {
+    const remaining = getRemainingQuotaPercent(window.usedPercent);
+    return remaining !== null && remaining > 0;
+  });
+  const showCreditProgress =
+    !hasQuotaRemaining && creditProgress !== null && creditProgress.remaining > 0;
+  const visibleWindows = windows;
   const subscriptionUntilLabel = resolveCodexSubscriptionUntilLabel(quota, helpers.item);
   const subscriptionActiveDaysLabel = resolveCodexSubscriptionActiveDaysLabel(
     quota,
@@ -654,15 +769,52 @@ const renderCodexItems = (
     );
   }
 
-  if (windows.length === 0) {
+  if (showCredits) {
+    const creditValue = isTruthyCodexFlag(credits?.unlimited)
+      ? t('codex_quota.credits_unlimited')
+      : (creditBalance ?? t('codex_quota.credits_unknown'));
     nodes.push(
-      h('div', { key: 'empty', className: styleMap.quotaMessage }, t('codex_quota.empty_windows'))
+      h(
+        'div',
+        { key: 'credits', className: styleMap.codexPlan },
+        h('span', { className: styleMap.codexPlanLabel }, t('codex_quota.credits_label')),
+        h('span', { className: styleMap.codexPlanValue }, creditValue)
+      )
     );
+  }
+
+  if (showCreditProgress) {
+    nodes.push(
+      renderQuotaRow(helpers, {
+        key: 'credits-progress',
+        label: t('codex_quota.credits_progress_label'),
+        remaining: creditProgress.remainingPercent,
+        metaItems: [
+          h(
+            'span',
+            { key: 'used', className: styleMap.quotaReset },
+            t('codex_quota.credits_progress_value', {
+              used: formatCodexCreditsBalance(creditProgress.used),
+              granted: formatCodexCreditsBalance(creditProgress.granted),
+              percent: formatCodexCreditsBalance(100 - creditProgress.remainingPercent),
+            })
+          ),
+        ],
+      })
+    );
+  }
+
+  if (visibleWindows.length === 0) {
+    if (!showCredits && !showCreditProgress) {
+      nodes.push(
+        h('div', { key: 'empty', className: styleMap.quotaMessage }, t('codex_quota.empty_windows'))
+      );
+    }
     return h(Fragment, null, ...nodes);
   }
 
   nodes.push(
-    ...windows.map((window) => {
+    ...visibleWindows.map((window) => {
       const remaining = getRemainingQuotaPercent(window.usedPercent);
       const windowLabel = window.labelKey
         ? t(window.labelKey, window.labelParams as Record<string, string | number>)
@@ -692,12 +844,14 @@ const buildClaudeQuotaWindows = (
     const typedWindow = window as { utilization: number; resets_at: string };
     const usedPercent = normalizeNumberValue(typedWindow.utilization);
     const resetLabel = formatQuotaResetTime(typedWindow.resets_at);
+    const resetAt = resolveQuotaResetTimeMs(typedWindow.resets_at);
     windows.push({
       id,
       label: t(labelKey),
       labelKey,
       usedPercent,
       resetLabel,
+      resetAt: resetAt ?? undefined,
     });
   }
 
@@ -903,6 +1057,7 @@ export const CODEX_CONFIG: QuotaConfig<
     rateLimitReachedType: string | null;
     rateLimitResetCreditsAvailable: number | null;
     rateLimitResetCredits: CodexRateLimitResetCredit[];
+    credits: CodexCreditsSnapshot | null;
     windows: CodexQuotaWindow[];
   }
 > = {
@@ -920,6 +1075,7 @@ export const CODEX_CONFIG: QuotaConfig<
     subscriptionUntil: data.subscriptionUntil,
     rateLimitResetCreditsAvailable: data.rateLimitResetCreditsAvailable,
     rateLimitResetCredits: data.rateLimitResetCredits,
+    credits: data.credits,
   }),
   extractAuthFileUpdate: (data) => data.authFile,
   buildErrorState: (message, status) => ({

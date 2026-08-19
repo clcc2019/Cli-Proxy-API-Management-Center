@@ -13,9 +13,15 @@ import {
 } from '@/features/authFiles/constants';
 import type { AuthFilePlanFilter, AuthFilePlanSources } from '@/features/authFiles/planMetadata';
 import type { AuthFileQuotaRefreshTarget } from '@/features/authFiles/quotaRefresh';
-import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
+import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
 
-export const AUTH_FILES_SORT_MODES = ['default', 'az', 'priority', 'subscription_expiry'] as const;
+export const AUTH_FILES_SORT_MODES = [
+  'default',
+  'az',
+  'priority',
+  'subscription_expiry',
+  'quota_reset',
+] as const;
 
 export type AuthFilesSortMode = (typeof AUTH_FILES_SORT_MODES)[number];
 
@@ -90,6 +96,7 @@ export const EMPTY_AUTH_FILE_PROVIDER_TYPES: string[] = [];
 export const ALL_AUTH_FILE_TYPES = ['all'];
 export const EMPTY_CLAUDE_QUOTA: Record<string, ClaudeQuotaState> = {};
 export const EMPTY_CODEX_QUOTA: Record<string, CodexQuotaState> = {};
+export const EMPTY_KIMI_QUOTA: Record<string, KimiQuotaState> = {};
 
 /**
  * Keep usage bucket references stable so memoized auth cards can skip renders
@@ -128,6 +135,7 @@ export type AuthFileSortSnapshot = {
   priority: number;
   subscriptionExpiryMs: number | null;
   subscriptionSortRank: number;
+  quotaResetMs: number | null;
 };
 
 export const EMPTY_SORT_SNAPSHOT: Record<string, AuthFileSortSnapshot> = {};
@@ -212,6 +220,13 @@ export const getAuthFileSortSnapshot = (
       : subscriptionExpiryMs === null
         ? 1
         : 0;
+  const quotaResetTimes = [
+    ...(planSources?.claudeQuota[file.name]?.windows ?? []),
+    ...(planSources?.codexQuota[file.name]?.windows ?? []),
+    ...(planSources?.kimiQuota?.[file.name]?.rows ?? []),
+  ].flatMap((item) =>
+    typeof item.resetAt === 'number' && Number.isFinite(item.resetAt) ? [item.resetAt] : []
+  );
 
   return {
     disabled: file.disabled === true,
@@ -219,6 +234,7 @@ export const getAuthFileSortSnapshot = (
     priority: parsePriorityValue(file.priority ?? file['priority']) ?? 0,
     subscriptionExpiryMs,
     subscriptionSortRank,
+    quotaResetMs: quotaResetTimes.length > 0 ? Math.min(...quotaResetTimes) : null,
   };
 };
 
@@ -259,6 +275,13 @@ export const compareAuthFiles = (
 
     const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
     if (providerCompare !== 0) return providerCompare;
+    return compareAuthFilesByName(left, right);
+  }
+
+  if (sortMode === 'quota_reset') {
+    const leftReset = leftSnapshot.quotaResetMs ?? Number.POSITIVE_INFINITY;
+    const rightReset = rightSnapshot.quotaResetMs ?? Number.POSITIVE_INFINITY;
+    if (leftReset !== rightReset) return leftReset - rightReset;
     return compareAuthFilesByName(left, right);
   }
 

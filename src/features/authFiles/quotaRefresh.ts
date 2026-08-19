@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next';
 import { create } from 'zustand';
 import { CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from '@/components/quota';
 import { useQuotaStore } from '@/stores';
-import type { AuthFileItem } from '@/types';
+import type { AuthFileItem, CodexCreditsSnapshot } from '@/types';
 import { getStatusFromError, isRuntimeOnlyAuthFile, type QuotaProviderType } from '@/utils/quota';
 import { REFRESH_FEEDBACK_MS } from '@/utils/refreshFeedback';
 
@@ -11,6 +11,7 @@ export type AuthFileQuotaState = {
   error?: string;
   errorStatus?: number;
   __hasCachedQuotaSnapshot?: boolean;
+  credits?: CodexCreditsSnapshot | null;
 };
 
 type AuthFileQuotaConfig = {

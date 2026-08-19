@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import {
@@ -11,7 +11,6 @@ import {
   IconShield,
 } from '@/components/ui/icons';
 import { useOAuthFlow, type OAuthFlowState } from '@/features/oauthLogin/useOAuthFlow';
-import { refreshAuthFileQuota } from '@/features/authFiles/quotaRefresh';
 import { useQuotaStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import { copyToClipboard } from '@/utils/clipboard';
@@ -20,7 +19,6 @@ import styles from '@/pages/AuthFilesPageRefresh.module.scss';
 type AuthFileReauthorizationProps = {
   file: AuthFileItem;
   disableControls: boolean;
-  onAuthFileUpdated?: (file: AuthFileItem) => void;
 };
 
 const AUTH_FAILURE_PATTERN =
@@ -86,15 +84,12 @@ const getFlowErrorMessage = (
 };
 
 const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
-  file,
   disableControls,
-  onAuthFileUpdated,
 }: AuthFileReauthorizationProps) {
   const { t } = useTranslation();
   const { getState, start, cancel } = useOAuthFlow();
   const flowState = getState('codex');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const refreshedRunRef = useRef(false);
 
   const userCode = 'userCode' in flowState ? flowState.userCode : undefined;
   const authUrl =
@@ -111,25 +106,6 @@ const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
       : flowState.phase === 'error'
         ? getFlowErrorMessage(flowState, t)
         : '';
-
-  useEffect(() => {
-    if (flowState.phase !== 'success') {
-      refreshedRunRef.current = false;
-      return;
-    }
-    if (refreshedRunRef.current) return;
-    refreshedRunRef.current = true;
-
-    // useOAuthFlow 已广播强制列表刷新；额度接口还会返回最新认证文件快照，
-    // 让当前卡片无需等待整页请求也能尽快更新。
-    void refreshAuthFileQuota({
-      file,
-      quotaType: 'codex',
-      disableControls: false,
-      t,
-      onAuthFileUpdated,
-    });
-  }, [file, flowState.phase, onAuthFileUpdated, t]);
 
   const handleStart = useCallback(() => {
     void start('codex');

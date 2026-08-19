@@ -1,4 +1,4 @@
-import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState } from '@/types';
+import type { AuthFileItem, ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
 import { normalizePlanType, normalizeUnixTimestampSeconds } from '@/utils/quota/parsers';
 import { resolveCodexPlanType, resolveCodexSubscriptionActiveUntil } from '@/utils/quota/resolvers';
 import { normalizeProviderKey } from './constants';
@@ -34,6 +34,7 @@ export type AuthFilePlanBadgeInfo = {
 export type AuthFilePlanSources = {
   claudeQuota: Record<string, ClaudeQuotaState>;
   codexQuota: Record<string, CodexQuotaState>;
+  kimiQuota?: Record<string, KimiQuotaState>;
 };
 
 type CodexPlanSignal = {

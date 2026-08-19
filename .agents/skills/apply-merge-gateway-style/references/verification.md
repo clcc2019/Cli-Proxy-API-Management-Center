@@ -37,6 +37,8 @@ Inspect representative elements in DevTools or browser automation:
 
 Record/confirm `font-family`, `font-size`, `font-weight`, `line-height`, `letter-spacing`, `color`, `background-color`, `border-width/color`, `border-radius`, `box-shadow`, `padding`, `gap`, `width/height`, and transition values. Reject accidental browser/framework defaults.
 
+For every supported non-Latin locale, confirm the document `lang`, inspect mixed-script text, and verify the intended face and weights load without missing glyphs, synthetic weight, or unexpected wrapping.
+
 ## Visual and responsive checks
 
 - The result reads as xAI without logo or copied content: near-black/white/warm hierarchy, medium display type, hairlines, flat surfaces, sparse orange, pills, and quiet icons.

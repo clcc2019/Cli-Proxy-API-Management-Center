@@ -20,6 +20,26 @@ export interface AuthFilePlanSnapshot {
   cached_at?: string | number;
 }
 
+export interface CodexExpiringBalanceDetail {
+  amount_granted?: number | string | null;
+  amount_remaining?: number | string | null;
+  expiry_date?: string | null;
+  expiryDate?: string | null;
+  grant_type?: string | null;
+  grantType?: string | null;
+}
+
+export interface CodexCreditsSnapshot {
+  has_credits?: boolean | string;
+  hasCredits?: boolean | string;
+  unlimited?: boolean | string;
+  balance?: number | string | null;
+  expiring_balance_details?: CodexExpiringBalanceDetail[] | null;
+  expiringBalanceDetails?: CodexExpiringBalanceDetail[] | null;
+  updated_at?: string | number | null;
+  updatedAt?: string | number | null;
+}
+
 export interface AuthFileItem {
   id?: string;
   name: string;
@@ -132,6 +152,7 @@ export interface AuthFileItem {
   chatgptPlanType?: string;
   plan_snapshot?: AuthFilePlanSnapshot | null;
   planSnapshot?: AuthFilePlanSnapshot | null;
+  credits?: CodexCreditsSnapshot | null;
   has_refresh_token?: boolean;
   hasRefreshToken?: boolean;
   last_error?: unknown;

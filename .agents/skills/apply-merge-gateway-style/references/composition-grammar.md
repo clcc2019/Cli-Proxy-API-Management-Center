@@ -60,7 +60,7 @@ Use a direct 27px medium title. Put a concise description below only when removi
 
 ### Navigation shell
 
-Use a 306px independent rail only when the product genuinely needs persistent multi-group navigation. Otherwise apply the same monochrome navigation state to the existing shell: 36px rows, 18px line icons, gray idle, near-black current, whitespace grouping, and no colored wash. Do not redesign a small embedded component into a full application shell.
+Use a 214px independent rail only when the product genuinely needs persistent multi-group navigation. Otherwise apply the same monochrome navigation state to the existing shell: 36px rows, 18px line icons, gray idle, near-black current, whitespace grouping, and no colored wash. Do not redesign a small embedded component into a full application shell.
 
 ### Setup and empty state
 

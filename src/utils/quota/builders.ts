@@ -9,6 +9,7 @@ import type {
   KimiLimitWindow,
   KimiQuotaRow,
 } from '@/types';
+import { resolveQuotaResetTimeMs } from './formatters';
 
 function toInt(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return Math.floor(value);
@@ -21,45 +22,30 @@ function toInt(value: unknown): number | null {
 
 type KimiRowLabel = Pick<KimiQuotaRow, 'label' | 'labelKey' | 'labelParams'>;
 
-function kimiResetHint(data: Record<string, unknown>): string | undefined {
+function kimiResetTime(data: Record<string, unknown>): number | null {
   const absoluteKeys = ['reset_at', 'resetAt', 'reset_time', 'resetTime'];
   for (const key of absoluteKeys) {
-    const raw = data[key];
-    if (typeof raw === 'string' && raw.trim()) {
-      try {
-        const truncated = raw.replace(/(\.\d{6})\d+/, '$1');
-        const date = new Date(truncated);
-        if (Number.isNaN(date.getTime())) continue;
-        const now = Date.now();
-        const delta = date.getTime() - now;
-        if (delta <= 0) return undefined;
-        const totalMinutes = Math.floor(delta / 60000);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-        if (hours > 0) return `${hours}h`;
-        if (minutes > 0) return `${minutes}m`;
-        return '<1m';
-      } catch {
-        continue;
-      }
-    }
+    const resetAt = resolveQuotaResetTimeMs(data[key]);
+    if (resetAt !== null) return resetAt > Date.now() ? resetAt : null;
   }
 
   const relativeKeys = ['reset_in', 'resetIn', 'ttl'];
   for (const key of relativeKeys) {
     const raw = toInt(data[key]);
-    if (raw !== null && raw > 0) {
-      const hours = Math.floor(raw / 3600);
-      const minutes = Math.floor((raw % 3600) / 60);
-      if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-      if (hours > 0) return `${hours}h`;
-      if (minutes > 0) return `${minutes}m`;
-      return '<1m';
-    }
+    if (raw !== null && raw > 0) return Date.now() + raw * 1000;
   }
 
-  return undefined;
+  return null;
+}
+
+function kimiResetHint(resetAt: number | null): string | undefined {
+  if (resetAt === null) return undefined;
+  const totalMinutes = Math.floor((resetAt - Date.now()) / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h`;
+  return minutes > 0 ? `${minutes}m` : '<1m';
 }
 
 function kimiDurationToken(duration: number, rawTimeUnit: unknown): string {
@@ -112,7 +98,7 @@ function kimiLimitLabel(
 function toKimiUsageRow(
   data: Record<string, unknown>,
   fallbackLabel: KimiRowLabel
-): (KimiRowLabel & { used: number; limit: number; resetHint?: string }) | null {
+): (KimiRowLabel & Pick<KimiQuotaRow, 'used' | 'limit' | 'resetHint' | 'resetAt'>) | null {
   const limit = toInt(data.limit);
   let used = toInt(data.used);
   if (used === null) {
@@ -126,11 +112,13 @@ function toKimiUsageRow(
     (typeof data.name === 'string' && data.name.trim()) ||
     (typeof data.title === 'string' && data.title.trim());
   const label = explicitLabel ? { label: explicitLabel } : fallbackLabel;
+  const resetAt = kimiResetTime(data);
   return {
     ...label,
     used: used ?? 0,
     limit: limit ?? 0,
-    resetHint: kimiResetHint(data),
+    resetHint: kimiResetHint(resetAt),
+    resetAt: resetAt ?? undefined,
   };
 }
 
@@ -150,8 +138,12 @@ export function buildKimiQuotaRows(payload: KimiUsagePayload): KimiQuotaRow[] {
   const limits = payload.limits;
   if (Array.isArray(limits)) {
     limits.forEach((item, idx) => {
-      const detail = (item.detail && typeof item.detail === 'object' ? item.detail : item) as KimiUsageDetail | KimiLimitItem;
-      const window = (item.window && typeof item.window === 'object' ? item.window : {}) as KimiLimitWindow;
+      const detail = (item.detail && typeof item.detail === 'object' ? item.detail : item) as
+        | KimiUsageDetail
+        | KimiLimitItem;
+      const window = (
+        item.window && typeof item.window === 'object' ? item.window : {}
+      ) as KimiLimitWindow;
       const fallbackLabel = kimiLimitLabel(item, detail, window, idx);
       const row = toKimiUsageRow(detail as Record<string, unknown>, fallbackLabel);
       if (row) {

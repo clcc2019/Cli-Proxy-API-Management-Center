@@ -167,6 +167,9 @@ export const parseDisableCoolingValue = (value: unknown): boolean | undefined =>
   return undefined;
 };
 
+export const isAuthFileDisableCoolingEnabled = (file: AuthFileItem): boolean =>
+  parseDisableCoolingValue(file.disable_cooling ?? file.disableCooling) === true;
+
 export const readCodexAuthFileWebsockets = (value: Record<string, unknown>): boolean =>
   parseDisableCoolingValue(value.websockets ?? value.websocket) ?? false;
 

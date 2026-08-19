@@ -35,17 +35,17 @@ These share one visual system. Mix contexts only when content requires it; do no
 
 Use a persistent rail only when the product needs multi-group navigation:
 
-- Desktop rail: 306px measured; content `minmax(0, 1fr)`.
+- Desktop rail: 214px target (30% narrower than the 306px observed reference); content `minmax(0, 1fr)`.
 - Rail height: viewport; independent vertical scroll; white; no separating border by default.
-- Rail outer spacing: 27px; account/team control: up to 288×36px; nav row: 36px; group gap: 27–36px.
-- Main measured width at 1512px viewport: approximately 1177–1188px after shell/gutters.
+- Rail outer spacing: 27px; account/team control: up to 202×36px; nav row: 36px; group gap: 27–36px.
+- Main target width at 1512px viewport: approximately 1269–1280px after shell/gutters.
 - Idle nav: gray; current: near-black/medium; optional 5% neutral row fill. No colored bar/tile.
 
-For an existing smaller shell or component-only task, keep its functional footprint and apply the xAI row, spacing, icon, state, and surface grammar. Do not add a 306px rail decoratively.
+For an existing smaller shell or component-only task, keep its functional footprint and apply the xAI row, spacing, icon, state, and surface grammar. Do not add a 214px rail decoratively.
 
 ## Documentation shell
 
-Use a 306px categorized rail only when persistent docs navigation is real. Main content may open with one warm 18px connected workbench. A common desktop split is 40/60 or 45/55 explanation/technical content (**normalized from observation**). Keep header tools compact and align subsequent content to the same main grid.
+Use a 214px categorized rail only when persistent docs navigation is real. Main content may open with one warm 18px connected workbench. A common desktop split is 40/60 or 45/55 explanation/technical content (**normalized from observation**). Keep header tools compact and align subsequent content to the same main grid.
 
 ## Public/editorial layout
 

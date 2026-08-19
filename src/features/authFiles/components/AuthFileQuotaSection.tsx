@@ -19,7 +19,10 @@ import {
   type QuotaProviderType,
 } from '@/utils/quota';
 import { normalizeAuthIndex } from '@/utils/usage';
-import { resolveQuotaErrorMessage } from '@/features/authFiles/constants';
+import {
+  isAuthFileDisableCoolingEnabled,
+  resolveQuotaErrorMessage,
+} from '@/features/authFiles/constants';
 import { mergeAuthFileUpdatePreservingRequestStats } from '@/features/authFiles/stats';
 
 import {
@@ -261,10 +264,36 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   const quotaErrorDetails = t(`${config.i18nPrefix}.load_failed`, {
     message: quotaErrorMessage,
   });
+  const creditsEnabled = quotaType === 'codex' && isAuthFileDisableCoolingEnabled(file);
+  const fileCreditsQuota = useMemo(
+    () =>
+      creditsEnabled && file.credits
+        ? ({ status: 'success', windows: [], credits: file.credits } as CodexQuotaState)
+        : undefined,
+    [creditsEnabled, file.credits]
+  );
+  const quotaForRender = useMemo(() => {
+    if (!quota) return fileCreditsQuota;
+    if (!creditsEnabled || !file.credits) return quota;
+    if (!quota.credits) return { ...quota, credits: file.credits } as CodexQuotaState;
+    const quotaDetails =
+      quota.credits.expiring_balance_details ?? quota.credits.expiringBalanceDetails;
+    const fileDetails =
+      file.credits.expiring_balance_details ?? file.credits.expiringBalanceDetails;
+    return !quotaDetails && fileDetails
+      ? {
+          ...quota,
+          credits: { ...quota.credits, expiring_balance_details: fileDetails },
+        }
+      : quota;
+  }, [creditsEnabled, file.credits, fileCreditsQuota, quota]);
   const isRefreshingCachedQuota =
     quotaStatus === 'loading' && quota?.__hasCachedQuotaSnapshot === true;
   const hasDisplayableQuotaSnapshot = quotaStatus === 'success' || isRefreshingCachedQuota;
-  const suppressQuotaBodyDuringEmptyRefresh = isQuotaRefreshing && !hasDisplayableQuotaSnapshot;
+  const hasDisplayableQuotaSnapshotWithCredits =
+    hasDisplayableQuotaSnapshot || Boolean(fileCreditsQuota);
+  const suppressQuotaBodyDuringEmptyRefresh =
+    isQuotaRefreshing && !hasDisplayableQuotaSnapshotWithCredits;
   const codexQuota = quotaType === 'codex' ? (quota as CodexQuotaState | undefined) : undefined;
   const resetCreditCount = codexQuota?.rateLimitResetCreditsAvailable ?? null;
   const resetCreditExpiration = useMemo(() => {
@@ -316,7 +345,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
     };
   }, [codexQuota?.rateLimitResetCredits, resetCreditCount, t]);
   const showResetCredits =
-    quotaType === 'codex' && (quotaStatus === 'success' || isRefreshingCachedQuota);
+    creditsEnabled && (quotaStatus === 'success' || isRefreshingCachedQuota);
   const canConsumeResetCredit =
     showResetCredits &&
     quotaStatus !== 'loading' &&
@@ -396,8 +425,11 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
     [file, promotionAction]
   );
   const renderedQuotaItems = useMemo(
-    () => (quota ? (config.renderQuotaItems(quota, t, quotaRenderHelpers) as ReactNode) : null),
-    [config, quota, quotaRenderHelpers, t]
+    () =>
+      quotaForRender
+        ? (config.renderQuotaItems(quotaForRender, t, quotaRenderHelpers) as ReactNode)
+        : null,
+    [config, quotaForRender, quotaRenderHelpers, t]
   );
 
   return (
@@ -451,12 +483,12 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           aria-hidden={isQuotaRefreshing || undefined}
         >
           {!suppressQuotaBodyDuringEmptyRefresh &&
-            (quotaStatus === 'loading' && !isRefreshingCachedQuota ? (
+            (quotaStatus === 'loading' && !isRefreshingCachedQuota && !fileCreditsQuota ? (
               <div className={styles.quotaLoadingState} role="status" aria-busy="true">
                 <LoadingSpinner size={16} />
                 <span>{t(`${config.i18nPrefix}.loading`)}</span>
               </div>
-            ) : quotaStatus === 'error' ? (
+            ) : quotaStatus === 'error' && !fileCreditsQuota ? (
               <div className={styles.quotaError} role="alert">
                 <button
                   type="button"
@@ -473,7 +505,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
                   </span>
                 </button>
               </div>
-            ) : quota && quotaStatus !== 'idle' ? (
+            ) : quotaForRender && (quotaStatus !== 'idle' || Boolean(fileCreditsQuota)) ? (
               renderedQuotaItems
             ) : (
               <button
