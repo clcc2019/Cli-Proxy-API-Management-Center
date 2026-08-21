@@ -90,6 +90,7 @@ export type AuthFileCardProps = {
   deleting: boolean;
   statusUpdating: boolean;
   accessTokenCopying: boolean;
+  refreshTokenCopying: boolean;
   promotionChecking: boolean;
   promotionResult?: AuthFilePromotionResult;
   priorityUpdating: boolean;
@@ -101,6 +102,7 @@ export type AuthFileCardProps = {
   onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
   onCopyAccessToken: (file: AuthFileItem) => void;
+  onCopyRefreshToken: (file: AuthFileItem) => void;
   onCheckPromotion: (file: AuthFileItem) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
@@ -147,6 +149,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     deleting,
     statusUpdating,
     accessTokenCopying,
+    refreshTokenCopying,
     promotionChecking,
     promotionResult,
     priorityUpdating,
@@ -157,6 +160,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onCopyName,
     onDownload,
     onCopyAccessToken,
+    onCopyRefreshToken,
     onCheckPromotion,
     onPriorityChange,
     onOpenPrefixProxyEditor,
@@ -279,6 +283,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleShowModels = useEventCallback(() => onShowModels(file));
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
+  const handleCopyRefreshToken = useEventCallback(() => onCopyRefreshToken(file));
   const handleCheckPromotion = useEventCallback(() => onCheckPromotion(file));
   const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
   const handleDelete = useEventCallback(() => onDelete(file.name));
@@ -609,6 +614,23 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       <LoadingSpinner size={18} />
                     ) : (
                       <IconKey className={refreshStyles.cardActionIcon} size={18} />
+                    )}
+                  </Button>
+                )}
+                {!isRuntimeOnly && hasRefreshToken && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleCopyRefreshToken}
+                    className={refreshStyles.cardActionButton}
+                    title={t('auth_files.refresh_token_copy')}
+                    aria-label={t('auth_files.refresh_token_copy')}
+                    disabled={disableControls || refreshTokenCopying}
+                  >
+                    {refreshTokenCopying ? (
+                      <LoadingSpinner size={18} />
+                    ) : (
+                      <IconCopy className={refreshStyles.cardActionIcon} size={18} />
                     )}
                   </Button>
                 )}

@@ -1054,6 +1054,8 @@
     "access_token_hint": "按后端规则自动从认证文件中解析，优先读取顶层 access_token，再回退到 token.access_token。",
     "access_token_copy": "复制 access_token",
     "access_token_empty": "该认证文件中没有可复制的 access_token",
+    "refresh_token_copy": "复制 refresh_token",
+    "refresh_token_empty": "该认证文件中没有可复制的 refresh_token",
     "promotion_check_button": "查询套餐优惠",
     "promotion_eligible": "\"{{name}}\" 可领取优惠 {{coupon}}",
     "promotion_ineligible": "\"{{name}}\" 当前没有可用套餐优惠（状态：{{state}}）",

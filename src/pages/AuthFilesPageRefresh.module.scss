@@ -4076,7 +4076,8 @@
   .page .controlButton {
     width: 100%;
     min-width: 0;
-    height: 44px;
+    height: var(--xai-space-8);
+    min-height: var(--xai-space-8);
     padding-inline: var(--xai-space-3);
     gap: var(--xai-space-1-5);
     border-color: var(--xai-border);
@@ -4087,14 +4088,29 @@
     font-weight: 500;
   }
 
+  .page .displayOptions {
+    display: flex;
+    min-width: 0;
+    min-height: var(--xai-space-8);
+    flex: 1 1 calc(100% - var(--xai-space-8) - var(--xai-space-2));
+    gap: var(--xai-space-1);
+  }
+
+  .page .planFilterSelect {
+    --mg-control-height: var(--xai-space-8);
+    width: auto;
+    min-width: 0;
+    flex: 1 1 calc(var(--xai-space-15) + var(--xai-space-5));
+  }
+
   .page .displayOption {
     width: auto;
     min-width: 0;
-    min-height: 44px;
-    flex: 0 0 auto;
+    min-height: var(--xai-space-8);
+    flex: 0 1 auto;
     justify-content: flex-start;
     gap: var(--xai-space-1-5);
-    padding-inline: var(--xai-space-3);
+    padding-inline: var(--xai-space-2);
     overflow: hidden;
     border-color: var(--xai-border);
     border-radius: var(--xai-radius-control);
@@ -4114,18 +4130,27 @@
     font-weight: 500;
   }
 
-  .page .resetFilters,
-  .page .quotaRefreshButton:global(.btn.btn-sm) {
+  .page .resetFilters {
     width: auto;
     min-width: 0;
-    min-height: 44px;
-    flex: 1 1 calc(50% - var(--xai-space-1));
+    min-height: var(--xai-space-8);
+    flex: 0 1 auto;
+    padding-inline: var(--xai-space-1);
     border-radius: var(--xai-radius-pill);
   }
 
   .page .quotaRefreshButton:global(.btn.btn-sm) {
-    height: 44px;
-    padding-inline: var(--xai-space-3);
+    width: var(--xai-space-8);
+    min-width: var(--xai-space-8);
+    height: var(--xai-space-8);
+    min-height: var(--xai-space-8);
+    flex: 0 0 var(--xai-space-8);
+    padding: 0;
+    border-radius: var(--xai-radius-control);
+  }
+
+  .page .quotaRefreshText {
+    display: none;
   }
 
   .page .credentialCard {
@@ -4224,6 +4249,11 @@
     font-weight: 500;
   }
 
+  .page .providerBadgeIcon,
+  .page .providerBadgeFallback {
+    display: none;
+  }
+
   .page .cardNameButton {
     min-height: var(--mg-hit-area, 44px);
     gap: var(--xai-space-1-5);
@@ -4241,7 +4271,7 @@
   }
 
   .page .priorityControl {
-    min-height: var(--mg-hit-area, 44px);
+    min-height: 32px;
     border-color: var(--xai-border);
     border-radius: var(--xai-radius-control);
     background: var(--xai-fill-soft);
@@ -4249,14 +4279,14 @@
 
   .page .priorityStepper {
     width: auto;
-    height: var(--mg-hit-area, 44px);
+    height: 32px;
   }
 
   .page .priorityStepButton {
-    width: var(--mg-hit-area, 44px);
-    height: var(--mg-hit-area, 44px);
-    min-height: var(--mg-hit-area, 44px);
-    flex: 0 0 var(--mg-hit-area, 44px);
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    flex: 0 0 32px;
     color: var(--xai-secondary);
     font-size: 13px;
     font-weight: 700;
@@ -4266,8 +4296,8 @@
     width: auto;
     min-width: 26px;
     max-width: 48px;
-    height: var(--mg-hit-area, 44px);
-    min-height: var(--mg-hit-area, 44px);
+    height: 32px;
+    min-height: 32px;
     flex: 0 1 auto;
     padding-inline: var(--xai-space-1);
     border-color: var(--xai-border);
@@ -4731,12 +4761,11 @@
   }
 }
 
-// Keep mobile targets touch-safe while giving the card footer a compact visual rhythm.
+// Keep 44px hit areas while the visible controls remain compact.
 @container auth-files-page (max-width: 767px) {
   .page .cardTitleRow {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'name priority';
   }
 
   .page .cardNameGroup {
@@ -4753,7 +4782,11 @@
   }
 
   .page .credentialCard .cardActions {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     gap: var(--xai-space-1);
+    overflow-x: auto;
+    touch-action: pan-x;
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm),
@@ -4772,7 +4805,7 @@
   .page .credentialCard .cardActionButton:global(.btn.btn-sm)::before,
   .page .credentialCard .promotionPlanButton:global(.btn.btn-sm)::before {
     position: absolute;
-    inset: var(--xai-space-1);
+    inset: var(--xai-space-1-5);
     border: 1px solid var(--xai-border);
     border-radius: var(--xai-radius-control);
     background: var(--xai-white);

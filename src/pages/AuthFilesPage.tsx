@@ -54,8 +54,11 @@ import {
 } from '@/features/authFiles/hooks/useAuthFilesData';
 import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModels';
 import { useAuthFilesOauth } from '@/features/authFiles/hooks/useAuthFilesOauth';
-import { useAuthFilesPrefixProxyEditor } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
-import { extractAuthFileAccessToken } from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
+import {
+  extractAuthFileAccessToken,
+  extractAuthFileRefreshToken,
+  useAuthFilesPrefixProxyEditor,
+} from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import { useAuthFilesQuotaRefreshBatch } from '@/features/authFiles/hooks/useAuthFilesQuotaRefreshBatch';
 import {
   useAuthFilesStats,
@@ -182,6 +185,7 @@ export function AuthFilesPage() {
     return isAuthFilesSortMode(value) ? value : 'default';
   });
   const [accessTokenCopying, setAccessTokenCopying] = useState<Record<string, boolean>>({});
+  const [refreshTokenCopying, setRefreshTokenCopying] = useState<Record<string, boolean>>({});
   const [promotionChecking, setPromotionChecking] = useState<Record<string, boolean>>({});
   const [promotionResults, setPromotionResults] = useState<Record<string, AuthFilePromotionResult>>(
     {}
@@ -1133,6 +1137,36 @@ export function AuthFilesPage() {
     }
   });
 
+  const handleCopyRefreshToken = useEventCallback(async (file: AuthFileItem) => {
+    const fileName = file.name;
+    if (refreshTokenCopying[fileName]) return;
+
+    setRefreshTokenCopying((prev) => (prev[fileName] ? prev : { ...prev, [fileName]: true }));
+    try {
+      const json = await authFilesApi.downloadJsonObject(fileName);
+      if (!pageMountedRef.current) return;
+      const refreshToken = extractAuthFileRefreshToken(json);
+      if (!refreshToken) {
+        showNotification(t('auth_files.refresh_token_empty'), 'warning');
+        return;
+      }
+      await copyTextWithNotification(refreshToken);
+    } catch (error) {
+      if (!pageMountedRef.current) return;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      showNotification(`${t('notification.copy_failed')}: ${errorMessage}`, 'error');
+    } finally {
+      if (pageMountedRef.current) {
+        setRefreshTokenCopying((prev) => {
+          if (!prev[fileName]) return prev;
+          const next = { ...prev };
+          delete next[fileName];
+          return next;
+        });
+      }
+    }
+  });
+
   const handleCheckPromotion = useEventCallback(async (file: AuthFileItem) => {
     const fileName = file.name;
     if (disableControls || promotionChecking[fileName]) return;
@@ -1425,6 +1459,7 @@ export function AuthFilesPage() {
           deleting={deleting === file.name}
           statusUpdating={statusUpdating[file.name] === true}
           accessTokenCopying={accessTokenCopying[file.name] === true}
+          refreshTokenCopying={refreshTokenCopying[file.name] === true}
           promotionChecking={promotionChecking[file.name] === true}
           promotionResult={promotionResults[file.name]}
           priorityUpdating={priorityUpdating[file.name] === true}
@@ -1435,6 +1470,7 @@ export function AuthFilesPage() {
           onCopyName={copyTextWithNotification}
           onDownload={handleDownload}
           onCopyAccessToken={handleCopyAccessToken}
+          onCopyRefreshToken={handleCopyRefreshToken}
           onCheckPromotion={handleCheckPromotion}
           onPriorityChange={handlePriorityChange}
           onOpenPrefixProxyEditor={openPrefixProxyEditor}
@@ -1453,6 +1489,7 @@ export function AuthFilesPage() {
     fileUsageStatsByName,
     handleAuthFileUpdated,
     handleCopyAccessToken,
+    handleCopyRefreshToken,
     handleCheckPromotion,
     handleDelete,
     handleDownload,
@@ -1465,6 +1502,7 @@ export function AuthFilesPage() {
     promotionChecking,
     promotionResults,
     quotaFilterType,
+    refreshTokenCopying,
     resolvedTheme,
     selectedFiles,
     showModels,

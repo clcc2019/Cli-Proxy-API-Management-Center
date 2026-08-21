@@ -1054,6 +1054,8 @@
     "access_token_hint": "Parsed with the backend rule: top-level access_token first, then token.access_token as fallback.",
     "access_token_copy": "Copy access_token",
     "access_token_empty": "No access_token found in this auth file",
+    "refresh_token_copy": "Copy refresh_token",
+    "refresh_token_empty": "No refresh_token found in this auth file",
     "promotion_check_button": "Check plan promotion",
     "promotion_eligible": "\"{{name}}\" is eligible for {{coupon}}",
     "promotion_ineligible": "\"{{name}}\" has no available plan promotion (state: {{state}})",

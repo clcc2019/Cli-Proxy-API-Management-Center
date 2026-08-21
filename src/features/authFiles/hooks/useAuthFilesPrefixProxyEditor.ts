@@ -333,6 +333,29 @@ export const extractAuthFileAccessToken = (metadata: Record<string, unknown> | n
   return '';
 };
 
+export const extractAuthFileRefreshToken = (metadata: Record<string, unknown> | null): string => {
+  if (!metadata) return '';
+
+  const readCandidate = (value: unknown): string =>
+    typeof value === 'string' && value.trim() ? value.trim() : '';
+
+  for (const candidate of [metadata.refreshToken, metadata.refresh_token]) {
+    const value = readCandidate(candidate);
+    if (value) return value;
+  }
+
+  for (const key of ['token', 'tokens', 'token_data', 'tokenData'] as const) {
+    const nested = metadata[key];
+    if (!isRecordObject(nested)) continue;
+    for (const candidate of [nested.refreshToken, nested.refresh_token]) {
+      const value = readCandidate(candidate);
+      if (value) return value;
+    }
+  }
+
+  return '';
+};
+
 const validateHeadersValue = (value: unknown): AuthFileHeadersErrorKey | null => {
   if (!isRecordObject(value)) {
     return 'auth_files.headers_invalid_object';
