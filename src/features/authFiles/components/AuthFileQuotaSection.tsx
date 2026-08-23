@@ -304,14 +304,13 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           .toLowerCase();
         return status === '' || status === 'available';
       })
-      .map((credit) => ({ credit, expiresAt: resetCreditExpirationTime(credit) }))
+      .map((credit) => ({ expiresAt: resetCreditExpirationTime(credit) }))
       .sort(
         (left, right) =>
           (left.expiresAt ?? Number.MAX_SAFE_INTEGER) - (right.expiresAt ?? Number.MAX_SAFE_INTEGER)
       );
     if (credits.length === 0) {
       return {
-        nearestLabel: null,
         tooltip:
           resetCreditCount && resetCreditCount > 0
             ? t('codex_quota.reset_credit_expiry_unknown')
@@ -333,19 +332,16 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
         })
       );
     }
-    const nearest = credits.find(({ expiresAt }) => expiresAt !== null)?.expiresAt ?? null;
-    return {
-      nearestLabel:
-        nearest === null
-          ? t('codex_quota.reset_credit_never_expires')
-          : t('codex_quota.reset_credit_nearest_expiry', {
-              time: formatResetCreditExpiration(nearest),
-            }),
-      tooltip: lines.join('\n'),
-    };
+    return { tooltip: lines.join('\n') };
   }, [codexQuota?.rateLimitResetCredits, resetCreditCount, t]);
   const showResetCredits =
-    creditsEnabled && (quotaStatus === 'success' || isRefreshingCachedQuota);
+    resetCreditCount !== null &&
+    resetCreditCount > 0 &&
+    (quotaStatus === 'success' || isRefreshingCachedQuota);
+  const resetCreditCountLabel =
+    resetCreditCount === null
+      ? t('codex_quota.reset_credit_unknown')
+      : t('codex_quota.reset_credit_count', { count: resetCreditCount });
   const canConsumeResetCredit =
     showResetCredits &&
     quotaStatus !== 'loading' &&
@@ -439,22 +435,18 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
         {showResetCredits && (
           <div className={styles.codexResetCredits}>
             <div className={styles.codexResetCreditsText}>
-              <span className={styles.codexPlanLabel}>{t('codex_quota.reset_credit_label')}</span>
               <span
                 className={styles.codexPlanValue}
                 title={resetCreditExpiration.tooltip || undefined}
-                aria-label={resetCreditExpiration.tooltip || undefined}
+                aria-label={
+                  resetCreditExpiration.tooltip
+                    ? `${resetCreditCountLabel}\n${resetCreditExpiration.tooltip}`
+                    : resetCreditCountLabel
+                }
                 tabIndex={resetCreditExpiration.tooltip ? 0 : undefined}
               >
-                {resetCreditCount === null
-                  ? t('codex_quota.reset_credit_unknown')
-                  : t('codex_quota.reset_credit_count', { count: resetCreditCount })}
+                {resetCreditCountLabel}
               </span>
-              {resetCreditExpiration.nearestLabel ? (
-                <span className={styles.codexResetCreditExpiry}>
-                  {resetCreditExpiration.nearestLabel}
-                </span>
-              ) : null}
             </div>
             <Button
               variant="secondary"

@@ -545,29 +545,19 @@ const fetchCodexQuota = async (
   const planTypeFromFile = resolveCodexPlanType(file);
   const creditsEnabled = isAuthFileDisableCoolingEnabled(file);
   const resetCreditsCacheKey = `${file.name}:${authIndex ?? ''}`;
-  const resetCreditsResultPromise = creditsEnabled
-    ? settleQuotaEnrichmentWithinBudget(
-        authFilesApi
-          .getCodexRateLimitResetCredits(file.name, authIndex ?? undefined)
-          .then((resetCredits) => {
-            writeQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey, resetCredits);
-            return resetCredits;
-          })
-      )
-    : null;
+  const resetCreditsResultPromise = authFilesApi
+    .getCodexRateLimitResetCredits(file.name, authIndex ?? undefined)
+    .then((resetCredits) => {
+      writeQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey, resetCredits);
+      return resetCredits;
+    })
+    .catch(() => readQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey));
   const usagePayload = await authFilesApi.getCodexUsage(
     file.name,
     authIndex ?? undefined,
     'refresh'
   );
-  const resetCreditsResult = resetCreditsResultPromise
-    ? await resetCreditsResultPromise
-    : null;
-  const resetCreditsPayload = creditsEnabled
-    ? resetCreditsResult?.status === 'fulfilled'
-      ? resetCreditsResult.value
-      : readQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey)
-    : null;
+  const resetCreditsPayload = await resetCreditsResultPromise;
   const detailedResetCredits =
     resetCreditsPayload?.rate_limit_reset_credits ?? resetCreditsPayload?.rateLimitResetCredits;
   const payload = detailedResetCredits
@@ -595,12 +585,8 @@ const fetchCodexQuota = async (
   const credits = creditsEnabled ? resolveCodexCreditsSnapshot(payload, file) : null;
   const windows = buildCodexQuotaWindows(payload, t, planTypeFromUsage ?? planTypeFromFile);
   const rateLimitReachedType = resolveCodexRateLimitReachedType(payload);
-  const rateLimitResetCreditsAvailable = creditsEnabled
-    ? resolveCodexRateLimitResetCreditsAvailable(payload)
-    : null;
-  const rateLimitResetCredits = creditsEnabled
-    ? resolveCodexRateLimitResetCreditDetails(payload)
-    : [];
+  const rateLimitResetCreditsAvailable = resolveCodexRateLimitResetCreditsAvailable(payload);
+  const rateLimitResetCredits = resolveCodexRateLimitResetCreditDetails(payload);
   const authFile = resolveCodexUpdatedAuthFile(file, payload);
   return {
     authFile,

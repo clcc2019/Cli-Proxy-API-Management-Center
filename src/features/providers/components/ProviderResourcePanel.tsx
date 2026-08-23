@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconInbox, IconPlus, IconSearch, IconX } from '@/components/ui/icons';
-import { PROVIDER_LOGOS } from '../brandLogos';
+import { IconPlus, IconSearch, IconX } from '@/components/ui/icons';
 import type { ProviderGroup, ProviderResource, ProviderSortBy, SortDir } from '../types';
 import { ProviderResourceTable } from './ProviderResourceTable';
 import { ProviderResourceToolbar } from './ProviderResourceToolbar';
@@ -45,59 +44,36 @@ export const ProviderResourcePanel = memo(function ProviderResourcePanel({
   onCreate,
 }: ProviderResourcePanelProps) {
   const { t } = useTranslation();
-  const logo = PROVIDER_LOGOS[group.id];
-  const lightLogoClassName = `${styles.logo} ${logo.darkSrc ? styles.logoThemeLight : ''}`;
+  const providerName = t(`providersPage.providerNames.${group.id}`);
 
   return (
-    <section className={styles.panel}>
+    <section className={styles.panel} aria-label={providerName}>
       <div className={styles.header}>
-        <div className={styles.headerMain}>
-          <div className={styles.titleArea}>
-            <div className={styles.titleRow}>
-              <img src={logo.src} alt="" aria-hidden="true" className={lightLogoClassName} />
-              {logo.darkSrc ? (
-                <img
-                  src={logo.darkSrc}
-                  alt=""
-                  aria-hidden="true"
-                  className={`${styles.logo} ${styles.logoThemeDark}`}
-                />
-              ) : null}
-              <h2 className={styles.title}>{t(`providersPage.providerNames.${group.id}`)}</h2>
-            </div>
-            <p className={styles.description}>
-              {t('providersPage.table.description', {
-                route: t(`providersPage.providerNames.${group.id}`),
-              })}
-            </p>
-          </div>
-          <div className={styles.searchWrap}>
-            <span className={styles.searchIcon} aria-hidden="true">
-              <IconSearch size={16} />
-            </span>
-            <input
-              type="search"
-              className={styles.searchInput}
-              value={filter}
-              onChange={(event) => onFilterChange(event.target.value)}
-              placeholder={t('providersPage.table.filterPlaceholder')}
-              aria-label={t('providersPage.table.filterLabel')}
-            />
-            {filter ? (
-              <button
-                type="button"
-                className={styles.searchClear}
-                onClick={() => onFilterChange('')}
-                aria-label={t('common.clear')}
-                title={t('common.clear')}
-              >
-                <IconX size={14} />
-              </button>
-            ) : null}
-          </div>
+        <div className={styles.searchWrap}>
+          <span className={styles.searchIcon} aria-hidden="true">
+            <IconSearch size={16} />
+          </span>
+          <input
+            type="search"
+            className={styles.searchInput}
+            value={filter}
+            onChange={(event) => onFilterChange(event.target.value)}
+            placeholder={t('providersPage.table.filterPlaceholder')}
+            aria-label={t('providersPage.table.filterLabel')}
+          />
+          {filter ? (
+            <button
+              type="button"
+              className={styles.searchClear}
+              onClick={() => onFilterChange('')}
+              aria-label={t('common.clear')}
+            >
+              <IconX size={14} />
+            </button>
+          ) : null}
         </div>
-        <div className={styles.headerToolbarRow}>
-          <span className={styles.resultCount}>
+        <div className={styles.headerTools}>
+          <span className={styles.resultCount} aria-live="polite">
             {t('providersPage.table.resultCount', {
               visible: filteredResources.length,
               total: group.resources.length,
@@ -118,9 +94,6 @@ export const ProviderResourcePanel = memo(function ProviderResourcePanel({
 
       {filteredResources.length === 0 ? (
         <div className={styles.empty}>
-          <span className={styles.emptyIcon} aria-hidden="true">
-            <IconInbox size={21} />
-          </span>
           <div className={styles.emptyCopy}>
             <strong>{t('providersPage.table.emptyTitle')}</strong>
             <p>{t('providersPage.table.empty')}</p>

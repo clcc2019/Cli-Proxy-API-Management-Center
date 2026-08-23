@@ -1,61 +1,36 @@
-@use '../../styles/mixins' as *;
-
 .page {
-  --provider-canvas: var(--mg-canvas);
-  --provider-surface: var(--mg-surface);
-  --provider-surface-subtle: var(--mg-surface-subtle);
-  --provider-surface-warm: var(--mg-surface-warm);
-  --provider-text: var(--mg-text);
-  --provider-text-secondary: var(--mg-text-secondary);
-  --provider-text-tertiary: var(--mg-text-tertiary);
-  --provider-border: var(--mg-border);
-  --provider-border-strong: var(--mg-border-hover);
-  --provider-ink: var(--mg-ink-strong);
-  --provider-sage: var(--mg-sage);
-  --provider-sage-strong: var(--mg-sage-strong);
-  --provider-success: var(--mg-success);
-  --provider-warning: var(--mg-warning);
-  --provider-danger: var(--mg-danger);
-
   display: flex;
   width: 100%;
   min-width: 0;
   flex-direction: column;
-  gap: 22px;
+  gap: var(--xai-space-4);
   box-sizing: border-box;
-  color: var(--provider-text);
+  color: var(--xai-ink);
 }
 
 .errorBanner {
-  padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--provider-danger) 28%, var(--provider-border));
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--provider-danger) 7%, var(--provider-surface));
-  color: var(--provider-danger);
+  padding: var(--xai-space-3);
+  border: 1px solid var(--xai-danger-border);
+  border-radius: var(--xai-radius-control);
+  background: var(--xai-danger-soft);
+  color: var(--xai-danger);
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .layout {
-  display: grid;
-  align-items: stretch;
-  grid-template-columns: minmax(205px, 224px) minmax(0, 1fr);
-  gap: 0;
+  display: flex;
   min-width: 0;
-  border: 1px solid var(--provider-border);
-  border-radius: var(--mg-radius-card);
-  background: var(--provider-surface);
-}
-
-@media (max-width: 1199px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--xai-border);
+  border-radius: var(--xai-radius-card);
+  background: var(--xai-white);
 }
 
 @media (max-width: 768px) {
   .page {
-    gap: 18px;
+    gap: var(--xai-space-3);
   }
 }
 

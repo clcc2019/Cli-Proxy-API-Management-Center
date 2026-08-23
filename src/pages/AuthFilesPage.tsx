@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } from '@/hooks';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
@@ -36,7 +37,6 @@ import {
   MAX_CARD_PAGE_SIZE,
   MIN_CARD_PAGE_SIZE,
   clampCardPageSize,
-  getTypeLabel,
   hasAuthFileStatusMessage,
   normalizeProviderKey,
   resolveAuthFileUsageStats,
@@ -153,7 +153,7 @@ export function AuthFilesPage() {
     const value = persistedUiState?.filter;
     return typeof value === 'string' && value.trim() ? value : 'all';
   });
-  const [problemOnly, setProblemOnly] = useState(false);
+  const [problemOnly, setProblemOnly] = useState(() => persistedUiState?.problemOnly === true);
   const [disabledOnly, setDisabledOnly] = useState(() => persistedUiState?.disabledOnly === true);
   const [planFilter, setPlanFilter] = useState<AuthFilePlanFilter>(() => {
     if (isAuthFilePlanFilter(persistedUiState?.planFilter)) {
@@ -205,8 +205,11 @@ export function AuthFilesPage() {
     sortSnapshot: Record<string, AuthFileSortSnapshot>;
   } | null>(null);
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
+  const contentRegionRef = useRef<HTMLDivElement>(null);
   const batchActionAnimationRef = useRef<Animation | null>(null);
   const previousSelectionActiveRef = useRef(false);
+  const previousSelectionForFocusRef = useRef(false);
+  const previousSelectionScopeKeyRef = useRef('');
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
   const manualRefreshInFlightRef = useRef(false);
@@ -285,6 +288,21 @@ export function AuthFilesPage() {
     const resolvedTotalPages = Math.max(1, Math.ceil(meta.total / meta.pageSize));
     setPage((current) => (current > resolvedTotalPages ? resolvedTotalPages : current));
   }, []);
+  const focusContentRegion = useCallback(() => {
+    contentRegionRef.current?.focus({ preventScroll: true });
+  }, []);
+  const restoreDeleteFocus = useCallback(() => {
+    const activeElement = document.activeElement;
+    if (
+      activeElement instanceof HTMLElement &&
+      activeElement !== document.body &&
+      activeElement.isConnected &&
+      !activeElement.closest('[inert]')
+    ) {
+      return;
+    }
+    focusContentRegion();
+  }, [focusContentRegion]);
 
   const { keyUsageStats, loadKeyStats, refreshKeyStats } = useAuthFilesStats(isCurrentLayer);
   const {
@@ -313,6 +331,7 @@ export function AuthFilesPage() {
     toggleSelect,
     selectAllVisible,
     invertVisibleSelection,
+    retainVisibleSelection,
     deselectAll,
     batchDownload,
     batchSetStatus,
@@ -322,6 +341,7 @@ export function AuthFilesPage() {
     refreshKeyStats,
     listOptions: authFilesListOptions,
     onListMetaResolved: handleListMetaResolved,
+    restoreFocusAfterDelete: restoreDeleteFocus,
   });
 
   const authFilesIncludeRecentRequestSummary = useMemo(
@@ -398,6 +418,21 @@ export function AuthFilesPage() {
     applyLocalFilePatch,
     refreshAuthFilesFromServer: refreshFilesFromServer,
   });
+  const unsavedChangesDialog = useMemo(
+    () => ({
+      title: t('common.unsaved_changes_title'),
+      message: t('common.unsaved_changes_message'),
+      confirmText: t('common.discard_changes'),
+      cancelText: t('common.cancel'),
+      variant: 'danger' as const,
+    }),
+    [t]
+  );
+  useUnsavedChangesGuard({
+    enabled: isCurrentLayer,
+    shouldBlock: prefixProxyDirty,
+    dialog: unsavedChangesDialog,
+  });
 
   const disableControls = connectionStatus !== 'connected';
   const premiumFilterServerSide = premiumOnly && premiumServerFilterSupported === true;
@@ -443,7 +478,7 @@ export function AuthFilesPage() {
   }, [debouncedAuthFilesUiState]);
 
   const displayOptionsActive = problemOnly || disabledOnly || planFilterActive;
-  const listUpdating = refreshing || serverSearchPending;
+  const listUpdating = refreshing || normalizedSearch !== debouncedSearch;
 
   useEffect(() => {
     const listBusy = loading || refreshing;
@@ -1026,6 +1061,28 @@ export function AuthFilesPage() {
         : EMPTY_AUTH_FILE_ITEMS,
     [isCurrentLayer, pageSize, serverPaginated, sorted, start]
   );
+  const selectionScopeKey = [
+    filter,
+    problemOnly ? 'problem' : 'all-statuses',
+    disabledOnly ? 'disabled' : 'all-enabled-states',
+    planFilter,
+    search,
+    sortMode,
+    currentPage,
+    pageSize,
+  ].join('\n');
+  useEffect(() => {
+    if (!previousSelectionScopeKeyRef.current) {
+      previousSelectionScopeKeyRef.current = selectionScopeKey;
+      return;
+    }
+    if (previousSelectionScopeKeyRef.current === selectionScopeKey) return;
+    previousSelectionScopeKeyRef.current = selectionScopeKey;
+    deselectAll();
+  }, [deselectAll, selectionScopeKey]);
+  useEffect(() => {
+    retainVisibleSelection(pageItems);
+  }, [pageItems, retainVisibleSelection]);
   const showInitialLoading = isCurrentLayer && loading && pageItems.length === 0;
   const showListProgress = isCurrentLayer && listUpdating && pageItems.length > 0;
 
@@ -1056,10 +1113,6 @@ export function AuthFilesPage() {
         ? resolveQuotaRefreshTargets(pageItems)
         : EMPTY_AUTH_FILE_QUOTA_REFRESH_TARGETS,
     [isCurrentLayer, pageItems]
-  );
-  const selectableFilteredItems = useMemo(
-    () => (isCurrentLayer ? filterSelectableAuthFiles(sorted) : EMPTY_AUTH_FILE_ITEMS),
-    [isCurrentLayer, sorted]
   );
   const selectedNames = useMemo(
     () =>
@@ -1257,6 +1310,22 @@ export function AuthFilesPage() {
   const selectionActive = isCurrentLayer && selectionCount > 0;
 
   useLayoutEffect(() => {
+    const wasActive = previousSelectionForFocusRef.current;
+    previousSelectionForFocusRef.current = selectionActive;
+    if (!wasActive || selectionActive) return;
+
+    const activeElement = document.activeElement;
+    if (
+      !(activeElement instanceof HTMLElement) ||
+      activeElement === document.body ||
+      floatingBatchActionsRef.current?.contains(activeElement) ||
+      activeElement.closest('[inert]')
+    ) {
+      focusContentRegion();
+    }
+  }, [focusContentRegion, selectionActive]);
+
+  useLayoutEffect(() => {
     if (!isCurrentLayer || !selectionActive || typeof window === 'undefined') return;
 
     const actionsEl = floatingBatchActionsRef.current;
@@ -1370,35 +1439,41 @@ export function AuthFilesPage() {
     []
   );
 
-  const deleteAllButtonLabel = useMemo(
-    () =>
-      problemOnly
-        ? filter === 'all'
-          ? t('auth_files.delete_problem_button')
-          : t('auth_files.delete_problem_button_with_type', { type: getTypeLabel(t, filter) })
-        : filter === 'all'
-          ? t('auth_files.delete_all_button')
-          : `${t('common.delete')} ${getTypeLabel(t, filter)}`,
-    [filter, problemOnly, t]
+  const deleteAllButtonLabel = hasActiveFilters
+    ? t('auth_files.delete_filtered_button')
+    : t('auth_files.delete_all_button');
+  const deleteListOptions = useMemo<AuthFilesListOptions>(
+    () => ({
+      codexSubscription: 'cache',
+      summary: true,
+      includeRecentRequests: false,
+      search: displaySearch || undefined,
+      type: filter !== 'all' ? String(filter) : undefined,
+      problemOnly: problemOnly || undefined,
+      disabledOnly: disabledOnly || undefined,
+      premiumOnly: premiumFilterServerSide || undefined,
+    }),
+    [disabledOnly, displaySearch, filter, premiumFilterServerSide, problemOnly]
+  );
+  const matchesDeleteScope = useCallback(
+    (file: AuthFileItem) => {
+      if (filter !== 'all' && file.type !== filter) return false;
+      if (problemOnly && !hasAuthFileStatusMessage(file)) return false;
+      return matchesSupplementalDisplayFilters(file) && matchesDisplaySearch(file);
+    },
+    [filter, matchesDisplaySearch, matchesSupplementalDisplayFilters, problemOnly]
   );
 
   const handleDeleteAllClick = useCallback(() => {
     handleDeleteAll({
-      filter,
-      problemOnly,
-      matchDisplayFilter:
-        disabledOnly || planFilterActive ? matchesSupplementalDisplayFilters : undefined,
-      onResetFilterToAll: () => setFilter('all'),
-      onResetProblemOnly: () => setProblemOnly(false),
+      filtered: hasActiveFilters,
+      confirmMessage: t(
+        hasActiveFilters ? 'auth_files.delete_filtered_confirm' : 'auth_files.delete_all_confirm'
+      ),
+      listOptions: deleteListOptions,
+      matchesFile: matchesDeleteScope,
     });
-  }, [
-    disabledOnly,
-    filter,
-    handleDeleteAll,
-    matchesSupplementalDisplayFilters,
-    planFilterActive,
-    problemOnly,
-  ]);
+  }, [deleteListOptions, handleDeleteAll, hasActiveFilters, matchesDeleteScope, t]);
 
   const handlePreviousPage = useCallback(() => {
     setPage((prev) => Math.max(1, Math.min(prev, currentPage) - 1));
@@ -1411,10 +1486,6 @@ export function AuthFilesPage() {
   const handleSelectPageItems = useCallback(() => {
     selectAllVisible(pageItems);
   }, [pageItems, selectAllVisible]);
-
-  const handleSelectFilteredItems = useCallback(() => {
-    selectAllVisible(sorted);
-  }, [selectAllVisible, sorted]);
 
   const handleInvertPageItems = useCallback(() => {
     invertVisibleSelection(pageItems);
@@ -1452,9 +1523,7 @@ export function AuthFilesPage() {
           file={file}
           selected={selectedFiles.has(file.name)}
           resolvedTheme={resolvedTheme}
-          // 只传连接状态这一真正的“单卡片”维度。列表刷新中的禁用改由
-          // .fileGrid 上的 inert 统一处理：listUpdating 每次搜索都会翻转两次，
-          // 若混进 props 会让整页卡片的 memo 全部失效、连带重算 20 个状态块。
+          // 搜索或列表刷新时保留旧卡片可用，只有连接状态会禁用单卡片操作。
           disableControls={disableControls}
           deleting={deleting === file.name}
           statusUpdating={statusUpdating[file.name] === true}
@@ -1553,7 +1622,7 @@ export function AuthFilesPage() {
                   size="sm"
                   className={`${refreshStyles.headerAction} ${refreshStyles.dangerAction}`}
                   onClick={handleDeleteAllClick}
-                  disabled={disableControls || loading || refreshing || deletingAll}
+                  disabled={disableControls || loading || listUpdating || deletingAll}
                   loading={deletingAll}
                 >
                   <IconTrash2 className={refreshStyles.headerActionIcon} size={16} />
@@ -1660,8 +1729,10 @@ export function AuthFilesPage() {
         )}
 
         <div
+          ref={contentRegionRef}
           className={`${refreshStyles.contentRegion} ${showListProgressVisual ? refreshStyles.contentUpdating : ''}`}
           aria-busy={showInitialLoading || showListProgress || pageQuotaRefreshing}
+          tabIndex={-1}
         >
           {showInitialLoading ? (
             <AuthFilesSkeletonGrid
@@ -1691,9 +1762,6 @@ export function AuthFilesPage() {
           ) : (
             <div
               className={`${refreshStyles.cardGrid} ${quotaFilterType ? refreshStyles.cardGridQuotaManaged : ''}`}
-              // 列表刷新期间整体屏蔽交互（含键盘焦点），等价于此前逐张卡片
-              // 传 disableControls，但不会触碰任何卡片的 props。
-              inert={listUpdating}
             >
               {authFileCardNodes}
             </div>
@@ -1816,14 +1884,6 @@ export function AuthFilesPage() {
                     disabled={listUpdating || selectablePageItems.length === 0}
                   >
                     {t('auth_files.batch_select_page')}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleSelectFilteredItems}
-                    disabled={listUpdating || selectableFilteredItems.length === 0}
-                  >
-                    {t('auth_files.batch_select_filtered')}
                   </Button>
                   <Button
                     variant="ghost"

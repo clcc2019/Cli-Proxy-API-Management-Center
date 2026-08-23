@@ -99,7 +99,6 @@ export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
   return (
     <div className={styles.root}>
       <div className={styles.sortGroup}>
-        <span className={styles.label}>{t('providersPage.toolbar.sortBy')}</span>
         <Select
           value={sortBy}
           options={sortOptions}
@@ -141,9 +140,12 @@ export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
         trigger={
           <button
             type="button"
-            className={styles.filterTrigger}
+            className={`${styles.filterTrigger} ${
+              selectedModels.size > 0 ? styles.filterTriggerActive : ''
+            }`}
             disabled={availableModels.length === 0}
             aria-haspopup="dialog"
+            aria-expanded={visibleFilterOpen}
             aria-label={filterLabel}
           >
             <IconSlidersHorizontal size={14} />

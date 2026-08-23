@@ -35,8 +35,7 @@ const areReasoningEffortsEqual = (
   const leftKeys = Object.keys(left ?? {});
   const rightKeys = Object.keys(right ?? {});
   return (
-    leftKeys.length === rightKeys.length &&
-    leftKeys.every((key) => left?.[key] === right?.[key])
+    leftKeys.length === rightKeys.length && leftKeys.every((key) => left?.[key] === right?.[key])
   );
 };
 

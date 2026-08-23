@@ -2220,7 +2220,6 @@
   line-height: 1;
 }
 
-.page .codexResetCreditsText .codexPlanLabel,
 .page .codexResetCreditsText .codexPlanValue {
   flex: 0 0 auto;
   white-space: nowrap;
@@ -2229,20 +2228,6 @@
 .page .codexResetCreditsText .codexPlanValue {
   font-size: 10.5px;
   font-weight: 700;
-}
-
-.page .codexResetCreditExpiry {
-  min-width: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
-  color: var(--mg-text-tertiary);
-  font-family: $font-mono;
-  font-size: 9px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .page .codexResetCreditButton:global(.btn.btn-sm) {
@@ -3963,19 +3948,26 @@
   }
 }
 
-// Mobile operational recomposition. Cards become one connected, touch-safe
-// record surface instead of a compressed desktop grid with hidden action lanes.
-@media (min-width: 768px) and (max-width: 1023px) {
+// Keep card density tied to the available page column rather than viewport
+// width so the grid remains stable when the navigation drawer is open.
+@container auth-files-page (min-width: 768px) and (max-width: 1023px) {
   .page .cardGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .page .cardGridQuotaManaged {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 767px) {
+@container auth-files-page (min-width: 1024px) and (max-width: 1079px) {
+  .page .cardGrid,
+  .page .cardGridQuotaManaged {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container auth-files-page (max-width: 767px) {
   .page {
     gap: var(--xai-space-3);
   }
@@ -4782,11 +4774,7 @@
   }
 
   .page .credentialCard .cardActions {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: var(--xai-space-1);
-    overflow-x: auto;
-    touch-action: pan-x;
+    display: none;
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm),
@@ -4805,7 +4793,7 @@
   .page .credentialCard .cardActionButton:global(.btn.btn-sm)::before,
   .page .credentialCard .promotionPlanButton:global(.btn.btn-sm)::before {
     position: absolute;
-    inset: var(--xai-space-1-5);
+    inset: 2px;
     border: 1px solid var(--xai-border);
     border-radius: var(--xai-radius-control);
     background: var(--xai-white);
@@ -4814,7 +4802,10 @@
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) > span:not(:global(.loading-spinner)),
-  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm) > span:not(:global(.loading-spinner)) {
+  .page
+    .credentialCard
+    .promotionPlanButton:global(.btn.btn-sm)
+    > span:not(:global(.loading-spinner)) {
     position: relative;
     z-index: 1;
     width: var(--xai-space-7);
@@ -4849,12 +4840,13 @@
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm)::before {
-    border-color: var(--xai-danger-border);
+    border-color: var(--xai-border);
   }
 
-  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm):hover:not(:disabled)::before {
-    border-color: var(--xai-danger-border);
-    background: var(--xai-danger-soft);
+  .page
+    .credentialCard
+    .cardActionButton:global(.btn.btn-danger.btn-sm):hover:not(:disabled)::before {
+    border-color: var(--xai-border-hover);
   }
 
   .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
@@ -4868,7 +4860,10 @@
     border-radius: var(--xai-radius-pill);
   }
 
-  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) > span:not(:global(.loading-spinner)) {
+  .page
+    .credentialCard
+    .runtimeModelAction:global(.btn.btn-sm)
+    > span:not(:global(.loading-spinner)) {
     width: auto;
     height: var(--xai-space-7);
     gap: var(--xai-space-1);

@@ -9,7 +9,7 @@ const limits = {
   entryJavaScript: 36 * 1024,
   initialStaticJavaScript: 400 * 1024,
   initialStaticCss: 45 * 1024,
-  authFilesJavaScript: 98 * 1024,
+  authFilesJavaScript: 93 * 1024,
   authFilesDirectCss: 126 * 1024,
 };
 

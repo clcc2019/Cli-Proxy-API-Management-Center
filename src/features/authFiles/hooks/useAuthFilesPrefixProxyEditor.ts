@@ -138,9 +138,7 @@ const deleteFields = (value: Record<string, unknown>, keys: readonly string[]): 
   });
 };
 
-const stripAuthFileRuntimeMetadata = (
-  source: Record<string, unknown>
-): Record<string, unknown> => {
+const stripAuthFileRuntimeMetadata = (source: Record<string, unknown>): Record<string, unknown> => {
   const next = { ...source };
   deleteFields(next, RUNTIME_FIELD_KEYS);
   return next;
@@ -755,6 +753,7 @@ export function useAuthFilesPrefixProxyEditor(
   const { disableControls, applyLocalFilePatch, refreshAuthFilesFromServer } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const [prefixProxyEditor, setPrefixProxyEditor] = useState<PrefixProxyEditorState | null>(null);
   const prefixProxyEditorRef = useRef<PrefixProxyEditorState | null>(null);
   const mountedRef = useRef(true);
@@ -825,10 +824,24 @@ export function useAuthFilesPrefixProxyEditor(
     [disableControls, showNotification, t]
   );
 
-  const closePrefixProxyEditor = useCallback(() => {
+  const dismissPrefixProxyEditor = useCallback(() => {
     editorRequestSeqRef.current += 1;
     setPrefixProxyEditor(null);
   }, []);
+
+  const closePrefixProxyEditor = useCallback(() => {
+    if (!prefixProxyDirty) {
+      dismissPrefixProxyEditor();
+      return;
+    }
+    showConfirmation({
+      title: t('common.unsaved_changes_title'),
+      message: t('common.unsaved_changes_message'),
+      confirmText: t('common.discard_changes'),
+      variant: 'danger',
+      onConfirm: dismissPrefixProxyEditor,
+    });
+  }, [dismissPrefixProxyEditor, prefixProxyDirty, showConfirmation, t]);
 
   const handlePrefixProxyChange = useCallback(
     (field: PrefixProxyEditorField, value: PrefixProxyEditorFieldValue) => {
@@ -899,12 +912,13 @@ export function useAuthFilesPrefixProxyEditor(
       payload = buildPrefixProxyPatchPayload(current, (key) => t(key));
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Invalid format';
+      setPrefixProxyEditor((prev) => (prev ? { ...prev, error: errorMessage } : prev));
       showNotification(errorMessage, 'error');
       return;
     }
 
     if (Object.keys(payload).length === 1) {
-      setPrefixProxyEditor(null);
+      dismissPrefixProxyEditor();
       return;
     }
 
@@ -912,7 +926,7 @@ export function useAuthFilesPrefixProxyEditor(
     const requestSeq = editorRequestSeqRef.current;
     setPrefixProxyEditor((prev) => {
       if (!prev || prev.fileName !== fileName) return prev;
-      return { ...prev, saving: true };
+      return { ...prev, saving: true, error: null };
     });
 
     try {
@@ -921,7 +935,7 @@ export function useAuthFilesPrefixProxyEditor(
       applyLocalFilePatch(fileName, buildLocalPatchedAuthFile(current, response.file));
       await refreshAuthFilesFromServer?.();
       if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
-      setPrefixProxyEditor(null);
+      dismissPrefixProxyEditor();
       showNotification(t('auth_files.prefix_proxy_saved_success', { name: fileName }), 'success');
     } catch (err: unknown) {
       if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
@@ -929,10 +943,21 @@ export function useAuthFilesPrefixProxyEditor(
       showNotification(`${t('notification.upload_failed')}: ${errorMessage}`, 'error');
       setPrefixProxyEditor((prev) => {
         if (!prev || prev.fileName !== fileName) return prev;
-        return { ...prev, saving: false };
+        return {
+          ...prev,
+          saving: false,
+          error: `${t('notification.upload_failed')}: ${errorMessage}`,
+        };
       });
     }
-  }, [applyLocalFilePatch, prefixProxyDirty, refreshAuthFilesFromServer, showNotification, t]);
+  }, [
+    applyLocalFilePatch,
+    dismissPrefixProxyEditor,
+    prefixProxyDirty,
+    refreshAuthFilesFromServer,
+    showNotification,
+    t,
+  ]);
 
   return {
     prefixProxyEditor,

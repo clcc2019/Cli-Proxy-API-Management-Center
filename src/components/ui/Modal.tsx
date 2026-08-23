@@ -144,6 +144,14 @@ export function Modal({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
+  const restorePreviouslyFocused = useCallback(() => {
+    const element = previouslyFocusedRef.current;
+    previouslyFocusedRef.current = null;
+    if (element?.isConnected && !element.closest('[inert]')) {
+      element.focus();
+    }
+  }, []);
+
   const getFocusableElements = useCallback(() => {
     if (!modalRef.current) return [] as HTMLElement[];
     return Array.from(modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
@@ -223,8 +231,9 @@ export function Modal({
       if (closeTimerRef.current !== null) {
         window.clearTimeout(closeTimerRef.current);
       }
+      restorePreviouslyFocused();
     };
-  }, []);
+  }, [restorePreviouslyFocused]);
 
   const shouldLockScroll = open || isVisible;
 
@@ -252,9 +261,8 @@ export function Modal({
 
   useEffect(() => {
     if (open || isVisible) return;
-    previouslyFocusedRef.current?.focus();
-    previouslyFocusedRef.current = null;
-  }, [isVisible, open]);
+    restorePreviouslyFocused();
+  }, [isVisible, open, restorePreviouslyFocused]);
 
   useEffect(() => {
     if (!open) return;

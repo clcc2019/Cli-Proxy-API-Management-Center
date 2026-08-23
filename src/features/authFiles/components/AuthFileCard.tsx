@@ -564,6 +564,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           <AuthFileReauthorization
             file={file}
             disableControls={disableControls}
+            onAuthFileUpdated={onAuthFileUpdated}
           />
         )}
 

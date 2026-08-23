@@ -12,18 +12,41 @@ export type ApiRequestConfig = AxiosRequestConfig & {
   skipUnauthorizedLogout?: boolean;
 };
 
+type ManagementRequestConfig = ApiRequestConfig & {
+  _managementAuthGeneration?: number;
+  _managementSessionRequest?: boolean;
+  _managementSessionRetry?: boolean;
+};
+
+const MANAGEMENT_SESSION_HEADER_KEYS = ['x-cpa-management-session'];
+const MANAGEMENT_SESSION_STATUS_HEADER_KEYS = ['x-cpa-management-session-status'];
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+const isAxiosError = (value: unknown): value is AxiosError =>
+  isRecord(value) && value.isAxiosError === true;
+
 class ApiClient {
   private instance: AxiosInstance | null = null;
   private instancePromise: Promise<AxiosInstance> | null = null;
   private apiBase: string = '';
   private managementKey: string = '';
+  private managementSession: string = '';
+  private managementAuthGeneration = 0;
   private timeout = REQUEST_TIMEOUT_MS;
 
   /**
    * 设置 API 配置
    */
   setConfig(config: ApiClientConfig): void {
-    this.apiBase = computeApiUrl(config.apiBase);
+    const apiBase = computeApiUrl(config.apiBase);
+    if (this.apiBase !== apiBase || this.managementKey !== config.managementKey) {
+      this.managementSession = '';
+      this.managementAuthGeneration += 1;
+    }
+
+    this.apiBase = apiBase;
     this.managementKey = config.managementKey;
     this.timeout = config.timeout || REQUEST_TIMEOUT_MS;
 
@@ -88,6 +111,17 @@ class ApiClient {
     return null;
   }
 
+  private captureManagementSession(
+    headers: Record<string, unknown> | undefined,
+    config: AxiosRequestConfig | undefined
+  ): void {
+    const requestConfig = config as ManagementRequestConfig | undefined;
+    if (requestConfig?._managementAuthGeneration !== this.managementAuthGeneration) return;
+
+    const session = this.readHeader(headers, MANAGEMENT_SESSION_HEADER_KEYS);
+    if (session) this.managementSession = session;
+  }
+
   /**
    * 设置请求/响应拦截器
    */
@@ -95,6 +129,7 @@ class ApiClient {
     // 请求拦截器
     instance.interceptors.request.use(
       (config) => {
+        const requestConfig = config as ManagementRequestConfig;
         // 设置 baseURL
         config.baseURL = this.apiBase;
         if (config.url) {
@@ -103,7 +138,11 @@ class ApiClient {
         }
 
         // 添加认证头
-        if (this.managementKey) {
+        requestConfig._managementAuthGeneration = this.managementAuthGeneration;
+        requestConfig._managementSessionRequest = Boolean(this.managementSession);
+        if (this.managementSession) {
+          config.headers.Authorization = `CPA-Session ${this.managementSession}`;
+        } else if (this.managementKey) {
           config.headers.Authorization = `Bearer ${this.managementKey}`;
         }
 
@@ -116,6 +155,7 @@ class ApiClient {
     instance.interceptors.response.use(
       (response) => {
         const headers = response.headers as Record<string, string | undefined>;
+        this.captureManagementSession(headers, response.config);
         const version = this.readHeader(headers, VERSION_HEADER_KEYS);
         const buildDate = this.readHeader(headers, BUILD_DATE_HEADER_KEYS);
 
@@ -130,7 +170,28 @@ class ApiClient {
 
         return response;
       },
-      (error) => Promise.reject(this.handleError(error))
+      (error) => {
+        if (isAxiosError(error)) {
+          const headers = error.response?.headers as Record<string, unknown> | undefined;
+          const requestConfig = error.config as ManagementRequestConfig | undefined;
+          this.captureManagementSession(headers, requestConfig);
+
+          const sessionStatus = this.readHeader(headers, MANAGEMENT_SESSION_STATUS_HEADER_KEYS);
+          if (
+            error.response?.status === 401 &&
+            sessionStatus?.trim().toLowerCase() === 'invalid' &&
+            requestConfig?._managementSessionRequest === true &&
+            requestConfig._managementSessionRetry !== true &&
+            requestConfig._managementAuthGeneration === this.managementAuthGeneration
+          ) {
+            this.managementSession = '';
+            requestConfig._managementSessionRetry = true;
+            return instance.request(requestConfig);
+          }
+        }
+
+        return Promise.reject(this.handleError(error));
+      }
     );
   }
 
@@ -138,11 +199,6 @@ class ApiClient {
    * 错误处理
    */
   private handleError(error: unknown): ApiError {
-    const isRecord = (value: unknown): value is Record<string, unknown> =>
-      value !== null && typeof value === 'object';
-    const isAxiosError = (value: unknown): value is AxiosError =>
-      isRecord(value) && value.isAxiosError === true;
-
     if (isAxiosError(error)) {
       const responseData: unknown = error.response?.data;
       const responseRecord = isRecord(responseData) ? responseData : null;
@@ -165,8 +221,12 @@ class ApiClient {
       // 401 未授权 - 触发登出事件
       const skipUnauthorizedLogout =
         (error.config as ApiRequestConfig | undefined)?.skipUnauthorizedLogout === true;
+      const requestGeneration = (error.config as ManagementRequestConfig | undefined)
+        ?._managementAuthGeneration;
+      const staleRequest =
+        requestGeneration !== undefined && requestGeneration !== this.managementAuthGeneration;
 
-      if (error.response?.status === 401 && !skipUnauthorizedLogout) {
+      if (error.response?.status === 401 && !skipUnauthorizedLogout && !staleRequest) {
         window.dispatchEvent(new Event('unauthorized'));
       }
 

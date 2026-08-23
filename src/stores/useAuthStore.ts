@@ -235,7 +235,16 @@ export const useAuthStore = create<AuthStoreState>()(
 
       // 更新服务器版本
       updateServerVersion: (version, buildDate) => {
-        set({ serverVersion: version || null, serverBuildDate: buildDate || null });
+        const serverVersion = version || null;
+        const serverBuildDate = buildDate || null;
+        const current = get();
+        if (
+          current.serverVersion === serverVersion &&
+          current.serverBuildDate === serverBuildDate
+        ) {
+          return;
+        }
+        set({ serverVersion, serverBuildDate });
       },
 
       // 更新连接状态

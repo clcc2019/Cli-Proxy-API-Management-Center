@@ -1,98 +1,29 @@
-.card {
-  --provider-surface: var(--mg-surface);
-  --provider-text: var(--mg-text);
-  --provider-text-tertiary: var(--mg-text-tertiary);
-  --provider-border: var(--mg-border);
-  --provider-success: var(--mg-success);
-
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
-  align-items: center;
-  gap: 16px 24px;
+.header {
+  display: flex;
   min-width: 0;
-  padding: 2px 1px 18px;
-  border-bottom: 1px solid var(--provider-border);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--xai-space-4);
+  padding: 0 0 var(--xai-space-4);
+  border-bottom: 1px solid var(--xai-border);
 }
 
 .identity {
-  display: grid;
   min-width: 0;
-  gap: 6px;
 }
 
 .title {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  color: var(--provider-text);
-  font-family: var(--mg-font-display);
-  font-size: clamp(27px, 2.2vw, 32px);
-  font-weight: 650;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  color: var(--xai-ink-console);
+  font-family: var(--xai-font-display);
+  font-size: clamp(27px, 2.2vw, 31.5px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.summarySync {
-  display: inline-flex;
-  width: fit-content;
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-  overflow: hidden;
-  color: var(--provider-text-tertiary);
-  font-size: 11px;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.summaryDot {
-  width: 6px;
-  height: 6px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--provider-success);
-}
-
-.chips {
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  align-items: center;
-  min-width: 0;
-}
-
-.chip {
-  display: inline-flex;
-  min-width: 0;
-  align-items: baseline;
-  gap: 5px;
-  padding: 2px 14px;
-  white-space: nowrap;
-
-  + .chip {
-    border-left: 1px solid var(--provider-border);
-  }
-}
-
-.chip strong {
-  color: var(--provider-text);
-  font-size: 18px;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.chip span {
-  color: var(--provider-text-tertiary);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.chipPrimary strong {
-  color: var(--provider-success);
 }
 
 .actions {
@@ -100,13 +31,14 @@
   min-width: 0;
   align-items: center;
   justify-content: flex-end;
-  gap: 7px;
+  gap: var(--xai-space-2);
 }
 
 .actionButton {
   min-width: 0;
-  min-height: 40px;
-  padding-inline: 13px;
+  min-height: var(--xai-space-8);
+  padding-inline: var(--xai-space-3);
+  border-radius: var(--xai-radius-pill);
   white-space: nowrap;
 
   > :global(span:last-child) {
@@ -114,7 +46,7 @@
     min-width: 0;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--xai-space-1-5);
     line-height: 1;
     white-space: nowrap;
   }
@@ -122,35 +54,18 @@
   svg {
     flex: 0 0 auto;
   }
-}
 
-@media (max-width: 1080px) {
-  .card {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 13px 18px;
-  }
-
-  .chips {
-    grid-column: 1;
-    grid-row: 2;
-    justify-self: start;
-  }
-
-  .chip:first-child {
-    padding-left: 0;
-  }
-
-  .actions {
-    grid-column: 2;
-    grid-row: 1 / span 2;
+  &:active:not(:disabled) {
+    transform: translateY(1px);
   }
 }
 
-@media (max-width: 640px) {
-  .card {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 13px;
-    padding-bottom: 15px;
+@media (max-width: 480px) {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--xai-space-3);
+    padding-bottom: var(--xai-space-3);
   }
 
   .title {
@@ -158,33 +73,15 @@
     white-space: normal;
   }
 
-  .chips {
-    grid-column: 1;
-    grid-row: auto;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-  }
-
-  .chip {
-    justify-content: center;
-    padding-inline: 8px;
-  }
-
-  .chip:first-child {
-    padding-left: 8px;
-  }
-
   .actions {
     display: grid;
-    grid-column: 1;
-    grid-row: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
   }
 
   .actionButton {
     width: 100%;
-    min-height: 44px;
+    min-height: var(--mg-hit-area, 44px);
   }
 }
 

@@ -17,16 +17,26 @@ export function ConfirmationModal() {
     return null;
   }
 
-  const { title, message, onConfirm, onCancel, confirmText, cancelText, variant = 'primary' } = options;
+  const {
+    title,
+    message,
+    onConfirm,
+    onCancel,
+    restoreFocus,
+    confirmText,
+    cancelText,
+    variant = 'primary',
+  } = options;
 
   const handleConfirm = async () => {
     try {
       setConfirmationLoading(true);
       await onConfirm();
       hideConfirmation();
+      if (restoreFocus) window.requestAnimationFrame(restoreFocus);
     } catch (error) {
       console.error('Confirmation action failed:', error);
-      // Optional: show error notification here if needed, 
+      // Optional: show error notification here if needed,
       // but usually the calling component handles specific errors.
     } finally {
       setConfirmationLoading(false);
@@ -52,19 +62,19 @@ export function ConfirmationModal() {
       ariaDescribedBy={messageId}
     >
       {typeof message === 'string' ? (
-        <p id={messageId} style={{ margin: '1rem 0' }}>{message}</p>
+        <p id={messageId} style={{ margin: '1rem 0' }}>
+          {message}
+        </p>
       ) : (
-        <div id={messageId} style={{ margin: '1rem 0' }}>{message}</div>
+        <div id={messageId} style={{ margin: '1rem 0' }}>
+          {message}
+        </div>
       )}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
         <Button variant="ghost" onClick={handleCancel} disabled={isLoading}>
           {cancelText || t('common.cancel')}
         </Button>
-        <Button 
-          variant={variant} 
-          onClick={handleConfirm} 
-          loading={isLoading}
-        >
+        <Button variant={variant} onClick={handleConfirm} loading={isLoading}>
           {confirmText || t('common.confirm')}
         </Button>
       </div>

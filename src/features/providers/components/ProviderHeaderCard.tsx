@@ -6,10 +6,6 @@ import { IconPlus } from '@/components/ui/icons';
 import styles from './ProviderHeaderCard.module.scss';
 
 interface ProviderHeaderCardProps {
-  totalActive: number;
-  totalResources: number;
-  providerFamilies: number;
-  updatedAtLabel: string;
   isFetching?: boolean;
   isNewDisabled?: boolean;
   onRefresh: () => void;
@@ -17,10 +13,6 @@ interface ProviderHeaderCardProps {
 }
 
 export const ProviderHeaderCard = memo(function ProviderHeaderCard({
-  totalActive,
-  totalResources,
-  providerFamilies,
-  updatedAtLabel,
   isFetching = false,
   isNewDisabled = false,
   onRefresh,
@@ -29,30 +21,11 @@ export const ProviderHeaderCard = memo(function ProviderHeaderCard({
   const { t } = useTranslation();
 
   return (
-    <header className={styles.card}>
+    <header className={styles.header}>
       <div className={styles.identity}>
         <h1 id="providers-page-title" className={styles.title}>
           {t('providersPage.header.title')}
         </h1>
-        <span className={styles.summarySync}>
-          <span className={styles.summaryDot} aria-hidden="true" />
-          {t('providersPage.header.updatedAt', { time: updatedAtLabel })}
-        </span>
-      </div>
-
-      <div className={styles.chips}>
-        <span className={`${styles.chip} ${styles.chipPrimary}`}>
-          <strong>{totalActive}</strong>
-          <span>{t('providersPage.header.activeLabel')}</span>
-        </span>
-        <span className={styles.chip}>
-          <strong>{totalResources}</strong>
-          <span>{t('providersPage.header.totalLabel')}</span>
-        </span>
-        <span className={styles.chip}>
-          <strong>{providerFamilies}</strong>
-          <span>{t('providersPage.header.familiesLabel')}</span>
-        </span>
       </div>
 
       <div className={styles.actions}>

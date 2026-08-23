@@ -837,6 +837,7 @@ export const authFilesApi = {
       params.set('auth_index', authIndex);
     }
     if (codexSubscription === 'refresh') {
+      params.set('codex_usage', 'refresh');
       params.set('_ts', Date.now().toString());
     }
     try {

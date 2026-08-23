@@ -25,7 +25,6 @@ import { AUTH_FILES_REFRESH_EVENT, MAX_AUTH_FILE_SIZE } from '@/utils/constants'
 import { downloadBlob } from '@/utils/download';
 import { isRuntimeOnlyAuthFile } from '@/utils/quota';
 import { createTrailingSingleFlight } from '@/utils/trailingSingleFlight';
-import { getTypeLabel, hasAuthFileStatusMessage } from '@/features/authFiles/constants';
 import { readAuthFileNumericCount } from '@/features/authFiles/stats';
 
 const normalizeDeleteAuthIndex = (value: unknown): string | number | null => {
@@ -66,11 +65,10 @@ const getAuthFileDeleteTarget = (file: AuthFileItem) => ({
 });
 
 type DeleteAllOptions = {
-  filter: string;
-  problemOnly: boolean;
-  matchDisplayFilter?: (file: AuthFileItem) => boolean;
-  onResetFilterToAll: () => void;
-  onResetProblemOnly: () => void;
+  filtered: boolean;
+  confirmMessage: string;
+  listOptions: AuthFilesListOptions;
+  matchesFile: (file: AuthFileItem) => boolean;
 };
 
 export type AuthFilesListMeta = {
@@ -232,6 +230,7 @@ export type UseAuthFilesDataResult = {
   toggleSelect: (name: string) => void;
   selectAllVisible: (visibleFiles: AuthFileItem[]) => void;
   invertVisibleSelection: (visibleFiles: AuthFileItem[]) => void;
+  retainVisibleSelection: (visibleFiles: AuthFileItem[]) => void;
   deselectAll: () => void;
   batchDownload: (names: string[]) => Promise<void>;
   batchSetStatus: (names: string[], enabled: boolean) => Promise<void>;
@@ -242,6 +241,7 @@ export type UseAuthFilesDataOptions = {
   refreshKeyStats: () => Promise<void>;
   listOptions?: AuthFilesListOptions;
   onListMetaResolved?: (meta: AuthFilesListMeta) => void;
+  restoreFocusAfterDelete?: () => void;
 };
 
 export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFilesDataResult {
@@ -249,9 +249,11 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     refreshKeyStats,
     listOptions = DEFAULT_AUTH_FILES_LIST_OPTIONS,
     onListMetaResolved,
+    restoreFocusAfterDelete,
   } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
 
   const [files, setFiles] = useState<AuthFileItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -356,6 +358,17 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       });
       return next;
+    });
+  }, []);
+
+  const retainVisibleSelection = useCallback((visibleFiles: AuthFileItem[]) => {
+    const visibleNames = new Set(
+      visibleFiles.filter((file) => !isRuntimeOnlyAuthFile(file)).map((file) => file.name)
+    );
+    setSelectedFiles((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set(Array.from(prev).filter((name) => visibleNames.has(name)));
+      return next.size === prev.size ? prev : next;
     });
   }, []);
 
@@ -737,6 +750,16 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             file ? getAuthFileDeleteTarget(file) : name,
           ]);
           if (!mountedRef.current) return;
+          if (result.deleted === 0 || result.failed.length > 0) {
+            const details = result.failed[0]?.error;
+            showNotification(
+              details
+                ? `${t('notification.delete_failed')}: ${details}`
+                : t('notification.delete_failed'),
+              'error'
+            );
+            return;
+          }
           showNotification(t('auth_files.delete_success'), 'success');
           applyDeletedFiles(result.files.length > 0 ? result.files : [name]);
           refreshFilesAfterLocalMutation();
@@ -751,44 +774,56 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       };
 
-      void runDelete();
+      showConfirmation({
+        title: t('auth_files.delete_button'),
+        message: t('auth_files.delete_confirm', { name }),
+        confirmText: t('common.delete'),
+        variant: 'danger',
+        onConfirm: runDelete,
+        restoreFocus: restoreFocusAfterDelete,
+      });
     },
-    [applyDeletedFiles, refreshFilesAfterLocalMutation, showNotification, t]
+    [
+      applyDeletedFiles,
+      refreshFilesAfterLocalMutation,
+      restoreFocusAfterDelete,
+      showConfirmation,
+      showNotification,
+      t,
+    ]
   );
 
   const handleDeleteAll = useCallback(
     (deleteAllOptions: DeleteAllOptions) => {
-      const { filter, problemOnly, onResetFilterToAll, onResetProblemOnly } = deleteAllOptions;
-      const matchDisplayFilter = deleteAllOptions.matchDisplayFilter;
-      const isFiltered = filter !== 'all';
-      const isProblemOnly = problemOnly === true;
-      const hasScopedDisplayFilter = typeof matchDisplayFilter === 'function';
-      const typeLabel = isFiltered ? getTypeLabel(t, filter) : t('auth_files.filter_all');
+      const {
+        filtered,
+        confirmMessage,
+        listOptions: deleteListOptions,
+        matchesFile,
+      } = deleteAllOptions;
       const runDeleteAll = async () => {
         setDeletingAll(true);
         try {
-          if (!isFiltered && !isProblemOnly && !hasScopedDisplayFilter) {
+          if (!filtered) {
             await authFilesApi.deleteAll();
             showNotification(t('auth_files.delete_all_success'), 'success');
             applyFilesState((prev) => prev.filter((file) => isRuntimeOnlyAuthFile(file)));
             deselectAll();
           } else {
-            const filesToDelete = filesRef.current.filter((file) => {
-              if (isRuntimeOnlyAuthFile(file)) return false;
-              if (isFiltered && file.type !== filter) return false;
-              if (isProblemOnly && !hasAuthFileStatusMessage(file)) return false;
-              if (matchDisplayFilter && !matchDisplayFilter(file)) return false;
-              return true;
+            const data = await authFilesApi.list({
+              ...deleteListOptions,
+              page: undefined,
+              pageSize: undefined,
+              pageRecentRequests: false,
+              includeRecentRequests: false,
+              typeCountsOnly: false,
             });
+            const filesToDelete = (data.files ?? []).filter(
+              (file) => !isRuntimeOnlyAuthFile(file) && matchesFile(file)
+            );
 
             if (filesToDelete.length === 0) {
-              const emptyMessage = isProblemOnly
-                ? isFiltered
-                  ? t('auth_files.delete_problem_filtered_none', { type: typeLabel })
-                  : t('auth_files.delete_problem_none')
-                : t('auth_files.delete_filtered_none', { type: typeLabel });
-              showNotification(emptyMessage, 'info');
-              setDeletingAll(false);
+              showNotification(t('auth_files.delete_filtered_none'), 'info');
               return;
             }
 
@@ -801,44 +836,16 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
             applyDeletedFiles(result.files);
 
-            if (failed === 0 && isProblemOnly) {
+            if (failed === 0) {
               showNotification(
-                isFiltered
-                  ? t('auth_files.delete_problem_filtered_success', {
-                      count: success,
-                      type: typeLabel,
-                    })
-                  : t('auth_files.delete_problem_success', { count: success }),
+                t('auth_files.delete_filtered_success', { count: success }),
                 'success'
-              );
-            } else if (failed === 0) {
-              showNotification(
-                t('auth_files.delete_filtered_success', { count: success, type: typeLabel }),
-                'success'
-              );
-            } else if (isProblemOnly) {
-              showNotification(
-                isFiltered
-                  ? t('auth_files.delete_problem_filtered_partial', {
-                      success,
-                      failed,
-                      type: typeLabel,
-                    })
-                  : t('auth_files.delete_problem_partial', { success, failed }),
-                'warning'
               );
             } else {
               showNotification(
-                t('auth_files.delete_filtered_partial', { success, failed, type: typeLabel }),
+                t('auth_files.delete_filtered_partial', { success, failed }),
                 'warning'
               );
-            }
-
-            if (isFiltered) {
-              onResetFilterToAll();
-            }
-            if (isProblemOnly) {
-              onResetProblemOnly();
             }
           }
           refreshFilesAfterLocalMutation();
@@ -853,13 +860,24 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       };
 
-      void runDeleteAll();
+      showConfirmation({
+        title: filtered
+          ? t('auth_files.delete_filtered_button')
+          : t('auth_files.delete_all_button'),
+        message: confirmMessage,
+        confirmText: t('common.delete'),
+        variant: 'danger',
+        onConfirm: runDeleteAll,
+        restoreFocus: restoreFocusAfterDelete,
+      });
     },
     [
       applyDeletedFiles,
       applyFilesState,
       deselectAll,
       refreshFilesAfterLocalMutation,
+      restoreFocusAfterDelete,
+      showConfirmation,
       showNotification,
       t,
     ]
@@ -1020,7 +1038,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           );
         }
 
-        deselectAll();
+        setSelectedFiles(failCount > 0 ? failedNames : new Set());
         await refreshFilesFromServer();
       } finally {
         batchStatusPendingRef.current = false;
@@ -1039,7 +1057,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       }
     },
-    [applyFilesState, deselectAll, refreshFilesFromServer, showNotification, t]
+    [applyFilesState, refreshFilesFromServer, showNotification, t]
   );
 
   const batchDownload = useCallback(
@@ -1121,9 +1139,23 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       };
 
-      void runBatchDelete();
+      showConfirmation({
+        title: t('auth_files.batch_delete_title'),
+        message: t('auth_files.batch_delete_confirm', { count: uniqueNames.length }),
+        confirmText: t('common.delete'),
+        variant: 'danger',
+        onConfirm: runBatchDelete,
+        restoreFocus: restoreFocusAfterDelete,
+      });
     },
-    [applyDeletedFiles, refreshFilesAfterLocalMutation, showNotification, t]
+    [
+      applyDeletedFiles,
+      refreshFilesAfterLocalMutation,
+      restoreFocusAfterDelete,
+      showConfirmation,
+      showNotification,
+      t,
+    ]
   );
 
   return {
@@ -1153,6 +1185,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     toggleSelect,
     selectAllVisible,
     invertVisibleSelection,
+    retainVisibleSelection,
     deselectAll,
     batchDownload,
     batchSetStatus,

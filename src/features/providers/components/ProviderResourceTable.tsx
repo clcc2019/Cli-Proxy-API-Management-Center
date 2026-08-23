@@ -1,12 +1,6 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  IconAlertTriangle,
-  IconCheckCircle2,
-  IconEye,
-  IconPencil,
-  IconTrash2,
-} from '@/components/ui/icons';
+import { IconEye, IconPencil, IconTrash2 } from '@/components/ui/icons';
 import {
   Table,
   TableBody,
@@ -28,7 +22,7 @@ interface ProviderResourceTableProps {
   onToggleDisabled?: (resource: ProviderResource, disabled: boolean) => void;
 }
 
-const columnWidths = ['180px', '190px', '84px', '150px', '130px', '176px'];
+const columnWidths = ['180px', '190px', '84px', '150px', '130px', '196px'];
 
 interface ProviderResourceRowProps {
   resource: ProviderResource;
@@ -87,7 +81,7 @@ const ProviderResourceRow = memo(function ProviderResourceRow({
 
   return (
     <TableRow>
-      <TableCell>
+      <TableCell className={styles.keyCell}>
         <div className={styles.primaryCell}>
           <span className={styles.primaryName}>
             {resource.name ?? resource.apiKeyPreview ?? resource.identifier}
@@ -101,7 +95,7 @@ const ProviderResourceRow = memo(function ProviderResourceRow({
           </span>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className={styles.baseUrlCell} data-label={t('providersPage.table.baseUrl')}>
         <span className={styles.baseUrl}>
           {resource.baseUrl ||
             (resource.brand === 'claude'
@@ -109,26 +103,23 @@ const ProviderResourceRow = memo(function ProviderResourceRow({
               : t('providersPage.status.notSet'))}
         </span>
       </TableCell>
-      <TableCell>
+      <TableCell className={styles.prefixCell} data-label={t('providersPage.table.prefix')}>
         {resource.prefix ? (
           <span className={styles.chip}>{resource.prefix}</span>
         ) : (
           <span className={styles.baseUrl}>{t('providersPage.status.none')}</span>
         )}
       </TableCell>
-      <TableCell>{renderModelsSummary()}</TableCell>
-      <TableCell>
+      <TableCell className={styles.modelsCell} data-label={t('providersPage.table.models')}>
+        {renderModelsSummary()}
+      </TableCell>
+      <TableCell className={styles.statusCell}>
         <span
           className={`${styles.statusBadge} ${
             resource.disabled ? styles.statusDisabled : styles.statusActive
           }`}
         >
-          {resource.disabled ? <IconAlertTriangle size={14} /> : <IconCheckCircle2 size={14} />}
-          {t(
-            resource.disabled
-              ? 'providersPage.status.disabled'
-              : 'providersPage.status.active'
-          )}
+          {t(resource.disabled ? 'providersPage.status.disabled' : 'providersPage.status.active')}
         </span>
       </TableCell>
       <TableCell alignRight className={styles.actionsCell}>

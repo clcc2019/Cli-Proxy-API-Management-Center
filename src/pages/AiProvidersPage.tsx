@@ -30,12 +30,6 @@ import type {
 import { useTranslation } from 'react-i18next';
 import styles from '@/features/providers/ProvidersWorkbenchPage.module.scss';
 
-const formatDateTime = (date: Date, locale: string) =>
-  new Intl.DateTimeFormat(locale, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
-
 const providerResourceFromKeyConfig = (
   brand: 'codex' | 'claude',
   config: ProviderKeyConfig,
@@ -108,7 +102,7 @@ const matchesFilter = (resource: ProviderResource, normalized: string) => {
 };
 
 export function AiProvidersPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer ? pageTransitionLayer.status === 'current' : true;
@@ -139,11 +133,9 @@ export function AiProvidersPage() {
   const [sortBy, setSortBy] = useState<ProviderSortBy>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [selectedModels, setSelectedModels] = useState<Set<string>>(() => new Set());
-  const [updatedAt, setUpdatedAt] = useState(() => new Date());
 
   const handleRefresh = useCallback(async () => {
     await loadConfigs();
-    setUpdatedAt(new Date());
   }, [loadConfigs]);
 
   useHeaderRefresh(handleRefresh, isCurrentLayer);
@@ -280,9 +272,9 @@ export function AiProvidersPage() {
   if (loading && providerSummary.configured === 0) {
     return (
       <div className={styles.page}>
-        <Skeleton height={88} />
+        <Skeleton height={64} />
         <div className={styles.layout}>
-          <Skeleton height={420} />
+          <Skeleton height={72} />
           <Skeleton height={420} />
         </div>
       </div>
@@ -292,10 +284,6 @@ export function AiProvidersPage() {
   return (
     <div className={styles.page}>
       <ProviderHeaderCard
-        totalActive={providerSummary.enabled}
-        totalResources={providerSummary.configured}
-        providerFamilies={groups.filter((group) => group.resources.length > 0).length}
-        updatedAtLabel={formatDateTime(updatedAt, i18n.language)}
         isFetching={loading}
         isNewDisabled={connectionStatus !== 'connected' || isSwitching}
         onRefresh={handleRefresh}
