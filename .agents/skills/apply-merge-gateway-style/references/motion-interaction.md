@@ -41,7 +41,7 @@ Maximum translations: controls 1px, menus/tooltips 4.5px, dialogs/cards on entry
 | Change | Duration | Easing | Effect |
 |---|---:|---|---|
 | Text/icon/fill hover | 150ms | standard | tone/fill only |
-| Border hover/focus | 150ms | standard | 8% → 15% |
+| Border hover/focus | 150ms | standard | no color shift for input/search |
 | Button press | 80–120ms | ease-out | translateY(1px) |
 | Toggle/check state | 150ms | standard | color + knob translation |
 | Tab selection | 150ms | standard | text/fill; no sliding spectacle |

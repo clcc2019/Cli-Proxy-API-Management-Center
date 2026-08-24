@@ -70,7 +70,7 @@ Tertiary has no border/fill at rest, then a 5% neutral hover. Destructive uses t
 | Standalone search | 40.5/41px | 15.75px/22.5px | 9px 18px | pill | 1px 15% black |
 | Textarea | min 108px | 15.75px/22.5px | 13.5px | 13.5px | 1px 8% black |
 
-Use white/transparent background, near-black input text, and `#7d8187` placeholder. Label is 13.5px/18px medium; help/error is 13.5px/18–21px. Hover border becomes 15% black. Focus retains 1px border and adds the external focus ring. Invalid uses semantic red border plus visible error text and `aria-describedby`; never color alone.
+Use white/transparent background, near-black input text, and `#7d8187` placeholder. Label is 13.5px/18px medium; help/error is 13.5px/18–21px. Hover retains the default border color and width. Focus retains 1px border and adds the external focus ring. Invalid uses semantic red border plus visible error text and `aria-describedby`; never color alone.
 
 ## Select and menu triggers
 

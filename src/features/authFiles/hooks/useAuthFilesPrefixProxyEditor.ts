@@ -548,7 +548,6 @@ const buildLoadedPrefixProxyEditorState = (
   let json = stripAuthFileRuntimeMetadata(parsedRecord);
   json = applyBackendFieldFallbacks(json, fileRecord, base.isCodexFile);
 
-  const originalText = JSON.stringify(json);
   const derivedPriority = parsePriorityValue(json.priority ?? fileRecord.priority);
   const derivedProxyUrl = readProxyUrlFromJson(json) || readProxyUrlFromJson(fileRecord);
   const derivedDisableCooling =
@@ -576,6 +575,10 @@ const buildLoadedPrefixProxyEditorState = (
     headersTouched: false,
     headersError: derivedHeadersError,
   };
+  const originalText = buildPrefixProxyUpdatedText(
+    { ...base, json, ...derivedState },
+    (key) => t(key)
+  );
 
   if (!previous || previous.fileName !== file.name) {
     return {
