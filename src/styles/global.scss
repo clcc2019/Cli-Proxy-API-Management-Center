@@ -27,8 +27,8 @@ body {
   background: var(--xai-white, #ffffff);
   color: var(--text-primary);
   transition:
-    background-color $transition-normal,
-    color $transition-normal;
+    background-color var(--xai-duration-drawer),
+    color var(--xai-duration-drawer);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -156,7 +156,7 @@ body.modal-open .content {
   background: color-mix(in srgb, var(--neutral-accent) 46%, transparent);
   border: 2px solid transparent;
   background-clip: padding-box;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
 
   &:hover {
     background: color-mix(in srgb, var(--neutral-accent-strong) 64%, transparent);
@@ -170,7 +170,7 @@ body.modal-open .content {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 $spacing-md;
+  padding: 0 var(--xai-space-3-5);
 }
 
 .flex-center {
@@ -188,7 +188,7 @@ body.modal-open .content {
 
 .fade-enter-active {
   opacity: 1;
-  transition: opacity $transition-normal;
+  transition: opacity var(--xai-duration-drawer);
 }
 
 .fade-exit {
@@ -197,5 +197,5 @@ body.modal-open .content {
 
 .fade-exit-active {
   opacity: 0;
-  transition: opacity $transition-normal;
+  transition: opacity var(--xai-duration-drawer);
 }

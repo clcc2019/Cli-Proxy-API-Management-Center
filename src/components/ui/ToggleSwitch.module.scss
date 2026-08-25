@@ -2,7 +2,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: var(--xai-space-2);
   cursor: pointer;
 }
 
@@ -39,13 +39,13 @@
   height: 24px;
   background: color-mix(in srgb, var(--neutral-accent) 30%, var(--bg-tertiary));
   border: 1px solid color-mix(in srgb, var(--border-hover) 78%, transparent);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   position: relative;
   box-shadow: var(--toggle-track-inner);
   transition:
-    background $transition-fast,
-    border-color $transition-fast,
-    box-shadow $transition-fast;
+    background var(--xai-duration-default),
+    border-color var(--xai-duration-default),
+    box-shadow var(--xai-duration-default);
 }
 
 .thumb {
@@ -56,11 +56,11 @@
   height: 18px;
   background: var(--toggle-thumb-bg);
   border: 1px solid var(--toggle-thumb-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   box-shadow: var(--toggle-thumb-shadow);
   transition:
-    transform $transition-fast,
-    background $transition-fast;
+    transform var(--xai-duration-default),
+    background var(--xai-duration-default);
 }
 
 .root input:checked + .track {
@@ -115,7 +115,7 @@
   .thumb {
     left: 3px;
     right: auto;
-    transition: transform $transition-fast;
+    transition: transform var(--xai-duration-default);
   }
 
   input:checked + .track {

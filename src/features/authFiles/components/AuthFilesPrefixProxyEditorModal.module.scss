@@ -5,15 +5,15 @@
 // local tokens are intentional because Modal portals render outside .container.
 // =============================================================================
 .prefixProxyModal {
-  --prefix-proxy-surface: #ffffff;
-  --prefix-proxy-surface-muted: #f2f5f7;
-  --prefix-proxy-surface-warm: #f8fafc;
-  --prefix-proxy-control: #ffffff;
-  --prefix-proxy-text: #1f2937;
-  --prefix-proxy-text-secondary: #475569;
-  --prefix-proxy-text-muted: #64748b;
-  --prefix-proxy-border: #e2e8f0;
-  --prefix-proxy-border-strong: #cbd5e1;
+  --prefix-proxy-surface: var(--mg-surface);
+  --prefix-proxy-surface-muted: var(--mg-surface-subtle);
+  --prefix-proxy-surface-warm: var(--mg-surface-warm);
+  --prefix-proxy-control: var(--mg-surface);
+  --prefix-proxy-text: var(--mg-text);
+  --prefix-proxy-text-secondary: var(--mg-text-secondary);
+  --prefix-proxy-text-muted: var(--mg-text-tertiary);
+  --prefix-proxy-border: var(--mg-border);
+  --prefix-proxy-border-strong: var(--mg-border-strong);
   --prefix-proxy-sage: var(--mg-sage);
   --prefix-proxy-sage-strong: var(--mg-sage-strong);
   --prefix-proxy-sage-soft: var(--mg-sage-soft);
@@ -63,7 +63,7 @@
   max-height: min(92vh, 900px);
   overflow: hidden;
   border: 1px solid var(--prefix-proxy-border);
-  border-radius: 16px;
+  border-radius: var(--xai-radius-card);
   background: var(--prefix-proxy-surface);
   color: var(--prefix-proxy-text);
   box-shadow: 0 20px 65px rgb(15 23 42 / 0.07);
@@ -108,7 +108,7 @@
     width: 34px;
     height: 34px;
     border-color: var(--prefix-proxy-border);
-    border-radius: 9px;
+    border-radius: var(--xai-radius-small);
     background: var(--prefix-proxy-surface);
     color: var(--prefix-proxy-text-muted);
     box-shadow: none;
@@ -128,7 +128,7 @@
   :global(.input),
   :global(textarea.input) {
     border-color: var(--prefix-proxy-border);
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
     background: var(--prefix-proxy-control);
     color: var(--prefix-proxy-text);
     box-shadow: none;
@@ -216,7 +216,7 @@
   display: inline-flex;
   align-items: center;
   border: 1px solid rgb(229 169 71 / 0.34);
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   background: rgb(229 169 71 / 0.1);
   color: #87631f;
   font-size: 10.5px;
@@ -263,7 +263,7 @@
   margin: 18px 24px 0;
   padding: 10px 12px;
   border: 1px solid rgb(165 56 48 / 0.28);
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   background: rgb(165 56 48 / 0.07);
   color: var(--prefix-proxy-danger);
   font-size: 12px;
@@ -347,7 +347,7 @@
   gap: 14px;
   padding: 16px;
   border: 1px solid var(--prefix-proxy-border);
-  border-radius: 12px;
+  border-radius: var(--xai-radius-panel);
   background: var(--prefix-proxy-surface);
   box-shadow: none;
 
@@ -384,7 +384,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--prefix-proxy-sage-soft);
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   background: var(--prefix-proxy-surface-warm);
   color: var(--prefix-proxy-sage-strong);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -443,7 +443,7 @@
   :global(textarea.input) {
     min-width: 0;
     border-color: var(--prefix-proxy-border);
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
     background: var(--prefix-proxy-control);
     color: var(--prefix-proxy-text);
     box-shadow: none;
@@ -483,7 +483,7 @@
     width: 100%;
     height: 40px;
     border-color: var(--prefix-proxy-border);
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
     background: var(--prefix-proxy-control);
     box-shadow: none;
     color: var(--prefix-proxy-text);
@@ -503,7 +503,7 @@
   gap: 14px;
   padding: 9px 11px;
   border: 1px solid var(--prefix-proxy-border);
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   background: var(--prefix-proxy-surface-muted);
 
   &:hover {
@@ -570,7 +570,7 @@
   align-items: center;
   padding: 2px 7px;
   border: 1px solid rgb(165 56 48 / 0.3);
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   background: rgb(165 56 48 / 0.07);
   color: var(--prefix-proxy-danger);
   font-size: 10px;
@@ -590,7 +590,7 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--prefix-proxy-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--prefix-proxy-surface);
   box-shadow: none;
 
@@ -680,7 +680,7 @@
   min-width: 0;
   box-sizing: border-box;
   border: 1px solid var(--prefix-proxy-border);
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: var(--prefix-proxy-control);
   color: var(--prefix-proxy-text);
   font-family: $font-mono;
@@ -713,26 +713,26 @@
 }
 
 .prefixProxyDropdown {
-  --bg-secondary: #f2f5f7;
-  --text-primary: #1f2937;
-  --text-secondary: #475569;
-  --text-tertiary: #64748b;
-  --border-color: #e2e8f0;
-  --border-primary: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --primary-color: var(--mg-sage-strong);
-  --primary-soft: var(--mg-sage-soft);
+  --bg-secondary: var(--prefix-proxy-surface-muted);
+  --text-primary: var(--prefix-proxy-text);
+  --text-secondary: var(--prefix-proxy-text-secondary);
+  --text-tertiary: var(--prefix-proxy-text-muted);
+  --border-color: var(--prefix-proxy-border);
+  --border-primary: var(--prefix-proxy-border);
+  --border-hover: var(--prefix-proxy-border-strong);
+  --primary-color: var(--prefix-proxy-sage-strong);
+  --primary-soft: var(--prefix-proxy-sage-soft);
   --focus-ring: var(--mg-focus-ring);
-  --floating-surface: #ffffff;
-  --floating-surface-material: #ffffff;
-  --floating-border: #e2e8f0;
+  --floating-surface: var(--prefix-proxy-surface);
+  --floating-surface-material: var(--prefix-proxy-surface);
+  --floating-border: var(--prefix-proxy-border);
   --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
   --surface-inner-highlight: none;
 }
 
 .prefixProxyModal :global(.modal-footer) > :global(.btn) {
   min-height: 40px;
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
 }
 
 @media (max-width: 900px) {

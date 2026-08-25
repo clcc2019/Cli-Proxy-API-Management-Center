@@ -70,7 +70,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  transition: background-color $transition-fast;
+  transition: background-color var(--xai-duration-default);
 
   &:hover {
     border-color: transparent;
@@ -135,7 +135,7 @@
   margin-bottom: 0;
   padding: 3px 8px;
   border: 1px solid var(--oauth-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: var(--oauth-surface-subtle);
   box-shadow: none;
   color: var(--oauth-sage-strong);
@@ -201,7 +201,7 @@
 
   :global(.btn) {
     min-height: 40px;
-    border-radius: $radius-full;
+    border-radius: var(--xai-radius-pill);
     box-shadow: none;
   }
 

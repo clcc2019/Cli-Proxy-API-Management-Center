@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useEventCallback } from './useEventCallback';
 import { useInterval } from './useInterval';
 
@@ -23,8 +23,10 @@ export function useVisibleInterval(
   const [online, setOnline] = useState(isNavigatorOnline);
   const lastInvocationRef = useRef(0);
   const shouldTrackVisibility = enabled && delay !== null;
-  const shouldRunInterval =
-    shouldTrackVisibility && visible && online && isDocumentVisible() && isNavigatorOnline();
+  const shouldRunInterval = useMemo(
+    () => shouldTrackVisibility && visible && online && isDocumentVisible() && isNavigatorOnline(),
+    [online, shouldTrackVisibility, visible]
+  );
 
   const runCallback = useEventCallback(() => {
     lastInvocationRef.current = Date.now();
@@ -68,6 +70,15 @@ export function useVisibleInterval(
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [delay, enabled, minRefreshGapMs, refreshOnVisible, runCallback, shouldTrackVisibility]);
+
+  useEffect(() => {
+    if (!shouldTrackVisibility) return;
+    const syncVisibility = () => {
+      const nextVisible = isDocumentVisible();
+      setVisible((previous) => (previous === nextVisible ? previous : nextVisible));
+    };
+    syncVisibility();
+  }, [shouldTrackVisibility]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !shouldTrackVisibility) return;

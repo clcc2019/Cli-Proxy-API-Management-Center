@@ -174,7 +174,7 @@
   grid-area: icon;
   place-items: center;
   border: 1px solid var(--metric-accent-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--metric-accent-soft);
   color: var(--metric-accent);
 }
@@ -528,7 +528,7 @@
   gap: 5px;
   padding: 8px 10px;
   border: 1px solid var(--mg-border);
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   background: var(--mg-surface-warm);
 }
 
@@ -624,7 +624,7 @@
   small,
   .skeletonIcon {
     display: block;
-    border-radius: 6px;
+    border-radius: var(--xai-radius-micro);
     background: var(--mg-surface-subtle);
     animation: derouter-skeleton 1.25s ease-in-out infinite alternate;
   }
@@ -654,7 +654,7 @@
 
   span {
     height: 28px;
-    border-radius: 6px;
+    border-radius: var(--xai-radius-micro);
     background: var(--mg-surface-subtle);
     animation: derouter-skeleton 1.25s ease-in-out infinite alternate;
   }

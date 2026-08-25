@@ -21,7 +21,7 @@
 
   :global(.input) {
     min-height: 44px;
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
     background: var(--mg-surface);
     border-color: var(--mg-border);
     box-shadow: none;
@@ -45,7 +45,7 @@
   }
 
   :global(.error-box) {
-    border-radius: 14px;
+    border-radius: var(--xai-radius-panel);
   }
 
   :global(.item-list) {
@@ -54,7 +54,7 @@
   }
 
   :global(.item-row) {
-    border-radius: 12px;
+    border-radius: var(--xai-radius-panel);
     padding: 14px 16px;
     background: var(--mg-surface);
     border-color: var(--mg-border);
@@ -180,7 +180,7 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--mg-border);
-  border-radius: 15px;
+  border-radius: var(--xai-radius-card);
   background: var(--mg-surface);
 }
 
@@ -278,7 +278,7 @@
   align-items: center;
   min-height: 26px;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   border: 1px solid var(--mg-border);
   background: var(--mg-surface-subtle);
   color: var(--mg-text-tertiary);
@@ -327,7 +327,7 @@
   min-width: 28px;
   height: 28px;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
   color: var(--warning-text);

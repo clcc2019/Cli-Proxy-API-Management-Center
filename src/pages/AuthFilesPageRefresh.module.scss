@@ -441,7 +441,7 @@
   flex: 0 0 auto;
   padding: 0 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: transparent;
   color: var(--mg-text-tertiary);
   font-size: 11.5px;
@@ -590,7 +590,7 @@
   margin-left: 6px;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: transparent;
   color: var(--mg-text-tertiary);
   cursor: pointer;
@@ -668,7 +668,7 @@
   border-color: var(--mg-border-hover);
   border-style: solid;
   border-width: 1px;
-  border-radius: 12px;
+  border-radius: var(--xai-radius-panel);
   background: var(--mg-surface);
 }
 
@@ -699,7 +699,7 @@
   min-height: 36px;
   padding: 7px 8px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: transparent;
   color: var(--mg-text-secondary);
   font-size: 13px;
@@ -751,7 +751,7 @@
   border-style: solid;
   border-width: 1px;
   border-color: var(--mg-border);
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: var(--mg-surface);
   color: var(--mg-text-secondary);
   font-family: $font-mono;
@@ -804,7 +804,7 @@
   border-style: solid;
   border-width: 1px;
   border-color: var(--mg-border-hover);
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: var(--mg-surface);
   color: var(--mg-text);
   font-family: $font-mono;
@@ -1025,7 +1025,7 @@
   width: 74px;
   height: 26px;
   flex: 0 0 74px;
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
 }
 
 .page .loadingName {
@@ -1036,7 +1036,7 @@
 .page .loadingPriority {
   width: 68px;
   height: 26px;
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
 }
 
 .page .loadingMetrics {
@@ -1047,7 +1047,7 @@
   margin-top: 5px;
   padding: 6px 7px;
   border: 1px solid var(--mg-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: color-mix(in srgb, var(--mg-surface-subtle) 52%, var(--mg-surface));
 }
 
@@ -1066,7 +1066,7 @@
 .page .loadingMetricValue {
   width: 42px;
   height: 18px;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
 }
 
 .page .loadingStatusBar,
@@ -2050,7 +2050,7 @@
   justify-content: center;
   padding-inline: 5px;
   border: 1px solid var(--mg-border);
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: var(--mg-surface);
   color: var(--mg-text-tertiary);
   font-family: $font-mono;
@@ -2153,7 +2153,7 @@
   align-items: center;
   padding-inline: 6px;
   border: 1px solid var(--mg-border);
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: var(--mg-surface);
   color: var(--mg-text-secondary);
   font-family: $font-mono;
@@ -2343,7 +2343,7 @@
   gap: 5px;
   padding: 2px 5px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: transparent;
   color: inherit;
   cursor: help;
@@ -2439,7 +2439,7 @@
   margin-top: 0;
   padding: 8px;
   border: 1px solid color-mix(in srgb, var(--mg-warning) 28%, var(--mg-border));
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   background: color-mix(in srgb, var(--mg-warning) 5%, var(--mg-surface));
 }
 
@@ -2849,7 +2849,7 @@
   justify-content: center;
   padding: 0;
   border: 1px solid var(--mg-border);
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: var(--mg-surface);
   color: var(--mg-text-secondary);
   box-shadow: none;
@@ -3780,9 +3780,7 @@
   border: 1px solid var(--mg-floating-border);
   border-radius: var(--mg-radius-medium);
   background: var(--mg-surface);
-  box-shadow:
-    var(--mg-shadow-float),
-    0 18px 42px -28px rgb(14 13 12 / 0.32);
+  box-shadow: var(--mg-shadow-float);
 }
 
 .batchGroup {

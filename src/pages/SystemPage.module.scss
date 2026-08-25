@@ -96,7 +96,7 @@
   gap: 8px;
   padding: 6px 10px;
   border: 1px solid var(--system-border);
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   background: var(--system-surface);
   color: var(--system-text);
   font-size: 12.5px;
@@ -229,7 +229,7 @@
 .content :global(.btn) {
   min-height: 34px;
   border-color: var(--system-border);
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: var(--system-surface);
   box-shadow: none;
   color: var(--system-text-secondary);
@@ -263,7 +263,7 @@
   margin: 0 0 12px;
   padding: 4px 8px;
   border: 1px solid var(--system-border);
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   background: var(--system-surface-subtle);
   color: var(--system-text-secondary);
   font-size: 11px;
@@ -272,33 +272,33 @@
 }
 
 .modelsCard :global(.status-badge.success) {
-  border-color: rgb(64 115 69 / 0.24);
-  background: rgb(64 115 69 / 0.08);
+  border-color: var(--xai-success-border);
+  background: var(--xai-success-soft);
   color: var(--system-success);
 }
 
 .modelsCard :global(.status-badge.warning) {
-  border-color: rgb(163 110 31 / 0.28);
-  background: rgb(163 110 31 / 0.08);
+  border-color: var(--xai-warning-border);
+  background: var(--xai-warning-soft);
   color: var(--system-warning);
 }
 
 .modelsCard :global(.status-badge.error),
 .modelsCard :global(.error-box) {
-  border-color: rgb(165 56 48 / 0.28);
-  background: rgb(165 56 48 / 0.06);
+  border-color: var(--xai-danger-border);
+  background: var(--xai-danger-soft);
   color: var(--system-danger);
 }
 
 .modelsCard :global(.error-box) {
   margin-bottom: 12px;
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
 }
 
 .modelsCard :global(.hint) {
   padding: 22px 14px;
   border: 1px dashed var(--system-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--system-surface-muted);
   color: var(--system-text-tertiary);
   font-size: 12px;
@@ -308,7 +308,7 @@
 .modelsCard :global(.item-list) {
   overflow: hidden;
   border: 1px solid var(--system-border);
-  border-radius: 12px;
+  border-radius: var(--xai-radius-panel);
 }
 
 .modelsCard :global(.item-row) {
@@ -374,7 +374,7 @@
   gap: 5px;
   padding: 4px 7px;
   border: 1px solid var(--system-border);
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: var(--system-surface-muted);
   font-family: $font-mono;
   transition:
@@ -436,34 +436,24 @@
 
 .dangerCard :global(.btn.btn-danger) {
   min-height: 38px;
-  border-color: rgb(165 56 48 / 0.36);
-  border-radius: 8px;
+  border-color: var(--xai-danger-border);
+  border-radius: var(--xai-radius-control);
   background: var(--system-surface);
   color: var(--system-danger);
   box-shadow: none;
 
   &:hover:not(:disabled) {
-    border-color: rgb(165 56 48 / 0.54);
-    background: rgb(165 56 48 / 0.07);
+    border-color: color-mix(in srgb, var(--mg-danger) 54%, transparent);
+    background: var(--xai-danger-soft);
     color: var(--system-danger);
   }
 }
 
 .requestLogModal {
-  --system-surface: #ffffff;
-  --system-surface-subtle: #f7f6f4;
-  --system-surface-muted: #fbfaf8;
-  --system-border: #e7e5e1;
-  --system-text: #292622;
-  --system-text-secondary: #615c55;
-  --system-text-tertiary: #89827a;
-  --system-ink: #24211e;
-  --system-warning: #a36e1f;
-
   border: 1px solid var(--system-border);
-  border-radius: 16px;
+  border-radius: var(--mg-radius-card);
   background: var(--system-surface);
-  box-shadow: 0 20px 65px rgb(0 0 0 / 0.07);
+  box-shadow: var(--xai-shadow-dialog);
 
   :global(.modal-header) {
     border-bottom: 1px solid var(--system-border);
@@ -493,18 +483,18 @@
   :global(.status-badge.warning) {
     display: block;
     padding: 9px 10px;
-    border: 1px solid rgb(163 110 31 / 0.28);
-    border-radius: 10px;
-    background: rgb(163 110 31 / 0.08);
+    border: 1px solid var(--xai-warning-border);
+    border-radius: var(--xai-radius-control);
+    background: var(--xai-warning-soft);
     color: var(--system-warning);
     font-size: 12px;
     line-height: 1.5;
   }
 
   :global(.btn.btn-primary) {
-    border-color: var(--system-ink);
-    background: var(--system-ink);
-    color: #ffffff;
+    border-color: var(--mg-action);
+    background: var(--mg-action);
+    color: var(--primary-contrast, #ffffff);
   }
 
   :global(.btn.btn-secondary) {
@@ -666,16 +656,5 @@
 }
 
 .requestLogModal {
-  --system-surface: var(--mg-surface);
-  --system-surface-subtle: var(--mg-surface-subtle);
-  --system-surface-muted: var(--mg-surface-warm);
-  --system-border: var(--mg-border);
-  --system-text: var(--mg-text);
-  --system-text-secondary: var(--mg-text-secondary);
-  --system-text-tertiary: var(--mg-text-tertiary);
-  --system-ink: var(--mg-ink-strong);
-  --system-warning: var(--mg-warning);
   border-radius: var(--mg-radius-card);
-  background: var(--mg-surface);
-  box-shadow: none;
 }

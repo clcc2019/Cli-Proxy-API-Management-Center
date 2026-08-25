@@ -80,7 +80,7 @@
 .errorBanner,
 .invalidState {
   border: 1px solid var(--openai-editor-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--openai-editor-surface);
   color: var(--openai-editor-text-secondary);
   font-size: 12.5px;
@@ -205,7 +205,7 @@
   min-height: 76px;
   padding: 11px 12px;
   border: 1px solid var(--openai-editor-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--openai-editor-subtle);
 }
 
@@ -305,11 +305,11 @@
   min-width: 0;
   padding: 8px;
   border: 1px solid var(--openai-editor-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--openai-editor-subtle);
   transition:
-    border-color $transition-fast,
-    background-color $transition-fast;
+    border-color var(--xai-duration-default),
+    background-color var(--xai-duration-default);
 
   &:focus-within {
     border-color: var(--openai-editor-border);
@@ -478,7 +478,7 @@
 .modelDiscoveryError,
 .modelDiscoveryState {
   border: 1px solid var(--openai-editor-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--openai-editor-surface);
   font-size: 12px;
   line-height: 1.55;
@@ -504,7 +504,7 @@
   max-height: min(360px, 46vh);
   overflow: auto;
   border: 1px solid var(--openai-editor-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--openai-editor-surface);
   scrollbar-color: var(--openai-editor-border-strong) transparent;
   scrollbar-width: thin;
@@ -523,7 +523,7 @@
   padding: 10px 12px;
   border-bottom: 1px solid var(--openai-editor-border);
   background: var(--openai-editor-surface);
-  transition: background-color $transition-fast;
+  transition: background-color var(--xai-duration-default);
 
   &:last-child {
     border-bottom-color: transparent;

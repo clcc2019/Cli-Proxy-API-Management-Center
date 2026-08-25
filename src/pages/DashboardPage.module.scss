@@ -64,7 +64,7 @@
 .bentoGrid {
   display: grid;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: var(--xai-radius-card);
   background: var(--xai-warm);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -141,7 +141,7 @@
 .gatewaySection {
   overflow: hidden;
   border: 1px solid var(--xai-border);
-  border-radius: 18px;
+  border-radius: var(--xai-radius-card);
   background: var(--xai-white);
 }
 
@@ -175,7 +175,7 @@
   justify-content: center;
   padding: 6.75px 13.5px;
   border: 1px solid var(--xai-ink-console);
-  border-radius: 9999px;
+  border-radius: var(--xai-radius-pill);
   background: var(--xai-ink-console);
   box-shadow: var(--xai-shadow-button);
   color: var(--xai-inverse);
@@ -190,8 +190,8 @@
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      border-color: #242424;
-      background: #242424;
+      border-color: var(--mg-action-hover);
+      background: var(--mg-action-hover);
     }
   }
 
@@ -258,7 +258,7 @@
   width: 6.75px;
   height: 6.75px;
   flex: 0 0 auto;
-  border-radius: 9999px;
+  border-radius: var(--xai-radius-pill);
   background: var(--xai-disabled);
 
   &.success {

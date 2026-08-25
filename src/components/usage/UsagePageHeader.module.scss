@@ -149,8 +149,8 @@
   }
 
   .primaryAction:global(.btn.btn-primary):hover:not(:disabled) {
-    border-color: #242424;
-    background: #242424;
+    border-color: var(--mg-action-hover);
+    background: var(--mg-action-hover);
     color: var(--xai-inverse);
   }
 }

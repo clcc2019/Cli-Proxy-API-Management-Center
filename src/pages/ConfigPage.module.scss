@@ -22,7 +22,7 @@
   gap: 18px;
   overflow-y: auto;
   padding-bottom: calc(
-    var(--config-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom) + #{$spacing-md}
+    var(--config-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom) + var(--xai-space-3-5)
   );
 }
 
@@ -179,7 +179,7 @@
 // colored badges remain the only state cue in the first viewport.
 .apiKeysSummary {
   border-color: var(--config-border);
-  border-radius: 15px;
+  border-radius: var(--xai-radius-card);
   background: var(--config-surface);
 }
 
@@ -194,12 +194,12 @@
   gap: 0;
   padding: 0;
   border: 1px solid var(--config-border);
-  border-radius: 15px;
+  border-radius: var(--xai-radius-card);
   background: var(--config-surface);
 
   @include mobile {
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--xai-radius-panel);
   }
   min-height: 0;
 }
@@ -254,7 +254,7 @@
   padding: 0 7px;
   overflow: hidden;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: var(--config-surface);
   color: var(--config-text-secondary);
   font-size: 12px;
@@ -303,7 +303,7 @@
     width: 42px;
     height: 42px;
     padding: 0 !important;
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
   }
 
   @include mobile {
@@ -431,7 +431,7 @@
   padding: 6px;
   background: var(--mg-surface);
   border: 1px solid var(--config-border-strong);
-  border-radius: 14px;
+  border-radius: var(--xai-radius-panel);
   box-shadow: var(--mg-shadow-float);
   background-clip: padding-box;
   max-width: inherit;
@@ -450,7 +450,7 @@
   min-height: 36px;
   gap: 7px;
   padding: 0 10px;
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   border: 1px solid transparent;
   background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   color: var(--text-primary);
@@ -490,7 +490,7 @@
   min-height: 40px;
   gap: 7px;
   padding: 0 12px;
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   cursor: pointer;
   color: var(--text-primary);
   transition:
@@ -553,9 +553,9 @@
   right: 6px;
   width: 6px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--xai-radius-pill);
   background: var(--warning-color);
-  box-shadow: 0 0 0 2px rgba($warning-color, 0.25);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning-color) 25%, transparent);
 }
 
 @media (max-width: 1200px) {
@@ -606,7 +606,7 @@
   }
 
   .sourceWorkspace {
-    border-radius: 12px;
+    border-radius: var(--xai-radius-panel);
   }
 
   .sourceToolbar {

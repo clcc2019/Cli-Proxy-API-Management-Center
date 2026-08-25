@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,scss}\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "dev:mock": "node scripts/mock-gateway.mjs"
   },
   "dependencies": {
     "@codemirror/lang-yaml": "^6.1.2",

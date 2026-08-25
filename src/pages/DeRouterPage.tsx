@@ -229,8 +229,7 @@ export function DeRouterPage() {
     isCurrentLayer ? state.connectionStatus : 'disconnected'
   );
   const [snapshot, setSnapshot] = useState<PageSnapshot | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshingData, setRefreshingData] = useState(false);
   const snapshotRef = useRef<PageSnapshot | null>(null);
   const requestVersionRef = useRef(0);
   const isCurrentLayerRef = useRef(isCurrentLayer);
@@ -243,8 +242,7 @@ export function DeRouterPage() {
     async (silent = false) => {
       if (!isCurrentLayerRef.current || connectionStatus !== 'connected') return;
       const requestVersion = (requestVersionRef.current += 1);
-      setRefreshing(Boolean(snapshotRef.current) && !silent);
-      setLoading(!snapshotRef.current);
+      setRefreshingData(Boolean(snapshotRef.current) && !silent);
 
       const [containersResult, earningsResult] = await Promise.allSettled([
         derouterApi.getContainers(),
@@ -278,8 +276,7 @@ export function DeRouterPage() {
       };
       snapshotRef.current = nextSnapshot;
       setSnapshot(nextSnapshot);
-      setLoading(false);
-      setRefreshing(false);
+      setRefreshingData(false);
     },
     [connectionStatus, t]
   );
@@ -298,8 +295,6 @@ export function DeRouterPage() {
     if (!isCurrentLayer) return undefined;
 
     if (connectionStatus !== 'connected') {
-      setLoading(false);
-      setRefreshing(false);
       return undefined;
     }
 
@@ -318,6 +313,8 @@ export function DeRouterPage() {
 
   const containers = snapshot?.containers ?? EMPTY_CONTAINERS;
   const earnings = snapshot?.earnings;
+  const loading = !snapshot && connectionStatus === 'connected' && !refreshingData;
+  const refreshing = refreshingData && Boolean(snapshot) && !loading;
   const summary = useMemo(() => {
     let running = 0;
     let accounts = 0;

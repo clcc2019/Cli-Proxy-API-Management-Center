@@ -443,7 +443,8 @@
   "header": {
     "check_connection": "Check Connection",
     "refresh_all": "Refresh All",
-    "logout": "Logout"
+    "logout": "Logout",
+    "logout_confirm": "Log out of Toka? You will need your management key to connect again."
   },
   "connection": {
     "title": "Connection Information",
@@ -1751,7 +1752,8 @@
     "request_events_relative_hour": "h",
     "request_events_relative_day": "d",
     "input_tokens": "Input Tokens",
-    "output_tokens": "Output Tokens"
+    "output_tokens": "Output Tokens",
+    "render_on_demand": "Charts render on demand. Scroll to view."
   },
   "stats": {
     "success": "Success",
@@ -2129,7 +2131,8 @@
         "cancel": "Cancel",
         "update": "Update",
         "add": "Add"
-      }
+      },
+      "validation_blocked_short": "Fix errors"
     }
   },
   "system_info": {
@@ -2245,7 +2248,9 @@
     "claude_api_key": "Claude API key",
     "commercial_mode_restart_required": "Commercial mode setting changed. Please restart the service for it to take effect",
     "copy_failed": "Copy failed",
-    "link_copied": "Link copied to clipboard"
+    "link_copied": "Link copied to clipboard",
+    "load_failed": "Failed to load",
+    "save_failed": "Failed to save"
   },
   "language": {
     "switch": "Language",

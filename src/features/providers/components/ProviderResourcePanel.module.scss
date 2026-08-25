@@ -171,8 +171,8 @@
     transform var(--xai-duration-fast) var(--xai-ease-out);
 
   &:hover:not(:disabled) {
-    border-color: #242424;
-    background: #242424;
+    border-color: var(--mg-action-hover);
+    background: var(--mg-action-hover);
   }
 
   &:active:not(:disabled) {

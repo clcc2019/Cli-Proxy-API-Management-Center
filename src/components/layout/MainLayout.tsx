@@ -108,6 +108,7 @@ const headerIcons = {
 
 const NAVIGATION_PRELOAD_BUDGET_MS = 220;
 const NAVIGATION_INTENT_DELAY_MS = 75;
+const NEXT_ROUTE_PREFETCH_DELAY_MS = 900;
 const HEADER_MENU_ITEM_SELECTOR = '[role="menuitemradio"]:not(:disabled)';
 const MOBILE_NAVIGATION_TOGGLE_ID = 'mobile-navigation-toggle';
 
@@ -146,6 +147,7 @@ export function MainLayout() {
 
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const logout = useAuthStore((state) => state.logout);
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
 
   const config = useConfigStore((state) => state.config);
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
@@ -163,6 +165,7 @@ export function MainLayout() {
   const sidebarRef = useRef<HTMLElement | null>(null);
   const navigationIntentRef = useRef(0);
   const navigationPreloadTimerRef = useRef<number | null>(null);
+  const nextRoutePrefetchTimerRef = useRef<number | null>(null);
 
   const isLogsPage = location.pathname.startsWith('/logs');
 
@@ -524,6 +527,44 @@ export function MainLayout() {
     navigationPreloadTimerRef.current = null;
   }, []);
 
+  const cancelNextRoutePrefetch = useCallback(() => {
+    if (nextRoutePrefetchTimerRef.current === null) return;
+    window.clearTimeout(nextRoutePrefetchTimerRef.current);
+    nextRoutePrefetchTimerRef.current = null;
+  }, []);
+
+  // 导航稳定后预取相邻路由的代码 chunk(不发起数据请求),下次点击时
+  // chunk 已在缓存中,避开首帧竞争。受 saveData/2g 保护,与 intent
+  // preload 相同的成本纪律。
+  const prefetchNextRoute = useCallback(
+    (fromPathname: string, toPathname: string) => {
+      cancelNextRoutePrefetch();
+      if (shouldSkipIntentPreload()) return;
+
+      const fromIndex = getRouteOrder(fromPathname);
+      const toIndex = getRouteOrder(toPathname);
+      if (fromIndex === null || toIndex === null || fromIndex === toIndex) return;
+
+      const nextIndex =
+        Math.abs(toIndex - fromIndex) === 1
+          ? // 相邻移动:朝移动方向继续预取一个路由
+            toIndex + (toIndex - fromIndex)
+          : toIndex;
+      const nextPath = navOrder[nextIndex];
+      if (!nextPath) return;
+
+      nextRoutePrefetchTimerRef.current = window.setTimeout(() => {
+        nextRoutePrefetchTimerRef.current = null;
+        void preloadRoute(nextPath).catch(() => {
+          // 预取仅缓存代码,失败不影响路由,导航仍有 Suspense fallback。
+        });
+      }, NEXT_ROUTE_PREFETCH_DELAY_MS);
+    },
+    [cancelNextRoutePrefetch, getRouteOrder, navOrder]
+  );
+
+  useEffect(() => cancelNextRoutePrefetch, [cancelNextRoutePrefetch]);
+
   const handleNavigationIntent = useCallback(
     (path: string) => {
       cancelNavigationIntent();
@@ -574,9 +615,14 @@ export function MainLayout() {
       ]).then(() => {
         if (navigationIntentRef.current !== intentId) return;
         startTransition(() => navigate(path));
+        const previousPathname = location.pathname;
+        const targetPathname = path;
+        window.setTimeout(() => {
+          prefetchNextRoute(previousPathname, targetPathname);
+        }, 0);
       });
     },
-    [cancelNavigationIntent, location.pathname, navigate]
+    [cancelNavigationIntent, location.pathname, navigate, prefetchNextRoute]
   );
 
   return (
@@ -680,7 +726,14 @@ export function MainLayout() {
             variant="ghost"
             size="sm"
             icon={headerIcons.logout}
-            onClick={logout}
+            onClick={() =>
+              showConfirmation({
+                message: t('header.logout_confirm'),
+                confirmText: t('header.logout'),
+                variant: 'danger',
+                onConfirm: logout,
+              })
+            }
             title={t('header.logout')}
             aria-label={t('header.logout')}
           />

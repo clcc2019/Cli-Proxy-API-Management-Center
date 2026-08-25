@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import styles from './ConfirmationModal.module.scss';
 
 export function ConfirmationModal() {
   const { t } = useTranslation();
@@ -62,15 +63,15 @@ export function ConfirmationModal() {
       ariaDescribedBy={messageId}
     >
       {typeof message === 'string' ? (
-        <p id={messageId} style={{ margin: '1rem 0' }}>
+        <p id={messageId} className={styles.message}>
           {message}
         </p>
       ) : (
-        <div id={messageId} style={{ margin: '1rem 0' }}>
+        <div id={messageId} className={styles.message}>
           {message}
         </div>
       )}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+      <div className={styles.actions}>
         <Button variant="ghost" onClick={handleCancel} disabled={isLoading}>
           {cancelText || t('common.cancel')}
         </Button>

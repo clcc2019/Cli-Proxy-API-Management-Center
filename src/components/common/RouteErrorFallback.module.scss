@@ -65,8 +65,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .action:hover {
-    border-color: #242424;
-    background: #242424;
+    border-color: var(--mg-action-hover);
+    background: var(--mg-action-hover);
   }
 }
 

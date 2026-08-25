@@ -140,6 +140,7 @@ The UI language is automatically detected from browser settings and can be manua
 
 ```bash
 npm run dev        # Vite dev server
+npm run dev:mock   # Local mock gateway (http://127.0.0.1:8317) for rendering every page without a backend
 npm run build      # tsc + split production build
 npm run build:singlefile # tsc + single HTML build
 npm run preview    # serve dist locally
@@ -147,6 +148,8 @@ npm run lint       # ESLint (fails on warnings)
 npm run format     # Prettier
 npm run type-check # tsc --noEmit
 ```
+
+> Visual verification: run `npm run dev:mock` first, then `npm run dev`. Open `http://localhost:5173` and sign in with API base `http://127.0.0.1:8317` plus any management key; every screen renders deterministic fixture data (`scripts/mock-gateway.mjs`).
 
 ## Contributing
 

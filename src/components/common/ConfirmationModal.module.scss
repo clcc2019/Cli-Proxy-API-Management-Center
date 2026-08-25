@@ -1,0 +1,28 @@
+.message {
+  margin: 0;
+  color: var(--xai-ink);
+  font-family: var(--xai-font-ui);
+  font-size: 13.5px;
+  line-height: 18px;
+  overflow-wrap: break-word;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--xai-space-2);
+  margin-top: var(--xai-space-4);
+}
+
+@media (max-width: 768px) {
+  .actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+
+    > * {
+      width: 100%;
+      min-height: var(--mg-hit-area, 44px);
+    }
+  }
+}

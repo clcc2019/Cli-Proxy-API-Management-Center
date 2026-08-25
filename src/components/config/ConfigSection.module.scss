@@ -44,7 +44,7 @@
   width: 28px;
   height: 28px;
   border: 1px solid color-mix(in srgb, var(--mg-sage-strong) 22%, var(--mg-border));
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: color-mix(in srgb, var(--mg-sage-soft) 58%, var(--mg-surface));
   color: var(--mg-sage-strong);
   flex: 0 0 auto;

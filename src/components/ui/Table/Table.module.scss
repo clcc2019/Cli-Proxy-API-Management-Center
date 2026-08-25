@@ -50,7 +50,7 @@
 }
 
 .row {
-  transition: background-color $transition-fast;
+  transition: background-color var(--xai-duration-default);
 
   td {
     padding: 12px 14px;

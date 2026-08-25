@@ -13,7 +13,7 @@
   --oauth-modal-text-tertiary: var(--mg-text-tertiary, #64748b);
   --oauth-modal-text-muted: var(--mg-text-muted, #94a3b8);
   --oauth-modal-border: var(--mg-border, #e2e8f0);
-  --oauth-modal-border-strong: #cbd5e1;
+  --oauth-modal-border-strong: var(--mg-border-hover);
   --oauth-modal-ink: var(--mg-ink-strong, #0e0d0c);
   --oauth-modal-ink-text: #ffffff;
   --oauth-modal-sage: var(--mg-sage, #7d8187);
@@ -175,8 +175,8 @@
   min-height: 300px;
   align-items: center;
   justify-content: center;
-  gap: $spacing-sm;
-  padding: $spacing-xl;
+  gap: var(--xai-space-2);
+  padding: var(--xai-space-7);
   color: var(--oauth-modal-text-secondary);
   font-size: 13px;
 }
@@ -283,9 +283,9 @@
   line-height: 1.25;
   cursor: pointer;
   transition:
-    background-color $transition-fast,
-    border-color $transition-fast,
-    color $transition-fast;
+    background-color var(--xai-duration-default),
+    border-color var(--xai-duration-default),
+    color var(--xai-duration-default);
 
   &:hover:not(:disabled) {
     border-color: var(--oauth-modal-border-strong);
@@ -407,7 +407,7 @@
   padding: 4px 10px;
   overflow: auto;
   border: 1px solid var(--oauth-modal-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--oauth-modal-surface-subtle);
   scrollbar-color: var(--oauth-modal-border-strong) transparent;
   scrollbar-width: thin;
@@ -420,10 +420,10 @@
   align-items: flex-start;
   padding: 10px 6px;
   border-bottom: 1px solid var(--oauth-modal-border);
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   transition:
-    background-color $transition-fast,
-    border-color $transition-fast;
+    background-color var(--xai-duration-default),
+    border-color var(--xai-duration-default);
 
   &:last-child {
     border-bottom-color: transparent;
@@ -492,7 +492,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: $spacing-sm;
+  gap: var(--xai-space-2);
 
   input {
     min-width: 0;
@@ -528,7 +528,7 @@
   gap: 14px;
   padding: 18px;
   border: 1px dashed var(--oauth-modal-border-strong);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--oauth-modal-surface-warm);
 
   > span {
@@ -556,7 +556,7 @@
   margin-top: 12px;
   padding: 9px 11px;
   border: 1px solid rgb(229 169 71 / 0.32);
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   background: rgb(229 169 71 / 0.1);
   color: var(--oauth-modal-text-secondary);
   font-size: 12px;
@@ -569,7 +569,7 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--oauth-modal-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--oauth-modal-surface-subtle);
 }
 
@@ -643,7 +643,7 @@
   justify-content: center;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   color: var(--oauth-modal-text-tertiary);
 
   &:hover:not(:disabled) {
@@ -674,7 +674,7 @@
   align-items: center;
   padding: 5px 9px;
   border: 1px solid var(--oauth-modal-border);
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: var(--oauth-modal-surface-subtle);
 }
 
@@ -743,7 +743,7 @@
   margin-top: 10px;
   padding: 10px;
   border: 1px solid var(--oauth-modal-border);
-  border-radius: 8px;
+  border-radius: var(--xai-radius-small);
   background: var(--oauth-modal-surface-subtle);
 }
 
@@ -770,36 +770,35 @@
   line-height: 1.45;
 }
 
-// Portal-rendered menus do not inherit the modal's token bridge.
 .reasoningDropdown {
-  --bg-secondary: #f2f5f7;
-  --bg-tertiary: #f8fafc;
-  --text-primary: #1f2937;
-  --text-secondary: #475569;
-  --text-tertiary: #64748b;
-  --border-color: #e2e8f0;
-  --border-primary: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --primary-color: #0e0d0c;
-  --primary-soft: #eef2f6;
+  --bg-secondary: var(--oauth-modal-surface-subtle);
+  --bg-tertiary: var(--oauth-modal-surface-warm);
+  --text-primary: var(--oauth-modal-text);
+  --text-secondary: var(--oauth-modal-text-secondary);
+  --text-tertiary: var(--oauth-modal-text-tertiary);
+  --border-color: var(--oauth-modal-border);
+  --border-primary: var(--oauth-modal-border);
+  --border-hover: var(--oauth-modal-border-strong);
+  --primary-color: var(--oauth-modal-ink);
+  --primary-soft: var(--oauth-modal-sage-soft);
   --focus-ring: rgb(10 10 10 / 18%);
-  --floating-surface: #ffffff;
-  --floating-surface-material: #ffffff;
-  --floating-border: #e2e8f0;
+  --floating-surface: var(--oauth-modal-surface);
+  --floating-surface-material: var(--oauth-modal-surface);
+  --floating-border: var(--oauth-modal-border);
   --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
   --surface-inner-highlight: none;
 }
 
 .originalModelDropdown {
-  --bg-secondary: #f2f5f7;
-  --bg-tertiary: #f8fafc;
-  --text-primary: #1f2937;
-  --text-secondary: #475569;
-  --text-tertiary: #64748b;
-  --border-color: #e2e8f0;
-  --border-primary: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --radius-md: 8px;
+  --bg-secondary: var(--oauth-modal-surface-subtle);
+  --bg-tertiary: var(--oauth-modal-surface-warm);
+  --text-primary: var(--oauth-modal-text);
+  --text-secondary: var(--oauth-modal-text-secondary);
+  --text-tertiary: var(--oauth-modal-text-tertiary);
+  --border-color: var(--oauth-modal-border);
+  --border-primary: var(--oauth-modal-border);
+  --border-hover: var(--oauth-modal-border-strong);
+  --radius-md: var(--xai-radius-control);
 }
 
 @media (max-width: 960px) {

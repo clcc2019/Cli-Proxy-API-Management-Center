@@ -4,7 +4,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: var(--xai-space-2);
   cursor: pointer;
   user-select: none;
 }
@@ -39,9 +39,9 @@
   align-items: center;
   justify-content: center;
   transition:
-    border-color $transition-fast,
-    background-color $transition-fast,
-    box-shadow $transition-fast;
+    border-color var(--xai-duration-default),
+    background-color var(--xai-duration-default),
+    box-shadow var(--xai-duration-default);
 }
 
 .root:hover .input:not(:checked):not(:disabled) + .box {

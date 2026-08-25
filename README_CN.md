@@ -144,8 +144,11 @@ npm run build:singlefile # tsc + 单文件构建
 npm run preview    # 本地预览 dist
 npm run lint       # ESLint（warnings 视为失败）
 npm run format     # Prettier
+npm run dev:mock   # 启动本地 Mock 网关(http://127.0.0.1:8317),配合 npm run dev 无后端渲染全部页面
 npm run type-check # tsc --noEmit
 ```
+
+> 视觉验证:先运行 `npm run dev:mock`,再运行 `npm run dev`。打开 `http://localhost:5173`,在登录页使用 API 地址 `http://127.0.0.1:8317` 与任意管理密钥即可进入,所有页面会渲染确定性示例数据(`scripts/mock-gateway.mjs`)。
 
 ## 贡献
 

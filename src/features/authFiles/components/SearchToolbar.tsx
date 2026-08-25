@@ -2,9 +2,7 @@ import {
   memo,
   startTransition,
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type ChangeEvent,
   type KeyboardEvent,
@@ -115,28 +113,24 @@ export const SearchToolbar = memo(function SearchToolbar({
   const [pageSizeOpen, setPageSizeOpen] = useState(false);
   const [pageSizeDraft, setPageSizeDraft] = useState(String(pageSize));
   const [searchDraft, setSearchDraft] = useState(search);
-  const pendingSearchValuesRef = useRef<string[]>([]);
+  const [renderedSearch, setRenderedSearch] = useState(search);
+  const [pendingAcknowledgements, setPendingAcknowledgements] = useState<string[]>([]);
 
-  useEffect(() => {
-    const pendingValues = pendingSearchValuesRef.current;
-    const acknowledgedIndex = pendingValues.indexOf(search);
-    if (acknowledgedIndex >= 0) {
-      pendingValues.splice(0, acknowledgedIndex + 1);
-      return;
+  if (renderedSearch !== search) {
+    if (pendingAcknowledgements.includes(search)) {
+      const acknowledgedIndex = pendingAcknowledgements.indexOf(search);
+      setPendingAcknowledgements(pendingAcknowledgements.slice(acknowledgedIndex + 1));
+    } else {
+      setPendingAcknowledgements([]);
+      setSearchDraft((current) => (current === search ? current : search));
     }
 
-    // This value did not originate from the input, so it came from another
-    // page action (for example "clear filters"). Discard pending acknowledgements
-    // and synchronize the local field without waiting for another keystroke.
-    pendingValues.length = 0;
-    setSearchDraft((current) => (current === search ? current : search));
-  }, [search]);
+    setRenderedSearch(search);
+  }
 
   const updateSearch = useCallback(
     (value: string) => {
-      const pendingValues = pendingSearchValuesRef.current;
-      pendingValues.push(value);
-      if (pendingValues.length > 32) pendingValues.splice(0, pendingValues.length - 32);
+      setPendingAcknowledgements((values) => [...values.slice(-31), value]);
       setSearchDraft(value);
       // Keep typing and the clear affordance on the urgent lane. Updating the
       // page can rebuild filters and card nodes, so let React schedule it as a

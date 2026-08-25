@@ -1,7 +1,7 @@
 @use '../../../styles/variables' as *;
 
 .hint {
-  padding: $spacing-lg;
+  padding: var(--xai-space-4);
   color: var(--mg-text-tertiary);
   font-size: 12px;
   font-style: italic;
@@ -29,7 +29,7 @@
 .modelsList {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: var(--xai-space-2);
 }
 
 .modelItem {
@@ -37,8 +37,8 @@
   width: 100%;
   align-items: center;
   flex-wrap: wrap;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-md;
+  gap: var(--xai-space-2);
+  padding: var(--xai-space-2) var(--xai-space-3-5);
   appearance: none;
   border: 1px solid var(--mg-border-fade);
   border-radius: var(--mg-radius-control);

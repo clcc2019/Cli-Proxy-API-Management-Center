@@ -42,6 +42,12 @@ window.addEventListener('vite:preloadError', (event) => {
 });
 
 const bootstrap = async () => {
+  // 首屏两条最慢的加载:locale JSON 与 Login/MainLayout 懒加载 chunk。
+  // 提前并行发起 chunk 请求(i18n/会话恢复期间下载),只取模块副作用,
+  // 结果丢弃 —— 真实渲染仍走 App.tsx 内的 lazy(),引用不变、不会双渲染。
+  void Promise.all([import('./pages/LoginPage'), import('./components/layout/MainLayout')]).catch(
+    () => undefined
+  );
   await initializeI18n();
 
   createRoot(document.getElementById('root')!).render(

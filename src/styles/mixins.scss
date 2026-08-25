@@ -17,12 +17,6 @@
   }
 }
 
-@mixin desktop {
-  @media (min-width: #{$breakpoint-tablet + 1}) {
-    @content;
-  }
-}
-
 // Flexbox 居中
 @mixin flex-center {
   display: flex;
@@ -66,23 +60,6 @@
   }
 }
 
-// Standard heading treatment for conventional management pages.
-// Hero-style pages keep their own typography and do not consume this mixin.
-@mixin page-heading {
-  display: block;
-  min-width: 0;
-  margin: 0 0 $spacing-md;
-  color: var(--text-primary);
-  font-size: var(--page-title-size, clamp(24px, 2vw, 30px));
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-
-  @include mobile {
-    font-size: 24px;
-  }
-}
-
 // Shared introduction for routine management screens. Overview pages keep
 // their own hero composition, while tables, settings, and workbenches use
 // this compact title row so the operational surface stays visually dominant.
@@ -90,7 +67,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: $spacing-lg;
+  gap: var(--xai-space-4);
   min-width: 0;
   padding: 2px 1px 16px;
   border-bottom: 1px solid var(--mg-border);
@@ -119,14 +96,6 @@
   color: var(--mg-text-secondary);
   font-size: 13px;
   line-height: 1.55;
-}
-
-@mixin management-surface {
-  min-width: 0;
-  border: 1px solid var(--mg-border);
-  border-radius: var(--mg-radius-card);
-  background: var(--mg-surface);
-  box-shadow: none;
 }
 
 @mixin management-tabs {

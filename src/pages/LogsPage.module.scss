@@ -24,7 +24,7 @@
   @include management-tabs;
   width: fit-content;
   max-width: 100%;
-  margin-bottom: $spacing-md;
+  margin-bottom: var(--xai-space-3-5);
   background: var(--mg-surface-subtle);
   overflow-x: auto;
   scrollbar-width: none;
@@ -38,7 +38,7 @@
   @include button-reset;
   padding: 10px 16px;
   border: 1px solid transparent;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   font-size: 13.5px;
   font-weight: 600;
   color: var(--mg-text-secondary);
@@ -78,12 +78,12 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: var(--xai-space-4);
   flex: 1;
   min-height: 0;
 
   @include mobile {
-    gap: $spacing-md;
+    gap: var(--xai-space-3-5);
     min-height: auto;
   }
 }
@@ -105,7 +105,7 @@
 .toolbar {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: var(--xai-space-2);
   flex-wrap: wrap;
   margin-left: auto;
 
@@ -119,17 +119,17 @@
 .filters {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: var(--xai-space-3-5);
   flex-wrap: wrap;
-  margin-bottom: $spacing-md;
+  margin-bottom: var(--xai-space-3-5);
 
   :global(.form-group) {
     margin: 0;
   }
 
   @include mobile {
-    gap: $spacing-sm;
-    margin-bottom: $spacing-sm;
+    gap: var(--xai-space-2);
+    margin-bottom: var(--xai-space-2);
   }
 }
 
@@ -166,7 +166,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: color-mix(in srgb, var(--primary-color) 12%, transparent);
   color: var(--primary-color);
   font-size: 12px;
@@ -213,7 +213,7 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-secondary);
@@ -290,7 +290,7 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   color: var(--text-secondary);
 
   &:hover {
@@ -347,7 +347,7 @@
 .logPanel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: $radius-md;
+  border-radius: var(--xai-radius-small);
   box-shadow: var(--surface-inner-highlight);
   flex: 1 1 auto;
   min-height: 280px;
@@ -400,7 +400,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-sm;
+  gap: var(--xai-space-2);
   padding: 8px 12px;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-primary);
@@ -411,7 +411,7 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    gap: $spacing-xs;
+    gap: var(--xai-space-1);
 
     > span {
       width: 100%;
@@ -427,12 +427,12 @@
 .loadMoreStats {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: var(--xai-space-3-5);
 
   @include mobile {
     width: 100%;
     flex-wrap: wrap;
-    gap: $spacing-sm;
+    gap: var(--xai-space-2);
 
     > span {
       white-space: nowrap;
@@ -509,14 +509,14 @@
 
   @include tablet {
     grid-template-columns: 140px 1fr;
-    gap: $spacing-sm;
+    gap: var(--xai-space-2);
     padding: 8px 10px;
     font-size: 12px;
   }
 
   @include mobile {
     grid-template-columns: 1fr;
-    gap: $spacing-xs;
+    gap: var(--xai-space-1);
     padding: 9px 10px;
     font-size: 11.5px;
   }
@@ -567,7 +567,7 @@
   align-items: center;
   min-height: 21px;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   font-size: 11px;
   font-weight: 800;
   border: 1px solid var(--border-color);
@@ -582,7 +582,7 @@
   align-items: center;
   min-height: 21px;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   font-size: 11px;
   font-weight: 600;
   border: 1px solid var(--border-color);
@@ -703,7 +703,7 @@
   align-items: center;
   min-height: 21px;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   border: 1px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
   background: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
@@ -724,12 +724,12 @@
 .tracePanel {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: var(--xai-space-2);
 }
 
 .traceNotice {
   padding: 8px 10px;
-  border-radius: $radius-md;
+  border-radius: var(--xai-radius-small);
   border: 1px solid var(--warning-border);
   background: var(--warning-bg);
   color: var(--warning-text);
@@ -767,7 +767,7 @@
   min-width: 0;
   padding: 8px 10px;
   border: 1px solid var(--border-color);
-  border-radius: $radius-md;
+  border-radius: var(--xai-radius-small);
   background: var(--bg-secondary);
 }
 
@@ -792,7 +792,7 @@
   align-items: center;
   margin-left: 6px;
   padding: 0 6px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   border: 1px solid var(--border-color);
   font-size: 11px;
   color: var(--text-secondary);
@@ -809,7 +809,7 @@
 
 .traceCandidate {
   border: 1px solid var(--border-color);
-  border-radius: $radius-md;
+  border-radius: var(--xai-radius-small);
   padding: 10px;
   background: var(--bg-secondary);
   display: flex;
@@ -828,7 +828,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   border: 1px solid var(--success-badge-border, #6ee7b7);
   font-size: 11px;
   font-weight: 700;
@@ -883,7 +883,7 @@
 
 @media (max-height: 820px) {
   .tabBar {
-    margin-bottom: $spacing-md;
+    margin-bottom: var(--xai-space-3-5);
   }
 
   .tabItem {
@@ -891,11 +891,11 @@
   }
 
   .content {
-    gap: $spacing-md;
+    gap: var(--xai-space-3-5);
   }
 
   .logCard {
-    padding: $spacing-md;
+    padding: var(--xai-space-3-5);
   }
 
   .logPanel {
@@ -915,7 +915,7 @@
 
 @media (max-height: 600px) {
   .tabBar {
-    margin-bottom: $spacing-sm;
+    margin-bottom: var(--xai-space-2);
   }
 
   .tabItem {
@@ -924,16 +924,16 @@
   }
 
   .content {
-    gap: $spacing-sm;
+    gap: var(--xai-space-2);
   }
 
   .filters {
-    margin-bottom: $spacing-sm;
-    gap: $spacing-sm;
+    margin-bottom: var(--xai-space-2);
+    gap: var(--xai-space-2);
   }
 
   .logCard {
-    padding: $spacing-sm;
+    padding: var(--xai-space-2);
   }
 
   .logPanel {
@@ -945,7 +945,7 @@
     padding: 6px 8px;
     font-size: 11px;
     grid-template-columns: 130px 1fr;
-    gap: $spacing-xs;
+    gap: var(--xai-space-1);
   }
 
   .loadMoreBanner {

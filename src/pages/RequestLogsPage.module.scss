@@ -178,7 +178,7 @@
   gap: 2px;
   padding: 4px;
   border: 1px solid var(--request-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: var(--request-surface-subtle);
 }
 
@@ -193,7 +193,7 @@
   padding: 6px 11px;
   overflow: hidden;
   border: 0;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   appearance: none;
   background: transparent;
   color: var(--request-text-secondary);
@@ -202,9 +202,9 @@
   font-weight: 600;
   white-space: nowrap;
   transition:
-    background-color $transition-fast,
-    color $transition-fast,
-    box-shadow $transition-fast;
+    background-color var(--xai-duration-default),
+    color var(--xai-duration-default),
+    box-shadow var(--xai-duration-default);
 
   &:hover:not(:disabled) {
     background: color-mix(in srgb, var(--request-surface) 72%, transparent);
@@ -248,7 +248,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 5px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: color-mix(in srgb, var(--request-text-muted) 14%, transparent);
   color: var(--request-text-tertiary);
   font-size: 10.5px;
@@ -285,13 +285,13 @@
   gap: 9px;
   padding: 0 9px 0 12px;
   border: 1px solid var(--request-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--request-surface-warm);
   color: var(--request-text-tertiary);
   transition:
-    border-color $transition-fast,
-    background-color $transition-fast,
-    box-shadow $transition-fast;
+    border-color var(--xai-duration-default),
+    background-color var(--xai-duration-default),
+    box-shadow var(--xai-duration-default);
 
   &:hover {
     border-color: color-mix(in srgb, var(--request-text-muted) 54%, var(--request-border));
@@ -355,8 +355,8 @@
   color: var(--request-text-tertiary);
   cursor: pointer;
   transition:
-    background-color $transition-fast,
-    color $transition-fast;
+    background-color var(--xai-duration-default),
+    color var(--xai-duration-default);
 
   &:hover {
     background: var(--request-border);
@@ -393,7 +393,7 @@
   min-height: 36px;
   flex: 0 0 auto;
   border-color: var(--request-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: var(--request-surface);
   box-shadow: none;
   color: var(--request-text-secondary);
@@ -473,7 +473,7 @@
   background: var(--request-surface);
   content-visibility: auto;
   contain-intrinsic-size: 68px;
-  transition: background-color $transition-fast;
+  transition: background-color var(--xai-duration-default);
 
   &:last-child {
     border-bottom: 0;
@@ -604,7 +604,7 @@
   padding: 2px 6px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--request-sage) 30%, var(--request-border));
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   background: color-mix(in srgb, var(--request-sage-soft) 52%, var(--request-surface));
   color: var(--request-sage-strong);
   font-size: 9.5px;
@@ -628,7 +628,7 @@
   align-items: center;
   padding: 2px 6px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--xai-radius-micro);
   font-size: 10px;
   font-weight: 650;
   letter-spacing: 0;
@@ -673,14 +673,14 @@
   gap: 6px;
   padding: 3px 8px;
   border: 1px solid transparent;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   font-size: 11px;
   font-weight: 650;
   white-space: nowrap;
   transition:
-    background-color $transition-fast,
-    border-color $transition-fast,
-    color $transition-fast;
+    background-color var(--xai-duration-default),
+    border-color var(--xai-duration-default),
+    color var(--xai-duration-default);
 }
 
 .eventStatusDot {
@@ -726,7 +726,7 @@
   gap: 5px;
   padding: 2px 7px;
   border: 1px solid var(--request-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: var(--request-surface-subtle);
   color: var(--request-text-secondary);
   font-size: 10.5px;
@@ -926,7 +926,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid color-mix(in srgb, var(--request-sage) 24%, var(--request-border));
-  border-radius: 12px;
+  border-radius: var(--xai-radius-panel);
   background: color-mix(in srgb, var(--request-sage-soft) 58%, var(--request-surface));
   color: var(--request-sage-strong);
 }
@@ -951,7 +951,7 @@
   gap: 10px;
   padding: 13px 15px;
   border: 1px solid color-mix(in srgb, var(--request-danger) 24%, var(--request-border));
-  border-radius: 12px;
+  border-radius: var(--xai-radius-panel);
   background: color-mix(in srgb, var(--request-danger) 7%, var(--request-surface));
   color: var(--request-danger);
   font-size: 13px;
@@ -966,7 +966,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  border-radius: var(--xai-radius-card);
   background: color-mix(in srgb, var(--request-surface) 88%, transparent);
   animation: requestLogsOverlayEnter 200ms ease-out both;
 }
@@ -977,7 +977,7 @@
   gap: 10px;
   padding: 11px 16px;
   border: 1px solid var(--request-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: var(--request-surface);
   box-shadow: 0 2px 18px rgb(0 0 0 / 0.06);
 }

@@ -3,27 +3,27 @@
 .container {
   --login-header-height: var(--xai-space-15);
   --login-canvas: var(--xai-white);
-  --login-surface: #ffffff;
+  --login-surface: var(--xai-white);
   --login-surface-muted: var(--xai-warm);
   --login-surface-selected: var(--mg-surface-pressed);
-  --login-header-surface: rgb(250 250 250 / 85%);
-  --login-header-border: rgb(204 204 204 / 30%);
-  --login-dark-surface: #0d0d0d;
-  --login-dark-border: #333333;
-  --login-dark-text: #fafafa;
-  --login-dark-text-secondary: #b2b2b2;
-  --login-text-strong: #050505;
-  --login-text: #0d0d0d;
-  --login-text-secondary: #666666;
-  --login-text-tertiary: #808080;
-  --login-border: #e6e6e6;
-  --login-border-strong: #cccccc;
-  --login-signal: #998b00;
-  --login-signal-on-dark: #eddd0c;
+  --login-header-surface: color-mix(in srgb, var(--xai-white) 85%, transparent);
+  --login-header-border: var(--xai-border);
+  --login-dark-surface: var(--xai-ink-console);
+  --login-dark-border: var(--xai-border-hover);
+  --login-dark-text: var(--xai-inverse);
+  --login-dark-text-secondary: var(--xai-secondary);
+  --login-text-strong: var(--xai-ink-console);
+  --login-text: var(--xai-ink);
+  --login-text-secondary: var(--xai-secondary);
+  --login-text-tertiary: var(--xai-muted);
+  --login-border: var(--xai-border);
+  --login-border-strong: var(--xai-border-hover);
+  --login-signal: var(--xai-warning);
+  --login-signal-on-dark: var(--xai-warning);
   --login-action: var(--mg-action);
   --login-action-hover: var(--mg-action-hover);
-  --login-action-text: #fafafa;
-  --login-focus: #0d0d0d;
+  --login-action-text: var(--xai-inverse);
+  --login-focus: var(--xai-ink-console);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -88,7 +88,7 @@
   justify-content: center;
   padding: 3px;
   border: 1px solid var(--login-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: rgb(255 255 255 / 80%);
 }
 
@@ -141,7 +141,7 @@
   gap: 7px;
   padding: 0 11px;
   border: 1px solid var(--login-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: rgb(255 255 255 / 56%);
   color: var(--login-text-secondary);
   font-size: 11px;
@@ -168,7 +168,7 @@
     height: 40px;
     padding-inline: 14px;
     border-color: var(--login-border);
-    border-radius: $radius-full;
+    border-radius: var(--xai-radius-pill);
     background: rgb(255 255 255 / 72%);
     color: var(--login-text);
     font-size: 14px;
@@ -198,19 +198,16 @@
 }
 
 .headerLanguageDropdown {
-  --login-border: #e6e6e6;
-  --text-primary: #0d0d0d;
-  --mg-surface-subtle: #f2f2f2;
-  --mg-sage-strong: #0d0d0d;
-  --primary-color: #0d0d0d;
-  --primary-soft: #ededed;
-  --focus-ring: rgb(13 13 13 / 20%);
-  border-color: var(--login-border);
-  border-radius: 15px;
-  background: rgb(250 250 250 / 96%);
-  box-shadow: 2px 2px 24px rgb(0 0 0 / 3%);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  --text-primary: var(--xai-ink);
+  --mg-surface-subtle: var(--xai-fill-soft);
+  --mg-sage-strong: var(--xai-ink-console);
+  --primary-color: var(--xai-ink-console);
+  --primary-soft: var(--xai-fill-soft);
+  --focus-ring: var(--mg-focus-ring);
+  border-color: var(--xai-border);
+  border-radius: var(--xai-radius-panel);
+  background: color-mix(in srgb, var(--xai-white) 96%, transparent);
+  box-shadow: var(--xai-shadow-menu);
 }
 
 .loginShell {
@@ -302,10 +299,10 @@
 
   @media (max-width: $breakpoint-mobile) {
     min-height: calc(100vh - var(--login-header-height));
-    padding: max(#{$spacing-md}, env(safe-area-inset-top))
-      max(#{$spacing-md}, env(safe-area-inset-right))
-      max(#{$spacing-lg}, env(safe-area-inset-bottom))
-      max(#{$spacing-md}, env(safe-area-inset-left));
+    padding: max(var(--xai-space-3-5), env(safe-area-inset-top))
+      max(var(--xai-space-3-5), env(safe-area-inset-right))
+      max(var(--xai-space-4), env(safe-area-inset-bottom))
+      max(var(--xai-space-3-5), env(safe-area-inset-left));
 
     @supports (min-height: 100dvh) {
       min-height: calc(100dvh - var(--login-header-height));
@@ -398,7 +395,7 @@
   gap: 6px;
   padding: 16px;
   border: 1px solid var(--login-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--login-surface-muted);
   box-shadow: none;
 
@@ -436,11 +433,11 @@
   width: 100%;
   padding: 12px;
   border: 1px solid var(--login-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--login-surface-muted);
   transition:
-    border-color $transition-fast,
-    background-color $transition-fast;
+    border-color var(--xai-duration-default),
+    background-color var(--xai-duration-default);
 
   &:hover {
     border-color: var(--login-border-strong);
@@ -462,11 +459,11 @@
 }
 
 .errorBox {
-  padding: 12px 14px;
-  border-radius: $radius-md;
-  border: 1px solid rgba($error-color, 0.36);
-  background: rgba($error-color, 0.08);
-  color: $error-color;
+  padding: var(--xai-space-2-5) var(--xai-space-3);
+  border-radius: var(--xai-radius-small);
+  border: 1px solid var(--xai-danger-border);
+  background: var(--xai-danger-soft);
+  color: var(--xai-danger);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -486,7 +483,7 @@
   min-height: 48px;
   padding: 12px 48px 12px 14px;
   border-color: var(--login-border);
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--login-surface);
   color: var(--login-text);
   caret-color: var(--login-text);
@@ -512,7 +509,7 @@
 .loginCard :global(.btn-full) {
   min-height: 48px;
   padding: 12px 20px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   font-size: 14px;
   font-weight: 600;
 }
@@ -540,7 +537,7 @@
   min-width: 40px;
   min-height: 40px;
   padding: 8px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   color: var(--login-text-secondary);
 
   &:hover:not(:disabled) {
@@ -561,10 +558,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $spacing-md;
+  gap: var(--xai-space-3-5);
   padding: clamp(24px, 3vw, 32px);
   border: 1px solid var(--login-border);
-  border-radius: 15px;
+  border-radius: var(--xai-radius-card);
   background: var(--login-surface);
   box-shadow: 2px 2px 24px rgb(0 0 0 / 3%);
   animation: splash-enter var(--motion-duration-slow) var(--motion-ease-out) backwards;
@@ -596,8 +593,8 @@
 .splashLoader {
   width: 124px;
   height: 4px;
-  margin-top: $spacing-sm;
-  border-radius: $radius-full;
+  margin-top: var(--xai-space-2);
+  border-radius: var(--xai-radius-pill);
   background: var(--login-border);
   overflow: hidden;
 }
@@ -625,7 +622,7 @@
     width: 34px;
     height: 34px;
     flex-basis: 34px;
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
   }
 
   .headerMark {
@@ -649,7 +646,7 @@
   }
 
   .headerLanguageDropdown {
-    border-radius: 10px;
+    border-radius: var(--xai-radius-control);
   }
 
   .formPanel {
@@ -666,7 +663,7 @@
   .loginCard {
     gap: 16px;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: var(--xai-radius-control);
     box-shadow: 2px 2px 24px rgb(0 0 0 / 3%);
   }
 
@@ -687,7 +684,7 @@
 
   .connectionBox {
     padding: 12px 14px;
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
 
     .label {
       font-size: 12px;
@@ -706,7 +703,7 @@
 
   .toggleAdvanced {
     padding: 9px 10px;
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
   }
 
   .toggleLabel {
@@ -720,13 +717,13 @@
   .loginCard :global(.input) {
     min-height: 48px;
     padding: 12px 46px 12px 14px;
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
     font-size: 15px;
   }
 
   .loginCard :global(.btn-full) {
     min-height: 48px;
-    border-radius: $radius-full;
+    border-radius: var(--xai-radius-pill);
     font-size: 14px;
   }
 
@@ -745,13 +742,13 @@
     width: 100%;
     gap: 12px;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: var(--xai-radius-control);
   }
 
   .splashLogo {
     width: 64px;
     height: 64px;
-    border-radius: 8px;
+    border-radius: var(--xai-radius-small);
   }
 
   .splashTitle {

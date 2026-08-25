@@ -61,9 +61,9 @@
     background: var(--oauth-modal-subtle);
     color: var(--oauth-modal-text-tertiary);
     transition:
-      background-color $transition-fast,
-      border-color $transition-fast,
-      color $transition-fast;
+      background-color var(--xai-duration-default),
+      border-color var(--xai-duration-default),
+      color var(--xai-duration-default);
 
     &:hover {
       border-color: color-mix(
@@ -224,7 +224,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--oauth-modal-ink);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: var(--oauth-modal-ink);
   color: var(--oauth-modal-surface);
   font-size: 11px;
@@ -306,7 +306,7 @@
   align-items: center;
   padding: 4px 9px;
   border: 1px solid var(--oauth-modal-border);
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   background: var(--oauth-modal-warm);
   color: var(--oauth-modal-text-tertiary);
   font-family: $font-mono;
@@ -396,7 +396,7 @@
   min-width: 0;
   width: 100%;
   padding: 18px 14px;
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: var(--oauth-modal-ink);
   color: var(--oauth-modal-surface);
   font-family: $font-mono;
@@ -420,7 +420,7 @@
   min-width: 0;
   padding: 13px 14px;
   border: 1px solid var(--oauth-modal-border);
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   background: color-mix(in srgb, var(--oauth-modal-subtle) 72%, var(--oauth-modal-surface));
 }
 
@@ -450,7 +450,7 @@
 .panelAction:global(.btn),
 .callbackAction :global(.btn) {
   min-height: 42px;
-  border-radius: $radius-full;
+  border-radius: var(--xai-radius-pill);
   padding-inline: 14px;
   font-size: 12px;
   box-shadow: none;
@@ -485,7 +485,7 @@
   gap: 10px;
   padding: 13px 14px;
   border: 1px solid color-mix(in srgb, var(--oauth-modal-sage) 24%, var(--oauth-modal-border));
-  border-radius: 10px;
+  border-radius: var(--xai-radius-control);
   background: color-mix(in srgb, var(--oauth-modal-sage-soft) 24%, var(--oauth-modal-surface));
   color: var(--oauth-modal-text-secondary);
   font-size: 12px;
@@ -546,7 +546,7 @@
   gap: 8px;
   padding: 10px 12px;
   border: 1px solid color-mix(in srgb, var(--oauth-modal-danger) 24%, var(--oauth-modal-border));
-  border-radius: 9px;
+  border-radius: var(--xai-radius-small);
   background: color-mix(in srgb, var(--oauth-modal-danger) 7%, var(--oauth-modal-surface));
   color: var(--oauth-modal-danger);
   font-size: 11.5px;
@@ -624,7 +624,7 @@
 
   :global(.btn) {
     min-height: 42px;
-    border-radius: $radius-full;
+    border-radius: var(--xai-radius-pill);
     padding-inline: 14px;
     font-size: 12px;
     box-shadow: none;

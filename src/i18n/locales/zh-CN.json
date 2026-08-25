@@ -443,7 +443,8 @@
   "header": {
     "check_connection": "检查连接",
     "refresh_all": "刷新全部",
-    "logout": "登出"
+    "logout": "登出",
+    "logout_confirm": "确定要登出 Toka 吗？重新连接需要输入管理密钥。"
   },
   "connection": {
     "title": "连接信息",
@@ -1751,7 +1752,8 @@
     "request_events_relative_hour": "小时",
     "request_events_relative_day": "天",
     "input_tokens": "输入 Tokens",
-    "output_tokens": "输出 Tokens"
+    "output_tokens": "输出 Tokens",
+    "render_on_demand": "图表按需渲染,滚动到可见区域时加载"
   },
   "stats": {
     "success": "成功",
@@ -2129,7 +2131,8 @@
         "cancel": "取消",
         "update": "更新",
         "add": "添加"
-      }
+      },
+      "validation_blocked_short": "待修复"
     }
   },
   "system_info": {
@@ -2245,7 +2248,9 @@
     "claude_api_key": "Claude API密钥",
     "commercial_mode_restart_required": "商业模式开关已变更，请重启服务后生效",
     "copy_failed": "复制失败",
-    "link_copied": "已复制"
+    "link_copied": "已复制",
+    "load_failed": "加载失败",
+    "save_failed": "保存失败"
   },
   "language": {
     "switch": "语言",
