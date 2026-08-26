@@ -84,10 +84,11 @@
   margin: 0;
   min-width: 0;
   color: var(--mg-text);
-  font-size: clamp(26px, 2.2vw, 32px);
-  font-weight: 650;
-  line-height: 1.1;
-  letter-spacing: -0.035em;
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -0.675px;
+  text-wrap: balance;
 }
 
 @mixin management-page-description {
@@ -101,10 +102,10 @@
 @mixin management-tabs {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4.5px;
   width: fit-content;
   max-width: 100%;
-  padding: 3px;
+  padding: 4.5px;
   border: 1px solid var(--mg-border);
   border-radius: var(--mg-radius-pill);
   background: var(--mg-surface-subtle);

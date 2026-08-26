@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { RefreshButton } from '@/components/ui/RefreshButton';
 import { ProviderEditShell } from '@/components/common/ProviderEditShell';
@@ -222,8 +221,7 @@ export function AiProvidersClaudeModelsPage() {
       isLoading={initialLoading}
       loadingLabel={t('common.loading')}
     >
-      <Card>
-        <div className={styles.openaiModelsContent}>
+      <div className={styles.openaiModelsContent}>
           <div className={styles.sectionHint}>{t('ai_providers.claude_models_fetch_hint')}</div>
           <div className={styles.openaiModelsEndpointSection}>
             <span className={styles.openaiModelsEndpointLabel}>
@@ -314,8 +312,7 @@ export function AiProvidersClaudeModelsPage() {
               })}
             </div>
           )}
-        </div>
-      </Card>
+      </div>
     </ProviderEditShell>
   );
 }

@@ -128,7 +128,7 @@
   overflow: hidden;
   color: var(--system-text-secondary);
   font-family: $font-mono;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.5;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -344,7 +344,7 @@
 
 .modelsCard :global(.item-subtitle) {
   color: var(--system-text-tertiary);
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .groupTitle {
@@ -396,13 +396,13 @@
 
 .modelName {
   color: var(--system-text);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
 }
 
 .modelAlias {
   color: var(--system-text-tertiary);
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .dangerCard {

@@ -405,7 +405,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       {providerLabel.slice(0, 1).toUpperCase()}
                     </span>
                   )}
-                  <span className={refreshStyles.providerBadgeLabel}>{providerLabel}</span>
                 </span>
                 <button
                   type="button"

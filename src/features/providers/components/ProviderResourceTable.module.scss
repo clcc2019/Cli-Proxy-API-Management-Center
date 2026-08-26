@@ -101,15 +101,18 @@
   padding: var(--xai-space-1) var(--xai-space-1-5);
   border: 1px solid var(--xai-border);
   color: var(--xai-secondary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .statusBadge {
   display: inline-flex;
-  min-height: 27px;
+  min-height: 24px;
   align-items: center;
   gap: var(--xai-space-1-5);
+  padding: 0 var(--xai-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--xai-radius-pill);
   font-size: 11px;
   font-weight: 600;
   line-height: 1;
@@ -127,10 +130,14 @@
 
 .statusActive {
   color: var(--xai-success);
+  border-color: var(--xai-success-border);
+  background: var(--xai-success-soft);
 }
 
 .statusDisabled {
   color: var(--xai-warning);
+  border-color: var(--xai-warning-border);
+  background: var(--xai-warning-soft);
 }
 
 .actionsHead,

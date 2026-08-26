@@ -225,7 +225,7 @@
   color: var(--mg-text-secondary);
   box-shadow: none;
   font-size: 12.5px;
-  font-weight: 560;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -256,7 +256,7 @@
   background: transparent;
   color: var(--mg-text);
   box-shadow: none;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .page .providerTabActive::after,
@@ -293,9 +293,9 @@
 }
 
 .page .providerTabFallback {
-  font-family: $font-mono;
-  font-size: 10px;
-  font-weight: 700;
+  font-family: var(--mg-font-mono, $font-mono);
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -317,8 +317,8 @@
   background: color-mix(in srgb, var(--mg-text) 6%, transparent);
   color: var(--mg-text-secondary);
   font-family: $font-mono;
-  font-size: 10.5px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -383,8 +383,8 @@
   border-radius: var(--mg-radius-control);
   background: var(--auth-workbench-subtle);
   color: var(--mg-text-secondary);
-  font-size: 11.5px;
-  font-weight: 560;
+  font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -408,7 +408,7 @@
   border-color: var(--auth-workbench-border-strong);
   background: var(--mg-surface);
   color: var(--mg-text);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .page .displayOptionMarker {
@@ -444,7 +444,7 @@
   border-radius: var(--xai-radius-micro);
   background: transparent;
   color: var(--mg-text-tertiary);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -676,7 +676,7 @@
   padding: 3px 6px 7px;
   color: var(--mg-text-secondary);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -723,7 +723,7 @@
 .popoverOption[aria-selected='true'] {
   background: color-mix(in srgb, var(--mg-sage-soft) 68%, var(--mg-surface));
   color: var(--mg-text);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .optionMarker {
@@ -904,7 +904,7 @@
   padding-inline: 8px;
   color: var(--mg-text-tertiary);
   font-family: $font-mono;
-  font-size: 11.5px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
   text-align: center;
@@ -1312,45 +1312,33 @@
 
 .providerBadge {
   display: inline-flex;
-  min-width: 0;
-  max-width: 116px;
-  height: 28px;
-  flex: 0 1 auto;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   align-items: center;
-  gap: 6px;
-  padding: 0 8px;
+  justify-content: center;
+  padding: 0;
   border: 0;
-  border-radius: var(--mg-radius-pill);
+  border-radius: 10px;
   background: var(--mg-surface-subtle);
-  color: var(--mg-text);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1;
 }
 
 .providerBadgeIcon {
   display: block;
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
   object-fit: contain;
 }
 
 .providerBadgeFallback {
   display: inline-grid;
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
   place-items: center;
   font-family: $font-mono;
-  font-size: 10px;
-}
-
-.providerBadgeLabel {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12px;
 }
 
 .page .cardNameButton {
@@ -1473,7 +1461,7 @@
   background: transparent;
   color: var(--mg-text-secondary);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
   cursor: pointer;
   transition:
@@ -1513,8 +1501,8 @@
   background: var(--mg-surface);
   color: var(--mg-text);
   font-family: $font-mono;
-  font-size: 11.5px;
-  font-weight: 650;
+  font-size: 12px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   text-align: center;
@@ -1540,7 +1528,7 @@
   color: var(--mg-text);
   font-family: $font-mono;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -1560,10 +1548,9 @@
 
 .page .noteLabel {
   color: var(--mg-text-secondary);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .page .noteValue {
@@ -1612,12 +1599,11 @@
   min-width: 0;
   overflow: hidden;
   color: var(--mg-text-tertiary);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1.3;
   text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -1647,8 +1633,8 @@
   justify-content: center;
   border: 1px solid var(--auth-workbench-border);
   border-radius: var(--mg-radius-pill);
-  font-size: 10px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1;
   white-space: nowrap;
 }
@@ -1726,7 +1712,7 @@
 .page .tokenValue {
   color: var(--mg-text);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
@@ -1898,8 +1884,8 @@
   background: var(--mg-surface-subtle);
   color: var(--mg-text-tertiary);
   font-family: $font-mono;
-  font-size: 10px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   text-overflow: ellipsis;
@@ -1960,9 +1946,9 @@
 .page .quotaSectionTitle {
   min-width: 0;
   color: var(--mg-text-tertiary);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.045em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1.3;
   text-transform: uppercase;
   white-space: nowrap;
@@ -2021,7 +2007,7 @@
   overflow: hidden;
   color: var(--mg-text-secondary);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2137,7 +2123,7 @@
   align-items: center;
   gap: 5px;
   color: var(--mg-text-tertiary);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.2;
 }
 
@@ -2157,8 +2143,8 @@
   background: var(--mg-surface);
   color: var(--mg-text-secondary);
   font-family: $font-mono;
-  font-size: 10.5px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   text-transform: capitalize;
@@ -2168,8 +2154,8 @@
   border-color: var(--xai-success-border);
   background: var(--xai-success-soft);
   color: var(--xai-success);
-  font-weight: 720;
-  letter-spacing: 0.015em;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .page .premiumPlanValue {
@@ -2177,8 +2163,8 @@
   background: var(--xai-warning-soft);
   box-shadow: none;
   color: var(--xai-warning);
-  font-weight: 720;
-  letter-spacing: 0.015em;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .page .codexPlanValue:focus-visible {
@@ -2191,7 +2177,7 @@
   overflow: hidden;
   color: var(--mg-text-tertiary);
   font-family: $font-mono;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
@@ -2216,7 +2202,7 @@
   gap: 4px;
   overflow: hidden;
   color: var(--mg-text-tertiary);
-  font-size: 9.5px;
+  font-size: 11px;
   line-height: 1;
 }
 
@@ -2226,8 +2212,8 @@
 }
 
 .page .codexResetCreditsText .codexPlanValue {
-  font-size: 10.5px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .page .codexResetCreditButton:global(.btn.btn-sm) {
@@ -2240,8 +2226,8 @@
   border-radius: var(--mg-radius-control);
   background: var(--mg-surface);
   color: var(--mg-text-secondary);
-  font-size: 10px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1;
   white-space: nowrap;
   box-shadow: none;
@@ -2269,7 +2255,7 @@
   justify-content: center;
   padding: 8px 10px;
   border-radius: var(--mg-radius-control);
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.4;
   text-align: center;
 }
@@ -2354,7 +2340,7 @@
 .page .cardErrorSummary {
   min-width: 0;
   overflow: hidden;
-  font-weight: 650;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2385,7 +2371,7 @@
   background: var(--mg-surface);
   box-shadow: var(--mg-shadow-float);
   color: var(--mg-text-secondary);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.45;
   opacity: 0;
@@ -2472,15 +2458,15 @@
 
 .page .reauthHeaderText strong {
   color: var(--mg-text);
-  font-size: 11.5px;
-  font-weight: 650;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.3;
 }
 
 .page .reauthHeaderText span {
   overflow: hidden;
   color: var(--mg-text-tertiary);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2490,7 +2476,7 @@
   min-height: 27px;
   flex: 0 0 auto;
   padding: 0 9px;
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .page .reauthPrimaryButton:global(.btn.btn-sm) > span,
@@ -2541,9 +2527,9 @@
 
 .page .reauthCodeLabel {
   color: var(--mg-text-tertiary);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1.2;
   text-transform: uppercase;
 }
@@ -2561,7 +2547,7 @@
   cursor: copy;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.11em;
   line-height: 1.2;
@@ -2596,13 +2582,13 @@
 .page .reauthResult :global(.btn.btn-sm) {
   min-height: 29px;
   padding: 0 8px;
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .page .reauthBrowserHint {
   margin: 0;
   color: var(--mg-text-secondary);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -2615,7 +2601,7 @@
   padding-top: 7px;
   border-top: 1px solid color-mix(in srgb, var(--mg-danger) 18%, var(--mg-border));
   color: var(--mg-danger);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -2709,7 +2695,7 @@
 
 .page .credentialCard .cardToggleSwitch > span:first-of-type > span:first-child {
   color: var(--mg-text-secondary);
-  font-size: 10.5px;
+  font-size: 11px;
   text-shadow: none;
 }
 
@@ -2916,7 +2902,7 @@
 
 .page .runtimeModelActionLabel {
   color: currentColor;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -2949,7 +2935,7 @@
 .page .rulesPanel :global(.card-header) :global(.title) {
   color: var(--mg-text);
   font-size: 16px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.3;
 }
 
@@ -3016,7 +3002,7 @@
 .page .rulesStat {
   min-width: 0;
   font-family: $font-mono;
-  font-size: 11.5px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -3065,9 +3051,10 @@
   }
 
   .page .providerBadge {
-    max-width: 88px;
-    height: 25px;
-    padding-inline: 6px;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 9px;
   }
 
   .page .metricsPanel {
@@ -3665,7 +3652,10 @@
 
 @container auth-files-page (max-width: 380px) {
   .page .providerBadge {
-    max-width: 100px;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 9px;
   }
 
   .page .cardNameButton {
@@ -3863,7 +3853,7 @@
   color: var(--mg-text);
   font-family: $font-mono;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
@@ -4228,20 +4218,12 @@
   }
 
   .page .providerBadge {
-    max-width: 116px;
-    height: 28px;
-    gap: var(--xai-space-1-5);
-    padding-inline: var(--xai-space-2);
-    border-radius: var(--xai-radius-pill);
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    padding: 0;
+    border-radius: 10px;
     background: var(--xai-fill-soft);
-    color: var(--xai-ink-console);
-    font-size: 11px;
-    font-weight: 500;
-  }
-
-  .page .providerBadgeIcon,
-  .page .providerBadgeFallback {
-    display: none;
   }
 
   .page .cardNameButton {
@@ -4279,7 +4261,7 @@
     flex: 0 0 32px;
     color: var(--xai-secondary);
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .page .priorityInput {
@@ -4293,8 +4275,8 @@
     border-color: var(--xai-border);
     background: var(--xai-white);
     color: var(--xai-ink-console);
-    font-size: 11.5px;
-    font-weight: 650;
+    font-size: 12px;
+    font-weight: 600;
   }
 
   .page .cardNote {
@@ -4410,11 +4392,10 @@
 
   .page .metricTitle {
     color: var(--xai-secondary);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.07em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     line-height: 1.3;
-    text-transform: uppercase;
   }
 
   .page .metricBadges {
@@ -4432,8 +4413,8 @@
     height: 20px;
     min-width: 20px;
     border-radius: var(--xai-radius-pill);
-    font-size: 10px;
-    font-weight: 650;
+    font-size: 11px;
+    font-weight: 600;
   }
 
   .page .featureBadge {
@@ -4478,7 +4459,7 @@
   .page .tokenValue {
     color: var(--xai-ink-console);
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.02em;
   }
 
@@ -4772,79 +4753,9 @@
   }
 
   .page .credentialCard .cardActions {
-    display: none;
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm),
-  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm) {
-    position: relative;
-    width: var(--mg-hit-area, 44px);
-    min-width: var(--mg-hit-area, 44px);
-    height: var(--mg-hit-area, 44px);
-    min-height: var(--mg-hit-area, 44px);
-    flex-basis: var(--mg-hit-area, 44px);
-    padding: 0;
-    border-color: transparent;
-    background: transparent;
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm)::before,
-  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm)::before {
-    position: absolute;
-    inset: 2px;
-    border: 1px solid var(--xai-border);
-    border-radius: var(--xai-radius-control);
-    background: var(--xai-white);
-    content: '';
-    pointer-events: none;
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm) > span:not(:global(.loading-spinner)),
-  .page
-    .credentialCard
-    .promotionPlanButton:global(.btn.btn-sm)
-    > span:not(:global(.loading-spinner)) {
-    position: relative;
-    z-index: 1;
-    width: var(--xai-space-7);
-    height: var(--xai-space-7);
-    border-radius: var(--xai-radius-control);
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm) > :global(.loading-spinner),
-  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm) > :global(.loading-spinner) {
-    position: relative;
-    z-index: 1;
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm):hover:not(:disabled),
-  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm):hover:not(:disabled) {
-    border-color: transparent;
-    background: transparent;
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm):hover:not(:disabled)::before,
-  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm):hover:not(:disabled)::before {
-    border-color: var(--xai-border-hover);
-    background: var(--xai-fill-soft);
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm):focus-visible,
-  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm):focus-visible {
-    border-color: transparent;
-    outline: 1px solid var(--xai-ink-console);
-    outline-offset: 3px;
-    box-shadow: none;
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm)::before {
-    border-color: var(--xai-border);
-  }
-
-  .page
-    .credentialCard
-    .cardActionButton:global(.btn.btn-danger.btn-sm):hover:not(:disabled)::before {
-    border-color: var(--xai-border-hover);
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: var(--xai-space-2);
   }
 
   .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {

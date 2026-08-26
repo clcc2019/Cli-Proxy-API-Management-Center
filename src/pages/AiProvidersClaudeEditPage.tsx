@@ -1,7 +1,6 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -267,8 +266,7 @@ export function AiProvidersClaudeEditPage() {
       isLoading={loading}
       loadingLabel={t('common.loading')}
     >
-      <Card>
-        {invalidIndexParam || invalidIndex ? (
+      {invalidIndexParam || invalidIndex ? (
           <div className={styles.sectionHint}>{t('common.invalid_provider_index')}</div>
         ) : (
           <div className={styles.openaiEditForm}>
@@ -591,9 +589,8 @@ export function AiProvidersClaudeEditPage() {
               />
               <div className="hint">{t('ai_providers.claude_experimental_cch_signing_hint')}</div>
             </div>
-          </div>
-        )}
-      </Card>
+        </div>
+      )}
     </ProviderEditShell>
   );
 }

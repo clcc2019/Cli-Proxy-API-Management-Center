@@ -467,7 +467,7 @@
 
   @include mobile {
     padding: 8px 10px;
-    font-size: 11.5px;
+    font-size: 12px;
   }
 }
 
@@ -518,7 +518,7 @@
     grid-template-columns: 1fr;
     gap: var(--xai-space-1);
     padding: 9px 10px;
-    font-size: 11.5px;
+    font-size: 12px;
   }
 }
 
@@ -536,7 +536,7 @@
   color: var(--text-tertiary);
   white-space: nowrap;
   padding-top: 3px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
   line-height: 1.35;
@@ -569,7 +569,7 @@
   padding: 2px 7px;
   border-radius: var(--xai-radius-micro);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-secondary);

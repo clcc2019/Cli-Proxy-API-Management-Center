@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
@@ -572,15 +571,14 @@ export function AiProvidersCodexEditPage() {
       isLoading={loading}
       loadingLabel={t('common.loading')}
     >
-      <Card>
-        {error && (
-          <div className="error-box" role="alert">
-            {error}
-          </div>
-        )}
-        {invalidIndexParam || invalidIndex ? (
-          <div className="hint">{t('common.invalid_provider_index')}</div>
-        ) : (
+      {error && (
+        <div className="error-box" role="alert">
+          {error}
+        </div>
+      )}
+      {invalidIndexParam || invalidIndex ? (
+        <div className="hint">{t('common.invalid_provider_index')}</div>
+      ) : (
           <div className={styles.openaiEditForm}>
             <Input
               label={t('ai_providers.codex_add_modal_key_label')}
@@ -845,9 +843,8 @@ export function AiProvidersCodexEditPage() {
                 )}
               </div>
             </Modal>
-          </div>
-        )}
-      </Card>
+        </div>
+      )}
     </ProviderEditShell>
   );
 }

@@ -110,7 +110,7 @@
   border: 1px solid transparent;
   color: var(--config-text-secondary);
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   white-space: nowrap;
   transition:
     color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -475,7 +475,7 @@
 .floatingStatusCompact {
   max-width: 112px;
   padding: 0 8px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .floatingActionButton,
@@ -571,7 +571,7 @@
 
   .floatingStatus {
     max-width: min(180px, 40vw);
-    font-size: 10px;
+    font-size: 11px;
     padding: 0 8px;
   }
 

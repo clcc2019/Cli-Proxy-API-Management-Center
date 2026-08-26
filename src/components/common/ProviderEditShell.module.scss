@@ -15,7 +15,7 @@
   }
 
   :global(.modal-body) {
-    padding: 16px 18px;
+    padding: 20px 22px;
     max-height: min(74vh, calc(100vh - 164px));
     background: var(--mg-surface-subtle);
   }
@@ -24,14 +24,16 @@
     position: sticky;
     bottom: 0;
     z-index: 2;
-    padding: 12px 18px;
+    padding: 14px 22px;
     border-top-color: var(--mg-border);
     background: var(--mg-surface);
+    box-shadow: 0 -8px 24px -18px rgb(10 10 10 / 18%);
 
     :global(.btn.btn-sm) {
-      min-height: 40px;
-      border-radius: var(--mg-radius-control);
-      padding-inline: 13px;
+      min-height: var(--xai-space-9);
+      border-radius: var(--mg-radius-pill);
+      padding-inline: 16px;
+      font-size: 13px;
     }
   }
 
@@ -113,8 +115,8 @@
 
 .titleText {
   min-width: 0;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
   letter-spacing: 0;
   color: var(--mg-text);
   line-height: 1.25;

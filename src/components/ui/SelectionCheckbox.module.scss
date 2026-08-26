@@ -31,7 +31,7 @@
   width: 22px;
   height: 22px;
   flex-shrink: 0;
-  border-radius: 7px;
+  border-radius: var(--xai-radius-micro);
   border: 1px solid var(--border-color);
   background: var(--control-surface);
   color: var(--primary-contrast, #fff);

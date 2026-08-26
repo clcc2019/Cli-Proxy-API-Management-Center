@@ -129,6 +129,14 @@ export const filterSelectableAuthFiles = (files: AuthFileItem[]): AuthFileItem[]
 const compareAuthFilesByName = (left: AuthFileItem, right: AuthFileItem): number =>
   left.name.localeCompare(right.name);
 
+const hasRefreshToken = (file: AuthFileItem): boolean => {
+  const flag: unknown = file.has_refresh_token ?? file.hasRefreshToken;
+  if (flag === true || flag === 1 || flag === '1' || flag === 'true') return true;
+  if (typeof file.refresh_token === 'string' && file.refresh_token.trim()) return true;
+  if (typeof file.refreshToken === 'string' && file.refreshToken.trim()) return true;
+  return false;
+};
+
 export type AuthFileSortSnapshot = {
   disabled: boolean;
   provider: string;
@@ -251,6 +259,9 @@ export const compareAuthFiles = (
   if (leftSnapshot.disabled !== rightSnapshot.disabled) {
     return leftSnapshot.disabled ? 1 : -1;
   }
+
+  const refreshTokenCompare = Number(hasRefreshToken(right)) - Number(hasRefreshToken(left));
+  if (refreshTokenCompare !== 0) return refreshTokenCompare;
 
   if (sortMode === 'default') {
     const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
