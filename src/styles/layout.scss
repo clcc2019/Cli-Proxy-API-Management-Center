@@ -1265,3 +1265,134 @@ $breakpoint-shell-compact: 1023px;
     padding-top: calc(var(--header-height) + var(--xai-space-3));
   }
 }
+
+// Header utility rail: keep the controls visually grouped while preserving
+// the existing floating placement and semantic status colors.
+.main-header {
+  .header-actions {
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--xai-border);
+    border-radius: var(--xai-radius-pill);
+    background: color-mix(in srgb, var(--xai-white) 94%, var(--xai-warm));
+    box-shadow: var(--xai-shadow-button);
+
+    > .btn,
+    .language-menu > .btn {
+      border-radius: var(--xai-radius-control);
+      color: var(--xai-secondary);
+      transition:
+        background-color var(--xai-duration-fast) var(--xai-ease-standard),
+        color var(--xai-duration-fast) var(--xai-ease-standard),
+        transform var(--xai-duration-instant) var(--xai-ease-standard);
+
+      &:hover {
+        background: var(--xai-fill-soft);
+        color: var(--xai-ink-console);
+      }
+
+      &:active:not(:disabled) {
+        background: var(--xai-fill-hover);
+        transform: translateY(1px);
+      }
+    }
+
+    .language-menu.open > .btn {
+      border-color: var(--xai-border-hover);
+      background: var(--xai-fill-hover);
+      color: var(--xai-ink-console);
+    }
+
+    .language-menu + .btn {
+      color: color-mix(in srgb, var(--xai-danger) 72%, var(--xai-secondary));
+
+      &:hover {
+        background: var(--xai-danger-soft);
+        color: var(--xai-danger);
+      }
+    }
+
+    svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 2.1;
+    }
+
+    .connection {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .connection:has(.status-badge.success) {
+      border-color: var(--xai-success-border);
+      background: var(--xai-success-soft);
+    }
+
+    .connection:has(.status-badge.warning) {
+      border-color: var(--xai-orange-border);
+      background: var(--xai-orange-soft);
+    }
+
+    .connection:has(.status-badge.error) {
+      border-color: var(--xai-danger-border);
+      background: var(--xai-danger-soft);
+    }
+  }
+
+  .mobile-menu-btn.btn.icon-button {
+    border: 1px solid var(--xai-border);
+    background: var(--xai-white);
+    box-shadow: var(--xai-shadow-button);
+    color: var(--xai-ink-console);
+
+    svg {
+      width: 19px;
+      height: 19px;
+      stroke-width: 2.2;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-shell-compact) {
+  .main-header {
+    .header-actions {
+      padding: 3px;
+
+      > .btn,
+      .language-menu > .btn {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        min-height: 44px;
+      }
+
+      .connection {
+        border: 0;
+        background: transparent;
+      }
+
+      .connection:has(.status-badge.success) {
+        background: var(--xai-success-soft);
+      }
+
+      .connection:has(.status-badge.warning) {
+        background: var(--xai-orange-soft);
+      }
+
+      .connection:has(.status-badge.error) {
+        background: var(--xai-danger-soft);
+      }
+    }
+
+    .mobile-menu-btn.btn.icon-button {
+      background: var(--xai-white);
+    }
+  }
+}
+
+// Keep the connection icon itself as the status cue; do not tint the whole
+// header control with a green success surface.
+.main-header .header-actions .connection:has(.status-badge.success) {
+  border-color: transparent;
+  background: transparent;
+}

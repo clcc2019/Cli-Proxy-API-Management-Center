@@ -873,7 +873,7 @@
     "empty_title": "暂无认证文件",
     "empty_desc": "点击上方按钮上传第一个文件",
     "search_empty_title": "没有匹配的配置文件",
-    "search_empty_desc": "请调整筛选条件或清空搜索关键字再试一次。",
+    "search_empty_desc": "请调整筛选条件后再试一次。",
     "file_size": "大小",
     "file_modified": "修改时间",
     "health_status_label": "请求",

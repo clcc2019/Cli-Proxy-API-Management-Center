@@ -435,31 +435,6 @@
   opacity: 1;
 }
 
-.page .resetFilters {
-  appearance: none;
-  min-height: 40px;
-  flex: 0 0 auto;
-  padding: 0 8px;
-  border: 0;
-  border-radius: var(--xai-radius-micro);
-  background: transparent;
-  color: var(--mg-text-tertiary);
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.page .resetFilters:hover {
-  background: var(--mg-surface-subtle);
-  color: var(--mg-text);
-}
-
-.page .resetFilters:focus-visible {
-  outline: 1px solid var(--mg-focus-outline);
-  outline-offset: -2px;
-}
-
 .page .quotaRefreshButton:global(.btn.btn-sm) {
   position: relative;
   grid-area: refresh;
@@ -3286,15 +3261,6 @@
     white-space: nowrap;
   }
 
-  .page .resetFilters {
-    width: auto;
-    align-self: center;
-    min-height: var(--mg-hit-area);
-    padding-inline: 10px;
-    text-align: center;
-    white-space: nowrap;
-  }
-
   .page .quotaRefreshButton:global(.btn.btn-sm) {
     flex: 0 0 auto;
   }
@@ -4110,15 +4076,6 @@
     font-weight: 500;
   }
 
-  .page .resetFilters {
-    width: auto;
-    min-width: 0;
-    min-height: var(--xai-space-8);
-    flex: 0 1 auto;
-    padding-inline: var(--xai-space-1);
-    border-radius: var(--xai-radius-pill);
-  }
-
   .page .quotaRefreshButton:global(.btn.btn-sm) {
     width: var(--xai-space-8);
     min-width: var(--xai-space-8);
@@ -4796,5 +4753,415 @@
     overflow-wrap: normal;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .page .cardTitleRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'name priority';
+    align-items: center;
+    gap: var(--xai-space-1-5);
+  }
+
+  .page .cardPriority {
+    justify-self: end;
+  }
+
+  .page .priorityControl {
+    padding-inline: var(--xai-space-1-5);
+  }
+
+  .page .credentialCard .cardRefresh {
+    margin-left: auto;
+  }
+
+  .page .credentialCard .cardActions {
+    display: flex;
+  }
+}
+
+@container auth-files-page (max-width: 380px) {
+  // Keep the desktop metric order on narrow cards: title, RT/WS badges, tokens.
+  .page .metricHeader {
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
+    grid-template-areas: 'label badges tokens';
+    align-items: center;
+    gap: var(--xai-space-1-5);
+  }
+
+  .page .metricBadges {
+    justify-self: end;
+  }
+
+  .page .badgeGroup {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+
+  .page .cardNote {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--xai-space-1-5);
+  }
+
+  .page .noteValue {
+    display: block;
+    overflow: hidden;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Compact mobile card controls: keep the footer on one baseline and let the
+// action lane scroll horizontally only when a very narrow card cannot fit all
+// optional actions.
+@container auth-files-page (max-width: 560px) {
+  // Keep the status toggle, action lane, and quota refresh control on one
+  // compact baseline. Only the middle action lane is allowed to scroll.
+  .page .credentialCard .cardFooterMain {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    overflow: visible;
+  }
+
+  .page .credentialCard .cardStatusControl {
+    width: auto;
+    min-width: 56px;
+    flex: 0 0 auto;
+  }
+
+  .page .credentialCard .cardActions {
+    flex: 1 1 auto;
+    gap: 2px;
+    padding-inline: 2px;
+  }
+
+  // Use the desktop card proportions at a compact scale instead of replacing
+  // the identity and metric rows with a different mobile composition.
+  .page .providerBadge {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    border-radius: 9px;
+  }
+
+  .page .cardNameButton {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .page .metricHeader {
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
+    grid-template-areas: 'label badges tokens';
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .page .metricBadges {
+    justify-self: end;
+  }
+
+  .page .badgeGroup {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 3px;
+  }
+
+  .page .metricsPanel {
+    padding-inline: 10px;
+    border-radius: var(--mg-radius-medium);
+  }
+
+  .page .healthPanel {
+    min-height: 0;
+    padding-block: 8px;
+  }
+
+  .page .metricTitle {
+    font-size: 10px;
+  }
+
+  .page .featureBadge,
+  .page .refreshTokenBadge {
+    height: 18px;
+    min-height: 18px;
+    font-size: 10px;
+  }
+
+  .page .refreshTokenBadge,
+  .page .featureBadgeIconOnly {
+    width: 18px;
+    min-width: 18px;
+    max-width: 18px;
+    flex-basis: 18px;
+  }
+
+  .page .featureIcon {
+    width: 11px;
+    height: 11px;
+  }
+
+  .page .tokenMetric {
+    height: 22px;
+    gap: 4px;
+    padding-inline: 6px;
+  }
+
+  .page .tokenIcon {
+    width: 11px;
+    height: 11px;
+    flex-basis: 11px;
+  }
+
+  .page .tokenValue {
+    font-size: 12px;
+  }
+
+  .page .statusBlocks,
+  .page .statusBlockWrapper {
+    min-height: 36px;
+  }
+
+  .page .statusRate {
+    min-width: 34px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .page .credentialCard .cardRefresh {
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+
+  .page .priorityControl {
+    min-height: 26px;
+    padding-inline: 4px;
+  }
+
+  .page .priorityLabel {
+    font-size: 10px;
+  }
+
+  .page .priorityStepper {
+    height: 26px;
+  }
+
+  .page .priorityStepButton {
+    width: 26px;
+    height: 26px;
+    min-height: 26px;
+    flex-basis: 26px;
+    font-size: 12px;
+  }
+
+  .page .priorityInput {
+    min-width: 22px;
+    max-width: 36px;
+    height: 26px;
+    min-height: 26px;
+    font-size: 11px;
+  }
+
+  .page .credentialCard .cardFooter {
+    --card-footer-control-gap: 4px;
+    padding-top: 8px;
+  }
+
+  .page .credentialCard .cardFooterMain {
+    gap: 4px;
+  }
+
+  .page .credentialCard .cardStatusControl,
+  .page .credentialCard .cardStatusToggle,
+  .page .credentialCard .cardToggleSwitch {
+    min-height: 36px;
+  }
+
+  .page .credentialCard .cardToggleSwitch > span:first-of-type {
+    height: 32px;
+    min-height: 32px;
+  }
+
+  .page .credentialCard .cardActions {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+
+  .page .credentialCard .cardActions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    flex: 0 0 36px;
+    flex-basis: 36px;
+    border-radius: var(--xai-radius-control);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) svg,
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) :global(.loading-spinner) {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
+    width: auto;
+    min-width: 36px;
+    flex: 0 0 auto;
+    flex-basis: auto;
+    padding-inline: 8px;
+  }
+
+  .page .credentialCard .cardRefresh {
+    min-height: 36px;
+    margin-left: 0;
+  }
+
+  .page .credentialCard .cardRefresh .cardActionButton:global(.btn.btn-sm) {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
+  }
+
+  .page .credentialCard .cardActions {
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--xai-border-subtle);
+    border-radius: var(--xai-radius-control);
+    background: color-mix(in srgb, var(--xai-fill-soft) 72%, var(--xai-white));
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) svg,
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) :global(.loading-spinner) {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
+    width: auto;
+    min-width: 34px;
+    flex: 0 0 auto;
+    flex-basis: auto;
+    padding-inline: 7px;
+  }
+
+  .page .quotaRefreshButton:global(.btn.btn-sm)[aria-busy='true'] > :global(.loading-spinner),
+  .page
+    .credentialCard
+    .cardRefresh
+    .cardActionButton:global(.btn.btn-sm)[aria-busy='true']
+    > :global(.loading-spinner) {
+    display: block;
+    width: 14px !important;
+    min-width: 14px !important;
+    height: 14px !important;
+    min-height: 14px !important;
+    flex: 0 0 14px;
+    aspect-ratio: 1;
+    box-sizing: border-box;
+    border-radius: 50%;
+  }
+}
+
+// Mobile toolbar: keep search, sort, and page-size triggers on one compact row.
+// Their accessible labels and popover summaries remain available to assistive
+// technology while the visual labels stay out of the tight toolbar.
+@container auth-files-page (max-width: 767px) {
+  .page .searchToolbar {
+    display: grid;
+    width: 100%;
+    max-width: none;
+    flex: 1 1 100%;
+    grid-template-columns: minmax(0, 1fr) 36px 36px;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page .searchToolbar > :not(.searchField) {
+    width: 36px;
+    min-width: 36px;
+    flex: 0 0 36px;
+  }
+
+  .page .controlButton {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    gap: 0;
+  }
+
+  .page .controlButtonText,
+  .page .quotaRefreshText {
+    display: none;
+  }
+}
+
+@container auth-files-page (max-width: 560px) {
+  .page .headerActions {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .page .headerAction:global(.btn.btn-sm) {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: var(--xai-radius-control);
+  }
+
+  .page .headerActionText {
+    display: none;
+  }
+
+  .page .headerActionIcon {
+    width: 15px;
+    height: 15px;
+    flex-basis: 15px;
+  }
+
+  // Keep the quota reset action visually proportional to the compact card
+  // controls instead of expanding it to the full mobile hit area.
+  .page .codexResetCreditButton:global(.btn.btn-sm) {
+    min-width: 34px;
+    width: auto;
+    height: 28px;
+    min-height: 28px;
+    padding-inline: 7px;
+    font-size: 10px;
   }
 }

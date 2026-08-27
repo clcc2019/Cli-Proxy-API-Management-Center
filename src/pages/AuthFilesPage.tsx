@@ -153,7 +153,7 @@ export function AuthFilesPage() {
     const value = persistedUiState?.filter;
     return typeof value === 'string' && value.trim() ? value : 'all';
   });
-  const [problemOnly, setProblemOnly] = useState(() => persistedUiState?.problemOnly === true);
+  const [problemOnly] = useState(() => persistedUiState?.problemOnly === true);
   const [disabledOnly, setDisabledOnly] = useState(() => persistedUiState?.disabledOnly === true);
   const [planFilter, setPlanFilter] = useState<AuthFilePlanFilter>(() => {
     if (isAuthFilePlanFilter(persistedUiState?.planFilter)) {
@@ -538,27 +538,6 @@ export function AuthFilesPage() {
     setSearch(value);
     setPage(1);
   });
-  const handleClearFilters = useCallback(() => {
-    if (
-      filter === 'all' &&
-      !problemOnly &&
-      !disabledOnly &&
-      !planFilterActive &&
-      search === '' &&
-      page === 1
-    ) {
-      return;
-    }
-    setFilter('all');
-    setProblemOnly(false);
-    setDisabledOnly(false);
-    setPlanFilter('all');
-    if (planFilterActive) {
-      setPremiumServerFilterSupported(null);
-    }
-    setSearch('');
-    setPage(1);
-  }, [disabledOnly, filter, page, planFilterActive, problemOnly, search]);
   const handleFilterTagSelect = useCallback(
     (value: string) => {
       if (value === filter) return;
@@ -1697,15 +1676,6 @@ export function AuthFilesPage() {
                     dropdownClassName={refreshStyles.planFilterDropdown}
                     fullWidth={false}
                   />
-                  {hasActiveFilters && (
-                    <button
-                      type="button"
-                      className={refreshStyles.resetFilters}
-                      onClick={handleClearFilters}
-                    >
-                      {t('auth_files.clear_filters')}
-                    </button>
-                  )}
                 </div>
 
                 <RefreshButton
@@ -1747,11 +1717,6 @@ export function AuthFilesPage() {
               <EmptyState
                 title={t('auth_files.search_empty_title')}
                 description={t('auth_files.search_empty_desc')}
-                action={
-                  <Button variant="secondary" size="sm" onClick={handleClearFilters}>
-                    {t('auth_files.clear_filters')}
-                  </Button>
-                }
               />
             ) : (
               <EmptyState
