@@ -201,7 +201,6 @@ export function LoginPage() {
             </span>
             <span className={styles.headerBrandCopy}>
               <span className={styles.headerBrandName}>{t('title.main')}</span>
-              <span className={styles.headerBrandMeta}>{t('splash.subtitle')}</span>
             </span>
           </div>
 
@@ -228,7 +227,6 @@ export function LoginPage() {
           <div className={styles.brandContent}>
             <span className={styles.brandWord}>TO</span>
             <span className={styles.brandWord}>KA</span>
-            <p className={styles.brandCaption}>{t('login.subtitle')}</p>
           </div>
         </div>
 
@@ -243,7 +241,7 @@ export function LoginPage() {
               </div>
             </div>
           ) : (
-              <div className={styles.formContent}>
+            <div className={styles.formContent}>
               <div className={styles.loginCard}>
                 <div className={styles.loginHeader}>
                   <div className={styles.titleBlock}>

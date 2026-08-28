@@ -28,8 +28,8 @@
 }
 
 .box {
-  width: 22px;
-  height: 22px;
+  width: var(--xai-space-4);
+  height: var(--xai-space-4);
   flex-shrink: 0;
   border-radius: var(--xai-radius-micro);
   border: 1px solid var(--border-color);
@@ -44,10 +44,12 @@
     box-shadow var(--xai-duration-default);
 }
 
-.root:hover .input:not(:checked):not(:disabled) + .box {
-  border-color: var(--border-hover);
-  background: var(--mg-surface-hover);
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .root:hover .input:not(:checked):not(:disabled) + .box {
+    border-color: var(--border-hover);
+    background: var(--mg-surface-hover);
+    box-shadow: none;
+  }
 }
 
 .disabled:hover .box {
@@ -57,7 +59,7 @@
 
 .input:focus-visible + .box {
   outline: 1px solid var(--mg-focus-outline);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .root:active .input:not(:checked):not(:disabled) + .box {
@@ -78,6 +80,13 @@
 
 .label {
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
+  line-height: 18px;
+}
+
+@media (max-width: 768px) {
+  .root {
+    min-height: var(--mg-hit-area);
+  }
 }

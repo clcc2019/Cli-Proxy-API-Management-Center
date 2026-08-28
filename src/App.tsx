@@ -55,7 +55,7 @@ function App() {
   const language = useLanguageStore((state) => state.language);
 
   useEffect(() => {
-    document.documentElement.lang = language;
+    document.documentElement.lang = language === 'zh-CN' ? 'zh-Hans' : language;
   }, [language]);
 
   return <RouterProvider router={router} />;

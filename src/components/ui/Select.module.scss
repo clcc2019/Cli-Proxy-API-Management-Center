@@ -46,9 +46,11 @@
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
     box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 
-  &:hover:not(:disabled) {
-    border-color: var(--mg-border-hover);
-    background: var(--mg-surface-hover);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      border-color: var(--mg-border-hover);
+      background: var(--mg-surface-hover);
+    }
   }
 
   &:active:not(:disabled) {
@@ -58,7 +60,7 @@
 
   &:focus-visible {
     outline: 1px solid var(--mg-focus-outline);
-    outline-offset: 1px;
+    outline-offset: 3px;
     border-color: var(--mg-border);
     box-shadow: none;
   }
@@ -140,8 +142,10 @@
     border-color var(--motion-duration-fast) var(--motion-ease-standard);
   flex-shrink: 0;
 
-  &:hover {
-    background: var(--mg-surface-hover);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--mg-surface-hover);
+    }
   }
 
   &:active {
@@ -150,7 +154,7 @@
 
   &:focus-visible {
     outline: 1px solid var(--mg-focus-outline);
-    outline-offset: -2px;
+    outline-offset: 3px;
     background: var(--mg-surface-hover);
   }
 }
@@ -159,9 +163,16 @@
   border-color: var(--mg-border);
   background: var(--mg-surface-selected);
   color: var(--mg-sage-strong);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .optionHighlighted {
   background: var(--mg-surface-hover);
+}
+
+@media (max-width: 768px) {
+  .trigger,
+  .option {
+    min-height: var(--mg-hit-area);
+  }
 }

@@ -790,15 +790,15 @@
 }
 
 .originalModelDropdown {
-  background: var(--oauth-modal-surface) !important;
-  --bg-secondary: var(--oauth-modal-surface-subtle);
-  --bg-tertiary: var(--oauth-modal-surface-warm);
-  --text-primary: var(--oauth-modal-text);
-  --text-secondary: var(--oauth-modal-text-secondary);
-  --text-tertiary: var(--oauth-modal-text-tertiary);
-  --border-color: var(--oauth-modal-border);
-  --border-primary: var(--oauth-modal-border);
-  --border-hover: var(--oauth-modal-border-strong);
+  background: var(--oauth-modal-surface, var(--mg-surface, #ffffff)) !important;
+  --bg-secondary: var(--oauth-modal-surface-subtle, var(--mg-surface-subtle, #f2f5f7));
+  --bg-tertiary: var(--oauth-modal-surface-warm, var(--mg-surface-warm, #f8fafc));
+  --text-primary: var(--oauth-modal-text, var(--mg-text, #1f2937));
+  --text-secondary: var(--oauth-modal-text-secondary, var(--mg-text-secondary, #475569));
+  --text-tertiary: var(--oauth-modal-text-tertiary, var(--mg-text-tertiary, #64748b));
+  --border-color: var(--oauth-modal-border, var(--mg-border, #e2e8f0));
+  --border-primary: var(--oauth-modal-border, var(--mg-border, #e2e8f0));
+  --border-hover: var(--oauth-modal-border-strong, var(--mg-border-hover, #d5d9e2));
   --radius-md: var(--xai-radius-control);
 }
 

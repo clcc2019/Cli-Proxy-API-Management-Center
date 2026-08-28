@@ -12,6 +12,7 @@ import {
   loadRequestLogsPage,
   loadSystemPage,
   loadUsagePage,
+  loadPricingPage,
 } from './routeLoaders';
 
 const LazyDashboardPage = lazyNamed(loadDashboardPage, 'DashboardPage');
@@ -46,6 +47,7 @@ const LazyOAuthPage = lazyNamed(loadOAuthPage, 'OAuthPage');
 const LazyRequestLogsPage = lazyNamed(loadRequestLogsPage, 'RequestLogsPage');
 const LazyDeRouterPage = lazyNamed(loadDeRouterPage, 'DeRouterPage');
 const LazyUsagePage = lazyNamed(loadUsagePage, 'UsagePage');
+const LazyPricingPage = lazyNamed(loadPricingPage, 'PricingPage');
 const LazyConfigPage = lazyNamed(loadConfigPage, 'ConfigPage');
 const LazyLogsPage = lazyNamed(loadLogsPage, 'LogsPage');
 const LazySystemPage = lazyNamed(loadSystemPage, 'SystemPage');
@@ -92,6 +94,7 @@ const mainRoutes = [
   },
   { path: '/oauth', element: renderLazyPage(LazyOAuthPage) },
   { path: '/usage', element: renderLazyPage(LazyUsagePage) },
+  { path: '/pricing', element: renderLazyPage(LazyPricingPage) },
   { path: '/request-logs', element: renderLazyPage(LazyRequestLogsPage) },
   { path: '/derouter', element: renderLazyPage(LazyDeRouterPage) },
   { path: '/config', element: renderLazyPage(LazyConfigPage) },

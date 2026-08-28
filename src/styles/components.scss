@@ -42,16 +42,25 @@
     border-color: var(--mg-action);
     box-shadow: var(--xai-shadow-button);
 
-    &:hover:not(:disabled) {
-      background: var(--mg-action-hover);
-      border-color: var(--mg-action-hover);
-      box-shadow: var(--xai-shadow-button);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(:disabled) {
+        background: var(--mg-action-hover);
+        border-color: var(--mg-action-hover);
+        box-shadow: var(--xai-shadow-button);
+      }
     }
 
     &:active:not(:disabled) {
       background: var(--mg-action);
       border-color: var(--mg-action);
       box-shadow: var(--xai-shadow-button);
+    }
+
+    &:disabled {
+      border-color: var(--xai-disabled);
+      background: var(--xai-disabled);
+      color: var(--xai-inverse);
+      opacity: 1;
     }
   }
 
@@ -61,10 +70,12 @@
     color: var(--mg-text);
     box-shadow: none;
 
-    &:hover:not(:disabled) {
-      background: var(--mg-surface-hover);
-      border-color: var(--mg-border-hover);
-      box-shadow: none;
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(:disabled) {
+        background: var(--mg-surface-hover);
+        border-color: var(--mg-border-hover);
+        box-shadow: none;
+      }
     }
 
     &:active:not(:disabled) {
@@ -80,9 +91,11 @@
     color: var(--text-secondary);
     box-shadow: none;
 
-    &:hover:not(:disabled) {
-      color: var(--mg-text);
-      background: var(--mg-surface-hover);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(:disabled) {
+        color: var(--mg-text);
+        background: var(--mg-surface-hover);
+      }
     }
 
     &:active:not(:disabled) {
@@ -99,12 +112,14 @@
       inset 0 1px 0 rgb(255 255 255 / 0.1),
       0 1px 2px rgb(197 58 50 / 0.28);
 
-    &:hover:not(:disabled) {
-      background-color: color-mix(in srgb, var(--mg-danger) 88%, var(--mg-ink-strong));
-      border-color: color-mix(in srgb, var(--mg-danger) 88%, var(--mg-ink-strong));
-      box-shadow:
-        inset 0 1px 0 rgb(255 255 255 / 0.12),
-        0 3px 8px -2px rgb(197 58 50 / 0.36);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(:disabled) {
+        background-color: color-mix(in srgb, var(--mg-danger) 88%, var(--mg-ink-strong));
+        border-color: color-mix(in srgb, var(--mg-danger) 88%, var(--mg-ink-strong));
+        box-shadow:
+          inset 0 1px 0 rgb(255 255 255 / 0.12),
+          0 3px 8px -2px rgb(197 58 50 / 0.36);
+      }
     }
   }
 
@@ -143,6 +158,18 @@
     box-shadow: none;
     transform: none;
   }
+
+  &.btn-loading {
+    position: relative;
+
+    > span:not(.loading-spinner) {
+      visibility: hidden;
+    }
+
+    > .loading-spinner {
+      position: absolute;
+    }
+  }
 }
 
 .input,
@@ -166,8 +193,10 @@ textarea {
     opacity: 1;
   }
 
-  &:hover:not(:disabled):not(:focus) {
-    border-color: var(--mg-border-hover);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled):not(:focus) {
+      border-color: var(--mg-border-hover);
+    }
   }
 
   &:focus {
@@ -179,7 +208,7 @@ textarea {
 
   &:focus-visible {
     outline: 1px solid var(--mg-focus-outline);
-    outline-offset: 1px;
+    outline-offset: 3px;
   }
 
   &[aria-invalid='true'] {
@@ -199,6 +228,19 @@ textarea {
   &:disabled {
     cursor: not-allowed;
     opacity: 0.68;
+  }
+}
+
+@media (max-width: 768px) {
+  .btn {
+    min-height: var(--mg-hit-area);
+  }
+
+  .btn.icon-button,
+  .btn.icon-button.btn-sm {
+    width: var(--mg-hit-area);
+    min-width: var(--mg-hit-area);
+    min-height: var(--mg-hit-area);
   }
 }
 
@@ -272,8 +314,8 @@ textarea {
 
   .hint {
     color: var(--text-secondary);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 13.5px;
+    line-height: 18px;
   }
 }
 
@@ -345,7 +387,7 @@ textarea {
     flex: 1 1 auto;
     min-width: 0;
     font-size: 15.75px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0;
     color: var(--text-primary);
   }
@@ -368,15 +410,17 @@ textarea {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: var(--xai-space-1);
+  min-height: var(--xai-space-6);
+  padding: var(--xai-space-1) var(--xai-space-2);
   border-radius: var(--xai-radius-pill);
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
+  line-height: 18px;
   letter-spacing: 0;
   border: 1px solid var(--border-color);
   margin-bottom: var(--xai-space-3-5);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-sheen) 58%, transparent);
+  box-shadow: none;
 
   // 确保后续内容换行显示
   + * {
@@ -440,9 +484,9 @@ textarea {
 }
 
 .notification {
-  padding: var(--xai-space-3-5);
-  border-radius: var(--xai-radius-small);
-  box-shadow: var(--shadow-soft);
+  padding: var(--xai-space-3) var(--xai-space-4);
+  border-radius: var(--xai-radius-panel);
+  box-shadow: var(--xai-shadow-menu);
   border: 1px solid var(--border-color);
   background: var(--floating-surface-material, var(--floating-surface));
   color: var(--text-primary);
@@ -462,21 +506,12 @@ textarea {
 
   &.success {
     border-color: var(--success-badge-border);
-    box-shadow:
-      var(--shadow-soft),
-      inset 3px 0 0 var(--success-color);
   }
   &.warning {
     border-color: var(--warning-border);
-    box-shadow:
-      var(--shadow-soft),
-      inset 3px 0 0 var(--warning-color);
   }
   &.error {
     border-color: var(--failure-badge-border);
-    box-shadow:
-      var(--shadow-soft),
-      inset 3px 0 0 var(--error-color);
   }
 
   .message {
@@ -522,14 +557,14 @@ textarea {
 
 .loading-spinner {
   // Fallback: legacy white spinner (in case color-mix is unsupported)
-  border: 3px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
   border-top-color: #fff;
   border-right-color: rgba(255, 255, 255, 0.45);
   border-radius: 50%;
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  animation: spin 0.72s linear infinite;
+  width: var(--xai-space-4);
+  height: var(--xai-space-4);
+  animation: spin 720ms linear infinite;
   will-change: transform;
 }
 
@@ -593,16 +628,13 @@ textarea {
   background: var(--floating-surface-material, var(--floating-surface));
   border-radius: var(--mg-radius-card);
   border: 1px solid var(--floating-border);
-  box-shadow: var(--floating-shadow), var(--surface-inner-highlight);
+  box-shadow: var(--xai-shadow-dialog);
   max-width: 100%;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   position: relative;
-  // 从屏幕中央以柔和的缩放展开
-  transform-origin: 50% 40%;
-
   &.modal-entering {
     animation: modal-scale-in var(--motion-duration-base) var(--motion-ease-out) backwards;
   }
@@ -615,22 +647,22 @@ textarea {
 @keyframes modal-scale-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 8px, 0) scale(0.975);
+    transform: translate3d(0, var(--xai-space-1-5), 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes modal-scale-out {
   from {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
   to {
     opacity: 0;
-    transform: translate3d(0, 6px, 0) scale(0.97);
+    transform: translate3d(0, var(--xai-space-1-5), 0);
   }
 }
 
@@ -694,14 +726,16 @@ textarea {
 .modal-header {
   display: flex;
   align-items: center;
-  min-height: 57px;
+  min-height: var(--xai-space-12);
   padding: var(--xai-space-3-5) 56px var(--xai-space-3-5) var(--xai-space-4);
   border-bottom: 1px solid var(--mg-border);
 
   .modal-title {
     font-family: var(--mg-font-display);
-    font-weight: 600;
+    font-weight: 500;
     font-size: 18px;
+    line-height: 27px;
+    letter-spacing: -0.45px;
     color: var(--text-primary);
   }
 }
@@ -983,12 +1017,13 @@ textarea {
   .item-meta {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--xai-space-2);
   }
 
   .item-title {
-    font-weight: 700;
-    font-size: 15px;
+    font-weight: 500;
+    font-size: 15.75px;
+    line-height: 22.5px;
     color: var(--text-primary);
   }
 
@@ -1054,7 +1089,7 @@ textarea {
 
   .table-header {
     background: color-mix(in srgb, var(--panel-surface-muted) 88%, var(--surface-raised));
-    font-weight: 700;
+    font-weight: 500;
     color: var(--text-primary);
     box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border-color) 72%, transparent);
   }

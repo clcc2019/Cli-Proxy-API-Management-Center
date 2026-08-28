@@ -394,15 +394,20 @@ const server = http.createServer((req, res) => {
         return json(res, { reset: true });
       case '/logs':
         return json(res, {
-          lines: Array.from({ length: 40 }, (_, i) => ({
-            timestamp: new Date(Date.now() - i * 82000).toISOString(),
-            level: ['INFO', 'INFO', 'WARN', 'ERROR'][i % 4],
-            message: LOG_LINES[i % LOG_LINES.length],
-          })),
-          total: 3200,
+          lines: Array.from(
+            { length: 40 },
+            (_, i) => `${new Date(Date.now() - i * 82000).toISOString()} ${LOG_LINES[i % LOG_LINES.length]}`
+          ),
+          'line-count': 3200,
+          'latest-timestamp': Date.now(),
         });
       case '/request-error-logs':
-        return json(res, ['error-2026-08-24.1.log', 'error-2026-08-23.1.log']);
+        return json(res, {
+          files: [
+            { name: 'error-2026-08-24.1.log', size: 48231, modified: Date.now() - 3600000 },
+            { name: 'error-2026-08-23.1.log', size: 18120, modified: Date.now() - 86400000 },
+          ],
+        });
       case '/usage':
         return json(res, {
           requests: 12847,

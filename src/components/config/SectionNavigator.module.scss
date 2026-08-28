@@ -1,0 +1,69 @@
+.navigator {
+  position: sticky;
+  top: var(--xai-space-4);
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  gap: var(--xai-space-1);
+  min-width: 0;
+}
+
+.item {
+  display: flex;
+  min-height: var(--xai-space-8);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--xai-space-2);
+  padding: var(--xai-space-2) var(--xai-space-3);
+  border-radius: var(--xai-radius-control);
+  color: var(--xai-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  text-decoration: none;
+  transition:
+    color var(--xai-duration-default) var(--xai-ease-standard),
+    background-color var(--xai-duration-default) var(--xai-ease-standard);
+
+  &:focus-visible {
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--xai-fill-soft);
+      color: var(--xai-ink-console);
+    }
+  }
+
+  &[aria-current='location'] {
+    background: var(--xai-fill-hover);
+    color: var(--xai-ink-console);
+  }
+}
+
+.state {
+  width: var(--xai-space-1-5);
+  height: var(--xai-space-1-5);
+  flex: 0 0 auto;
+  border-radius: var(--xai-radius-pill);
+  background: var(--xai-orange);
+}
+
+.item[data-state='error'] .state {
+  border-radius: 0;
+  background: var(--xai-danger);
+}
+
+@media (max-width: 1024px) {
+  .navigator {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    scroll-behavior: auto;
+  }
+}

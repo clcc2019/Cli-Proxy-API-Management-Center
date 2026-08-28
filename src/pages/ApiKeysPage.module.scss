@@ -20,18 +20,20 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  gap: var(--xai-space-5);
+  padding-bottom: calc(var(--xai-space-4) + env(safe-area-inset-bottom));
   color: var(--api-text);
 }
 
-.sectionEyebrow {
-  color: var(--api-text-tertiary);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: 0.085em;
-  text-transform: uppercase;
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .pageHeaderAside {
@@ -203,130 +205,53 @@
 }
 
 .overviewPanel {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
+  position: relative;
   overflow: hidden;
-  border: 1px solid var(--api-border);
+  border: 0;
   border-radius: var(--xai-radius-card);
-  background: var(--api-surface);
-}
-
-.overviewCopy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  padding: 25px 26px;
-  border-right: 1px solid var(--api-border);
   background: var(--api-surface-warm);
-}
-
-.overviewTitle {
-  margin: 0;
-  color: var(--api-text);
-  font-size: 21px;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-}
-
-.overviewDescription,
-.overviewMeta {
-  margin: 0;
-  color: var(--api-text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.overviewDescription {
-  max-width: 460px;
-}
-
-.overviewMeta {
-  margin-top: 4px;
-  color: var(--api-text-tertiary);
-  font-size: 12px;
 }
 
 .metricGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .metricItem {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--xai-space-2);
   min-width: 0;
-  padding: 20px 22px;
-  border-bottom: 1px solid var(--api-border);
+  padding: var(--xai-space-5);
+  border-right: 1px solid var(--api-border);
 
-  &:nth-child(odd) {
-    border-right: 1px solid var(--api-border);
+  &:last-child {
+    border-right: 0;
   }
-
-  &:nth-last-child(-n + 2) {
-    border-bottom: 0;
-  }
-}
-
-.metricIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  border: 1px solid var(--api-border);
-  border-radius: var(--xai-radius-control);
-  color: var(--api-text-secondary);
-  background: var(--api-surface-subtle);
-}
-
-.metricIconKey {
-  color: var(--xai-orange);
-  border-color: var(--xai-orange-border);
-  background: var(--xai-orange-soft);
-}
-
-.metricIconSuccess {
-  color: var(--api-success);
-  border-color: var(--xai-success-border);
-  background: var(--xai-success-soft);
-}
-
-.metricIconRules {
-  color: var(--api-text-secondary);
-}
-
-.metricIconQuota {
-  color: var(--api-warning);
-  border-color: var(--xai-warning-border);
-  background: var(--xai-warning-soft);
 }
 
 .metricItem > div {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--xai-space-1);
 }
 
 .metricValue {
   color: var(--api-text);
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  font-family: var(--xai-font-display);
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -0.675px;
   font-variant-numeric: tabular-nums;
 }
 
 .metricLabel {
   overflow: hidden;
   color: var(--api-text-tertiary);
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 13.5px;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -337,11 +262,18 @@
   }
 
   .overviewPanel {
-    grid-template-columns: 1fr;
+    background: var(--api-surface-warm);
   }
 
-  .overviewCopy {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metricItem:nth-child(2) {
     border-right: 0;
+  }
+
+  .metricItem:nth-child(-n + 2) {
     border-bottom: 1px solid var(--api-border);
   }
 }
@@ -367,12 +299,8 @@
     min-height: var(--mg-hit-area, 44px);
   }
 
-  .overviewCopy {
-    padding: 20px;
-  }
-
   .metricItem {
-    padding: 16px;
+    padding: var(--xai-space-4);
   }
 }
 

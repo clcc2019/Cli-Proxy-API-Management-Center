@@ -26,7 +26,7 @@
 }
 
 .pageHeader {
-  margin-bottom: 24px;
+  margin-bottom: var(--xai-space-6);
 }
 
 .serviceEyebrow,
@@ -46,12 +46,10 @@
 }
 
 .systemOverview {
-  display: grid;
-  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
   overflow: hidden;
-  border: 1px solid var(--system-border);
+  border: 0;
   border-radius: var(--mg-radius-card);
-  background: var(--system-surface);
+  background: var(--xai-warm);
 }
 
 .serviceSummary {

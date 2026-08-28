@@ -4,28 +4,28 @@
 .visualEditor {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--xai-space-4);
   min-width: 0;
 
   :global(.form-group) {
-    gap: 8px;
+    gap: var(--xai-space-2);
     margin-bottom: 0;
   }
 
   :global(.form-group > label) {
     color: var(--mg-text-secondary);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0;
   }
 
   :global(.input) {
-    min-height: 44px;
-    border-radius: var(--xai-radius-small);
+    min-height: var(--xai-space-9);
+    border-radius: var(--xai-radius-control);
     background: var(--mg-surface);
     border-color: var(--mg-border);
     box-shadow: none;
-    font-size: 14px;
+    font-size: 15.75px;
   }
 
   :global(.input:focus) {
@@ -40,8 +40,8 @@
 
   :global(.hint) {
     color: var(--mg-text-tertiary);
-    font-size: 12px;
-    line-height: 1.6;
+    font-size: 13.5px;
+    line-height: 18px;
   }
 
   :global(.error-box) {
@@ -94,10 +94,10 @@
   }
 
   @include mobile {
-    gap: 18px;
+    gap: var(--xai-space-4);
 
     :global(.input) {
-      min-height: 52px;
+      min-height: var(--mg-hit-area, 44px);
       font-size: 16px;
     }
 
@@ -163,13 +163,14 @@
 }
 
 .workspace {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
   min-width: 0;
-  gap: 18px;
+  gap: var(--xai-space-6);
 
-  @include mobile {
-    gap: 16px;
+  @media (max-width: 1024px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
   }
 }
 
@@ -187,7 +188,7 @@
 .sectionGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px 14px;
+  gap: var(--xai-space-4) var(--xai-space-3);
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
@@ -197,7 +198,7 @@
 .sectionStack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--xai-space-3);
 }
 
 .divider {
@@ -208,7 +209,7 @@
 .toggleRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
+  gap: var(--xai-space-4);
   align-items: center;
   min-height: 58px;
   padding: 10px 0;
@@ -227,36 +228,37 @@
 .toggleCopy {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--xai-space-1);
   min-width: 0;
 }
 
 .toggleTitle {
   color: var(--mg-text);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 15.75px;
+  font-weight: 500;
+  line-height: 22.5px;
 }
 
 .toggleDescription {
   color: var(--mg-text-tertiary);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 18px;
   text-wrap: pretty;
 }
 
 .fieldShell {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--xai-space-1-5);
   min-width: 0;
 }
 
 .fieldLabel {
   color: var(--mg-text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0;
 }
 
 .fieldControl {
@@ -265,8 +267,8 @@
 
 .fieldHint {
   color: var(--mg-text-tertiary);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 13.5px;
+  line-height: 18px;
 }
 
 .inlinePill {
@@ -307,16 +309,17 @@
 .subsectionTitle {
   margin: 0;
   color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.25;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.45px;
 }
 
 .subsectionDescription {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: 13.5px;
+  line-height: 18px;
   text-wrap: pretty;
 }
 

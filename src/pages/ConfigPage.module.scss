@@ -492,7 +492,6 @@
   padding: 0 12px;
   border-radius: var(--xai-radius-small);
   cursor: pointer;
-  color: var(--text-primary);
   transition:
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
     color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -519,6 +518,7 @@
 .floatingActionButton:global(.btn-secondary) {
   border-color: transparent;
   background: transparent;
+  color: var(--text-primary);
   box-shadow: none;
 }
 

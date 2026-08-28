@@ -2809,6 +2809,14 @@
 // compact on desktop. Restore a consistent touch target once the page is in
 // the mobile composition; the visible icon stays optically compact inside it.
 @media (max-width: 768px) {
+  .openaiEditForm :global(.form-group) :global(.input),
+  .openaiEditForm :global(.header-input-row .input),
+  .openaiEditForm :global(.align-start.btn.btn-sm),
+  .openaiKeyInputRow :global(.input),
+  .modelInputField {
+    min-height: var(--mg-hit-area, 44px);
+  }
+
   .providerSectionAction :global(.btn.btn-sm),
   .modelConfigToolbar :global(.btn.btn-sm),
   .modelTestAllButton,
@@ -2817,9 +2825,9 @@
   }
 
   .providerConfigItem :global(.provider-card-action.btn.btn-sm),
-  .modelRowRemoveButton,
+  .openaiEditForm .modelRowRemoveButton,
   .openaiKeyInputRow :global(.btn.btn-sm),
-  .container :global(.header-input-row .btn.btn-sm) {
+  .openaiEditForm :global(.header-input-row .btn.btn-sm) {
     width: var(--mg-hit-area, 44px);
     min-width: var(--mg-hit-area, 44px);
     height: var(--mg-hit-area, 44px);
@@ -2827,7 +2835,7 @@
     border-radius: var(--xai-radius-control, 10px);
   }
 
-  .container :global(.header-input-row) {
+  .openaiEditForm :global(.header-input-row) {
     grid-template-columns: minmax(0, 1fr) var(--mg-hit-area, 44px);
   }
 }

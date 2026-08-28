@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ApiKeysCardEditor } from '@/components/config/VisualConfigEditorBlocks';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { RefreshButton } from '@/components/ui/RefreshButton';
-import { IconCheckCircle2, IconDollarSign, IconKey, IconShield } from '@/components/ui/icons';
+import { IconCheckCircle2 } from '@/components/ui/icons';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { apiKeysApi } from '@/services/api/apiKeys';
@@ -212,7 +212,6 @@ export function ApiKeysPage() {
   return (
     <div className={styles.container}>
       <ManagementPageHeader
-        context={t('api_keys.page_eyebrow')}
         title={t('api_keys.title')}
         description={t('api_keys.page_description')}
         actions={
@@ -257,65 +256,29 @@ export function ApiKeysPage() {
           )}
           <div id="api-keys" className={styles.pageContent}>
             <section className={styles.overviewPanel} aria-labelledby="api-keys-overview-title">
-              <div className={styles.overviewCopy}>
-                <span className={styles.sectionEyebrow}>{t('api_keys.page_eyebrow')}</span>
-                <h2 id="api-keys-overview-title" className={styles.overviewTitle}>
-                  {t('api_keys.section_title')}
-                </h2>
-                <p className={styles.overviewDescription}>{t('api_keys.section_description')}</p>
-                <p className={styles.overviewMeta}>
-                  {t('api_keys.restricted_count', {
-                    restricted: restrictedCount,
-                    quota: quotaCount,
-                    disabled: disabledCount,
-                  })}
-                </p>
-              </div>
-
+              <h2 id="api-keys-overview-title" className={styles.visuallyHidden}>
+                {t('api_keys.section_title')}
+              </h2>
               <div className={styles.metricGrid} aria-label={t('api_keys.metrics_label')}>
                 <div className={styles.metricItem}>
-                  <span
-                    className={`${styles.metricIcon} ${styles.metricIconKey}`}
-                    aria-hidden="true"
-                  >
-                    <IconKey size={17} />
-                  </span>
                   <div>
                     <strong className={styles.metricValue}>{apiKeys.length}</strong>
                     <span className={styles.metricLabel}>{t('api_keys.metric_total')}</span>
                   </div>
                 </div>
                 <div className={styles.metricItem}>
-                  <span
-                    className={`${styles.metricIcon} ${styles.metricIconSuccess}`}
-                    aria-hidden="true"
-                  >
-                    <IconCheckCircle2 size={17} />
-                  </span>
                   <div>
                     <strong className={styles.metricValue}>{apiKeys.length - disabledCount}</strong>
                     <span className={styles.metricLabel}>{t('api_keys.metric_active')}</span>
                   </div>
                 </div>
                 <div className={styles.metricItem}>
-                  <span
-                    className={`${styles.metricIcon} ${styles.metricIconRules}`}
-                    aria-hidden="true"
-                  >
-                    <IconShield size={17} />
-                  </span>
                   <div>
                     <strong className={styles.metricValue}>{restrictedCount}</strong>
                     <span className={styles.metricLabel}>{t('api_keys.metric_restricted')}</span>
                   </div>
                 </div>
                 <div className={styles.metricItem}>
-                  <span
-                    className={`${styles.metricIcon} ${styles.metricIconQuota}`}
-                    aria-hidden="true"
-                  >
-                    <IconDollarSign size={17} />
-                  </span>
                   <div>
                     <strong className={styles.metricValue}>{quotaCount}</strong>
                     <span className={styles.metricLabel}>{t('api_keys.metric_quota')}</span>

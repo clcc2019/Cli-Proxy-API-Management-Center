@@ -71,7 +71,7 @@ textarea {
 
 :focus-visible {
   outline: 1px solid var(--mg-focus-outline);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 // Browsers keep text inputs focus-visible after a pointer click. Track the
@@ -170,7 +170,25 @@ body.modal-open .content {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 var(--xai-space-3-5);
+  padding: 0 var(--xai-space-6);
+}
+
+@media (max-width: 1024px) {
+  .container {
+    padding-inline: var(--xai-space-5);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-inline: var(--xai-space-4);
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding-inline: var(--xai-space-3);
+  }
 }
 
 .flex-center {

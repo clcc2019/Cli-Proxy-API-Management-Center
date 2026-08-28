@@ -14,10 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import {
   IconBot,
-  IconKey,
-  IconLink,
-  IconModelCluster,
-  IconSlidersHorizontal,
+  IconChevronDown,
   IconX,
 } from '@/components/ui/icons';
 import { Input } from '@/components/ui/Input';
@@ -31,6 +28,7 @@ import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { ProviderEditShell } from '@/components/common/ProviderEditShell';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { useEventCallback } from '@/hooks';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { modelsApi, providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
@@ -341,34 +339,51 @@ const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
 
 type OpenAIEditorSectionProps = {
   id: string;
-  icon: ReactNode;
   title: ReactNode;
   description: ReactNode;
   meta?: ReactNode;
+  defaultExpanded?: boolean;
   children: ReactNode;
 };
 
 function OpenAIEditorSection({
   id,
-  icon,
   title,
   description,
   meta,
+  defaultExpanded = false,
   children,
 }: OpenAIEditorSectionProps) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const isExpanded = !isMobile || expanded;
+
   return (
     <section className={styles.editorSection} aria-labelledby={id}>
       <header className={styles.sectionHeader}>
-        <span className={styles.sectionIcon} aria-hidden="true">
-          {icon}
-        </span>
         <div className={styles.sectionHeading}>
           <h2 id={id}>{title}</h2>
           <p>{description}</p>
         </div>
         {meta && <span className={styles.sectionMeta}>{meta}</span>}
+        {isMobile && (
+          <button
+            type="button"
+            className={styles.sectionToggle}
+            aria-label={String(title)}
+            aria-expanded={expanded}
+            aria-controls={`${id}-content`}
+            onClick={() => setExpanded((value) => !value)}
+          >
+            <IconChevronDown size={18} aria-hidden="true" />
+          </button>
+        )}
       </header>
-      <div className={styles.sectionBody}>{children}</div>
+      {isExpanded && (
+        <div id={`${id}-content`} className={styles.sectionBody}>
+          {children}
+        </div>
+      )}
     </section>
   );
 }
@@ -884,9 +899,9 @@ export function AiProvidersOpenAIEditPage() {
         <div className={styles.openaiEditForm}>
           <OpenAIEditorSection
             id="openai-editor-basic"
-            icon={<IconLink size={16} />}
             title={t('ai_providers.openai_editor_basic_title')}
             description={t('ai_providers.openai_editor_basic_desc')}
+            defaultExpanded
           >
             <div className={styles.fieldGrid}>
               <Input
@@ -908,7 +923,6 @@ export function AiProvidersOpenAIEditPage() {
 
           <OpenAIEditorSection
             id="openai-editor-routing"
-            icon={<IconSlidersHorizontal size={16} />}
             title={t('ai_providers.openai_editor_routing_title')}
             description={t('ai_providers.openai_editor_routing_desc')}
           >
@@ -981,7 +995,6 @@ export function AiProvidersOpenAIEditPage() {
 
           <OpenAIEditorSection
             id="openai-editor-credentials"
-            icon={<IconKey size={16} />}
             title={t('ai_providers.openai_editor_credentials_title')}
             description={t('ai_providers.openai_editor_credentials_desc')}
             meta={t('ai_providers.openai_keys_summary', {
@@ -1022,7 +1035,6 @@ export function AiProvidersOpenAIEditPage() {
 
           <OpenAIEditorSection
             id="openai-editor-models"
-            icon={<IconModelCluster size={16} />}
             title={t('ai_providers.openai_editor_models_title')}
             description={t('ai_providers.openai_editor_models_desc')}
             meta={t('ai_providers.openai_models_summary', { count: normalizedModels.length })}

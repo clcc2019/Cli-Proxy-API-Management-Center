@@ -28,6 +28,7 @@ export function Button({
     `btn-${variant}`,
     size === 'sm' ? 'btn-sm' : '',
     fullWidth ? 'btn-full' : '',
+    loading ? 'btn-loading' : '',
     className,
   ]
     .filter(Boolean)

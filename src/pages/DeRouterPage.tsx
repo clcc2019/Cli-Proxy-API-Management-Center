@@ -380,7 +380,6 @@ export function DeRouterPage() {
   return (
     <div className={styles.page}>
       <ManagementPageHeader
-        context={t('derouter.context')}
         title={t('derouter.title')}
         description={t('derouter.description')}
         count={containers.length}

@@ -52,6 +52,7 @@ export function ConfigPage() {
   const {
     visualValues,
     visualDirty,
+    visualDirtyFields,
     visualParseError,
     visualValidationErrors,
     visualHasPayloadValidationErrors,
@@ -610,6 +611,7 @@ export function ConfigPage() {
             >
               <VisualConfigEditor
                 values={visualValues}
+                dirtyFields={visualDirtyFields}
                 validationErrors={visualValidationErrors}
                 hasPayloadValidationErrors={visualHasPayloadValidationErrors}
                 disabled={disableControls || loading}

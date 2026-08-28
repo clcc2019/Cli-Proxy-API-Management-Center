@@ -29,35 +29,31 @@
 // 暗色下选中态 track 反而是浅色，此时白色拨杆几乎不可见，必须换成 --primary-contrast。
 .root {
   --toggle-thumb-bg: #ffffff;
-  --toggle-thumb-border: rgb(38 35 32 / 0.1);
-  --toggle-thumb-shadow: 0 1px 2px rgb(38 35 32 / 0.16);
-  --toggle-track-inner: inset 0 1px 2px rgb(38 35 32 / 0.08);
+  --toggle-thumb-border: var(--xai-border);
 }
 
 .track {
-  width: 44px;
-  height: 24px;
-  background: color-mix(in srgb, var(--neutral-accent) 30%, var(--bg-tertiary));
-  border: 1px solid color-mix(in srgb, var(--border-hover) 78%, transparent);
+  width: var(--xai-space-8);
+  height: 20px;
+  background: var(--xai-fill-pressed);
+  border: 1px solid var(--xai-border-hover);
   border-radius: var(--xai-radius-pill);
   position: relative;
-  box-shadow: var(--toggle-track-inner);
   transition:
     background var(--xai-duration-default),
-    border-color var(--xai-duration-default),
-    box-shadow var(--xai-duration-default);
+    border-color var(--xai-duration-default);
 }
 
 .thumb {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 1px;
+  left: 1px;
   width: 18px;
   height: 18px;
   background: var(--toggle-thumb-bg);
   border: 1px solid var(--toggle-thumb-border);
   border-radius: var(--xai-radius-pill);
-  box-shadow: var(--toggle-thumb-shadow);
+  box-shadow: none;
   transition:
     transform var(--xai-duration-default),
     background var(--xai-duration-default);
@@ -66,7 +62,6 @@
 .root input:checked + .track {
   background: var(--mg-sage-strong, var(--primary-color));
   border-color: color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 62%, transparent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14);
 }
 
 .root input:focus-visible + .track {
@@ -74,9 +69,11 @@
   outline-offset: 3px;
 }
 
-.root:hover input:not(:checked):not(:disabled) + .track {
-  background: var(--mg-surface-hover);
-  border-color: var(--mg-border-hover);
+@media (hover: hover) and (pointer: fine) {
+  .root:hover input:not(:checked):not(:disabled) + .track {
+    background: var(--mg-surface-hover);
+    border-color: var(--mg-border-hover);
+  }
 }
 
 .root:active input:not(:checked):not(:disabled) + .track {
@@ -89,12 +86,14 @@
 }
 
 .root input:checked + .track .thumb {
-  transform: translateX(20px);
+  transform: translateX(16px);
 }
 
 .label {
   color: var(--text-secondary);
-  font-weight: 600;
+  font-size: 15.75px;
+  font-weight: 500;
+  line-height: 22.5px;
 }
 
 .labelInside {
@@ -135,13 +134,21 @@
 .trackLabel {
   color: var(--text-secondary);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
 }
 
 .root input:checked + .track .trackLabel {
   color: var(--primary-contrast);
+}
+
+@media (max-width: 768px) {
+  .root {
+    min-width: var(--mg-hit-area);
+    min-height: var(--mg-hit-area);
+    justify-content: center;
+  }
 }
 
 [data-theme='dark'] {

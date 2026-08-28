@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { TokaMark } from '@/components/ui/TokaMark';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { RefreshButton } from '@/components/ui/RefreshButton';
@@ -431,31 +430,10 @@ export function SystemPage() {
     <div className={styles.container}>
       <ManagementPageHeader
         className={styles.pageHeader}
-        context={t('title.main')}
         title={t('system_info.title')}
       />
       <div className={styles.content}>
-        <section className={styles.systemOverview} aria-labelledby="system-overview-title">
-          <div className={styles.serviceSummary}>
-            <div className={styles.serviceIdentity}>
-              <TokaMark aria-label={t('title.main')} className={styles.aboutLogo} />
-              <div>
-                <div className={styles.serviceEyebrow}>{t('system_info.about_title')}</div>
-                <h2 id="system-overview-title" className={styles.serviceTitle}>
-                  {t('connection.status')}
-                </h2>
-              </div>
-            </div>
-            <div className={styles.connectionState} role="status">
-              <span
-                className={`${styles.statusDot} ${styles[connectionStatus] ?? ''}`}
-                aria-hidden="true"
-              />
-              <span>{t(`common.${connectionStatus}_status`)}</span>
-            </div>
-            <div className={styles.apiEndpoint}>{apiBase || '-'}</div>
-          </div>
-
+        <section className={styles.systemOverview} aria-label={t('system_info.about_title')}>
           <div className={styles.versionGrid}>
             <button
               type="button"

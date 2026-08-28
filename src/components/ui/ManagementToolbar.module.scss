@@ -16,7 +16,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 6px;
+  gap: var(--xai-space-1-5);
 }
 
 .secondary,
@@ -51,7 +51,7 @@
   .primary,
   .secondary,
   .actions {
-    gap: 8px;
+    gap: var(--xai-space-2);
   }
 
   .primary > *,

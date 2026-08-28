@@ -62,9 +62,9 @@
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--xai-space-6);
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0 var(--xai-space-3-5);
 }
 
 .headerBrand,
@@ -75,7 +75,7 @@
 }
 
 .headerBrand {
-  gap: 10px;
+  gap: var(--xai-space-2);
 }
 
 .headerMarkFrame {
@@ -102,7 +102,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--xai-space-1);
 }
 
 .headerBrandName,
@@ -114,10 +114,9 @@
 
 .headerBrandName {
   color: var(--login-text);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 18px;
 }
 
 .headerBrandMeta {
@@ -131,7 +130,7 @@
 
 .headerActions {
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--xai-space-2);
 }
 
 .headerContext {
@@ -247,7 +246,7 @@
   flex-direction: column;
   align-items: flex-start;
   width: min(100%, 540px);
-  gap: 6px;
+  gap: var(--xai-space-1-5);
 }
 
 .brandKicker {
@@ -263,7 +262,7 @@
   color: var(--login-dark-text);
   font-family: $font-family;
   font-size: clamp(45px, 5vw, 57px);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 0.96;
   letter-spacing: -0.00249em;
   text-align: left;
@@ -340,14 +339,14 @@
 
 .loginHeader {
   position: relative;
-  gap: 10px;
-  padding-bottom: 20px;
+  gap: var(--xai-space-2);
+  padding-bottom: var(--xai-space-5);
   border-bottom: 1px solid var(--login-border);
 }
 
 .titleBlock {
   min-width: 0;
-  gap: 6px;
+  gap: var(--xai-space-1-5);
 }
 
 .loginKicker {
@@ -384,16 +383,16 @@
 .subtitle {
   max-width: 420px;
   margin: 0;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 15.75px;
+  line-height: 22.5px;
   color: var(--login-text-secondary);
 }
 
 .connectionBox {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 16px;
+  gap: var(--xai-space-1-5);
+  padding: var(--xai-space-4);
   border: 1px solid var(--login-border);
   border-radius: var(--xai-radius-control);
   background: var(--login-surface-muted);
@@ -403,8 +402,9 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 18px;
     color: var(--login-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -412,16 +412,16 @@
 
   .value {
     font-family: $font-mono;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 500;
-    line-height: 1.5;
+    line-height: 18px;
     color: var(--login-text);
     word-break: break-all;
   }
 
   .hint {
-    font-size: 14px;
-    line-height: 1.4;
+    font-size: 13.5px;
+    line-height: 18px;
     color: var(--login-text-secondary);
   }
 }
@@ -431,7 +431,7 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  padding: 12px;
+  padding: var(--xai-space-3);
   border: 1px solid var(--login-border);
   border-radius: var(--xai-radius-control);
   background: var(--login-surface-muted);
@@ -453,8 +453,9 @@
 }
 
 .toggleLabel {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 400;
+  line-height: 18px;
   color: var(--login-text-secondary);
 }
 

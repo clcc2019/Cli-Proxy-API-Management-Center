@@ -1,20 +1,14 @@
-import { useCallback, useId, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
-import {
-  IconCode,
-  IconKey,
-  IconSettings,
-  IconShield,
-  IconSatellite,
-  IconDiamond,
-  IconDatabase,
-  IconTrendingUp,
-  IconTimer,
-} from '@/components/ui/icons';
 import { ConfigSection } from '@/components/config/ConfigSection';
+import {
+  SectionNavigator,
+  type SectionNavigationItem,
+} from '@/components/config/SectionNavigator';
 import type {
   PayloadFilterRule,
   PayloadParamValidationErrorCode,
@@ -28,6 +22,7 @@ import styles from './VisualConfigEditor.module.scss';
 
 interface VisualConfigEditorProps {
   values: VisualConfigValues;
+  dirtyFields?: ReadonlySet<string>;
   validationErrors?: VisualConfigValidationErrors;
   hasPayloadValidationErrors?: boolean;
   disabled?: boolean;
@@ -135,11 +130,15 @@ function FieldShell({
 
 export function VisualConfigEditor({
   values,
+  dirtyFields = new Set(),
   validationErrors,
+  hasPayloadValidationErrors = false,
   disabled = false,
   onChange,
 }: VisualConfigEditorProps) {
   const { t } = useTranslation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set(['server']));
   const routingStrategyLabelId = useId();
   const routingStrategyHintId = `${routingStrategyLabelId}-hint`;
   const keepaliveInputId = useId();
@@ -183,6 +182,165 @@ export function VisualConfigEditor({
     validationErrors?.['streaming.nonstreamKeepaliveInterval']
   );
 
+  const sectionItems = useMemo<SectionNavigationItem[]>(() => {
+    const state = (fields: string[], hasError = false): SectionNavigationItem['state'] =>
+      hasError ? 'error' : fields.some((field) => dirtyFields.has(field)) ? 'dirty' : undefined;
+    return [
+      {
+        id: 'server',
+        label: t('config_management.visual.sections.server.title'),
+        state: state(['host', 'port'], Boolean(validationErrors?.port)),
+      },
+      {
+        id: 'tls',
+        label: t('config_management.visual.sections.tls.title'),
+        state: state(['tlsEnable', 'tlsCert', 'tlsKey']),
+      },
+      {
+        id: 'remote',
+        label: t('config_management.visual.sections.remote.title'),
+        state: state([
+          'rmAllowRemote',
+          'rmSecretKey',
+          'rmDisableControlPanel',
+          'rmPanelRepo',
+        ]),
+      },
+      {
+        id: 'auth',
+        label: t('config_management.visual.sections.auth.title'),
+        state: state(['authDir']),
+      },
+      {
+        id: 'system',
+        label: t('config_management.visual.sections.system.title'),
+        state: state(
+          [
+            'debug',
+            'commercialMode',
+            'loggingToFile',
+            'logsMaxTotalSizeMb',
+            'usageStatisticsEnabled',
+            'usageStatisticsPersist',
+            'usageStatisticsFile',
+            'usageStatisticsPersistInterval',
+          ],
+          Boolean(
+            validationErrors?.logsMaxTotalSizeMb ||
+              validationErrors?.usageStatisticsPersistInterval
+          )
+        ),
+      },
+      {
+        id: 'redis',
+        label: t('config_management.visual.sections.redis.title'),
+        state: state(
+          [
+            'redisEnabled',
+            'redisUrl',
+            'redisAddr',
+            'redisUsername',
+            'redisPassword',
+            'redisDb',
+            'redisKeyPrefix',
+            'redisUsageQueueRetentionSeconds',
+          ],
+          Boolean(validationErrors?.redisDb || validationErrors?.redisUsageQueueRetentionSeconds)
+        ),
+      },
+      {
+        id: 'network',
+        label: t('config_management.visual.sections.network.title'),
+        state: state(
+          [
+            'proxyUrl',
+            'forceModelPrefix',
+            'requestRetry',
+            'maxRetryCredentials',
+            'maxRetryInterval',
+            'routingStrategy',
+            'routingSessionAffinity',
+            'routingSessionAffinityTTL',
+            'wsAuth',
+          ],
+          Boolean(
+            validationErrors?.requestRetry ||
+              validationErrors?.maxRetryCredentials ||
+              validationErrors?.maxRetryInterval ||
+              validationErrors?.routingSessionAffinityTTL
+          )
+        ),
+      },
+      {
+        id: 'quota',
+        label: t('config_management.visual.sections.quota.title'),
+        state: state(['quotaSwitchProject', 'quotaSwitchPreviewModel']),
+      },
+      {
+        id: 'streaming',
+        label: t('config_management.visual.sections.streaming.title'),
+        state: state(
+          [
+            'streaming.keepaliveSeconds',
+            'streaming.bootstrapRetries',
+            'streaming.nonstreamKeepaliveInterval',
+          ],
+          Boolean(
+            validationErrors?.['streaming.keepaliveSeconds'] ||
+              validationErrors?.['streaming.bootstrapRetries'] ||
+              validationErrors?.['streaming.nonstreamKeepaliveInterval']
+          )
+        ),
+      },
+      {
+        id: 'payload',
+        label: t('config_management.visual.sections.payload.title'),
+        state: state(
+          [
+            'payloadDefaultRules',
+            'payloadDefaultRawRules',
+            'payloadOverrideRules',
+            'payloadOverrideRawRules',
+            'payloadFilterRules',
+          ],
+          hasPayloadValidationErrors
+        ),
+      },
+    ];
+  }, [dirtyFields, hasPayloadValidationErrors, t, validationErrors]);
+
+  useEffect(() => {
+    const required = sectionItems.filter((item) => item.state).map((item) => item.id);
+    if (required.length === 0) return;
+    setExpandedSections((current) => {
+      const next = new Set(current);
+      required.forEach((id) => next.add(id));
+      return next.size === current.size ? current : next;
+    });
+  }, [sectionItems]);
+
+  const sectionProps = (id: string) => {
+    const state = sectionItems.find((item) => item.id === id)?.state;
+    return {
+      collapsible: isMobile,
+      expanded: !isMobile || expandedSections.has(id),
+      state,
+      stateLabel:
+        state === 'error'
+          ? t('config_management.visual.validation.validation_blocked_short')
+          : state === 'dirty'
+            ? t('config_management.status_dirty_short')
+            : undefined,
+      onExpandedChange: (expanded: boolean) =>
+        setExpandedSections((current) => {
+          const next = new Set(current);
+          if (expanded) next.add(id);
+          else next.delete(id);
+          return next;
+        }),
+    };
+  };
+
   const handlePayloadDefaultRulesChange = useCallback(
     (payloadDefaultRules: PayloadRule[]) => onChange({ payloadDefaultRules }),
     [onChange]
@@ -207,10 +365,16 @@ export function VisualConfigEditor({
   return (
     <div className={styles.visualEditor}>
       <div className={styles.workspace}>
+        <SectionNavigator
+          items={sectionItems}
+          label={t('config_management.title')}
+          dirtyLabel={t('config_management.status_dirty_short')}
+          errorLabel={t('config_management.visual.validation.validation_blocked_short')}
+        />
         <div className={styles.sections}>
           <ConfigSection
             id="server"
-            icon={<IconSettings size={16} />}
+            {...sectionProps('server')}
             title={t('config_management.visual.sections.server.title')}
             description={t('config_management.visual.sections.server.description')}
           >
@@ -236,7 +400,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="tls"
-            icon={<IconShield size={16} />}
+            {...sectionProps('tls')}
             title={t('config_management.visual.sections.tls.title')}
             description={t('config_management.visual.sections.tls.description')}
           >
@@ -275,7 +439,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="remote"
-            icon={<IconSatellite size={16} />}
+            {...sectionProps('remote')}
             title={t('config_management.visual.sections.remote.title')}
             description={t('config_management.visual.sections.remote.description')}
           >
@@ -316,7 +480,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="auth"
-            icon={<IconKey size={16} />}
+            {...sectionProps('auth')}
             title={t('config_management.visual.sections.auth.title')}
             description={t('config_management.visual.sections.auth.description')}
           >
@@ -334,7 +498,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="system"
-            icon={<IconDiamond size={16} />}
+            {...sectionProps('system')}
             title={t('config_management.visual.sections.system.title')}
             description={t('config_management.visual.sections.system.description')}
           >
@@ -417,7 +581,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="redis"
-            icon={<IconDatabase size={16} />}
+            {...sectionProps('redis')}
             title={t('config_management.visual.sections.redis.title')}
             description={t('config_management.visual.sections.redis.description')}
           >
@@ -497,7 +661,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="network"
-            icon={<IconTrendingUp size={16} />}
+            {...sectionProps('network')}
             title={t('config_management.visual.sections.network.title')}
             description={t('config_management.visual.sections.network.description')}
           >
@@ -609,7 +773,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="quota"
-            icon={<IconTimer size={16} />}
+            {...sectionProps('quota')}
             title={t('config_management.visual.sections.quota.title')}
             description={t('config_management.visual.sections.quota.description')}
           >
@@ -633,7 +797,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="streaming"
-            icon={<IconSatellite size={16} />}
+            {...sectionProps('streaming')}
             title={t('config_management.visual.sections.streaming.title')}
             description={t('config_management.visual.sections.streaming.description')}
           >
@@ -744,7 +908,7 @@ export function VisualConfigEditor({
 
           <ConfigSection
             id="payload"
-            icon={<IconCode size={16} />}
+            {...sectionProps('payload')}
             title={t('config_management.visual.sections.payload.title')}
             description={t('config_management.visual.sections.payload.description')}
           >

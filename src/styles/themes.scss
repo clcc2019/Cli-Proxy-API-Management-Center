@@ -73,6 +73,8 @@
   --xai-font-ui: universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
   --xai-font-display:
     universalSansDisplay, universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-zh-hans:
+    'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
 
   --xai-duration-instant: 80ms;
@@ -157,11 +159,11 @@
   --mg-font-display: var(--xai-font-display);
   --mg-font-mono: var(--xai-font-mono);
   --mg-page-gutter: clamp(var(--xai-space-4), 3vw, var(--xai-space-9));
-  --mg-motion-fast: 120ms;
-  --mg-motion-standard: 240ms;
-  --mg-motion-slow: 400ms;
-  --mg-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --mg-ease-emphasis: cubic-bezier(0.22, 1, 0.36, 1);
+  --mg-motion-fast: var(--xai-duration-fast);
+  --mg-motion-standard: var(--xai-duration-default);
+  --mg-motion-slow: var(--xai-duration-slow);
+  --mg-ease-standard: var(--xai-ease-standard);
+  --mg-ease-emphasis: var(--xai-ease-page);
   --mg-z-base: 0;
   --mg-z-sticky: 10;
   --mg-z-header: 20;
@@ -200,8 +202,8 @@
   --primary-contrast: var(--mg-text-inverse);
   --primary-soft: color-mix(in srgb, var(--mg-surface-selected) 82%, var(--mg-surface));
   --focus-ring: var(--mg-focus-ring);
-  --primary-shadow: 0 10px 22px -14px rgb(15 23 42 / 0.42);
-  --primary-shadow-hover: 0 14px 28px -16px rgb(15 23 42 / 0.5);
+  --primary-shadow: var(--xai-shadow-button);
+  --primary-shadow-hover: var(--xai-shadow-button);
 
   --accent-blue: var(--mg-teal);
   --accent-violet: var(--mg-teal);
@@ -236,9 +238,9 @@
   --count-badge-text: var(--primary-active);
 
   --shadow: var(--mg-shadow-rest);
-  --shadow-lg: 0 4px 12px -4px rgb(15 23 42 / 0.08), 0 16px 32px -12px rgb(15 23 42 / 0.14);
-  --shadow-soft: 0 16px 32px -20px rgb(15 23 42 / 0.2);
-  --header-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
+  --shadow-lg: var(--xai-shadow-dialog);
+  --shadow-soft: var(--xai-shadow-menu);
+  --header-shadow: none;
   // xAI Console rail aliases. Navigation remains monochrome and uses surface,
   // weight, and ink changes instead of colored selection treatments.
   --sidebar-surface: var(--xai-white);
@@ -279,13 +281,18 @@
   --surface-sheen: rgb(255 255 255 / 0.5);
   --bg-canvas: var(--mg-canvas);
 
-  --motion-duration-fast: 130ms;
-  --motion-duration-base: 190ms;
-  --motion-duration-slow: 240ms;
-  --motion-duration-exit: 150ms;
-  --motion-duration-emphasized: 240ms;
-  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
-  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --motion-duration-fast: var(--xai-duration-fast);
+  --motion-duration-base: var(--xai-duration-default);
+  --motion-duration-slow: var(--xai-duration-slow);
+  --motion-duration-exit: var(--xai-duration-fast);
+  --motion-duration-emphasized: var(--xai-duration-slow);
+  --motion-ease-out: var(--xai-ease-out);
+  --motion-ease-standard: var(--xai-ease-standard);
+  --motion-ease-emphasized: var(--xai-ease-page);
+  --motion-ease-exit: var(--xai-ease-in);
+}
+
+html:lang(zh-Hans) {
+  --xai-font-ui: universalSans, var(--xai-font-zh-hans);
+  --xai-font-display: universalSansDisplay, universalSans, var(--xai-font-zh-hans);
 }

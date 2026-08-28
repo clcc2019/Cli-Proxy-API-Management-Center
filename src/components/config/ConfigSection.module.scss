@@ -26,6 +26,7 @@
 }
 
 .header {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-content: start;
@@ -33,28 +34,31 @@
   min-width: 0;
 }
 
-.titleRow {
-  display: none;
-}
-
-.iconBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid color-mix(in srgb, var(--mg-sage-strong) 22%, var(--mg-border));
-  border-radius: var(--xai-radius-small);
-  background: color-mix(in srgb, var(--mg-sage-soft) 58%, var(--mg-surface));
-  color: var(--mg-sage-strong);
-  flex: 0 0 auto;
-}
-
 .headingGroup {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: var(--xai-space-1);
   min-width: 0;
+}
+
+.stateMark {
+  position: relative;
+  z-index: 1;
+  width: var(--xai-space-1-5);
+  height: var(--xai-space-1-5);
+  border-radius: var(--xai-radius-pill);
+  background: var(--xai-orange);
+}
+
+.section[data-state='error'] .stateMark {
+  border-radius: 0;
+  background: var(--xai-danger);
+}
+
+.toggle {
+  display: none;
 }
 
 .title {
@@ -68,6 +72,63 @@
   @include mobile {
     font-size: 18px;
     line-height: 27px;
+  }
+}
+
+@include mobile {
+  .header {
+    min-height: var(--mg-hit-area);
+    padding-right: var(--xai-space-12);
+    justify-content: center;
+  }
+
+  .headingGroup,
+  .stateMark {
+    pointer-events: none;
+  }
+
+  .stateMark {
+    position: absolute;
+    top: 50%;
+    right: var(--xai-space-8);
+    transform: translateY(-50%);
+  }
+
+  .toggle {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: inline-grid;
+    width: 100%;
+    min-height: var(--mg-hit-area);
+    place-items: center;
+    justify-items: end;
+    padding-right: var(--xai-space-2-5);
+    border: 0;
+    border-radius: var(--xai-radius-pill);
+    background: transparent;
+    color: var(--xai-secondary);
+    cursor: pointer;
+
+    &[aria-expanded='true'] svg {
+      transform: rotate(180deg);
+    }
+
+    &:focus-visible {
+      outline: 1px solid var(--mg-focus-outline);
+      outline-offset: 3px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--xai-fill-soft);
+        color: var(--xai-ink-console);
+      }
+    }
+
+    svg {
+      transition: transform var(--xai-duration-default) var(--xai-ease-standard);
+    }
   }
 }
 

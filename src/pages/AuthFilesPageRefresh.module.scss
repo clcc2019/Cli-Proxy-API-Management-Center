@@ -2679,6 +2679,8 @@
 }
 
 .page .credentialCard .cardToggleSwitch > span:first-of-type > span:last-child {
+  top: 2px;
+  left: 3px;
   width: var(--card-toggle-thumb-size);
   height: var(--card-toggle-thumb-size);
 }
@@ -5163,5 +5165,60 @@
     min-height: 28px;
     padding-inline: 7px;
     font-size: 10px;
+  }
+}
+
+@container auth-files-page (max-width: 767px) {
+  .page .searchToolbar {
+    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area) var(--mg-hit-area);
+  }
+
+  .page .searchToolbar > :not(.searchField),
+  .page .controlButton,
+  .page .quotaRefreshButton:global(.btn.btn-sm),
+  .page .displayOption,
+  .page .headerAction:global(.btn.btn-sm),
+  .page .cardSelection,
+  .page .cardNameButton,
+  .page .priorityControl,
+  .page .priorityStepper,
+  .page .priorityStepButton,
+  .page .priorityInput,
+  .page .credentialCard .cardStatusControl,
+  .page .credentialCard .cardStatusToggle,
+  .page .credentialCard .cardToggleSwitch,
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm),
+  .page .credentialCard .cardRefresh,
+  .page .statusBlocks,
+  .page .statusBlockWrapper,
+  .page .rulesAddButton:global(.btn.btn-sm),
+  .page .codexResetCreditButton:global(.btn.btn-sm) {
+    min-height: var(--mg-hit-area);
+  }
+
+  .page .searchToolbar > :not(.searchField),
+  .page .controlButton,
+  .page .quotaRefreshButton:global(.btn.btn-sm),
+  .page .headerAction:global(.btn.btn-sm),
+  .page .cardSelection,
+  .page .priorityStepButton,
+  .page .priorityInput,
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
+    width: var(--mg-hit-area);
+    min-width: var(--mg-hit-area);
+    height: var(--mg-hit-area);
+    flex-basis: var(--mg-hit-area);
+  }
+
+  .page .priorityStepper,
+  .page .priorityInput {
+    height: var(--mg-hit-area);
+  }
+
+  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm),
+  .page .codexResetCreditButton:global(.btn.btn-sm) {
+    width: auto;
+    min-width: var(--mg-hit-area);
+    flex-basis: auto;
   }
 }

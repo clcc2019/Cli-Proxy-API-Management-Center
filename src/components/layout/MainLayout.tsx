@@ -38,6 +38,7 @@ import {
   IconSidebarQuota,
   IconSidebarSystem,
   IconSidebarUsage,
+  IconDollarSign,
   IconX,
 } from '@/components/ui/icons';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -57,6 +58,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   usage: <IconSidebarUsage size={18} />,
   requestLogs: <IconFileText size={18} />,
   derouter: <IconSidebarQuota size={18} />,
+  pricing: <IconDollarSign size={18} />,
   config: <IconSidebarConfig size={18} />,
   logs: <IconSidebarLogs size={18} />,
   system: <IconSidebarSystem size={18} />,
@@ -422,6 +424,7 @@ export function MainLayout() {
         label: t('sidebar.groups.operations'),
         items: [
           { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
+          { path: '/pricing', label: t('nav.pricing'), icon: sidebarIcons.pricing },
           { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
           { path: '/derouter', label: t('nav.derouter'), icon: sidebarIcons.derouter },
           ...(config?.loggingToFile
