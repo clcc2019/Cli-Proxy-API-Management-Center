@@ -16,9 +16,11 @@
   --xai-ink-console: #080808;
   --xai-ink: #0a0a0a;
   --xai-white: #ffffff;
+  --xai-canvas: #eef1f4;
+  --xai-surface-muted: #f7f8fa;
   --xai-inverse: #fafafa;
   --xai-warm: #f9f8f6;
-  --xai-secondary: #7d8187;
+  --xai-secondary: #69717b;
   --xai-muted: rgb(10 10 10 / 50%);
   --xai-subtle: rgb(10 10 10 / 40%);
   --xai-disabled: rgb(10 10 10 / 30%);
@@ -29,7 +31,7 @@
   --xai-border-subtle: rgb(10 10 10 / 6%);
   --xai-border: rgb(10 10 10 / 8%);
   --xai-border-hover: rgb(10 10 10 / 15%);
-  --xai-orange: #ff640a;
+  --xai-orange: #d96b3f;
   --xai-success: hsl(132 41% 42%);
   --xai-warning: hsl(44 80% 34%);
   --xai-danger: hsl(353 53% 43%);
@@ -70,9 +72,12 @@
   --xai-shadow-menu: 0 12px 36px -18px rgb(0 0 0 / 24%);
   --xai-shadow-dialog: 0 24px 72px -28px rgb(0 0 0 / 28%);
 
-  --xai-font-ui: universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-ui:
+    'Avenir Next', 'SF Pro Text', universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui,
+    sans-serif;
   --xai-font-display:
-    universalSansDisplay, universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+    'Avenir Next', 'SF Pro Display', universalSansDisplay, universalSans, 'Helvetica Neue',
+    Helvetica, Arial, system-ui, sans-serif;
   --xai-font-zh-hans:
     'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
@@ -97,9 +102,9 @@
   --xai-overlay: rgb(10 10 10 / 35%);
 
   // Merge Gateway-inspired semantic tokens used by the application shell.
-  --mg-canvas: var(--xai-white);
+  --mg-canvas: var(--xai-canvas);
   --mg-surface: var(--xai-white);
-  --mg-surface-subtle: var(--xai-fill-soft);
+  --mg-surface-subtle: var(--xai-surface-muted);
   --mg-surface-warm: var(--xai-warm);
   // DESIGN.md interaction palette: neutral hover/press surfaces and one
   // black action anchor. These are deliberately separate from selection and
@@ -293,6 +298,6 @@
 }
 
 html:lang(zh-Hans) {
-  --xai-font-ui: universalSans, var(--xai-font-zh-hans);
-  --xai-font-display: universalSansDisplay, universalSans, var(--xai-font-zh-hans);
+  --xai-font-ui: 'Avenir Next', universalSans, var(--xai-font-zh-hans);
+  --xai-font-display: 'Avenir Next', universalSansDisplay, universalSans, var(--xai-font-zh-hans);
 }

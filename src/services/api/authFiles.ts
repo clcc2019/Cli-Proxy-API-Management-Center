@@ -450,6 +450,35 @@ const mergeAuthFileEntries = (entries: AuthFileEntry[]): AuthFileEntry => {
 
 const dedupeAuthFilesResponse = (payload: AuthFilesResponse): AuthFilesResponse => {
   const files = Array.isArray(payload?.files) ? payload.files : [];
+  const seenKeys = new Set<string>();
+  let hasDuplicates = false;
+
+  for (const entry of files) {
+    const name = readTextField(entry, 'name');
+    const key = name || JSON.stringify(entry);
+    if (seenKeys.has(key)) {
+      hasDuplicates = true;
+      break;
+    }
+    seenKeys.add(key);
+  }
+
+  if (!hasDuplicates) {
+    const normalizedFiles =
+      typeof payload?.page_size === 'number'
+        ? files
+        : [...files].sort((left, right) =>
+            readTextField(left, 'name').localeCompare(readTextField(right, 'name'), undefined, {
+              sensitivity: 'accent',
+            })
+          );
+    return {
+      ...payload,
+      files: normalizedFiles,
+      total: typeof payload?.total === 'number' ? payload.total : normalizedFiles.length,
+    };
+  }
+
   const grouped = new Map<string, AuthFileEntry[]>();
 
   files.forEach((entry) => {
@@ -478,6 +507,8 @@ const dedupeAuthFilesResponse = (payload: AuthFilesResponse): AuthFilesResponse 
     total: typeof payload?.total === 'number' ? payload.total : normalizedFiles.length,
   };
 };
+
+const inFlightAuthFilesListRequests = new Map<string, Promise<AuthFilesResponse>>();
 
 const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
   const params: Record<string, string | number | boolean> = {
@@ -652,13 +683,35 @@ const serializeOauthModelAlias = (aliases: OAuthModelAliasEntry[]) =>
   }));
 
 export const authFilesApi = {
-  list: async (options: AuthFilesListOptions = {}, config?: ApiRequestConfig) =>
-    dedupeAuthFilesResponse(
-      await apiClient.get<AuthFilesResponse>('/auth-files', {
-        ...config,
+  list: async (options: AuthFilesListOptions = {}, config?: ApiRequestConfig) => {
+    if (config) {
+      return dedupeAuthFilesResponse(
+        await apiClient.get<AuthFilesResponse>('/auth-files', {
+          ...config,
+          params: buildAuthFilesListParams(options),
+        })
+      );
+    }
+
+    const requestKey = getAuthFilesListOptionsKey(options);
+    const pending = inFlightAuthFilesListRequests.get(requestKey);
+    if (pending) return pending;
+
+    const request = apiClient
+      .get<AuthFilesResponse>('/auth-files', {
         params: buildAuthFilesListParams(options),
       })
-    ),
+      .then(dedupeAuthFilesResponse);
+    inFlightAuthFilesListRequests.set(requestKey, request);
+
+    try {
+      return await request;
+    } finally {
+      if (inFlightAuthFilesListRequests.get(requestKey) === request) {
+        inFlightAuthFilesListRequests.delete(requestKey);
+      }
+    }
+  },
 
   setStatus: (name: string, disabled: boolean) =>
     apiClient.patch<AuthFileStatusResponse>('/auth-files/status', { name, disabled }),

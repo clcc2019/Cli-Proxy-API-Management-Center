@@ -10,9 +10,9 @@
   border-radius: var(--xai-radius-pill);
   padding: var(--xai-space-1-5) var(--xai-space-3);
   font: inherit;
-  font-size: 15.75px;
+  font-size: 13.5px;
   font-weight: 500;
-  line-height: 22.5px;
+  line-height: 18px;
   letter-spacing: 0;
   white-space: nowrap;
   user-select: none;
@@ -727,10 +727,13 @@ textarea {
   display: flex;
   align-items: center;
   min-height: var(--xai-space-12);
+  min-width: 0;
   padding: var(--xai-space-3-5) 56px var(--xai-space-3-5) var(--xai-space-4);
   border-bottom: 1px solid var(--mg-border);
 
   .modal-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
     font-family: var(--mg-font-display);
     font-weight: 500;
     font-size: 18px;
@@ -741,18 +744,28 @@ textarea {
 }
 
 .modal-body {
+  min-width: 0;
+  min-height: 0;
   padding: var(--xai-space-4);
   overflow: auto;
+  overscroll-behavior: contain;
   max-height: 65vh;
 }
 
 .modal-footer {
+  min-width: 0;
   padding: var(--xai-space-3-5) var(--xai-space-4);
   border-top: 1px solid var(--mg-border);
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--xai-space-2);
   background: var(--mg-surface-warm);
+
+  > * {
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 @media (max-width: $breakpoint-mobile) {
@@ -847,6 +860,22 @@ textarea {
   .modal-footer .btn {
     width: 100%;
     min-height: var(--mg-hit-area, 44px);
+  }
+
+  .modal-footer > button {
+    width: 100%;
+    min-height: var(--mg-hit-area, 44px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay-entering,
+  .modal-overlay-closing,
+  .modal-entering,
+  .modal-closing,
+  .modal-close-floating {
+    animation: none;
+    transition: none;
   }
 }
 

@@ -1,4 +1,0 @@
-interface:
-  display_name: "xAI Frontend Reproduction"
-  short_description: "Design any page or component in a strict xAI visual system"
-  default_prompt: "Use $apply-merge-gateway-style to redesign this page or component in the strict xAI visual system while preserving its own content, behavior, and information architecture."

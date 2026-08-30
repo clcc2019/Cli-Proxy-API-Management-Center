@@ -3,6 +3,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--xai-space-2);
+  min-width: 0;
+  max-width: 100%;
   cursor: pointer;
 }
 
@@ -90,6 +92,8 @@
 }
 
 .label {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--text-secondary);
   font-size: 15.75px;
   font-weight: 500;
@@ -148,6 +152,13 @@
     min-width: var(--mg-hit-area);
     min-height: var(--mg-hit-area);
     justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .thumb {
+    transition: none;
   }
 }
 

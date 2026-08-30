@@ -732,7 +732,12 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
             ))}
           </div>
 
-          <span className={apiKeyCardStyles.resultCount}>
+          <span
+            className={apiKeyCardStyles.resultCount}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {t('api_keys.filtered_count', { shown: filteredApiKeys.length, total: apiKeys.length })}
           </span>
         </div>

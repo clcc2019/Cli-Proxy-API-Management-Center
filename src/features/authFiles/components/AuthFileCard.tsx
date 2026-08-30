@@ -16,7 +16,6 @@ import {
   IconSettings,
   IconTrash2,
 } from '@/components/ui/icons';
-import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
 import type { AuthFileItem, ResolvedTheme } from '@/types';
 import {
   isRuntimeOnlyAuthFile,
@@ -32,9 +31,18 @@ import {
   readAuthFileWebsockets,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
-import { AuthFileReauthorization } from '@/features/authFiles/components/AuthFileReauthorization';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
+const AuthFileReauthorization = lazy(() =>
+  import('@/features/authFiles/components/AuthFileReauthorization').then((module) => ({
+    default: module.AuthFileReauthorization,
+  }))
+);
+const ProviderStatusBar = lazy(() =>
+  import('@/components/providers/ProviderStatusBar').then((module) => ({
+    default: module.ProviderStatusBar,
+  }))
+);
 const AuthFileQuotaSection = lazy(() =>
   import('@/features/authFiles/components/AuthFileQuotaSection').then((module) => ({
     default: module.AuthFileQuotaSection,
@@ -347,6 +355,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           className={refreshStyles.promotionPlanButton}
           title={t('auth_files.promotion_check_button')}
           aria-label={t('auth_files.promotion_check_button')}
+          aria-busy={promotionChecking || undefined}
           disabled={disableControls || promotionChecking}
         >
           {promotionChecking ? (
@@ -399,7 +408,16 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
               <div className={refreshStyles.cardNameGroup}>
                 <span className={refreshStyles.providerBadge} title={providerLabel}>
                   {providerIconSrc ? (
-                    <img src={providerIconSrc} alt="" className={refreshStyles.providerBadgeIcon} />
+                    <img
+                      src={providerIconSrc}
+                      alt=""
+                      width={18}
+                      height={18}
+                      loading="lazy"
+                      fetchPriority="low"
+                      decoding="async"
+                      className={refreshStyles.providerBadgeIcon}
+                    />
                   ) : (
                     <span className={refreshStyles.providerBadgeFallback} aria-hidden="true">
                       {providerLabel.slice(0, 1).toUpperCase()}
@@ -531,11 +549,24 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 <strong className={refreshStyles.tokenValue}>{tokenDisplay}</strong>
               </span>
             </div>
-            <ProviderStatusBar
-              statusData={statusData}
-              styles={refreshStyles}
-              interactionMode="summary"
-            />
+            <Suspense
+              fallback={
+                <div className={refreshStyles.statusBar} aria-hidden="true">
+                  <div
+                    className={`${refreshStyles.statusBlocks} ${refreshStyles.statusBlocksLoading}`}
+                  />
+                  <span className={`${refreshStyles.statusRate} ${refreshStyles.statusRateLoading}`}>
+                    --
+                  </span>
+                </div>
+              }
+            >
+              <ProviderStatusBar
+                statusData={statusData}
+                styles={refreshStyles}
+                interactionMode="summary"
+              />
+            </Suspense>
           </div>
 
           {showQuotaLayout && quotaType && (
@@ -560,11 +591,13 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
         </section>
 
         {!isRuntimeOnly && fileType === 'codex' && (
-          <AuthFileReauthorization
-            file={file}
-            disableControls={disableControls}
-            onAuthFileUpdated={onAuthFileUpdated}
-          />
+          <Suspense fallback={null}>
+            <AuthFileReauthorization
+              file={file}
+              disableControls={disableControls}
+              onAuthFileUpdated={onAuthFileUpdated}
+            />
+          </Suspense>
         )}
 
         <footer className={refreshStyles.cardFooter}>
@@ -578,6 +611,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       checked={!file.disabled}
                       className={refreshStyles.cardToggleSwitch}
                       disabled={disableControls || statusUpdating}
+                      ariaBusy={statusUpdating}
                       label={t('auth_files.status_toggle_label')}
                       labelInside
                       onChange={handleToggleStatus}
@@ -608,6 +642,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     className={refreshStyles.cardActionButton}
                     title={t('auth_files.access_token_copy')}
                     aria-label={t('auth_files.access_token_copy')}
+                    aria-busy={accessTokenCopying || undefined}
                     disabled={disableControls || accessTokenCopying}
                   >
                     {accessTokenCopying ? (
@@ -625,6 +660,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     className={refreshStyles.cardActionButton}
                     title={t('auth_files.refresh_token_copy')}
                     aria-label={t('auth_files.refresh_token_copy')}
+                    aria-busy={refreshTokenCopying || undefined}
                     disabled={disableControls || refreshTokenCopying}
                   >
                     {refreshTokenCopying ? (
@@ -672,6 +708,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       className={refreshStyles.cardActionButton}
                       title={t('auth_files.delete_button')}
                       aria-label={t('auth_files.delete_button')}
+                      aria-busy={deleting || undefined}
                       disabled={disableControls || deleting}
                     >
                       {deleting ? (

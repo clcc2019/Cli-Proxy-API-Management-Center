@@ -7,6 +7,7 @@ import type { AuthFileModelItem } from '@/features/authFiles/constants';
 
 type ModelsError = 'unsupported' | null;
 const EMPTY_AUTH_FILE_MODELS: AuthFileModelItem[] = [];
+const getModelsCacheKey = (scopeKey: string, fileName: string) => `${scopeKey}\u0000${fileName}`;
 
 export type UseAuthFilesModelsResult = {
   modelsModalOpen: boolean;
@@ -19,7 +20,7 @@ export type UseAuthFilesModelsResult = {
   closeModelsModal: () => void;
 };
 
-export function useAuthFilesModels(): UseAuthFilesModelsResult {
+export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
 
@@ -30,6 +31,8 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
   const [modelsFileType, setModelsFileType] = useState('');
   const [modelsError, setModelsError] = useState<ModelsError>(null);
   const modelsCacheRef = useRef<Map<string, AuthFileModelItem[]>>(new Map());
+  const unsupportedModelsRef = useRef<Set<string>>(new Set());
+  const inFlightModelsRef = useRef<Map<string, Promise<AuthFileModelItem[]>>>(new Map());
   const mountedRef = useRef(true);
   const modelsRequestSeqRef = useRef(0);
 
@@ -41,6 +44,17 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
     };
   }, []);
 
+  useEffect(() => {
+    modelsRequestSeqRef.current += 1;
+    modelsCacheRef.current.clear();
+    unsupportedModelsRef.current.clear();
+    inFlightModelsRef.current.clear();
+    setModelsModalOpen(false);
+    setModelsLoading(false);
+    setModelsList((prev) => (prev.length === 0 ? prev : EMPTY_AUTH_FILE_MODELS));
+    setModelsError(null);
+  }, [scopeKey]);
+
   const closeModelsModal = useCallback(() => {
     modelsRequestSeqRef.current += 1;
     setModelsModalOpen((prev) => (prev ? false : prev));
@@ -50,8 +64,9 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
     async (item: AuthFileItem) => {
       const requestSeq = modelsRequestSeqRef.current + 1;
       modelsRequestSeqRef.current = requestSeq;
-      const cached = modelsCacheRef.current.get(item.name);
       const fileType = item.type || '';
+      const cacheKey = getModelsCacheKey(scopeKey, item.name);
+      const cached = modelsCacheRef.current.get(cacheKey);
       setModelsFileName((prev) => (prev === item.name ? prev : item.name));
       setModelsFileType((prev) => (prev === fileType ? prev : fileType));
       setModelsError((prev) => (prev === null ? prev : null));
@@ -64,12 +79,26 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
         return;
       }
 
+      if (unsupportedModelsRef.current.has(cacheKey)) {
+        if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
+        setModelsList((prev) => (prev.length === 0 ? prev : EMPTY_AUTH_FILE_MODELS));
+        setModelsError('unsupported');
+        setModelsLoading((prev) => (prev ? false : prev));
+        return;
+      }
+
       setModelsList((prev) => (prev.length === 0 ? prev : EMPTY_AUTH_FILE_MODELS));
       setModelsLoading((prev) => (prev ? prev : true));
+      const pendingRequest = inFlightModelsRef.current.get(cacheKey);
+      const request = pendingRequest ?? authFilesApi.getModelsForAuthFile(item.name);
+      if (!pendingRequest) {
+        inFlightModelsRef.current.set(cacheKey, request);
+      }
       try {
-        const models = await authFilesApi.getModelsForAuthFile(item.name);
+        const models = await request;
         if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
-        modelsCacheRef.current.set(item.name, models);
+        modelsCacheRef.current.set(cacheKey, models);
+        unsupportedModelsRef.current.delete(cacheKey);
         setModelsList((prev) => (prev === models ? prev : models));
       } catch (err) {
         if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
@@ -79,17 +108,21 @@ export function useAuthFilesModels(): UseAuthFilesModelsResult {
           errorMessage.includes('not found') ||
           errorMessage.includes('Not Found')
         ) {
+          unsupportedModelsRef.current.add(cacheKey);
           setModelsError('unsupported');
         } else {
           showNotification(`${t('notification.load_failed')}: ${errorMessage}`, 'error');
         }
       } finally {
+        if (inFlightModelsRef.current.get(cacheKey) === request) {
+          inFlightModelsRef.current.delete(cacheKey);
+        }
         if (mountedRef.current && modelsRequestSeqRef.current === requestSeq) {
           setModelsLoading(false);
         }
       }
     },
-    [showNotification, t]
+    [scopeKey, showNotification, t]
   );
 
   return {

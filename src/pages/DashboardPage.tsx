@@ -405,9 +405,30 @@ export function DashboardPage() {
   return (
     <div className={styles.dashboard} data-page="dashboard">
       <section className={styles.hero} aria-labelledby="dashboard-hero-title">
-        <h1 id="dashboard-hero-title" className={styles.heroTitle}>
-          {t('nav.dashboard')}
-        </h1>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroEyebrow}>{t('dashboard.system_overview')}</span>
+          <h1 id="dashboard-hero-title" className={styles.heroTitle}>
+            {t('nav.dashboard')}
+          </h1>
+          <p className={styles.heroDescription}>{t('dashboard.overview_description')}</p>
+        </div>
+        <div className={styles.heroStatus} data-status={connectionStatus}>
+          <span className={styles.statusLine} role="status" aria-live="polite" aria-atomic="true">
+            <span className={styles.statusDot} aria-hidden="true" />
+            {t(
+              connectionStatus === 'connected'
+                ? 'common.connected_status'
+                : connectionStatus === 'connecting'
+                  ? 'common.connecting_status'
+                  : 'common.disconnected_status'
+            )}
+          </span>
+          {serverVersion && (
+            <code className={styles.heroVersion}>
+              v{serverVersion.trim().replace(/^[vV]+/, '')}
+            </code>
+          )}
+        </div>
       </section>
 
       <section
@@ -416,13 +437,17 @@ export function DashboardPage() {
         aria-busy={isStatsLoading}
       >
         <div className={styles.bentoGrid}>
-          {quickStats.map((stat) => (
+          {quickStats.map((stat, index) => (
             <Link
               key={stat.path}
               to={stat.path}
               className={styles.bentoCard}
-              aria-label={`${stat.label}: ${stat.loading ? '…' : stat.value}`}
+              aria-label={`${stat.label}: ${stat.loading ? t('common.loading') : stat.value}`}
             >
+              <span className={styles.bentoMeta} aria-hidden="true">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <span className={styles.bentoArrow}>↗</span>
+              </span>
               <div className={styles.bentoContent}>
                 <span
                   className={`${styles.bentoValue} ${stat.loading ? styles.bentoValueLoading : ''}`}

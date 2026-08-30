@@ -213,6 +213,7 @@ export type UseAuthFilesDataResult = {
   uploading: boolean;
   deleting: string | null;
   deletingAll: boolean;
+  batchDeleting: boolean;
   statusUpdating: Record<string, boolean>;
   batchStatusUpdating: boolean;
   listMeta: AuthFilesListMeta;
@@ -239,6 +240,7 @@ export type UseAuthFilesDataResult = {
 
 export type UseAuthFilesDataOptions = {
   refreshKeyStats: () => Promise<void>;
+  enabled?: boolean;
   listOptions?: AuthFilesListOptions;
   onListMetaResolved?: (meta: AuthFilesListMeta) => void;
   restoreFocusAfterDelete?: () => void;
@@ -247,6 +249,7 @@ export type UseAuthFilesDataOptions = {
 export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFilesDataResult {
   const {
     refreshKeyStats,
+    enabled = true,
     listOptions = DEFAULT_AUTH_FILES_LIST_OPTIONS,
     onListMetaResolved,
     restoreFocusAfterDelete,
@@ -262,6 +265,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
+  const [batchDeleting, setBatchDeleting] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({});
   const [batchStatusUpdating, setBatchStatusUpdating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
@@ -275,6 +279,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const batchStatusPendingRef = useRef(false);
+  const batchDeletePendingRef = useRef(false);
   const filesRef = useRef<AuthFileItem[]>([]);
   const statusUpdatingRef = useRef<Record<string, boolean>>({});
   const visibleFileCountRef = useRef(0);
@@ -282,6 +287,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   const loadFilesRequestsRef = useRef(createTrailingSingleFlight<string, void>());
   const loadFilesAbortRef = useRef<AbortController | null>(null);
   const loadFilesSeqRef = useRef(0);
+  const previousEnabledRef = useRef(enabled);
   const selectionCount = selectedFiles.size;
   const listOptionsKey = useMemo(() => getAuthFilesListOptionsKey(listOptions), [listOptions]);
   const listUsesServerPagination = Boolean(listOptions.pageSize);
@@ -642,9 +648,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   }, []);
 
   const refreshFilesAfterLocalMutation = useCallback(() => {
-    if (!listUsesServerPagination) return;
+    if (!enabled || !listUsesServerPagination) return;
     void loadFiles(undefined, { silent: true });
-  }, [listUsesServerPagination, loadFiles]);
+  }, [enabled, listUsesServerPagination, loadFiles]);
 
   const refreshFilesFromServer = useCallback(
     (force = false) => loadFiles(undefined, { silent: true, force }),
@@ -655,13 +661,21 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   // page-transition 的 stacked-keep 层保留挂载，此时返回不会重新拉取列表，
   // 所以需要这个显式信号，否则刚认证成功的凭据不会出现。
   useEffect(() => {
+    const wasEnabled = previousEnabledRef.current;
+    previousEnabledRef.current = enabled;
+    if (!enabled || wasEnabled) return;
+    void refreshFilesFromServer(true);
+  }, [enabled, refreshFilesFromServer]);
+
+  useEffect(() => {
+    if (!enabled) return undefined;
     const handleExternalRefresh = () => {
       void refreshFilesFromServer(true);
     };
 
     window.addEventListener(AUTH_FILES_REFRESH_EVENT, handleExternalRefresh);
     return () => window.removeEventListener(AUTH_FILES_REFRESH_EVENT, handleExternalRefresh);
-  }, [refreshFilesFromServer]);
+  }, [enabled, refreshFilesFromServer]);
 
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -915,7 +929,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         const res = await authFilesApi.setStatus(name, nextDisabled);
         if (!mountedRef.current) return;
         patchLocalFileStatus(item, res.disabled);
-        await refreshFilesFromServer();
+        if (listUsesServerPagination) {
+          await refreshFilesFromServer();
+        }
         if (!mountedRef.current) return;
         showNotification(
           enabled
@@ -939,7 +955,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       }
     },
-    [patchLocalFileStatus, refreshFilesFromServer, showNotification, t]
+    [listUsesServerPagination, patchLocalFileStatus, refreshFilesFromServer, showNotification, t]
   );
 
   const batchSetStatus = useCallback(
@@ -1039,7 +1055,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
 
         setSelectedFiles(failCount > 0 ? failedNames : new Set());
-        await refreshFilesFromServer();
+        if (listUsesServerPagination) {
+          await refreshFilesFromServer();
+        }
       } finally {
         batchStatusPendingRef.current = false;
         if (mountedRef.current) {
@@ -1057,7 +1075,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       }
     },
-    [applyFilesState, refreshFilesFromServer, showNotification, t]
+    [applyFilesState, listUsesServerPagination, refreshFilesFromServer, showNotification, t]
   );
 
   const batchDownload = useCallback(
@@ -1105,6 +1123,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
       if (uniqueNames.length === 0) return;
 
       const runBatchDelete = async () => {
+        if (batchDeletePendingRef.current) return;
+        batchDeletePendingRef.current = true;
+        setBatchDeleting(true);
         try {
           const fileByName = new Map(filesRef.current.map((file) => [file.name, file]));
           const result = await authFilesApi.deleteFiles(
@@ -1136,6 +1157,11 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
           if (!mountedRef.current) return;
           const errorMessage = err instanceof Error ? err.message : '';
           showNotification(`${t('notification.delete_failed')}: ${errorMessage}`, 'error');
+        } finally {
+          batchDeletePendingRef.current = false;
+          if (mountedRef.current) {
+            setBatchDeleting(false);
+          }
         }
       };
 
@@ -1168,6 +1194,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     uploading,
     deleting,
     deletingAll,
+    batchDeleting,
     statusUpdating,
     batchStatusUpdating,
     listMeta,

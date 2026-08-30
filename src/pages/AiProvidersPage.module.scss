@@ -728,10 +728,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .providerConfigItem {
-    transition:
-      box-shadow 160ms ease,
-      border-color 160ms ease;
+  .providerConfigItem,
+  .providerConfigItem::before,
+  .providerConfigItem::after,
+  .modelTag,
+  .modelDiscoveryRow,
+  .statusBlock,
+  .providerConfigItem :global(.provider-card-action.btn.btn-sm) {
+    transition: none;
   }
 
   .providerConfigItem:global(.provider-card-switching)::after {

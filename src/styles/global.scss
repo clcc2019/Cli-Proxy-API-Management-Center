@@ -15,7 +15,8 @@ body,
 }
 
 html {
-  background: var(--xai-white, #ffffff);
+  background: var(--mg-canvas, #f4f6f8);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -24,12 +25,13 @@ body {
   font-size: 13.5px;
   line-height: 18px;
   letter-spacing: 0;
-  background: var(--xai-white, #ffffff);
+  background: var(--mg-canvas, #f4f6f8);
   color: var(--text-primary);
   transition:
     background-color var(--xai-duration-drawer),
     color var(--xai-duration-drawer);
   text-rendering: optimizeLegibility;
+  font-variant-numeric: proportional-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   // 避免浏览器合成伪粗体或伪斜体，让拉丁与 CJK 字形保持清晰一致。
@@ -37,6 +39,14 @@ body {
   // 避免 iOS Safari 横屏时字号自动膨胀
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
 }
 
 #root {

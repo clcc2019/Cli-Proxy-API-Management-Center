@@ -8,7 +8,6 @@ const loadConfigPage = () => import('@/pages/ConfigPage');
 const loadLogsPage = () => import('@/pages/LogsPage');
 const loadSystemPage = () => import('@/pages/SystemPage');
 const loadRequestLogsPage = () => import('@/pages/RequestLogsPage');
-const loadDeRouterPage = () => import('@/pages/DeRouterPage');
 const loadPricingPage = () => import('@/pages/PricingPage');
 
 type RouteLoader = () => Promise<Record<string, unknown>>;
@@ -23,7 +22,6 @@ const ROUTE_LOADERS: Array<{ path: string; loader: RouteLoader }> = [
   { path: '/oauth', loader: loadOAuthPage },
   { path: '/usage', loader: loadUsagePage },
   { path: '/request-logs', loader: loadRequestLogsPage },
-  { path: '/derouter', loader: loadDeRouterPage },
   { path: '/pricing', loader: loadPricingPage },
   { path: '/logs', loader: loadLogsPage },
   { path: '/system', loader: loadSystemPage },
@@ -57,7 +55,6 @@ export {
   loadAuthFilesPage,
   loadConfigPage,
   loadDashboardPage,
-  loadDeRouterPage,
   loadPricingPage,
   loadLogsPage,
   loadOAuthPage,

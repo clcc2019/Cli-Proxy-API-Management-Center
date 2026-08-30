@@ -5,6 +5,7 @@ import { useNotificationStore } from '@/stores';
 import type { OAuthModelAliasEntry, OAuthReasoningEffort } from '@/types';
 
 type UnsupportedError = 'unsupported' | null;
+const OAUTH_RULES_STALE_TIME_MS = 5 * 60 * 1000;
 
 const areStringArraysEqual = (left: string[], right: string[]): boolean => {
   if (left === right) return true;
@@ -71,15 +72,15 @@ export type UseAuthFilesOauthResult = {
   excludedError: UnsupportedError;
   modelAlias: Record<string, OAuthModelAliasEntry[]>;
   modelAliasError: UnsupportedError;
-  loadExcluded: () => Promise<void>;
-  loadModelAlias: () => Promise<void>;
+  loadExcluded: (force?: boolean) => Promise<void>;
+  loadModelAlias: (force?: boolean) => Promise<void>;
 };
 
 /**
  * OAuth model rules are managed as a single provider-level workflow. The list only
  * needs lightweight summaries; model definitions are fetched on demand in the editor.
  */
-export function useAuthFilesOauth(): UseAuthFilesOauthResult {
+export function useAuthFilesOauth(scopeKey = ''): UseAuthFilesOauthResult {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const [excluded, setExcluded] = useState<Record<string, string[]>>({});
@@ -87,7 +88,13 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
   const [modelAlias, setModelAlias] = useState<Record<string, OAuthModelAliasEntry[]>>({});
   const [modelAliasError, setModelAliasError] = useState<UnsupportedError>(null);
   const excludedUnsupportedRef = useRef(false);
+  const excludedUnsupportedScopeRef = useRef('');
+  const excludedLoadedScopeRef = useRef('');
+  const excludedLoadedAtRef = useRef(0);
   const aliasesUnsupportedRef = useRef(false);
+  const aliasesUnsupportedScopeRef = useRef('');
+  const aliasesLoadedScopeRef = useRef('');
+  const aliasesLoadedAtRef = useRef(0);
   const mountedRef = useRef(true);
   const excludedLoadSequenceRef = useRef(0);
   const aliasesLoadSequenceRef = useRef(0);
@@ -103,7 +110,25 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
     };
   }, []);
 
-  const loadExcluded = useCallback(async () => {
+  const loadExcluded = useCallback(async (force = false) => {
+    if (
+      !force &&
+      excludedLoadedScopeRef.current === scopeKey &&
+      Date.now() - excludedLoadedAtRef.current < OAUTH_RULES_STALE_TIME_MS
+    ) {
+      return;
+    }
+    if (
+      !force &&
+      excludedUnsupportedRef.current &&
+      excludedUnsupportedScopeRef.current === scopeKey
+    ) {
+      return;
+    }
+    if (force || excludedUnsupportedRef.current) {
+      excludedUnsupportedRef.current = false;
+      excludedUnsupportedScopeRef.current = '';
+    }
     if (excludedInFlightRef.current) {
       await excludedInFlightRef.current;
       return;
@@ -116,6 +141,9 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
         const response = await authFilesApi.getOauthExcludedModels();
         if (!mountedRef.current || excludedLoadSequenceRef.current !== requestSequence) return;
         excludedUnsupportedRef.current = false;
+        excludedUnsupportedScopeRef.current = '';
+        excludedLoadedScopeRef.current = scopeKey;
+        excludedLoadedAtRef.current = Date.now();
         const nextExcluded = response ?? {};
         setExcluded((previous) =>
           areExcludedRecordsEqual(previous, nextExcluded) ? previous : nextExcluded
@@ -131,6 +159,9 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
 
         setExcluded((previous) => (Object.keys(previous).length === 0 ? previous : {}));
         setExcludedError('unsupported');
+        excludedUnsupportedScopeRef.current = scopeKey;
+        excludedLoadedScopeRef.current = '';
+        excludedLoadedAtRef.current = 0;
         if (!excludedUnsupportedRef.current) {
           excludedUnsupportedRef.current = true;
           showNotification(t('oauth_excluded.upgrade_required'), 'warning');
@@ -144,9 +175,23 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
     } finally {
       if (excludedInFlightRef.current === request) excludedInFlightRef.current = null;
     }
-  }, [showNotification, t]);
+  }, [scopeKey, showNotification, t]);
 
-  const loadModelAlias = useCallback(async () => {
+  const loadModelAlias = useCallback(async (force = false) => {
+    if (
+      !force &&
+      aliasesLoadedScopeRef.current === scopeKey &&
+      Date.now() - aliasesLoadedAtRef.current < OAUTH_RULES_STALE_TIME_MS
+    ) {
+      return;
+    }
+    if (!force && aliasesUnsupportedRef.current && aliasesUnsupportedScopeRef.current === scopeKey) {
+      return;
+    }
+    if (force || aliasesUnsupportedRef.current) {
+      aliasesUnsupportedRef.current = false;
+      aliasesUnsupportedScopeRef.current = '';
+    }
     if (aliasesInFlightRef.current) {
       await aliasesInFlightRef.current;
       return;
@@ -159,6 +204,9 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
         const response = await authFilesApi.getOauthModelAlias();
         if (!mountedRef.current || aliasesLoadSequenceRef.current !== requestSequence) return;
         aliasesUnsupportedRef.current = false;
+        aliasesUnsupportedScopeRef.current = '';
+        aliasesLoadedScopeRef.current = scopeKey;
+        aliasesLoadedAtRef.current = Date.now();
         const nextModelAlias = response ?? {};
         setModelAlias((previous) =>
           areModelAliasRecordsEqual(previous, nextModelAlias) ? previous : nextModelAlias
@@ -174,6 +222,9 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
 
         setModelAlias((previous) => (Object.keys(previous).length === 0 ? previous : {}));
         setModelAliasError('unsupported');
+        aliasesUnsupportedScopeRef.current = scopeKey;
+        aliasesLoadedScopeRef.current = '';
+        aliasesLoadedAtRef.current = 0;
         if (!aliasesUnsupportedRef.current) {
           aliasesUnsupportedRef.current = true;
           showNotification(t('oauth_model_alias.upgrade_required'), 'warning');
@@ -187,7 +238,7 @@ export function useAuthFilesOauth(): UseAuthFilesOauthResult {
     } finally {
       if (aliasesInFlightRef.current === request) aliasesInFlightRef.current = null;
     }
-  }, [showNotification, t]);
+  }, [scopeKey, showNotification, t]);
 
   return {
     excluded,

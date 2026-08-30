@@ -41,6 +41,8 @@ const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
   const { getState, start, cancel } = useOAuthFlow();
   const flowState = getState('codex');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [copyingCode, setCopyingCode] = useState(false);
   const preservedPriorityRef = useRef<number | undefined>(undefined);
   const successHandledRef = useRef(false);
 
@@ -100,6 +102,9 @@ const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
   const handleStart = useCallback(() => {
     preservedPriorityRef.current = parsePriorityValue(file.priority);
     successHandledRef.current = false;
+    setCopiedCode(null);
+    setCopyFailed(false);
+    setCopyingCode(false);
     void start('codex');
   }, [file.priority, start]);
 
@@ -108,15 +113,31 @@ const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
   }, [cancel]);
 
   const handleCopyCode = useCallback(async () => {
-    if (!userCode) return;
-    const copied = await copyToClipboard(userCode);
-    if (copied) setCopiedCode(userCode);
-  }, [setCopiedCode, userCode]);
+    if (!userCode || copyingCode) return;
+    setCopyingCode(true);
+    try {
+      const copied = await copyToClipboard(userCode);
+      if (copied) {
+        setCopiedCode(userCode);
+        setCopyFailed(false);
+      } else {
+        setCopiedCode(null);
+        setCopyFailed(true);
+      }
+    } finally {
+      setCopyingCode(false);
+    }
+  }, [copyingCode, userCode]);
 
   const handleOpenAuthorization = useCallback(() => {
     if (!authUrl) return;
     window.open(authUrl, '_blank', 'noopener,noreferrer');
   }, [authUrl]);
+  const copyCodeLabel = copyFailed
+    ? t('notification.copy_failed')
+    : copiedCode === userCode
+      ? t('auth_files.reauth_copied')
+      : t('auth_files.reauth_copy_code');
 
   return (
     <section className={styles.reauthPanel} aria-label={t('auth_files.reauth_title')}>
@@ -134,7 +155,7 @@ const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
         </span>
         <div className={styles.reauthHeaderText}>
           <strong>{t('auth_files.reauth_title')}</strong>
-          <span>
+          <span role="status" aria-live="polite" aria-atomic="true">
             {flowState.phase === 'starting'
               ? t('auth_files.reauth_starting')
               : flowState.phase === 'success'
@@ -177,12 +198,10 @@ const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
                 type="button"
                 className={styles.reauthCode}
                 onClick={handleCopyCode}
-                title={
-                  copiedCode === userCode
-                    ? t('auth_files.reauth_copied')
-                    : t('auth_files.reauth_copy_code')
-                }
-                aria-label={`${t('auth_files.reauth_copy_code')}: ${userCode}`}
+                title={copyCodeLabel}
+                aria-label={`${copyCodeLabel}: ${userCode}`}
+                aria-busy={copyingCode || undefined}
+                disabled={copyingCode}
               >
                 <code>{userCode}</code>
               </button>
@@ -192,11 +211,15 @@ const AuthFileReauthorizationFlow = memo(function AuthFileReauthorizationFlow({
           )}
           <div className={styles.reauthActions}>
             {userCode && (
-              <Button variant="secondary" size="sm" onClick={handleCopyCode}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCopyCode}
+                disabled={copyingCode}
+                aria-busy={copyingCode || undefined}
+              >
                 <IconCopy size={13} aria-hidden="true" />
-                {copiedCode === userCode
-                  ? t('auth_files.reauth_copied')
-                  : t('auth_files.reauth_copy_code')}
+                <span aria-live="polite">{copyCodeLabel}</span>
               </Button>
             )}
             <Button size="sm" onClick={handleOpenAuthorization}>

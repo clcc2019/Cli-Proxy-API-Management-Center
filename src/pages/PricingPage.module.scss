@@ -60,6 +60,10 @@
   border-radius: var(--xai-radius-control);
   background: var(--xai-white);
 }
+.marginControl:focus-within {
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+}
 .marginControl input {
   width: 58px;
   height: 100%;

@@ -1,37 +1,50 @@
 .dashboard {
   display: flex;
   width: 100%;
+  max-width: 1440px;
   min-width: 0;
   flex-direction: column;
-  gap: 31.5px;
+  gap: 40px;
+  margin-inline: auto;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
-}
-
-// Route-scoped shell calibration: activate only while a Dashboard layer exists.
-:global(.app-shell:has([data-page='dashboard'])) {
-  background: #ffffff;
-
-  :global(.content),
-  :global(.main-content) {
-    background: #ffffff;
-  }
-
-  :global(.main-header .header-actions) {
-    border-color: rgb(10 10 10 / 8%);
-    background: #ffffff;
-    box-shadow: none;
-  }
 }
 
 // Direct operational header — no marketing card treatment.
 .hero {
   display: flex;
   min-width: 0;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 27px;
-  padding-top: 4.5px;
+  padding: 4.5px 0 18px;
+  border-bottom: 1px solid var(--xai-border);
+  position: relative;
+
+  &::before {
+    position: absolute;
+    top: 8px;
+    bottom: 22px;
+    left: -14px;
+    width: 3px;
+    border-radius: var(--xai-radius-pill);
+    background: var(--xai-orange);
+    content: '';
+  }
+}
+
+.heroCopy {
+  display: grid;
+  min-width: 0;
+  gap: 4.5px;
+}
+
+.heroEyebrow {
+  color: var(--xai-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 18px;
 }
 
 .heroTitle {
@@ -39,11 +52,68 @@
   margin: 0;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
-  font-size: 27px;
-  font-weight: 500;
-  line-height: 36px;
-  letter-spacing: -0.675px;
+  font-size: clamp(31.5px, 3vw, 45px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
   text-wrap: balance;
+}
+
+.heroDescription {
+  max-width: 62ch;
+  margin: 6.75px 0 0;
+  color: var(--xai-secondary);
+  font-size: 13.5px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.heroStatus {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 13.5px;
+  padding-bottom: 4.5px;
+  color: var(--xai-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.statusLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6.75px;
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--xai-disabled);
+}
+
+.heroStatus[data-status='connected'] .statusDot {
+  background: var(--xai-success);
+}
+
+.heroStatus[data-status='connecting'] .statusDot {
+  background: var(--xai-warning);
+  animation: status-pulse 1200ms var(--xai-ease-standard) infinite;
+}
+
+.heroStatus[data-status='error'] .statusDot {
+  background: var(--xai-danger);
+}
+
+.heroVersion {
+  padding-left: 13.5px;
+  border-left: 1px solid var(--xai-border-hover);
+  color: var(--xai-secondary);
+  font-family: var(--xai-font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .statsSection {
@@ -58,23 +128,27 @@
   font-weight: 500;
   line-height: 27px;
   letter-spacing: -0.45px;
+  text-wrap: balance;
 }
 
-// One dominant warm data surface with joined cells and hairline separation.
+// One dominant data surface with joined cells and hairline separation.
 .bentoGrid {
   display: grid;
   overflow: hidden;
+  border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-card);
-  background: var(--xai-warm);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--xai-surface-muted);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .bentoCard {
+  position: relative;
   display: flex;
   min-width: 0;
-  min-height: 126px;
+  min-height: 148px;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  grid-column: span 3;
   padding: 22.5px;
   border: 0;
   border-right: 1px solid var(--xai-border-subtle);
@@ -82,18 +156,56 @@
   background: transparent;
   color: inherit;
   text-decoration: none;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow: inset 0 -1px 0 transparent;
   transition:
     background-color 150ms var(--xai-ease-standard),
     color 150ms var(--xai-ease-standard),
+    box-shadow 150ms var(--xai-ease-standard),
     transform 120ms var(--xai-ease-out);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to bottom, rgb(10 10 10 / 2%), transparent 62%);
+    opacity: 0;
+    transition: opacity 150ms var(--xai-ease-standard);
+  }
 
   &:last-child {
     border-right: 0;
   }
 
+  &:first-child {
+    grid-column: span 4;
+    background: var(--xai-white);
+  }
+
+  &:nth-child(2),
+  &:nth-child(3) {
+    grid-column: span 3;
+  }
+
+  &:nth-child(4) {
+    grid-column: span 2;
+  }
+
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       background: var(--xai-fill-soft);
+      box-shadow: inset 0 -1px 0 var(--xai-ink-console);
+
+      &::before {
+        opacity: 1;
+      }
+
+      .bentoArrow {
+        color: var(--xai-ink-console);
+        transform: translate(2px, -2px);
+      }
     }
   }
 
@@ -109,6 +221,27 @@
   }
 }
 
+.bentoMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--xai-muted);
+  font-family: var(--xai-font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 18px;
+}
+
+.bentoArrow {
+  color: var(--xai-secondary);
+  font-family: var(--xai-font-ui);
+  font-size: 15px;
+  transition:
+    color 150ms var(--xai-ease-standard),
+    transform 150ms var(--xai-ease-out);
+}
+
 .bentoContent {
   display: flex;
   min-width: 0;
@@ -119,23 +252,29 @@
 .bentoValue {
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
-  font-size: 40.5px;
-  font-weight: 500;
+  font-size: clamp(36px, 3.4vw, 49.5px);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  line-height: 40.5px;
-  letter-spacing: -1.0125px;
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .bentoValueLoading {
-  color: var(--xai-secondary);
+  display: block;
+  width: min(4rem, 32vw);
+  min-height: 1em;
+  border-radius: var(--xai-radius-small);
+  background: var(--xai-fill-soft);
+  color: transparent;
   animation: loading-pulse 1200ms var(--xai-ease-standard) infinite;
 }
 
 .bentoLabel {
   color: var(--xai-ink-console);
-  font-size: 15.75px;
+  font-size: 13.5px;
   font-weight: 500;
-  line-height: 22.5px;
+  line-height: 18px;
+  text-wrap: pretty;
 }
 
 .gatewaySection {
@@ -143,6 +282,7 @@
   border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-card);
   background: var(--xai-white);
+  box-shadow: 0 10px 30px rgb(54 65 79 / 4%);
 }
 
 .gatewayHeader {
@@ -302,6 +442,14 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .bentoCard,
+  .bentoCard:first-child,
+  .bentoCard:nth-child(2),
+  .bentoCard:nth-child(3),
+  .bentoCard:nth-child(4) {
+    grid-column: span 1;
+  }
+
   .configList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -355,7 +503,15 @@
   }
 
   .hero {
-    align-items: center;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .heroStatus {
+    width: 100%;
+    justify-content: space-between;
+    padding-bottom: 0;
   }
 
   .bentoCard {
@@ -374,7 +530,7 @@
 
 @media (max-width: 480px) {
   .heroTitle {
-    font-size: 27px;
+    font-size: 31.5px;
     line-height: 36px;
   }
 
@@ -452,13 +608,29 @@
   }
 }
 
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bentoValueLoading {
     animation: none;
   }
 
+  .heroStatus[data-status='connecting'] .statusDot {
+    animation: none;
+  }
+
   .bentoCard,
+  .bentoArrow,
   .configLink {
-    transition-duration: 0.01ms;
+    transition: none;
   }
 }

@@ -110,11 +110,20 @@ const buildFileStatusBarData = (
 
 type StatusBarCacheEntry = {
   detailsForFile: UsageDetail[] | undefined;
+  recentRequestBuckets: AuthFileRecentRequestBucketLike[];
   recentRequestsSignature: string;
   statusData: AuthFileStatusBarData;
 };
 
 const FILE_STATUS_CACHE = new WeakMap<AuthFileItem, StatusBarCacheEntry>();
+type FileDetailsCacheEntry = {
+  sourceIndex: Map<string, UsageDetail[]>;
+  authIndex: Map<string, UsageDetail[]>;
+  authIndexKey: string | null;
+  detailsForFile: UsageDetail[] | undefined;
+};
+
+const FILE_DETAILS_CACHE = new WeakMap<AuthFileItem, FileDetailsCacheEntry>();
 // AuthFileItem 在列表更新时按字段变化复用或替换引用，因此可用对象身份缓存
 // 这些稳定的匹配候选，避免每次状态条索引重建都重复规范化文件字段。
 const FILE_USAGE_SOURCE_CANDIDATES_CACHE = new WeakMap<AuthFileItem, string[]>();
@@ -215,16 +224,36 @@ export function useAuthFilesStatusBarCache(
     files.forEach((file) => {
       const rawAuthIndex = file['auth_index'] ?? file.authIndex;
       const authIndexKey = normalizeAuthIndex(rawAuthIndex);
-      const detailsForSource = collectUsageDetailsForCandidates(
-        detailsBySource,
-        getCachedUsageSourceCandidates(file)
-      );
-      const detailsForAuthIndex =
-        authIndexKey && authIndexKey !== '0' ? detailsByAuthIndex.get(authIndexKey) : undefined;
-      const detailsForFile = mergeUsageDetails(detailsForSource, detailsForAuthIndex);
+      const cachedDetails = FILE_DETAILS_CACHE.get(file);
+      let detailsForFile: UsageDetail[] | undefined;
+      if (
+        cachedDetails &&
+        cachedDetails.sourceIndex === detailsBySource &&
+        cachedDetails.authIndex === detailsByAuthIndex &&
+        cachedDetails.authIndexKey === authIndexKey
+      ) {
+        detailsForFile = cachedDetails.detailsForFile;
+      } else {
+        const detailsForSource = collectUsageDetailsForCandidates(
+          detailsBySource,
+          getCachedUsageSourceCandidates(file)
+        );
+        const detailsForAuthIndex =
+          authIndexKey && authIndexKey !== '0' ? detailsByAuthIndex.get(authIndexKey) : undefined;
+        detailsForFile = mergeUsageDetails(detailsForSource, detailsForAuthIndex);
+        FILE_DETAILS_CACHE.set(file, {
+          sourceIndex: detailsBySource,
+          authIndex: detailsByAuthIndex,
+          authIndexKey,
+          detailsForFile,
+        });
+      }
       const recentRequestBuckets = readAuthFileRecentRequestBuckets(file);
-      const recentRequestsSignature = getRecentRequestsSignature(recentRequestBuckets);
       const cached = FILE_STATUS_CACHE.get(file);
+      const recentRequestsSignature =
+        cached?.recentRequestBuckets === recentRequestBuckets
+          ? cached.recentRequestsSignature
+          : getRecentRequestsSignature(recentRequestBuckets);
       const statusData =
         cached &&
         cached.detailsForFile === detailsForFile &&
@@ -234,6 +263,7 @@ export function useAuthFilesStatusBarCache(
 
       FILE_STATUS_CACHE.set(file, {
         detailsForFile,
+        recentRequestBuckets,
         recentRequestsSignature,
         statusData,
       });

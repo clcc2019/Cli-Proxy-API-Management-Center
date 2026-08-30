@@ -6,6 +6,7 @@ interface ToggleSwitchProps {
   onChange: (value: boolean) => void;
   label?: ReactNode;
   ariaLabel?: string;
+  ariaBusy?: boolean;
   disabled?: boolean;
   labelPosition?: 'left' | 'right';
   labelInside?: boolean;
@@ -17,6 +18,7 @@ export function ToggleSwitch({
   onChange,
   label,
   ariaLabel,
+  ariaBusy = false,
   disabled = false,
   labelPosition = 'right',
   labelInside = false,
@@ -46,6 +48,7 @@ export function ToggleSwitch({
         disabled={disabled}
         aria-label={ariaLabel}
         aria-checked={checked}
+        aria-busy={ariaBusy || undefined}
       />
       <span className={styles.track}>
         {labelInside && label && <span className={styles.trackLabel}>{label}</span>}

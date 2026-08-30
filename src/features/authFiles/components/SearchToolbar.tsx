@@ -2,7 +2,10 @@ import {
   memo,
   startTransition,
   useCallback,
+  useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type KeyboardEvent,
@@ -65,6 +68,10 @@ const PopoverButton = memo(function PopoverButton({
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
   const visibleOpen = isCurrentLayer && open;
 
+  useEffect(() => {
+    if (!isCurrentLayer && open) onOpenChange(false);
+  }, [isCurrentLayer, onOpenChange, open]);
+
   return (
     <AnchoredPopover
       open={visibleOpen}
@@ -113,24 +120,34 @@ export const SearchToolbar = memo(function SearchToolbar({
   const [pageSizeOpen, setPageSizeOpen] = useState(false);
   const [pageSizeDraft, setPageSizeDraft] = useState(String(pageSize));
   const [searchDraft, setSearchDraft] = useState(search);
-  const [renderedSearch, setRenderedSearch] = useState(search);
-  const [pendingAcknowledgements, setPendingAcknowledgements] = useState<string[]>([]);
+  const renderedSearchRef = useRef(search);
+  const pendingAcknowledgementsRef = useRef<string[]>([]);
+  const searchSyncVersionRef = useRef(0);
 
-  if (renderedSearch !== search) {
-    if (pendingAcknowledgements.includes(search)) {
-      const acknowledgedIndex = pendingAcknowledgements.indexOf(search);
-      setPendingAcknowledgements(pendingAcknowledgements.slice(acknowledgedIndex + 1));
+  useLayoutEffect(() => {
+    if (renderedSearchRef.current === search) return;
+    renderedSearchRef.current = search;
+    const syncVersion = ++searchSyncVersionRef.current;
+    const pendingAcknowledgements = pendingAcknowledgementsRef.current;
+    const acknowledgedIndex = pendingAcknowledgements.indexOf(search);
+    if (acknowledgedIndex >= 0) {
+      pendingAcknowledgementsRef.current = pendingAcknowledgements.slice(acknowledgedIndex + 1);
     } else {
-      setPendingAcknowledgements([]);
-      setSearchDraft((current) => (current === search ? current : search));
+      pendingAcknowledgementsRef.current = [];
+      queueMicrotask(() => {
+        if (searchSyncVersionRef.current !== syncVersion) return;
+        setSearchDraft((current) => (current === search ? current : search));
+      });
     }
-
-    setRenderedSearch(search);
-  }
+    return () => {
+      searchSyncVersionRef.current += 1;
+    };
+  }, [search]);
 
   const updateSearch = useCallback(
     (value: string) => {
-      setPendingAcknowledgements((values) => [...values.slice(-31), value]);
+      const pendingAcknowledgements = pendingAcknowledgementsRef.current;
+      pendingAcknowledgementsRef.current = [...pendingAcknowledgements.slice(-31), value];
       setSearchDraft(value);
       // Keep typing and the clear affordance on the urgent lane. Updating the
       // page can rebuild filters and card nodes, so let React schedule it as a

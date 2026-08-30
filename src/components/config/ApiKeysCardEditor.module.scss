@@ -130,6 +130,8 @@
   &:focus-within {
     border-color: var(--key-border);
     background: var(--key-surface);
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 2px;
     box-shadow: none;
   }
 

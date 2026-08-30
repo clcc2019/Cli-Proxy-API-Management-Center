@@ -1,11 +1,23 @@
 .header {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: var(--mg-space-4) var(--mg-space-6);
   min-width: 0;
-  padding: var(--xai-space-1) 0 0;
-  border-bottom: 0;
+  padding: var(--xai-space-1) 0 var(--xai-space-4);
+  border-bottom: 1px solid var(--mg-border);
+}
+
+.header::before {
+  position: absolute;
+  top: var(--xai-space-1-5);
+  bottom: var(--xai-space-5);
+  left: -14px;
+  width: 3px;
+  border-radius: var(--mg-radius-pill);
+  background: var(--mg-orange);
+  content: '';
 }
 
 .identity {
@@ -117,7 +129,7 @@
 
   .actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
     align-items: stretch;
     gap: var(--xai-space-2);
     overflow: visible;
@@ -134,6 +146,10 @@
 }
 
 @media (max-width: 420px) {
+  .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .title {
     font-size: 27px;
     overflow-wrap: anywhere;

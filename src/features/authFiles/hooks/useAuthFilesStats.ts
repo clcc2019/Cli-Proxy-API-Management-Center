@@ -208,8 +208,8 @@ const loadAuthFileUsageStats = async (
 };
 
 export function useAuthFilesStats(enabled = true): UseAuthFilesStatsResult {
-  const apiBase = useAuthStore((state) => state.apiBase);
-  const managementKey = useAuthStore((state) => state.managementKey);
+  const apiBase = useAuthStore((state) => (enabled ? state.apiBase : ''));
+  const managementKey = useAuthStore((state) => (enabled ? state.managementKey : ''));
   const scopeKey = useMemo(
     () => `${apiBase ?? ''}::${managementKey ?? ''}`,
     [apiBase, managementKey]

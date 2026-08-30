@@ -35,7 +35,6 @@ import {
   IconSidebarLogs,
   IconSidebarOauth,
   IconSidebarProviders,
-  IconSidebarQuota,
   IconSidebarSystem,
   IconSidebarUsage,
   IconDollarSign,
@@ -57,7 +56,6 @@ const sidebarIcons: Record<string, ReactNode> = {
   oauth: <IconSidebarOauth size={18} />,
   usage: <IconSidebarUsage size={18} />,
   requestLogs: <IconFileText size={18} />,
-  derouter: <IconSidebarQuota size={18} />,
   pricing: <IconDollarSign size={18} />,
   config: <IconSidebarConfig size={18} />,
   logs: <IconSidebarLogs size={18} />,
@@ -398,6 +396,13 @@ export function MainLayout() {
     ) : (
       <IconX size={14} />
     );
+  const connectionStatusLabel = t(
+    connectionStatus === 'connected'
+      ? 'common.connected_status'
+      : connectionStatus === 'connecting'
+        ? 'common.connecting_status'
+        : 'common.disconnected_status'
+  );
 
   const navGroups = useMemo<SidebarNavigationGroup[]>(
     () => [
@@ -426,7 +431,6 @@ export function MainLayout() {
           { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
           { path: '/pricing', label: t('nav.pricing'), icon: sidebarIcons.pricing },
           { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
-          { path: '/derouter', label: t('nav.derouter'), icon: sidebarIcons.derouter },
           ...(config?.loggingToFile
             ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
             : []),
@@ -631,6 +635,9 @@ export function MainLayout() {
   return (
     <div className={`app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
       <div className="top-gradient-blur" aria-hidden="true" />
+      <a className="skip-link" href="#main-content">
+        {t('common.skip_to_content')}
+      </a>
 
       <header className="main-header">
         <div className="mobile-sidebar-actions">
@@ -654,26 +661,15 @@ export function MainLayout() {
           <div
             className="connection"
             role="status"
-            aria-label={t(
-              connectionStatus === 'connected'
-                ? 'common.connected_status'
-                : connectionStatus === 'connecting'
-                  ? 'common.connecting_status'
-                  : 'common.disconnected_status'
-            )}
+            aria-label={connectionStatusLabel}
+            title={connectionStatusLabel}
           >
             <span className={`status-badge ${statusClass}`}>
               <span className="status-symbol" aria-hidden="true">
                 {statusIcon}
               </span>
               <span className="status-label">
-                {t(
-                  connectionStatus === 'connected'
-                    ? 'common.connected_status'
-                    : connectionStatus === 'connecting'
-                      ? 'common.connecting_status'
-                      : 'common.disconnected_status'
-                )}
+                {connectionStatusLabel}
               </span>
             </span>
           </div>
@@ -775,7 +771,11 @@ export function MainLayout() {
         />
 
         <div className={`content${isLogsPage ? ' content-logs' : ''}`} ref={contentRef}>
-          <main className={`main-content${isLogsPage ? ' main-content-logs' : ''}`}>
+          <main
+            id="main-content"
+            className={`main-content${isLogsPage ? ' main-content-logs' : ''}`}
+            tabIndex={-1}
+          >
             <PageTransition
               render={(location) => <MainRoutes location={location} />}
               getRouteOrder={getRouteOrder}

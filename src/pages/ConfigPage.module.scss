@@ -589,6 +589,13 @@
     min-height: var(--mg-hit-area, 44px);
     height: var(--mg-hit-area, 44px);
   }
+
+  .searchButton {
+    width: var(--mg-hit-area, 44px);
+    min-width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
+    min-height: var(--mg-hit-area, 44px);
+  }
 }
 
 @media (max-width: 480px) {

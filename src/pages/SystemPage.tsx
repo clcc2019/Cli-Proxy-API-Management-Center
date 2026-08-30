@@ -129,6 +129,26 @@ const SystemModelGroups = memo(function SystemModelGroups({
 
 SystemModelGroups.displayName = 'SystemModelGroups';
 
+function SystemModelGroupsSkeleton() {
+  return (
+    <div className={styles.modelsLoadingList} aria-hidden="true">
+      {[0, 1, 2].map((row) => (
+        <div key={row} className={styles.modelsLoadingRow}>
+          <div className={styles.modelsLoadingMeta}>
+            <span className={`${styles.modelsLoadingLine} ${styles.modelsLoadingLinePrimary}`} />
+            <span className={`${styles.modelsLoadingLine} ${styles.modelsLoadingLineSecondary}`} />
+          </div>
+          <div className={styles.modelsLoadingTags}>
+            <span className={styles.modelsLoadingTag} />
+            <span className={styles.modelsLoadingTag} />
+            <span className={styles.modelsLoadingTag} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function SystemPage() {
   const { t, i18n } = useTranslation();
   const pageTransitionLayer = usePageTransitionLayer();
@@ -486,8 +506,15 @@ export function SystemPage() {
           }
         >
           <p className={styles.sectionDescription}>{t('system_info.models_desc')}</p>
-          {modelStatus && (
-            <div className={`status-badge ${modelStatus.type}`}>{modelStatus.message}</div>
+          {modelStatus && !modelsLoading && !modelsError && (
+            <div
+              className={`status-badge ${modelStatus.type}`}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {modelStatus.message}
+            </div>
           )}
           {modelsError && (
             <div className="error-box" role="alert">
@@ -495,10 +522,15 @@ export function SystemPage() {
             </div>
           )}
           {modelsLoading ? (
-            <div className="hint" role="status" aria-busy="true">
-              {t('common.loading')}
+            <div
+              className={styles.modelsLoadingState}
+              role="status"
+              aria-busy="true"
+              aria-label={t('common.loading')}
+            >
+              <SystemModelGroupsSkeleton />
             </div>
-          ) : models.length === 0 ? (
+          ) : models.length === 0 && !modelsError ? (
             <div className="hint">{t('system_info.models_empty')}</div>
           ) : (
             <SystemModelGroups groups={groupedModels} resolvedTheme={resolvedTheme} />

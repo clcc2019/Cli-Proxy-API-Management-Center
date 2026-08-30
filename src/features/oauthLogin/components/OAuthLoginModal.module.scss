@@ -692,6 +692,15 @@
     :global(.modal-footer) {
       padding: 14px 16px max(14px, env(safe-area-inset-bottom));
     }
+
+    :global(.modal-close-floating) {
+      top: max(8px, env(safe-area-inset-top));
+      right: max(8px, env(safe-area-inset-right));
+      width: var(--mg-hit-area, 44px);
+      min-width: var(--mg-hit-area, 44px);
+      height: var(--mg-hit-area, 44px);
+      min-height: var(--mg-hit-area, 44px);
+    }
   }
 
   .modalTitleText {

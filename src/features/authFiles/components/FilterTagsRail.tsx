@@ -54,7 +54,16 @@ const FilterTagButton = memo(function FilterTagButton({
         ) : (
           <span className={refreshStyles.providerTabIconBox} aria-hidden="true">
             {iconSrc ? (
-              <img src={iconSrc} alt="" className={refreshStyles.providerTabIcon} />
+              <img
+                src={iconSrc}
+                alt=""
+                width={18}
+                height={18}
+                loading="lazy"
+                fetchPriority="low"
+                decoding="async"
+                className={refreshStyles.providerTabIcon}
+              />
             ) : (
               <span className={refreshStyles.providerTabFallback}>
                 {label.slice(0, 1).toUpperCase()}
@@ -146,13 +155,14 @@ export const FilterTagsRail = memo(function FilterTagsRail({
 
     updateScrollEdges();
     scroller.addEventListener('scroll', scheduleUpdate, { passive: true });
-    const resizeObserver = new ResizeObserver(scheduleUpdate);
-    resizeObserver.observe(scroller);
-    if (scroller.firstElementChild) resizeObserver.observe(scroller.firstElementChild);
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleUpdate);
+    resizeObserver?.observe(scroller);
+    if (scroller.firstElementChild) resizeObserver?.observe(scroller.firstElementChild);
 
     return () => {
       scroller.removeEventListener('scroll', scheduleUpdate);
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
       if (frameId) window.cancelAnimationFrame(frameId);
     };
   }, [tags]);

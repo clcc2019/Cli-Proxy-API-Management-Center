@@ -12,6 +12,7 @@
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: var(--radius-md);
   display: block;
+  contain: paint;
 }
 
 @keyframes shimmer {

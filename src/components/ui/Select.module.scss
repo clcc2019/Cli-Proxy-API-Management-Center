@@ -176,3 +176,13 @@
     min-height: var(--mg-hit-area);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .triggerIcon,
+  .option,
+  .dropdown {
+    transition: none;
+    animation: none;
+  }
+}

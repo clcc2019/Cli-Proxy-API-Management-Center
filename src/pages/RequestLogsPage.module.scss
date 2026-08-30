@@ -299,6 +299,8 @@
   &:focus-within {
     border-color: var(--request-border);
     background: var(--request-surface);
+    outline: 1px solid var(--request-focus);
+    outline-offset: 2px;
     box-shadow: none;
   }
 
@@ -454,8 +456,8 @@
   letter-spacing: 0.02em;
 
   > span {
-    @include text-ellipsis;
     min-width: 0;
+    white-space: normal;
   }
 }
 
@@ -464,7 +466,9 @@
   display: grid;
   min-height: 68px;
   grid-template-columns: var(--request-row-grid);
-  align-items: center;
+  // Keep the first line of every column aligned while allowing long values
+  // to grow the row instead of being hidden behind an ellipsis.
+  align-items: start;
   gap: var(--request-row-gap);
   padding: var(--xai-space-2-5) var(--request-row-padding-x);
   border-bottom: 1px solid var(--request-border);
@@ -517,11 +521,9 @@
   align-items: flex-start;
   justify-content: center;
   gap: var(--xai-space-1);
-  overflow: hidden;
 }
 
 .eventTimePrimary {
-  @include text-ellipsis;
   max-width: 100%;
   color: var(--request-text);
   font-family: $font-mono;
@@ -532,7 +534,6 @@
 }
 
 .eventTimeSecondary {
-  @include text-ellipsis;
   max-width: 100%;
   color: var(--request-text-tertiary);
   font-size: 11px;
@@ -552,8 +553,9 @@
 
 .eventEndpointValue,
 .eventApiKeyValue {
-  @include text-ellipsis;
   display: block;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .eventEndpointValue {
@@ -562,9 +564,9 @@
 }
 
 .eventClientIPValue {
-  @include text-ellipsis-multiline(2);
   color: var(--request-text-tertiary);
   overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .eventApiKeyValue {
@@ -582,7 +584,6 @@
 
 .eventModelName,
 .eventCredentialName {
-  @include text-ellipsis-multiline(2);
   min-width: 0;
   max-width: 100%;
   color: var(--request-text);
@@ -590,6 +591,7 @@
   font-weight: 500;
   line-height: 1.35;
   overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .eventModelMeta {
@@ -609,8 +611,8 @@
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .eventCredential {
@@ -619,7 +621,6 @@
 }
 
 .eventCredentialType {
-  @include text-ellipsis;
   display: inline-flex;
   max-width: 100%;
   flex: 0 0 auto;
@@ -631,6 +632,8 @@
   font-weight: 500;
   letter-spacing: 0;
   text-transform: lowercase;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .eventCredentialMeta {
@@ -646,12 +649,13 @@
 }
 
 .eventCredentialMetaItem {
-  @include text-ellipsis;
   display: inline-flex;
   min-width: 0;
   max-width: 100%;
   align-items: center;
   gap: var(--xai-space-1);
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .eventStatus {
@@ -763,7 +767,6 @@
 }
 
 .eventErrorPreview {
-  @include text-ellipsis;
   display: block;
   width: 100%;
   min-width: 0;
@@ -777,6 +780,8 @@
   font-size: 11px;
   line-height: 1.35;
   text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
 
   &:hover {
     color: var(--request-danger);
@@ -800,7 +805,6 @@
 }
 
 .eventTokensTotal {
-  @include text-ellipsis;
   min-width: 0;
   color: var(--request-text);
   font-family: $font-mono;
@@ -831,7 +835,6 @@
 }
 
 .eventCost {
-  @include text-ellipsis;
   min-width: 0;
   color: var(--request-text);
   font-family: $font-mono;

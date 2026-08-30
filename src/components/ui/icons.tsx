@@ -519,15 +519,6 @@ export function IconSidebarOauth({ size = 20, ...props }: IconProps) {
   );
 }
 
-export function IconSidebarQuota({ size = 20, ...props }: IconProps) {
-  return (
-    <svg {...sidebarSvgProps} width={size} height={size} {...props}>
-      <circle cx="12" cy="12" r="8" />
-      <path d="M12 12V4a8 8 0 0 1 8 8Z" fill="currentColor" fillOpacity="0.12" />
-    </svg>
-  );
-}
-
 export function IconSidebarUsage({ size = 20, ...props }: IconProps) {
   return (
     <svg {...sidebarSvgProps} width={size} height={size} {...props}>

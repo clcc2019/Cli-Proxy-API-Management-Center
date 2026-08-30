@@ -209,6 +209,10 @@
   .filterTrigger {
     max-width: min(220px, 58vw);
   }
+
+  .filterToolbarBtn {
+    min-height: var(--mg-hit-area, 44px);
+  }
 }
 
 @media (max-width: 480px) {

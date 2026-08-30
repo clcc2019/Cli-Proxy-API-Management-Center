@@ -652,6 +652,7 @@ export function LogsPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t('logs.search_placeholder')}
+                    aria-label={t('logs.search_placeholder')}
                     rightElement={
                       searchQuery ? (
                         <button
@@ -789,6 +790,7 @@ export function LogsPage() {
                 <ToggleSwitch
                   checked={hideManagementLogs}
                   onChange={setHideManagementLogs}
+                  ariaLabel={t('logs.hide_management_logs', { prefix: MANAGEMENT_API_PREFIX })}
                   label={
                     <span className={styles.switchLabel}>
                       <IconEyeOff size={16} />
@@ -800,6 +802,7 @@ export function LogsPage() {
                 <ToggleSwitch
                   checked={showRawLogs}
                   onChange={setShowRawLogs}
+                  ariaLabel={t('logs.show_raw_logs')}
                   label={
                     <span className={styles.switchLabel} title={t('logs.show_raw_logs_hint')}>
                       <IconCode size={16} />
@@ -825,6 +828,7 @@ export function LogsPage() {
                     checked={autoRefresh}
                     onChange={(value) => setAutoRefresh(value)}
                     disabled={disableControls}
+                    ariaLabel={t('logs.auto_refresh')}
                     label={
                       <span className={styles.switchLabel}>
                         <IconTimer size={16} />
@@ -926,6 +930,19 @@ export function LogsPage() {
                 <EmptyState
                   title={t('logs.search_empty_title')}
                   description={t('logs.search_empty_desc')}
+                  action={
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setSearchQuery('');
+                        filters.clearStructuredFilters();
+                        setHideManagementLogs(false);
+                      }}
+                    >
+                      {t('logs.clear_filters')}
+                    </Button>
+                  }
                 />
               ) : (
                 <EmptyState title={t('logs.empty_title')} description={t('logs.empty_desc')} />

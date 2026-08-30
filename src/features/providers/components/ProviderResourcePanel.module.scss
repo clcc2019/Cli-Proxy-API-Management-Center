@@ -24,6 +24,11 @@
   flex: 1 1 300px;
 }
 
+.searchWrap:focus-within {
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+}
+
 .searchInput {
   width: 100%;
   min-height: var(--xai-space-8);
@@ -219,8 +224,8 @@
   }
 
   .searchClear {
-    width: 32px;
-    height: 32px;
+    width: var(--mg-hit-area, 44px);
+    height: var(--mg-hit-area, 44px);
   }
 
   .headerTools {

@@ -99,8 +99,7 @@ const StatusFilterButton = memo(function StatusFilterButton({
   return (
     <button
       type="button"
-      role="tab"
-      aria-selected={active}
+      aria-pressed={active}
       className={className}
       onClick={onClick}
       disabled={disabled}
@@ -798,7 +797,7 @@ export function RequestLogsPage() {
           secondary={
             <div
               className={styles.statusFilter}
-              role="tablist"
+              role="group"
               aria-label={requestEventLabels.columns.status}
             >
               <StatusFilterButton
@@ -811,7 +810,7 @@ export function RequestLogsPage() {
               <StatusFilterButton
                 active={statusFilter === 'success'}
                 count={counts.success}
-                disabled={counts.success === 0}
+                disabled={counts.success === 0 && statusFilter !== 'success'}
                 icon={FILTER_SUCCESS_ICON}
                 label={requestEventLabels.success}
                 toneClassName={styles.statusFilterSuccess}
@@ -820,7 +819,7 @@ export function RequestLogsPage() {
               <StatusFilterButton
                 active={statusFilter === 'failed'}
                 count={counts.failed}
-                disabled={counts.failed === 0}
+                disabled={counts.failed === 0 && statusFilter !== 'failed'}
                 icon={FILTER_FAILED_ICON}
                 label={requestEventLabels.failure}
                 toneClassName={styles.statusFilterFailed}

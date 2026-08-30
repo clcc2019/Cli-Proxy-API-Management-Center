@@ -60,6 +60,8 @@ export const readAuthFileRecentRequestBuckets = (
   const camel = Array.isArray(file.recentRequests)
     ? file.recentRequests
     : EMPTY_AUTH_FILE_RECENT_REQUEST_BUCKETS;
+  if (snake.length === 0) return camel;
+  if (camel.length === 0 || camel === snake) return snake;
   return authFileRecentRequestsTotal(camel) > authFileRecentRequestsTotal(snake) ? camel : snake;
 };
 

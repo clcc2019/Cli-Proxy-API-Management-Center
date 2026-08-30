@@ -244,24 +244,6 @@ const LOG_LINES = [
   '[INFO] route strategy switched to priority-first',
 ];
 
-const DEROUTER_CONTAINERS = [
-  { id: 'ctr-8f2', name: 'us-east-core', region: 'us-east-1', status: 'running', tasks: 12, accounts: 4, proxy: 'toka-ctr-8f2:8443' },
-  { id: 'ctr-3a9', name: 'eu-central-2', region: 'eu-central-1', status: 'running', tasks: 8, accounts: 3, proxy: 'toka-ctr-3a9:8443' },
-  { id: 'ctr-5d1', name: 'ap-southeast-1', region: 'ap-southeast-1', status: 'degraded', tasks: 5, accounts: 2, proxy: 'toka-ctr-5d1:8443' },
-];
-
-const DEROUTER_EARNINGS = {
-  total: 12847,
-  today: 214,
-  week: 12847,
-  month: 52810,
-  hourly: Array.from({ length: 24 }, (_, i) => ({
-    hour: i,
-    requests: 240 + ((i * 137) % 520),
-    revenue_usd: Math.round(((1.2 + ((i * 31) % 200)) * 100) + 0.5) / 100,
-  })),
-};
-
 function json(res, data, status = 200) {
   const body = JSON.stringify(data);
   res.writeHead(status, {
@@ -433,10 +415,6 @@ const server = http.createServer((req, res) => {
             'gemini-2.5-pro': { input: 1.25, output: 10 },
           },
         });
-      case '/derouter/containers':
-        return json(res, { containers: DEROUTER_CONTAINERS });
-      case '/derouter/earnings':
-        return json(res, DEROUTER_EARNINGS);
       case '/latest-version':
         return json(res, { 'latest-version': '0.18.3' });
       case '/get-auth-status':

@@ -31,11 +31,18 @@ export function useAuthFilesQuotaRefreshBatch({
   const [state, setState] = useState(IDLE_STATE);
   const runningRef = useRef(false);
   const mountedRef = useRef(true);
+  const progressFrameRef = useRef<number | null>(null);
+  const pendingProgressRef = useRef<BatchState | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      if (progressFrameRef.current !== null) {
+        window.cancelAnimationFrame(progressFrameRef.current);
+        progressFrameRef.current = null;
+      }
+      pendingProgressRef.current = null;
     };
   }, []);
 
@@ -61,8 +68,14 @@ export function useAuthFilesQuotaRefreshBatch({
         initialSkipped: Math.max(0, visibleCount - targets.length),
         shouldContinue: () => mountedRef.current,
         onProgress: ({ completed, total }) => {
-          if (!mountedRef.current) return;
-          setState({ refreshing: true, completed, total });
+          pendingProgressRef.current = { refreshing: true, completed, total };
+          if (progressFrameRef.current !== null) return;
+          progressFrameRef.current = window.requestAnimationFrame(() => {
+            progressFrameRef.current = null;
+            const next = pendingProgressRef.current;
+            pendingProgressRef.current = null;
+            if (next && mountedRef.current) setState(next);
+          });
         },
       });
 
@@ -85,6 +98,13 @@ export function useAuthFilesQuotaRefreshBatch({
         showNotification(`${t('notification.refresh_failed')}: ${message}`, 'error');
       }
     } finally {
+      const pendingProgress = pendingProgressRef.current;
+      if (progressFrameRef.current !== null) {
+        window.cancelAnimationFrame(progressFrameRef.current);
+        progressFrameRef.current = null;
+      }
+      pendingProgressRef.current = null;
+      if (pendingProgress && mountedRef.current) setState(pendingProgress);
       await minimumFeedback;
       runningRef.current = false;
       if (mountedRef.current) setState(IDLE_STATE);

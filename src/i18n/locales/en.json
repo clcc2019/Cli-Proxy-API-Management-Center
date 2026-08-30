@@ -48,6 +48,7 @@
       "filterLabel": "Search provider resources",
       "resultCount": "Showing {{visible}} / {{total}} resources",
       "emptyTitle": "No provider resources yet",
+      "filterEmptyTitle": "No matching resources",
       "metrics": {
         "models": "Models",
         "keys": "Keys",
@@ -56,6 +57,8 @@
       "websocketsTag": "WebSockets",
       "cloakTag": "Cloak",
       "empty": "No resources yet. Add one to get started.",
+      "filterEmpty": "Try a different search or clear the active filters.",
+      "clearFilters": "Clear filters",
       "filterPlaceholder": "Search keys, URLs, prefixes…",
       "description": "Manage resources under {{route}}"
     },
@@ -269,69 +272,6 @@
       "notLoaded": "Not loaded"
     }
   },
-  "derouter": {
-    "context": "DeRouter Network",
-    "title": "DeRouter Data",
-    "description": "Load container status, account capacity, and earnings for the current account through the backend data endpoints.",
-    "container_count": "{{count}} containers",
-    "updated_at": "Updated {{time}}",
-    "disconnected_title": "Management service disconnected",
-    "disconnected_description": "Connect to the Toka backend to load DeRouter data.",
-    "partial_title": "Some data is temporarily unavailable",
-    "not_configured_title": "DeRouter is not configured",
-    "not_configured_description": "Set derouter-token in the Toka backend configuration, then reload the configuration or restart the backend service.",
-    "unsupported_title": "This backend does not support the page",
-    "unsupported_description": "Update the Toka backend and ensure the /derouter/containers and /derouter/earnings management endpoints are available.",
-    "load_failed_title": "Failed to load DeRouter data",
-    "empty_title": "No DeRouter containers",
-    "empty_description": "The API is reachable, but the current account has no containers to display.",
-    "errors": {
-      "containers": "Failed to load container data",
-      "earnings": "Failed to load earnings data"
-    },
-    "metrics": {
-      "label": "DeRouter earnings overview",
-      "today": "Today",
-      "week": "This week",
-      "all_time": "All-time earnings",
-      "requests": "All-time requests",
-      "tasks": "{{count}} tasks",
-      "running": "{{running}} / {{total}} containers running"
-    },
-    "containers": {
-      "eyebrow": "Runtime resources",
-      "title": "Containers and accounts",
-      "running": "running",
-      "accounts": "active accounts",
-      "auth_mode": "Auth mode",
-      "region": "Proxy region",
-      "account_count": "Active / total",
-      "tasks": "Tasks",
-      "reputation": "Reputation"
-    },
-    "status": {
-      "running": "Running",
-      "active": "Active",
-      "online": "Online",
-      "healthy": "Healthy",
-      "ready": "Ready",
-      "connected": "Connected",
-      "pending": "Pending",
-      "authenticating": "Authenticating",
-      "starting": "Starting",
-      "initializing": "Initializing",
-      "processing": "Processing",
-      "stopped": "Stopped",
-      "inactive": "Inactive",
-      "offline": "Offline",
-      "error": "Error",
-      "failed": "Failed",
-      "banned": "Banned",
-      "expired": "Expired",
-      "unhealthy": "Unhealthy",
-      "unknown": "Unknown"
-    }
-  },
   "common": {
     "login": "Login",
     "logout": "Logout",
@@ -349,6 +289,7 @@
     "refreshing": "Refreshing...",
     "close": "Close",
     "clear": "Clear",
+    "skip_to_content": "Skip to main content",
     "success": "Success",
     "error": "Error",
     "info": "Info",
@@ -463,7 +404,6 @@
     "usage_stats": "Usage Statistics",
     "pricing": "Model Pricing",
     "request_logs": "Request Logs",
-    "derouter": "DeRouter Data",
     "config_management": "Config Panel",
     "logs": "Logs Viewer",
     "system_info": "Management Center Info"
@@ -534,7 +474,8 @@
     "caring_afternoon": "Steady progress — you're doing great.",
     "caring_evening": "Wrapping up nicely — almost there.",
     "caring_night": "Burning the midnight oil? Don't forget to rest.",
-    "system_overview": "System Overview"
+    "system_overview": "System Overview",
+    "overview_description": "Monitor gateway capacity and review the settings that shape live traffic."
   },
   "basic_settings": {
     "title": "Basic Settings",

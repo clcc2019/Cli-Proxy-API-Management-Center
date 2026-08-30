@@ -139,6 +139,7 @@ const hasRefreshToken = (file: AuthFileItem): boolean => {
 
 export type AuthFileSortSnapshot = {
   disabled: boolean;
+  hasRefreshToken: boolean;
   provider: string;
   priority: number;
   subscriptionExpiryMs: number | null;
@@ -147,6 +148,16 @@ export type AuthFileSortSnapshot = {
 };
 
 export const EMPTY_SORT_SNAPSHOT: Record<string, AuthFileSortSnapshot> = {};
+
+const AUTH_FILE_SORT_SNAPSHOT_CACHE = new WeakMap<
+  AuthFileItem,
+  {
+    claudeQuota?: ClaudeQuotaState;
+    codexQuota?: CodexQuotaState;
+    kimiQuota?: KimiQuotaState;
+    snapshot: AuthFileSortSnapshot;
+  }
+>();
 
 const resolveQuotaRefreshTarget = (file: AuthFileItem): AuthFileQuotaRefreshTarget | null => {
   if (isRuntimeOnlyAuthFile(file) || file.disabled) return null;
@@ -214,8 +225,21 @@ export const getAuthFileSortSnapshot = (
   file: AuthFileItem,
   planSources?: AuthFilePlanSources
 ): AuthFileSortSnapshot => {
+  const claudeQuota = planSources?.claudeQuota[file.name];
+  const codexQuota = planSources?.codexQuota[file.name];
+  const kimiQuota = planSources?.kimiQuota?.[file.name];
+  const cached = AUTH_FILE_SORT_SNAPSHOT_CACHE.get(file);
+  if (
+    cached &&
+    cached.claudeQuota === claudeQuota &&
+    cached.codexQuota === codexQuota &&
+    cached.kimiQuota === kimiQuota
+  ) {
+    return cached.snapshot;
+  }
+
   const planType = normalizePlanType(
-    planSources?.codexQuota[file.name]?.planType ?? resolveCodexPlanType(file)
+    codexQuota?.planType ?? resolveCodexPlanType(file)
   );
   const subscriptionExpiryMs = normalizeSubscriptionExpiryMs(
     resolveCodexSubscriptionActiveUntil(file)
@@ -229,21 +253,29 @@ export const getAuthFileSortSnapshot = (
         ? 1
         : 0;
   const quotaResetTimes = [
-    ...(planSources?.claudeQuota[file.name]?.windows ?? []),
-    ...(planSources?.codexQuota[file.name]?.windows ?? []),
-    ...(planSources?.kimiQuota?.[file.name]?.rows ?? []),
+    ...(claudeQuota?.windows ?? []),
+    ...(codexQuota?.windows ?? []),
+    ...(kimiQuota?.rows ?? []),
   ].flatMap((item) =>
     typeof item.resetAt === 'number' && Number.isFinite(item.resetAt) ? [item.resetAt] : []
   );
 
-  return {
+  const snapshot = {
     disabled: file.disabled === true,
+    hasRefreshToken: hasRefreshToken(file),
     provider: normalizeProviderKey(String(file.provider ?? file.type ?? 'unknown')),
     priority: parsePriorityValue(file.priority ?? file['priority']) ?? 0,
     subscriptionExpiryMs,
     subscriptionSortRank,
     quotaResetMs: quotaResetTimes.length > 0 ? Math.min(...quotaResetTimes) : null,
   };
+  AUTH_FILE_SORT_SNAPSHOT_CACHE.set(file, {
+    claudeQuota,
+    codexQuota,
+    kimiQuota,
+    snapshot,
+  });
+  return snapshot;
 };
 
 export const compareAuthFiles = (
@@ -260,7 +292,7 @@ export const compareAuthFiles = (
     return leftSnapshot.disabled ? 1 : -1;
   }
 
-  const refreshTokenCompare = Number(hasRefreshToken(right)) - Number(hasRefreshToken(left));
+  const refreshTokenCompare = Number(rightSnapshot.hasRefreshToken) - Number(leftSnapshot.hasRefreshToken);
   if (refreshTokenCompare !== 0) return refreshTokenCompare;
 
   if (sortMode === 'default') {

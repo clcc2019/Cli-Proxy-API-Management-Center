@@ -695,6 +695,11 @@
     border-color: var(--prefix-proxy-border);
     box-shadow: none;
   }
+
+  &:focus-visible {
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 2px;
+  }
 }
 
 .prefixProxyTextarea {

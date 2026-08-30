@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useTransition,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -133,8 +134,24 @@ const OAuthModelRulesEditorModal = lazy(() =>
 const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
+const UNPAGED_PERFORMANCE_WARNING_THRESHOLD = 80;
 
 const EMPTY_AUTH_FILE_CARD_NODES: ReactNode[] = [];
+type AuthFileSearchFields = {
+  raw: readonly string[];
+  normalized: readonly string[];
+};
+const AUTH_FILE_SEARCH_FIELDS_CACHE = new WeakMap<AuthFileItem, AuthFileSearchFields>();
+
+const getAuthFileSearchFields = (item: AuthFileItem): AuthFileSearchFields => {
+  const cached = AUTH_FILE_SEARCH_FIELDS_CACHE.get(item);
+  if (cached) return cached;
+
+  const raw = [item.name, item.type, item.provider].map((value) => (value || '').toString());
+  const fields = { raw, normalized: raw.map((value) => value.toLowerCase()) };
+  AUTH_FILE_SEARCH_FIELDS_CACHE.set(item, fields);
+  return fields;
+};
 
 export function AuthFilesPage() {
   const { t } = useTranslation();
@@ -143,6 +160,9 @@ export function AuthFilesPage() {
   const showNotification = useNotificationStore((state) => state.showNotification);
   const connectionStatus = useAuthStore((state) =>
     isCurrentLayer ? state.connectionStatus : 'disconnected'
+  );
+  const authScopeKey = useAuthStore((state) =>
+    isCurrentLayer ? `${state.apiBase ?? ''}::${state.managementKey ?? ''}` : ''
   );
   const resolvedTheme: ResolvedTheme = useThemeStore((state) =>
     isCurrentLayer ? state.resolvedTheme : 'light'
@@ -153,7 +173,7 @@ export function AuthFilesPage() {
     const value = persistedUiState?.filter;
     return typeof value === 'string' && value.trim() ? value : 'all';
   });
-  const [problemOnly] = useState(() => persistedUiState?.problemOnly === true);
+  const [problemOnly, setProblemOnly] = useState(() => persistedUiState?.problemOnly === true);
   const [disabledOnly, setDisabledOnly] = useState(() => persistedUiState?.disabledOnly === true);
   const [planFilter, setPlanFilter] = useState<AuthFilePlanFilter>(() => {
     if (isAuthFilePlanFilter(persistedUiState?.planFilter)) {
@@ -204,6 +224,7 @@ export function AuthFilesPage() {
     names: string[];
     sortSnapshot: Record<string, AuthFileSortSnapshot>;
   } | null>(null);
+  const [isListTransitionPending, startListTransition] = useTransition();
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
   const contentRegionRef = useRef<HTMLDivElement>(null);
   const batchActionAnimationRef = useRef<Animation | null>(null);
@@ -315,6 +336,7 @@ export function AuthFilesPage() {
     uploading,
     deleting,
     deletingAll,
+    batchDeleting,
     statusUpdating,
     batchStatusUpdating,
     listMeta,
@@ -339,6 +361,7 @@ export function AuthFilesPage() {
     applyLocalFileUpdates,
   } = useAuthFilesData({
     refreshKeyStats,
+    enabled: isCurrentLayer,
     listOptions: authFilesListOptions,
     onListMetaResolved: handleListMetaResolved,
     restoreFocusAfterDelete: restoreDeleteFocus,
@@ -392,7 +415,7 @@ export function AuthFilesPage() {
     [providerTypesFromListMetaKey]
   );
   const { excluded, excludedError, modelAlias, modelAliasError, loadExcluded, loadModelAlias } =
-    useAuthFilesOauth();
+    useAuthFilesOauth(authScopeKey);
 
   const {
     modelsModalOpen,
@@ -403,7 +426,7 @@ export function AuthFilesPage() {
     modelsError,
     showModels,
     closeModelsModal,
-  } = useAuthFilesModels();
+  } = useAuthFilesModels(authScopeKey);
 
   const {
     prefixProxyEditor,
@@ -478,7 +501,8 @@ export function AuthFilesPage() {
   }, [debouncedAuthFilesUiState]);
 
   const displayOptionsActive = problemOnly || disabledOnly || planFilterActive;
-  const listUpdating = refreshing || normalizedSearch !== debouncedSearch;
+  const listUpdating =
+    refreshing || normalizedSearch !== debouncedSearch || isListTransitionPending;
 
   useEffect(() => {
     const listBusy = loading || refreshing;
@@ -491,10 +515,12 @@ export function AuthFilesPage() {
   const handleSortModeChange = useCallback(
     (value: string) => {
       if (!isAuthFilesSortMode(value) || value === sortMode) return;
-      setSortMode(value);
-      setPage(1);
+      startListTransition(() => {
+        setSortMode(value);
+        setPage(1);
+      });
     },
-    [sortMode]
+    [sortMode, startListTransition]
   );
 
   const handleHeaderRefresh = useCallback(async () => {
@@ -520,40 +546,60 @@ export function AuthFilesPage() {
   }, [refreshFilesFromServer, refreshKeyStats, refreshStatusDetails]);
 
   const handleToggleDisabledOnly = useCallback(() => {
-    setDisabledOnly((prev) => !prev);
-    setPage(1);
-  }, []);
+    startListTransition(() => {
+      setDisabledOnly((prev) => !prev);
+      setPage(1);
+    });
+  }, [startListTransition]);
+  const handleClearFilters = useCallback(() => {
+    startListTransition(() => {
+      setFilter('all');
+      setSearch('');
+      setProblemOnly(false);
+      setDisabledOnly(false);
+      setPlanFilter('all');
+      setPremiumServerFilterSupported(null);
+      setPage(1);
+    });
+    focusContentRegion();
+  }, [focusContentRegion, startListTransition]);
   const handlePlanFilterChange = useCallback(
     (value: string) => {
       if (!isAuthFilePlanFilter(value) || value === planFilter) return;
-      setPlanFilter(value);
-      if (value !== 'premium') {
-        setPremiumServerFilterSupported(null);
-      }
-      setPage(1);
+      startListTransition(() => {
+        setPlanFilter(value);
+        if (value !== 'premium') {
+          setPremiumServerFilterSupported(null);
+        }
+        setPage(1);
+      });
     },
-    [planFilter]
+    [planFilter, startListTransition]
   );
   const handleSearchValue = useEventCallback((value: string) => {
     setSearch(value);
-    setPage(1);
+    startListTransition(() => setPage(1));
   });
   const handleFilterTagSelect = useCallback(
     (value: string) => {
       if (value === filter) return;
-      setFilter(value);
-      setPage(1);
+      startListTransition(() => {
+        setFilter(value);
+        setPage(1);
+      });
     },
-    [filter]
+    [filter, startListTransition]
   );
   const handlePageSizeCommit = useCallback(
     (next: number) => {
       const clamped = clampCardPageSize(next);
       if (clamped === pageSize) return;
-      setPageSize(clamped);
-      setPage(1);
+      startListTransition(() => {
+        setPageSize(clamped);
+        setPage(1);
+      });
     },
-    [pageSize]
+    [pageSize, startListTransition]
   );
 
   useHeaderRefresh(handleHeaderRefresh, isCurrentLayer);
@@ -644,6 +690,7 @@ export function AuthFilesPage() {
   // 改用 useVisibleInterval：标签页隐藏时不必继续拉取用量聚合
   useVisibleInterval(
     () => {
+      if (manualRefreshPending || loading || refreshing || serverSearchPending) return;
       void refreshKeyStats().catch(() => {});
     },
     isCurrentLayer ? 240_000 : null,
@@ -652,6 +699,7 @@ export function AuthFilesPage() {
 
   useVisibleInterval(
     () => {
+      if (manualRefreshPending || loading || refreshing || serverSearchPending) return;
       if (authFilesIncludeRecentRequestSummary) {
         void refreshFilesFromServer().catch(() => {});
         return;
@@ -856,12 +904,10 @@ export function AuthFilesPage() {
   const matchesDisplaySearch = useCallback(
     (item: AuthFileItem) => {
       if (!displaySearch) return true;
-      return [item.name, item.type, item.provider].some((value) => {
-        const content = (value || '').toString();
-        return wildcardSearch
-          ? wildcardSearch.test(content)
-          : content.toLowerCase().includes(normalizedDisplaySearch);
-      });
+      const fields = getAuthFileSearchFields(item);
+      return wildcardSearch
+        ? fields.raw.some((content) => wildcardSearch.test(content))
+        : fields.normalized.some((content) => content.includes(normalizedDisplaySearch));
     },
     [displaySearch, normalizedDisplaySearch, wildcardSearch]
   );
@@ -1102,11 +1148,12 @@ export function AuthFilesPage() {
     () => selectedNames.some((name) => statusUpdating[name] === true),
     [selectedNames, statusUpdating]
   );
+  const batchActionsBusy = Boolean(deleting) || deletingAll || batchDeleting || batchStatusUpdating;
   const batchStatusButtonsDisabled =
     disableControls ||
     listUpdating ||
     selectedNames.length === 0 ||
-    batchStatusUpdating ||
+    batchActionsBusy ||
     selectedHasStatusUpdating;
   const {
     refresh: handlePageRefreshQuota,
@@ -1127,6 +1174,8 @@ export function AuthFilesPage() {
     disabledOnly ||
     planFilterActive;
   const showWorkbench = showInitialLoading || files.length > 0 || hasActiveFilters;
+  const showUnpagedPerformanceWarning =
+    isCurrentLayer && !serverPaginated && files.length > UNPAGED_PERFORMANCE_WARNING_THRESHOLD;
 
   const copyTextWithNotification = useCallback(
     async (text: string) => {
@@ -1283,7 +1332,7 @@ export function AuthFilesPage() {
   }, []);
 
   const refreshModelRules = useCallback(async () => {
-    await Promise.all([loadExcluded(), loadModelAlias()]);
+    await Promise.all([loadExcluded(true), loadModelAlias(true)]);
   }, [loadExcluded, loadModelAlias]);
 
   const selectionActive = isCurrentLayer && selectionCount > 0;
@@ -1418,9 +1467,7 @@ export function AuthFilesPage() {
     []
   );
 
-  const deleteAllButtonLabel = hasActiveFilters
-    ? t('auth_files.delete_filtered_button')
-    : t('auth_files.delete_all_button');
+  const deleteAllButtonLabel = t('auth_files.delete_all_button');
   const deleteListOptions = useMemo<AuthFilesListOptions>(
     () => ({
       codexSubscription: 'cache',
@@ -1444,23 +1491,27 @@ export function AuthFilesPage() {
   );
 
   const handleDeleteAllClick = useCallback(() => {
+    if (hasActiveFilters) return;
+
     handleDeleteAll({
-      filtered: hasActiveFilters,
-      confirmMessage: t(
-        hasActiveFilters ? 'auth_files.delete_filtered_confirm' : 'auth_files.delete_all_confirm'
-      ),
+      filtered: false,
+      confirmMessage: t('auth_files.delete_all_confirm'),
       listOptions: deleteListOptions,
       matchesFile: matchesDeleteScope,
     });
   }, [deleteListOptions, handleDeleteAll, hasActiveFilters, matchesDeleteScope, t]);
 
   const handlePreviousPage = useCallback(() => {
-    setPage((prev) => Math.max(1, Math.min(prev, currentPage) - 1));
-  }, [currentPage]);
+    startListTransition(() => {
+      setPage((prev) => Math.max(1, Math.min(prev, currentPage) - 1));
+    });
+  }, [currentPage, startListTransition]);
 
   const handleNextPage = useCallback(() => {
-    setPage((prev) => Math.min(totalPages, Math.max(prev, currentPage) + 1));
-  }, [currentPage, totalPages]);
+    startListTransition(() => {
+      setPage((prev) => Math.min(totalPages, Math.max(prev, currentPage) + 1));
+    });
+  }, [currentPage, startListTransition, totalPages]);
 
   const handleSelectPageItems = useCallback(() => {
     selectAllVisible(pageItems);
@@ -1589,13 +1640,15 @@ export function AuthFilesPage() {
                 onClick={handleUploadClick}
                 disabled={disableControls || uploading}
                 loading={uploading}
+                aria-label={t('auth_files.upload_button')}
+                title={t('auth_files.upload_button')}
               >
                 <IconUpload className={refreshStyles.headerActionIcon} size={15} />
                 <span className={refreshStyles.headerActionText}>
                   {t('auth_files.upload_button')}
                 </span>
               </Button>
-              {listTotal > 0 && (
+              {listTotal > 0 && !hasActiveFilters && (
                 <Button
                   variant="danger"
                   size="sm"
@@ -1603,6 +1656,8 @@ export function AuthFilesPage() {
                   onClick={handleDeleteAllClick}
                   disabled={disableControls || loading || listUpdating || deletingAll}
                   loading={deletingAll}
+                  aria-label={deleteAllButtonLabel}
+                  title={deleteAllButtonLabel}
                 >
                   <IconTrash2 className={refreshStyles.headerActionIcon} size={16} />
                   <span className={refreshStyles.headerActionText}>{deleteAllButtonLabel}</span>
@@ -1704,6 +1759,15 @@ export function AuthFilesPage() {
           aria-busy={showInitialLoading || showListProgress || pageQuotaRefreshing}
           tabIndex={-1}
         >
+          {/* Existing cards remain visible while filters refresh; announce that transition to assistive technology. */}
+          <span className={refreshStyles.visuallyHidden} role="status" aria-live="polite" aria-atomic="true">
+            {showListProgress ? t('auth_files.status_refreshing') : ''}
+          </span>
+          {showUnpagedPerformanceWarning && (
+            <p className={refreshStyles.performanceNotice} role="note">
+              {t('auth_files.too_many_files_warning')}
+            </p>
+          )}
           {showInitialLoading ? (
             <AuthFilesSkeletonGrid
               count={pageSize}
@@ -1717,6 +1781,11 @@ export function AuthFilesPage() {
               <EmptyState
                 title={t('auth_files.search_empty_title')}
                 description={t('auth_files.search_empty_desc')}
+                action={
+                  <Button variant="secondary" size="sm" onClick={handleClearFilters}>
+                    {t('auth_files.clear_filters')}
+                  </Button>
+                }
               />
             ) : (
               <EmptyState
@@ -1824,7 +1893,7 @@ export function AuthFilesPage() {
         </Suspense>
       )}
 
-      {typeof document !== 'undefined'
+      {isCurrentLayer && typeof document !== 'undefined'
         ? createPortal(
             <div
               className={refreshStyles.batchContainer}
@@ -1835,6 +1904,7 @@ export function AuthFilesPage() {
               // 读屏器才能把它作为一块可导航的区域列出。
               role="region"
               aria-label={t('auth_files.batch_actions_aria')}
+              aria-busy={batchActionsBusy || undefined}
             >
               <div className={refreshStyles.batchBar}>
                 <div className={refreshStyles.batchGroup}>
@@ -1846,7 +1916,7 @@ export function AuthFilesPage() {
                     variant="secondary"
                     size="sm"
                     onClick={handleSelectPageItems}
-                    disabled={listUpdating || selectablePageItems.length === 0}
+                    disabled={listUpdating || batchActionsBusy || selectablePageItems.length === 0}
                   >
                     {t('auth_files.batch_select_page')}
                   </Button>
@@ -1854,11 +1924,11 @@ export function AuthFilesPage() {
                     variant="ghost"
                     size="sm"
                     onClick={handleInvertPageItems}
-                    disabled={listUpdating || selectablePageItems.length === 0}
+                    disabled={listUpdating || batchActionsBusy || selectablePageItems.length === 0}
                   >
                     {t('auth_files.batch_invert_page')}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAll}>
+                  <Button variant="ghost" size="sm" onClick={deselectAll} disabled={batchActionsBusy}>
                     {t('auth_files.batch_deselect')}
                   </Button>
                 </div>
@@ -1867,7 +1937,12 @@ export function AuthFilesPage() {
                     variant="secondary"
                     size="sm"
                     onClick={handleBatchDownload}
-                    disabled={disableControls || listUpdating || selectedNames.length === 0}
+                    disabled={
+                      disableControls ||
+                      listUpdating ||
+                      batchActionsBusy ||
+                      selectedNames.length === 0
+                    }
                   >
                     {t('auth_files.batch_download')}
                   </Button>
@@ -1890,7 +1965,14 @@ export function AuthFilesPage() {
                     variant="danger"
                     size="sm"
                     onClick={handleBatchDelete}
-                    disabled={disableControls || listUpdating || selectedNames.length === 0}
+                    disabled={
+                      disableControls ||
+                      listUpdating ||
+                      batchActionsBusy ||
+                      selectedNames.length === 0
+                    }
+                    loading={batchDeleting}
+                    aria-busy={batchDeleting || undefined}
                   >
                     {t('common.delete')}
                   </Button>

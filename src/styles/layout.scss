@@ -28,9 +28,22 @@ $breakpoint-shell-compact: 1023px;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
-  background: var(--xai-white);
+  background: var(--mg-canvas);
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    position: fixed;
+    z-index: -1;
+    inset: 0;
+    background:
+      radial-gradient(circle at 86% 0%, rgb(255 255 255 / 24%), transparent 22%),
+      radial-gradient(circle at 18% 100%, rgb(214 220 228 / 28%), transparent 32%);
+    content: '';
+    pointer-events: none;
+  }
 
   @supports (height: 100dvh) {
     min-height: 100dvh;
@@ -59,6 +72,8 @@ $breakpoint-shell-compact: 1023px;
   padding: 0;
   border: 0;
   background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: none;
   pointer-events: none;
 
@@ -456,10 +471,10 @@ $breakpoint-shell-compact: 1023px;
 
 .sidebar {
   position: relative;
-  z-index: var(--xai-z-content);
+  z-index: calc(var(--xai-z-sticky) + 1);
   width: var(--sidebar-width);
   background: var(--sidebar-surface, var(--xai-white));
-  border-right: 0;
+  border-right: 1px solid var(--sidebar-border);
   padding: var(--xai-space-6);
   display: flex;
   flex-direction: column;
@@ -641,8 +656,8 @@ $breakpoint-shell-compact: 1023px;
     gap: var(--xai-space-1-5);
 
     + .nav-group {
-      padding-top: 0;
-      border-top: 0;
+      padding-top: var(--xai-space-4);
+      border-top: 1px solid var(--xai-border-subtle);
     }
   }
 
@@ -743,6 +758,17 @@ $breakpoint-shell-compact: 1023px;
       background: var(--xai-fill-soft);
       color: var(--sidebar-text, var(--xai-ink-console));
       font-weight: var(--sidebar-label-active-weight);
+
+      &::before {
+        position: absolute;
+        top: 7px;
+        bottom: 7px;
+        left: -1px;
+        width: 2px;
+        border-radius: var(--xai-radius-pill);
+        background: var(--sidebar-accent);
+        content: '';
+      }
     }
 
     &.active:active {
@@ -824,7 +850,10 @@ $breakpoint-shell-compact: 1023px;
 
 @media (prefers-reduced-motion: reduce) {
   .main-header .mobile-menu-btn,
+  .main-header .header-actions,
   .main-header .header-actions .btn,
+  .main-header .header-actions .connection,
+  .main-header .language-menu-popover,
   .main-header .language-menu-option,
   .sidebar,
   .sidebar-backdrop,
@@ -849,7 +878,12 @@ $breakpoint-shell-compact: 1023px;
   scrollbar-gutter: stable;
   height: 100%;
   position: relative;
-  background: var(--xai-white);
+  background: var(--mg-canvas);
+
+  > .page-transition {
+    width: min(100%, 1440px);
+    margin-inline: auto;
+  }
 
   @media (max-width: $breakpoint-shell-compact) {
     height: auto;
@@ -883,9 +917,8 @@ $breakpoint-shell-compact: 1023px;
   overflow-x: hidden;
   position: relative;
   isolation: isolate;
-  // xAI Console uses one white shell canvas; grouping belongs to local warm
-  // surfaces rather than a tinted route background.
-  background: var(--xai-white);
+  // Keep the shell canvas quiet; local white surfaces carry grouping and focus.
+  background: var(--mg-canvas);
 
   &.main-content-logs {
     flex: 1 1 auto;
@@ -926,6 +959,37 @@ $breakpoint-shell-compact: 1023px;
   display: none;
 }
 
+.skip-link {
+  position: fixed;
+  z-index: var(--xai-z-toast);
+  top: max(var(--xai-space-2), env(safe-area-inset-top));
+  left: max(var(--xai-space-2), env(safe-area-inset-left));
+  padding: var(--xai-space-2) var(--xai-space-3);
+  border: 1px solid var(--xai-border-hover);
+  border-radius: var(--xai-radius-control);
+  background: var(--xai-white);
+  color: var(--xai-ink-console);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 18px;
+  text-decoration: none;
+  box-shadow: var(--xai-shadow-menu);
+  transform: translateY(calc(-100% - var(--xai-space-4)));
+  transition: transform var(--xai-duration-fast) var(--xai-ease-out);
+}
+
+.skip-link:focus-visible {
+  outline: 1px solid var(--xai-ink-console);
+  outline-offset: 3px;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link {
+    transition: none;
+  }
+}
+
 .main-body {
   height: 100vh;
 
@@ -935,6 +999,7 @@ $breakpoint-shell-compact: 1023px;
 }
 
 .main-content {
+  scroll-margin-top: calc(var(--header-height) + var(--xai-space-3));
   padding-top: calc(var(--header-height) + var(--xai-space-3));
 }
 
@@ -1274,7 +1339,8 @@ $breakpoint-shell-compact: 1023px;
     padding: 3px;
     border: 1px solid var(--xai-border);
     border-radius: var(--xai-radius-pill);
-    background: color-mix(in srgb, var(--xai-white) 94%, var(--xai-warm));
+    background: var(--mg-canvas);
+    background: color-mix(in srgb, var(--mg-canvas) 86%, transparent);
     box-shadow: var(--xai-shadow-button);
 
     > .btn,
@@ -1341,7 +1407,7 @@ $breakpoint-shell-compact: 1023px;
 
   .mobile-menu-btn.btn.icon-button {
     border: 1px solid var(--xai-border);
-    background: var(--xai-white);
+    background: var(--xai-fill-soft);
     box-shadow: var(--xai-shadow-button);
     color: var(--xai-ink-console);
 
@@ -1385,7 +1451,7 @@ $breakpoint-shell-compact: 1023px;
     }
 
     .mobile-menu-btn.btn.icon-button {
-      background: var(--xai-white);
+      background: var(--xai-fill-soft);
     }
   }
 }
