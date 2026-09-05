@@ -74,6 +74,7 @@ interface QuotaConfig<TState, TData> {
   fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<TData>;
   buildLoadingState: () => TState;
   buildSuccessState: (data: TData) => TState;
+  mergeSuccessState?: (previous: TState | undefined, next: TState) => TState;
   buildErrorState: (message: string, status?: number) => TState;
   extractAuthFileUpdate?: (data: TData) => AuthFileItem | null;
   renderQuotaItems: (quota: TState, t: TFunction, helpers: QuotaRenderHelpers) => ReactNode;
@@ -105,12 +106,11 @@ const QUOTA_OPTIONAL_ENRICHMENT_BUDGET_MS = 180;
 const QUOTA_OPTIONAL_ENRICHMENT_CACHE_TTL_MS = 10 * 60_000;
 
 type CachedQuotaEnrichment<T> = { value: T; fetchedAt: number };
-type CodexResetCreditsPayload = Awaited<
-  ReturnType<typeof authFilesApi.getCodexRateLimitResetCredits>
->;
-
 const claudeProfileCache = new Map<string, CachedQuotaEnrichment<ClaudeProfileResponse>>();
-const codexResetCreditsCache = new Map<string, CachedQuotaEnrichment<CodexResetCreditsPayload>>();
+const codexResetCreditsCache = new Map<
+  string,
+  CachedQuotaEnrichment<CodexRateLimitResetCredits>
+>();
 
 const readQuotaEnrichmentCache = <T>(
   cache: Map<string, CachedQuotaEnrichment<T>>,
@@ -431,6 +431,22 @@ const resolveCodexRateLimitReachedType = (payload: CodexUsagePayload): string | 
   return null;
 };
 
+// The endpoint has returned both { rate_limit_reset_credits: {...} } and
+// { available_count: ... } across backend versions. Normalize both shapes before
+// merging the optional response into the usage payload so a valid count is not lost.
+const normalizeCodexRateLimitResetCreditsPayload = (
+  payload: Awaited<ReturnType<typeof authFilesApi.getCodexRateLimitResetCredits>>
+): CodexRateLimitResetCredits | null => {
+  const nested = payload.rate_limit_reset_credits ?? payload.rateLimitResetCredits;
+  const directCount = normalizeNumberValue(payload.available_count ?? payload.availableCount);
+  if (nested && typeof nested === 'object') {
+    const nestedCount = normalizeNumberValue(nested.available_count ?? nested.availableCount);
+    if (nestedCount !== null || directCount === null) return nested;
+    return { ...nested, available_count: directCount };
+  }
+  return directCount === null ? null : { available_count: directCount };
+};
+
 const resolveCodexRateLimitResetCreditsAvailable = (payload: CodexUsagePayload): number | null => {
   const raw = payload.rate_limit_reset_credits ?? payload.rateLimitResetCredits;
   if (!raw || typeof raw !== 'object') return null;
@@ -547,9 +563,13 @@ const fetchCodexQuota = async (
   const resetCreditsCacheKey = `${file.name}:${authIndex ?? ''}`;
   const resetCreditsResultPromise = authFilesApi
     .getCodexRateLimitResetCredits(file.name, authIndex ?? undefined)
-    .then((resetCredits) => {
-      writeQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey, resetCredits);
-      return resetCredits;
+    .then((payload) => {
+      const resetCredits = normalizeCodexRateLimitResetCreditsPayload(payload);
+      if (resetCredits) {
+        writeQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey, resetCredits);
+        return resetCredits;
+      }
+      return readQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey);
     })
     .catch(() => readQuotaEnrichmentCache(codexResetCreditsCache, resetCreditsCacheKey));
   const usagePayload = await authFilesApi.getCodexUsage(
@@ -557,11 +577,9 @@ const fetchCodexQuota = async (
     authIndex ?? undefined,
     'refresh'
   );
-  const resetCreditsPayload = await resetCreditsResultPromise;
-  const detailedResetCredits =
-    resetCreditsPayload?.rate_limit_reset_credits ?? resetCreditsPayload?.rateLimitResetCredits;
-  const payload = detailedResetCredits
-    ? ({ ...usagePayload, rate_limit_reset_credits: detailedResetCredits } as CodexUsagePayload)
+  const resetCredits = await resetCreditsResultPromise;
+  const payload = resetCredits
+    ? ({ ...usagePayload, rate_limit_reset_credits: resetCredits } as CodexUsagePayload)
     : usagePayload;
   if (!payload) {
     throw new Error(t('codex_quota.empty_windows'));
@@ -1063,6 +1081,14 @@ export const CODEX_CONFIG: QuotaConfig<
     rateLimitResetCredits: data.rateLimitResetCredits,
     credits: data.credits,
   }),
+  mergeSuccessState: (previous, next) => {
+    if (next.rateLimitResetCreditsAvailable !== null || !previous) return next;
+    return {
+      ...next,
+      rateLimitResetCreditsAvailable: previous.rateLimitResetCreditsAvailable,
+      rateLimitResetCredits: previous.rateLimitResetCredits,
+    };
+  },
   extractAuthFileUpdate: (data) => data.authFile,
   buildErrorState: (message, status) => ({
     status: 'error',

@@ -39,8 +39,12 @@
 
 .overviewPanel {
   padding: var(--xai-space-5);
+  border: 1px solid var(--usage-border);
   border-radius: var(--xai-radius-card);
-  background: var(--usage-surface-warm);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(255 255 255 / 72%), transparent 32%),
+    var(--usage-surface-warm);
+  box-shadow: 0 12px 30px rgb(35 42 37 / 4%);
 }
 
 .motionSection {
@@ -144,8 +148,11 @@
   display: grid;
   min-height: calc(var(--xai-space-15) * 4);
   place-items: center;
+  border: 1px solid var(--usage-border);
   border-radius: var(--xai-radius-card);
-  background: rgb(255 255 255 / 92%);
+  background: color-mix(in srgb, var(--usage-surface-warm) 88%, var(--xai-canvas));
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .loadingOverlayContent {
@@ -184,6 +191,8 @@
   overflow: hidden;
   border: 1px solid var(--usage-border);
   border-radius: var(--xai-radius-panel);
+  background: var(--usage-surface);
+  box-shadow: 0 10px 28px rgb(35 42 37 / 4%);
 }
 
 .statCard {
@@ -334,8 +343,15 @@
   border: 1px solid var(--usage-border);
   border-radius: var(--xai-radius-card);
   background: var(--usage-surface);
-  box-shadow: none;
+  box-shadow: 0 12px 30px rgb(35 42 37 / 4%);
   transition: border-color var(--xai-duration-default) var(--xai-ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .container :global(.card):hover {
+    border-color: var(--usage-border-strong);
+    box-shadow: 0 16px 34px rgb(35 42 37 / 7%);
+  }
 }
 
 .container :global(.card-header) {
@@ -549,7 +565,6 @@
 }
 
 .requestEventsRowFailed {
-  box-shadow: inset var(--xai-space-1) 0 0 var(--usage-danger);
 }
 
 .requestEventsMeta {

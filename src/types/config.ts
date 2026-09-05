@@ -11,6 +11,7 @@ export interface ClientApiKeyConfig {
   disabled?: boolean;
   allowedModels?: string[];
   excludedModels?: string[];
+  authFiles?: string[];
   quota?: ClientApiKeyQuota;
 }
 

@@ -4,7 +4,7 @@
   max-width: 1440px;
   min-width: 0;
   flex-direction: column;
-  gap: 40px;
+  gap: 36px;
   margin-inline: auto;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
@@ -17,20 +17,8 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 27px;
-  padding: 4.5px 0 18px;
+  padding: 9px 0 22px;
   border-bottom: 1px solid var(--xai-border);
-  position: relative;
-
-  &::before {
-    position: absolute;
-    top: 8px;
-    bottom: 22px;
-    left: -14px;
-    width: 3px;
-    border-radius: var(--xai-radius-pill);
-    background: var(--xai-orange);
-    content: '';
-  }
 }
 
 .heroCopy {
@@ -52,7 +40,7 @@
   margin: 0;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
-  font-size: clamp(31.5px, 3vw, 45px);
+  font-size: clamp(34px, 3.2vw, 50px);
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.04em;
@@ -73,8 +61,12 @@
   min-width: 0;
   flex: 0 0 auto;
   align-items: center;
-  gap: 13.5px;
-  padding-bottom: 4.5px;
+  gap: 9px;
+  padding: 5px 8px 5px 11px;
+  border: 1px solid var(--xai-border);
+  border-radius: var(--xai-radius-pill);
+  background: rgb(255 255 255 / 58%);
+  box-shadow: 0 6px 18px rgb(35 42 37 / 5%);
   color: var(--xai-secondary);
   font-size: 12px;
   line-height: 18px;
@@ -108,7 +100,7 @@
 }
 
 .heroVersion {
-  padding-left: 13.5px;
+  padding-left: 9px;
   border-left: 1px solid var(--xai-border-hover);
   color: var(--xai-secondary);
   font-family: var(--xai-font-mono);
@@ -137,7 +129,8 @@
   overflow: hidden;
   border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-card);
-  background: var(--xai-surface-muted);
+  background: var(--xai-white);
+  box-shadow: 0 14px 34px rgb(35 42 37 / 6%);
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
@@ -153,7 +146,9 @@
   border: 0;
   border-right: 1px solid var(--xai-border-subtle);
   border-radius: 0;
-  background: transparent;
+  // Keep the surface explicit so contrast tooling and high-contrast modes can
+  // resolve the text/background pair without depending on the parent grid.
+  background: var(--xai-white);
   color: inherit;
   text-decoration: none;
   isolation: isolate;
@@ -165,23 +160,29 @@
     box-shadow 150ms var(--xai-ease-standard),
     transform 120ms var(--xai-ease-out);
 
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(to bottom, rgb(10 10 10 / 2%), transparent 62%);
-    opacity: 0;
-    transition: opacity 150ms var(--xai-ease-standard);
-  }
-
   &:last-child {
     border-right: 0;
   }
 
   &:first-child {
     grid-column: span 4;
-    background: var(--xai-white);
+    background: var(--xai-ink-console);
+    color: var(--xai-inverse);
+
+    .bentoMeta,
+    .bentoLabel,
+    .bentoArrow,
+    .bentoValue {
+      color: var(--xai-inverse);
+    }
+
+    .bentoMeta { opacity: 0.62; }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: #242424;
+      }
+    }
   }
 
   &:nth-child(2),
@@ -197,10 +198,6 @@
     &:hover {
       background: var(--xai-fill-soft);
       box-shadow: inset 0 -1px 0 var(--xai-ink-console);
-
-      &::before {
-        opacity: 1;
-      }
 
       .bentoArrow {
         color: var(--xai-ink-console);
@@ -225,7 +222,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--xai-muted);
+  color: var(--xai-secondary);
   font-family: var(--xai-font-mono);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
@@ -282,7 +279,7 @@
   border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-card);
   background: var(--xai-white);
-  box-shadow: 0 10px 30px rgb(54 65 79 / 4%);
+  box-shadow: 0 14px 34px rgb(35 42 37 / 6%);
 }
 
 .gatewayHeader {
@@ -291,7 +288,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 18px 22.5px;
+  padding: 22.5px;
   border-bottom: 1px solid var(--xai-border-subtle);
 }
 

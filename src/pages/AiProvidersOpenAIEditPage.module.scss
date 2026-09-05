@@ -529,7 +529,6 @@
 
 .modelDiscoveryRowSelected {
   background: color-mix(in srgb, var(--openai-editor-sage-soft) 48%, var(--openai-editor-surface));
-  box-shadow: inset 3px 0 0 var(--openai-editor-sage-strong);
 
   &:hover {
     background: color-mix(

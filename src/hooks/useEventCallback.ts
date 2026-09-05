@@ -10,8 +10,9 @@
 
 import { useCallback, useLayoutEffect, useRef } from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useEventCallback<T extends (...args: any[]) => any>(fn: T): T {
+type EventHandler = (...args: never[]) => unknown;
+
+export function useEventCallback<T extends EventHandler>(fn: T): T {
   const ref = useRef<T>(fn);
 
   // 使用 useLayoutEffect 确保在 DOM 更新之前就同步最新的回调，
@@ -21,9 +22,8 @@ export function useEventCallback<T extends (...args: any[]) => any>(fn: T): T {
   });
 
   const stable = useCallback((...args: Parameters<T>): ReturnType<T> => {
-    return ref.current(...args);
+    return ref.current(...args) as ReturnType<T>;
   }, []);
 
   return stable as T;
 }
-

@@ -27,6 +27,25 @@ const normalizeModelPatterns = (value: unknown): string[] => {
   return normalized;
 };
 
+const normalizeAuthFiles = (value: unknown): string[] => {
+  const rawList = Array.isArray(value)
+    ? value
+    : typeof value === 'string'
+      ? value.split(/[\n,]/)
+      : [];
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  rawList.forEach((item) => {
+    const trimmed = String(item ?? '').trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    normalized.push(trimmed);
+  });
+
+  return normalized;
+};
+
 const parseBooleanFlag = (value: unknown): boolean | undefined => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'number') return value !== 0;
@@ -82,6 +101,16 @@ const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
   if (excludedModels.length) {
     config.excludedModels = excludedModels;
   }
+  const authFiles = normalizeAuthFiles(
+    record?.['auth-files'] ??
+      record?.authFiles ??
+      record?.['auth_file'] ??
+      record?.['auth-file'] ??
+      record?.authFile
+  );
+  if (authFiles.length) {
+    config.authFiles = authFiles;
+  }
   if (record) {
     const quota = extractClientApiKeyQuota(record);
     if (quota) {
@@ -98,9 +127,17 @@ const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<strin
   const disabled = Boolean(entry.disabled);
   const allowedModels = normalizeModelPatterns(entry.allowedModels);
   const excludedModels = normalizeModelPatterns(entry.excludedModels);
+  const authFiles = normalizeAuthFiles(entry.authFiles);
   const quota = serializeClientApiKeyQuota(entry.quota);
 
-  if (!note && !disabled && !allowedModels.length && !excludedModels.length && !quota) {
+  if (
+    !note &&
+    !disabled &&
+    !allowedModels.length &&
+    !excludedModels.length &&
+    !authFiles.length &&
+    !quota
+  ) {
     return apiKey;
   }
 
@@ -110,6 +147,7 @@ const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<strin
     ...(disabled ? { disabled: true } : {}),
     ...(allowedModels.length ? { 'allowed-models': allowedModels } : {}),
     ...(excludedModels.length ? { 'excluded-models': excludedModels } : {}),
+    ...(authFiles.length ? { 'auth-files': authFiles } : {}),
     ...(quota ? { quota } : {}),
   };
 };

@@ -976,6 +976,14 @@ export function OAuthModelRulesEditorModal({
                         >
                           {modelsLoading && <LoadingSpinner size={14} />}
                           <span>{modelSourceStatus}</span>
+                          {!modelsLoading && visibleModels.length > 0 && (
+                            <span className={styles.modelSelectionCount}>
+                              {t('oauth_model_rules.selected_count', {
+                                selected: selectedModels.size,
+                                total: visibleModels.length,
+                              })}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

@@ -494,7 +494,6 @@
   gap: 12px;
   padding: 9px 12px;
   border-bottom: 1px solid var(--border-color);
-  border-left: 3px solid transparent;
   background: var(--bg-primary);
   cursor: copy;
   font-family:
@@ -539,13 +538,11 @@
 }
 
 .rowWarn {
-  border-left-color: var(--warning-color);
-  background: linear-gradient(90deg, var(--warning-bg) 0, var(--bg-primary) 42%);
+  background: var(--warning-bg);
 }
 
 .rowError {
-  border-left-color: var(--error-color);
-  background: linear-gradient(90deg, var(--failure-badge-bg) 0, var(--bg-primary) 42%);
+  background: var(--failure-badge-bg);
 }
 
 .timestamp {

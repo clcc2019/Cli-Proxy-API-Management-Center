@@ -39,8 +39,14 @@ $breakpoint-shell-compact: 1023px;
     z-index: -1;
     inset: 0;
     background:
-      radial-gradient(circle at 86% 0%, rgb(255 255 255 / 24%), transparent 22%),
-      radial-gradient(circle at 18% 100%, rgb(214 220 228 / 28%), transparent 32%);
+      radial-gradient(circle at 92% -8%, rgb(255 255 255 / 68%), transparent 29%),
+      radial-gradient(circle at 8% 108%, rgb(215 221 211 / 42%), transparent 35%),
+      linear-gradient(
+        115deg,
+        transparent 0 46%,
+        rgb(255 255 255 / 18%) 46.1% 46.3%,
+        transparent 46.4%
+      );
     content: '';
     pointer-events: none;
   }
@@ -135,11 +141,14 @@ $breakpoint-shell-compact: 1023px;
   .header-actions {
     right: max(var(--shell-gutter), env(safe-area-inset-right));
     max-width: min(560px, calc(100vw - var(--sidebar-width) - 44px));
-    gap: var(--xai-space-1);
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--xai-border);
+    border-radius: var(--xai-radius-pill);
+    background: rgb(255 255 255 / 78%);
+    box-shadow: 0 8px 24px rgb(35 42 37 / 8%);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
     flex-shrink: 1;
 
     .language-menu {
@@ -286,8 +295,8 @@ $breakpoint-shell-compact: 1023px;
     min-height: var(--xai-space-8);
     padding: 0 var(--xai-space-3);
     border-radius: var(--xai-radius-pill);
-    background: var(--xai-white);
-    border: 1px solid var(--xai-border);
+    background: transparent;
+    border: 1px solid transparent;
     box-shadow: none;
     transition:
       background-color var(--xai-duration-default) var(--xai-ease-standard),
@@ -473,7 +482,7 @@ $breakpoint-shell-compact: 1023px;
   position: relative;
   z-index: calc(var(--xai-z-sticky) + 1);
   width: var(--sidebar-width);
-  background: var(--sidebar-surface, var(--xai-white));
+  background: color-mix(in srgb, var(--sidebar-surface, var(--xai-white)) 88%, var(--xai-canvas));
   border-right: 1px solid var(--sidebar-border);
   padding: var(--xai-space-6);
   display: flex;
@@ -485,7 +494,7 @@ $breakpoint-shell-compact: 1023px;
   flex-shrink: 0;
   height: 100%;
   isolation: isolate;
-  box-shadow: none;
+  box-shadow: inset -1px 0 0 rgb(255 255 255 / 45%);
   color: var(--sidebar-text, var(--xai-ink-console));
   font-family: var(--xai-font-ui);
 
@@ -616,8 +625,8 @@ $breakpoint-shell-compact: 1023px;
 
   .sidebar-brand-name {
     color: var(--sidebar-text, var(--xai-ink-console));
-    font-size: 13.5px;
-    font-weight: 500;
+    font-size: 15px;
+    font-weight: 600;
     letter-spacing: 0;
     line-height: 18px;
   }
@@ -665,7 +674,7 @@ $breakpoint-shell-compact: 1023px;
     height: 18px;
     padding: 0 var(--xai-space-2);
     overflow: hidden;
-    color: var(--sidebar-text-tertiary, var(--xai-muted));
+    color: var(--xai-secondary);
     font-size: 13.5px;
     font-weight: 500;
     letter-spacing: 0;
@@ -755,19 +764,14 @@ $breakpoint-shell-compact: 1023px;
     }
 
     &.active {
-      background: var(--xai-fill-soft);
-      color: var(--sidebar-text, var(--xai-ink-console));
+      // Selection uses a quiet neutral surface rather than a high-contrast
+      // black block, keeping the navigation subordinate to page content.
+      background: var(--xai-fill-pressed);
+      color: var(--xai-ink-console);
       font-weight: var(--sidebar-label-active-weight);
 
-      &::before {
-        position: absolute;
-        top: 7px;
-        bottom: 7px;
-        left: -1px;
-        width: 2px;
-        border-radius: var(--xai-radius-pill);
-        background: var(--sidebar-accent);
-        content: '';
+      .nav-icon {
+        color: var(--xai-ink-console);
       }
     }
 

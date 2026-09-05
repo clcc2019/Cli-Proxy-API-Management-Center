@@ -147,7 +147,7 @@
   border: 1px solid var(--request-border);
   border-radius: var(--mg-radius-card);
   background: var(--request-surface);
-  box-shadow: none;
+  box-shadow: 0 12px 30px rgb(35 42 37 / 4%);
 }
 
 .toolbar {

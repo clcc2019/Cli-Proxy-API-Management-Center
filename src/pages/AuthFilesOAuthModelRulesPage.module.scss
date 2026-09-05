@@ -94,6 +94,7 @@
     max-height: min(74vh, 720px);
     padding: 0;
     overflow: auto;
+    scroll-padding-block: 16px;
     background: var(--oauth-modal-surface);
     scrollbar-color: var(--oauth-modal-border-strong) transparent;
     scrollbar-width: thin;
@@ -399,6 +400,14 @@
   span {
     min-width: 0;
   }
+}
+
+.modelSelectionCount {
+  padding-left: 8px;
+  border-left: 1px solid var(--oauth-modal-border);
+  color: var(--oauth-modal-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .modelList {
@@ -838,6 +847,8 @@
 
     :global(.modal-body) {
       max-height: none;
+      // Keep focused controls and disclosure actions clear of the mobile footer.
+      scroll-padding-bottom: 140px;
     }
   }
 

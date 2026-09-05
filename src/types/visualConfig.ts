@@ -67,6 +67,7 @@ export interface VisualApiKeyEntry {
   disabled: boolean;
   allowedModels: string[];
   excludedModels: string[];
+  authFiles: string[];
   quota?: ClientApiKeyQuota;
 }
 

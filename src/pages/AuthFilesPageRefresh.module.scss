@@ -5218,7 +5218,7 @@
 
 @container auth-files-page (max-width: 767px) {
   .page .searchToolbar {
-    grid-template-columns: minmax(0, 1fr) var(--mg-hit-area) var(--mg-hit-area);
+    grid-template-columns: minmax(0, 1fr) var(--xai-space-8) var(--xai-space-8);
   }
 
   .page .searchToolbar > :not(.searchField),
@@ -5228,10 +5228,6 @@
   .page .headerAction:global(.btn.btn-sm),
   .page .cardSelection,
   .page .cardNameButton,
-  .page .priorityControl,
-  .page .priorityStepper,
-  .page .priorityStepButton,
-  .page .priorityInput,
   .page .credentialCard .cardStatusControl,
   .page .credentialCard .cardStatusToggle,
   .page .credentialCard .cardToggleSwitch,
@@ -5241,7 +5237,7 @@
   .page .statusBlockWrapper,
   .page .rulesAddButton:global(.btn.btn-sm),
   .page .codexResetCreditButton:global(.btn.btn-sm) {
-    min-height: var(--mg-hit-area);
+    min-height: var(--xai-space-8);
   }
 
   .page .searchToolbar > :not(.searchField),
@@ -5249,24 +5245,17 @@
   .page .quotaRefreshButton:global(.btn.btn-sm),
   .page .headerAction:global(.btn.btn-sm),
   .page .cardSelection,
-  .page .priorityStepButton,
-  .page .priorityInput,
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: var(--mg-hit-area);
-    min-width: var(--mg-hit-area);
-    height: var(--mg-hit-area);
-    flex-basis: var(--mg-hit-area);
-  }
-
-  .page .priorityStepper,
-  .page .priorityInput {
-    height: var(--mg-hit-area);
+    width: var(--xai-space-8);
+    min-width: var(--xai-space-8);
+    height: var(--xai-space-8);
+    flex-basis: var(--xai-space-8);
   }
 
   .page .credentialCard .runtimeModelAction:global(.btn.btn-sm),
   .page .codexResetCreditButton:global(.btn.btn-sm) {
     width: auto;
-    min-width: var(--mg-hit-area);
+    min-width: var(--xai-space-8);
     flex-basis: auto;
   }
 }

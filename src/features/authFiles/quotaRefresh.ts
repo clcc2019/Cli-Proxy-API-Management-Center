@@ -19,6 +19,10 @@ type AuthFileQuotaConfig = {
   fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<unknown>;
   buildLoadingState: () => AuthFileQuotaState;
   buildSuccessState: (data: unknown) => AuthFileQuotaState;
+  mergeSuccessState?: (
+    previous: AuthFileQuotaState | undefined,
+    next: AuthFileQuotaState
+  ) => AuthFileQuotaState;
   buildErrorState: (message: string, status?: number) => AuthFileQuotaState;
   extractAuthFileUpdate?: (data: unknown) => AuthFileItem | null;
   renderQuotaItems: (quota: AuthFileQuotaState, t: TFunction, helpers: unknown) => unknown;
@@ -172,10 +176,13 @@ export async function refreshAuthFileQuota(options: {
     setLoadingQuota(update, fileName, config);
     const data = await config.fetchQuota(file, t);
     const authFile = config.extractAuthFileUpdate?.(data) ?? null;
-    update((previous) => ({
-      ...previous,
-      [fileName]: config.buildSuccessState(data),
-    }));
+    update((previous) => {
+      const next = config.buildSuccessState(data);
+      return {
+        ...previous,
+        [fileName]: config.mergeSuccessState?.(previous[fileName], next) ?? next,
+      };
+    });
     if (authFile) onAuthFileUpdated?.(authFile);
     return authFile ? { status: 'success', fileName, authFile } : { status: 'success', fileName };
   } catch (error) {

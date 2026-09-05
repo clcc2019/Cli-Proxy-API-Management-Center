@@ -1,4 +1,14 @@
-import { memo, useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useEventCallback } from '@/hooks';
 import { Button } from '@/components/ui/Button';
@@ -7,11 +17,15 @@ import { Select } from '@/components/ui/Select';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   IconCopy,
+  IconCheck,
+  IconChevronDown,
   IconFileText,
   IconKey,
   IconPlus,
   IconSearch,
   IconSettings,
+  IconShield,
+  IconSlidersHorizontal,
   IconTrash2,
   IconX,
 } from '@/components/ui/icons';
@@ -43,6 +57,7 @@ import {
 import { maskApiKey } from '@/utils/format';
 import { isValidApiKeyCharset } from '@/utils/validation';
 import type { ClientApiKeyQuota } from '@/types/config';
+import { authFilesApi } from '@/services/api/authFiles';
 import {
   CLIENT_API_KEY_QUOTA_FIELDS,
   clientApiKeyQuotaLimitCount,
@@ -55,6 +70,7 @@ const EXPAND_THRESHOLD = 30;
 
 type QuotaInputValues = Record<ClientApiKeyQuotaField, string>;
 type ApiKeyListFilter = 'all' | 'active' | 'disabled';
+type ApiKeyModalSection = 'identity' | 'access' | 'limits';
 
 const emptyQuotaInputValues = (): QuotaInputValues => ({
   dailyCost: '',
@@ -191,6 +207,195 @@ function ExpandableInput({
   );
 }
 
+type SearchableAuthFilesSelectProps = {
+  options: string[];
+  value: string[];
+  onChange: (value: string[]) => void;
+  disabled?: boolean;
+  loading?: boolean;
+  emptyLabel: string;
+  loadingLabel: string;
+  searchLabel: string;
+  searchPlaceholder: string;
+  selectedLabel: (count: number) => string;
+  clearLabel: string;
+  ariaDescribedBy?: string;
+  ariaLabel?: string;
+};
+
+function SearchableAuthFilesSelect({
+  options,
+  value,
+  onChange,
+  disabled = false,
+  loading = false,
+  emptyLabel,
+  loadingLabel,
+  searchLabel,
+  searchPlaceholder,
+  selectedLabel,
+  clearLabel,
+  ariaDescribedBy,
+  ariaLabel,
+}: SearchableAuthFilesSelectProps) {
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties | null>(null);
+
+  const filteredOptions = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return options;
+    return options.filter((option) => option.toLowerCase().includes(normalized));
+  }, [options, query]);
+
+  const updatePosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(Math.max(rect.width, 280), window.innerWidth - 16);
+    const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    if (spaceBelow >= 260 || spaceBelow >= spaceAbove) {
+      setDropdownStyle({ top: rect.bottom + 6, left, width, maxHeight: Math.max(180, spaceBelow) });
+    } else {
+      setDropdownStyle({
+        bottom: window.innerHeight - rect.top + 6,
+        left,
+        width,
+        maxHeight: Math.max(180, spaceAbove),
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open || disabled) return undefined;
+    const handleOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (triggerRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [disabled, open, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    searchRef.current?.focus();
+  }, [open, updatePosition]);
+
+  const toggleOption = (option: string) => {
+    const next = value.includes(option)
+      ? value.filter((item) => item !== option)
+      : [...value, option];
+    onChange(next);
+  };
+
+  const displayLabel = value.length > 0 ? selectedLabel(value.length) : emptyLabel;
+  const dropdown =
+    open && dropdownStyle && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            ref={dropdownRef}
+            className={apiKeyCardStyles.authFilesDropdown}
+            style={dropdownStyle}
+          >
+            <div className={apiKeyCardStyles.authFilesSearchRow}>
+              <IconSearch size={15} aria-hidden="true" />
+              <input
+                ref={searchRef}
+                className={apiKeyCardStyles.authFilesSearchInput}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={searchPlaceholder}
+                aria-label={searchLabel}
+              />
+              {value.length > 0 && (
+                <button
+                  type="button"
+                  className={apiKeyCardStyles.authFilesClear}
+                  onClick={() => onChange([])}
+                >
+                  {clearLabel}
+                </button>
+              )}
+            </div>
+            <div
+              className={apiKeyCardStyles.authFilesOptions}
+              role="listbox"
+              aria-multiselectable="true"
+            >
+              {loading ? (
+                <div className={apiKeyCardStyles.authFilesEmpty}>{loadingLabel}</div>
+              ) : filteredOptions.length === 0 ? (
+                <div className={apiKeyCardStyles.authFilesEmpty}>{emptyLabel}</div>
+              ) : (
+                filteredOptions.map((option) => {
+                  const selected = value.includes(option);
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      className={`${apiKeyCardStyles.authFilesOption} ${selected ? apiKeyCardStyles.authFilesOptionSelected : ''}`}
+                      onClick={() => toggleOption(option)}
+                    >
+                      <span className={apiKeyCardStyles.authFilesCheck} aria-hidden="true">
+                        {selected && <IconCheck size={13} />}
+                      </span>
+                      <span>{option}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        className={apiKeyCardStyles.authFilesTrigger}
+        onClick={() => {
+          setOpen((current) => !current);
+          setQuery('');
+        }}
+        disabled={disabled}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-describedby={ariaDescribedBy}
+        aria-label={ariaLabel}
+      >
+        <span className={value.length > 0 ? '' : apiKeyCardStyles.authFilesPlaceholder}>
+          {displayLabel}
+        </span>
+        <IconChevronDown size={15} aria-hidden="true" />
+      </button>
+      {dropdown}
+    </>
+  );
+}
+
 function getValidationMessage(
   t: ReturnType<typeof useTranslation>['t'],
   errorCode?: PayloadParamValidationErrorCode
@@ -243,9 +448,7 @@ type ApiKeyListEntry = {
 };
 
 type ApiKeysChange = (
-  nextValue:
-    | VisualApiKeyEntry[]
-    | ((currentValue: VisualApiKeyEntry[]) => VisualApiKeyEntry[])
+  nextValue: VisualApiKeyEntry[] | ((currentValue: VisualApiKeyEntry[]) => VisualApiKeyEntry[])
 ) => void;
 
 type ApiKeyCardRowProps = {
@@ -273,14 +476,12 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
   const note = (entry.note ?? '').trim();
   const isDisabled = Boolean(entry.disabled);
   const hasRules = entry.allowedModels.length > 0 || entry.excludedModels.length > 0;
+  const hasAuthFiles = entry.authFiles.length > 0;
   const hasQuota = hasClientApiKeyQuota(entry.quota);
 
   return (
     <article
-      className={[
-        apiKeyCardStyles.card,
-        isDisabled ? apiKeyCardStyles.cardDisabled : '',
-      ]
+      className={[apiKeyCardStyles.card, isDisabled ? apiKeyCardStyles.cardDisabled : '']
         .filter(Boolean)
         .join(' ')}
     >
@@ -306,9 +507,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
       </div>
 
       <div className={apiKeyCardStyles.scopeCell}>
-        <span className={apiKeyCardStyles.mobileCellLabel}>
-          {t('api_keys.column_scope')}
-        </span>
+        <span className={apiKeyCardStyles.mobileCellLabel}>{t('api_keys.column_scope')}</span>
         <div className={apiKeyCardStyles.summaryRow}>
           {hasRules && (
             <span className={apiKeyCardStyles.summaryChip}>
@@ -320,26 +519,30 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
           )}
           {hasQuota && (
             <span
-              className={[
-                apiKeyCardStyles.summaryChip,
-                apiKeyCardStyles.summaryChipQuota,
-              ].join(' ')}
+              className={[apiKeyCardStyles.summaryChip, apiKeyCardStyles.summaryChipQuota].join(
+                ' '
+              )}
             >
               {t('config_management.visual.api_keys.quota_summary', {
                 count: clientApiKeyQuotaLimitCount(entry.quota),
               })}
             </span>
           )}
-          {!hasRules && !hasQuota && (
+          {hasAuthFiles && (
+            <span className={apiKeyCardStyles.summaryChip}>
+              {t('config_management.visual.api_keys.auth_files_summary', {
+                count: entry.authFiles.length,
+              })}
+            </span>
+          )}
+          {!hasRules && !hasQuota && !hasAuthFiles && (
             <span className={apiKeyCardStyles.noScope}>{t('api_keys.scope_open')}</span>
           )}
         </div>
       </div>
 
       <div className={apiKeyCardStyles.statusCell}>
-        <span className={apiKeyCardStyles.mobileCellLabel}>
-          {t('api_keys.column_status')}
-        </span>
+        <span className={apiKeyCardStyles.mobileCellLabel}>{t('api_keys.column_status')}</span>
         <span
           className={[
             apiKeyCardStyles.statusBadge,
@@ -371,10 +574,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
           size="sm"
           onClick={() => onCopyFull(entry.apiKey)}
           disabled={disabled}
-          className={[
-            apiKeyCardStyles.iconButton,
-            apiKeyCardStyles.copyFullButton,
-          ].join(' ')}
+          className={[apiKeyCardStyles.iconButton, apiKeyCardStyles.copyFullButton].join(' ')}
           title={t('config_management.visual.api_keys.copy_full_hint')}
           aria-label={t('config_management.visual.api_keys.copy_full')}
         >
@@ -385,10 +585,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
           size="sm"
           onClick={() => onCopyKey(entry.apiKey)}
           disabled={disabled}
-          className={[
-            apiKeyCardStyles.iconButton,
-            apiKeyCardStyles.copyKeyButton,
-          ].join(' ')}
+          className={[apiKeyCardStyles.iconButton, apiKeyCardStyles.copyKeyButton].join(' ')}
           title={t('config_management.visual.api_keys.copy_key_only')}
           aria-label={t('config_management.visual.api_keys.copy_key_only')}
         >
@@ -399,10 +596,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
           size="sm"
           onClick={() => onEdit(entry)}
           disabled={disabled}
-          className={[
-            apiKeyCardStyles.iconButton,
-            apiKeyCardStyles.editButton,
-          ].join(' ')}
+          className={[apiKeyCardStyles.iconButton, apiKeyCardStyles.editButton].join(' ')}
           title={t('config_management.visual.common.edit')}
           aria-label={t('config_management.visual.common.edit')}
         >
@@ -413,10 +607,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
           size="sm"
           onClick={() => onDelete(entry.id)}
           disabled={disabled}
-          className={[
-            apiKeyCardStyles.iconButton,
-            apiKeyCardStyles.deleteButton,
-          ].join(' ')}
+          className={[apiKeyCardStyles.iconButton, apiKeyCardStyles.deleteButton].join(' ')}
           title={t('config_management.visual.common.delete')}
           aria-label={t('config_management.visual.common.delete')}
         >
@@ -486,6 +677,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
 }) {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const apiBase = useAuthStore((state) => state.apiBase);
   const apiKeys = useMemo(() => value ?? [], [value]);
   const apiUrl = useMemo(() => buildOpenAiBaseUrl(apiBase || ''), [apiBase]);
@@ -496,13 +688,20 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const noteInputId = `${apiKeyInputId}-note`;
   const noteHintId = `${noteInputId}-hint`;
   const quotaHintId = `${apiKeyInputId}-quota-hint`;
+  const authFilesHintId = `${apiKeyInputId}-auth-files-hint`;
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalSection, setModalSection] = useState<ApiKeyModalSection>('identity');
   const [editingApiKeyId, setEditingApiKeyId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [noteValue, setNoteValue] = useState('');
   const [disabledValue, setDisabledValue] = useState(false);
   const [allowedModelsValue, setAllowedModelsValue] = useState('');
   const [excludedModelsValue, setExcludedModelsValue] = useState('');
+  const [authFilesValue, setAuthFilesValue] = useState<string[]>([]);
+  const authFilesValueRef = useRef(authFilesValue);
+  const [authFileOptions, setAuthFileOptions] = useState<string[]>([]);
+  const [authFilesLoading, setAuthFilesLoading] = useState(false);
+  const [authFilesLoadError, setAuthFilesLoadError] = useState(false);
   const [quotaValues, setQuotaValues] = useState<QuotaInputValues>(() => emptyQuotaInputValues());
   const [formError, setFormError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -523,11 +722,16 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
         if (listFilter === 'disabled' && !entry.disabled) return false;
         if (!query) return true;
 
-        return [entry.apiKey, entry.note, ...entry.allowedModels, ...entry.excludedModels].some(
-          (value) =>
-            String(value ?? '')
-              .toLowerCase()
-              .includes(query)
+        return [
+          entry.apiKey,
+          entry.note,
+          ...entry.allowedModels,
+          ...entry.excludedModels,
+          ...entry.authFiles,
+        ].some((value) =>
+          String(value ?? '')
+            .toLowerCase()
+            .includes(query)
         );
       });
   }, [apiKeys, listFilter, searchQuery]);
@@ -546,8 +750,13 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setDisabledValue(false);
     setAllowedModelsValue('');
     setExcludedModelsValue('');
+    setAuthFilesValue([]);
+    setAuthFileOptions([]);
+    setAuthFilesLoading(true);
+    setAuthFilesLoadError(false);
     setQuotaValues(emptyQuotaInputValues());
     setFormError('');
+    setModalSection('identity');
     setModalOpen(true);
   };
 
@@ -558,8 +767,13 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setDisabledValue(Boolean(entry.disabled));
     setAllowedModelsValue(excludedModelsToText(entry.allowedModels));
     setExcludedModelsValue(excludedModelsToText(entry.excludedModels));
+    setAuthFilesValue(entry.authFiles ?? []);
+    setAuthFileOptions(entry.authFiles ?? []);
+    setAuthFilesLoading(true);
+    setAuthFilesLoadError(false);
     setQuotaValues(quotaToInputValues(entry.quota));
     setFormError('');
+    setModalSection('identity');
     setModalOpen(true);
   }, []);
 
@@ -570,16 +784,63 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setDisabledValue(false);
     setAllowedModelsValue('');
     setExcludedModelsValue('');
+    setAuthFilesValue([]);
+    setAuthFileOptions([]);
+    setAuthFilesLoading(false);
     setQuotaValues(emptyQuotaInputValues());
     setEditingApiKeyId(null);
     setFormError('');
+    setModalSection('identity');
   };
+
+  useEffect(() => {
+    authFilesValueRef.current = authFilesValue;
+  }, [authFilesValue]);
+
+  useEffect(() => {
+    if (!modalOpen) return undefined;
+    let active = true;
+    void authFilesApi
+      .list({ includeRecentRequests: false })
+      .then((response) => {
+        if (!active) return;
+        const names = (response.files ?? [])
+          .map((file) => String(file.name ?? '').trim())
+          .filter(Boolean);
+        setAuthFileOptions(
+          Array.from(new Set([...names, ...authFilesValueRef.current])).sort((left, right) =>
+            left.localeCompare(right, undefined, { sensitivity: 'accent' })
+          )
+        );
+      })
+      .catch(() => {
+        if (active) setAuthFilesLoadError(true);
+      })
+      .finally(() => {
+        if (active) setAuthFilesLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [modalOpen]);
 
   const handleDelete = useCallback(
     (apiKeyId: string) => {
-      onChange((currentValue) => currentValue.filter((entry) => entry.id !== apiKeyId));
+      const entry = apiKeys.find((item) => item.id === apiKeyId);
+      showConfirmation({
+        title: t('api_keys.delete_title'),
+        message: t('api_keys.delete_confirm_named', {
+          name: entry?.note?.trim() || maskApiKey(entry?.apiKey ?? ''),
+        }),
+        confirmText: t('config_management.visual.common.delete'),
+        cancelText: t('config_management.visual.common.cancel'),
+        variant: 'danger',
+        onConfirm: () => {
+          onChange((currentValue) => currentValue.filter((item) => item.id !== apiKeyId));
+        },
+      });
     },
-    [onChange]
+    [apiKeys, onChange, showConfirmation, t]
   );
 
   const handleToggleDisabled = useCallback(
@@ -597,17 +858,23 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     const trimmed = inputValue.trim();
     if (!trimmed) {
       setFormError(t('config_management.visual.api_keys.error_empty'));
+      setModalSection('identity');
       return;
     }
     if (!isValidApiKeyCharset(trimmed)) {
       setFormError(t('config_management.visual.api_keys.error_invalid'));
+      setModalSection('identity');
       return;
     }
     const allowedModels = parseTextList(allowedModelsValue);
     const excludedModels = parseExcludedModels(excludedModelsValue);
+    const authFiles = Array.from(
+      new Set(authFilesValue.map((file) => file.trim()).filter(Boolean))
+    );
     const parsedQuota = parseQuotaInputValues(quotaValues);
     if (!parsedQuota.ok) {
       setFormError(t('config_management.visual.api_keys.quota_error_invalid'));
+      setModalSection('limits');
       return;
     }
     const nextEntry: VisualApiKeyEntry = {
@@ -617,6 +884,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
       disabled: disabledValue,
       allowedModels,
       excludedModels,
+      authFiles,
       ...(parsedQuota.quota ? { quota: parsedQuota.quota } : {}),
     };
     const nextKeys =
@@ -661,15 +929,10 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     <section className={apiKeyCardStyles.editor} aria-labelledby="api-key-list-title">
       <div className={apiKeyCardStyles.headerRow}>
         <div className={apiKeyCardStyles.headerCopy}>
-          <span className={apiKeyCardStyles.headerKicker}>
-            {t('config_management.visual.api_keys.label')}
-          </span>
           <h2 id="api-key-list-title" className={apiKeyCardStyles.headerLabel}>
             {t('api_keys.section_title')}
           </h2>
-          <p className={apiKeyCardStyles.headerHint}>
-            {t('config_management.visual.api_keys.hint')}
-          </p>
+          <p className={apiKeyCardStyles.headerDescription}>{t('api_keys.section_description')}</p>
         </div>
         <Button
           size="sm"
@@ -785,16 +1048,33 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
       <Modal
         open={modalOpen}
         onClose={closeModal}
-        width={680}
+        width={820}
         fullScreenOnMobile
         className={apiKeyCardStyles.modal}
         title={
-          editingApiKeyId !== null
-            ? t('config_management.visual.api_keys.edit_title')
-            : t('config_management.visual.api_keys.add_title')
+          <div className={apiKeyCardStyles.modalTitleBlock}>
+            <span className={apiKeyCardStyles.modalEyebrow}>
+              <IconKey size={13} />
+              {editingApiKeyId !== null
+                ? t('api_keys.modal_edit_eyebrow')
+                : t('api_keys.modal_add_eyebrow')}
+            </span>
+            <span className={apiKeyCardStyles.modalTitleText}>
+              {editingApiKeyId !== null
+                ? t('config_management.visual.api_keys.edit_title')
+                : t('config_management.visual.api_keys.add_title')}
+            </span>
+          </div>
         }
         footer={
           <>
+            <span className={apiKeyCardStyles.modalFooterHint}>
+              {modalSection === 'identity'
+                ? t('api_keys.modal_step_identity')
+                : modalSection === 'access'
+                  ? t('api_keys.modal_step_access')
+                  : t('api_keys.modal_step_limits')}
+            </span>
             <Button variant="secondary" onClick={closeModal} disabled={disabled}>
               {t('config_management.visual.common.cancel')}
             </Button>
@@ -806,135 +1086,241 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
           </>
         }
       >
-        <div className={apiKeyCardStyles.modalForm}>
-          <div className={apiKeyCardStyles.modalIntro}>
-            <span>{t('config_management.visual.api_keys.input_hint')}</span>
-          </div>
-          <div className="form-group">
-            <label htmlFor={apiKeyInputId}>
-              {t('config_management.visual.api_keys.input_label')}
-            </label>
-            <div className={styles.apiKeyModalInputRow}>
-              <input
-                id={apiKeyInputId}
-                className="input"
-                placeholder={t('config_management.visual.api_keys.input_placeholder')}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                disabled={disabled}
-                aria-describedby={formError ? `${apiKeyErrorId} ${apiKeyHintId}` : apiKeyHintId}
-                aria-invalid={Boolean(formError)}
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleGenerate}
-                disabled={disabled}
-              >
-                {t('config_management.visual.api_keys.generate')}
-              </Button>
-            </div>
-            <div id={apiKeyHintId} className="hint">
-              {t('config_management.visual.api_keys.input_hint')}
-            </div>
-            {formError && (
-              <div id={apiKeyErrorId} className="error-box" role="alert">
-                {formError}
+        <div className={apiKeyCardStyles.modalLayout}>
+          <nav
+            className={apiKeyCardStyles.modalNav}
+            aria-label={t('api_keys.modal_sections_label')}
+          >
+            <button
+              type="button"
+              className={modalSection === 'identity' ? apiKeyCardStyles.modalNavActive : ''}
+              onClick={() => setModalSection('identity')}
+              aria-current={modalSection === 'identity' ? 'step' : undefined}
+            >
+              <IconKey size={16} />
+              <span>{t('api_keys.modal_section_identity')}</span>
+              <small>01</small>
+            </button>
+            <button
+              type="button"
+              className={modalSection === 'access' ? apiKeyCardStyles.modalNavActive : ''}
+              onClick={() => setModalSection('access')}
+              aria-current={modalSection === 'access' ? 'step' : undefined}
+            >
+              <IconShield size={16} />
+              <span>{t('api_keys.modal_section_access')}</span>
+              <small>02</small>
+            </button>
+            <button
+              type="button"
+              className={modalSection === 'limits' ? apiKeyCardStyles.modalNavActive : ''}
+              onClick={() => setModalSection('limits')}
+              aria-current={modalSection === 'limits' ? 'step' : undefined}
+            >
+              <IconSlidersHorizontal size={16} />
+              <span>{t('api_keys.modal_section_limits')}</span>
+              <small>03</small>
+            </button>
+          </nav>
+
+          <div className={apiKeyCardStyles.modalForm}>
+            {modalSection === 'identity' && (
+              <div className={apiKeyCardStyles.modalSectionIntro}>
+                <span>{t('api_keys.modal_section_identity_kicker')}</span>
+                <p>{t('api_keys.modal_section_identity_description')}</p>
               </div>
             )}
-          </div>
-          <div className="form-group">
-            <label htmlFor={noteInputId}>{t('config_management.visual.api_keys.note_label')}</label>
-            <input
-              id={noteInputId}
-              className="input"
-              placeholder={t('config_management.visual.api_keys.note_placeholder')}
-              value={noteValue}
-              onChange={(e) => setNoteValue(e.target.value)}
-              disabled={disabled}
-              aria-describedby={noteHintId}
-              maxLength={120}
-            />
-            <div id={noteHintId} className="hint">
-              {t('config_management.visual.api_keys.note_hint')}
-            </div>
-          </div>
-          <div className="form-group">
-            <ToggleSwitch
-              checked={!disabledValue}
-              onChange={(enabled) => setDisabledValue(!enabled)}
-              disabled={disabled}
-              label={t('config_management.visual.api_keys.enabled_toggle')}
-              ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
-            />
-            <div className="hint">{t('config_management.visual.api_keys.disabled_hint')}</div>
-          </div>
-          <div className={apiKeyCardStyles.modalColumns}>
-            <div className="form-group">
-              <span className="form-label">
-                {t('config_management.visual.api_keys.allowed_models_label')}
-              </span>
-              <textarea
-                className="input"
-                rows={4}
-                aria-label={t('config_management.visual.api_keys.allowed_models_label')}
-                placeholder={t('config_management.visual.api_keys.allowed_models_placeholder')}
-                value={allowedModelsValue}
-                onChange={(e) => setAllowedModelsValue(e.target.value)}
-                disabled={disabled}
-              />
-              <div className="hint">
-                {t('config_management.visual.api_keys.allowed_models_hint')}
-              </div>
-            </div>
-            <div className="form-group">
-              <span className="form-label">
-                {t('config_management.visual.api_keys.excluded_models_label')}
-              </span>
-              <textarea
-                className="input"
-                rows={4}
-                aria-label={t('config_management.visual.api_keys.excluded_models_label')}
-                placeholder={t('config_management.visual.api_keys.excluded_models_placeholder')}
-                value={excludedModelsValue}
-                onChange={(e) => setExcludedModelsValue(e.target.value)}
-                disabled={disabled}
-              />
-              <div className="hint">
-                {t('config_management.visual.api_keys.excluded_models_hint')}
-              </div>
-            </div>
-          </div>
-          <div className="form-group">
-            <span className="form-label">{t('config_management.visual.api_keys.quota_title')}</span>
-            <div className={styles.quotaGrid}>
-              {CLIENT_API_KEY_QUOTA_FIELDS.map(({ field }) => (
-                <div key={field} className={styles.quotaField}>
-                  <label className={styles.quotaFieldLabel} htmlFor={`${apiKeyInputId}-${field}`}>
-                    {t(quotaFieldLabelKey(field))}
+
+            {modalSection === 'identity' && (
+              <>
+                <div className="form-group">
+                  <label htmlFor={apiKeyInputId}>
+                    {t('config_management.visual.api_keys.input_label')}
+                  </label>
+                  <div className={styles.apiKeyModalInputRow}>
+                    <input
+                      id={apiKeyInputId}
+                      className="input"
+                      placeholder={t('config_management.visual.api_keys.input_placeholder')}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      disabled={disabled}
+                      aria-describedby={
+                        formError ? `${apiKeyErrorId} ${apiKeyHintId}` : apiKeyHintId
+                      }
+                      aria-invalid={Boolean(formError)}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleGenerate}
+                      disabled={disabled}
+                    >
+                      {t('config_management.visual.api_keys.generate')}
+                    </Button>
+                  </div>
+                  <div id={apiKeyHintId} className="hint">
+                    {t('config_management.visual.api_keys.input_hint')}
+                  </div>
+                  {formError && (
+                    <div id={apiKeyErrorId} className="error-box" role="alert">
+                      {formError}
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor={noteInputId}>
+                    {t('config_management.visual.api_keys.note_label')}
                   </label>
                   <input
-                    id={`${apiKeyInputId}-${field}`}
+                    id={noteInputId}
                     className="input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder={t('config_management.visual.api_keys.quota_placeholder')}
-                    value={quotaValues[field]}
-                    aria-describedby={quotaHintId}
-                    onChange={(e) =>
-                      setQuotaValues((current) => ({ ...current, [field]: e.target.value }))
-                    }
+                    placeholder={t('config_management.visual.api_keys.note_placeholder')}
+                    value={noteValue}
+                    onChange={(e) => setNoteValue(e.target.value)}
                     disabled={disabled}
+                    aria-describedby={noteHintId}
+                    maxLength={120}
                   />
+                  <div id={noteHintId} className="hint">
+                    {t('config_management.visual.api_keys.note_hint')}
+                  </div>
                 </div>
-              ))}
-            </div>
-            <div id={quotaHintId} className="hint">
-              {t('config_management.visual.api_keys.quota_hint')}
-            </div>
+                <div className="form-group">
+                  <ToggleSwitch
+                    checked={!disabledValue}
+                    onChange={(enabled) => setDisabledValue(!enabled)}
+                    disabled={disabled}
+                    label={t('config_management.visual.api_keys.enabled_toggle')}
+                    ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
+                  />
+                  <div className="hint">{t('config_management.visual.api_keys.disabled_hint')}</div>
+                </div>
+              </>
+            )}
+
+            {modalSection === 'access' && (
+              <>
+                <div className={apiKeyCardStyles.modalSectionIntro}>
+                  <span>{t('api_keys.modal_section_access_kicker')}</span>
+                  <p>{t('api_keys.modal_section_access_description')}</p>
+                </div>
+                <div className={apiKeyCardStyles.modalColumns}>
+                  <div className="form-group">
+                    <span className="form-label">
+                      {t('config_management.visual.api_keys.allowed_models_label')}
+                    </span>
+                    <textarea
+                      className="input"
+                      rows={4}
+                      aria-label={t('config_management.visual.api_keys.allowed_models_label')}
+                      placeholder={t(
+                        'config_management.visual.api_keys.allowed_models_placeholder'
+                      )}
+                      value={allowedModelsValue}
+                      onChange={(e) => setAllowedModelsValue(e.target.value)}
+                      disabled={disabled}
+                    />
+                    <div className="hint">
+                      {t('config_management.visual.api_keys.allowed_models_hint')}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <span className="form-label">
+                      {t('config_management.visual.api_keys.excluded_models_label')}
+                    </span>
+                    <textarea
+                      className="input"
+                      rows={4}
+                      aria-label={t('config_management.visual.api_keys.excluded_models_label')}
+                      placeholder={t(
+                        'config_management.visual.api_keys.excluded_models_placeholder'
+                      )}
+                      value={excludedModelsValue}
+                      onChange={(e) => setExcludedModelsValue(e.target.value)}
+                      disabled={disabled}
+                    />
+                    <div className="hint">
+                      {t('config_management.visual.api_keys.excluded_models_hint')}
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <span className="form-label">
+                    {t('config_management.visual.api_keys.auth_files_label')}
+                  </span>
+                  <SearchableAuthFilesSelect
+                    options={authFileOptions}
+                    value={authFilesValue}
+                    onChange={setAuthFilesValue}
+                    disabled={disabled}
+                    loading={authFilesLoading}
+                    emptyLabel={t('config_management.visual.api_keys.auth_files_empty')}
+                    loadingLabel={t('config_management.visual.api_keys.auth_files_loading')}
+                    searchLabel={t('config_management.visual.api_keys.auth_files_search_label')}
+                    searchPlaceholder={t(
+                      'config_management.visual.api_keys.auth_files_search_placeholder'
+                    )}
+                    selectedLabel={(count) =>
+                      t('config_management.visual.api_keys.auth_files_selected', { count })
+                    }
+                    clearLabel={t('config_management.visual.api_keys.auth_files_clear')}
+                    ariaDescribedBy={authFilesHintId}
+                    ariaLabel={t('config_management.visual.api_keys.auth_files_label')}
+                  />
+                  <div id={authFilesHintId} className="hint">
+                    {authFilesLoadError
+                      ? t('config_management.visual.api_keys.auth_files_load_failed')
+                      : t('config_management.visual.api_keys.auth_files_hint')}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {modalSection === 'limits' && (
+              <>
+                <div className={apiKeyCardStyles.modalSectionIntro}>
+                  <span>{t('api_keys.modal_section_limits_kicker')}</span>
+                  <p>{t('api_keys.modal_section_limits_description')}</p>
+                </div>
+                <div className="form-group">
+                  <span className="form-label">
+                    {t('config_management.visual.api_keys.quota_title')}
+                  </span>
+                  <div className={styles.quotaGrid}>
+                    {CLIENT_API_KEY_QUOTA_FIELDS.map(({ field }) => (
+                      <div key={field} className={styles.quotaField}>
+                        <label
+                          className={styles.quotaFieldLabel}
+                          htmlFor={`${apiKeyInputId}-${field}`}
+                        >
+                          {t(quotaFieldLabelKey(field))}
+                        </label>
+                        <input
+                          id={`${apiKeyInputId}-${field}`}
+                          className="input"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          inputMode="decimal"
+                          placeholder={t('config_management.visual.api_keys.quota_placeholder')}
+                          value={quotaValues[field]}
+                          aria-describedby={quotaHintId}
+                          onChange={(e) =>
+                            setQuotaValues((current) => ({ ...current, [field]: e.target.value }))
+                          }
+                          disabled={disabled}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div id={quotaHintId} className="hint">
+                    {t('config_management.visual.api_keys.quota_hint')}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </Modal>
@@ -1058,18 +1444,10 @@ type PayloadRuleCardProps = {
   onRemoveRule: (ruleIndex: number) => void;
   onAddModel: (ruleIndex: number) => void;
   onRemoveModel: (ruleIndex: number, modelIndex: number) => void;
-  onUpdateModel: (
-    ruleIndex: number,
-    modelIndex: number,
-    patch: Partial<PayloadModelEntry>
-  ) => void;
+  onUpdateModel: (ruleIndex: number, modelIndex: number, patch: Partial<PayloadModelEntry>) => void;
   onAddParam: (ruleIndex: number) => void;
   onRemoveParam: (ruleIndex: number, paramIndex: number) => void;
-  onUpdateParam: (
-    ruleIndex: number,
-    paramIndex: number,
-    patch: Partial<PayloadParamEntry>
-  ) => void;
+  onUpdateParam: (ruleIndex: number, paramIndex: number, patch: Partial<PayloadParamEntry>) => void;
 };
 
 const arePayloadRuleCardOptionsEqual = (
@@ -1079,25 +1457,18 @@ const arePayloadRuleCardOptionsEqual = (
   if (previous === next) return true;
   if (previous.length !== next.length) return false;
   return previous.every(
-    (option, index) =>
-      option.value === next[index]?.value && option.label === next[index]?.label
+    (option, index) => option.value === next[index]?.value && option.label === next[index]?.label
   );
 };
 
-const arePayloadRuleCardPropsEqual = (
-  previous: PayloadRuleCardProps,
-  next: PayloadRuleCardProps
-) =>
+const arePayloadRuleCardPropsEqual = (previous: PayloadRuleCardProps, next: PayloadRuleCardProps) =>
   previous.rule === next.rule &&
   previous.ruleIndex === next.ruleIndex &&
   previous.disabled === next.disabled &&
   previous.protocolFirst === next.protocolFirst &&
   previous.rawJsonValues === next.rawJsonValues &&
   arePayloadRuleCardOptionsEqual(previous.protocolOptions, next.protocolOptions) &&
-  arePayloadRuleCardOptionsEqual(
-    previous.payloadValueTypeOptions,
-    next.payloadValueTypeOptions
-  ) &&
+  arePayloadRuleCardOptionsEqual(previous.payloadValueTypeOptions, next.payloadValueTypeOptions) &&
   arePayloadRuleCardOptionsEqual(previous.booleanValueOptions, next.booleanValueOptions) &&
   previous.onRemoveRule === next.onRemoveRule &&
   previous.onAddModel === next.onAddModel &&
@@ -1116,17 +1487,10 @@ type PayloadModelRowProps = {
   rowClassName: string;
   protocolOptions: PayloadRuleCardOption[];
   onRemoveModel: (ruleIndex: number, modelIndex: number) => void;
-  onUpdateModel: (
-    ruleIndex: number,
-    modelIndex: number,
-    patch: Partial<PayloadModelEntry>
-  ) => void;
+  onUpdateModel: (ruleIndex: number, modelIndex: number, patch: Partial<PayloadModelEntry>) => void;
 };
 
-const arePayloadModelRowPropsEqual = (
-  previous: PayloadModelRowProps,
-  next: PayloadModelRowProps
-) =>
+const arePayloadModelRowPropsEqual = (previous: PayloadModelRowProps, next: PayloadModelRowProps) =>
   previous.model === next.model &&
   previous.modelIndex === next.modelIndex &&
   previous.ruleIndex === next.ruleIndex &&
@@ -1210,26 +1574,16 @@ type PayloadParamRowProps = {
   payloadValueTypeOptions: PayloadRuleCardOption[];
   booleanValueOptions: PayloadRuleCardOption[];
   onRemoveParam: (ruleIndex: number, paramIndex: number) => void;
-  onUpdateParam: (
-    ruleIndex: number,
-    paramIndex: number,
-    patch: Partial<PayloadParamEntry>
-  ) => void;
+  onUpdateParam: (ruleIndex: number, paramIndex: number, patch: Partial<PayloadParamEntry>) => void;
 };
 
-const arePayloadParamRowPropsEqual = (
-  previous: PayloadParamRowProps,
-  next: PayloadParamRowProps
-) =>
+const arePayloadParamRowPropsEqual = (previous: PayloadParamRowProps, next: PayloadParamRowProps) =>
   previous.param === next.param &&
   previous.paramIndex === next.paramIndex &&
   previous.ruleIndex === next.ruleIndex &&
   previous.disabled === next.disabled &&
   previous.rawJsonValues === next.rawJsonValues &&
-  arePayloadRuleCardOptionsEqual(
-    previous.payloadValueTypeOptions,
-    next.payloadValueTypeOptions
-  ) &&
+  arePayloadRuleCardOptionsEqual(previous.payloadValueTypeOptions, next.payloadValueTypeOptions) &&
   arePayloadRuleCardOptionsEqual(previous.booleanValueOptions, next.booleanValueOptions) &&
   previous.onRemoveParam === next.onRemoveParam &&
   previous.onUpdateParam === next.onUpdateParam;
@@ -1525,10 +1879,7 @@ export const PayloadRulesEditor = memo(function PayloadRulesEditor({
   }, []);
 
   const addRule = useCallback(() => {
-    onChangeRef.current([
-      ...rulesRef.current,
-      { id: makeClientId(), models: [], params: [] },
-    ]);
+    onChangeRef.current([...rulesRef.current, { id: makeClientId(), models: [], params: [] }]);
   }, []);
 
   const removeRule = useCallback((ruleIndex: number) => {
@@ -1649,11 +2000,7 @@ type PayloadFilterRuleCardProps = {
   onRemoveRule: (ruleIndex: number) => void;
   onAddModel: (ruleIndex: number) => void;
   onRemoveModel: (ruleIndex: number, modelIndex: number) => void;
-  onUpdateModel: (
-    ruleIndex: number,
-    modelIndex: number,
-    patch: Partial<PayloadModelEntry>
-  ) => void;
+  onUpdateModel: (ruleIndex: number, modelIndex: number, patch: Partial<PayloadModelEntry>) => void;
   onUpdateParams: (ruleIndex: number, params: string[]) => void;
 };
 
@@ -1764,22 +2111,16 @@ export const PayloadFilterRulesEditor = memo(function PayloadFilterRulesEditor({
   }, [onChange, rules]);
   const protocolOptions = useMemo(() => buildProtocolOptions(t, rules), [rules, t]);
 
-  const updateRule = useCallback(
-    (ruleIndex: number, patch: Partial<PayloadFilterRule>) => {
-      const currentRules = rulesRef.current;
-      if (!currentRules[ruleIndex]) return;
-      onChangeRef.current(
-        currentRules.map((rule, index) => (index === ruleIndex ? { ...rule, ...patch } : rule))
-      );
-    },
-    []
-  );
+  const updateRule = useCallback((ruleIndex: number, patch: Partial<PayloadFilterRule>) => {
+    const currentRules = rulesRef.current;
+    if (!currentRules[ruleIndex]) return;
+    onChangeRef.current(
+      currentRules.map((rule, index) => (index === ruleIndex ? { ...rule, ...patch } : rule))
+    );
+  }, []);
 
   const addRule = useCallback(() => {
-    onChangeRef.current([
-      ...rulesRef.current,
-      { id: makeClientId(), models: [], params: [] },
-    ]);
+    onChangeRef.current([...rulesRef.current, { id: makeClientId(), models: [], params: [] }]);
   }, []);
 
   const removeRule = useCallback((ruleIndex: number) => {

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ApiKeysCardEditor } from '@/components/config/VisualConfigEditorBlocks';
+import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { RefreshButton } from '@/components/ui/RefreshButton';
-import { IconCheckCircle2 } from '@/components/ui/icons';
+import { IconCheckCircle2, IconShield } from '@/components/ui/icons';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { apiKeysApi } from '@/services/api/apiKeys';
@@ -16,6 +17,9 @@ import styles from './ApiKeysPage.module.scss';
 const normalizeModelPatterns = (patterns: string[] | undefined): string[] =>
   Array.from(new Set((patterns ?? []).map((item) => String(item ?? '').trim()).filter(Boolean)));
 
+const normalizeAuthFiles = (files: string[] | undefined): string[] =>
+  Array.from(new Set((files ?? []).map((item) => String(item ?? '').trim()).filter(Boolean)));
+
 const toVisualApiKeys = (keys: ClientApiKeyConfig[]): VisualApiKeyEntry[] =>
   keys.map((entry) => ({
     id: makeClientId(),
@@ -24,6 +28,7 @@ const toVisualApiKeys = (keys: ClientApiKeyConfig[]): VisualApiKeyEntry[] =>
     disabled: Boolean(entry.disabled),
     allowedModels: normalizeModelPatterns(entry.allowedModels),
     excludedModels: normalizeModelPatterns(entry.excludedModels),
+    authFiles: normalizeAuthFiles(entry.authFiles),
     ...(hasClientApiKeyQuota(entry.quota) ? { quota: entry.quota } : {}),
   }));
 
@@ -36,6 +41,7 @@ const toClientApiKeys = (keys: VisualApiKeyEntry[]): ClientApiKeyConfig[] =>
       const note = (entry.note ?? '').trim();
       const allowedModels = normalizeModelPatterns(entry.allowedModels);
       const excludedModels = normalizeModelPatterns(entry.excludedModels);
+      const authFiles = normalizeAuthFiles(entry.authFiles);
       const quota = serializeClientApiKeyQuota(entry.quota);
       return {
         apiKey,
@@ -43,6 +49,7 @@ const toClientApiKeys = (keys: VisualApiKeyEntry[]): ClientApiKeyConfig[] =>
         ...(entry.disabled ? { disabled: true } : {}),
         ...(allowedModels.length ? { allowedModels } : {}),
         ...(excludedModels.length ? { excludedModels } : {}),
+        ...(authFiles.length ? { authFiles } : {}),
         ...(quota ? { quota } : {}),
       };
     })
@@ -82,18 +89,22 @@ export function ApiKeysPage() {
   );
   const isDirty = apiKeysFingerprint !== baselineApiKeysFingerprint;
   const disableControls = connectionStatus !== 'connected';
-  const { restrictedCount, quotaCount, disabledCount } = useMemo(
+  const { activeCount, restrictedCount, quotaCount } = useMemo(
     () =>
       apiKeys.reduce(
         (counts, entry) => {
-          if (entry.allowedModels.length > 0 || entry.excludedModels.length > 0) {
+          if (!entry.disabled) counts.activeCount += 1;
+          if (
+            entry.allowedModels.length > 0 ||
+            entry.excludedModels.length > 0 ||
+            entry.authFiles.length > 0
+          ) {
             counts.restrictedCount += 1;
           }
           if (hasClientApiKeyQuota(entry.quota)) counts.quotaCount += 1;
-          if (entry.disabled) counts.disabledCount += 1;
           return counts;
         },
-        { restrictedCount: 0, quotaCount: 0, disabledCount: 0 }
+        { activeCount: 0, restrictedCount: 0, quotaCount: 0 }
       ),
     [apiKeys]
   );
@@ -214,35 +225,35 @@ export function ApiKeysPage() {
       <ManagementPageHeader
         title={t('api_keys.title')}
         description={t('api_keys.page_description')}
+        count={apiKeys.length}
+        countAriaLabel={t('api_keys.configured_count', { count: apiKeys.length })}
         actions={
           <div className={styles.pageHeaderAside}>
             <div className={`${styles.statusBadge} ${statusClassName}`}>
               <span className={styles.statusDot} aria-hidden="true" />
               {statusText}
             </div>
-            <div className={styles.tabBar}>
-              <RefreshButton
-                variant="ghost"
-                size="sm"
-                className={styles.tabItem}
-                onClick={handleReload}
-                disabled={loading || saving}
-                loading={loading}
-                label={t('common.refresh')}
-                iconSize={15}
-              >
-                {t('common.refresh')}
-              </RefreshButton>
-              <button
-                type="button"
-                className={`${styles.tabItem} ${isDirty ? styles.tabActive : ''}`}
-                onClick={() => void handleSave()}
-                disabled={disableControls || loading || saving || !isDirty}
-              >
-                <IconCheckCircle2 size={15} aria-hidden="true" />
-                {saving ? t('config_management.status_saving') : t('common.save')}
-              </button>
-            </div>
+            <RefreshButton
+              variant="secondary"
+              size="sm"
+              className={styles.refreshButton}
+              onClick={handleReload}
+              disabled={loading || saving}
+              loading={loading}
+              label={t('common.refresh')}
+              iconSize={15}
+            >
+              {t('common.refresh')}
+            </RefreshButton>
+            <Button
+              size="sm"
+              className={`${styles.saveButton} ${isDirty ? styles.saveButtonReady : ''}`}
+              onClick={() => void handleSave()}
+              disabled={disableControls || loading || saving || !isDirty}
+            >
+              <IconCheckCircle2 size={15} aria-hidden="true" />
+              {saving ? t('config_management.status_saving') : t('common.save')}
+            </Button>
           </div>
         }
       />
@@ -255,34 +266,28 @@ export function ApiKeysPage() {
             </div>
           )}
           <div id="api-keys" className={styles.pageContent}>
-            <section className={styles.overviewPanel} aria-labelledby="api-keys-overview-title">
-              <h2 id="api-keys-overview-title" className={styles.visuallyHidden}>
-                {t('api_keys.section_title')}
-              </h2>
-              <div className={styles.metricGrid} aria-label={t('api_keys.metrics_label')}>
+            <section className={styles.overview} aria-label={t('api_keys.metrics_label')}>
+              <div className={styles.overviewLead}>
+                <span className={styles.overviewIcon} aria-hidden="true">
+                  <IconShield size={20} />
+                </span>
+                <div>
+                  <span className={styles.overviewEyebrow}>{t('api_keys.page_eyebrow')}</span>
+                  <strong>{t('api_keys.overview_title')}</strong>
+                </div>
+              </div>
+              <div className={styles.metricRail}>
                 <div className={styles.metricItem}>
-                  <div>
-                    <strong className={styles.metricValue}>{apiKeys.length}</strong>
-                    <span className={styles.metricLabel}>{t('api_keys.metric_total')}</span>
-                  </div>
+                  <strong>{activeCount}</strong>
+                  <span>{t('api_keys.metric_active')}</span>
                 </div>
                 <div className={styles.metricItem}>
-                  <div>
-                    <strong className={styles.metricValue}>{apiKeys.length - disabledCount}</strong>
-                    <span className={styles.metricLabel}>{t('api_keys.metric_active')}</span>
-                  </div>
+                  <strong>{restrictedCount}</strong>
+                  <span>{t('api_keys.metric_restricted')}</span>
                 </div>
                 <div className={styles.metricItem}>
-                  <div>
-                    <strong className={styles.metricValue}>{restrictedCount}</strong>
-                    <span className={styles.metricLabel}>{t('api_keys.metric_restricted')}</span>
-                  </div>
-                </div>
-                <div className={styles.metricItem}>
-                  <div>
-                    <strong className={styles.metricValue}>{quotaCount}</strong>
-                    <span className={styles.metricLabel}>{t('api_keys.metric_quota')}</span>
-                  </div>
+                  <strong>{quotaCount}</strong>
+                  <span>{t('api_keys.metric_quota')}</span>
                 </div>
               </div>
             </section>

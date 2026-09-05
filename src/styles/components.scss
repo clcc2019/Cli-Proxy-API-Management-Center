@@ -337,7 +337,7 @@ textarea {
   &.card-interactive:hover {
     border-color: var(--surface-card-border-hover, var(--border-hover));
     background: var(--xai-fill-soft);
-    box-shadow: none;
+    box-shadow: 0 12px 28px rgb(35 42 37 / 8%);
   }
 
   &.card-interactive:active {
@@ -891,15 +891,17 @@ textarea {
 }
 
 .empty-state {
-  border: 0;
+  border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-card);
   padding: var(--xai-space-5);
-  background: var(--mg-surface-warm);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(255 255 255 / 72%), transparent 32%),
+    var(--mg-surface-warm);
   display: flex;
   justify-content: space-between;
   gap: var(--xai-space-4);
   align-items: center;
-  box-shadow: none;
+  box-shadow: 0 10px 26px rgb(35 42 37 / 3%);
 
   .empty-content {
     display: flex;

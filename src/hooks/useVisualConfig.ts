@@ -36,6 +36,19 @@ function normalizeApiKeyModelPatterns(raw: unknown): string[] {
   return normalized;
 }
 
+function normalizeApiKeyAuthFiles(raw: unknown): string[] {
+  const items = Array.isArray(raw) ? raw : typeof raw === 'string' ? raw.split(/[\n,]/) : [];
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+  items.forEach((item) => {
+    const trimmed = String(item ?? '').trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    normalized.push(trimmed);
+  });
+  return normalized;
+}
+
 function parseBooleanFlag(raw: unknown): boolean | undefined {
   if (typeof raw === 'boolean') return raw;
   if (typeof raw === 'number') return raw !== 0;
@@ -65,6 +78,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
           disabled: false,
           allowedModels: [],
           excludedModels: [],
+          authFiles: [],
         }
       : null;
   }
@@ -90,6 +104,9 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
   const excludedModels = normalizeApiKeyModelPatterns(
     record['excluded-models'] ?? record.excludedModels ?? record['excluded_models']
   );
+  const authFiles = normalizeApiKeyAuthFiles(
+    record['auth-files'] ?? record.authFiles ?? record['auth-file'] ?? record.authFile
+  );
   const quota = extractClientApiKeyQuota(record);
 
   return {
@@ -99,6 +116,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
     disabled: extractApiKeyDisabled(record),
     allowedModels,
     excludedModels,
+    authFiles,
     ...(quota ? { quota } : {}),
   };
 }
@@ -633,6 +651,7 @@ function areApiKeyEntriesEqual(left: VisualApiKeyEntry[], right: VisualApiKeyEnt
     if (Boolean(leftEntry.disabled) !== Boolean(rightEntry.disabled)) return false;
     if (!areStringArraysEqual(leftEntry.allowedModels, rightEntry.allowedModels)) return false;
     if (!areStringArraysEqual(leftEntry.excludedModels, rightEntry.excludedModels)) return false;
+    if (!areStringArraysEqual(leftEntry.authFiles, rightEntry.authFiles)) return false;
     if (
       JSON.stringify(serializeClientApiKeyQuota(leftEntry.quota) ?? {}) !==
       JSON.stringify(serializeClientApiKeyQuota(rightEntry.quota) ?? {})
