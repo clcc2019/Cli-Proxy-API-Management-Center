@@ -9,9 +9,9 @@
 .header h1 {
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
-  font-size: 27px;
-  font-weight: 500;
-  line-height: 36px;
+  font-size: var(--mg-title-size);
+  font-weight: var(--mg-title-weight);
+  line-height: var(--mg-title-leading);
   letter-spacing: -0.675px;
 }
 

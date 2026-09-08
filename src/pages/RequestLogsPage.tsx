@@ -267,6 +267,7 @@ type RequestEventLabels = {
     endpoint: string;
     model: string;
     status: string;
+    ttft: string;
     time: string;
     tokens: string;
   };
@@ -377,26 +378,6 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
         )}
       </div>
 
-      <div className={styles.eventCredential}>
-        <div className={styles.eventCredentialMain}>
-          <span className={styles.eventCredentialName} title={row.source}>
-            {row.source}
-          </span>
-          {row.sourceType && credentialTypeStyle && (
-            <span className={styles.eventCredentialType} style={credentialTypeStyle}>
-              {row.sourceType}
-            </span>
-          )}
-        </div>
-        {hasAuthIndex && (
-          <div className={styles.eventCredentialMeta}>
-            <span className={styles.eventCredentialMetaItem} title={row.authIndex}>
-              {labels.authShort} #{row.authIndex}
-            </span>
-          </div>
-        )}
-      </div>
-
       <div className={styles.eventStatus}>
         {row.failed ? (
           <button
@@ -426,6 +407,14 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
           >
             <span className={styles.eventLatencyDot} aria-hidden="true" />
             {formatDurationMs(row.latencyMs)}
+          </span>
+        )}
+        {row.ttftMs !== null && (
+          <span
+            className={`${styles.eventLatency} ${styles.eventTtft}`}
+            title={labels.columns.ttft}
+          >
+            {labels.columns.ttft} {formatDurationMs(row.ttftMs)}
           </span>
         )}
         {row.failed && row.errorMessage && (
@@ -460,6 +449,28 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
         }
       >
         {row.totalCost > 0 ? formatUsd(row.totalCost) : '--'}
+      </div>
+
+      <div className={styles.eventCredential}>
+        <div className={styles.eventCredentialMain}>
+          <span className={styles.eventCredentialName} title={row.source}>
+            {row.source}
+          </span>
+        </div>
+        {(hasAuthIndex || row.sourceType) && (
+          <div className={styles.eventCredentialMeta}>
+            {row.sourceType && credentialTypeStyle && (
+              <span className={styles.eventCredentialType} style={credentialTypeStyle}>
+                {row.sourceType}
+              </span>
+            )}
+            {hasAuthIndex && (
+              <span className={styles.eventCredentialMetaItem} title={row.authIndex}>
+                {labels.authShort} #{row.authIndex}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -496,13 +507,6 @@ const SkeletonList = memo(function SkeletonList() {
             <div className={styles.skeletonBlock} style={{ width: '74%' }} />
           </div>
           <div>
-            <div className={styles.skeletonBlock} style={{ width: '70%' }} />
-            <div
-              className={`${styles.skeletonBlock} ${styles.skeletonBlockShort}`}
-              style={{ marginTop: 6 }}
-            />
-          </div>
-          <div>
             <div className={styles.skeletonBlock} style={{ width: 76 }} />
           </div>
           <div>
@@ -510,6 +514,13 @@ const SkeletonList = memo(function SkeletonList() {
           </div>
           <div>
             <div className={styles.skeletonBlock} style={{ width: 72 }} />
+          </div>
+          <div>
+            <div className={styles.skeletonBlock} style={{ width: '70%' }} />
+            <div
+              className={`${styles.skeletonBlock} ${styles.skeletonBlockShort}`}
+              style={{ marginTop: 6 }}
+            />
           </div>
         </div>
       ))}
@@ -651,6 +662,7 @@ export function RequestLogsPage() {
         endpoint: t('usage_stats.request_events_col_endpoint'),
         model: t('usage_stats.request_events_col_model'),
         status: t('usage_stats.request_events_col_status'),
+        ttft: t('usage_stats.request_events_col_ttft'),
         time: t('usage_stats.request_events_col_time'),
         tokens: t('usage_stats.request_events_col_tokens'),
       },
@@ -877,10 +889,10 @@ export function RequestLogsPage() {
               <span>{requestEventLabels.columns.clientIP}</span>
               <span>{requestEventLabels.columns.apiKey}</span>
               <span>{requestEventLabels.columns.model}</span>
-              <span>{requestEventLabels.columns.credential}</span>
               <span>{requestEventLabels.columns.status}</span>
-              <span>{requestEventLabels.columns.tokens}</span>
+              <span style={{ textAlign: 'right' }}>{requestEventLabels.columns.tokens}</span>
               <span style={{ textAlign: 'right' }}>{requestEventLabels.columns.cost}</span>
+              <span>{requestEventLabels.columns.credential}</span>
             </div>
             <div className={styles.eventList}>
               {filteredRows.map((row) => (

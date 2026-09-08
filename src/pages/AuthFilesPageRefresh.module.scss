@@ -993,7 +993,7 @@
 
 .page .loadingCard span {
   background: color-mix(in srgb, var(--mg-text) 8%, var(--mg-surface-subtle));
-  animation: auth-files-skeleton-pulse 1.4s var(--motion-ease-standard) infinite;
+  animation: auth-files-skeleton-pulse 2.2s var(--motion-ease-standard) infinite;
 }
 
 .page .loadingHeader {
@@ -1151,10 +1151,9 @@
 }
 
 .page .credentialCard {
-  // Keep the card chrome neutral. Sage is reserved for selection/context;
-  // orange remains local to quota and fast-path attention states.
+  // Neutral surfaces separate identity, metrics, and actions.
   --auth-card-attention: var(--mg-orange);
-  --auth-card-border: color-mix(in srgb, var(--mg-border) 90%, var(--mg-text-tertiary));
+  --auth-card-border: var(--mg-border);
   --auth-workbench-border: var(--mg-border);
   --auth-workbench-border-strong: var(--mg-border-strong);
   --auth-workbench-subtle: var(--mg-surface-subtle);
@@ -1168,12 +1167,12 @@
   min-height: 100%;
   height: 100%;
   flex-direction: column;
-  padding: 14px 14px 12px;
+  padding: 18px 18px 15px;
   border: 1px solid var(--auth-card-border);
   border-radius: var(--mg-radius-large);
   background: var(--mg-surface);
   color: var(--mg-text);
-  box-shadow: var(--mg-shadow-rest);
+  box-shadow: 0 1px 2px rgb(24 31 39 / 3%);
   overflow: clip;
   contain: layout style;
   content-visibility: auto;
@@ -1208,7 +1207,7 @@
   border-color: color-mix(in srgb, var(--mg-sage-strong) 72%, var(--mg-border));
   background: color-mix(in srgb, var(--mg-sage-soft) 38%, var(--mg-surface));
   box-shadow:
-    var(--mg-shadow-rest),
+    0 4px 14px -8px rgb(24 31 39 / 18%),
     inset 0 0 0 1px color-mix(in srgb, var(--mg-sage-strong) 10%, transparent);
 }
 
@@ -1220,7 +1219,7 @@
   .page .credentialCard:not(.credentialCardDisabled):not(.credentialCardSelected):hover {
     border-color: var(--mg-border-strong);
     background: var(--mg-surface);
-    box-shadow: 0 10px 24px rgb(54 65 79 / 8%);
+    box-shadow: 0 8px 20px -10px rgb(24 31 39 / 26%);
     transform: translateY(-2px);
   }
 }
@@ -1316,9 +1315,9 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 0;
+  border: 1px solid var(--mg-border);
   border-radius: 10px;
-  background: var(--mg-surface-subtle);
+  background: linear-gradient(145deg, var(--mg-surface-subtle), var(--mg-surface));
 }
 
 .providerBadgeIcon {
@@ -1358,7 +1357,7 @@
   color: var(--mg-text);
   font: inherit;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 20px;
   letter-spacing: 0;
   text-align: left;
@@ -1390,8 +1389,8 @@
   width: 13px;
   height: 13px;
   flex: 0 0 13px;
-  opacity: 0.58;
-  color: var(--mg-text-muted);
+  opacity: 0.75;
+  color: var(--mg-text-tertiary);
   transition:
     opacity var(--mg-motion-fast) var(--mg-ease-standard),
     color var(--mg-motion-fast) var(--mg-ease-standard);
@@ -1573,7 +1572,7 @@
   padding-inline: 12px;
   border: 0;
   border-radius: var(--mg-radius-medium);
-  background: var(--mg-surface-subtle);
+  background: color-mix(in srgb, var(--mg-surface-subtle) 65%, var(--mg-surface));
   box-shadow: none;
 }
 
@@ -1960,7 +1959,7 @@
 .page .quotaSectionHeader {
   display: grid;
   min-width: 0;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
   align-items: center;
   gap: 6px;
 }
@@ -1974,6 +1973,30 @@
   line-height: 1.3;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.page .quotaExpandButton {
+  justify-self: end;
+  min-height: 24px;
+  padding: 2px 7px;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--xai-radius-pill);
+  background: var(--mg-surface);
+  color: var(--mg-text-secondary);
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard), color var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background: var(--mg-surface-subtle);
+    color: var(--mg-text);
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 2px;
+  }
 }
 
 .page .quotaContent {
@@ -2208,7 +2231,7 @@
 
 .page .codexResetCredits {
   display: grid;
-  width: 100%;
+  width: auto;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -2437,6 +2460,7 @@
   margin-top: 0;
   padding-top: 12px;
   border-top: 1px solid var(--mg-border);
+  background: transparent;
 }
 
 .page .reauthPanel {
@@ -3366,6 +3390,20 @@
 }
 
 @container auth-files-page (max-width: 560px) {
+  .page .pageHeader {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .page .headerAction:global(.btn.btn-sm) {
+    min-height: 42px;
+  }
+
   .page .cardGrid {
     --auth-file-card-min-width: 100%;
     grid-template-columns: minmax(0, 1fr);
@@ -3375,6 +3413,7 @@
 
   .page .credentialCard {
     min-height: 0;
+    padding: 15px 14px 13px;
   }
 
   .page .quotaSectionHeader {
@@ -3416,6 +3455,15 @@
 
   .page .credentialCard .cardFooter {
     --card-footer-control-gap: 4px;
+  }
+
+  .page .credentialCard .cardFooterMain {
+    align-items: flex-start;
+  }
+
+  .page .credentialCard .cardActions {
+    max-width: calc(100% - 60px);
+    padding-bottom: 2px;
   }
 
   .page .credentialCard .cardActions {
@@ -3738,6 +3786,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .page .credentialCard:not(.credentialCardDisabled):not(.credentialCardSelected):hover {
+    transform: none;
+  }
+
   .page .credentialCard,
   .page .providerTab,
   .page .controlButton,
@@ -4163,9 +4215,9 @@
   }
 
   .page .credentialCardSelected {
-    border-color: var(--xai-border-hover);
-    background: var(--xai-fill-soft);
-    box-shadow: none;
+    border-color: var(--mg-text-secondary);
+    background: var(--mg-surface);
+    box-shadow: inset 0 0 0 1px var(--mg-border-hover);
   }
 
   .page .credentialCardSelected::before {
@@ -4240,7 +4292,7 @@
     border-radius: var(--xai-radius-pill);
     color: var(--xai-ink-console);
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 20px;
   }
 
@@ -4881,12 +4933,6 @@
     flex: 0 0 auto;
   }
 
-  .page .credentialCard .cardActions {
-    flex: 1 1 auto;
-    gap: 2px;
-    padding-inline: 2px;
-  }
-
   // Use the desktop card proportions at a compact scale instead of replacing
   // the identity and metric rows with a different mobile composition.
   .page .providerBadge {
@@ -5046,6 +5092,9 @@
     overflow-x: auto;
     overflow-y: hidden;
     padding: 2px;
+    border: 1px solid var(--xai-border-subtle);
+    border-radius: var(--xai-radius-control);
+    background: color-mix(in srgb, var(--xai-fill-soft) 72%, var(--xai-white));
     overscroll-behavior-inline: contain;
     scrollbar-width: none;
     touch-action: pan-x;
@@ -5056,56 +5105,12 @@
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-    min-height: 36px;
-    flex: 0 0 36px;
-    flex-basis: 36px;
-    border-radius: var(--xai-radius-control);
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm) svg,
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm) :global(.loading-spinner) {
-    width: 15px !important;
-    height: 15px !important;
-  }
-
-  .page .credentialCard .runtimeModelAction:global(.btn.btn-sm) {
-    width: auto;
-    min-width: 36px;
-    flex: 0 0 auto;
-    flex-basis: auto;
-    padding-inline: 8px;
-  }
-
-  .page .credentialCard .cardRefresh {
-    min-height: 36px;
-    margin-left: 0;
-  }
-
-  .page .credentialCard .cardRefresh .cardActionButton:global(.btn.btn-sm) {
     width: 34px;
     min-width: 34px;
     height: 34px;
     min-height: 34px;
-    flex-basis: 34px;
-  }
-
-  .page .credentialCard .cardActions {
-    gap: 2px;
-    padding: 2px;
-    border: 1px solid var(--xai-border-subtle);
+    flex: 0 0 34px;
     border-radius: var(--xai-radius-control);
-    background: color-mix(in srgb, var(--xai-fill-soft) 72%, var(--xai-white));
-  }
-
-  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
-    min-height: 34px;
-    flex-basis: 34px;
     border-color: transparent;
     background: transparent;
   }
@@ -5120,8 +5125,20 @@
     width: auto;
     min-width: 34px;
     flex: 0 0 auto;
-    flex-basis: auto;
     padding-inline: 7px;
+  }
+
+  .page .credentialCard .cardRefresh {
+    min-height: 36px;
+    margin-left: 0;
+  }
+
+  .page .credentialCard .cardRefresh .cardActionButton:global(.btn.btn-sm) {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
   }
 
   .page .quotaRefreshButton:global(.btn.btn-sm)[aria-busy='true'] > :global(.loading-spinner),

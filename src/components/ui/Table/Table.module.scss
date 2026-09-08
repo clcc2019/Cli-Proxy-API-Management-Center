@@ -3,7 +3,7 @@
 
 .wrap {
   border: 1px solid var(--mg-border);
-  border-radius: var(--mg-radius-medium);
+  border-radius: var(--mg-radius-card);
   overflow: hidden;
   background: var(--mg-surface);
   box-shadow: none;
@@ -28,12 +28,14 @@
 }
 
 .head {
-  background: var(--mg-surface-warm);
+  background: var(--mg-surface-subtle);
 
   th {
     color: var(--muted-foreground, var(--text-secondary));
     font-weight: 600;
-    font-size: 12px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     text-align: left;
     padding: 10px 14px;
     border-bottom: 1px solid var(--mg-border);
@@ -50,10 +52,10 @@
 }
 
 .row {
-  transition: background-color var(--xai-duration-default);
+  transition: background-color var(--xai-duration-default) var(--xai-ease-standard);
 
   td {
-    padding: 12px 14px;
+    padding: 14px;
     border-bottom: 1px solid var(--mg-border);
     vertical-align: top;
     line-height: 1.5;

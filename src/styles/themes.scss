@@ -13,24 +13,24 @@
   // xAI visual contract. Licensed xAI font files are not bundled with this
   // project, so these stacks intentionally resolve through the documented
   // metric-compatible system fallbacks.
-  --xai-ink-console: #080808;
-  --xai-ink: #0a0a0a;
+  --xai-ink-console: #0d0d0d;
+  --xai-ink: #171717;
   --xai-white: #ffffff;
-  --xai-canvas: #f1f2ef;
-  --xai-surface-muted: #f8f8f5;
-  --xai-inverse: #fafafa;
-  --xai-warm: #f9f8f6;
-  --xai-secondary: #5f6864;
-  --xai-muted: rgb(10 10 10 / 50%);
-  --xai-subtle: rgb(10 10 10 / 40%);
-  --xai-disabled: rgb(10 10 10 / 30%);
-  --xai-fill-soft: rgb(10 10 10 / 5%);
-  --xai-fill-hover: rgb(10 10 10 / 8%);
-  --xai-fill-pressed: rgb(10 10 10 / 12%);
-  --xai-border-cool: #d4d8d2;
-  --xai-border-subtle: rgb(10 10 10 / 6%);
-  --xai-border: rgb(10 10 10 / 8%);
-  --xai-border-hover: rgb(10 10 10 / 15%);
+  --xai-canvas: #f5f6f8;
+  --xai-surface-muted: #eef0f3;
+  --xai-inverse: #fbfcfd;
+  --xai-warm: #fbfcfd;
+  --xai-secondary: #59616b;
+  --xai-muted: rgb(24 31 39 / 52%);
+  --xai-subtle: rgb(24 31 39 / 40%);
+  --xai-disabled: rgb(24 31 39 / 30%);
+  --xai-fill-soft: rgb(24 31 39 / 4%);
+  --xai-fill-hover: rgb(24 31 39 / 7%);
+  --xai-fill-pressed: rgb(24 31 39 / 10%);
+  --xai-border-cool: #d9dde3;
+  --xai-border-subtle: rgb(24 31 39 / 6%);
+  --xai-border: rgb(24 31 39 / 10%);
+  --xai-border-hover: rgb(24 31 39 / 17%);
   --xai-orange: #d96b3f;
   --xai-success: hsl(132 41% 42%);
   --xai-warning: hsl(44 80% 34%);
@@ -68,9 +68,9 @@
   --xai-radius-pill: 9999px;
 
   --xai-border-width: 1px;
-  --xai-shadow-button: 0 1px 3px rgb(35 42 37 / 12%), 0 1px 2px -1px rgb(35 42 37 / 10%);
-  --xai-shadow-menu: 0 18px 42px -18px rgb(35 42 37 / 24%);
-  --xai-shadow-dialog: 0 24px 72px -28px rgb(35 42 37 / 28%);
+  --xai-shadow-button: 0 1px 2px rgb(13 13 13 / 8%), 0 1px 1px -1px rgb(13 13 13 / 8%);
+  --xai-shadow-menu: 0 18px 42px -18px rgb(13 13 13 / 22%);
+  --xai-shadow-dialog: 0 24px 72px -28px rgb(13 13 13 / 26%);
 
   --xai-font-ui:
     'Avenir Next', 'SF Pro Text', universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui,
@@ -163,6 +163,9 @@
   --mg-content-max: 1196px;
   --mg-font-display: var(--xai-font-display);
   --mg-font-mono: var(--xai-font-mono);
+  --mg-title-size: clamp(27px, 2.5vw, 36px);
+  --mg-title-weight: 600;
+  --mg-title-leading: 1.25;
   --mg-page-gutter: clamp(var(--xai-space-4), 3vw, var(--xai-space-9));
   --mg-motion-fast: var(--xai-duration-fast);
   --mg-motion-standard: var(--xai-duration-default);
@@ -248,7 +251,7 @@
   --header-shadow: none;
   // xAI Console rail aliases. Navigation remains monochrome and uses surface,
   // weight, and ink changes instead of colored selection treatments.
-  --sidebar-surface: var(--xai-white);
+  --sidebar-surface: var(--xai-surface-muted);
   --sidebar-surface-muted: var(--xai-fill-soft);
   --sidebar-text: var(--xai-ink-console);
   --sidebar-text-secondary: var(--xai-secondary);

@@ -11,7 +11,7 @@
   --login-dark-surface: var(--xai-ink-console);
   --login-dark-border: var(--xai-border-hover);
   --login-dark-text: var(--xai-inverse);
-  --login-dark-text-secondary: var(--xai-secondary);
+  --login-dark-text-secondary: #b8b8b8;
   --login-text-strong: var(--xai-ink-console);
   --login-text: var(--xai-ink);
   --login-text-secondary: var(--xai-secondary);
@@ -284,7 +284,7 @@
   flex-direction: column;
   align-items: flex-start;
   width: min(100%, 540px);
-  gap: var(--xai-space-1-5);
+  gap: var(--xai-space-5);
 }
 
 .brandKicker {
@@ -298,11 +298,11 @@
 
 .brandWord {
   color: var(--login-dark-text);
-  font-family: $font-family;
-  font-size: clamp(45px, 5vw, 57px);
-  font-weight: 500;
-  line-height: 0.96;
-  letter-spacing: -0.00249em;
+  font-family: var(--xai-font-display);
+  font-size: clamp(88px, 12vw, 180px);
+  font-weight: 600;
+  line-height: 0.85;
+  letter-spacing: -0.065em;
   text-align: left;
   opacity: 1;
   transform: translateY(0);
@@ -332,14 +332,7 @@
   padding: clamp(36px, 5vw, 72px);
   overflow-y: auto;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at 88% 16%, rgb(217 223 215 / 25%), transparent 30%),
-    linear-gradient(
-      135deg,
-      var(--login-canvas) 0%,
-      var(--login-canvas) 72%,
-      var(--login-surface-muted) 100%
-    );
+  background: var(--login-surface-muted);
   position: relative;
   overscroll-behavior: contain;
 
@@ -376,7 +369,7 @@
   border: 1px solid var(--login-border);
   border-radius: var(--xai-radius-card);
   background: var(--login-surface);
-  box-shadow: 0 18px 50px rgb(54 65 79 / 8%);
+  box-shadow: var(--xai-shadow-button);
 }
 
 .loginHeader,
@@ -614,7 +607,7 @@
   .loginCard {
     padding: var(--xai-space-5);
     border-radius: var(--xai-radius-panel);
-    box-shadow: 0 12px 34px rgb(35 42 37 / 7%);
+    box-shadow: 0 12px 34px rgb(13 13 13 / 7%);
   }
 }
 

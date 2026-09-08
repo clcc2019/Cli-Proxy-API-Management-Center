@@ -80,6 +80,7 @@ export interface UsageDetail {
   model_reasoning_effort?: string;
   error_message?: string;
   latency_ms?: number;
+  ttft_ms?: number;
   tokens: {
     input_tokens: number;
     output_tokens: number;
@@ -92,6 +93,12 @@ export interface UsageDetail {
   __modelName?: string;
   __timestampMs?: number;
 }
+
+export const extractTTFTMs = (detail: unknown): number | null => {
+  if (!detail || typeof detail !== 'object' || Array.isArray(detail)) return null;
+  const value = Number((detail as { ttft_ms?: unknown }).ttft_ms);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+};
 
 export interface UsageDetailWithEndpoint extends UsageDetail {
   __endpoint: string;
@@ -885,6 +892,9 @@ export function formatMillionTokens(value: number): string {
   return `${formatted}M`;
 }
 
+// Precision is bounded to 2–12 digits, so at most 11 formatters are retained.
+const usdFormatters = new Map<number, Intl.NumberFormat>();
+
 /**
  * 格式化美元
  */
@@ -902,11 +912,15 @@ export function formatUsd(value: number): string {
     abs === 0 || abs >= 0.01
       ? 2
       : Math.min(12, Math.max(2, Math.ceil(-Math.log10(abs)) + 2));
-  const parts = num.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits,
-  });
-  return `$${parts}`;
+  let formatter = usdFormatters.get(maximumFractionDigits);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits,
+    });
+    usdFormatters.set(maximumFractionDigits, formatter);
+  }
+  return `$${formatter.format(num)}`;
 }
 
 export function formatLatencyMs(value: number | null | undefined): string {
@@ -1074,6 +1088,7 @@ export function collectUsageDetails(usageData: unknown): UsageDetail[] {
         const timestampMs = parseTimestampMs(timestamp);
         const tokensRaw = isRecord(detailRaw.tokens) ? detailRaw.tokens : {};
         const latencyMs = extractLatencyMs(detailRaw);
+        const ttftMs = extractTTFTMs(detailRaw);
         const apiKeyRaw =
           typeof detailRaw.api_key === 'string' && detailRaw.api_key.trim()
             ? detailRaw.api_key.trim()
@@ -1103,6 +1118,7 @@ export function collectUsageDetails(usageData: unknown): UsageDetail[] {
             detailRaw.error_message ?? detailRaw.errorMessage ?? detailRaw.error
           ),
           latency_ms: latencyMs ?? undefined,
+          ttft_ms: ttftMs ?? undefined,
           tokens: tokensRaw as unknown as UsageDetail['tokens'],
           failed: detailRaw.failed === true,
           __modelName: modelName,
@@ -1167,6 +1183,7 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
         const timestampMs = parseTimestampMs(timestamp);
         const tokensRaw = isRecord(detailRaw.tokens) ? detailRaw.tokens : {};
         const latencyMs = extractLatencyMs(detailRaw);
+        const ttftMs = extractTTFTMs(detailRaw);
         const apiKeyRaw =
           typeof detailRaw.api_key === 'string' && detailRaw.api_key.trim()
             ? detailRaw.api_key.trim()
@@ -1199,6 +1216,7 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
             detailRaw.error_message ?? detailRaw.errorMessage ?? detailRaw.error
           ),
           latency_ms: latencyMs ?? undefined,
+          ttft_ms: ttftMs ?? undefined,
           tokens: tokensRaw as unknown as UsageDetail['tokens'],
           failed: detailRaw.failed === true,
           __modelName: modelName,

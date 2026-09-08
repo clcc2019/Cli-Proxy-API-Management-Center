@@ -247,6 +247,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   const showNotification = useNotificationStore((state) => state.showNotification);
   const setCodexQuota = useQuotaStore((state) => state.setCodexQuota);
   const [resetCreditConsuming, setResetCreditConsuming] = useState(false);
+  const [showAllQuotaWindows, setShowAllQuotaWindows] = useState(false);
   const {
     canRefreshQuota,
     isQuotaRefreshing,
@@ -417,9 +418,24 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
     void refreshQuotaForFile();
   }, [refreshQuotaForFile]);
   const quotaRenderHelpers = useMemo(
-    () => ({ styles, QuotaProgressBar, item: file, promotionAction }),
-    [file, promotionAction]
+    () => ({
+      styles,
+      QuotaProgressBar,
+      item: file,
+      promotionAction,
+      showAllQuotaWindows,
+    }),
+    [file, promotionAction, showAllQuotaWindows]
   );
+  const additionalQuotaCount = useMemo(() => {
+    if (!quotaForRender) return 0;
+    if (quotaType === 'codex' || quotaType === 'claude') {
+      const windows = (quotaForRender as { windows?: unknown[] }).windows ?? [];
+      return Math.max(0, windows.length - 2);
+    }
+    const rows = (quotaForRender as { rows?: unknown[] }).rows ?? [];
+    return Math.max(0, rows.length - 2);
+  }, [quotaForRender, quotaType]);
   const renderedQuotaItems = useMemo(
     () =>
       quotaForRender
@@ -432,6 +448,18 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
     <div className={styles.quotaSection}>
       <div className={styles.quotaSectionHeader}>
         <span className={styles.quotaSectionTitle}>{t(`${config.i18nPrefix}.title`)}</span>
+        {additionalQuotaCount > 0 && (
+          <button
+            type="button"
+            className={styles.quotaExpandButton}
+            onClick={() => setShowAllQuotaWindows((expanded) => !expanded)}
+            aria-expanded={showAllQuotaWindows}
+          >
+            {showAllQuotaWindows
+              ? t('auth_files.quota_collapse')
+              : t('auth_files.quota_show_more', { count: additionalQuotaCount })}
+          </button>
+        )}
         {showResetCredits && (
           <div className={styles.codexResetCredits}>
             <div className={styles.codexResetCreditsText}>

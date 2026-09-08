@@ -206,7 +206,7 @@
 // the operational sections below stay white and are separated only by rails.
 .providerContext {
   display: grid;
-  grid-template-columns: minmax(250px, 0.78fr) minmax(0, 1.22fr);
+  grid-template-columns: minmax(220px, 0.64fr) minmax(0, 1.36fr);
   align-items: center;
   gap: 28px;
   min-width: 0;
@@ -344,8 +344,9 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 14px;
-  padding: 20px 24px 14px;
+  padding: 18px 24px 13px;
   border-bottom: 1px solid var(--oauth-modal-border);
+  background: linear-gradient(180deg, var(--oauth-modal-surface-warm), var(--oauth-modal-surface));
 
   > div:first-child {
     min-width: 0;
@@ -418,6 +419,7 @@
   border: 1px solid var(--oauth-modal-border);
   border-radius: var(--xai-radius-control);
   background: var(--oauth-modal-surface-subtle);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
   scrollbar-color: var(--oauth-modal-border-strong) transparent;
   scrollbar-width: thin;
 }
@@ -590,6 +592,10 @@
   padding: 16px;
   border-bottom: 1px solid var(--oauth-modal-border);
   background: var(--oauth-modal-surface);
+
+  &:nth-child(even) {
+    background: color-mix(in srgb, var(--oauth-modal-surface-subtle) 34%, var(--oauth-modal-surface));
+  }
 
   &:last-child {
     border-bottom: 0;

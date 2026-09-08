@@ -17,7 +17,7 @@
   --prefix-proxy-sage: var(--mg-sage);
   --prefix-proxy-sage-strong: var(--mg-sage-strong);
   --prefix-proxy-sage-soft: var(--mg-sage-soft);
-  --prefix-proxy-ink: #0e0d0c;
+  --prefix-proxy-ink: var(--mg-ink-strong);
   --prefix-proxy-danger: var(--mg-danger);
   --prefix-proxy-warning: var(--mg-warning);
 
@@ -46,7 +46,7 @@
   --floating-surface: var(--prefix-proxy-surface);
   --floating-surface-material: var(--prefix-proxy-surface);
   --floating-border: var(--prefix-proxy-border);
-  --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
+  --floating-shadow: var(--mg-shadow-float);
   --surface-inner-highlight: none;
   --surface-raised: var(--prefix-proxy-surface);
   --surface-raised-strong: var(--prefix-proxy-surface);
@@ -66,7 +66,7 @@
   border-radius: var(--xai-radius-card);
   background: var(--prefix-proxy-surface);
   color: var(--prefix-proxy-text);
-  box-shadow: 0 20px 65px rgb(15 23 42 / 0.07);
+  box-shadow: var(--xai-shadow-dialog);
 
   :global(.modal-header) {
     min-height: 72px;
@@ -99,7 +99,7 @@
     min-height: 68px;
     padding: 14px 24px;
     border-top-color: var(--prefix-proxy-border);
-    background: var(--prefix-proxy-surface-muted);
+    background: var(--prefix-proxy-surface);
   }
 
   :global(.modal-close-floating) {
@@ -127,6 +127,7 @@
 
   :global(.input),
   :global(textarea.input) {
+    min-width: 0;
     border-color: var(--prefix-proxy-border);
     border-radius: var(--xai-radius-small);
     background: var(--prefix-proxy-control);
@@ -134,8 +135,12 @@
     box-shadow: none;
 
     &:focus {
-      border-color: var(--prefix-proxy-border);
+      border-color: var(--prefix-proxy-text-secondary);
       box-shadow: none;
+    }
+
+    &:hover:not(:disabled):not(:focus) {
+      border-color: var(--prefix-proxy-border-strong);
     }
   }
 
@@ -296,7 +301,7 @@
   top: 0;
   min-height: 100%;
   border-left: 1px solid var(--prefix-proxy-border);
-  background: var(--prefix-proxy-surface-muted);
+  background: var(--prefix-proxy-surface-warm);
 }
 
 .prefixProxyPanelHeader {
@@ -321,7 +326,7 @@
   margin: 0;
   color: var(--prefix-proxy-text);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.015em;
 }
@@ -350,12 +355,6 @@
   border-radius: var(--xai-radius-panel);
   background: var(--prefix-proxy-surface);
   box-shadow: none;
-
-  &:first-child,
-  &:last-child {
-    padding-block: 16px;
-    border-top: 1px solid var(--prefix-proxy-border);
-  }
 }
 
 .prefixProxySectionHeader {
@@ -365,7 +364,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 0 0 12px;
-  border-bottom: 1px solid var(--prefix-proxy-border);
+  border-bottom: 0;
   background: transparent;
 }
 
@@ -437,27 +436,6 @@
   :global(.input-control-sm .input) {
     min-height: 40px;
     padding-block: 9px;
-  }
-
-  :global(.input),
-  :global(textarea.input) {
-    min-width: 0;
-    border-color: var(--prefix-proxy-border);
-    border-radius: var(--xai-radius-small);
-    background: var(--prefix-proxy-control);
-    color: var(--prefix-proxy-text);
-    box-shadow: none;
-  }
-
-  :global(.input:hover:not(:disabled):not(:focus)),
-  :global(textarea.input:hover:not(:disabled):not(:focus)) {
-    border-color: var(--prefix-proxy-border-strong);
-  }
-
-  :global(.input:focus),
-  :global(textarea.input:focus) {
-    border-color: var(--prefix-proxy-border);
-    box-shadow: none;
   }
 }
 
@@ -615,6 +593,7 @@
   }
 
   &::after {
+    flex-shrink: 0;
     width: 7px;
     height: 7px;
     border-right: 1.5px solid currentColor;
@@ -731,7 +710,7 @@
   --floating-surface: var(--prefix-proxy-surface);
   --floating-surface-material: var(--prefix-proxy-surface);
   --floating-border: var(--prefix-proxy-border);
-  --floating-shadow: 0 16px 34px -24px rgb(15 23 42 / 0.3);
+  --floating-shadow: var(--mg-shadow-float);
   --surface-inner-highlight: none;
 }
 

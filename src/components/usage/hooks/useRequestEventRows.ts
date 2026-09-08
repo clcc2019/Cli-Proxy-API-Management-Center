@@ -13,6 +13,7 @@ import {
   calculateCost,
   collectUsageDetails,
   extractLatencyMs,
+  extractTTFTMs,
   extractTotalTokens,
   type ModelPrice,
   type UsageDetail,
@@ -52,6 +53,7 @@ export interface RequestEventRow {
   failed: boolean;
   errorMessage: string;
   latencyMs: number | null;
+  ttftMs: number | null;
   inputTokens: number;
   outputTokens: number;
   reasoningTokens: number;
@@ -328,6 +330,7 @@ export function useRequestEventRows({
         cachedTokens,
       });
       const latencyMs = extractLatencyMs(detail);
+      const ttftMs = extractTTFTMs(detail);
       const totalCost = calculateCost(detail, modelPrices);
       const errorMessage =
         detail.failed === true && typeof detail.error_message === 'string'
@@ -378,6 +381,7 @@ export function useRequestEventRows({
         failed: detail.failed === true,
         errorMessage,
         latencyMs,
+        ttftMs,
         inputTokens,
         outputTokens,
         reasoningTokens,

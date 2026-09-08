@@ -15,7 +15,7 @@ body,
 }
 
 html {
-  background: var(--mg-canvas, #f4f6f8);
+  background: var(--mg-canvas, #f7f7f7);
   scroll-behavior: smooth;
 }
 
@@ -23,15 +23,18 @@ body {
   min-width: 320px;
   font-family: var(--xai-font-ui);
   font-size: 13.5px;
-  line-height: 18px;
+  line-height: 1.5;
   letter-spacing: 0;
-  background: var(--mg-canvas, #f4f6f8);
+  background:
+    radial-gradient(circle at 92% -8%, rgb(255 255 255 / 72%), transparent 34%),
+    radial-gradient(circle at -8% 20%, rgb(225 230 236 / 34%), transparent 38%),
+    var(--mg-canvas, #f7f7f7);
   color: var(--text-primary);
   transition:
     background-color var(--xai-duration-drawer),
     color var(--xai-duration-drawer);
   text-rendering: optimizeLegibility;
-  font-variant-numeric: proportional-nums;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   // 避免浏览器合成伪粗体或伪斜体，让拉丁与 CJK 字形保持清晰一致。

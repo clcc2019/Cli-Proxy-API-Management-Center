@@ -21,7 +21,7 @@
   border: 1px solid var(--key-border);
   border-radius: var(--xai-radius-card);
   background: var(--key-surface);
-  box-shadow: 0 14px 34px rgb(35 42 37 / 5%);
+  box-shadow: 0 14px 34px rgb(13 13 13 / 5%);
 }
 
 .headerRow {
@@ -671,7 +671,7 @@
 
   border-color: var(--key-border);
   border-radius: var(--xai-radius-card);
-  box-shadow: 0 24px 72px rgb(35 42 37 / 16%);
+  box-shadow: 0 24px 72px rgb(13 13 13 / 16%);
 
   :global(.modal-header) {
     padding: 22px 24px;
@@ -796,7 +796,7 @@
   border-color: var(--key-border);
   background: var(--key-surface);
   color: var(--key-text);
-  box-shadow: 0 4px 12px rgb(35 42 37 / 7%);
+  box-shadow: 0 4px 12px rgb(13 13 13 / 7%);
 }
 
 .modalNavActive svg {

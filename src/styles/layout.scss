@@ -6,7 +6,7 @@ $breakpoint-shell-compact: 1023px;
   --header-height: var(--xai-space-15);
   --shell-gutter: var(--xai-space-3);
   --floating-control-size: var(--xai-space-8);
-  --page-padding-inline: var(--xai-space-6);
+  --page-padding-inline: clamp(27px, 3vw, 45px);
   --page-padding-block: var(--xai-space-6);
   --page-content-gap: var(--xai-space-7);
   --page-title-size: 27px;
@@ -22,7 +22,7 @@ $breakpoint-shell-compact: 1023px;
   --sidebar-item-radius: var(--xai-radius-control);
   --sidebar-label-size: 13px;
   --sidebar-label-weight: 500;
-  --sidebar-label-active-weight: 500;
+  --sidebar-label-active-weight: 600;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -33,23 +33,6 @@ $breakpoint-shell-compact: 1023px;
   font-family: var(--xai-font-ui);
   position: relative;
   isolation: isolate;
-
-  &::before {
-    position: fixed;
-    z-index: -1;
-    inset: 0;
-    background:
-      radial-gradient(circle at 92% -8%, rgb(255 255 255 / 68%), transparent 29%),
-      radial-gradient(circle at 8% 108%, rgb(215 221 211 / 42%), transparent 35%),
-      linear-gradient(
-        115deg,
-        transparent 0 46%,
-        rgb(255 255 255 / 18%) 46.1% 46.3%,
-        transparent 46.4%
-      );
-    content: '';
-    pointer-events: none;
-  }
 
   @supports (height: 100dvh) {
     min-height: 100dvh;
@@ -146,7 +129,7 @@ $breakpoint-shell-compact: 1023px;
     border: 1px solid var(--xai-border);
     border-radius: var(--xai-radius-pill);
     background: rgb(255 255 255 / 78%);
-    box-shadow: 0 8px 24px rgb(35 42 37 / 8%);
+    box-shadow: var(--xai-shadow-button);
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
     flex-shrink: 1;
@@ -675,7 +658,7 @@ $breakpoint-shell-compact: 1023px;
     padding: 0 var(--xai-space-2);
     overflow: hidden;
     color: var(--xai-secondary);
-    font-size: 13.5px;
+    font-size: 11px;
     font-weight: 500;
     letter-spacing: 0;
     line-height: 18px;
@@ -766,9 +749,10 @@ $breakpoint-shell-compact: 1023px;
     &.active {
       // Selection uses a quiet neutral surface rather than a high-contrast
       // black block, keeping the navigation subordinate to page content.
-      background: var(--xai-fill-pressed);
+      background: var(--xai-white);
       color: var(--xai-ink-console);
       font-weight: var(--sidebar-label-active-weight);
+      box-shadow: var(--xai-shadow-button);
 
       .nav-icon {
         color: var(--xai-ink-console);
@@ -922,7 +906,12 @@ $breakpoint-shell-compact: 1023px;
   position: relative;
   isolation: isolate;
   // Keep the shell canvas quiet; local white surfaces carry grouping and focus.
-  background: var(--mg-canvas);
+  background:
+    linear-gradient(rgb(255 255 255 / 18%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 18%) 1px, transparent 1px),
+    radial-gradient(circle at 80% 0%, rgb(255 255 255 / 58%), transparent 30%),
+    var(--mg-canvas);
+  background-size: 32px 32px, 32px 32px, auto, auto;
 
   &.main-content-logs {
     flex: 1 1 auto;
@@ -1254,6 +1243,10 @@ $breakpoint-shell-compact: 1023px;
     padding-bottom: calc(var(--page-padding-block) + env(safe-area-inset-bottom));
     padding-left: max(var(--page-padding-inline), env(safe-area-inset-left));
   }
+
+  .main-header .header-actions {
+    max-width: calc(100vw - 88px);
+  }
 }
 
 @media (max-width: 360px) {
@@ -1343,8 +1336,8 @@ $breakpoint-shell-compact: 1023px;
     padding: 3px;
     border: 1px solid var(--xai-border);
     border-radius: var(--xai-radius-pill);
-    background: var(--mg-canvas);
-    background: color-mix(in srgb, var(--mg-canvas) 86%, transparent);
+    background: var(--mg-surface);
+    background: color-mix(in srgb, var(--mg-surface) 88%, transparent);
     box-shadow: var(--xai-shadow-button);
 
     > .btn,

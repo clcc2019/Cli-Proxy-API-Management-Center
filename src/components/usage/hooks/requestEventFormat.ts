@@ -35,9 +35,9 @@ export const getRequestEventCredentialTypeStyle = (
   if (!typeColor) return undefined;
 
   return {
-    background: typeColor.bg,
-    color: typeColor.text,
-    borderColor: typeColor.bg,
+    background: `color-mix(in srgb, ${typeColor.text} 8%, var(--request-surface))`,
+    color: `color-mix(in srgb, ${typeColor.text} 78%, var(--request-text))`,
+    borderColor: `color-mix(in srgb, ${typeColor.text} 20%, var(--request-border))`,
   };
 };
 

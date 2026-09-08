@@ -842,6 +842,8 @@
     "client_profile_label": "客户端特征",
     "client_profile_count": "{{count}} 项",
     "last_refresh_label": "最近刷新",
+    "quota_show_more": "展开其余 {{count}} 项",
+    "quota_collapse": "收起额度",
     "codex_subscription_until_label": "订阅到期",
     "refresh_token_badge": "包含 refresh_token",
     "plan_badge": "套餐：{{plan}}",
@@ -1710,7 +1712,8 @@
     "request_events_relative_day": "天",
     "input_tokens": "输入 Tokens",
     "output_tokens": "输出 Tokens",
-    "render_on_demand": "图表按需渲染,滚动到可见区域时加载"
+    "render_on_demand": "图表按需渲染,滚动到可见区域时加载",
+    "request_events_col_ttft": "首 Token"
   },
   "stats": {
     "success": "成功",

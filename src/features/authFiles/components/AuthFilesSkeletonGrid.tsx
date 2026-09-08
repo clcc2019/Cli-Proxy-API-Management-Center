@@ -1,7 +1,9 @@
 import { memo, useMemo } from 'react';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
 
-const AUTH_FILE_SKELETON_MAX = 12;
+// Keep the initial loading state quiet. A small representative set gives the
+// layout enough shape without turning the whole viewport into a wall of motion.
+const AUTH_FILE_SKELETON_MAX = 6;
 
 type AuthFilesSkeletonGridProps = {
   count: number;

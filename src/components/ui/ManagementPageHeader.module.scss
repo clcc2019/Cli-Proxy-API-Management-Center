@@ -1,10 +1,10 @@
 .header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: center;
   gap: var(--mg-space-4) var(--mg-space-6);
   min-width: 0;
-  padding: var(--xai-space-1) 0 var(--xai-space-4);
+  padding: var(--xai-space-1) 0 var(--xai-space-6);
   border-bottom: 1px solid var(--mg-border);
 }
 
@@ -34,9 +34,9 @@
   margin: 0;
   color: var(--mg-text);
   font-family: var(--mg-font-display);
-  font-size: 27px;
-  font-weight: 500;
-  line-height: 36px;
+  font-size: var(--mg-title-size);
+  font-weight: var(--mg-title-weight);
+  line-height: var(--mg-title-leading);
   letter-spacing: -0.675px;
   text-wrap: balance;
 }
@@ -62,8 +62,13 @@
   margin: 0;
   color: var(--mg-text-secondary);
   font-size: 13.5px;
-  line-height: 18px;
+  line-height: 1.6;
   text-wrap: pretty;
+}
+
+.header :global(.btn):focus-visible {
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 3px;
 }
 
 .actions {

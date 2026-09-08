@@ -158,6 +158,7 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                   <th scope="col" title={hasLatencyData ? latencyHint : undefined}>
                     {t('usage_stats.request_events_col_status')}
                   </th>
+                  <th scope="col">{t('usage_stats.request_events_col_ttft')}</th>
                   <th scope="col">{t('usage_stats.request_events_col_tokens')}</th>
                   <th scope="col">{t('usage_stats.request_events_col_cost')}</th>
                 </tr>
@@ -281,6 +282,9 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                             </span>
                           )}
                         </div>
+                      </td>
+                      <td className={styles.requestEventsStatusCell}>
+                        {row.ttftMs === null ? '—' : formatDurationMs(row.ttftMs)}
                       </td>
                       <td className={styles.requestEventsTokenCell}>
                         <div className={styles.cellPrimary}>

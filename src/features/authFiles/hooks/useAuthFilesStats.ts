@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { USAGE_STATS_STALE_TIME_MS, useAuthStore, useUsageStatsStore } from '@/stores';
 import { usageApi } from '@/services/api/usage';
+import { registerSessionCleanup } from '@/stores/sessionCleanup';
 import type {
   UsageAggregateCredentialStat,
   UsageAggregateSnapshot,
@@ -51,6 +52,12 @@ let inFlightAuthFileUsageRequest: {
 } | null = null;
 
 const authFileUsageCache = new Map<string, AuthFileUsageCacheEntry>();
+
+registerSessionCleanup('auth-file-usage', () => {
+  authFileUsageRequestToken += 1;
+  inFlightAuthFileUsageRequest = null;
+  authFileUsageCache.clear();
+});
 
 const getUsageScopeKey = () => {
   const { apiBase = '', managementKey = '' } = useAuthStore.getState();
@@ -192,7 +199,10 @@ const loadAuthFileUsageStats = async (
       stats: reuseKeyUsageStatsReferences(cached?.stats, rawStats),
       fetchedAt: Date.now(),
     };
-    authFileUsageCache.set(scopeKey, entry);
+    if (requestId === authFileUsageRequestToken && scopeKey === getUsageScopeKey()) {
+      authFileUsageCache.clear();
+      authFileUsageCache.set(scopeKey, entry);
+    }
     return entry;
   })();
 
@@ -249,8 +259,10 @@ export function useAuthFilesStats(enabled = true): UseAuthFilesStatsResult {
     async (force = false) => {
       if (!enabled) return;
 
-      const entry = await loadAuthFileUsageStats(force, scopeKey);
-      if (entry.scopeKey !== getUsageScopeKey()) {
+      const request = loadAuthFileUsageStats(force, scopeKey);
+      const requestToken = authFileUsageRequestToken;
+      const entry = await request;
+      if (requestToken !== authFileUsageRequestToken || entry.scopeKey !== getUsageScopeKey()) {
         return;
       }
       if (!mountedRef.current || !enabledRef.current) return;

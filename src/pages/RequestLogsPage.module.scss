@@ -16,7 +16,7 @@
   --request-sage: var(--mg-sage);
   --request-sage-strong: var(--mg-sage-strong);
   --request-sage-soft: var(--mg-sage-soft);
-  --request-orange: var(--mg-orange);
+  --request-latency: var(--mg-teal);
   --request-success: var(--mg-success);
   --request-warning: var(--mg-warning);
   --request-danger: var(--mg-danger);
@@ -25,21 +25,21 @@
 
   // Shared tracks keep the header, data rows, and loading rows aligned.
   // Dense views scroll horizontally instead of reducing identifiers to noise.
-  --request-col-time: 86px;
-  --request-col-endpoint: 126px;
-  --request-col-client-ip: 134px;
-  --request-col-api-key: 72px;
-  --request-col-model: 165px;
-  --request-col-credential: 165px;
-  --request-col-status: 158px;
-  --request-col-tokens: 76px;
-  --request-col-cost: 72px;
-  --request-row-gap: var(--xai-space-2);
+  --request-col-time: 128px;
+  --request-col-endpoint: 160px;
+  --request-col-client-ip: 124px;
+  --request-col-api-key: 96px;
+  --request-col-model: 190px;
+  --request-col-credential: 240px;
+  --request-col-status: 260px;
+  --request-col-tokens: 88px;
+  --request-col-cost: 80px;
+  --request-row-gap: var(--xai-space-3);
   --request-row-padding-x: var(--xai-space-3-5);
   --request-row-grid: var(--request-col-time) minmax(var(--request-col-endpoint), 1fr)
-    var(--request-col-client-ip) var(--request-col-api-key) minmax(var(--request-col-model), 1.12fr)
-    minmax(var(--request-col-credential), 1.08fr) var(--request-col-status)
-    var(--request-col-tokens) var(--request-col-cost);
+    var(--request-col-client-ip) var(--request-col-api-key) minmax(var(--request-col-model), 1fr)
+    minmax(var(--request-col-status), 1.5fr) var(--request-col-tokens) var(--request-col-cost)
+    minmax(var(--request-col-credential), 1.25fr);
   --request-row-min-width: calc(
     var(--request-col-time) + var(--request-col-endpoint) + var(--request-col-client-ip) +
       var(--request-col-api-key) + var(--request-col-model) + var(--request-col-credential) +
@@ -68,7 +68,7 @@
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--request-border);
   border-radius: var(--mg-radius-card);
   background: var(--request-surface);
@@ -87,10 +87,6 @@
 
   &:last-child {
     border-right: 0;
-
-    .summaryValue {
-      color: var(--request-orange);
-    }
   }
 }
 
@@ -147,7 +143,7 @@
   border: 1px solid var(--request-border);
   border-radius: var(--mg-radius-card);
   background: var(--request-surface);
-  box-shadow: 0 12px 30px rgb(35 42 37 / 4%);
+  box-shadow: 0 12px 30px rgb(13 13 13 / 4%);
 }
 
 .toolbar {
@@ -256,8 +252,8 @@
 }
 
 .statusFilterSuccess.statusFilterButtonActive {
-  background: color-mix(in srgb, var(--request-sage-soft) 74%, var(--request-surface));
-  color: var(--request-sage-strong);
+  background: color-mix(in srgb, var(--request-success) 8%, var(--request-surface));
+  color: var(--request-success);
 
   .statusFilterCount {
     background: color-mix(in srgb, var(--request-success) 12%, transparent);
@@ -457,7 +453,9 @@
 
   > span {
     min-width: 0;
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -466,9 +464,7 @@
   display: grid;
   min-height: 68px;
   grid-template-columns: var(--request-row-grid);
-  // Keep the first line of every column aligned while allowing long values
-  // to grow the row instead of being hidden behind an ellipsis.
-  align-items: start;
+  align-items: center;
   gap: var(--request-row-gap);
   padding: var(--xai-space-2-5) var(--request-row-padding-x);
   border-bottom: 1px solid var(--request-border);
@@ -517,28 +513,34 @@
 .eventTime {
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: var(--xai-space-1);
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--xai-space-2);
+  white-space: nowrap;
 }
 
 .eventTimePrimary {
+  min-width: 0;
   max-width: 100%;
+  overflow: hidden;
   color: var(--request-text);
   font-family: $font-mono;
   font-size: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
+  text-overflow: ellipsis;
 }
 
 .eventTimeSecondary {
+  min-width: 0;
   max-width: 100%;
+  overflow: hidden;
   color: var(--request-text-tertiary);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
+  text-overflow: ellipsis;
 }
 
 .eventEndpoint,
@@ -552,10 +554,12 @@
 }
 
 .eventEndpointValue,
-.eventApiKeyValue {
+.eventApiKeyValue,
+.eventClientIPValue {
   display: block;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eventEndpointValue {
@@ -565,8 +569,6 @@
 
 .eventClientIPValue {
   color: var(--request-text-tertiary);
-  overflow-wrap: anywhere;
-  white-space: normal;
 }
 
 .eventApiKeyValue {
@@ -577,9 +579,18 @@
 .eventCredentialMain {
   display: flex;
   min-width: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--xai-space-1) var(--xai-space-1-5);
+}
+
+.eventModel {
+  overflow: hidden;
+}
+
+.eventCredentialMain {
+  flex: 0 1 auto;
+  overflow: hidden;
 }
 
 .eventModelName,
@@ -590,8 +601,9 @@
   font-size: 12.5px;
   font-weight: 500;
   line-height: 1.35;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eventModelMeta {
@@ -599,25 +611,28 @@
   min-width: 0;
   max-width: 100%;
   min-height: 19px;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   align-items: center;
-  padding: var(--xai-space-1) var(--xai-space-1-5);
+  padding: 1px 5px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--request-sage) 30%, var(--request-border));
+  border: 1px solid color-mix(in srgb, var(--request-text-tertiary) 22%, var(--request-border));
   border-radius: var(--xai-radius-micro);
-  background: color-mix(in srgb, var(--request-sage-soft) 52%, var(--request-surface));
-  color: var(--request-sage-strong);
+  background: var(--request-surface-subtle);
+  color: var(--request-text-secondary);
   font-size: 11px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .eventCredential {
-  display: block;
+  display: flex;
   min-width: 0;
+  align-items: center;
+  gap: var(--xai-space-2);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .eventCredentialType {
@@ -625,23 +640,22 @@
   max-width: 100%;
   flex: 0 0 auto;
   align-items: center;
-  padding: var(--xai-space-1) var(--xai-space-1-5);
+  padding: 2px 5px;
   border: 1px solid transparent;
   border-radius: var(--xai-radius-micro);
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: lowercase;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .eventCredentialMeta {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--xai-space-1);
-  margin-top: var(--xai-space-1);
+  gap: var(--xai-space-2);
+  overflow: hidden;
   color: var(--request-text-tertiary);
   font-family: $font-mono;
   font-size: 11px;
@@ -649,21 +663,21 @@
 }
 
 .eventCredentialMetaItem {
-  display: inline-flex;
+  display: block;
   min-width: 0;
-  max-width: 100%;
-  align-items: center;
-  gap: var(--xai-space-1);
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eventStatus {
   display: flex;
   min-width: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--xai-space-1);
+  overflow: visible;
+  white-space: nowrap;
 }
 
 .eventStatusBadge {
@@ -694,14 +708,14 @@
 }
 
 .eventStatusBadgeSuccess {
-  border-color: color-mix(in srgb, var(--request-success) 18%, var(--request-border));
-  background: color-mix(in srgb, var(--request-success) 8%, var(--request-surface));
+  border-color: color-mix(in srgb, var(--request-success) 24%, var(--request-border));
+  background: color-mix(in srgb, var(--request-success) 9%, var(--request-surface));
   color: var(--request-success);
 }
 
 .eventStatusBadgeFailed {
-  border-color: color-mix(in srgb, var(--request-danger) 20%, var(--request-border));
-  background: color-mix(in srgb, var(--request-danger) 8%, var(--request-surface));
+  border-color: color-mix(in srgb, var(--request-danger) 24%, var(--request-border));
+  background: color-mix(in srgb, var(--request-danger) 9%, var(--request-surface));
   color: var(--request-danger);
   cursor: pointer;
 
@@ -727,14 +741,20 @@
   align-items: center;
   gap: var(--xai-space-1);
   padding: var(--xai-space-1) var(--xai-space-1-5);
-  border: 1px solid var(--request-border);
+  border: 1px solid color-mix(in srgb, var(--request-latency) 24%, var(--request-border));
   border-radius: var(--xai-radius-pill);
-  background: var(--request-surface-subtle);
-  color: var(--request-text-secondary);
+  background: color-mix(in srgb, var(--request-latency) 8%, var(--request-surface));
+  color: var(--request-latency);
   font-size: 11px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.eventTtft {
+  border-color: color-mix(in srgb, var(--request-text-tertiary) 18%, var(--request-border));
+  background: var(--request-surface-warm);
+  color: var(--request-text-secondary);
 }
 
 .eventLatencyDot {
@@ -747,8 +767,8 @@
 }
 
 .eventLatencySlow {
-  border-color: color-mix(in srgb, var(--request-warning) 24%, var(--request-border));
-  background: color-mix(in srgb, var(--request-warning) 7%, var(--request-surface));
+  border-color: color-mix(in srgb, var(--request-warning) 28%, var(--request-border));
+  background: color-mix(in srgb, var(--request-warning) 9%, var(--request-surface));
   color: var(--request-warning);
 
   .eventLatencyDot {
@@ -757,8 +777,8 @@
 }
 
 .eventLatencyVerySlow {
-  border-color: color-mix(in srgb, var(--request-danger) 24%, var(--request-border));
-  background: color-mix(in srgb, var(--request-danger) 7%, var(--request-surface));
+  border-color: color-mix(in srgb, var(--request-danger) 28%, var(--request-border));
+  background: color-mix(in srgb, var(--request-danger) 9%, var(--request-surface));
   color: var(--request-danger);
 
   .eventLatencyDot {
@@ -768,7 +788,10 @@
 
 .eventErrorPreview {
   display: block;
-  width: 100%;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: auto;
   min-width: 0;
   padding: 0;
   border: 0;
@@ -781,7 +804,7 @@
   line-height: 1.35;
   text-align: left;
   overflow-wrap: anywhere;
-  white-space: normal;
+  white-space: nowrap;
 
   &:hover {
     color: var(--request-danger);
@@ -797,6 +820,7 @@
 }
 
 .eventTokens {
+  padding-top: 3px;
   display: flex;
   min-width: 0;
   align-items: center;
@@ -835,6 +859,7 @@
 }
 
 .eventCost {
+  padding-top: 3px;
   min-width: 0;
   color: var(--request-text);
   font-family: $font-mono;
@@ -998,7 +1023,7 @@
 
 @container request-page (max-width: 1040px) {
   .page {
-    --request-row-gap: var(--xai-space-2);
+    --request-row-gap: var(--xai-space-3);
     --request-row-padding-x: var(--xai-space-3-5);
   }
 
@@ -1059,28 +1084,22 @@
 
 @container request-page (max-width: 620px) {
   .page {
-    --request-row-gap: var(--xai-space-2);
+    --request-row-gap: var(--xai-space-3);
     --request-row-padding-x: var(--xai-space-2);
     gap: var(--xai-space-4);
   }
 
-  .summaryGrid {
-    grid-template-columns: 1fr;
+  .summaryItem {
+    min-height: 88px;
+    padding: var(--xai-space-3);
   }
 
-  .summaryItem {
-    min-height: 108px;
-    padding: var(--xai-space-4);
-    border-right: 0;
-    border-bottom: 1px solid var(--request-border);
-
-    &:last-child {
-      border-bottom: 0;
-    }
+  .summaryHint {
+    display: none;
   }
 
   .summaryValue {
-    font-size: 29px;
+    font-size: clamp(18px, 5.5cqi, 26px);
   }
 
   .toolbar {

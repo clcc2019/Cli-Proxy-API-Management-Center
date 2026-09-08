@@ -93,6 +93,7 @@ interface QuotaRenderHelpers {
   QuotaProgressBar: (props: QuotaProgressBarProps) => ReactElement;
   item?: AuthFileItem;
   promotionAction?: ReactNode;
+  showAllQuotaWindows?: boolean;
 }
 
 interface RenderQuotaRowOptions {
@@ -633,7 +634,13 @@ const formatCodexSubscriptionUntil = (value: unknown): string | null => {
       ? new Date(asNumber < 1e12 ? asNumber * 1000 : asNumber)
       : new Date(String(raw));
 
-  if (!Number.isNaN(date.getTime())) return date.toLocaleString();
+  if (!Number.isNaN(date.getTime())) {
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  }
   const fallback = String(raw).trim();
   return fallback || null;
 };
@@ -723,7 +730,12 @@ const renderCodexItems = (
   });
   const showCreditProgress =
     !hasQuotaRemaining && creditProgress !== null && creditProgress.remaining > 0;
-  const visibleWindows = windows;
+  const compactWindows = windows.filter((window) => ['five-hour', 'weekly'].includes(window.id));
+  const visibleWindows = helpers.showAllQuotaWindows
+    ? windows
+    : compactWindows.length > 0
+      ? compactWindows
+      : windows;
   const subscriptionUntilLabel = resolveCodexSubscriptionUntilLabel(quota, helpers.item);
   const subscriptionActiveDaysLabel = resolveCodexSubscriptionActiveDaysLabel(
     quota,
@@ -1010,8 +1022,12 @@ const renderClaudeItems = (
     return h(Fragment, null, ...nodes);
   }
 
+  const visibleWindows = helpers.showAllQuotaWindows
+    ? windows
+    : windows.filter((window) => ['five-hour', 'weekly'].includes(window.id));
+
   nodes.push(
-    ...windows.map((window) => {
+    ...visibleWindows.map((window) => {
       const remaining = getRemainingQuotaPercent(window.usedPercent);
       const windowLabel = window.labelKey ? t(window.labelKey) : window.label;
 
@@ -1138,7 +1154,9 @@ const renderKimiItems = (
     return h('div', { className: styleMap.quotaMessage }, t('kimi_quota.empty_data'));
   }
 
-  return rows.map((row) => {
+  const visibleRows = helpers.showAllQuotaWindows ? rows : rows.slice(0, 2);
+
+  return visibleRows.map((row) => {
     const limit = row.limit;
     const used = row.used;
     const remaining =
