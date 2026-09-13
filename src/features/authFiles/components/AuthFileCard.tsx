@@ -12,7 +12,6 @@ import {
   IconDollarSign,
   IconKey,
   IconModelCluster,
-  IconSatellite,
   IconSettings,
   IconTrash2,
 } from '@/components/ui/icons';
@@ -28,7 +27,6 @@ import {
   getTypeLabel,
   parsePriorityValue,
   readAuthFileServiceTierPassthrough,
-  readAuthFileWebsockets,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
@@ -98,7 +96,6 @@ export type AuthFileCardProps = {
   deleting: boolean;
   statusUpdating: boolean;
   accessTokenCopying: boolean;
-  refreshTokenCopying: boolean;
   promotionChecking: boolean;
   promotionResult?: AuthFilePromotionResult;
   priorityUpdating: boolean;
@@ -110,7 +107,6 @@ export type AuthFileCardProps = {
   onCopyName: (name: string) => void | Promise<void>;
   onDownload: (name: string) => void;
   onCopyAccessToken: (file: AuthFileItem) => void;
-  onCopyRefreshToken: (file: AuthFileItem) => void;
   onCheckPromotion: (file: AuthFileItem) => void;
   onPriorityChange: (file: AuthFileItem, priority: number) => void;
   onOpenPrefixProxyEditor: (file: AuthFileItem) => void;
@@ -157,7 +153,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     deleting,
     statusUpdating,
     accessTokenCopying,
-    refreshTokenCopying,
     promotionChecking,
     promotionResult,
     priorityUpdating,
@@ -168,7 +163,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     onCopyName,
     onDownload,
     onCopyAccessToken,
-    onCopyRefreshToken,
     onCheckPromotion,
     onPriorityChange,
     onOpenPrefixProxyEditor,
@@ -191,7 +185,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     [resolvedTheme, typeKey]
   );
 
-  const websocketsEnabled = useMemo(() => readAuthFileWebsockets(file), [file]);
   const serviceTierPassthroughEnabled = useMemo(
     () => readAuthFileServiceTierPassthrough(file),
     [file]
@@ -200,8 +193,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const serviceTierPassthroughBadgeLabel = serviceTierPassthroughEnabled
     ? t('auth_files.service_tier_passthrough_badge')
     : null;
-  const hasAuthFileBadges =
-    hasRefreshToken || Boolean(websocketsEnabled) || Boolean(serviceTierPassthroughBadgeLabel);
+  const hasAuthFileBadges = hasRefreshToken || Boolean(serviceTierPassthroughBadgeLabel);
   const quotaType = useMemo(() => {
     if (!quotaFilterType) return null;
     return resolveQuotaProviderType(file) === quotaFilterType ? quotaFilterType : null;
@@ -291,7 +283,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const handleShowModels = useEventCallback(() => onShowModels(file));
   const handleDownload = useEventCallback(() => onDownload(file.name));
   const handleCopyAccessToken = useEventCallback(() => onCopyAccessToken(file));
-  const handleCopyRefreshToken = useEventCallback(() => onCopyRefreshToken(file));
   const handleCheckPromotion = useEventCallback(() => onCheckPromotion(file));
   const handleOpenPrefixProxy = useEventCallback(() => onOpenPrefixProxyEditor(file));
   const handleDelete = useEventCallback(() => onDelete(file.name));
@@ -519,20 +510,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                         R
                       </span>
                     )}
-                    {websocketsEnabled && (
-                      <span
-                        className={`${refreshStyles.featureBadge} ${refreshStyles.featureBadgeEnabled} ${refreshStyles.featureBadgeIconOnly}`}
-                        title={t('ai_providers.codex_websockets_hint')}
-                        role="img"
-                        aria-label={t('auth_files.websockets_enabled_badge')}
-                      >
-                        <IconSatellite
-                          className={refreshStyles.featureIcon}
-                          size={13}
-                          aria-hidden="true"
-                        />
-                      </span>
-                    )}
                     {serviceTierPassthroughBadgeLabel && (
                       <span
                         className={`${refreshStyles.featureBadge} ${refreshStyles.featureBadgeFast}`}
@@ -649,24 +626,6 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       <LoadingSpinner size={18} />
                     ) : (
                       <IconKey className={refreshStyles.cardActionIcon} size={18} />
-                    )}
-                  </Button>
-                )}
-                {!isRuntimeOnly && hasRefreshToken && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleCopyRefreshToken}
-                    className={refreshStyles.cardActionButton}
-                    title={t('auth_files.refresh_token_copy')}
-                    aria-label={t('auth_files.refresh_token_copy')}
-                    aria-busy={refreshTokenCopying || undefined}
-                    disabled={disableControls || refreshTokenCopying}
-                  >
-                    {refreshTokenCopying ? (
-                      <LoadingSpinner size={18} />
-                    ) : (
-                      <IconCopy className={refreshStyles.cardActionIcon} size={18} />
                     )}
                   </Button>
                 )}

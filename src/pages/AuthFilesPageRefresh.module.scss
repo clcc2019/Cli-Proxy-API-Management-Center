@@ -17,6 +17,7 @@
   --auth-workbench-surface: var(--mg-surface);
   --auth-workbench-subtle: color-mix(in srgb, var(--mg-surface-subtle) 76%, var(--mg-surface));
   --auth-card-border: color-mix(in srgb, var(--mg-border) 90%, var(--mg-text-tertiary));
+  --auth-accent: var(--mg-ink-strong);
   display: flex;
   width: 100%;
   min-width: 0;
@@ -27,9 +28,12 @@
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
-  background: var(--auth-page-canvas);
+  background:
+    radial-gradient(circle at 92% 0%, rgb(255 255 255 / 72%), transparent 28%),
+    var(--auth-page-canvas);
   color: var(--auth-text-primary);
   overflow: visible;
+  isolation: isolate;
   container-name: auth-files-page;
   container-type: inline-size;
 }
@@ -52,16 +56,41 @@
 }
 
 .page .headerActions {
+  position: relative;
   display: inline-flex;
   min-width: 0;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--xai-space-1-5);
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--mg-surface) 64%, var(--mg-border));
+  border-radius: var(--xai-radius-pill);
+  background-color: color-mix(in srgb, var(--mg-surface) 62%, transparent);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mg-surface) 42%, transparent),
+    transparent 58%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--mg-surface) 86%, transparent),
+    0 8px 18px -16px color-mix(in srgb, var(--mg-text) 36%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(116%);
+  backdrop-filter: blur(12px) saturate(116%);
+  isolation: isolate;
+}
+
+.page .headerActions::before {
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(112deg, color-mix(in srgb, var(--mg-surface) 28%, transparent), transparent 42%);
+  content: '';
+  pointer-events: none;
+}
+
+.page .headerActions > :not(input) {
+  position: relative;
+  z-index: 1;
 }
 
 .page .headerAction:global(.btn.btn-sm) {
@@ -72,6 +101,22 @@
   font-size: 13.5px;
   white-space: nowrap;
   box-shadow: none;
+}
+
+.page .headerActions .headerAction:global(.btn.btn-secondary) {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--mg-surface) 42%, transparent);
+  color: var(--mg-text-secondary);
+}
+
+.page .headerActions .headerAction:global(.btn.btn-secondary):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--mg-border) 70%, transparent);
+  background: color-mix(in srgb, var(--mg-surface) 72%, transparent);
+  color: var(--mg-text);
+}
+
+.page .headerActions .headerAction:global(.btn.btn-secondary):active:not(:disabled) {
+  background: color-mix(in srgb, var(--mg-surface-pressed) 78%, transparent);
 }
 
 .page .headerAction:global(.btn.btn-sm) > span {
@@ -98,6 +143,19 @@
 
 .page .headerActions .uploadAction:global(.btn.btn-sm) {
   padding-inline: var(--xai-space-4);
+  border-color: var(--mg-action);
+  background: var(--mg-action);
+  color: var(--mg-text-inverse);
+  box-shadow: var(--xai-shadow-button);
+}
+
+.page .headerActions .uploadAction:global(.btn.btn-sm):hover:not(:disabled) {
+  border-color: var(--mg-action-hover);
+  background: var(--mg-action-hover);
+}
+
+.page .headerActions .uploadAction:global(.btn.btn-sm):active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
 }
 
 .page .headerActions .dangerAction:global(.btn.btn-danger) {
@@ -141,6 +199,36 @@
   overflow-wrap: anywhere;
 }
 
+.page .modalLoadingFallback {
+  position: fixed;
+  inset: 0;
+  z-index: var(--mg-z-modal);
+  display: grid;
+  place-items: center;
+  background: rgb(13 13 13 / 24%);
+  pointer-events: auto;
+}
+
+.page .modalLoadingSpinner {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgb(255 255 255 / 44%);
+  border-top-color: var(--mg-text-inverse);
+  border-radius: var(--mg-radius-pill);
+  animation: auth-modal-spin 700ms linear infinite;
+}
+
+@keyframes auth-modal-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page .modalLoadingSpinner {
+    animation: none;
+  }
+}
+
 .page .errorPanel + .workbench {
   margin-top: var(--mg-space-3);
 }
@@ -157,6 +245,7 @@
   background: var(--auth-workbench-surface);
   contain: layout style;
   border-bottom: 1px solid var(--auth-workbench-border);
+  box-shadow: 0 4px 12px rgb(24 31 39 / 3%);
 }
 
 .page .providerRail {
@@ -262,7 +351,7 @@
 
 .page .providerTabActive::after,
 .page .providerTab[aria-pressed='true']::after {
-  background: var(--mg-sage-strong);
+  background: var(--auth-accent);
 }
 
 .page .providerTab:focus-visible {
@@ -326,8 +415,8 @@
 
 .page .providerTabActive .providerTabCount,
 .page .providerTab[aria-pressed='true'] .providerTabCount {
-  background: var(--mg-sage-soft);
-  color: var(--mg-text);
+  background: color-mix(in srgb, var(--auth-accent) 12%, var(--mg-surface));
+  color: color-mix(in srgb, var(--auth-accent) 78%, var(--mg-text));
 }
 
 .page .controlRail {
@@ -406,10 +495,19 @@
 }
 
 .page .displayOption[aria-pressed='true'] {
-  border-color: var(--auth-workbench-border-strong);
-  background: var(--mg-surface);
-  color: var(--mg-text);
+  border-color: color-mix(in srgb, var(--auth-accent) 35%, var(--auth-workbench-border));
+  background: color-mix(in srgb, var(--auth-accent) 8%, var(--mg-surface));
+  color: color-mix(in srgb, var(--auth-accent) 82%, var(--mg-text));
   font-weight: 600;
+}
+
+.page .displayOption[aria-pressed='true']::after {
+  width: 4px;
+  height: 4px;
+  margin-left: 1px;
+  border-radius: var(--mg-radius-pill);
+  background: var(--auth-accent);
+  content: '';
 }
 
 .page .displayOptionMarker {
@@ -624,6 +722,7 @@
 
 .page .controlButton:active {
   background: var(--mg-surface-pressed);
+  transform: translateY(1px) scale(0.985);
 }
 
 .page .controlButton:focus-visible {
@@ -633,8 +732,8 @@
 
 .page .controlButtonActive {
   border-color: var(--mg-border);
-  background: color-mix(in srgb, var(--mg-sage-soft) 66%, var(--mg-surface));
-  color: var(--mg-sage-strong);
+  background: color-mix(in srgb, var(--auth-accent) 66%, var(--mg-surface));
+  color: var(--auth-accent);
   box-shadow: none;
 }
 
@@ -699,7 +798,7 @@
 }
 
 .popoverOption[aria-selected='true'] {
-  background: color-mix(in srgb, var(--mg-sage-soft) 68%, var(--mg-surface));
+  background: color-mix(in srgb, var(--auth-accent) 68%, var(--mg-surface));
   color: var(--mg-text);
   font-weight: 600;
 }
@@ -709,7 +808,7 @@
   width: 16px;
   height: 16px;
   place-items: center;
-  color: var(--mg-sage-strong);
+  color: var(--auth-accent);
 }
 
 .presetGrid {
@@ -753,7 +852,7 @@
 
 .preset[aria-pressed='true'] {
   border-color: var(--mg-border);
-  background: color-mix(in srgb, var(--mg-sage-soft) 68%, var(--mg-surface));
+  background: color-mix(in srgb, var(--auth-accent) 68%, var(--mg-surface));
   color: var(--mg-text);
 }
 
@@ -839,6 +938,7 @@
 }
 
 .page .contentRegion :global(.empty-state) {
+  position: relative;
   min-height: 135px;
   margin: 0;
   border: 1px dashed var(--auth-workbench-border-strong);
@@ -911,7 +1011,7 @@
   max-width: 100%;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--auth-file-card-min-width)), 1fr));
   align-items: stretch;
-  gap: 12px;
+  gap: 14px;
   padding: 0;
   overflow: visible;
   contain: layout style;
@@ -1184,19 +1284,6 @@
     transform var(--mg-motion-fast) var(--mg-ease-emphasis);
 }
 
-.page .credentialCard::before {
-  position: absolute;
-  top: 16px;
-  bottom: 16px;
-  left: 0;
-  width: 2px;
-  border-radius: 0 var(--mg-radius-pill) var(--mg-radius-pill) 0;
-  background: transparent;
-  content: '';
-  pointer-events: none;
-  transition: background-color var(--mg-motion-standard) var(--mg-ease-standard);
-}
-
 .page .credentialCardDisabled {
   border-color: var(--mg-border);
   background: color-mix(in srgb, var(--mg-surface-subtle) 72%, var(--mg-surface));
@@ -1204,15 +1291,11 @@
 }
 
 .page .credentialCardSelected {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 72%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-sage-soft) 38%, var(--mg-surface));
+  border-color: color-mix(in srgb, var(--auth-accent) 58%, var(--mg-border));
+  background: color-mix(in srgb, var(--auth-accent) 7%, var(--mg-surface));
   box-shadow:
     0 4px 14px -8px rgb(24 31 39 / 18%),
-    inset 0 0 0 1px color-mix(in srgb, var(--mg-sage-strong) 10%, transparent);
-}
-
-.page .credentialCardSelected::before {
-  background: var(--mg-sage-strong);
+    inset 0 0 0 1px color-mix(in srgb, var(--auth-accent) 12%, transparent);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1221,6 +1304,7 @@
     background: var(--mg-surface);
     box-shadow: 0 8px 20px -10px rgb(24 31 39 / 26%);
     transform: translateY(-2px);
+
   }
 }
 
@@ -1232,7 +1316,7 @@
 }
 
 .page .credentialCardSelected:has(:focus-visible) {
-  border-color: var(--mg-sage-strong);
+  border-color: var(--auth-accent);
 }
 
 .page .cardMain {
@@ -1276,8 +1360,8 @@
 }
 
 .page .cardSelection > input:checked + span {
-  border-color: var(--mg-sage-strong);
-  background: var(--mg-sage-strong);
+  border-color: var(--auth-accent);
+  background: var(--auth-accent);
   color: var(--mg-surface);
 }
 
@@ -1563,6 +1647,7 @@
 }
 
 .page .metricsPanel {
+  position: relative;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -1572,8 +1657,75 @@
   padding-inline: 12px;
   border: 0;
   border-radius: var(--mg-radius-medium);
-  background: color-mix(in srgb, var(--mg-surface-subtle) 65%, var(--mg-surface));
-  box-shadow: none;
+  background-color: color-mix(in srgb, var(--mg-surface-subtle) 38%, var(--mg-surface));
+  background-image:
+    radial-gradient(circle at 10% -12%, color-mix(in srgb, var(--mg-surface) 76%, transparent), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, var(--mg-surface) 28%, transparent), color-mix(in srgb, var(--mg-surface-subtle) 38%, transparent)),
+    repeating-linear-gradient(118deg, transparent 0 3px, color-mix(in srgb, var(--mg-surface) 7%, transparent) 3px 4px);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--mg-surface) 92%, transparent),
+    0 10px 24px -18px color-mix(in srgb, var(--mg-text) 42%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(118%);
+  backdrop-filter: blur(14px) saturate(118%);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.page .metricsPanel::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(112deg, color-mix(in srgb, var(--mg-surface) 20%, transparent), transparent 34% 70%, color-mix(in srgb, var(--auth-accent) 5%, transparent));
+  opacity: 0.92;
+  transition: opacity var(--mg-motion-standard) var(--mg-ease-standard);
+}
+
+.page .metricsPanel::after {
+  position: absolute;
+  top: -45%;
+  right: -18%;
+  width: 58%;
+  height: 110%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--mg-surface) 22%, transparent), transparent 68%);
+  content: '';
+  pointer-events: none;
+  opacity: 0.68;
+  transform: rotate(-18deg);
+  transition:
+    opacity var(--mg-motion-standard) var(--mg-ease-standard),
+    transform var(--mg-motion-standard) var(--mg-ease-emphasis);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page .credentialCard:hover .metricsPanel::before {
+    opacity: 1;
+  }
+
+  .page .credentialCard:hover .metricsPanel::after {
+    opacity: 0.72;
+    transform: translate(-3%, 2%) rotate(-18deg);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .page .metricsPanel {
+    background: var(--mg-surface-subtle);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .page .metricsPanel::before,
+  .page .metricsPanel::after {
+    display: none;
+  }
+}
+
+.page .metricsPanel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page .healthPanel {
@@ -1658,9 +1810,9 @@
 }
 
 .page .featureBadgeEnabled {
-  color: var(--mg-sage-strong);
-  background: color-mix(in srgb, var(--mg-sage-soft) 72%, var(--mg-surface));
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 24%, var(--mg-border));
+  color: var(--auth-accent);
+  background: color-mix(in srgb, var(--auth-accent) 72%, var(--mg-surface));
+  border-color: color-mix(in srgb, var(--auth-accent) 24%, var(--mg-border));
 }
 
 .page .featureBadgeFast {
@@ -1695,12 +1847,13 @@
   padding-inline: 8px;
   border: 0;
   border-radius: var(--mg-radius-pill);
-  background: var(--mg-surface);
+  background: color-mix(in srgb, var(--mg-surface) 52%, transparent);
   color: var(--mg-text-tertiary);
   font-family: $font-mono;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--mg-surface) 66%, transparent);
 }
 
 .page .tokenIcon {
@@ -2610,7 +2763,7 @@
 }
 
 .page .reauthCode:hover {
-  background: color-mix(in srgb, var(--mg-ink-strong) 88%, var(--mg-sage-strong));
+  background: color-mix(in srgb, var(--mg-ink-strong) 88%, var(--auth-accent));
 }
 
 .page .reauthCode:focus-visible {
@@ -2735,8 +2888,8 @@
 
 .page .credentialCard .cardToggleSwitch > input:checked + span:first-of-type {
   padding: 0 27px 0 7px;
-  border-color: var(--mg-sage-strong);
-  background: var(--mg-sage-strong);
+  border-color: var(--auth-accent);
+  background: var(--auth-accent);
 }
 
 .page .credentialCard .cardToggleSwitch > span:first-of-type > span:first-child {
@@ -2761,7 +2914,7 @@
 }
 
 .page .credentialCard .cardToggleSwitch:hover > input:checked + span:first-of-type {
-  border-color: color-mix(in srgb, var(--mg-sage-strong) 76%, var(--mg-text));
+  border-color: color-mix(in srgb, var(--auth-accent) 76%, var(--mg-text));
 }
 
 .page .credentialCard .cardToggleSwitch > input:disabled + span:first-of-type {
@@ -2963,7 +3116,7 @@
   border: 1px solid var(--auth-workbench-border);
   border-radius: var(--mg-radius-card);
   background: var(--mg-surface);
-  box-shadow: none;
+  box-shadow: 0 8px 24px rgb(24 31 39 / 4%);
   content-visibility: auto;
   contain-intrinsic-size: 1px 240px;
 }
@@ -3200,7 +3353,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    padding: 0;
+    padding: 4px;
     overflow: visible;
   }
 
@@ -3855,8 +4008,6 @@
 
 .batchCommandGroup {
   margin-left: auto;
-  padding-left: 10px;
-  border-left: 1px solid var(--mg-border);
 }
 
 .batchBar :global(.btn.btn-sm) {
@@ -3915,7 +4066,7 @@
   align-items: center;
   margin-right: 2px;
   padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--mg-sage-strong) 28%, var(--mg-border));
+  border: 1px solid color-mix(in srgb, var(--auth-accent) 28%, var(--mg-border));
   border-radius: var(--mg-radius-control);
   background: var(--mg-surface-subtle);
   color: var(--mg-text);
@@ -4203,12 +4354,6 @@
     contain-intrinsic-size: auto 315px;
   }
 
-  .page .credentialCard::before {
-    top: var(--xai-space-4);
-    bottom: var(--xai-space-4);
-    width: 1px;
-  }
-
   .page .credentialCardDisabled {
     border-color: var(--xai-border-subtle);
     background: var(--xai-warm);
@@ -4218,10 +4363,6 @@
     border-color: var(--mg-text-secondary);
     background: var(--mg-surface);
     box-shadow: inset 0 0 0 1px var(--mg-border-hover);
-  }
-
-  .page .credentialCardSelected::before {
-    background: var(--xai-ink-console);
   }
 
   .page .cardMain {
@@ -4434,7 +4575,6 @@
   .page .metricsPanel {
     padding-inline: var(--xai-space-3);
     border-radius: var(--xai-radius-panel);
-    background: var(--xai-warm);
   }
 
   .page .healthPanel {
