@@ -1,153 +1,9 @@
 @use '../styles/mixins' as *;
 
-.container {
-  --provider-page-surface: var(--mg-surface);
-  --provider-page-surface-muted: var(--mg-surface-subtle);
-  --provider-page-control: var(--mg-surface);
-  --provider-page-border: var(--mg-border);
-  --provider-page-border-strong: var(--mg-border-hover);
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--xai-space-3-5);
-}
-
-.pageHeader {
-  @include management-page-header;
-  position: relative;
-  gap: 20px;
-  padding: 2px 1px 16px;
-  border-bottom-color: var(--mg-border);
-
-  @media (max-width: 1180px) {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  @include mobile {
-    gap: 10px;
-    padding: 2px 1px 14px;
-  }
-}
-
-.pageHeaderMain {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-}
-
-.pageHeaderAside {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  min-width: 0;
-
-  @media (max-width: 1180px) {
-    justify-content: flex-start;
-  }
-
-  @media (max-width: 760px) {
-    align-items: stretch;
-    flex-direction: column;
-  }
-}
-
 .cardTitle {
   display: flex;
   align-items: center;
   gap: var(--xai-space-2);
-}
-
-.pageEyebrow {
-  color: var(--mg-text-tertiary);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1;
-}
-
-.pageTitle {
-  @include management-page-title;
-  margin: 0;
-  min-width: 0;
-  color: var(--mg-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  @include mobile {
-    white-space: normal;
-  }
-}
-
-.pageDescription {
-  @include management-page-description;
-  max-width: 620px;
-  color: var(--mg-text-secondary);
-  font-weight: 500;
-}
-
-.statusBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 34px;
-  padding: 0 11px;
-  border-radius: var(--mg-radius-pill);
-  border: 1px solid var(--mg-border);
-  background: var(--mg-surface);
-  color: var(--mg-text);
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.pageMetaGrid {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: repeat(5, minmax(58px, 1fr));
-  gap: 6px;
-
-  @media (max-width: 760px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.pageMetaItem {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  min-height: 46px;
-  padding: 6px 9px;
-  border: 1px solid var(--provider-page-border);
-  border-radius: var(--xai-radius-small);
-  background: color-mix(in srgb, var(--provider-page-control) 78%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 46%, transparent);
-}
-
-.pageMetaValue {
-  color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.pageMetaLabel {
-  min-width: 0;
-  color: var(--text-tertiary);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
 }
 
 .cardTitleIcon {
@@ -155,31 +11,11 @@
   height: 26px;
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 26px;
-  padding-bottom: calc(
-    var(--provider-nav-height, 60px) + 12px + env(safe-area-inset-bottom) + var(--xai-space-3-5)
-  );
-}
-
-.errorBanner {
-  background: var(--xai-danger-soft);
-  border: 1px solid var(--xai-danger-border);
-  border-radius: var(--xai-radius-control);
-  padding: var(--xai-space-3) var(--xai-space-3-5);
-  color: var(--xai-danger);
-  line-height: 1.6;
-  box-shadow: none;
-}
-
-.providerSectionAnchor {
-  scroll-margin-top: 28px;
-  min-width: 0;
-}
-
 .providerSectionShell {
+  --provider-page-surface: var(--mg-surface);
+  --provider-page-control: var(--mg-surface);
+  --provider-page-border: var(--mg-border);
+  --provider-page-border-strong: var(--mg-border-hover);
   min-width: 0;
 }
 
@@ -237,36 +73,6 @@
 
 .providerSectionBody {
   min-width: 0;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--xai-space-3-5);
-}
-
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--xai-space-3-5);
-
-  h3 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-}
-
-.providerList {
-  display: grid;
-  gap: var(--xai-space-3-5);
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-
-  @include mobile {
-    grid-template-columns: 1fr;
-  }
 }
 
 .providerConfigList {
@@ -706,14 +512,6 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .pageHeader {
-    animation: providerPageEnter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  .providerSectionAnchor {
-    animation: providerPageEnter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
   :global(#provider-codex) {
     animation-delay: 40ms;
   }
@@ -741,18 +539,6 @@
   .providerConfigItem:global(.provider-card-switching)::after {
     animation: none;
     opacity: 0.25;
-  }
-}
-
-@keyframes providerPageEnter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -1159,105 +945,6 @@
   margin-bottom: 5px;
 }
 
-// API密钥条目列表（二级卡片）
-.apiKeyEntriesSection {
-  margin-top: 10px;
-  padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-}
-
-.apiKeyEntriesLabel {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
-}
-
-.apiKeyEntryList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.apiKeyEntryCard {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: color-mix(in srgb, var(--bg-secondary) 38%, var(--surface-raised));
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  border-radius: var(--xai-radius-panel);
-  font-size: 12px;
-}
-
-.apiKeyEntryIndex {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--xai-radius-pill);
-  background: color-mix(in srgb, var(--bg-tertiary) 72%, transparent);
-  color: var(--text-primary);
-  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  font-size: 11px;
-  font-weight: 600;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.apiKeyEntryKey {
-  font-family: 'Monaco', 'Menlo', 'Consolas', 'Ubuntu Mono', monospace;
-  font-weight: 700;
-  color: var(--text-primary);
-  word-break: break-all;
-}
-
-.apiKeyEntryProxy {
-  color: var(--text-tertiary);
-  font-size: 11px;
-
-  &::before {
-    content: '| Proxy: ';
-    color: var(--text-quaternary);
-  }
-}
-
-.apiKeyEntryStats {
-  display: flex;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.apiKeyEntryStat {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px 7px;
-  border-radius: var(--xai-radius-pill);
-  font-size: 11px;
-  font-weight: 700;
-  border: 1px solid transparent;
-
-  svg {
-    display: block;
-  }
-}
-
-.apiKeyEntryStatSuccess {
-  color: var(--success-badge-text, #065f46);
-  background: var(--success-badge-bg, #d1fae5);
-  border-color: var(--success-badge-border, #6ee7b7);
-}
-
-.apiKeyEntryStatFailure {
-  color: color-mix(in srgb, var(--danger-color) 72%, var(--text-primary));
-  background: color-mix(in srgb, var(--danger-color) 10%, var(--surface-raised));
-  border-color: color-mix(in srgb, var(--danger-color) 30%, transparent);
-}
-
 // OpenAI 模型发现（二级界面）
 .modelDiscoveryList {
   display: flex;
@@ -1346,17 +1033,6 @@
   font-size: 12px;
   color: var(--text-tertiary);
   line-height: 1.4;
-}
-
-.openaiTestButtonSuccess {
-  background-color: var(--success-badge-bg, #d1fae5);
-  border-color: var(--success-badge-border, #6ee7b7);
-  color: var(--success-badge-text, #065f46);
-
-  &:hover {
-    background-color: var(--success-badge-bg, #d1fae5);
-    border-color: var(--success-badge-border, #6ee7b7);
-  }
 }
 
 // 状态监测栏
@@ -1999,8 +1675,7 @@
     color: var(--text-primary);
   }
 
-  .fieldValue,
-  .apiKeyEntryKey {
+  .fieldValue {
     color: var(--text-secondary);
   }
 
@@ -2014,13 +1689,11 @@
     }
   }
 
-  .modelTagList,
-  .apiKeyEntriesSection {
+  .modelTagList {
     border-top-color: color-mix(in srgb, var(--border-color) 80%, transparent);
   }
 
-  .modelCountLabel,
-  .apiKeyEntriesLabel {
+  .modelCountLabel {
     color: var(--text-secondary);
   }
 
@@ -2052,27 +1725,6 @@
 
   .excludedModelsLabel {
     color: #fdba74;
-  }
-
-  .apiKeyEntryCard {
-    background: color-mix(in srgb, var(--bg-tertiary) 54%, var(--surface-raised));
-    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
-  }
-
-  .apiKeyEntryProxy {
-    color: var(--text-tertiary);
-  }
-
-  .apiKeyEntryStatSuccess {
-    color: #86efac;
-    background: rgba(16, 185, 129, 0.16);
-    border-color: rgba(52, 211, 153, 0.28);
-  }
-
-  .apiKeyEntryStatFailure {
-    color: #fca5a5;
-    background: rgba(239, 68, 68, 0.16);
-    border-color: rgba(248, 113, 113, 0.3);
   }
 
   .statusBar {
@@ -2404,72 +2056,6 @@
   }
 }
 
-.openaiSwitchGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-
-  :global(.form-group) {
-    min-width: 0;
-    padding: 10px;
-    border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
-    border-radius: var(--xai-radius-small);
-    background: color-mix(in srgb, var(--bg-secondary) 18%, transparent);
-  }
-}
-
-.openaiKeyInputList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.openaiKeyInputRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr) auto;
-  gap: 7px;
-  align-items: center;
-  padding: 8px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
-  border-radius: var(--xai-radius-small);
-  background: color-mix(in srgb, var(--bg-primary) 48%, transparent);
-
-  &:focus-within {
-    border-color: var(--border-color);
-    background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
-  }
-
-  :global(.input) {
-    min-height: 34px;
-    border-radius: var(--xai-radius-micro);
-    background: var(--surface-raised);
-    font-size: 12px;
-  }
-
-  :global(.btn.btn-sm) {
-    width: 30px;
-    min-width: 30px;
-    height: 30px;
-    min-height: 30px;
-    padding: 0;
-    border-radius: 7px;
-  }
-}
-
-@include mobile {
-  .openaiSwitchGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .openaiKeyInputRow {
-    grid-template-columns: minmax(0, 1fr) auto;
-
-    :global(.input:first-child) {
-      grid-column: 1 / -1;
-    }
-  }
-}
-
 .modelInputList {
   gap: 8px;
 }
@@ -2579,152 +2165,6 @@
   }
 }
 
-// ============================================
-// Key Entry Styles - Table Design
-// ============================================
-
-.keyEntriesSection {
-  margin-bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--xai-space-2);
-}
-
-.keyEntriesHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 0;
-}
-
-.keyEntriesTitle {
-  display: block;
-  margin: 0;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.5;
-}
-
-.keyEntriesHint {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-
-.keyEntriesList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--xai-space-2);
-}
-
-.keyEntriesToolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--xai-space-2);
-  flex-wrap: wrap;
-}
-
-.keyEntriesCount {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.keyTableShell {
-  overflow-x: auto;
-  border-radius: var(--xai-radius-micro);
-}
-
-// 表头
-.keyTableHeader {
-  display: grid;
-  grid-template-columns: 46px 56px minmax(220px, 1.4fr) minmax(200px, 1.1fr) 180px;
-  gap: var(--xai-space-2);
-  min-width: 760px;
-  padding: 10px var(--xai-space-3-5);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-bottom: none;
-  border-radius: var(--xai-radius-micro) var(--xai-radius-micro) 0 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: none;
-  align-items: center;
-  text-align: center;
-}
-
-// 数据行
-.keyTableRow {
-  display: grid;
-  grid-template-columns: 46px 56px minmax(220px, 1.4fr) minmax(200px, 1.1fr) 180px;
-  gap: var(--xai-space-2);
-  min-width: 760px;
-  padding: 10px var(--xai-space-3-5);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-top: none;
-  align-items: center;
-
-  &:last-child {
-    border-radius: 0 0 var(--xai-radius-micro) var(--xai-radius-micro);
-  }
-
-  &:hover {
-    background: var(--bg-tertiary);
-  }
-}
-
-// 列定义
-.keyTableColIndex {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: var(--text-tertiary);
-}
-
-.keyTableColStatus {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  svg {
-    display: block;
-  }
-}
-
-.keyTableColKey,
-.keyTableColProxy {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.keyTableColAction {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--xai-space-1);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.keyTableInput {
-  width: 100%;
-  padding: 8px 10px;
-  font-size: 14px;
-  min-height: 38px;
-  text-align: center;
-}
-
-.addKeyButton {
-  align-self: auto;
-  margin-top: 0;
-}
-
 .openaiTestSelect {
   flex: 1 1 260px;
   min-width: 180px;
@@ -2743,48 +2183,9 @@
   border-radius: 7px;
 }
 
-.statusIconWrapper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.statusIconSpin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// 暗色主题适配（在前述 dark 块中已覆盖大部分；保留少数补充）
-:global([data-theme='dark']) {
-  .apiKeyEntryIndex {
-    background: color-mix(in srgb, var(--primary-color) 80%, var(--bg-tertiary));
-    color: var(--primary-contrast);
-  }
-}
-
 // Provider editors share the same operational surface grammar as the rest of
 // the management center. Provider identity accents remain semantic, while
 // repeated cards stay white and border-led instead of becoming a color mosaic.
-.container {
-  --provider-page-surface: var(--mg-surface);
-  --provider-page-surface-muted: var(--mg-surface-subtle);
-  --provider-page-control: var(--mg-surface);
-  --provider-page-border: var(--mg-border);
-  --provider-page-border-strong: var(--mg-border-hover);
-}
-
 .providerConfigItem {
   border-color: var(--mg-border);
   border-radius: var(--mg-radius-card);
@@ -2816,7 +2217,6 @@
   .openaiEditForm :global(.form-group) :global(.input),
   .openaiEditForm :global(.header-input-row .input),
   .openaiEditForm :global(.align-start.btn.btn-sm),
-  .openaiKeyInputRow :global(.input),
   .modelInputField {
     min-height: var(--mg-hit-area, 44px);
   }
@@ -2830,7 +2230,6 @@
 
   .providerConfigItem :global(.provider-card-action.btn.btn-sm),
   .openaiEditForm .modelRowRemoveButton,
-  .openaiKeyInputRow :global(.btn.btn-sm),
   .openaiEditForm :global(.header-input-row .btn.btn-sm) {
     width: var(--mg-hit-area, 44px);
     min-width: var(--mg-hit-area, 44px);

@@ -3,14 +3,7 @@
 // Shared visual layer for the auth-files list, cards, quota panels, and OAuth
 // rules card. Larger editors and dialogs keep their own CSS modules.
 .page {
-  --auth-surface: var(--mg-surface);
-  --auth-surface-muted: var(--mg-surface-subtle);
-  --auth-control-surface: var(--mg-surface);
-  --auth-neutral-border: var(--mg-border);
-  --auth-neutral-border-strong: var(--mg-border-hover);
   --auth-text-primary: var(--mg-text);
-  --auth-text-secondary: var(--mg-text-secondary);
-  --auth-text-muted: var(--mg-text-tertiary);
   --auth-workbench-border: color-mix(in srgb, var(--mg-border) 88%, transparent);
   --auth-workbench-border-strong: color-mix(in srgb, var(--mg-text-tertiary) 34%, var(--mg-border));
   --auth-workbench-surface: var(--mg-surface);
@@ -1795,31 +1788,10 @@
   border-color: color-mix(in srgb, var(--auth-card-attention) 22%, var(--mg-border));
 }
 
-.page .featureBadgeEnabled {
-  color: var(--auth-accent);
-  background: color-mix(in srgb, var(--auth-accent) 72%, var(--mg-surface));
-  border-color: color-mix(in srgb, var(--auth-accent) 24%, var(--mg-border));
-}
-
 .page .featureBadgeFast {
   color: var(--auth-card-attention);
   background: color-mix(in srgb, var(--auth-card-attention) 7%, var(--mg-surface));
   border-color: color-mix(in srgb, var(--auth-card-attention) 24%, var(--mg-border));
-}
-
-.page .featureBadgeIconOnly {
-  width: 20px;
-  min-width: 20px;
-  max-width: 20px;
-  flex: 0 0 20px;
-  padding: 0;
-}
-
-.page .featureIcon {
-  width: 12px;
-  height: 12px;
-  color: currentColor;
-  stroke-width: 2.2;
 }
 
 .page .tokenMetric {
@@ -3215,10 +3187,6 @@
   min-width: 0;
 }
 
-.page .rulesPanel :global(.empty-icon) {
-  flex: 0 0 42px;
-}
-
 // Four-column desktop density: preserve one-line identity, metrics and footer
 // controls by reclaiming small amounts of space from padding and control gaps.
 // This lives after the base card rules so the compact values win the cascade.
@@ -3568,13 +3536,6 @@
     flex-wrap: wrap;
     justify-content: flex-start;
     overflow: visible;
-  }
-
-  .page .codexResetCreditExpiry {
-    flex-basis: 100%;
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
   }
 
   .page .cardSelection {
@@ -4512,15 +4473,6 @@
     white-space: nowrap;
   }
 
-  .page .codexResetCreditExpiry {
-    min-width: 0;
-    flex: 1 1 auto;
-    flex-basis: auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .page .codexPlan {
     flex-wrap: nowrap;
     overflow: hidden;
@@ -4607,8 +4559,7 @@
     padding-inline: var(--xai-space-1-5);
   }
 
-  .page .refreshTokenBadge,
-  .page .featureBadgeIconOnly {
+  .page .refreshTokenBadge {
     width: 20px;
     min-width: 20px;
     max-width: 20px;
@@ -4619,12 +4570,6 @@
     border-color: var(--xai-orange-border);
     background: var(--xai-orange-soft);
     color: var(--xai-orange);
-  }
-
-  .page .featureBadgeEnabled {
-    border-color: var(--xai-success-border);
-    background: var(--xai-success-soft);
-    color: var(--xai-success);
   }
 
   .page .featureBadgeFast {
@@ -5113,17 +5058,11 @@
     font-size: 10px;
   }
 
-  .page .refreshTokenBadge,
-  .page .featureBadgeIconOnly {
+  .page .refreshTokenBadge {
     width: 18px;
     min-width: 18px;
     max-width: 18px;
     flex-basis: 18px;
-  }
-
-  .page .featureIcon {
-    width: 11px;
-    height: 11px;
   }
 
   .page .tokenMetric {
@@ -5320,6 +5259,166 @@
   }
 }
 
+// Card detail refinement: keep the identity area quiet and let the metrics
+// surface carry the visual focus without turning every card into a heavy panel.
+.page .credentialCard {
+  --auth-card-border: color-mix(in srgb, var(--mg-border) 62%, transparent);
+  --auth-card-glass-border: color-mix(in srgb, var(--mg-surface) 34%, transparent);
+  --auth-card-glass-shadow: color-mix(in srgb, var(--mg-text) 24%, transparent);
+}
+
+.page .credentialCard .metricsPanel {
+  border: 1px solid var(--auth-card-glass-border);
+  background:
+    radial-gradient(
+      120% 155% at 0% 0%,
+      color-mix(in srgb, var(--mg-surface) 58%, transparent),
+      transparent 54%
+    ),
+    radial-gradient(
+      100% 140% at 100% 100%,
+      color-mix(in srgb, var(--auth-accent) 7%, transparent),
+      transparent 68%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--mg-surface-subtle) 52%, transparent),
+      color-mix(in srgb, var(--mg-surface) 32%, transparent)
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--mg-surface) 88%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--mg-text) 6%, transparent),
+    0 14px 32px -24px var(--auth-card-glass-shadow);
+  -webkit-backdrop-filter: blur(12px) saturate(124%);
+  backdrop-filter: blur(12px) saturate(124%);
+  transition: border-color var(--mg-motion-standard) var(--mg-ease-standard);
+}
+
+.page .credentialCard .metricsPanel::before {
+  inset: 1px;
+  border-color: transparent;
+  background:
+    linear-gradient(108deg, color-mix(in srgb, var(--mg-surface) 24%, transparent), transparent 38%),
+    linear-gradient(276deg, transparent 46%, color-mix(in srgb, var(--auth-accent) 4%, transparent));
+  opacity: 0.9;
+}
+
+.page .credentialCard .metricsPanel::after {
+  top: -52%;
+  right: -14%;
+  width: 64%;
+  height: 148%;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--mg-surface) 28%, transparent),
+    transparent 66%
+  );
+  opacity: 0.72;
+  transform: rotate(-18deg) translate3d(0, 0, 0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page .credentialCard:not(.credentialCardDisabled):not(.credentialCardSelected):hover {
+    border-color: var(--auth-card-border);
+  }
+
+  .page .credentialCard:not(.credentialCardDisabled):hover .metricsPanel {
+    border-color: var(--auth-card-glass-border);
+  }
+
+  .page .credentialCard:not(.credentialCardDisabled):hover .metricsPanel::after {
+    opacity: 0.9;
+    transform: translate(-3%, 2%) rotate(-18deg) translate3d(0, 0, 0);
+  }
+}
+
+@container auth-files-page (min-width: 768px) {
+  .page .credentialCard:not(.credentialCardDisabled) {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--mg-surface) 96%, transparent), transparent 72%),
+      var(--mg-surface);
+  }
+
+  .page .cardHeader {
+    padding-bottom: 2px;
+  }
+
+  .page .providerBadge {
+    border-color: color-mix(in srgb, var(--mg-surface) 38%, transparent);
+    background:
+      radial-gradient(circle at 30% 18%, color-mix(in srgb, var(--mg-surface) 92%, transparent), transparent 52%),
+      linear-gradient(145deg, color-mix(in srgb, var(--auth-accent) 8%, var(--mg-surface-subtle)), var(--mg-surface));
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--mg-surface) 84%, transparent),
+      0 6px 14px -12px color-mix(in srgb, var(--auth-accent) 44%, transparent);
+  }
+
+  .page .cardNameButton {
+    letter-spacing: -0.012em;
+  }
+
+  .page .cardNote {
+    margin-top: 2px;
+    padding: 9px 11px;
+    border-color: color-mix(in srgb, var(--mg-surface) 30%, transparent);
+    border-radius: var(--mg-radius-control);
+    background: color-mix(in srgb, var(--mg-surface-subtle) 42%, transparent);
+  }
+
+  .page .noteLabel {
+    color: color-mix(in srgb, var(--auth-accent) 68%, var(--mg-text-secondary));
+  }
+
+  .page .metricsPanel {
+    margin-top: 2px;
+  }
+
+  .page .metricHeader {
+    margin-bottom: 9px;
+  }
+
+  .page .statusBlocks {
+    min-height: 0;
+    padding: 4px 5px;
+    border-color: transparent;
+    background: color-mix(in srgb, var(--mg-surface) 24%, transparent);
+  }
+
+  .page .statusBlock {
+    height: 6px;
+  }
+}
+
+@container auth-files-page (max-width: 767px) {
+  .page .cardNote {
+    padding: 7px 9px;
+    border-color: color-mix(in srgb, var(--mg-surface) 24%, transparent);
+    border-radius: var(--mg-radius-control);
+    background: color-mix(in srgb, var(--mg-surface-subtle) 34%, transparent);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .page .credentialCard .metricsPanel {
+    border-color: transparent;
+    background: var(--mg-surface-subtle);
+    box-shadow: inset 0 1px 0 var(--mg-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .page .credentialCard .metricsPanel::before,
+  .page .credentialCard .metricsPanel::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page .credentialCard .metricsPanel {
+    transition: none;
+  }
+}
+
 @container auth-files-page (max-width: 560px) {
   .page .headerActions {
     display: flex;
@@ -5401,4 +5500,20 @@
     min-width: var(--xai-space-8);
     flex-basis: auto;
   }
+}
+
+// Let the health tooltip escape the glass surface only while it is visible.
+// Normal cards keep their clipping and content-visibility optimizations.
+.page .credentialCard:has(.statusTooltip) {
+  overflow: visible;
+  content-visibility: visible;
+  contain: layout style;
+}
+
+.page .credentialCard .metricsPanel:has(.statusTooltip) {
+  overflow: visible;
+}
+
+.page .credentialCard .metricsPanel:has(.statusTooltip) .statusTooltip {
+  z-index: calc(var(--mg-z-popover) + 1);
 }

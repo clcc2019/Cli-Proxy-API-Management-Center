@@ -21,12 +21,6 @@ export interface UsageAggregateRateStats {
   tpm?: number;
 }
 
-export interface UsageAggregateSparkline {
-  timestamps?: string[];
-  requests?: number[];
-  tokens?: number[];
-}
-
 export interface UsageAggregateModelSeries {
   timestamps?: string[];
   series?: Record<string, number[]>;
@@ -125,7 +119,6 @@ export interface UsageAggregateWindow {
   token_breakdown?: UsageAggregateTokenStats;
   latency?: UsageAggregateLatencyStats;
   rate_30m?: UsageAggregateRateStats;
-  sparklines?: UsageAggregateSparkline;
   requests?: UsageAggregateModelSeriesSet;
   tokens?: UsageAggregateModelSeriesSet;
   token_breakdown_series?: UsageAggregateTokenBreakdownSeriesSet;

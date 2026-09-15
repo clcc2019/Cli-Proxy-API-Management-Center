@@ -323,29 +323,6 @@
   text-wrap: pretty;
 }
 
-.sectionIssueBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  height: 28px;
-  padding: 0 10px;
-  border-radius: var(--xai-radius-pill);
-  background: var(--warning-bg);
-  border: 1px solid var(--warning-border);
-  color: var(--warning-text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.blockHeaderRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
 .blockStack {
   display: flex;
   flex-direction: column;
@@ -526,12 +503,10 @@
     padding: 12px 0;
   }
 
-  .blockHeaderRow,
   .ruleCardHeader {
     align-items: stretch;
   }
 
-  .blockHeaderRow :global(.btn),
   .ruleCardHeader :global(.btn),
   .actionRow :global(.btn),
   .stringListRow :global(.btn) {

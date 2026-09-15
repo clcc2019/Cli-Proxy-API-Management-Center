@@ -21,21 +21,6 @@ const LazyUsageSupportSection = lazy(async () => ({
   default: (await import('@/components/usage/UsageSupportSection')).UsageSupportSection,
 }));
 
-const buildDetailsFallback = (apiTitle: string, modelTitle: string, caption: string) => (
-  <section className={styles.section}>
-    <div className={styles.detailsGrid}>
-      <DeferredUsageCard title={apiTitle} caption={caption} />
-      <DeferredUsageCard title={modelTitle} caption={caption} />
-    </div>
-  </section>
-);
-
-const buildSupportFallback = (credentialTitle: string, caption: string) => (
-  <div className={styles.supportStack}>
-    <DeferredUsageCard title={credentialTitle} caption={caption} />
-  </div>
-);
-
 export function UsagePage() {
   const { t } = useTranslation();
   const pageTransitionLayer = usePageTransitionLayer();
@@ -70,6 +55,19 @@ export function UsagePage() {
   const deferredWindow = useDeferredValue(selectedWindow);
   const visibleWindow = isCurrentLayer ? deferredWindow : null;
   const deferredChartCaption = t('usage_stats.render_on_demand');
+  const detailsFallback = (
+    <section className={styles.section}>
+      <div className={styles.detailsGrid}>
+        <DeferredUsageCard title={t('usage_stats.api_details')} caption={deferredChartCaption} />
+        <DeferredUsageCard title={t('usage_stats.models')} caption={deferredChartCaption} />
+      </div>
+    </section>
+  );
+  const supportFallback = (
+    <div className={styles.supportStack}>
+      <DeferredUsageCard title={t('usage_stats.credential_stats')} caption={deferredChartCaption} />
+    </div>
+  );
   const handleRefresh = useCallback(() => {
     void loadUsage({ force: true }).catch(() => {});
   }, [loadUsage]);
@@ -124,19 +122,9 @@ export function UsagePage() {
           className={styles.workspaceCell}
           minHeight={420}
           rootMargin="160px 0px"
-          placeholder={buildDetailsFallback(
-            t('usage_stats.api_details'),
-            t('usage_stats.models'),
-            deferredChartCaption
-          )}
+          placeholder={detailsFallback}
         >
-          <Suspense
-            fallback={buildDetailsFallback(
-              t('usage_stats.api_details'),
-              t('usage_stats.models'),
-              deferredChartCaption
-            )}
-          >
+          <Suspense fallback={detailsFallback}>
             <LazyUsageDetailsSection
               window={visibleWindow}
               loading={loading}
@@ -149,22 +137,10 @@ export function UsagePage() {
           className={styles.workspaceCell}
           minHeight={420}
           rootMargin="160px 0px"
-          placeholder={buildSupportFallback(
-            t('usage_stats.credential_stats'),
-            deferredChartCaption
-          )}
+          placeholder={supportFallback}
         >
-          <Suspense
-            fallback={buildSupportFallback(
-              t('usage_stats.credential_stats'),
-              deferredChartCaption
-            )}
-          >
-            <LazyUsageSupportSection
-              window={visibleWindow}
-              loading={loading}
-              config={config}
-            />
+          <Suspense fallback={supportFallback}>
+            <LazyUsageSupportSection window={visibleWindow} loading={loading} config={config} />
           </Suspense>
         </DeferredRender>
       </div>

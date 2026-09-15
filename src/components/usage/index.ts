@@ -5,24 +5,12 @@ export type { UsagePayload, UseUsageDataReturn } from './hooks/useUsageData';
 export { useUsageAggregateData } from './hooks/useUsageAggregateData';
 export type { UseUsageAggregateDataReturn } from './hooks/useUsageAggregateData';
 
-export type { SparklineData, SparklineBundle } from './hooks/sparklineTypes';
-
-export { useUsageAggregateSparklines } from './hooks/useUsageAggregateSparklines';
-export type {
-  UseUsageAggregateSparklinesOptions,
-  UseUsageAggregateSparklinesReturn
-} from './hooks/useUsageAggregateSparklines';
-
-export { useChartData } from './hooks/useChartData';
-export type { UseChartDataOptions, UseChartDataReturn } from './hooks/useChartData';
-
 export { useUsageAggregateChartData } from './hooks/useUsageAggregateChartData';
 export type {
   UseUsageAggregateChartDataOptions,
   UseUsageAggregateChartDataReturn
 } from './hooks/useUsageAggregateChartData';
 
-export { useUsageViewState, MAX_USAGE_CHART_LINES } from './hooks/useUsageViewState';
 export { useUsageTimeRangeState } from './hooks/useUsageTimeRangeState';
 
 // Components
@@ -54,6 +42,3 @@ export type { ModelStatsCardProps, ModelStat } from './ModelStatsCard';
 
 export { CredentialStatsCard } from './CredentialStatsCard';
 export type { CredentialStatsCardProps } from './CredentialStatsCard';
-
-export { ServiceHealthCard } from './ServiceHealthCard';
-export type { ServiceHealthCardProps } from './ServiceHealthCard';

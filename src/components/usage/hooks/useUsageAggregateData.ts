@@ -137,7 +137,7 @@ export function useUsageAggregateData(): UseUsageAggregateDataReturn {
         const cacheEntry = await aggregateUsageRequests.run(
           scopeKey,
           async () => {
-            const response = await usageApi.getUsageAggregated();
+            const response = await usageApi.getAggregatedUsage();
             const snapshot = asAggregateSnapshot(response?.usage ?? response);
             const entry: AggregateUsageCacheEntry = {
               snapshot,

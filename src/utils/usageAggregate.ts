@@ -127,17 +127,6 @@ const averageLatencyMs = (latency?: UsageAggregateLatencyStats): number | null =
   return totalMs / count;
 };
 
-const formatMinuteLabel = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
-};
-
 const formatPeriodLabels = (timestamps: string[] | undefined, period: 'hour' | 'day') =>
   (timestamps ?? []).map((timestamp) => {
     const date = new Date(timestamp);
@@ -305,15 +294,6 @@ export const getAggregateOverviewMetrics = (
     modelCount: costSummary.modelCount,
     pricedModelRate: calculateRate(costSummary.pricedModelCount, costSummary.modelCount),
   };
-};
-
-export const buildAggregateSparklines = (window: UsageAggregateWindow | null) => {
-  const timestamps = window?.sparklines?.timestamps ?? [];
-  const requests = (window?.sparklines?.requests ?? []).map((value) => asNumber(value));
-  const tokens = (window?.sparklines?.tokens ?? []).map((value) => asNumber(value));
-  const labels = timestamps.map((timestamp) => formatMinuteLabel(timestamp));
-
-  return { labels, requests, tokens };
 };
 
 export const buildAggregateChartData = (

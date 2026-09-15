@@ -1,4 +1,11 @@
-import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { type UsageTimeRange } from '@/utils/usage';
 

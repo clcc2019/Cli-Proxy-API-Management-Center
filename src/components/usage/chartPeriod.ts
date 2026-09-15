@@ -9,14 +9,6 @@ export interface SyncedUsageChartPeriods {
   setTokensPeriod: (period: UsageChartPeriod) => void;
 }
 
-export const getAdaptiveChartPeriod = (hourWindowHours?: number): UsageChartPeriod => {
-  if (!hourWindowHours) {
-    return 'day';
-  }
-
-  return hourWindowHours <= 24 ? 'hour' : 'day';
-};
-
 export const getAdaptiveAnalysisChartPeriod = (hourWindowHours?: number): UsageChartPeriod => {
   if (!hourWindowHours) {
     return 'day';

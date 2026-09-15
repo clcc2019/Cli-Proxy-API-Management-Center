@@ -58,6 +58,12 @@ const UsageTrendsContent = memo(function UsageTrendsContent({
   const requestsTitle = t('usage_stats.requests_trend');
   const tokensTitle = t('usage_stats.tokens_trend');
   const fallbackCaption = t('usage_stats.render_on_demand');
+  const chartFallback = (
+    <>
+      <DeferredUsageCard title={requestsTitle} caption={fallbackCaption} />
+      <DeferredUsageCard title={tokensTitle} caption={fallbackCaption} />
+    </>
+  );
 
   return (
     <div className={styles.trendGrid}>
@@ -76,14 +82,7 @@ const UsageTrendsContent = memo(function UsageTrendsContent({
           .filter(Boolean)
           .join(' ')}
       >
-        <Suspense
-          fallback={
-            <>
-              <DeferredUsageCard title={requestsTitle} caption={fallbackCaption} />
-              <DeferredUsageCard title={tokensTitle} caption={fallbackCaption} />
-            </>
-          }
-        >
+        <Suspense fallback={chartFallback}>
           <LazyUsageChart
             title={requestsTitle}
             period={requestsPeriod}

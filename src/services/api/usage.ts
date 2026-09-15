@@ -3,7 +3,7 @@
  */
 
 import { apiClient } from './client';
-import { computeKeyStats, type KeyStats, type ModelPrice } from '@/utils/usage';
+import type { ModelPrice } from '@/utils/usage';
 
 const USAGE_TIMEOUT_MS = 60 * 1000;
 
@@ -128,12 +128,6 @@ export const usageApi = {
     }
   },
 
-  /**
-   * 获取使用统计页面所需的聚合数据
-   */
-  getUsageAggregated: () =>
-    apiClient.get<Record<string, unknown>>('/usage/aggregated', { timeout: USAGE_TIMEOUT_MS }),
-
   getAuthFileCredentialUsage: () =>
     apiClient.get<Record<string, unknown>>('/usage/aggregated', {
       params: { window: 'all', fields: 'credentials' },
@@ -229,18 +223,4 @@ export const usageApi = {
    */
   importUsage: (payload: unknown) =>
     apiClient.post<UsageImportResponse>('/usage/import', payload, { timeout: USAGE_TIMEOUT_MS }),
-
-  /**
-   * 计算密钥成功/失败统计，必要时会先获取 usage 数据
-   */
-  async getKeyStats(usageData?: unknown): Promise<KeyStats> {
-    let payload = usageData;
-    if (!payload) {
-      const response = await apiClient.get<Record<string, unknown>>('/usage/details', {
-        timeout: USAGE_TIMEOUT_MS,
-      });
-      payload = response?.usage ?? response;
-    }
-    return computeKeyStats(payload);
-  },
 };

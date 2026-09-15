@@ -10,10 +10,10 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Select, type SelectOption } from '@/components/ui/Select';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
-import { IconPlus, IconX } from '@/components/ui/icons';
+import { IconPlus, IconSearch, IconX } from '@/components/ui/icons';
 import { authFilesApi } from '@/services/api';
 import { useAuthStore, useNotificationStore } from '@/stores';
-import type { AuthFileItem, OAuthModelAliasEntry, OAuthReasoningEffort } from '@/types';
+import type { OAuthModelAliasEntry, OAuthReasoningEffort } from '@/types';
 import { generateId } from '@/utils/helpers';
 import { normalizeOAuthReasoningEffort } from '@/utils/oauthModelAlias';
 import styles from './AuthFilesOAuthModelRulesPage.module.scss';
@@ -40,6 +40,7 @@ const OAUTH_PROVIDER_PRESETS = ['claude', 'codex', 'xai', 'qwen', 'kimi'];
 const OAUTH_PROVIDER_EXCLUDES = new Set(['all', 'unknown', 'empty']);
 const REASONING_EFFORT_LEVELS = ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
 const REASONING_EFFORT_SOURCES = ['default', ...REASONING_EFFORT_LEVELS] as const;
+const REASONING_OVERRIDE_SOURCES = REASONING_EFFORT_SOURCES.slice(1);
 const EMPTY_PROVIDER_OPTIONS: string[] = [];
 const EMPTY_MODEL_OPTIONS: Array<{ value: string; label?: string }> = [];
 const EMPTY_MODEL_ITEMS: AuthFileModelItem[] = [];
@@ -229,21 +230,25 @@ const OAuthModelMappingRow = memo(function OAuthModelMappingRow({
   const { t } = useTranslation();
   const effortOnly = isEffortOnlyMapping(entry, providerKey);
   const reasoningOverrideCount = getReasoningOverrideCount(entry.reasoningEffort);
+  const [reasoningOverridesOpen, setReasoningOverridesOpen] = useState(false);
   const getReasoningSourceLabel = (source: string) =>
     source === 'default' ? t('oauth_model_rules.reasoning_default_source') : source;
+  const sourceModelInputId = `oauth-model-rules-source-${entry.id}`;
+  const aliasModelInputId = `oauth-model-rules-alias-${entry.id}`;
 
   return (
     <div className={styles.mappingRow}>
       <div className={styles.mappingRowMain}>
         <div className={styles.mappingField}>
-          <span className={styles.mappingFieldLabel}>
-            {t('oauth_model_alias.alias_name_placeholder')}
-          </span>
+          <label className={styles.mappingFieldLabel} htmlFor={sourceModelInputId}>
+            {t('oauth_model_rules.source_model_label')}
+          </label>
           <AutocompleteInput
+            id={sourceModelInputId}
             wrapperStyle={MAPPING_AUTOCOMPLETE_WRAPPER_STYLE}
             dropdownClassName={styles.originalModelDropdown}
             portal
-            placeholder={t('oauth_model_alias.alias_name_placeholder')}
+            placeholder={t('oauth_model_rules.source_model_placeholder')}
             value={entry.name}
             onChange={(value) => onUpdateMapping(entry.id, 'name', value)}
             disabled={disabled}
@@ -254,19 +259,26 @@ const OAuthModelMappingRow = memo(function OAuthModelMappingRow({
           →
         </span>
         <div className={styles.mappingField}>
-          <span className={styles.mappingFieldLabel}>
+          <label className={styles.mappingFieldLabel} htmlFor={aliasModelInputId}>
             {effortOnly
               ? t('oauth_model_rules.reasoning_only_model_label')
-              : t('oauth_model_alias.alias_placeholder')}
-          </span>
-          <input
-            className={['input', styles.mappingAliasInput].join(' ')}
-            aria-label={t('oauth_model_alias.alias_placeholder')}
-            placeholder={t('oauth_model_alias.alias_placeholder')}
-            value={entry.alias}
-            onChange={(event) => onUpdateMapping(entry.id, 'alias', event.target.value)}
-            disabled={disabled || effortOnly}
-          />
+              : t('oauth_model_rules.target_model_label')}
+          </label>
+          {effortOnly ? (
+            <div className={styles.mappingAliasReadonly} aria-label={entry.name}>
+              <span>{entry.name}</span>
+            </div>
+          ) : (
+            <input
+              id={aliasModelInputId}
+              className={['input', styles.mappingAliasInput].join(' ')}
+              aria-label={t('oauth_model_rules.target_model_label')}
+              placeholder={t('oauth_model_rules.target_model_placeholder')}
+              value={entry.alias}
+              onChange={(event) => onUpdateMapping(entry.id, 'alias', event.target.value)}
+              disabled={disabled}
+            />
+          )}
         </div>
         <Button
           variant="ghost"
@@ -319,7 +331,10 @@ const OAuthModelMappingRow = memo(function OAuthModelMappingRow({
                 ariaLabel={t('oauth_model_rules.reasoning_default_label')}
               />
             </div>
-            <details className={styles.reasoningDetails}>
+            <details
+              className={styles.reasoningDetails}
+              onToggle={(event) => setReasoningOverridesOpen(event.currentTarget.open)}
+            >
               <summary>
                 {reasoningOverrideCount > 0
                   ? t('oauth_model_rules.reasoning_more_configured', {
@@ -327,25 +342,27 @@ const OAuthModelMappingRow = memo(function OAuthModelMappingRow({
                     })
                   : t('oauth_model_rules.reasoning_more')}
               </summary>
-              <div className={styles.reasoningOverrides}>
-                {REASONING_EFFORT_SOURCES.filter((source) => source !== 'default').map((source) => (
-                  <div key={source} className={styles.reasoningOverride}>
-                    <span>{getReasoningSourceLabel(source)}</span>
-                    <Select
-                      id={'oauth-model-rules-reasoning-' + entry.id + '-' + source}
-                      className={styles.reasoningSelect}
-                      value={entry.reasoningEffort?.[source] ?? ''}
-                      options={reasoningEffortOptions}
-                      dropdownClassName={styles.reasoningDropdown}
-                      onChange={(value) => onUpdateReasoningEffort(entry.id, source, value)}
-                      disabled={disabled}
-                      ariaLabel={t('oauth_model_rules.reasoning_override_label', {
-                        source: getReasoningSourceLabel(source),
-                      })}
-                    />
-                  </div>
-                ))}
-              </div>
+              {reasoningOverridesOpen && (
+                <div className={styles.reasoningOverrides}>
+                  {REASONING_OVERRIDE_SOURCES.map((source) => (
+                    <div key={source} className={styles.reasoningOverride}>
+                      <span>{getReasoningSourceLabel(source)}</span>
+                      <Select
+                        id={'oauth-model-rules-reasoning-' + entry.id + '-' + source}
+                        className={styles.reasoningSelect}
+                        value={entry.reasoningEffort?.[source] ?? ''}
+                        options={reasoningEffortOptions}
+                        dropdownClassName={styles.reasoningDropdown}
+                        onChange={(value) => onUpdateReasoningEffort(entry.id, source, value)}
+                        disabled={disabled}
+                        ariaLabel={t('oauth_model_rules.reasoning_override_label', {
+                          source: getReasoningSourceLabel(source),
+                        })}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </details>
           </div>
         )}
@@ -378,7 +395,7 @@ export function OAuthModelRulesEditorModal({
   const disableControls = connectionStatus !== 'connected';
 
   const [provider, setProvider] = useState(initialProvider);
-  const [files, setFiles] = useState<AuthFileItem[]>([]);
+  const [availableProviderSources, setAvailableProviderSources] = useState<string[]>([]);
   const [excluded, setExcluded] = useState<Record<string, string[]>>({});
   const [modelAlias, setModelAlias] = useState<Record<string, OAuthModelAliasEntry[]>>({});
   const [excludedError, setExcludedError] = useState<UnsupportedError>(null);
@@ -388,6 +405,7 @@ export function OAuthModelRulesEditorModal({
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const [initialSelectedModels, setInitialSelectedModels] = useState<Set<string>>(new Set());
   const [manualModel, setManualModel] = useState('');
+  const [modelSearch, setModelSearch] = useState('');
   const [modelsList, setModelsList] = useState<AuthFileModelItem[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsError, setModelsError] = useState<UnsupportedError>(null);
@@ -397,6 +415,7 @@ export function OAuthModelRulesEditorModal({
   const [mappingErrors, setMappingErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const providerRef = useRef(initialProvider);
+  const manualModelInputRef = useRef<HTMLInputElement>(null);
   const modelsRequestVersionRef = useRef(0);
 
   const resolvedProviderKey = useMemo(() => normalizeProviderKey(provider), [provider]);
@@ -420,7 +439,14 @@ export function OAuthModelRulesEditorModal({
     const load = async () => {
       setInitialLoading(true);
       const [filesResult, excludedResult, aliasResult] = await Promise.allSettled([
-        authFilesApi.list({ codexSubscription: 'skip', summary: true }),
+        authFilesApi.list({
+          codexSubscription: 'skip',
+          summary: true,
+          includeRecentRequests: false,
+          typeCountsOnly: true,
+          page: 1,
+          pageSize: 1,
+        }),
         authFilesApi.getOauthExcludedModels(),
         authFilesApi.getOauthModelAlias(),
       ]);
@@ -431,7 +457,12 @@ export function OAuthModelRulesEditorModal({
       let nextModelAlias: Record<string, OAuthModelAliasEntry[]> = {};
 
       if (filesResult.status === 'fulfilled') {
-        setFiles(filesResult.value?.files ?? []);
+        const response = filesResult.value;
+        const providerSources = [
+          ...Object.keys(response?.type_counts ?? {}),
+          ...(response?.files ?? []).flatMap((file) => [file.type, file.provider]),
+        ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+        setAvailableProviderSources(Array.from(new Set(providerSources)));
       }
 
       if (excludedResult.status === 'fulfilled') {
@@ -490,10 +521,7 @@ export function OAuthModelRulesEditorModal({
     const values = new Set<string>(OAUTH_PROVIDER_PRESETS);
     Object.keys(excluded).forEach((value) => values.add(value));
     Object.keys(modelAlias).forEach((value) => values.add(value));
-    files.forEach((file) => {
-      if (typeof file.type === 'string') values.add(file.type);
-      if (typeof file.provider === 'string') values.add(file.provider);
-    });
+    availableProviderSources.forEach((value) => values.add(value));
 
     const known = new Set(OAUTH_PROVIDER_PRESETS.map(normalizeProviderKey));
     const extras = Array.from(values)
@@ -503,7 +531,7 @@ export function OAuthModelRulesEditorModal({
       .sort((left, right) => left.localeCompare(right));
 
     return [...OAUTH_PROVIDER_PRESETS, ...extras];
-  }, [excluded, files, isCurrentLayer, modelAlias]);
+  }, [availableProviderSources, excluded, isCurrentLayer, modelAlias]);
 
   const getTypeLabel = useCallback(
     (type: string): string => {
@@ -534,7 +562,7 @@ export function OAuthModelRulesEditorModal({
   );
 
   useEffect(() => {
-    if (!isCurrentLayer) return undefined;
+    if (!isCurrentLayer || initialLoading) return undefined;
 
     const requestVersion = (modelsRequestVersionRef.current += 1);
     const taskId = window.setTimeout(() => {
@@ -580,12 +608,21 @@ export function OAuthModelRulesEditorModal({
         modelsRequestVersionRef.current += 1;
       }
     };
-  }, [canConfigureAnything, isCurrentLayer, resolvedProviderKey, showNotification, t]);
+  }, [
+    canConfigureAnything,
+    initialLoading,
+    isCurrentLayer,
+    resolvedProviderKey,
+    showNotification,
+    t,
+  ]);
 
   const updateProvider = useCallback(
     (value: string) => {
       providerRef.current = value;
       setProvider(value);
+      setModelSearch('');
+      setManualModel('');
       commitProviderRulesDraft(
         buildProviderRulesDraft(excluded, modelAlias, normalizeProviderKey(value))
       );
@@ -603,10 +640,18 @@ export function OAuthModelRulesEditorModal({
   }, []);
 
   const addManualModel = useCallback(() => {
-    const model = manualModel.trim();
-    if (!model) return;
-    setSelectedModels((previous) => new Set(previous).add(model));
+    const models = manualModel
+      .split(/[\n,]/)
+      .map((model) => model.trim())
+      .filter(Boolean);
+    if (models.length === 0) return;
+    setSelectedModels((previous) => {
+      const next = new Set(previous);
+      models.forEach((model) => next.add(model));
+      return next;
+    });
     setManualModel('');
+    window.requestAnimationFrame(() => manualModelInputRef.current?.focus());
   }, [manualModel]);
 
   const updateMappingEntry = useCallback(
@@ -659,7 +704,11 @@ export function OAuthModelRulesEditorModal({
   );
 
   const addMappingEntry = useCallback(() => {
-    setMappings((previous) => [...previous, buildEmptyMappingEntry()]);
+    const entry = buildEmptyMappingEntry();
+    setMappings((previous) => [...previous, entry]);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`oauth-model-rules-source-${entry.id}`)?.focus();
+    });
   }, []);
 
   const removeMappingEntry = useCallback((id: string) => {
@@ -751,14 +800,30 @@ export function OAuthModelRulesEditorModal({
     return [...modelsList, ...customSelectedModels];
   }, [isCurrentLayer, modelsList, selectedModels]);
 
+  const filteredModels = useMemo<AuthFileModelItem[]>(() => {
+    const query = modelSearch.trim().toLowerCase();
+    if (!query) return visibleModels;
+
+    return visibleModels.filter((model) =>
+      [model.id, model.display_name, model.owned_by].some(
+        (value) => typeof value === 'string' && value.toLowerCase().includes(query)
+      )
+    );
+  }, [modelSearch, visibleModels]);
+
   const modelOptions = useMemo(() => {
     if (!isCurrentLayer) return EMPTY_MODEL_OPTIONS;
-    return modelsList.map((model) => ({
+    const options: Array<{ value: string; label?: string }> = modelsList.map((model) => ({
       value: model.id,
       label:
         model.display_name && model.display_name !== model.id ? model.display_name : undefined,
     }));
-  }, [isCurrentLayer, modelsList]);
+    const knownIds = new Set(options.map((option) => option.value));
+    selectedModels.forEach((model) => {
+      if (model !== '*' && !knownIds.has(model)) options.push({ value: model });
+    });
+    return options;
+  }, [isCurrentLayer, modelsList, selectedModels]);
 
   const handleSave = useCallback(async () => {
     const normalizedProvider = normalizeProviderKey(provider);
@@ -976,14 +1041,6 @@ export function OAuthModelRulesEditorModal({
                         >
                           {modelsLoading && <LoadingSpinner size={14} />}
                           <span>{modelSourceStatus}</span>
-                          {!modelsLoading && visibleModels.length > 0 && (
-                            <span className={styles.modelSelectionCount}>
-                              {t('oauth_model_rules.selected_count', {
-                                selected: selectedModels.size,
-                                total: visibleModels.length,
-                              })}
-                            </span>
-                          )}
                         </div>
                       )}
                     </div>
@@ -994,17 +1051,64 @@ export function OAuthModelRulesEditorModal({
                       </div>
                     ) : (
                       <div className={styles.ruleBody}>
+                        {visibleModels.length > 0 && (
+                          <div className={styles.modelListToolbar}>
+                            <div className={styles.modelSearchField}>
+                              <IconSearch size={15} aria-hidden="true" />
+                              <input
+                                className={styles.modelSearchInput}
+                                type="search"
+                                value={modelSearch}
+                                onChange={(event) => setModelSearch(event.target.value)}
+                                placeholder={t('oauth_model_rules.model_search_placeholder')}
+                                aria-label={t('oauth_model_rules.model_search_placeholder')}
+                                disabled={disableControls || saving}
+                              />
+                              {modelSearch && (
+                                <button
+                                  type="button"
+                                  className={styles.modelSearchClear}
+                                  onClick={() => setModelSearch('')}
+                                  aria-label={t('common.clear')}
+                                  disabled={disableControls || saving}
+                                >
+                                  <IconX size={14} />
+                                </button>
+                              )}
+                            </div>
+                            <span className={styles.modelSelectionCount}>
+                              {t('oauth_model_rules.selected_count', {
+                                selected: selectedModels.size,
+                                total: visibleModels.length,
+                              })}
+                            </span>
+                            {modelSearch && (
+                              <span className={styles.modelFilterCount}>
+                                {t('oauth_model_rules.model_list_count', {
+                                  shown: filteredModels.length,
+                                  total: visibleModels.length,
+                                })}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         {visibleModels.length > 0 ? (
                           <div className={styles.modelList}>
-                            {visibleModels.map((model) => (
-                              <OAuthModelSelectionRow
-                                key={model.id}
-                                model={model}
-                                checked={selectedModels.has(model.id)}
-                                disabled={disableControls || saving}
-                                onChange={toggleModel}
-                              />
-                            ))}
+                            {filteredModels.length > 0 ? (
+                              filteredModels.map((model) => (
+                                <OAuthModelSelectionRow
+                                  key={model.id}
+                                  model={model}
+                                  checked={selectedModels.has(model.id)}
+                                  disabled={disableControls || saving}
+                                  onChange={toggleModel}
+                                />
+                              ))
+                            ) : (
+                              <div className={styles.compactEmpty}>
+                                {t('oauth_model_rules.model_search_empty')}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className={styles.compactEmpty}>
@@ -1012,10 +1116,11 @@ export function OAuthModelRulesEditorModal({
                           </div>
                         )}
 
-                        <details className={styles.manualModelDetails}>
+                        <details className={styles.manualModelDetails} open>
                           <summary>{t('oauth_model_rules.manual_model_disclosure')}</summary>
                           <div className={styles.manualModelControl}>
                             <input
+                              ref={manualModelInputRef}
                               className="input"
                               value={manualModel}
                               onChange={(event) => setManualModel(event.target.value)}

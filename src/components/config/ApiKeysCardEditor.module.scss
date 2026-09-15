@@ -1029,14 +1029,6 @@
   text-align: center;
 }
 
-.modalIntro {
-  padding: 11px 12px;
-  background: var(--key-surface-warm);
-  color: var(--key-text-secondary);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
 .modalColumns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

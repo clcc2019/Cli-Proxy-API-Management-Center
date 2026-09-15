@@ -6,16 +6,13 @@
   --login-surface: var(--xai-white);
   --login-surface-muted: var(--xai-warm);
   --login-surface-selected: var(--mg-surface-pressed);
-  --login-header-surface: color-mix(in srgb, var(--xai-white) 85%, transparent);
   --login-header-border: var(--xai-border);
   --login-dark-surface: var(--xai-ink-console);
   --login-dark-border: var(--xai-border-hover);
   --login-dark-text: var(--xai-inverse);
-  --login-dark-text-secondary: #b8b8b8;
   --login-text-strong: var(--xai-ink-console);
   --login-text: var(--xai-ink);
   --login-text-secondary: var(--xai-secondary);
-  --login-text-tertiary: var(--xai-muted);
   --login-border: var(--xai-border);
   --login-border-strong: var(--xai-border-hover);
   --login-signal: var(--xai-warning);
@@ -105,8 +102,7 @@
   gap: var(--xai-space-1);
 }
 
-.headerBrandName,
-.headerBrandMeta {
+.headerBrandName {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -117,15 +113,6 @@
   font-size: 13.5px;
   font-weight: 500;
   line-height: 18px;
-}
-
-.headerBrandMeta {
-  color: var(--login-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1.1;
-  text-transform: uppercase;
 }
 
 .headerActions {
@@ -296,15 +283,6 @@
   gap: var(--xai-space-5);
 }
 
-.brandKicker {
-  margin: 0 0 10px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--login-dark-text-secondary);
-}
-
 .brandWord {
   color: var(--login-dark-text);
   font-family: var(--xai-font-display);
@@ -321,16 +299,6 @@
   &:nth-child(3) {
     animation-delay: 40ms;
   }
-}
-
-.brandCaption {
-  max-width: 360px;
-  margin: 18px 0 0;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--login-dark-text-secondary);
-  text-align: left;
-  text-wrap: pretty;
 }
 
 .formPanel {
@@ -385,8 +353,14 @@
 }
 
 @keyframes login-card-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .loginHeader,
@@ -407,19 +381,6 @@
   gap: var(--xai-space-1-5);
 }
 
-.loginKicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--login-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.loginKickerDot,
 .connectionStatusDot {
   width: 7px;
   height: 7px;

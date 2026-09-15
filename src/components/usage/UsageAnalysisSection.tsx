@@ -55,6 +55,13 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
   const latencyTrendTitle = t('usage_stats.latency_trend');
   const costTrendTitle = t('usage_stats.cost_trend');
   const tokenBreakdownTitle = t('usage_stats.token_breakdown');
+  const latencyFallback = (
+    <DeferredUsageCard title={latencyTrendTitle} caption={deferredChartCaption} />
+  );
+  const costFallback = <DeferredUsageCard title={costTrendTitle} caption={deferredChartCaption} />;
+  const tokenFallback = (
+    <DeferredUsageCard title={tokenBreakdownTitle} caption={deferredChartCaption} />
+  );
 
   return (
     <section className={styles.section}>
@@ -85,15 +92,9 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
           <DeferredRender
             className={styles.deferredBlock}
             minHeight={380}
-            placeholder={
-              <DeferredUsageCard title={latencyTrendTitle} caption={deferredChartCaption} />
-            }
+            placeholder={latencyFallback}
           >
-            <Suspense
-              fallback={
-                <DeferredUsageCard title={latencyTrendTitle} caption={deferredChartCaption} />
-              }
-            >
+            <Suspense fallback={latencyFallback}>
               <LazyLatencyTrendChart
                 window={window}
                 loading={loading}
@@ -107,13 +108,9 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
           <DeferredRender
             className={styles.deferredBlock}
             minHeight={380}
-            placeholder={
-              <DeferredUsageCard title={costTrendTitle} caption={deferredChartCaption} />
-            }
+            placeholder={costFallback}
           >
-            <Suspense
-              fallback={<DeferredUsageCard title={costTrendTitle} caption={deferredChartCaption} />}
-            >
+            <Suspense fallback={costFallback}>
               <LazyCostTrendChart
                 window={window}
                 loading={loading}
@@ -128,15 +125,9 @@ export const UsageAnalysisSection = memo(function UsageAnalysisSection({
           <DeferredRender
             className={styles.deferredBlock}
             minHeight={380}
-            placeholder={
-              <DeferredUsageCard title={tokenBreakdownTitle} caption={deferredChartCaption} />
-            }
+            placeholder={tokenFallback}
           >
-            <Suspense
-              fallback={
-                <DeferredUsageCard title={tokenBreakdownTitle} caption={deferredChartCaption} />
-              }
-            >
+            <Suspense fallback={tokenFallback}>
               <LazyTokenBreakdownChart
                 window={window}
                 loading={loading}

@@ -306,20 +306,6 @@
   }
 }
 
-.filterStats {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.removedCount {
-  color: var(--text-tertiary);
-}
-
 .actionButton {
   white-space: nowrap;
 }

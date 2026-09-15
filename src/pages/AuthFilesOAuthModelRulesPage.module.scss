@@ -326,15 +326,19 @@
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   align-items: start;
+  gap: 16px;
   min-width: 0;
+  padding: 16px 24px 24px;
+  background: var(--oauth-modal-surface-subtle);
 }
 
 .ruleSection {
   min-width: 0;
-
-  + .ruleSection {
-    border-left: 1px solid var(--oauth-modal-border);
-  }
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
+  border-radius: var(--xai-radius-control);
+  background: var(--oauth-modal-surface);
+  box-shadow: 0 8px 24px -24px rgb(15 23 42 / 28%);
 }
 
 .sectionHeader {
@@ -344,7 +348,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 14px;
-  padding: 18px 24px 13px;
+  padding: 16px 18px 13px;
   border-bottom: 1px solid var(--oauth-modal-border);
   background: linear-gradient(180deg, var(--oauth-modal-surface-warm), var(--oauth-modal-surface));
 
@@ -382,7 +386,7 @@
 .ruleBody,
 .mappingsBody {
   min-width: 0;
-  padding: 16px 24px 24px;
+  padding: 14px 18px 18px;
 }
 
 .modelSourceStatus {
@@ -411,12 +415,99 @@
   white-space: nowrap;
 }
 
+.modelListToolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.modelSearchField {
+  position: relative;
+  display: flex;
+  min-width: 160px;
+  flex: 1 1 220px;
+  align-items: center;
+  color: var(--oauth-modal-text-tertiary);
+
+  > svg {
+    position: absolute;
+    left: 10px;
+    pointer-events: none;
+  }
+}
+
+.modelSearchInput {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 34px 7px 32px;
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-border) 84%, transparent);
+  border-radius: var(--xai-radius-control);
+  background: var(--oauth-modal-surface);
+  color: var(--oauth-modal-text);
+  font-size: 12px;
+  outline: none;
+  transition:
+    border-color var(--xai-duration-default),
+    box-shadow var(--xai-duration-default);
+
+  &:focus {
+    border-color: var(--oauth-modal-border-strong);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  &::-webkit-search-cancel-button {
+    display: none;
+  }
+}
+
+.modelSearchClear {
+  position: absolute;
+  right: 4px;
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--xai-radius-micro);
+  background: transparent;
+  color: var(--oauth-modal-text-tertiary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--oauth-modal-surface-subtle);
+    color: var(--oauth-modal-text);
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--mg-focus-outline);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.modelFilterCount {
+  color: var(--oauth-modal-text-tertiary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .modelList {
   max-height: min(320px, 42vh);
   margin: 0;
   padding: 4px 10px;
   overflow: auto;
-  border: 1px solid var(--oauth-modal-border);
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
   border-radius: var(--xai-radius-control);
   background: var(--oauth-modal-surface-subtle);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
@@ -482,7 +573,7 @@
 .manualModelDetails {
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid var(--oauth-modal-border);
+  border-top: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
 
   summary {
     display: inline-flex;
@@ -492,6 +583,11 @@
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+
+    &:focus-visible {
+      outline: 1px solid var(--mg-focus-outline);
+      outline-offset: 3px;
+    }
   }
 
   .manualModelControl {
@@ -579,7 +675,7 @@
   min-width: 0;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--oauth-modal-border);
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
   border-radius: var(--xai-radius-control);
   background: var(--oauth-modal-surface-subtle);
 }
@@ -590,7 +686,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border-bottom: 1px solid var(--oauth-modal-border);
+  border-bottom: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
   background: var(--oauth-modal-surface);
 
   &:nth-child(even) {
@@ -628,10 +724,12 @@
 }
 
 .mappingFieldLabel {
+  display: inline-flex;
   color: var(--oauth-modal-text-tertiary);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.35;
+  cursor: text;
 }
 
 .mappingSeparator {
@@ -647,6 +745,22 @@
 .mappingAliasInput {
   width: 100%;
   min-width: 0;
+}
+
+.mappingAliasReadonly {
+  display: flex;
+  min-width: 0;
+  min-height: 40px;
+  align-items: center;
+  padding: 8px 11px;
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
+  border-radius: var(--mg-radius-control, 8px);
+  background: var(--oauth-modal-surface-subtle);
+  color: var(--oauth-modal-text-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .mappingRemove:global(.btn.btn-sm) {
@@ -680,7 +794,7 @@
   flex-wrap: wrap;
   gap: 10px 16px;
   padding-top: 12px;
-  border-top: 1px solid var(--oauth-modal-border);
+  border-top: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
 }
 
 .mappingFork {
@@ -688,7 +802,7 @@
   min-height: 32px;
   align-items: center;
   padding: 5px 9px;
-  border: 1px solid var(--oauth-modal-border);
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-border) 70%, transparent);
   border-radius: var(--xai-radius-small);
   background: var(--oauth-modal-surface-subtle);
 }
@@ -743,10 +857,19 @@
     line-height: 1.4;
     cursor: pointer;
     overflow-wrap: anywhere;
+
+    &:focus-visible {
+      outline: 1px solid var(--mg-focus-outline);
+      outline-offset: 3px;
+    }
   }
 
   &[open] {
     flex-basis: 100%;
+
+    summary {
+      color: var(--oauth-modal-text);
+    }
   }
 }
 
@@ -757,7 +880,7 @@
   gap: 8px;
   margin-top: 10px;
   padding: 10px;
-  border: 1px solid var(--oauth-modal-border);
+  border: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
   border-radius: var(--xai-radius-small);
   background: var(--oauth-modal-surface-subtle);
 }
@@ -818,6 +941,11 @@
 }
 
 @media (max-width: 960px) {
+  .rulesSections {
+    gap: 12px;
+    padding: 14px 18px 20px;
+  }
+
   .providerContext {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
@@ -833,7 +961,7 @@
 
   .ruleSection + .ruleSection {
     border-top: 1px solid var(--oauth-modal-border);
-    border-left: 0;
+    border-left: 1px solid color-mix(in srgb, var(--oauth-modal-border) 72%, transparent);
   }
 }
 
@@ -860,6 +988,10 @@
 
   .providerContext {
     padding: 18px 16px 20px;
+  }
+
+  .rulesSections {
+    padding: 12px 12px 18px;
   }
 
   .providerContextControls :global(.form-group) > div > input[role='combobox'] {

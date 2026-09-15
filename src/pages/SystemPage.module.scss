@@ -12,11 +12,9 @@
   --system-text: var(--mg-text);
   --system-text-secondary: var(--mg-text-secondary);
   --system-text-tertiary: var(--mg-text-tertiary);
-  --system-ink: var(--mg-ink-strong);
   --system-success: var(--mg-success);
   --system-warning: var(--mg-warning);
   --system-danger: var(--mg-danger);
-  --system-focus: rgb(111 106 100 / 0.32);
 
   width: 100%;
   min-width: 0;
@@ -29,7 +27,6 @@
   margin-bottom: var(--xai-space-6);
 }
 
-.serviceEyebrow,
 .versionLabel {
   color: var(--system-text-tertiary);
   font-size: 11px;
@@ -52,86 +49,6 @@
   background:
     radial-gradient(circle at 100% 0%, rgb(255 255 255 / 72%), transparent 32%), var(--xai-warm);
   box-shadow: 0 12px 30px rgb(13 13 13 / 4%);
-}
-
-.serviceSummary {
-  display: flex;
-  min-width: 0;
-  min-height: 224px;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 24px;
-  border-right: 1px solid var(--system-border);
-  background: var(--system-surface-muted);
-}
-
-.serviceIdentity {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 12px;
-}
-
-.aboutLogo {
-  display: block;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 auto;
-}
-
-.serviceTitle {
-  margin: 3px 0 0;
-  color: var(--system-text);
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-}
-
-.connectionState {
-  display: inline-flex;
-  width: fit-content;
-  min-height: 32px;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border: 1px solid var(--system-border);
-  border-radius: var(--xai-radius-pill);
-  background: var(--system-surface);
-  color: var(--system-text);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.statusDot {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--system-text-tertiary);
-}
-
-.connected {
-  background: var(--system-success);
-}
-
-.connecting {
-  background: var(--system-warning);
-}
-
-.disconnected,
-.error {
-  background: var(--system-danger);
-}
-
-.apiEndpoint {
-  overflow: hidden;
-  color: var(--system-text-secondary);
-  font-family: $font-mono;
-  font-size: 12px;
-  line-height: 1.5;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .versionGrid {
@@ -584,17 +501,6 @@
 }
 
 @media (max-width: 820px) {
-  .systemOverview {
-    grid-template-columns: 1fr;
-  }
-
-  .serviceSummary {
-    min-height: 0;
-    gap: 22px;
-    border-right: 0;
-    border-bottom: 1px solid var(--system-border);
-  }
-
   .versionGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: 1fr;
@@ -637,10 +543,6 @@
 
   .content {
     gap: 14px;
-  }
-
-  .serviceSummary {
-    padding: 20px;
   }
 
   .versionGrid {

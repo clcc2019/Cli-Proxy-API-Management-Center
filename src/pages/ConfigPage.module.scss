@@ -175,14 +175,6 @@
   min-height: 0;
 }
 
-// The API-key page is a dense management surface. Keep its summary neutral so
-// colored badges remain the only state cue in the first viewport.
-.apiKeysSummary {
-  border-color: var(--config-border);
-  border-radius: var(--xai-radius-card);
-  background: var(--config-surface);
-}
-
 .visualWorkspace,
 .sourceWorkspace {
   min-width: 0;

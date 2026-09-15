@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
-import { MAX_USAGE_CHART_LINES } from './hooks/useUsageViewState';
 import styles from './UsageCharts.module.scss';
+
+const MAX_USAGE_CHART_LINES = 5;
 
 export interface ChartLineSelectorProps {
   chartLines: string[];
