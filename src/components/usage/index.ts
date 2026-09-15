@@ -23,6 +23,7 @@ export type {
 } from './hooks/useUsageAggregateChartData';
 
 export { useUsageViewState, MAX_USAGE_CHART_LINES } from './hooks/useUsageViewState';
+export { useUsageTimeRangeState } from './hooks/useUsageTimeRangeState';
 
 // Components
 export { StatCards } from './StatCards';

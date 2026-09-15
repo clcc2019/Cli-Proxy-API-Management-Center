@@ -3,7 +3,6 @@
 // Shared visual layer for the auth-files list, cards, quota panels, and OAuth
 // rules card. Larger editors and dialogs keep their own CSS modules.
 .page {
-  --auth-page-canvas: var(--bg-secondary, var(--mg-canvas));
   --auth-surface: var(--mg-surface);
   --auth-surface-muted: var(--mg-surface-subtle);
   --auth-control-surface: var(--mg-surface);
@@ -28,9 +27,7 @@
   padding-bottom: calc(
     var(--auth-files-action-bar-height, 0px) + 16px + env(safe-area-inset-bottom)
   );
-  background:
-    radial-gradient(circle at 92% 0%, rgb(255 255 255 / 72%), transparent 28%),
-    var(--auth-page-canvas);
+  background: transparent;
   color: var(--auth-text-primary);
   overflow: visible;
   isolation: isolate;
@@ -924,17 +921,6 @@
 
 .page .contentUpdating .cardGrid {
   cursor: progress;
-}
-
-.page .performanceNotice {
-  margin: 0;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--mg-warning) 28%, var(--mg-border));
-  border-radius: var(--mg-radius-control);
-  background: color-mix(in srgb, var(--mg-warning) 7%, var(--mg-surface));
-  color: var(--mg-warning);
-  font-size: 12px;
-  line-height: 1.45;
 }
 
 .page .contentRegion :global(.empty-state) {

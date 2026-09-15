@@ -22,3 +22,4 @@ export type {
 } from './useUsageAggregateChartData';
 
 export { useUsageViewState, MAX_USAGE_CHART_LINES } from './useUsageViewState';
+export { useUsageTimeRangeState } from './useUsageTimeRangeState';

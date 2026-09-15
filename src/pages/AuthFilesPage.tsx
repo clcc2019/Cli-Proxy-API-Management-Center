@@ -153,7 +153,7 @@ function ModalLoadingFallback() {
 const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
-const UNPAGED_PERFORMANCE_WARNING_THRESHOLD = 80;
+const AUTH_FILE_OVERLAY_PRELOAD_DELAY_MS = 1_500;
 
 const EMPTY_AUTH_FILE_CARD_NODES: ReactNode[] = [];
 type AuthFileSearchFields = {
@@ -244,10 +244,14 @@ export function AuthFilesPage() {
   } | null>(null);
 
   useEffect(() => {
-    // Fetch overlay chunks as soon as the route is mounted. These modules are
-    // still excluded from the entry bundle, but quick clicks no longer wait
-    // for a first network request and module evaluation.
-    preloadAuthFileOverlays();
+    // Overlay editors are uncommon actions. Keep the first list render and
+    // its data request ahead of these chunks, then warm them during idle time
+    // so a later click is still fast without making every visit pay upfront.
+    return scheduleIdleTask(preloadAuthFileOverlays, {
+      delayMs: AUTH_FILE_OVERLAY_PRELOAD_DELAY_MS,
+      fallbackDelayMs: AUTH_FILE_OVERLAY_PRELOAD_DELAY_MS,
+      timeoutMs: 4_000,
+    });
   }, []);
   const [isListTransitionPending, startListTransition] = useTransition();
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
@@ -1199,8 +1203,6 @@ export function AuthFilesPage() {
     disabledOnly ||
     planFilterActive;
   const showWorkbench = showInitialLoading || files.length > 0 || hasActiveFilters;
-  const showUnpagedPerformanceWarning =
-    isCurrentLayer && !serverPaginated && files.length > UNPAGED_PERFORMANCE_WARNING_THRESHOLD;
 
   const copyTextWithNotification = useCallback(
     async (text: string) => {
@@ -1754,11 +1756,6 @@ export function AuthFilesPage() {
           <span className={refreshStyles.visuallyHidden} role="status" aria-live="polite" aria-atomic="true">
             {showListProgress ? t('auth_files.status_refreshing') : ''}
           </span>
-          {showUnpagedPerformanceWarning && (
-            <p className={refreshStyles.performanceNotice} role="note">
-              {t('auth_files.too_many_files_warning')}
-            </p>
-          )}
           {showInitialLoading ? (
             <AuthFilesSkeletonGrid
               count={pageSize}

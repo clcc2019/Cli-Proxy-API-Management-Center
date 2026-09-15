@@ -27,8 +27,8 @@ interface ProviderStats {
   claude: number | null;
 }
 
-const MODELS_IDLE_LOAD_DELAY_MS = 320;
-const MODELS_IDLE_LOAD_TIMEOUT_MS = 1_500;
+const MODELS_IDLE_LOAD_DELAY_MS = 720;
+const MODELS_IDLE_LOAD_TIMEOUT_MS = 2_500;
 const DASHBOARD_STATS_CACHE_TTL_MS = 1_000;
 const EMPTY_MODELS: ModelInfo[] = [];
 

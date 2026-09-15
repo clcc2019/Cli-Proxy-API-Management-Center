@@ -38,35 +38,34 @@ export function useLogFilters(options: UseLogFiltersOptions): UseLogFiltersRetur
   const hasStructuredFilters =
     methodFilters.length > 0 || statusFilters.length > 0 || pathFilters.length > 0;
 
-  const methodCounts = useMemo(() => {
-    const counts: Partial<Record<HttpMethod, number>> = {};
-    parsedLines.forEach((line) => {
-      if (!line.method) return;
-      counts[line.method] = (counts[line.method] ?? 0) + 1;
-    });
-    return counts;
-  }, [parsedLines]);
+  const { methodCounts, statusCounts, pathOptions } = useMemo(() => {
+    const methodCounts: Partial<Record<HttpMethod, number>> = {};
+    const statusCounts: Partial<Record<StatusGroup, number>> = {};
+    const pathCounts = new Map<string, number>();
 
-  const statusCounts = useMemo(() => {
-    const counts: Partial<Record<StatusGroup, number>> = {};
+    // These aggregates all use the same parsed log collection. Build them in
+    // one pass so large buffers do not pay for three separate traversals.
     parsedLines.forEach((line) => {
+      if (line.method) {
+        methodCounts[line.method] = (methodCounts[line.method] ?? 0) + 1;
+      }
+
       const statusGroup = resolveStatusGroup(line.statusCode);
-      if (!statusGroup) return;
-      counts[statusGroup] = (counts[statusGroup] ?? 0) + 1;
-    });
-    return counts;
-  }, [parsedLines]);
+      if (statusGroup) {
+        statusCounts[statusGroup] = (statusCounts[statusGroup] ?? 0) + 1;
+      }
 
-  const pathOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    parsedLines.forEach((line) => {
-      if (!line.path) return;
-      counts.set(line.path, (counts.get(line.path) ?? 0) + 1);
+      if (line.path) {
+        pathCounts.set(line.path, (pathCounts.get(line.path) ?? 0) + 1);
+      }
     });
-    return Array.from(counts.entries())
+
+    const pathOptions = Array.from(pathCounts.entries())
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, PATH_FILTER_LIMIT)
       .map(([path, count]) => ({ path, count }));
+
+    return { methodCounts, statusCounts, pathOptions };
   }, [parsedLines]);
 
   useEffect(() => {

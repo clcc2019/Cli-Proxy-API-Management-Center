@@ -236,7 +236,7 @@ export function useRequestEventRows({
       : (authFileMapCache.get(authScopeKey)?.map ?? EMPTY_CREDENTIAL_INFO_MAP);
 
   useEffect(() => {
-    if (!isCurrentLayer) return undefined;
+    if (!isCurrentLayer || usage === null) return undefined;
 
     let cancelled = false;
     const cached = authFileMapCache.get(authScopeKey);
@@ -259,7 +259,7 @@ export function useRequestEventRows({
     return () => {
       cancelled = true;
     };
-  }, [authScopeKey, isCurrentLayer]);
+  }, [authScopeKey, isCurrentLayer, usage]);
 
   const sourceInfoMap = useMemo(
     () =>

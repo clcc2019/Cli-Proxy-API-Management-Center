@@ -136,6 +136,9 @@ export function LogsPage() {
   const logRequestInFlightRef = useRef(false);
   const pendingFullReloadRef = useRef(false);
   const isCurrentLayerRef = useRef(isCurrentLayer);
+  const parsedLineCacheRef = useRef(
+    new Map<number, { raw: string; parsed: ParsedLogLine & { bufferIndex: number } }>()
+  );
 
   // 保存最新时间戳用于增量获取
   const latestTimestampRef = useRef<number>(0);
@@ -381,10 +384,17 @@ export function LogsPage() {
       trimmedSearchQuery && truncatedCount > 0 ? working.slice(-SEARCH_PARSE_LIMIT) : working;
 
     return {
-      parsedSearchLines: limited.map((entry) => ({
-        ...parseLogLine(entry.line),
-        bufferIndex: entry.bufferIndex,
-      })),
+      parsedSearchLines: limited.map((entry) => {
+        const cached = parsedLineCacheRef.current.get(entry.bufferIndex);
+        if (cached?.raw === entry.line) return cached.parsed;
+
+        const parsed = {
+          ...parseLogLine(entry.line),
+          bufferIndex: entry.bufferIndex,
+        };
+        parsedLineCacheRef.current.set(entry.bufferIndex, { raw: entry.line, parsed });
+        return parsed;
+      }),
       matchedLineCount: matchedCount,
       searchTruncatedCount: trimmedSearchQuery ? truncatedCount : 0,
     };

@@ -29,6 +29,50 @@ document.addEventListener(
 const PRELOAD_RELOAD_KEY = 'toka:preload-reload';
 const PRELOAD_RELOAD_COOLDOWN_MS = 10_000;
 
+const getHashPathname = () => {
+  const hash = window.location.hash.replace(/^#/, '');
+  return (hash.split(/[?#]/, 1)[0] || '/').replace(/\/+$/, '') || '/';
+};
+
+const scheduleLoginPreload = () => {
+  const hashPathname = getHashPathname();
+  let hasStoredSession = false;
+
+  try {
+    // These storage keys are intentionally read without importing the auth
+    // store. Keeping the bootstrap dependency-free prevents auth recovery and
+    // API client code from joining the entry graph just to decide whether a
+    // non-critical page chunk should be prefetched.
+    hasStoredSession = Boolean(
+      window.sessionStorage.getItem('cli-proxy-auth-session') ||
+        window.localStorage.getItem('cli-proxy-auth')
+    );
+  } catch {
+    // Storage can be unavailable in privacy-restricted contexts. Preloading
+    // remains a safe fallback for a likely unauthenticated visitor.
+  }
+
+  const preload = () => {
+    void import('./pages/LoginPage').catch(() => undefined);
+  };
+
+  if (hashPathname === '/login') {
+    preload();
+    return;
+  }
+
+  if (hasStoredSession) return;
+
+  const idleWindow = window as Window & {
+    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  };
+  if (typeof idleWindow.requestIdleCallback === 'function') {
+    idleWindow.requestIdleCallback(preload, { timeout: 2_000 });
+  } else {
+    window.setTimeout(preload, 1_200);
+  }
+};
+
 window.addEventListener('vite:preloadError', (event) => {
   try {
     const lastReload = Number(sessionStorage.getItem(PRELOAD_RELOAD_KEY));
@@ -42,9 +86,9 @@ window.addEventListener('vite:preloadError', (event) => {
 });
 
 const bootstrap = async () => {
-  // 在 i18n/会话恢复期间提前下载登录页 chunk。管理壳层与登录页是互斥
-  // 路径，等认证完成后再按需加载，避免未登录用户承担整套管理 UI 的解析成本。
-  void import('./pages/LoginPage').catch(() => undefined);
+  // 登录页只在当前路径明确需要、或没有任何持久化会话痕迹时预取。
+  // 已登录用户的刷新不会为永远不会展示的页面竞争首屏带宽。
+  scheduleLoginPreload();
   await initializeI18n();
 
   createRoot(document.getElementById('root')!).render(
