@@ -476,6 +476,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
   const note = (entry.note ?? '').trim();
   const isDisabled = Boolean(entry.disabled);
   const hasRules = entry.allowedModels.length > 0 || entry.excludedModels.length > 0;
+  const hasAliasDisabled = Boolean(entry.disableModelAlias);
   const hasAuthFiles = entry.authFiles.length > 0;
   const hasQuota = hasClientApiKeyQuota(entry.quota);
 
@@ -515,6 +516,11 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
                 allowed: entry.allowedModels.length,
                 excluded: entry.excludedModels.length,
               })}
+            </span>
+          )}
+          {hasAliasDisabled && (
+            <span className={apiKeyCardStyles.summaryChip}>
+              {t('config_management.visual.api_keys.alias_disabled_summary')}
             </span>
           )}
           {hasQuota && (
@@ -695,6 +701,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const [inputValue, setInputValue] = useState('');
   const [noteValue, setNoteValue] = useState('');
   const [disabledValue, setDisabledValue] = useState(false);
+  const [disableModelAliasValue, setDisableModelAliasValue] = useState(false);
   const [allowedModelsValue, setAllowedModelsValue] = useState('');
   const [excludedModelsValue, setExcludedModelsValue] = useState('');
   const [authFilesValue, setAuthFilesValue] = useState<string[]>([]);
@@ -748,6 +755,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setInputValue('');
     setNoteValue('');
     setDisabledValue(false);
+    setDisableModelAliasValue(false);
     setAllowedModelsValue('');
     setExcludedModelsValue('');
     setAuthFilesValue([]);
@@ -765,6 +773,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setInputValue(entry.apiKey ?? '');
     setNoteValue(entry.note ?? '');
     setDisabledValue(Boolean(entry.disabled));
+    setDisableModelAliasValue(Boolean(entry.disableModelAlias));
     setAllowedModelsValue(excludedModelsToText(entry.allowedModels));
     setExcludedModelsValue(excludedModelsToText(entry.excludedModels));
     setAuthFilesValue(entry.authFiles ?? []);
@@ -782,6 +791,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     setInputValue('');
     setNoteValue('');
     setDisabledValue(false);
+    setDisableModelAliasValue(false);
     setAllowedModelsValue('');
     setExcludedModelsValue('');
     setAuthFilesValue([]);
@@ -882,6 +892,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
       apiKey: trimmed,
       note: noteValue.trim(),
       disabled: disabledValue,
+      disableModelAlias: disableModelAliasValue,
       allowedModels,
       excludedModels,
       authFiles,
@@ -1196,6 +1207,18 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
                     ariaLabel={t('config_management.visual.api_keys.enabled_toggle')}
                   />
                   <div className="hint">{t('config_management.visual.api_keys.disabled_hint')}</div>
+                </div>
+                <div className="form-group">
+                  <ToggleSwitch
+                    checked={disableModelAliasValue}
+                    onChange={setDisableModelAliasValue}
+                    disabled={disabled}
+                    label={t('config_management.visual.api_keys.disable_model_alias')}
+                    ariaLabel={t('config_management.visual.api_keys.disable_model_alias')}
+                  />
+                  <div className="hint">
+                    {t('config_management.visual.api_keys.disable_model_alias_hint')}
+                  </div>
                 </div>
               </>
             )}

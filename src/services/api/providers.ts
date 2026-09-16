@@ -52,7 +52,7 @@ const OPENAI_COMPATIBILITY_FIELDS = [
 
 const MODEL_ALIAS_FIELDS = ['name', 'alias', 'priority', 'test-model'] as const;
 const OPENAI_MODEL_ALIAS_FIELDS = [...MODEL_ALIAS_FIELDS, 'image', 'thinking'] as const;
-const API_KEY_ENTRY_FIELDS = ['api-key', 'proxy-url'] as const;
+const API_KEY_ENTRY_FIELDS = ['api-key', 'proxy-url', 'models'] as const;
 const CLOAK_FIELDS = ['mode', 'strict-mode', 'cache-user-id', 'sensitive-words'] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -207,12 +207,25 @@ const mergeOpenAICompatibilityPayload = (raw: unknown, payload: Record<string, u
   const next = mergeKnownFields(raw, payload, OPENAI_COMPATIBILITY_FIELDS);
   const apiKeyEntries = payload['api-key-entries'];
   if (Array.isArray(apiKeyEntries)) {
-    next['api-key-entries'] = mergeKnownRecordList(
-      isRecord(raw) ? raw['api-key-entries'] : undefined,
-      apiKeyEntries.filter(isRecord),
-      API_KEY_ENTRY_FIELDS,
-      apiKeyEntryIdentity
-    );
+    const payloadEntries = apiKeyEntries.filter(isRecord);
+    const rawEntries = isRecord(raw) ? raw['api-key-entries'] : undefined;
+    const rawRecords = Array.isArray(rawEntries)
+      ? rawEntries.map((item) => (isRecord(item) ? item : undefined))
+      : [];
+    const usedIndexes = new Set<number>();
+    next['api-key-entries'] = payloadEntries.map((entry, index) => {
+      const rawEntry = findRawRecord(
+        rawRecords,
+        usedIndexes,
+        entry,
+        index,
+        apiKeyEntryIdentity
+      );
+      const merged = mergeKnownFields(rawEntry, entry, API_KEY_ENTRY_FIELDS);
+      const models = mergeModelPayloads(rawEntry, entry.models, OPENAI_MODEL_ALIAS_FIELDS);
+      if (models) merged.models = models;
+      return merged;
+    });
   }
   const models = mergeModelPayloads(raw, payload.models, OPENAI_MODEL_ALIAS_FIELDS);
   if (models) next.models = models;
@@ -276,6 +289,8 @@ const serializeOpenAICompatibilityApiKeys = (items?: OpenAICompatibilityApiKeyEn
           if (!apiKey) return null;
           const payload: Record<string, unknown> = { 'api-key': apiKey };
           if (item.proxyUrl?.trim()) payload['proxy-url'] = item.proxyUrl.trim();
+          const models = serializeOpenAICompatibilityModels(item.models);
+          if (models && models.length) payload.models = models;
           return payload;
         })
         .filter(Boolean)

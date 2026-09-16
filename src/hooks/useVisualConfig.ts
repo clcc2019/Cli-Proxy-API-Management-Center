@@ -76,6 +76,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
           apiKey: trimmed,
           note: '',
           disabled: false,
+          disableModelAlias: false,
           allowedModels: [],
           excludedModels: [],
           authFiles: [],
@@ -98,6 +99,10 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
 
   const noteRaw = record['note'] ?? record['remark'] ?? record['description'];
   const note = typeof noteRaw === 'string' ? noteRaw.trim() : '';
+  const disableModelAlias =
+    parseBooleanFlag(
+      record['disable-model-alias'] ?? record.disableModelAlias ?? record.disable_model_alias
+    ) === true;
   const allowedModels = normalizeApiKeyModelPatterns(
     record['allowed-models'] ?? record.allowedModels ?? record['allowed_models']
   );
@@ -114,6 +119,7 @@ function extractApiKeyEntry(raw: unknown): VisualApiKeyEntry | null {
     apiKey,
     note,
     disabled: extractApiKeyDisabled(record),
+    disableModelAlias,
     allowedModels,
     excludedModels,
     authFiles,
@@ -130,6 +136,38 @@ function parseApiKeys(raw: unknown): VisualApiKeyEntry[] {
     if (key) keys.push(key);
   }
   return keys;
+}
+
+function serializeApiKeysForYaml(entries: VisualApiKeyEntry[]): Array<string | Record<string, unknown>> {
+  const serialized: Array<string | Record<string, unknown>> = [];
+  entries.forEach((entry) => {
+    const apiKey = entry.apiKey.trim();
+    if (!apiKey) return;
+    const quota = serializeClientApiKeyQuota(entry.quota);
+    if (
+      !entry.note.trim() &&
+      !entry.disabled &&
+      !entry.disableModelAlias &&
+      entry.allowedModels.length === 0 &&
+      entry.excludedModels.length === 0 &&
+      entry.authFiles.length === 0 &&
+      !quota
+    ) {
+      serialized.push(apiKey);
+      return;
+    }
+    serialized.push({
+      'api-key': apiKey,
+      ...(entry.note.trim() ? { note: entry.note.trim() } : {}),
+      ...(entry.disabled ? { disabled: true } : {}),
+      ...(entry.disableModelAlias ? { 'disable-model-alias': true } : {}),
+      ...(entry.allowedModels.length ? { 'allowed-models': entry.allowedModels } : {}),
+      ...(entry.excludedModels.length ? { 'excluded-models': entry.excludedModels } : {}),
+      ...(entry.authFiles.length ? { 'auth-files': entry.authFiles } : {}),
+      ...(quota ? { quota } : {}),
+    });
+  });
+  return serialized;
 }
 
 function resolveApiKeys(parsed: Record<string, unknown>): VisualApiKeyEntry[] {
@@ -649,6 +687,7 @@ function areApiKeyEntriesEqual(left: VisualApiKeyEntry[], right: VisualApiKeyEnt
     if (leftEntry.apiKey !== rightEntry.apiKey) return false;
     if ((leftEntry.note ?? '') !== (rightEntry.note ?? '')) return false;
     if (Boolean(leftEntry.disabled) !== Boolean(rightEntry.disabled)) return false;
+    if (Boolean(leftEntry.disableModelAlias) !== Boolean(rightEntry.disableModelAlias)) return false;
     if (!areStringArraysEqual(leftEntry.allowedModels, rightEntry.allowedModels)) return false;
     if (!areStringArraysEqual(leftEntry.excludedModels, rightEntry.excludedModels)) return false;
     if (!areStringArraysEqual(leftEntry.authFiles, rightEntry.authFiles)) return false;
@@ -1110,6 +1149,27 @@ export function useVisualConfig() {
         }
 
         setStringInDoc(doc, ['auth-dir'], values.authDir);
+
+        if (
+          values.apiKeys.length > 0 ||
+          docHas(doc, ['api-keys']) ||
+          docHas(doc, ['auth', 'providers', 'config-api-key'])
+        ) {
+          if (values.apiKeys.length > 0) {
+            doc.setIn(['api-keys'], serializeApiKeysForYaml(values.apiKeys));
+          } else if (docHas(doc, ['api-keys'])) {
+            doc.deleteIn(['api-keys']);
+          }
+          if (docHas(doc, ['auth', 'providers', 'config-api-key', 'api-key-entries'])) {
+            doc.deleteIn(['auth', 'providers', 'config-api-key', 'api-key-entries']);
+          }
+          if (docHas(doc, ['auth', 'providers', 'config-api-key', 'api-keys'])) {
+            doc.deleteIn(['auth', 'providers', 'config-api-key', 'api-keys']);
+          }
+          deleteIfMapEmpty(doc, ['auth', 'providers', 'config-api-key']);
+          deleteIfMapEmpty(doc, ['auth', 'providers']);
+          deleteIfMapEmpty(doc, ['auth']);
+        }
 
         setBooleanInDoc(doc, ['debug'], values.debug);
 

@@ -12,11 +12,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
-import {
-  IconBot,
-  IconChevronDown,
-  IconX,
-} from '@/components/ui/icons';
+import { IconBot, IconChevronDown, IconSlidersHorizontal, IconX } from '@/components/ui/icons';
 import { Input } from '@/components/ui/Input';
 import { ModelInputList } from '@/components/ui/ModelInputList';
 import { Modal } from '@/components/ui/Modal';
@@ -55,6 +51,8 @@ type ApiKeyEntryForm = {
   apiKey: string;
   proxyUrl: string;
   authIndex?: string;
+  models?: ModelEntry[];
+  originalModels?: OpenAICompatibilityModel[];
 };
 
 const EMPTY_OPENAI_API_KEY_ENTRY: ApiKeyEntryForm = { apiKey: '', proxyUrl: '' };
@@ -114,8 +112,15 @@ const normalizeApiKeyEntries = (entries: ApiKeyEntryForm[]) =>
     const apiKey = String(entry?.apiKey ?? '').trim();
     const proxyUrl = String(entry?.proxyUrl ?? '').trim();
     const authIndex = String(entry?.authIndex ?? '').trim();
+    const models = normalizeModelEntries(entry?.models ?? []);
     if (!apiKey && !proxyUrl) return acc;
-    acc.push({ apiKey, proxyUrl, authIndex: authIndex || undefined });
+    acc.push({
+      apiKey,
+      proxyUrl,
+      authIndex: authIndex || undefined,
+      models: models.length ? models : undefined,
+      originalModels: entry?.originalModels,
+    });
     return acc;
   }, []);
 
@@ -138,6 +143,14 @@ const areApiKeyEntriesEqual = (left: ApiKeyEntryForm[], right: ApiKeyEntryForm[]
     if (a.apiKey !== b.apiKey || a.proxyUrl !== b.proxyUrl || a.authIndex !== b.authIndex) {
       return false;
     }
+    if (
+      !areModelEntriesEqual(
+        normalizeModelEntries(a.models ?? []),
+        normalizeModelEntries(b.models ?? [])
+      )
+    ) {
+      return false;
+    }
   }
   return true;
 };
@@ -156,6 +169,8 @@ const buildFormFromConfig = (config: OpenAICompatibilityConfig): OpenAIFormState
         apiKey: entry.apiKey ?? '',
         proxyUrl: entry.proxyUrl ?? '',
         authIndex: entry.authIndex,
+        models: entry.models?.length ? modelsToEntries(entry.models) : undefined,
+        originalModels: entry.models,
       }))
     : [{ apiKey: '', proxyUrl: '' }],
   headers: headersToEntries(config.headers),
@@ -182,11 +197,15 @@ const buildOpenAIBaseline = (form: OpenAIFormState): OpenAIFormBaseline => ({
 const buildApiKeyPayload = (entries: ApiKeyEntryForm[]): OpenAICompatibilityApiKeyEntry[] =>
   normalizeApiKeyEntries(entries)
     .filter((entry) => entry.apiKey)
-    .map((entry) => ({
-      apiKey: entry.apiKey,
-      proxyUrl: entry.proxyUrl || undefined,
-      authIndex: entry.authIndex,
-    }));
+    .map((entry) => {
+      const models = buildModelPayload(entry.models ?? [], entry.originalModels);
+      return {
+        apiKey: entry.apiKey,
+        proxyUrl: entry.proxyUrl || undefined,
+        authIndex: entry.authIndex,
+        models: models.length ? models : undefined,
+      };
+    });
 
 const buildModelPayload = (
   entries: ModelEntry[],
@@ -221,11 +240,16 @@ interface OpenAIApiKeyInputRowProps {
   disabled: boolean;
   apiKeyPlaceholder: string;
   proxyPlaceholder: string;
+  modelRulesLabel: string;
+  modelAliasesLabel: string;
   deleteLabel: string;
   removeButtonClassName: string;
+  modelToggleButtonClassName: string;
   removeDisabled: boolean;
+  modelsExpanded: boolean;
   onUpdate: (index: number, field: OpenAIApiKeyInputField, value: string) => void;
   onRemove: (index: number) => void;
+  onToggleModels: (index: number) => void;
 }
 
 const OpenAIApiKeyInputRow = memo(function OpenAIApiKeyInputRow({
@@ -234,11 +258,16 @@ const OpenAIApiKeyInputRow = memo(function OpenAIApiKeyInputRow({
   disabled,
   apiKeyPlaceholder,
   proxyPlaceholder,
+  modelRulesLabel,
+  modelAliasesLabel,
   deleteLabel,
   removeButtonClassName,
+  modelToggleButtonClassName,
   removeDisabled,
+  modelsExpanded,
   onUpdate,
   onRemove,
+  onToggleModels,
 }: OpenAIApiKeyInputRowProps) {
   return (
     <div className={styles.openaiKeyInputRow}>
@@ -258,6 +287,22 @@ const OpenAIApiKeyInputRow = memo(function OpenAIApiKeyInputRow({
         onChange={(event) => onUpdate(index, 'proxyUrl', event.target.value)}
         disabled={disabled}
       />
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onToggleModels(index)}
+        disabled={disabled}
+        title={modelAliasesLabel}
+        aria-label={modelAliasesLabel}
+        aria-expanded={modelsExpanded}
+        className={modelToggleButtonClassName}
+      >
+        <IconSlidersHorizontal size={14} aria-hidden="true" />
+        <span className={styles.modelToggleLabel}>{modelRulesLabel}</span>
+        <span className={styles.modelToggleChevron}>
+          <IconChevronDown size={14} aria-hidden="true" />
+        </span>
+      </Button>
       <Button
         variant="ghost"
         size="sm"
@@ -284,6 +329,7 @@ const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
 }) {
   const { t } = useTranslation();
   const currentEntries = entries.length ? entries : [EMPTY_OPENAI_API_KEY_ENTRY];
+  const [expandedEntries, setExpandedEntries] = useState<Set<number>>(() => new Set());
 
   const updateEntry = useEventCallback(
     (index: number, field: OpenAIApiKeyInputField, value: string) => {
@@ -299,7 +345,35 @@ const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
 
   const removeEntry = useEventCallback((index: number) => {
     const next = currentEntries.filter((_, idx) => idx !== index);
+    setExpandedEntries((previous) => {
+      const shifted = new Set<number>();
+      previous.forEach((expandedIndex) => {
+        if (expandedIndex < index) shifted.add(expandedIndex);
+        if (expandedIndex > index) shifted.add(expandedIndex - 1);
+      });
+      return shifted;
+    });
     onChange(next.length ? next : [EMPTY_OPENAI_API_KEY_ENTRY]);
+  });
+
+  const toggleModels = useEventCallback((index: number) => {
+    setExpandedEntries((previous) => {
+      const next = new Set(previous);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  });
+
+  const updateModels = useEventCallback((index: number, models: ModelEntry[]) => {
+    const normalizedModels = normalizeModelEntries(models);
+    onChange(
+      currentEntries.map((entry, idx) =>
+        idx === index
+          ? { ...entry, models: normalizedModels.length ? normalizedModels : undefined }
+          : entry
+      )
+    );
   });
 
   return (
@@ -307,22 +381,61 @@ const OpenAIApiKeyInputList = memo(function OpenAIApiKeyInputList({
       <div className={styles.openaiKeyColumnLabels} aria-hidden="true">
         <span>{t('ai_providers.openai_key_column_label')}</span>
         <span>{t('ai_providers.openai_proxy_column_label')}</span>
+        <span>{t('ai_providers.openai_key_models_column_label')}</span>
         <span />
       </div>
       {currentEntries.map((entry, index) => (
-        <OpenAIApiKeyInputRow
-          key={index}
-          entry={entry}
-          index={index}
-          disabled={disabled}
-          apiKeyPlaceholder={t('ai_providers.openai_key_placeholder')}
-          proxyPlaceholder={t('ai_providers.openai_proxy_placeholder')}
-          deleteLabel={t('common.delete')}
-          removeButtonClassName={styles.modelRowRemoveButton}
-          removeDisabled={currentEntries.length <= 1}
-          onUpdate={updateEntry}
-          onRemove={removeEntry}
-        />
+        <div className={styles.openaiKeyEntry} key={index}>
+          <OpenAIApiKeyInputRow
+            entry={entry}
+            index={index}
+            disabled={disabled}
+            apiKeyPlaceholder={t('ai_providers.openai_key_placeholder')}
+            proxyPlaceholder={t('ai_providers.openai_proxy_placeholder')}
+            modelRulesLabel={t('ai_providers.openai_key_models_button')}
+            modelAliasesLabel={t('ai_providers.openai_key_models_toggle')}
+            deleteLabel={t('common.delete')}
+            removeButtonClassName={styles.modelRowRemoveButton}
+            modelToggleButtonClassName={styles.modelToggleButton}
+            removeDisabled={currentEntries.length <= 1}
+            modelsExpanded={expandedEntries.has(index)}
+            onUpdate={updateEntry}
+            onRemove={removeEntry}
+            onToggleModels={toggleModels}
+          />
+          {expandedEntries.has(index) && (
+            <div className={styles.openaiKeyModels}>
+              <div className={styles.openaiKeyModelsHeader}>
+                <div>
+                  <span>{t('ai_providers.openai_key_models_title')}</span>
+                  <p>{t('ai_providers.openai_key_models_hint')}</p>
+                </div>
+                <span className={styles.openaiKeyModelsStatus}>
+                  {t(
+                    entry.models?.length
+                      ? 'ai_providers.openai_key_models_configured'
+                      : 'ai_providers.openai_key_models_inherited',
+                    entry.models?.length ? { count: entry.models.length } : undefined
+                  )}
+                </span>
+              </div>
+              <ModelInputList
+                entries={entry.models ?? []}
+                onChange={(models) => updateModels(index, models)}
+                addLabel={t('ai_providers.openai_key_models_add_btn')}
+                namePlaceholder={t('ai_providers.openai_model_name_placeholder')}
+                aliasPlaceholder={t('ai_providers.openai_model_alias_placeholder')}
+                disabled={disabled}
+                className={styles.modelInputList}
+                rowClassName={styles.modelInputRow}
+                inputClassName={styles.modelInputField}
+                removeButtonClassName={styles.modelRowRemoveButton}
+                removeButtonTitle={t('common.delete')}
+                removeButtonAriaLabel={t('common.delete')}
+              />
+            </div>
+          )}
+        </div>
       ))}
       <Button
         variant="secondary"

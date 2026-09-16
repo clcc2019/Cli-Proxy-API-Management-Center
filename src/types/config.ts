@@ -9,6 +9,7 @@ export interface ClientApiKeyConfig {
   apiKey: string;
   note?: string;
   disabled?: boolean;
+  disableModelAlias?: boolean;
   allowedModels?: string[];
   excludedModels?: string[];
   authFiles?: string[];

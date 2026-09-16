@@ -21,6 +21,7 @@ export interface OpenAICompatibilityApiKeyEntry {
   apiKey: string;
   proxyUrl?: string;
   authIndex?: string;
+  models?: OpenAICompatibilityModel[];
 }
 
 export interface OpenAICompatibilityConfig {

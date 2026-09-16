@@ -83,6 +83,12 @@ const normalizeClientApiKey = (entry: unknown): ClientApiKeyConfig | null => {
   if (readDisabledFlag(record)) {
     config.disabled = true;
   }
+  const disableModelAlias = parseBooleanFlag(
+    record?.['disable-model-alias'] ?? record?.disableModelAlias ?? record?.disable_model_alias
+  );
+  if (disableModelAlias === true) {
+    config.disableModelAlias = true;
+  }
   const noteRaw = record?.['note'] ?? record?.['remark'] ?? record?.['description'];
   const note = typeof noteRaw === 'string' ? noteRaw.trim() : '';
   if (note) {
@@ -125,6 +131,7 @@ const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<strin
   const apiKey = String(entry.apiKey ?? '').trim();
   const note = typeof entry.note === 'string' ? entry.note.trim() : '';
   const disabled = Boolean(entry.disabled);
+  const disableModelAlias = Boolean(entry.disableModelAlias);
   const allowedModels = normalizeModelPatterns(entry.allowedModels);
   const excludedModels = normalizeModelPatterns(entry.excludedModels);
   const authFiles = normalizeAuthFiles(entry.authFiles);
@@ -133,6 +140,7 @@ const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<strin
   if (
     !note &&
     !disabled &&
+    !disableModelAlias &&
     !allowedModels.length &&
     !excludedModels.length &&
     !authFiles.length &&
@@ -145,6 +153,7 @@ const serializeClientApiKey = (entry: ClientApiKeyConfig): string | Record<strin
     'api-key': apiKey,
     ...(note ? { note } : {}),
     ...(disabled ? { disabled: true } : {}),
+    ...(disableModelAlias ? { 'disable-model-alias': true } : {}),
     ...(allowedModels.length ? { 'allowed-models': allowedModels } : {}),
     ...(excludedModels.length ? { 'excluded-models': excludedModels } : {}),
     ...(authFiles.length ? { 'auth-files': authFiles } : {}),

@@ -278,9 +278,15 @@
   gap: 8px;
 }
 
+.openaiKeyEntry {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
 .openaiKeyColumnLabels {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) 40px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) minmax(120px, auto) 40px;
   gap: 8px;
   padding: 0 9px;
   color: var(--openai-editor-text-tertiary);
@@ -311,7 +317,7 @@
 }
 
 .openaiKeyInputRow {
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) 40px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) minmax(120px, auto) 40px;
 }
 
 .modelInputRow,
@@ -339,6 +345,7 @@
 }
 
 .modelRowRemoveButton,
+.modelToggleButton,
 .customHeaders :global(.header-input-row .btn.btn-sm) {
   justify-self: center;
   width: 40px;
@@ -347,6 +354,97 @@
   min-height: 40px;
   padding: 0;
   border-radius: var(--mg-radius-control, 8px);
+}
+
+.modelToggleButton {
+  justify-self: stretch;
+  width: auto;
+  min-width: 0;
+  overflow: hidden;
+  padding-inline: 8px;
+
+  > :global(span) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  svg {
+    flex: 0 0 auto;
+  }
+
+  &[aria-expanded='true'] .modelToggleChevron svg {
+    transform: rotate(180deg);
+  }
+
+  .modelToggleChevron {
+    display: inline-flex;
+    flex: 0 0 auto;
+
+    svg {
+      transition: transform var(--xai-duration-default) var(--xai-ease-standard);
+    }
+  }
+}
+
+.modelToggleLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.openaiKeyModels {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  margin: 0 8px;
+  padding: 12px;
+  border: 1px solid var(--openai-editor-border);
+  border-radius: var(--xai-radius-control);
+  background: var(--openai-editor-canvas);
+}
+
+.openaiKeyModelsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+
+  > div {
+    min-width: 0;
+  }
+
+  span {
+    display: block;
+    color: var(--openai-editor-text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  p {
+    margin: 3px 0 0;
+    color: var(--openai-editor-text-tertiary);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
+
+.openaiKeyModelsStatus {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 1px solid var(--openai-editor-border);
+  border-radius: var(--mg-radius-pill, 999px);
+  background: var(--openai-editor-surface);
+  color: var(--openai-editor-text-tertiary) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  white-space: nowrap;
 }
 
 .modelDiscoveryModal {
@@ -682,12 +780,40 @@
     grid-row: 2;
   }
 
+  .openaiKeyInputRow {
+    grid-template-columns: minmax(0, 1fr) 44px 44px;
+  }
+
+  .modelToggleButton {
+    justify-self: center;
+    width: 44px;
+    min-width: 44px;
+    padding-inline: 0;
+
+    > :global(span) {
+      gap: 0;
+    }
+  }
+
+  .modelToggleLabel {
+    display: none;
+  }
+
+  .openaiKeyInputRow > :nth-child(3) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .openaiKeyInputRow > :last-child {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
   .modelInputRow > :nth-child(2),
   .customHeaders :global(.header-separator) {
     display: none;
   }
 
-  .openaiKeyInputRow > :last-child,
   .modelInputRow > :last-child,
   .customHeaders :global(.header-input-row > button) {
     grid-column: 2;
@@ -698,11 +824,13 @@
   .modelInputField,
   .customHeaders :global(.header-input-row .input),
   .modelRowRemoveButton,
+  .modelToggleButton,
   .customHeaders :global(.header-input-row .btn.btn-sm) {
     min-height: 44px;
   }
 
   .modelRowRemoveButton,
+  .modelToggleButton,
   .customHeaders :global(.header-input-row .btn.btn-sm) {
     width: 44px;
     min-width: 44px;
@@ -755,6 +883,21 @@
     min-height: 56px;
     padding: 11px 10px;
   }
+
+  .openaiKeyModels {
+    margin: 0;
+    padding: 10px;
+  }
+
+  .openaiKeyModelsHeader {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .openaiKeyModelsStatus {
+    align-self: flex-start;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -765,6 +908,7 @@
     transition: none;
   }
 
+  .modelToggleButton svg,
   .sectionToggle svg {
     transition: none;
   }

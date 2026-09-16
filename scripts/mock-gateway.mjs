@@ -64,24 +64,36 @@ const SECTIONS = {
       {
         name: 'minimax',
         'base-url': 'https://api.minimax.chat/v1',
-        'api-key': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-minimax',
-        'models': ['MiniMax-M1.4', 'MiniMax-Text-01'],
+        'api-key-entries': [
+          {
+            'api-key': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-minimax',
+            models: [{ name: 'MiniMax-M1.4', alias: 'minimax-chat' }],
+          },
+          { 'api-key': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-minimax-backup' },
+        ],
+        models: [{ name: 'MiniMax-Text-01', alias: 'minimax-text' }],
         'additional-models': ['abab6.5s-chat', 'abab7-chat-preview'],
         'priority': 0,
       },
       {
         name: 'deepseek',
         'base-url': 'https://api.deepseek.com/v1',
-        'api-key': 'sk-ds-live-0f3b9c27e8a15d4c6b09',
-        'models': ['deepseek-chat', 'deepseek-reasoner'],
+        'api-key-entries': [
+          { 'api-key': 'sk-ds-live-0f3b9c27e8a15d4c6b09' },
+          {
+            'api-key': 'sk-ds-live-7d4e1a2c9b8f6051',
+            models: [{ name: 'deepseek-reasoner', alias: 'reasoning' }],
+          },
+        ],
+        models: [{ name: 'deepseek-chat', alias: 'chat' }, { name: 'deepseek-reasoner' }],
         'additional-models': [],
         'priority': 1,
       },
       {
         name: 'zhipu',
         'base-url': 'https://open.bigmodel.cn/api/paas/v4',
-        'api-key': 'sk-zhipu-live-91d4f0b6c3a27e8d5f14',
-        'models': ['glm-4.5', 'glm-4.5-air'],
+        'api-key-entries': [{ 'api-key': 'sk-zhipu-live-91d4f0b6c3a27e8d5f14' }],
+        models: [{ name: 'glm-4.5', alias: 'glm-latest' }, { name: 'glm-4.5-air' }],
         'additional-models': ['glm-4-flash', 'glm-4-plus'],
         'priority': 2,
       },
@@ -99,6 +111,8 @@ const FULL_CONFIG = Object.keys(SECTIONS).reduce((acc, key) => {
   Object.assign(acc, SECTIONS[key]);
   return acc;
 }, {});
+
+let openAICompatibilitySection = structuredClone(SECTIONS['openai-compatibility']);
 
 const MODELS_SYSTEM = [
   { id: 'claude-sonnet-4.5', name: 'claude-sonnet-4.5', family: 'claude' },
@@ -328,7 +342,18 @@ const server = http.createServer((req, res) => {
         if (method === 'GET') return json(res, SECTIONS['claude-api-key']);
         return json(res, { ok: true });
       case '/openai-compatibility':
-        return json(res, SECTIONS['openai-compatibility']);
+        if (method === 'GET') return json(res, openAICompatibilitySection);
+        if (method === 'PUT') {
+          const items = Array.isArray(body)
+            ? body
+            : body && Array.isArray(body.items)
+              ? body.items
+              : null;
+          if (!items) return json(res, { error: 'invalid body' }, 400);
+          openAICompatibilitySection = { 'openai-compatibility': items };
+          return json(res, { ok: true });
+        }
+        return json(res, { ok: true });
       case '/oauth-excluded-models':
         if (method === 'GET') return json(res, SECTIONS['oauth-excluded-models']);
         return json(res, { ok: true });

@@ -254,6 +254,10 @@ const normalizeOpenAICompatibilityApiKeys = (value: unknown): OpenAICompatibilit
       if (proxyUrl) entry.proxyUrl = String(proxyUrl);
       const authIndex = normalizeAuthIndex(record?.['auth-index'] ?? record?.authIndex);
       if (authIndex) entry.authIndex = authIndex;
+      if (Array.isArray(record?.models)) {
+        const models = normalizeOpenAICompatibilityModels(record.models);
+        if (models.length) entry.models = models;
+      }
       return entry;
     })
     .filter(Boolean) as OpenAICompatibilityApiKeyEntry[];
@@ -327,10 +331,23 @@ const normalizeOpenAICompatibilityConfig = (item: unknown): OpenAICompatibilityC
   const testModel = item['test-model'] ?? item.testModel ?? item.test_model;
   if (testModel) config.testModel = String(testModel);
 
-  const apiKeyEntries = normalizeOpenAICompatibilityApiKeys(
-    item['api-key-entries'] ?? item.apiKeyEntries ?? item.api_key_entries
-  );
-  if (apiKeyEntries.length) config.apiKeyEntries = apiKeyEntries;
+  const rawApiKeyEntries = item['api-key-entries'] ?? item.apiKeyEntries ?? item.api_key_entries;
+  const apiKeyEntries = normalizeOpenAICompatibilityApiKeys(rawApiKeyEntries);
+  if (apiKeyEntries.length) {
+    config.apiKeyEntries = apiKeyEntries;
+  } else if (rawApiKeyEntries === undefined) {
+    // Older management responses exposed a single provider-level `api-key`.
+    // Keep it editable in the per-key UI so upgrading the frontend does not
+    // silently replace the existing credential with an empty row.
+    const legacyApiKey = item['api-key'] ?? item.apiKey ?? item.api_key;
+    const trimmedLegacyApiKey = String(legacyApiKey ?? '').trim();
+    if (trimmedLegacyApiKey) {
+      const legacyEntry: OpenAICompatibilityApiKeyEntry = { apiKey: trimmedLegacyApiKey };
+      const legacyProxyUrl = item['proxy-url'] ?? item.proxyUrl ?? item.proxy_url;
+      if (legacyProxyUrl) legacyEntry.proxyUrl = String(legacyProxyUrl).trim();
+      config.apiKeyEntries = [legacyEntry];
+    }
+  }
   const models = normalizeOpenAICompatibilityModels(item.models);
   if (models.length) config.models = models;
   const headers = normalizeHeaders(item.headers);
