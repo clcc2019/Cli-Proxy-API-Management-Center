@@ -25,7 +25,7 @@ $breakpoint-shell-compact: 1023px;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
-  background: var(--mg-canvas, #f5f4f1);
+  background: var(--mg-canvas, #ffffff);
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
   position: relative;
@@ -58,7 +58,7 @@ $breakpoint-shell-compact: 1023px;
   padding: 0;
   border: 0;
   border-bottom: 1px solid var(--xai-border-subtle);
-  background: var(--mg-canvas, #f5f4f1);
+  background: var(--mg-canvas, #ffffff);
   box-shadow: var(--header-shadow);
   pointer-events: none;
 
@@ -747,17 +747,10 @@ $breakpoint-shell-compact: 1023px;
       background: var(--sidebar-accent-surface);
       color: var(--sidebar-text);
       font-weight: var(--sidebar-label-active-weight);
-      box-shadow: inset 0 0 0 1px var(--xai-border-subtle);
+      box-shadow: none;
 
       &::before {
-        position: absolute;
-        top: 7px;
-        bottom: 7px;
-        left: 0;
-        width: 2px;
-        border-radius: var(--xai-radius-pill);
-        background: var(--sidebar-accent);
-        content: '';
+        content: none;
       }
 
       .nav-icon {
@@ -766,7 +759,7 @@ $breakpoint-shell-compact: 1023px;
     }
 
     &.active:active {
-      background: color-mix(in srgb, var(--sidebar-accent) 20%, transparent);
+      background: var(--xai-fill-pressed);
     }
 
     &:focus-visible {
@@ -872,7 +865,7 @@ $breakpoint-shell-compact: 1023px;
   scrollbar-gutter: stable;
   height: 100%;
   position: relative;
-  background: var(--mg-canvas, #f5f4f1);
+  background: var(--mg-canvas, #ffffff);
 
   > .page-transition {
     width: min(100%, 1440px);
@@ -912,7 +905,7 @@ $breakpoint-shell-compact: 1023px;
   position: relative;
   // Keep the page canvas stable and opaque so scrolling does not trigger a
   // full-viewport compositing pass.
-  background: var(--mg-canvas, #f5f4f1);
+  background: var(--mg-canvas, #ffffff);
 
   &.main-content-logs {
     flex: 1 1 auto;

@@ -17,12 +17,12 @@ import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
 
 /**
  * 根据成功率 (0–1) 在三个色标之间做 RGB 线性插值
- * 0 → 红 (#cc332b)  →  0.5 → 琥珀 (#d97706)  →  1 → 纯绿 (#0fa64b)
+ * 0 → 红 (#a53546)  →  0.5 → 琥珀 (#89651d)  →  1 → 绿 (#327343)
  */
 const COLOR_STOPS = [
-  { r: 204, g: 51, b: 43 }, // #cc332b
-  { r: 217, g: 119, b: 6 }, // #d97706
-  { r: 15, g: 166, b: 75 }, // #0fa64b
+  { r: 165, g: 53, b: 70 }, // #a53546
+  { r: 137, g: 101, b: 29 }, // #89651d
+  { r: 50, g: 115, b: 67 }, // #327343
 ] as const;
 
 function rateToColor(rate: number): string {

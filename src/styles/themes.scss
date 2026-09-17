@@ -13,28 +13,28 @@
   // xAI visual contract. Licensed xAI font files are not bundled with this
   // project, so these stacks intentionally resolve through the documented
   // metric-compatible system fallbacks.
-  --xai-ink-console: #171513;
-  --xai-ink: #24211e;
+  --xai-ink-console: #202123;
+  --xai-ink: #292b2e;
   --xai-white: #ffffff;
-  --xai-canvas: #f5f4f1;
-  --xai-surface-muted: #eeece7;
-  --xai-inverse: #faf9f6;
-  --xai-warm: #fbfaf7;
-  --xai-secondary: #68625b;
-  --xai-muted: rgb(36 33 30 / 54%);
-  --xai-subtle: rgb(36 33 30 / 42%);
-  --xai-disabled: rgb(36 33 30 / 30%);
-  --xai-fill-soft: rgb(36 33 30 / 5.5%);
-  --xai-fill-hover: rgb(36 33 30 / 8.5%);
-  --xai-fill-pressed: rgb(36 33 30 / 13%);
-  --xai-border-cool: #d8d3ca;
-  --xai-border-subtle: rgb(36 33 30 / 8%);
-  --xai-border: rgb(36 33 30 / 14%);
-  --xai-border-hover: rgb(36 33 30 / 23%);
-  --xai-orange: #d96b3f;
-  --xai-success: hsl(132 41% 42%);
-  --xai-warning: hsl(44 80% 34%);
-  --xai-danger: hsl(353 53% 43%);
+  --xai-canvas: #ffffff;
+  --xai-surface-muted: #f5f6f7;
+  --xai-inverse: #fbfcfd;
+  --xai-warm: #fafbfc;
+  --xai-secondary: #60656b;
+  --xai-muted: #6a7077;
+  --xai-subtle: #6a7077;
+  --xai-disabled: rgb(34 39 45 / 30%);
+  --xai-fill-soft: rgb(34 39 45 / 3%);
+  --xai-fill-hover: rgb(34 39 45 / 6%);
+  --xai-fill-pressed: rgb(34 39 45 / 10%);
+  --xai-border-cool: #d8dce0;
+  --xai-border-subtle: rgb(34 39 45 / 6%);
+  --xai-border: rgb(34 39 45 / 10%);
+  --xai-border-hover: rgb(34 39 45 / 20%);
+  --xai-orange: #aa502e;
+  --xai-success: #327343;
+  --xai-warning: #89651d;
+  --xai-danger: #a53546;
   --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 10%, transparent);
   --xai-orange-border: color-mix(in srgb, var(--xai-orange) 28%, transparent);
   --xai-success-soft: color-mix(in srgb, var(--xai-success) 10%, transparent);
@@ -68,13 +68,9 @@
   --xai-radius-pill: 9999px;
 
   --xai-border-width: 1px;
-  --xai-shadow-button: 0 1px 2px rgb(36 33 30 / 6%), 0 1px 1px -1px rgb(36 33 30 / 8%);
-  --xai-shadow-menu:
-    0 18px 42px -18px rgb(36 33 30 / 24%),
-    0 4px 10px -6px rgb(36 33 30 / 10%);
-  --xai-shadow-dialog:
-    0 24px 72px -28px rgb(36 33 30 / 28%),
-    0 8px 24px -16px rgb(36 33 30 / 12%);
+  --xai-shadow-button: 0 1px 2px rgb(25 33 42 / 3%);
+  --xai-shadow-menu: 0 18px 42px -18px rgb(25 33 42 / 22%), 0 4px 10px -6px rgb(25 33 42 / 9%);
+  --xai-shadow-dialog: 0 24px 72px -28px rgb(25 33 42 / 26%), 0 8px 24px -16px rgb(25 33 42 / 11%);
 
   // Legacy surface aliases kept for components that still use the old token
   // names. These values deliberately contain no alpha, refraction, or sheen.
@@ -128,7 +124,7 @@
   --mg-surface-hover: var(--xai-fill-soft);
   --mg-surface-pressed: var(--xai-fill-hover);
   --mg-action: var(--xai-ink-console);
-  --mg-action-hover: #242424;
+  --mg-action-hover: #373a3e;
   --mg-text: var(--xai-ink);
   --mg-text-secondary: var(--xai-secondary);
   --mg-text-tertiary: var(--xai-muted);
@@ -144,28 +140,28 @@
   --mg-sage-wash: var(--xai-fill-hover);
   --mg-sage-wash-soft: var(--xai-fill-soft);
   --mg-khaki-soft: var(--xai-warm);
-  --mg-teal: #0e7490;
+  --mg-teal: #356d78;
   --mg-orange: var(--xai-orange);
   --mg-success-fill: var(--xai-success);
   --mg-success-text: var(--xai-success);
   --mg-success: var(--mg-success-text);
   --mg-warning: var(--xai-warning);
   --mg-danger: var(--xai-danger);
-  --mg-surface-selected: var(--xai-fill-soft);
+  --mg-surface-selected: var(--xai-fill-hover);
   --mg-surface-disabled: var(--xai-fill-soft);
   --mg-floating-border: var(--xai-border);
   --mg-border-fade: var(--xai-border-hover);
   --mg-overlay: var(--xai-overlay);
   --mg-focus-outline: var(--xai-ink-console);
-  --mg-focus-ring: rgb(10 10 10 / 18%);
+  --mg-focus-ring: rgb(25 33 42 / 18%);
   --mg-focus-ring-danger: color-mix(in srgb, var(--xai-danger) 30%, transparent);
   --mg-radius-control: var(--xai-radius-control);
   --mg-radius-medium: var(--xai-radius-panel);
   --mg-radius-card: var(--xai-radius-card);
   --mg-radius-large: var(--xai-radius-card);
   --mg-radius-pill: var(--xai-radius-pill);
-  --mg-shadow-rest: 0 1px 2px rgb(36 33 30 / 4%);
-  --mg-shadow-card: 0 12px 28px -22px rgb(36 33 30 / 22%);
+  --mg-shadow-rest: 0 1px 2px rgb(25 33 42 / 4%);
+  --mg-shadow-card: 0 12px 28px -22px rgb(25 33 42 / 20%);
   --mg-shadow-float: var(--xai-shadow-menu);
   --mg-space-2: var(--xai-space-2);
   --mg-space-3: var(--xai-space-3);
@@ -258,30 +254,30 @@
   --failure-badge-bg: var(--xai-danger-soft);
   --failure-badge-text: var(--mg-danger);
   --failure-badge-border: var(--xai-danger-border);
-  --count-badge-bg: rgb(139 134 128 / 0.18);
+  --count-badge-bg: var(--xai-fill-hover);
   --count-badge-text: var(--primary-active);
 
   --shadow: var(--mg-shadow-rest);
   --shadow-lg: var(--xai-shadow-dialog);
   --shadow-soft: var(--xai-shadow-menu);
-  --header-shadow: 0 1px 0 rgb(36 33 30 / 1.5%);
+  --header-shadow: 0 1px 0 rgb(25 33 42 / 1.5%);
   // xAI Console rail aliases. Navigation remains monochrome and uses surface,
   // weight, and ink changes instead of colored selection treatments.
-  --sidebar-surface: #fbfaf7;
-  --sidebar-surface-muted: rgb(36 33 30 / 5.5%);
+  --sidebar-surface: var(--xai-warm);
+  --sidebar-surface-muted: var(--xai-fill-soft);
   --sidebar-text: var(--xai-ink-console);
   --sidebar-text-secondary: var(--xai-secondary);
-  --sidebar-text-tertiary: rgb(36 33 30 / 52%);
+  --sidebar-text-tertiary: var(--xai-muted);
   --sidebar-border: var(--xai-border-subtle);
   --sidebar-border-strong: var(--xai-border-hover);
-  --sidebar-accent: var(--xai-orange);
+  --sidebar-accent: var(--xai-ink-console);
   --sidebar-accent-line: var(--sidebar-accent);
-  --sidebar-accent-surface: rgb(36 33 30 / 6%);
+  --sidebar-accent-surface: var(--xai-fill-hover);
   --sidebar-accent-icon: transparent;
-  --sidebar-shadow: inset -1px 0 0 rgb(36 33 30 / 2%);
+  --sidebar-shadow: inset -1px 0 0 rgb(25 33 42 / 2%);
   --shadow-card: var(--mg-shadow-rest);
   --shadow-card-hover: var(--mg-shadow-card);
-  --control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 1px 2px rgb(0 0 0 / 0.06);
+  --control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.62), 0 1px 2px rgb(25 33 42 / 0.05);
 
   --radius-md: var(--mg-radius-control);
   --accent-tertiary: var(--bg-tertiary);

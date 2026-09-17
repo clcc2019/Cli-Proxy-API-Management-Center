@@ -8,17 +8,17 @@ import type { ChartOptions, ScriptableContext } from 'chart.js';
 export type UsageChartMetric = 'requests' | 'tokens';
 
 export const USAGE_CHART_COLORS = {
-  requests: '#0e7490',
-  tokens: '#4f46b8',
-  rpm: '#13836b',
-  tpm: '#c9480b',
-  cost: '#a65c00',
-  latency: '#7c3f98',
-  success: '#0fa64b',
-  failure: '#cc332b',
-  neutral: '#6b7280',
-  cyan: '#087f8c',
-  pink: '#b23a68',
+  requests: '#45909f',
+  tokens: '#7d7ab8',
+  rpm: '#4d9582',
+  tpm: '#c86a47',
+  cost: '#a97f45',
+  latency: '#9174b2',
+  success: '#489661',
+  failure: '#d06375',
+  neutral: '#8d8780',
+  cyan: '#45909f',
+  pink: '#c96d92',
 } as const;
 
 const REQUEST_SERIES_COLORS = [
@@ -113,13 +113,12 @@ export function buildChartOptions({
   const tickFontSize = isMobile ? 10 : 11;
   const maxTickLabelCount = isMobile ? (period === 'hour' ? 7 : 5) : period === 'hour' ? 10 : 8;
   const shouldDecimate = labels.length > (isMobile ? 80 : 120);
-  // 亮色侧使用暖灰（与 --mg-text-muted/--mg-text-tertiary 同族），避免冷色 slate 破坏暖中性画布
-  const yGridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(171, 170, 168, 0.28)';
-  const tickColor = isDark ? 'rgba(255, 255, 255, 0.66)' : 'rgba(128, 127, 124, 0.9)';
-  const tooltipBg = isDark ? 'rgba(17, 24, 39, 0.92)' : 'rgba(255, 255, 255, 0.98)';
-  const tooltipTitle = isDark ? '#ffffff' : '#2c2a25';
-  const tooltipBody = isDark ? 'rgba(255, 255, 255, 0.86)' : '#565551';
-  const tooltipBorder = isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(171, 170, 168, 0.35)';
+  const yGridColor = isDark ? 'rgba(255 255 255 / 8%)' : 'rgba(204 212 218 / 30%)';
+  const tickColor = isDark ? 'rgba(255 255 255 / 70%)' : '#626a73';
+  const tooltipBg = isDark ? 'rgba(23 26 29 / 92%)' : 'rgba(255 255 255 / 98%)';
+  const tooltipTitle = isDark ? '#ffffff' : '#22272c';
+  const tooltipBody = isDark ? 'rgba(255 255 255 / 88%)' : '#626a73';
+  const tooltipBorder = isDark ? 'rgba(255 255 255 / 10%)' : 'rgba(204 212 218 / 38%)';
 
   return {
     responsive: true,

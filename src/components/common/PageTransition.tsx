@@ -15,8 +15,8 @@ interface PageTransitionProps {
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
-const VERTICAL_TRANSITION_DURATION_MS = 200;
-const VERTICAL_TRAVEL_DISTANCE = 14;
+const VERTICAL_TRANSITION_DURATION_MS = 120;
+const VERTICAL_TRAVEL_DISTANCE = 4;
 const IOS_TRANSITION_DURATION_MS = 240;
 const IOS_ENTER_FROM_X_PERCENT = 100;
 const IOS_EXIT_TO_X_PERCENT_FORWARD = -30;

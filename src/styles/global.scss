@@ -15,7 +15,7 @@ body,
 }
 
 html {
-  background: var(--mg-canvas, #f5f4f1);
+  background: var(--mg-canvas, #ffffff);
   scroll-behavior: smooth;
 }
 
@@ -27,7 +27,7 @@ body {
   letter-spacing: 0;
   // Keep the document canvas opaque so scrolling never composites through a
   // moving decorative layer.
-  background: var(--mg-canvas, #f5f4f1);
+  background: var(--mg-canvas, #ffffff);
   color: var(--text-primary);
   text-rendering: optimizeLegibility;
   font-variant-numeric: tabular-nums;
