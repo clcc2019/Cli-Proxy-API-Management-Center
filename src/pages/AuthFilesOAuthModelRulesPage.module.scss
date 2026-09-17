@@ -350,7 +350,7 @@
   gap: 14px;
   padding: 16px 18px 13px;
   border-bottom: 1px solid var(--oauth-modal-border);
-  background: linear-gradient(180deg, var(--oauth-modal-surface-warm), var(--oauth-modal-surface));
+  background: var(--oauth-modal-surface-warm);
 
   > div:first-child {
     min-width: 0;

@@ -136,8 +136,11 @@ export function LogsPage() {
   const logRequestInFlightRef = useRef(false);
   const pendingFullReloadRef = useRef(false);
   const isCurrentLayerRef = useRef(isCurrentLayer);
-  const parsedLineCacheRef = useRef(
-    new Map<number, { raw: string; parsed: ParsedLogLine & { bufferIndex: number } }>()
+  // The cache is stable for the page lifetime, but it is not a DOM handle or
+  // an imperative value. Keeping it as state makes the render-time lookup
+  // explicit and avoids reading a mutable ref during render.
+  const [parsedLineCache] = useState(
+    () => new Map<number, { raw: string; parsed: ParsedLogLine & { bufferIndex: number } }>()
   );
 
   // 保存最新时间戳用于增量获取
@@ -385,14 +388,14 @@ export function LogsPage() {
 
     return {
       parsedSearchLines: limited.map((entry) => {
-        const cached = parsedLineCacheRef.current.get(entry.bufferIndex);
+        const cached = parsedLineCache.get(entry.bufferIndex);
         if (cached?.raw === entry.line) return cached.parsed;
 
         const parsed = {
           ...parseLogLine(entry.line),
           bufferIndex: entry.bufferIndex,
         };
-        parsedLineCacheRef.current.set(entry.bufferIndex, { raw: entry.line, parsed });
+        parsedLineCache.set(entry.bufferIndex, { raw: entry.line, parsed });
         return parsed;
       }),
       matchedLineCount: matchedCount,
@@ -404,6 +407,7 @@ export function LogsPage() {
     isCurrentLayer,
     isSearching,
     logState.visibleFrom,
+    parsedLineCache,
     trimmedSearchQuery,
   ]);
 

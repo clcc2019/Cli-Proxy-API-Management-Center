@@ -4,8 +4,6 @@
   padding: 0 var(--xai-space-4);
   border-bottom: 1px solid var(--xai-glass-border);
   background: var(--xai-glass-surface-soft);
-  -webkit-backdrop-filter: blur(16px) saturate(118%);
-  backdrop-filter: blur(16px) saturate(118%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 72%);
 }
 
@@ -155,21 +153,5 @@
 @media (prefers-reduced-motion: reduce) {
   .item {
     transition: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .rail,
-  .item.active {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .rail,
-  .item.active {
-    background: var(--xai-white);
   }
 }

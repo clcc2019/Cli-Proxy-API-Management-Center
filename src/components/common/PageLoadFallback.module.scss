@@ -21,8 +21,6 @@
   border-radius: var(--xai-radius-pill);
   border: 1px solid var(--xai-glass-border);
   background: var(--xai-glass-surface-strong);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
-  backdrop-filter: blur(18px) saturate(120%);
   box-shadow: var(--xai-glass-shadow-float);
 }
 
@@ -37,18 +35,4 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--text-secondary);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .panel {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .panel {
-    background: var(--xai-white);
-  }
 }

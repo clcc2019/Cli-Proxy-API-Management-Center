@@ -81,14 +81,10 @@
   align-items: center;
   gap: 3px;
   padding: 3px;
-  background:
-    linear-gradient(135deg, rgb(255 255 255 / 32%), transparent 54%),
-    var(--xai-glass-surface-soft);
-  border: 1px solid var(--xai-glass-border-subtle);
+  background: var(--mg-surface-subtle);
+  border: 1px solid var(--mg-border);
   border-radius: calc(var(--mg-radius-control) + 3px);
-  -webkit-backdrop-filter: blur(14px) saturate(118%);
-  backdrop-filter: blur(14px) saturate(118%);
-  box-shadow: var(--xai-glass-highlight);
+  box-shadow: none;
   width: fit-content;
   max-width: 100%;
   overflow-x: auto;
@@ -187,34 +183,14 @@
 
 .sourceWorkspace {
   position: relative;
-  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 0;
   padding: 0;
-  border: 1px solid var(--xai-glass-border);
+  border: 1px solid var(--mg-border);
   border-radius: var(--xai-radius-card);
-  background:
-    radial-gradient(100% 130% at 0% 0%, rgb(255 255 255 / 48%), transparent 54%),
-    var(--xai-glass-surface);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  box-shadow: var(--xai-glass-shadow);
-
-  &::before {
-    position: absolute;
-    inset: 1px;
-    z-index: 0;
-    border-radius: calc(var(--xai-radius-card) - 1px);
-    background: linear-gradient(135deg, rgb(255 255 255 / 30%), transparent 48%);
-    content: '';
-    pointer-events: none;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-rest);
 
   @include mobile {
     padding: 0;
@@ -231,8 +207,6 @@
   padding: 12px;
   border-bottom: 1px solid var(--xai-glass-border-subtle);
   background: var(--xai-glass-surface-soft);
-  -webkit-backdrop-filter: blur(14px) saturate(116%);
-  backdrop-filter: blur(14px) saturate(116%);
   box-shadow: var(--xai-glass-highlight);
 
   @include mobile {
@@ -452,14 +426,10 @@
   align-items: center;
   gap: 6px;
   padding: 6px;
-  background:
-    linear-gradient(135deg, rgb(255 255 255 / 38%), transparent 52%),
-    var(--xai-glass-surface-strong);
-  border: 1px solid var(--xai-glass-border);
+  background: var(--mg-surface);
+  border: 1px solid var(--mg-border);
   border-radius: var(--xai-radius-panel);
-  -webkit-backdrop-filter: blur(18px) saturate(124%);
-  backdrop-filter: blur(18px) saturate(124%);
-  box-shadow: var(--xai-glass-shadow-float);
+  box-shadow: var(--mg-shadow-float);
   background-clip: padding-box;
   max-width: inherit;
   overflow-x: auto;
@@ -710,30 +680,5 @@
   .floatingActionButton,
   .floatingActionButton:global(.btn.btn-sm) {
     transition: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .tabBar,
-  .sourceWorkspace,
-  .sourceToolbar,
-  .floatingActionList {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-    box-shadow: none;
-  }
-
-  .sourceWorkspace::before {
-    display: none;
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .tabBar,
-  .sourceWorkspace,
-  .sourceToolbar,
-  .floatingActionList {
-    background: var(--xai-white);
   }
 }

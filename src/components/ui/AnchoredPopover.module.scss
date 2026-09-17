@@ -23,8 +23,6 @@
   border: 1px solid var(--xai-glass-border);
   border-radius: var(--mg-radius-medium);
   background: var(--xai-glass-surface-strong);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
   box-shadow: var(--xai-glass-shadow-float);
   animation: enter var(--mg-motion-fast) var(--mg-ease-emphasis);
 }
@@ -32,19 +30,5 @@
 @media (prefers-reduced-motion: reduce) {
   .panel {
     animation: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .panel {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .panel {
-    background: var(--xai-white);
   }
 }

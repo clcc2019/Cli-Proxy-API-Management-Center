@@ -28,8 +28,6 @@
   border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-card);
   background: var(--xai-glass-surface);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
   box-shadow: var(--xai-glass-shadow);
 }
 
@@ -42,19 +40,5 @@
 @media (prefers-reduced-motion: reduce) {
   .page * {
     scroll-behavior: auto;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .layout {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .layout {
-    background: var(--xai-white);
   }
 }

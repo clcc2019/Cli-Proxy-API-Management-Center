@@ -42,8 +42,6 @@
   border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-pill);
   position: relative;
-  -webkit-backdrop-filter: blur(10px) saturate(116%);
-  backdrop-filter: blur(10px) saturate(116%);
   box-shadow: var(--xai-glass-highlight);
   transition:
     background var(--xai-duration-default),
@@ -77,7 +75,7 @@
 .root input:focus-visible + .track {
   outline: 1px solid var(--mg-focus-outline);
   outline-offset: 3px;
-  box-shadow: var(--xai-glass-highlight), 0 0 0 3px var(--mg-focus-ring);
+  box-shadow: 0 0 0 3px var(--mg-focus-ring);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -171,20 +169,7 @@
   }
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  .track {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-    box-shadow: none;
-  }
-}
 
-@supports not ((backdrop-filter: blur(1px))) {
-  .track {
-    background: var(--xai-white);
-  }
-}
 
 [data-theme='dark'] {
   .root {

@@ -15,7 +15,6 @@ import { useTranslation } from 'react-i18next';
 import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useDebounce, useDelayedBoolean, useEventCallback, useReducedMotion } from '@/hooks';
-import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
@@ -53,12 +52,7 @@ import {
   useAuthFilesData,
   type AuthFilesListMeta,
 } from '@/features/authFiles/hooks/useAuthFilesData';
-import { useAuthFilesModels } from '@/features/authFiles/hooks/useAuthFilesModels';
 import { useAuthFilesOauth } from '@/features/authFiles/hooks/useAuthFilesOauth';
-import {
-  extractAuthFileAccessToken,
-  useAuthFilesPrefixProxyEditor,
-} from '@/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import { useAuthFilesQuotaRefreshBatch } from '@/features/authFiles/hooks/useAuthFilesQuotaRefreshBatch';
 import {
   useAuthFilesStats,
@@ -109,14 +103,14 @@ import { useAuthStore, useNotificationStore, useQuotaStore, useThemeStore } from
 import type { AuthFileItem, ResolvedTheme } from '@/types';
 import refreshStyles from './AuthFilesPageRefresh.module.scss';
 
-const AuthFileModelsModal = lazy(() =>
-  import('@/features/authFiles/components/AuthFileModelsModal').then((module) => ({
-    default: module.AuthFileModelsModal,
+const AuthFilesModelsFeature = lazy(() =>
+  import('@/features/authFiles/components/AuthFilesModelsFeature').then((module) => ({
+    default: module.AuthFilesModelsFeature,
   }))
 );
-const AuthFilesPrefixProxyEditorModal = lazy(() =>
-  import('@/features/authFiles/components/AuthFilesPrefixProxyEditorModal').then((module) => ({
-    default: module.AuthFilesPrefixProxyEditorModal,
+const AuthFilesPrefixProxyEditorFeature = lazy(() =>
+  import('@/features/authFiles/components/AuthFilesPrefixProxyEditorFeature').then((module) => ({
+    default: module.AuthFilesPrefixProxyEditorFeature,
   }))
 );
 const OAuthModelRulesCard = lazy(() =>
@@ -130,16 +124,13 @@ const OAuthModelRulesEditorModal = lazy(() =>
   }))
 );
 
-let authFileOverlaysPreload: Promise<unknown[]> | null = null;
+let authFileRulesEditorPreload: Promise<unknown> | null = null;
 
-const preloadAuthFileOverlays = () => {
-  if (!authFileOverlaysPreload) {
-    authFileOverlaysPreload = Promise.all([
-      import('@/features/authFiles/components/AuthFilesPrefixProxyEditorModal'),
-      import('@/pages/AuthFilesOAuthModelRulesPage'),
-    ]);
+const preloadAuthFileRulesEditor = () => {
+  if (!authFileRulesEditorPreload) {
+    authFileRulesEditorPreload = import('@/pages/AuthFilesOAuthModelRulesPage');
   }
-  void authFileOverlaysPreload;
+  void authFileRulesEditorPreload;
 };
 
 function ModalLoadingFallback() {
@@ -153,7 +144,6 @@ function ModalLoadingFallback() {
 const DEFAULT_PAGE_SIZE = 12;
 const PAGE_SIZE_PRESETS = [4, 8, 12, 16, 20, 24];
 const LIST_PROGRESS_HIDE_DELAY_MS = 200;
-const AUTH_FILE_OVERLAY_PRELOAD_DELAY_MS = 1_500;
 
 const EMPTY_AUTH_FILE_CARD_NODES: ReactNode[] = [];
 type AuthFileSearchFields = {
@@ -170,6 +160,35 @@ const getAuthFileSearchFields = (item: AuthFileItem): AuthFileSearchFields => {
   const fields = { raw, normalized: raw.map((value) => value.toLowerCase()) };
   AUTH_FILE_SEARCH_FIELDS_CACHE.set(item, fields);
   return fields;
+};
+
+const isRecordObject = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+const extractAuthFileAccessToken = (metadata: Record<string, unknown> | null): string => {
+  if (!metadata) return '';
+
+  const topLevelCandidates = [metadata.accessToken, metadata.access_token];
+  for (const candidate of topLevelCandidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  const tokenValue = metadata.token;
+  if (typeof tokenValue === 'string' && tokenValue.trim()) {
+    return tokenValue.trim();
+  }
+  if (!isRecordObject(tokenValue)) return '';
+
+  const nestedCandidates = [tokenValue.accessToken, tokenValue.access_token];
+  for (const candidate of nestedCandidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  return '';
 };
 
 export function AuthFilesPage() {
@@ -232,6 +251,12 @@ export function AuthFilesPage() {
   const [manualRefreshPending, setManualRefreshPending] = useState(false);
   const [belowFoldCardsReady, setBelowFoldCardsReady] = useState(false);
   const [modelRulesEditor, setModelRulesEditor] = useState({ open: false, provider: '' });
+  const [modelsFeatureMounted, setModelsFeatureMounted] = useState(false);
+  const [modelsRequest, setModelsRequest] = useState<{
+    file: AuthFileItem;
+    requestId: number;
+  } | null>(null);
+  const [prefixProxyFile, setPrefixProxyFile] = useState<AuthFileItem | null>(null);
   const [scopedTypeCounts, setScopedTypeCounts] = useState<{
     key: string;
     counts: Record<string, number>;
@@ -243,16 +268,6 @@ export function AuthFilesPage() {
     sortSnapshot: Record<string, AuthFileSortSnapshot>;
   } | null>(null);
 
-  useEffect(() => {
-    // Overlay editors are uncommon actions. Keep the first list render and
-    // its data request ahead of these chunks, then warm them during idle time
-    // so a later click is still fast without making every visit pay upfront.
-    return scheduleIdleTask(preloadAuthFileOverlays, {
-      delayMs: AUTH_FILE_OVERLAY_PRELOAD_DELAY_MS,
-      fallbackDelayMs: AUTH_FILE_OVERLAY_PRELOAD_DELAY_MS,
-      timeoutMs: 4_000,
-    });
-  }, []);
   const [isListTransitionPending, startListTransition] = useTransition();
   const floatingBatchActionsRef = useRef<HTMLDivElement>(null);
   const contentRegionRef = useRef<HTMLDivElement>(null);
@@ -260,6 +275,7 @@ export function AuthFilesPage() {
   const previousSelectionActiveRef = useRef(false);
   const previousSelectionForFocusRef = useRef(false);
   const previousSelectionScopeKeyRef = useRef('');
+  const modelsRequestIdRef = useRef(0);
   const selectionCountRef = useRef(0);
   const previousListBusyRef = useRef(false);
   const manualRefreshInFlightRef = useRef(false);
@@ -443,50 +459,24 @@ export function AuthFilesPage() {
         : EMPTY_AUTH_FILE_PROVIDER_TYPES,
     [providerTypesFromListMetaKey]
   );
+  const disableControls = connectionStatus !== 'connected';
   const { excluded, excludedError, modelAlias, modelAliasError, loadExcluded, loadModelAlias } =
     useAuthFilesOauth(authScopeKey);
-
-  const {
-    modelsModalOpen,
-    modelsLoading,
-    modelsList,
-    modelsFileName,
-    modelsFileType,
-    modelsError,
-    showModels,
-    closeModelsModal,
-  } = useAuthFilesModels(authScopeKey);
-
-  const {
-    prefixProxyEditor,
-    prefixProxyUpdatedText,
-    prefixProxyDirty,
-    openPrefixProxyEditor,
-    closePrefixProxyEditor,
-    handlePrefixProxyChange,
-    handlePrefixProxySave,
-  } = useAuthFilesPrefixProxyEditor({
-    disableControls: connectionStatus !== 'connected',
-    applyLocalFilePatch,
-    refreshAuthFilesFromServer: refreshFilesFromServer,
+  const showModels = useEventCallback((file: AuthFileItem) => {
+    modelsRequestIdRef.current += 1;
+    setModelsFeatureMounted(true);
+    setModelsRequest({ file, requestId: modelsRequestIdRef.current });
   });
-  const unsavedChangesDialog = useMemo(
-    () => ({
-      title: t('common.unsaved_changes_title'),
-      message: t('common.unsaved_changes_message'),
-      confirmText: t('common.discard_changes'),
-      cancelText: t('common.cancel'),
-      variant: 'danger' as const,
-    }),
-    [t]
-  );
-  useUnsavedChangesGuard({
-    enabled: isCurrentLayer,
-    shouldBlock: prefixProxyDirty,
-    dialog: unsavedChangesDialog,
+  const closeModelsModal = useCallback(() => {
+    setModelsRequest(null);
+  }, []);
+  const openPrefixProxyEditor = useEventCallback((file: AuthFileItem) => {
+    if (disableControls) return;
+    setPrefixProxyFile((current) => (current?.name === file.name ? null : file));
   });
-
-  const disableControls = connectionStatus !== 'connected';
+  const closePrefixProxyEditor = useCallback(() => {
+    setPrefixProxyFile(null);
+  }, []);
   const premiumFilterServerSide = premiumOnly && premiumServerFilterSupported === true;
   const needsPlanSources =
     isCurrentLayer &&
@@ -886,10 +876,13 @@ export function AuthFilesPage() {
   ]);
 
   useEffect(() => {
-    setDisplayFilterSnapshot((current) => {
-      if (current?.key === displayFilterSnapshotForRender?.key) return current;
-      return displayFilterSnapshotForRender;
-    });
+    const taskId = window.setTimeout(() => {
+      setDisplayFilterSnapshot((current) => {
+        if (current?.key === displayFilterSnapshotForRender?.key) return current;
+        return displayFilterSnapshotForRender;
+      });
+    }, 0);
+    return () => window.clearTimeout(taskId);
   }, [displayFilterSnapshotForRender]);
 
   const filesMatchingDisplayFilters = useMemo(() => {
@@ -1824,6 +1817,8 @@ export function AuthFilesPage() {
             <section
               className={refreshStyles.supportingPanel}
               aria-label={t('oauth_model_rules.title')}
+              onPointerEnter={preloadAuthFileRulesEditor}
+              onFocus={preloadAuthFileRulesEditor}
             >
               <OAuthModelRulesCard
                 disableControls={disableControls}
@@ -1850,33 +1845,28 @@ export function AuthFilesPage() {
         </Suspense>
       )}
 
-      {modelsModalOpen && (
+      {modelsFeatureMounted && (
         <Suspense fallback={<ModalLoadingFallback />}>
-          <AuthFileModelsModal
-            open
-            fileName={modelsFileName}
-            fileType={modelsFileType}
-            loading={modelsLoading}
-            error={modelsError}
-            models={modelsList}
+          <AuthFilesModelsFeature
+            request={modelsRequest}
+            scopeKey={authScopeKey}
             excluded={excluded}
-            onClose={closeModelsModal}
             onCopyText={copyTextWithNotification}
+            onDismiss={closeModelsModal}
           />
         </Suspense>
       )}
 
-      {prefixProxyEditor && (
+      {prefixProxyFile && (
         <Suspense fallback={<ModalLoadingFallback />}>
-          <AuthFilesPrefixProxyEditorModal
+          <AuthFilesPrefixProxyEditorFeature
+            file={prefixProxyFile}
             disableControls={disableControls}
-            editor={prefixProxyEditor}
-            updatedText={prefixProxyUpdatedText}
-            dirty={prefixProxyDirty}
-            onClose={closePrefixProxyEditor}
+            isCurrentLayer={isCurrentLayer}
+            applyLocalFilePatch={applyLocalFilePatch}
+            refreshAuthFilesFromServer={refreshFilesFromServer}
             onCopyText={copyTextWithNotification}
-            onSave={handlePrefixProxySave}
-            onChange={handlePrefixProxyChange}
+            onDismiss={closePrefixProxyEditor}
           />
         </Suspense>
       )}

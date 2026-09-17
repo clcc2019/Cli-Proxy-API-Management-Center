@@ -11,34 +11,16 @@
   position: sticky;
   top: 4px;
   z-index: var(--mg-z-sticky);
-  isolation: isolate;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: var(--xai-space-3-5);
   padding: 10px 14px;
-  background: var(--xai-glass-surface);
-  border: 1px solid var(--xai-glass-border);
+  background: var(--mg-surface);
+  border: 1px solid var(--mg-border);
   border-radius: var(--mg-radius-card);
   min-height: 52px;
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  box-shadow: var(--xai-glass-shadow-float);
-
-  &::before {
-    position: absolute;
-    inset: 1px;
-    z-index: 0;
-    border-radius: calc(var(--mg-radius-card) - 1px);
-    background: linear-gradient(135deg, rgb(255 255 255 / 44%), transparent 40%);
-    content: '';
-    pointer-events: none;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
+  box-shadow: var(--mg-shadow-float);
 }
 
 .topBarTitle {
@@ -123,18 +105,15 @@
 }
 
 .floatingActionSurface {
-  isolation: isolate;
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
   border-radius: var(--mg-radius-pill);
-  background: var(--xai-glass-surface-strong);
-  border: 1px solid var(--xai-glass-border);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
-  backdrop-filter: blur(18px) saturate(125%);
-  box-shadow: var(--xai-glass-shadow-float);
+  background: var(--mg-surface);
+  border: 1px solid var(--mg-border);
+  box-shadow: var(--mg-shadow-float);
 }
 
 @media (max-width: 1200px) {
@@ -168,21 +147,5 @@
 
   .backText {
     display: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .topBar,
-  .floatingActionSurface {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .topBar,
-  .floatingActionSurface {
-    background: var(--xai-white);
   }
 }

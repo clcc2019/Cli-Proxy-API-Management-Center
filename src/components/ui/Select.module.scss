@@ -41,8 +41,6 @@
   appearance: none;
   text-align: left;
   box-sizing: border-box;
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
   box-shadow: var(--xai-glass-highlight);
   transition:
     border-color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -71,7 +69,7 @@
   &[aria-expanded='true'] {
     border-color: var(--mg-border-strong);
     background: var(--mg-surface-pressed);
-    box-shadow: var(--xai-glass-highlight), 0 0 0 3px var(--mg-focus-ring);
+    box-shadow: 0 0 0 3px var(--mg-focus-ring);
   }
 
   &:disabled {
@@ -117,8 +115,6 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
   box-shadow: var(--xai-glass-shadow-float);
   animation: mg-popover-enter var(--motion-duration-fast, 140ms)
     var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
@@ -190,20 +186,5 @@
   .dropdown {
     transition: none;
     animation: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .trigger,
-  .dropdown {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .trigger,
-  .dropdown {
-    background: var(--xai-white);
   }
 }

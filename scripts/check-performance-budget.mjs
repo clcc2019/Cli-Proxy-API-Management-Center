@@ -7,7 +7,7 @@ const manifestPath = path.join(distRoot, '.vite', 'manifest.json');
 
 const limits = {
   entryJavaScript: 36 * 1024,
-  initialStaticJavaScript: 400 * 1024,
+  initialStaticJavaScript: 395 * 1024,
   initialStaticCss: 45 * 1024,
   authFilesJavaScript: 93 * 1024,
   authFilesDirectCss: 126 * 1024,
@@ -99,7 +99,7 @@ const entryStaticGraph = [...entryStaticKeys].map((key) => {
 });
 
 const forbiddenEntryChunks = entryStaticGraph.filter((description) =>
-  /charts?|editor|codemirror|(?:^|[\/_-])(?:vendor|usage|stores|error|http)(?:[\/_\-.]|$)/i.test(
+  /charts?|editor|codemirror|(?:^|[\/_-])(?:vendor|usage|stores|error|http|management-api)(?:[\/_\-.]|$)/i.test(
     description
   )
 );

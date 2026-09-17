@@ -9,6 +9,26 @@ type ModelsError = 'unsupported' | null;
 const EMPTY_AUTH_FILE_MODELS: AuthFileModelItem[] = [];
 const getModelsCacheKey = (scopeKey: string, fileName: string) => `${scopeKey}\u0000${fileName}`;
 
+type ModelsState = {
+  scopeKey: string;
+  open: boolean;
+  loading: boolean;
+  list: AuthFileModelItem[];
+  fileName: string;
+  fileType: string;
+  error: ModelsError;
+};
+
+const createModelsState = (scopeKey: string): ModelsState => ({
+  scopeKey,
+  open: false,
+  loading: false,
+  list: EMPTY_AUTH_FILE_MODELS,
+  fileName: '',
+  fileType: '',
+  error: null,
+});
+
 export type UseAuthFilesModelsResult = {
   modelsModalOpen: boolean;
   modelsLoading: boolean;
@@ -20,16 +40,13 @@ export type UseAuthFilesModelsResult = {
   closeModelsModal: () => void;
 };
 
-export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
+export function useAuthFilesModels(scopeKey = '', onDismiss?: () => void): UseAuthFilesModelsResult {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
 
-  const [modelsModalOpen, setModelsModalOpen] = useState(false);
-  const [modelsLoading, setModelsLoading] = useState(false);
-  const [modelsList, setModelsList] = useState<AuthFileModelItem[]>([]);
-  const [modelsFileName, setModelsFileName] = useState('');
-  const [modelsFileType, setModelsFileType] = useState('');
-  const [modelsError, setModelsError] = useState<ModelsError>(null);
+  const [modelsState, setModelsState] = useState<ModelsState>(() => createModelsState(scopeKey));
+  const activeModelsState =
+    modelsState.scopeKey === scopeKey ? modelsState : createModelsState(scopeKey);
   const modelsCacheRef = useRef<Map<string, AuthFileModelItem[]>>(new Map());
   const unsupportedModelsRef = useRef<Set<string>>(new Set());
   const inFlightModelsRef = useRef<Map<string, Promise<AuthFileModelItem[]>>>(new Map());
@@ -49,16 +66,15 @@ export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
     modelsCacheRef.current.clear();
     unsupportedModelsRef.current.clear();
     inFlightModelsRef.current.clear();
-    setModelsModalOpen(false);
-    setModelsLoading(false);
-    setModelsList((prev) => (prev.length === 0 ? prev : EMPTY_AUTH_FILE_MODELS));
-    setModelsError(null);
   }, [scopeKey]);
 
   const closeModelsModal = useCallback(() => {
     modelsRequestSeqRef.current += 1;
-    setModelsModalOpen((prev) => (prev ? false : prev));
-  }, []);
+    setModelsState((prev) =>
+      prev.scopeKey === scopeKey && prev.open ? { ...prev, open: false } : prev
+    );
+    onDismiss?.();
+  }, [onDismiss, scopeKey]);
 
   const showModels = useCallback(
     async (item: AuthFileItem) => {
@@ -67,28 +83,51 @@ export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
       const fileType = item.type || '';
       const cacheKey = getModelsCacheKey(scopeKey, item.name);
       const cached = modelsCacheRef.current.get(cacheKey);
-      setModelsFileName((prev) => (prev === item.name ? prev : item.name));
-      setModelsFileType((prev) => (prev === fileType ? prev : fileType));
-      setModelsError((prev) => (prev === null ? prev : null));
-      setModelsModalOpen((prev) => (prev ? prev : true));
+      setModelsState((prev) => {
+        const current = prev.scopeKey === scopeKey ? prev : createModelsState(scopeKey);
+        if (
+          current.open &&
+          current.fileName === item.name &&
+          current.fileType === fileType &&
+          current.error === null
+        ) {
+          return current;
+        }
+        return {
+          ...current,
+          open: true,
+          fileName: item.name,
+          fileType,
+          error: null,
+        };
+      });
 
       if (cached) {
         if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
-        setModelsList((prev) => (prev === cached ? prev : cached));
-        setModelsLoading((prev) => (prev ? false : prev));
+        setModelsState((prev) =>
+          prev.scopeKey !== scopeKey || (prev.list === cached && !prev.loading)
+            ? prev
+            : { ...prev, list: cached, loading: false }
+        );
         return;
       }
 
       if (unsupportedModelsRef.current.has(cacheKey)) {
         if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
-        setModelsList((prev) => (prev.length === 0 ? prev : EMPTY_AUTH_FILE_MODELS));
-        setModelsError('unsupported');
-        setModelsLoading((prev) => (prev ? false : prev));
+        setModelsState((prev) =>
+          prev.scopeKey !== scopeKey ||
+          (prev.list === EMPTY_AUTH_FILE_MODELS && prev.error === 'unsupported' && !prev.loading)
+            ? prev
+            : { ...prev, list: EMPTY_AUTH_FILE_MODELS, error: 'unsupported', loading: false }
+        );
         return;
       }
 
-      setModelsList((prev) => (prev.length === 0 ? prev : EMPTY_AUTH_FILE_MODELS));
-      setModelsLoading((prev) => (prev ? prev : true));
+      setModelsState((prev) => {
+        if (prev.scopeKey !== scopeKey) return prev;
+        if (prev.list === EMPTY_AUTH_FILE_MODELS && prev.loading) return prev;
+        return { ...prev, list: EMPTY_AUTH_FILE_MODELS, loading: true };
+      });
       const pendingRequest = inFlightModelsRef.current.get(cacheKey);
       const request = pendingRequest ?? authFilesApi.getModelsForAuthFile(item.name);
       if (!pendingRequest) {
@@ -99,7 +138,11 @@ export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
         if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
         modelsCacheRef.current.set(cacheKey, models);
         unsupportedModelsRef.current.delete(cacheKey);
-        setModelsList((prev) => (prev === models ? prev : models));
+        setModelsState((prev) =>
+          prev.scopeKey !== scopeKey || (prev.list === models && !prev.loading)
+            ? prev
+            : { ...prev, list: models, error: null, loading: false }
+        );
       } catch (err) {
         if (!mountedRef.current || modelsRequestSeqRef.current !== requestSeq) return;
         const errorMessage = err instanceof Error ? err.message : '';
@@ -109,7 +152,11 @@ export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
           errorMessage.includes('Not Found')
         ) {
           unsupportedModelsRef.current.add(cacheKey);
-          setModelsError('unsupported');
+          setModelsState((prev) =>
+            prev.scopeKey !== scopeKey
+              ? prev
+              : { ...prev, list: EMPTY_AUTH_FILE_MODELS, error: 'unsupported', loading: false }
+          );
         } else {
           showNotification(`${t('notification.load_failed')}: ${errorMessage}`, 'error');
         }
@@ -118,7 +165,9 @@ export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
           inFlightModelsRef.current.delete(cacheKey);
         }
         if (mountedRef.current && modelsRequestSeqRef.current === requestSeq) {
-          setModelsLoading(false);
+          setModelsState((prev) =>
+            prev.scopeKey === scopeKey && prev.loading ? { ...prev, loading: false } : prev
+          );
         }
       }
     },
@@ -126,12 +175,12 @@ export function useAuthFilesModels(scopeKey = ''): UseAuthFilesModelsResult {
   );
 
   return {
-    modelsModalOpen,
-    modelsLoading,
-    modelsList,
-    modelsFileName,
-    modelsFileType,
-    modelsError,
+    modelsModalOpen: activeModelsState.open,
+    modelsLoading: activeModelsState.loading,
+    modelsList: activeModelsState.list,
+    modelsFileName: activeModelsState.fileName,
+    modelsFileType: activeModelsState.fileType,
+    modelsError: activeModelsState.error,
     showModels,
     closeModelsModal,
   };

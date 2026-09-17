@@ -631,7 +631,6 @@ export function MainLayout() {
 
   return (
     <div className={`app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
-      <div className="top-gradient-blur" aria-hidden="true" />
       <a className="skip-link" href="#main-content">
         {t('common.skip_to_content')}
       </a>

@@ -16,8 +16,6 @@
   padding: var(--xai-space-3) var(--xai-space-4);
   border-bottom: 1px solid var(--xai-glass-border);
   background: var(--xai-glass-surface-soft);
-  -webkit-backdrop-filter: blur(14px) saturate(116%);
-  backdrop-filter: blur(14px) saturate(116%);
   box-shadow: var(--xai-glass-highlight);
 }
 
@@ -45,8 +43,6 @@
   font-family: var(--xai-font-ui);
   font-size: 13px;
   box-sizing: border-box;
-  -webkit-backdrop-filter: blur(12px) saturate(116%);
-  backdrop-filter: blur(12px) saturate(116%);
   box-shadow: var(--xai-glass-highlight);
   transition:
     border-color var(--xai-duration-default) var(--xai-ease-standard),
@@ -271,23 +267,5 @@
   .searchInput,
   .emptyActionButton {
     transition: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .header,
-  .searchInput,
-  .empty {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .header,
-  .searchInput,
-  .empty {
-    background: var(--xai-white);
   }
 }

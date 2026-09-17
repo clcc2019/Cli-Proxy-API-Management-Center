@@ -50,8 +50,6 @@
   border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-control);
   background: var(--xai-glass-control);
-  -webkit-backdrop-filter: blur(12px) saturate(116%);
-  backdrop-filter: blur(12px) saturate(116%);
   box-shadow: var(--xai-glass-highlight);
   color: var(--xai-ink-console);
   font: 400 13.5px/18px var(--xai-font-ui);
@@ -66,8 +64,6 @@
   border: 1px solid var(--xai-glass-border) !important;
   border-radius: var(--xai-radius-panel) !important;
   background: var(--xai-glass-surface-strong) !important;
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
   box-shadow: var(--xai-glass-shadow-float) !important;
 }
 
@@ -94,8 +90,6 @@
   border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-pill);
   background: var(--xai-glass-control);
-  -webkit-backdrop-filter: blur(12px) saturate(116%);
-  backdrop-filter: blur(12px) saturate(116%);
   box-shadow: var(--xai-glass-highlight);
   color: var(--xai-ink-console);
   font: 500 13.5px/18px var(--xai-font-ui);

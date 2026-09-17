@@ -372,20 +372,6 @@
         min-width: 0;
       }
 
-      .scene-wrap::before {
-        position: absolute;
-        top: 7%;
-        right: 5%;
-        width: 38%;
-        height: 54%;
-        border-radius: 50%;
-        background: var(--accent);
-        content: '';
-        filter: blur(62px);
-        opacity: 0.18;
-        transform: rotate(-12deg);
-      }
-
       .scene-card {
         position: relative;
         overflow: hidden;
@@ -418,12 +404,11 @@
         padding: 0 12px;
         border: 1px solid rgba(255, 250, 236, 0.44);
         border-radius: 999px;
-        background: rgba(23, 50, 71, 0.78);
+        background: #173247;
         color: #f8f2e6;
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.05em;
-        backdrop-filter: blur(10px);
       }
 
       .scene-label::before {
@@ -703,13 +688,6 @@
         }
       }
 
-      @media (prefers-reduced-transparency: reduce) {
-        .theme-toggle,
-        .scene-label {
-          background: var(--panel);
-          backdrop-filter: none;
-        }
-      }
     </style>
   </head>
   <body class="is-riding">

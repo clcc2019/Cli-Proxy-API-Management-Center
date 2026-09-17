@@ -42,8 +42,6 @@
   color: var(--xai-secondary);
   font-family: var(--xai-font-ui);
   cursor: pointer;
-  -webkit-backdrop-filter: blur(12px) saturate(116%);
-  backdrop-filter: blur(12px) saturate(116%);
   box-shadow: var(--xai-glass-highlight);
   transition:
     background-color var(--xai-duration-default) var(--xai-ease-standard),
@@ -118,8 +116,6 @@
   border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-panel);
   background: var(--xai-glass-surface-strong);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
   box-shadow: var(--xai-glass-shadow-float);
 }
 
@@ -250,23 +246,5 @@
   .dirBtn,
   .filterTrigger {
     transition: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .dirBtn,
-  .filterTrigger,
-  .filterPanel {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .dirBtn,
-  .filterTrigger,
-  .filterPanel {
-    background: var(--xai-white);
   }
 }

@@ -311,12 +311,19 @@ export function VisualConfigEditor({
 
   useEffect(() => {
     const required = sectionItems.filter((item) => item.state).map((item) => item.id);
-    if (required.length === 0) return;
-    setExpandedSections((current) => {
-      const next = new Set(current);
-      required.forEach((id) => next.add(id));
-      return next.size === current.size ? current : next;
-    });
+    if (required.length === 0) return undefined;
+
+    // This preference update is non-critical. Defer it until after the
+    // current commit so validation feedback does not cascade into another
+    // synchronous render.
+    const taskId = window.setTimeout(() => {
+      setExpandedSections((current) => {
+        const next = new Set(current);
+        required.forEach((id) => next.add(id));
+        return next.size === current.size ? current : next;
+      });
+    }, 0);
+    return () => window.clearTimeout(taskId);
   }, [sectionItems]);
 
   const sectionProps = (id: string) => {

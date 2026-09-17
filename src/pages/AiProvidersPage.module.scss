@@ -128,18 +128,13 @@
     var(--provider-accent) 26%,
     var(--provider-page-border-strong)
   );
-  --provider-card-sheen: color-mix(in srgb, #ffffff 54%, transparent);
-  --provider-card-tint: color-mix(in srgb, var(--provider-accent) 7%, transparent);
-  --provider-card-hover-tint: color-mix(in srgb, var(--provider-accent) 11%, transparent);
-  --provider-card-glow: color-mix(in srgb, var(--provider-accent) 10%, transparent);
-  --provider-card-inner-bg: color-mix(in srgb, var(--provider-page-control) 72%, transparent);
+  --provider-card-inner-bg: var(--provider-page-control);
   --provider-card-inner-border: var(--provider-page-border);
-  --provider-card-inner-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.52), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --provider-card-inner-shadow: none;
   --provider-action-border: var(--provider-page-border);
-  --provider-action-bg: color-mix(in srgb, var(--provider-page-control) 82%, transparent);
+  --provider-action-bg: var(--provider-page-control);
   --provider-action-text: color-mix(in srgb, var(--text-secondary) 76%, var(--text-primary));
-  --provider-action-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  --provider-action-shadow: none;
   --provider-action-hover-border: color-mix(
     in srgb,
     var(--provider-accent) 30%,
@@ -147,14 +142,14 @@
   );
   --provider-action-hover-bg: color-mix(in srgb, var(--provider-accent) 6%, var(--surface-raised));
   --provider-action-hover-text: color-mix(in srgb, var(--provider-accent) 20%, var(--text-primary));
-  --provider-action-hover-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --provider-action-hover-shadow: none;
   --provider-danger-text: color-mix(in srgb, var(--danger-color) 76%, var(--text-primary));
   --provider-danger-bg: color-mix(in srgb, var(--danger-color) 4%, var(--provider-action-bg));
   --provider-danger-border: color-mix(in srgb, var(--danger-color) 30%, var(--border-color));
   --provider-danger-hover-bg: color-mix(in srgb, var(--danger-color) 7%, var(--surface-raised));
   --provider-danger-hover-border: color-mix(in srgb, var(--danger-color) 52%, var(--border-color));
   --provider-toggle-off-border: color-mix(in srgb, var(--border-color) 86%, transparent);
-  --provider-toggle-off-bg: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  --provider-toggle-off-bg: var(--bg-secondary);
   --provider-toggle-on-border: color-mix(in srgb, var(--success-color) 68%, transparent);
   --provider-toggle-on-bg: linear-gradient(
     135deg,
@@ -180,81 +175,28 @@
   padding: 13px 13px 12px;
   border: 1px solid var(--provider-card-border);
   border-radius: var(--xai-radius-panel);
-  background:
-    linear-gradient(180deg, var(--provider-card-sheen), transparent 38%),
-    linear-gradient(135deg, var(--provider-card-tint), transparent 46%),
-    var(--provider-page-surface);
-  -webkit-backdrop-filter: blur(18px) saturate(122%);
-  backdrop-filter: blur(18px) saturate(122%);
-  box-shadow:
-    0 8px 22px -20px rgba(15, 23, 42, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.48);
-  isolation: isolate;
+  background: var(--provider-page-surface);
+  box-shadow: none;
   transition:
     box-shadow 160ms ease,
     border-color 160ms ease;
 
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 12px auto;
-    z-index: 0;
-    height: 1px;
-    border-radius: 0 0 999px 999px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--provider-accent) 52%, transparent),
-      transparent
-    );
-    opacity: 0.7;
-    pointer-events: none;
-    transition: opacity 160ms ease;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: inherit;
-    background:
-      linear-gradient(180deg, color-mix(in srgb, #ffffff 24%, transparent), transparent 48%),
-      linear-gradient(135deg, var(--provider-card-hover-tint), transparent 56%);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 160ms ease;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
-
   &:focus-within {
     border-color: var(--border-color);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    box-shadow: none;
   }
 
   @media (hover: hover) {
     &:hover {
       border-color: var(--provider-card-border-hover);
-      box-shadow:
-        0 14px 30px -22px rgba(15, 23, 42, 0.28),
-        0 14px 30px -24px var(--provider-card-glow),
-        inset 0 1px 0 rgba(255, 255, 255, 0.52);
-
-      &::before,
-      &::after {
-        opacity: 1;
-      }
+      box-shadow: none;
     }
   }
 
   @media (hover: hover) and (prefers-reduced-motion: reduce) {
     &:hover {
       border-color: var(--provider-card-border-hover);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      box-shadow: none;
     }
   }
 
@@ -279,7 +221,6 @@
   }
 
   :global(.provider-card-avatar) {
-    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -289,27 +230,9 @@
     border-radius: var(--xai-radius-small);
     color: var(--provider-accent);
     border: 1px solid color-mix(in srgb, currentColor 24%, var(--border-color));
-    background: color-mix(in srgb, currentColor 10%, var(--surface-raised));
-    box-shadow:
-      0 8px 18px -16px color-mix(in srgb, currentColor 42%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.48);
+    background: var(--surface-raised);
+    box-shadow: none;
     transition: border-color var(--xai-duration-fast);
-    isolation: isolate;
-    overflow: hidden;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 58%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    > * {
-      position: relative;
-      z-index: 1;
-    }
 
     img,
     svg {
@@ -413,8 +336,6 @@
     border-color: var(--provider-action-border);
     border-width: 1px;
     background: var(--provider-action-bg);
-    -webkit-backdrop-filter: blur(10px) saturate(116%);
-    backdrop-filter: blur(10px) saturate(116%);
     box-shadow: var(--provider-action-shadow);
     transition:
       color 140ms ease,
@@ -531,8 +452,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .providerConfigItem,
-  .providerConfigItem::before,
-  .providerConfigItem::after,
   .modelTag,
   .modelDiscoveryRow,
   .statusBlock,
@@ -1540,17 +1459,13 @@
       var(--provider-accent) 26%,
       var(--provider-page-border-strong)
     );
-    --provider-card-sheen: color-mix(in srgb, #ffffff 8%, transparent);
-    --provider-card-tint: color-mix(in srgb, var(--provider-accent) 6%, transparent);
-    --provider-card-hover-tint: color-mix(in srgb, var(--provider-accent) 9%, transparent);
-    --provider-card-inner-bg: color-mix(in srgb, var(--provider-page-control) 76%, transparent);
+    --provider-card-inner-bg: var(--provider-page-control);
     --provider-card-inner-border: var(--provider-page-border);
-    --provider-card-inner-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 0 rgba(0, 0, 0, 0.18);
+    --provider-card-inner-shadow: none;
     --provider-action-border: var(--provider-page-border);
-    --provider-action-bg: color-mix(in srgb, var(--provider-page-control) 82%, transparent);
+    --provider-action-bg: var(--provider-page-control);
     --provider-action-text: color-mix(in srgb, var(--text-secondary) 70%, var(--text-primary));
-    --provider-action-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --provider-action-shadow: none;
     --provider-action-hover-border: color-mix(
       in srgb,
       var(--provider-accent) 30%,
@@ -1562,16 +1477,14 @@
       var(--provider-accent) 30%,
       var(--text-primary)
     );
-    --provider-action-hover-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 8px 18px -14px color-mix(in srgb, var(--provider-accent) 46%, transparent);
+    --provider-action-hover-shadow: none;
     --provider-danger-text: #f1b0a6;
     --provider-danger-bg: color-mix(in srgb, var(--danger-color) 8%, var(--provider-action-bg));
     --provider-danger-border: rgba(198, 87, 70, 0.58);
     --provider-danger-hover-bg: color-mix(in srgb, var(--danger-color) 12%, var(--bg-secondary));
     --provider-danger-hover-border: rgba(241, 176, 166, 0.68);
     --provider-toggle-off-border: color-mix(in srgb, var(--border-color) 90%, transparent);
-    --provider-toggle-off-bg: color-mix(in srgb, var(--bg-tertiary) 68%, var(--bg-secondary));
+    --provider-toggle-off-bg: var(--bg-secondary);
     --provider-toggle-on-border: color-mix(in srgb, var(--success-color) 62%, transparent);
     --provider-toggle-on-bg: linear-gradient(
       135deg,
@@ -1579,27 +1492,16 @@
       var(--success-color) 52%,
       color-mix(in srgb, var(--success-color) 72%, black)
     );
-    --provider-toggle-thumb-bg: color-mix(in srgb, var(--text-primary) 92%, transparent);
+    --provider-toggle-thumb-bg: var(--text-primary);
     --provider-toggle-thumb-border: rgba(255, 255, 255, 0.18);
     border-color: var(--provider-card-border);
-    background:
-      linear-gradient(180deg, var(--provider-card-sheen), transparent 38%),
-      linear-gradient(135deg, var(--provider-card-tint), transparent 46%),
-      var(--provider-page-surface);
-    box-shadow:
-      0 8px 22px -20px rgba(0, 0, 0, 0.72),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    background: var(--provider-page-surface);
+    box-shadow: none;
 
     :global(.provider-card-avatar) {
       border-color: color-mix(in srgb, currentColor 28%, rgba(255, 255, 255, 0.06));
-      background: color-mix(in srgb, currentColor 16%, var(--bg-secondary));
-      box-shadow:
-        0 6px 16px -10px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-
-      &::before {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 65%);
-      }
+      background: var(--bg-secondary);
+      box-shadow: none;
     }
 
     :global(.provider-card-state.is-enabled) {
@@ -2196,12 +2098,6 @@
   background: var(--mg-surface);
   box-shadow: none;
 
-  &::before,
-  &::after {
-    background: transparent;
-    opacity: 0;
-  }
-
   &:hover {
     border-color: var(--mg-border-hover);
     box-shadow: none;
@@ -2244,21 +2140,5 @@
 
   .openaiEditForm :global(.header-input-row) {
     grid-template-columns: minmax(0, 1fr) var(--mg-hit-area, 44px);
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .providerConfigItem,
-  .providerConfigItem :global(.provider-card-action.btn.btn-sm) {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .providerConfigItem,
-  .providerConfigItem :global(.provider-card-action.btn.btn-sm) {
-    background: var(--xai-white);
   }
 }

@@ -3,16 +3,11 @@
 
 .wrap {
   position: relative;
-  isolation: isolate;
-  border: 1px solid var(--xai-glass-border);
+  border: 1px solid var(--mg-border);
   border-radius: var(--mg-radius-card);
   overflow: hidden;
-  background:
-    linear-gradient(135deg, rgb(255 255 255 / 34%), transparent 48%),
-    var(--xai-glass-surface);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  box-shadow: var(--xai-glass-shadow);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-rest);
 }
 
 .scroll {
@@ -37,9 +32,7 @@
 }
 
 .head {
-  background:
-    linear-gradient(135deg, rgb(255 255 255 / 26%), transparent 52%),
-    var(--xai-glass-surface-soft);
+  background: var(--mg-surface-subtle);
 
   th {
     color: var(--muted-foreground, var(--text-secondary));
@@ -87,23 +80,4 @@
 
 .alignRight {
   text-align: right;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .wrap {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-    box-shadow: none;
-  }
-
-  .head {
-    background: var(--xai-surface-muted);
-  }
-}
-
-@supports not ((backdrop-filter: blur(1px))) {
-  .wrap {
-    background: var(--xai-white);
-  }
 }

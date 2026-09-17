@@ -102,6 +102,7 @@ export type UseAuthFilesPrefixProxyEditorOptions = {
   disableControls: boolean;
   applyLocalFilePatch: (name: string, patch: Partial<AuthFileItem>) => void;
   refreshAuthFilesFromServer?: () => Promise<void>;
+  onDismiss?: () => void;
 };
 
 export type UseAuthFilesPrefixProxyEditorResult = {
@@ -730,7 +731,12 @@ const buildLocalPatchedAuthFile = (
 export function useAuthFilesPrefixProxyEditor(
   options: UseAuthFilesPrefixProxyEditorOptions
 ): UseAuthFilesPrefixProxyEditorResult {
-  const { disableControls, applyLocalFilePatch, refreshAuthFilesFromServer } = options;
+  const {
+    disableControls,
+    applyLocalFilePatch,
+    refreshAuthFilesFromServer,
+    onDismiss,
+  } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
@@ -807,7 +813,8 @@ export function useAuthFilesPrefixProxyEditor(
   const dismissPrefixProxyEditor = useCallback(() => {
     editorRequestSeqRef.current += 1;
     setPrefixProxyEditor(null);
-  }, []);
+    onDismiss?.();
+  }, [onDismiss]);
 
   const closePrefixProxyEditor = useCallback(() => {
     if (!prefixProxyDirty) {

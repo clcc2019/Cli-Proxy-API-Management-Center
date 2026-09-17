@@ -25,23 +25,11 @@ $breakpoint-shell-compact: 1023px;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
-  background: transparent;
+  background: var(--mg-canvas, #f5f4f1);
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
   position: relative;
   isolation: isolate;
-
-  &::after {
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background:
-      radial-gradient(circle at 86% 2%, var(--xai-ambient-light), transparent 28%),
-      radial-gradient(circle at 18% 88%, rgb(241 245 249 / 58%), transparent 34%),
-      var(--mg-canvas, #ffffff);
-    content: '';
-    pointer-events: none;
-  }
 
   @supports (height: 100dvh) {
     min-height: 100dvh;
@@ -69,10 +57,9 @@ $breakpoint-shell-compact: 1023px;
   min-height: var(--header-height);
   padding: 0;
   border: 0;
-  background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
+  border-bottom: 1px solid var(--xai-border-subtle);
+  background: var(--mg-canvas, #f5f4f1);
+  box-shadow: var(--header-shadow);
   pointer-events: none;
 
   @media (max-width: $breakpoint-shell-compact) {
@@ -137,10 +124,8 @@ $breakpoint-shell-compact: 1023px;
     padding: 3px;
     border: 1px solid var(--xai-border);
     border-radius: var(--xai-radius-pill);
-    background: rgb(255 255 255 / 78%);
+    background: var(--mg-surface);
     box-shadow: var(--xai-shadow-button);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
     transition:
       background-color var(--xai-duration-default) var(--xai-ease-standard),
       box-shadow var(--xai-duration-default) var(--xai-ease-standard);
@@ -477,7 +462,7 @@ $breakpoint-shell-compact: 1023px;
   position: relative;
   z-index: calc(var(--xai-z-sticky) + 1);
   width: var(--sidebar-width);
-  background: var(--xai-glass-surface-strong);
+  background: var(--sidebar-surface, var(--xai-white));
   border-right: 1px solid var(--sidebar-border);
   padding: var(--xai-space-6) var(--xai-space-4) var(--xai-space-4);
   display: flex;
@@ -489,29 +474,9 @@ $breakpoint-shell-compact: 1023px;
   flex-shrink: 0;
   height: 100%;
   isolation: isolate;
-  -webkit-backdrop-filter: blur(20px) saturate(112%);
-  backdrop-filter: blur(20px) saturate(112%);
-  box-shadow:
-    inset -1px 0 0 rgb(255 255 255 / 86%),
-    var(--sidebar-shadow);
+  box-shadow: var(--sidebar-shadow);
   color: var(--sidebar-text, var(--xai-ink-console));
   font-family: var(--xai-font-ui);
-
-  &::before {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background:
-      linear-gradient(145deg, rgb(255 255 255 / 82%), transparent 24%),
-      radial-gradient(circle at 92% 86%, var(--xai-ambient-light), transparent 30%);
-    content: '';
-    pointer-events: none;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
 
   &.collapsed {
     width: var(--sidebar-collapsed-width);
@@ -690,9 +655,9 @@ $breakpoint-shell-compact: 1023px;
     padding: 0 var(--xai-space-2);
     overflow: hidden;
     color: var(--sidebar-text-tertiary);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.035em;
     line-height: 18px;
     text-transform: none;
     white-space: nowrap;
@@ -782,6 +747,18 @@ $breakpoint-shell-compact: 1023px;
       background: var(--sidebar-accent-surface);
       color: var(--sidebar-text);
       font-weight: var(--sidebar-label-active-weight);
+      box-shadow: inset 0 0 0 1px var(--xai-border-subtle);
+
+      &::before {
+        position: absolute;
+        top: 7px;
+        bottom: 7px;
+        left: 0;
+        width: 2px;
+        border-radius: var(--xai-radius-pill);
+        background: var(--sidebar-accent);
+        content: '';
+      }
 
       .nav-icon {
         color: var(--sidebar-accent);
@@ -895,7 +872,7 @@ $breakpoint-shell-compact: 1023px;
   scrollbar-gutter: stable;
   height: 100%;
   position: relative;
-  background: transparent;
+  background: var(--mg-canvas, #f5f4f1);
 
   > .page-transition {
     width: min(100%, 1440px);
@@ -933,22 +910,9 @@ $breakpoint-shell-compact: 1023px;
   gap: var(--page-content-gap);
   overflow-x: hidden;
   position: relative;
-  isolation: isolate;
-  // Keep the canvas transparent so the fixed ambient layer can refract through
-  // the glass surfaces instead of being covered by an opaque page background.
-  background: transparent;
-
-  &::after {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    left: var(--sidebar-width);
-    height: 18px;
-    background: linear-gradient(180deg, transparent, rgb(23 21 19 / 4%));
-    content: '';
-    pointer-events: none;
-    z-index: 1;
-  }
+  // Keep the page canvas stable and opaque so scrolling does not trigger a
+  // full-viewport compositing pass.
+  background: var(--mg-canvas, #f5f4f1);
 
   &.main-content-logs {
     flex: 1 1 auto;
@@ -983,50 +947,6 @@ $breakpoint-shell-compact: 1023px;
 @media (min-width: $breakpoint-tablet) {
   .grid.cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-// The header is a lightweight control layer while brand and navigation
-// ownership stays inside the sidebar. Keep it quiet and solid; the canvas and
-// white utility surfaces provide all the necessary separation.
-.top-gradient-blur {
-  position: fixed;
-  inset: -12%;
-  z-index: -1;
-  display: block;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse 42% 36% at 80% 4%, rgb(226 232 240 / 76%), transparent 70%),
-    radial-gradient(ellipse 30% 40% at 8% 74%, var(--xai-ambient-soft), transparent 72%),
-    radial-gradient(ellipse 24% 28% at 54% 52%, rgb(248 250 252 / 74%), transparent 74%);
-  filter: blur(22px) saturate(116%);
-  pointer-events: none;
-  transform: translate3d(0, 0, 0);
-  animation: xai-ambient-drift 22s var(--xai-ease-page) infinite alternate;
-
-  &::before {
-    position: absolute;
-    inset: 10% 8% 4% 42%;
-    background: radial-gradient(circle, var(--xai-ambient-light), transparent 64%);
-    content: '';
-    filter: blur(34px);
-    opacity: 0.78;
-    animation: xai-glass-breathe 10s var(--xai-ease-standard) infinite;
-  }
-
-  &::after {
-    position: absolute;
-    right: 18%;
-    bottom: 8%;
-    width: 28%;
-    height: 34%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgb(226 232 240 / 28%), transparent 70%);
-    content: '';
-    filter: blur(26px);
-    opacity: 0.68;
-    pointer-events: none;
-    animation: xai-ambient-drift 30s var(--xai-ease-page) infinite alternate-reverse;
   }
 }
 
@@ -1089,10 +1009,6 @@ $breakpoint-shell-compact: 1023px;
     --page-padding-inline: var(--xai-space-4);
     --page-padding-block: var(--xai-space-5);
     --page-content-gap: var(--xai-space-6);
-  }
-
-  .top-gradient-blur {
-    height: calc(var(--header-height) + var(--xai-space-5));
   }
 
   .main-header {
@@ -1414,27 +1330,9 @@ $breakpoint-shell-compact: 1023px;
     padding: 3px;
     border: 1px solid var(--xai-border);
     border-radius: var(--xai-radius-pill);
-    background: var(--xai-glass-surface);
-    border-color: var(--xai-glass-border);
-    -webkit-backdrop-filter: blur(18px) saturate(130%);
-    backdrop-filter: blur(18px) saturate(130%);
-    box-shadow: var(--xai-glass-shadow-float);
-    isolation: isolate;
-
-    &::before {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      border-radius: inherit;
-      background: linear-gradient(135deg, rgb(255 255 255 / 44%), transparent 42%);
-      content: '';
-      pointer-events: none;
-    }
-
-    > * {
-      position: relative;
-      z-index: 1;
-    }
+    background: var(--xai-white);
+    border-color: var(--xai-border);
+    box-shadow: var(--xai-shadow-button);
 
     > .btn,
     .language-menu > .btn {

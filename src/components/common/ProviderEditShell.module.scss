@@ -5,8 +5,6 @@
   border-color: var(--xai-glass-border);
   border-radius: var(--mg-radius-card);
   background: var(--xai-glass-surface-strong);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
   box-shadow: var(--xai-shadow-dialog), var(--xai-glass-highlight);
 
   :global(.modal-header) {
@@ -21,8 +19,6 @@
     padding: var(--xai-space-5);
     max-height: min(74vh, calc(100vh - 164px));
     background: var(--xai-glass-surface-soft);
-    -webkit-backdrop-filter: blur(12px) saturate(112%);
-    backdrop-filter: blur(12px) saturate(112%);
   }
 
   :global(.modal-footer) {
@@ -80,23 +76,7 @@
   }
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  .modal,
-  .modal :global(.modal-body) {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--xai-white);
-  }
-}
 
-@supports not ((backdrop-filter: blur(1px))) {
-  .modal,
-  .modal :global(.modal-header),
-  .modal :global(.modal-body),
-  .modal :global(.modal-footer) {
-    background: var(--xai-white);
-  }
-}
 
 .titleRow {
   display: flex;

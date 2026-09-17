@@ -4,7 +4,7 @@
   max-width: 1260px;
   min-width: 0;
   flex-direction: column;
-  gap: 45px;
+  gap: clamp(31.5px, 3.6vw, 45px);
   margin-inline: auto;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
@@ -24,7 +24,8 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 27px;
-  padding: 18px 0 27px;
+  padding: 22.5px 0 31.5px;
+  border-bottom: 1px solid var(--xai-border);
 }
 
 .heroCopy {
@@ -34,11 +35,23 @@
 }
 
 .heroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   color: var(--xai-secondary);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   line-height: 18px;
+
+  &::before {
+    width: 20px;
+    height: 2px;
+    flex: 0 0 auto;
+    border-radius: var(--xai-radius-pill);
+    background: var(--xai-orange);
+    content: '';
+  }
 }
 
 .heroTitle {
@@ -71,11 +84,8 @@
   padding: 5px 8px 5px 11px;
   border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-pill);
-  background: var(--xai-glass-surface);
-  border-color: var(--xai-glass-border);
-  -webkit-backdrop-filter: blur(16px) saturate(125%);
-  backdrop-filter: blur(16px) saturate(125%);
-  box-shadow: var(--xai-glass-highlight);
+  background: var(--xai-white);
+  box-shadow: var(--xai-shadow-button);
   color: var(--xai-secondary);
   font-size: 12px;
   line-height: 18px;
@@ -142,29 +152,18 @@
   position: relative;
   display: grid;
   overflow: hidden;
-  border: 1px solid var(--xai-glass-border);
+  border: 1px solid var(--mg-border);
   border-radius: var(--xai-radius-card);
-  background: var(--xai-glass-surface);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  box-shadow: var(--xai-glass-shadow);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-rest);
   grid-template-columns: 1.25fr repeat(3, minmax(0, 1fr));
-
-  &::before {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: linear-gradient(135deg, rgb(255 255 255 / 40%), transparent 30%);
-    content: '';
-    pointer-events: none;
-  }
 }
 
 .bentoCard {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 184px;
+  min-height: 198px;
   flex-direction: column;
   justify-content: space-between;
   padding: 22.5px;
@@ -173,9 +172,7 @@
   border-radius: 0;
   // Keep the surface explicit so contrast tooling and high-contrast modes can
   // resolve the text/background pair without depending on the parent grid.
-  background: var(--xai-glass-surface-strong);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
+  background: var(--xai-white);
   color: inherit;
   text-decoration: none;
   isolation: isolate;
@@ -193,7 +190,7 @@
   }
 
   &:first-child {
-    background: linear-gradient(145deg, rgb(255 255 255 / 96%), rgb(246 248 250 / 84%));
+    background: var(--mg-surface);
     color: var(--xai-ink-console);
 
     .bentoMeta,
@@ -247,7 +244,7 @@
     }
 
     &:first-child:hover {
-      background: rgb(250 251 252 / 96%);
+      background: var(--mg-surface-subtle);
 
       .bentoArrow {
         color: var(--xai-ink-console);
@@ -326,12 +323,10 @@
 .gatewaySection {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--xai-glass-border);
+  border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-card);
-  background: var(--xai-glass-surface-strong);
-  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
-  box-shadow: var(--xai-glass-shadow);
+  background: var(--xai-white);
+  box-shadow: var(--mg-shadow-rest);
 }
 
 .gatewayHeader {
@@ -342,6 +337,7 @@
   gap: 18px;
   padding: 22.5px;
   border-bottom: 1px solid var(--xai-border-subtle);
+  background: var(--xai-surface-muted);
 }
 
 .gatewayHeader .sectionTitle {
@@ -364,7 +360,7 @@
   justify-content: center;
   padding: 6.75px 13.5px;
   border: 1px solid var(--xai-ink-console);
-  border-radius: var(--xai-radius-pill);
+  border-radius: var(--xai-radius-control);
   background: var(--xai-ink-console);
   box-shadow: var(--xai-shadow-button);
   color: var(--xai-inverse);

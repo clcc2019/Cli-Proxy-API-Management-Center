@@ -64,15 +64,6 @@ function getVersion(): string {
 function resolveManualChunk(id: string) {
   const sourceId = id.split('?', 1)[0];
 
-  // Small management endpoints share the same transport and are typically
-  // used together across operational routes. Consolidating them avoids one
-  // request per endpoint module while keeping feature components separate.
-  if (
-    /[\\/]src[\\/]services[\\/]api[\\/](apiKeys|configFile|logs|oauth)\.ts$/.test(sourceId)
-  ) {
-    return 'management-api';
-  }
-
   // These dependency-free helpers are shared across management routes. If
   // left to automatic splitting, each becomes a 0.3-0.7 KiB request. Keep the
   // group deliberately leaf-only: grouping stores or API modules would let
