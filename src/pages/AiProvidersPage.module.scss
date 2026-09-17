@@ -184,6 +184,8 @@
     linear-gradient(180deg, var(--provider-card-sheen), transparent 38%),
     linear-gradient(135deg, var(--provider-card-tint), transparent 46%),
     var(--provider-page-surface);
+  -webkit-backdrop-filter: blur(18px) saturate(122%);
+  backdrop-filter: blur(18px) saturate(122%);
   box-shadow:
     0 8px 22px -20px rgba(15, 23, 42, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.48);
@@ -411,6 +413,8 @@
     border-color: var(--provider-action-border);
     border-width: 1px;
     background: var(--provider-action-bg);
+    -webkit-backdrop-filter: blur(10px) saturate(116%);
+    backdrop-filter: blur(10px) saturate(116%);
     box-shadow: var(--provider-action-shadow);
     transition:
       color 140ms ease,
@@ -2240,5 +2244,21 @@
 
   .openaiEditForm :global(.header-input-row) {
     grid-template-columns: minmax(0, 1fr) var(--mg-hit-area, 44px);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .providerConfigItem,
+  .providerConfigItem :global(.provider-card-action.btn.btn-sm) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--xai-white);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .providerConfigItem,
+  .providerConfigItem :global(.provider-card-action.btn.btn-sm) {
+    background: var(--xai-white);
   }
 }

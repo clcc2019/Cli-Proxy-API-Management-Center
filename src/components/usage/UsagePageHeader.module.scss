@@ -3,7 +3,6 @@
   align-items: center;
   gap: var(--xai-space-4);
   padding: 0 0 var(--xai-space-6);
-  border-bottom: 1px solid var(--xai-border);
 }
 
 .header h1 {
@@ -21,6 +20,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--xai-space-3);
+  padding: 0;
 }
 
 .rangeField {
@@ -47,10 +47,12 @@
   width: 100%;
   min-height: var(--xai-space-8);
   padding: 0 var(--xai-space-3);
-  border: 1px solid var(--xai-border);
+  border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-control);
-  background: var(--xai-white);
-  box-shadow: none;
+  background: var(--xai-glass-control);
+  -webkit-backdrop-filter: blur(12px) saturate(116%);
+  backdrop-filter: blur(12px) saturate(116%);
+  box-shadow: var(--xai-glass-highlight);
   color: var(--xai-ink-console);
   font: 400 13.5px/18px var(--xai-font-ui);
   transition:
@@ -61,10 +63,12 @@
 .rangeDropdown {
   z-index: var(--xai-z-dropdown) !important;
   padding: var(--xai-space-2) !important;
-  border: 1px solid var(--xai-border) !important;
+  border: 1px solid var(--xai-glass-border) !important;
   border-radius: var(--xai-radius-panel) !important;
-  background: var(--xai-white) !important;
-  box-shadow: var(--xai-shadow-menu) !important;
+  background: var(--xai-glass-surface-strong) !important;
+  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  box-shadow: var(--xai-glass-shadow-float) !important;
 }
 
 .rangeDropdown :global(button[role='option']) {
@@ -87,10 +91,12 @@
   min-height: var(--xai-space-8);
   padding: 0 var(--xai-space-3);
   overflow: hidden;
-  border: 1px solid var(--xai-border-hover);
+  border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-pill);
-  background: var(--xai-white);
-  box-shadow: none;
+  background: var(--xai-glass-control);
+  -webkit-backdrop-filter: blur(12px) saturate(116%);
+  backdrop-filter: blur(12px) saturate(116%);
+  box-shadow: var(--xai-glass-highlight);
   color: var(--xai-ink-console);
   font: 500 13.5px/18px var(--xai-font-ui);
   text-overflow: ellipsis;

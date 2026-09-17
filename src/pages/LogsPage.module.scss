@@ -25,7 +25,12 @@
   width: fit-content;
   max-width: 100%;
   margin-bottom: var(--xai-space-3-5);
-  background: var(--mg-surface-subtle);
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 32%), transparent 54%),
+    var(--xai-glass-surface-soft);
+  -webkit-backdrop-filter: blur(14px) saturate(118%);
+  backdrop-filter: blur(14px) saturate(118%);
+  box-shadow: var(--xai-glass-highlight);
   overflow-x: auto;
   scrollbar-width: none;
 
@@ -179,9 +184,14 @@
   gap: 8px;
   flex: 1 1 100%;
   padding: 8px 10px;
-  background: var(--mg-surface-subtle);
-  border: 1px solid var(--mg-border);
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 28%), transparent 52%),
+    var(--xai-glass-surface-soft);
+  border: 1px solid var(--xai-glass-border-subtle);
   border-radius: var(--mg-radius-control);
+  -webkit-backdrop-filter: blur(14px) saturate(118%);
+  backdrop-filter: blur(14px) saturate(118%);
+  box-shadow: var(--xai-glass-highlight);
 }
 
 .filterChipGroup {
@@ -331,19 +341,24 @@
 }
 
 .logPanel {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--xai-radius-small);
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 28%), transparent 48%),
+    var(--xai-glass-surface-soft);
+  border: 1px solid var(--xai-glass-border);
+  border-radius: var(--xai-radius-panel);
+  -webkit-backdrop-filter: blur(16px) saturate(118%);
+  backdrop-filter: blur(16px) saturate(118%);
   box-shadow: var(--surface-inner-highlight);
   flex: 1 1 auto;
   min-height: 280px;
   max-height: calc(100vh - 320px);
   height: auto;
   overflow: auto;
-  position: relative;
   resize: vertical;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
   overscroll-behavior: contain;
   // 大量 log 行时，contain:strict 让滚动条 paint 只重绘列表本身
   contain: layout paint;
@@ -405,7 +420,9 @@
   gap: var(--xai-space-2);
   padding: 8px 12px;
   border-bottom: 1px solid var(--border-color);
-  background: var(--bg-primary);
+  background: var(--xai-glass-surface-strong);
+  -webkit-backdrop-filter: blur(12px) saturate(116%);
+  backdrop-filter: blur(12px) saturate(116%);
   color: var(--text-secondary);
   font-size: 12px;
 
@@ -878,6 +895,19 @@
   .filterChip {
     min-height: var(--mg-hit-area, 44px);
   }
+
+  .structuredFilters {
+    gap: var(--xai-space-3);
+    padding: var(--xai-space-3);
+  }
+
+  .filterChipList {
+    gap: var(--xai-space-2);
+  }
+
+  .logPanel {
+    border-radius: var(--xai-radius-control);
+  }
 }
 
 @media (max-height: 820px) {
@@ -953,5 +983,25 @@
 
   .errorPanel {
     height: 280px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tabBar,
+  .structuredFilters,
+  .logPanel,
+  .loadMoreBanner {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--xai-white);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .tabBar,
+  .structuredFilters,
+  .logPanel,
+  .loadMoreBanner {
+    background: var(--xai-white);
   }
 }

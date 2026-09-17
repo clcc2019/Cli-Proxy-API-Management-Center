@@ -35,15 +35,20 @@
 }
 
 .track {
-  width: var(--xai-space-8);
-  height: 20px;
-  background: var(--xai-fill-pressed);
-  border: 1px solid var(--xai-border-hover);
+  box-sizing: border-box;
+  width: 38px;
+  height: 22px;
+  background: var(--xai-glass-control);
+  border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-pill);
   position: relative;
+  -webkit-backdrop-filter: blur(10px) saturate(116%);
+  backdrop-filter: blur(10px) saturate(116%);
+  box-shadow: var(--xai-glass-highlight);
   transition:
     background var(--xai-duration-default),
-    border-color var(--xai-duration-default);
+    border-color var(--xai-duration-default),
+    box-shadow var(--xai-duration-default);
 }
 
 .thumb {
@@ -55,7 +60,7 @@
   background: var(--toggle-thumb-bg);
   border: 1px solid var(--toggle-thumb-border);
   border-radius: var(--xai-radius-pill);
-  box-shadow: none;
+  box-shadow: 0 3px 7px -5px rgb(15 23 42 / 44%), inset 0 1px 0 rgb(255 255 255 / 82%);
   transition:
     transform var(--xai-duration-default),
     background var(--xai-duration-default);
@@ -64,11 +69,15 @@
 .root input:checked + .track {
   background: var(--mg-sage-strong, var(--primary-color));
   border-color: color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 62%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 18%),
+    0 5px 14px -12px color-mix(in srgb, var(--mg-sage-strong, var(--primary-color)) 62%, transparent);
 }
 
 .root input:focus-visible + .track {
   outline: 1px solid var(--mg-focus-outline);
   outline-offset: 3px;
+  box-shadow: var(--xai-glass-highlight), 0 0 0 3px var(--mg-focus-ring);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -159,6 +168,21 @@
   .track,
   .thumb {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .track {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--xai-white);
+    box-shadow: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .track {
+    background: var(--xai-white);
   }
 }
 

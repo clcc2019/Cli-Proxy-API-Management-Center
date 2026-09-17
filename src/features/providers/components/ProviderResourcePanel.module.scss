@@ -4,7 +4,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  background: var(--xai-white);
+  background: transparent;
 }
 
 .header {
@@ -14,7 +14,11 @@
   justify-content: space-between;
   gap: var(--xai-space-3);
   padding: var(--xai-space-3) var(--xai-space-4);
-  border-bottom: 1px solid var(--xai-border);
+  border-bottom: 1px solid var(--xai-glass-border);
+  background: var(--xai-glass-surface-soft);
+  -webkit-backdrop-filter: blur(14px) saturate(116%);
+  backdrop-filter: blur(14px) saturate(116%);
+  box-shadow: var(--xai-glass-highlight);
 }
 
 .searchWrap {
@@ -36,11 +40,14 @@
   border: 1px solid var(--xai-border);
   border-radius: var(--xai-radius-control);
   outline: 0;
-  background: var(--xai-white);
+  background: var(--xai-glass-control);
   color: var(--xai-ink);
   font-family: var(--xai-font-ui);
   font-size: 13px;
   box-sizing: border-box;
+  -webkit-backdrop-filter: blur(12px) saturate(116%);
+  backdrop-filter: blur(12px) saturate(116%);
+  box-shadow: var(--xai-glass-highlight);
   transition:
     border-color var(--xai-duration-default) var(--xai-ease-standard),
     background-color var(--xai-duration-default) var(--xai-ease-standard);
@@ -130,7 +137,7 @@
   justify-content: center;
   gap: var(--xai-space-6);
   padding: var(--xai-space-12) var(--xai-space-6);
-  background: var(--xai-warm);
+  background: var(--xai-glass-surface-soft);
   box-sizing: border-box;
 }
 
@@ -264,5 +271,23 @@
   .searchInput,
   .emptyActionButton {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .header,
+  .searchInput,
+  .empty {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--xai-white);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .header,
+  .searchInput,
+  .empty {
+    background: var(--xai-white);
   }
 }

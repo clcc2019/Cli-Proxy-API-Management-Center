@@ -11,7 +11,9 @@
 .providerTableWrap {
   border: 0;
   border-radius: 0;
-  background: var(--xai-white);
+  background: var(--xai-glass-surface-soft);
+  -webkit-backdrop-filter: blur(14px) saturate(116%);
+  backdrop-filter: blur(14px) saturate(116%);
   box-shadow: none;
 }
 
@@ -151,12 +153,12 @@
 
 .actionsHead {
   z-index: 3;
-  background: var(--xai-warm);
+  background: var(--xai-glass-surface-soft);
 }
 
 .actionsCell {
   z-index: 2;
-  background: var(--xai-white);
+  background: var(--xai-glass-surface-strong);
 }
 
 .actions {

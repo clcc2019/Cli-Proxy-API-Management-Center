@@ -22,16 +22,18 @@
   :global(.input) {
     min-height: var(--xai-space-9);
     border-radius: var(--xai-radius-control);
-    background: var(--mg-surface);
-    border-color: var(--mg-border);
-    box-shadow: none;
+    background: var(--xai-glass-control);
+    border-color: var(--xai-glass-border);
+    -webkit-backdrop-filter: blur(14px) saturate(118%);
+    backdrop-filter: blur(14px) saturate(118%);
+    box-shadow: var(--xai-glass-highlight);
     font-size: 15.75px;
   }
 
   :global(.input:focus) {
-    background: var(--mg-surface);
-    border-color: var(--mg-border);
-    box-shadow: none;
+    background: var(--xai-glass-surface-strong);
+    border-color: var(--xai-glass-border);
+    box-shadow: var(--xai-glass-highlight);
   }
 
   :global(textarea.input) {
@@ -56,8 +58,11 @@
   :global(.item-row) {
     border-radius: var(--xai-radius-panel);
     padding: 14px 16px;
-    background: var(--mg-surface);
-    border-color: var(--mg-border);
+    background: var(--xai-glass-surface);
+    border-color: var(--xai-glass-border);
+    -webkit-backdrop-filter: blur(14px) saturate(118%);
+    backdrop-filter: blur(14px) saturate(118%);
+    box-shadow: var(--xai-glass-highlight);
 
     @include mobile {
       align-items: stretch;
@@ -182,7 +187,9 @@
   overflow: hidden;
   border: 1px solid var(--mg-border);
   border-radius: var(--xai-radius-card);
-  background: var(--mg-surface);
+  background: var(--xai-glass-surface-strong);
+  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
 }
 
 .sectionGrid {

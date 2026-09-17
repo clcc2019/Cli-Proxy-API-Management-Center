@@ -33,7 +33,7 @@
   padding: 0 12px;
   border: 1px solid var(--mg-border);
   border-radius: var(--mg-radius-control);
-  background: var(--mg-surface);
+  background: var(--xai-glass-control);
   color: var(--mg-text);
   font-size: 13px;
   font-weight: 500;
@@ -41,6 +41,9 @@
   appearance: none;
   text-align: left;
   box-sizing: border-box;
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--xai-glass-highlight);
   transition:
     border-color var(--motion-duration-fast) var(--motion-ease-standard),
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -62,13 +65,13 @@
     outline: 1px solid var(--mg-focus-outline);
     outline-offset: 3px;
     border-color: var(--mg-border);
-    box-shadow: none;
+    box-shadow: var(--xai-glass-highlight);
   }
 
   &[aria-expanded='true'] {
     border-color: var(--mg-border-strong);
     background: var(--mg-surface-pressed);
-    box-shadow: none;
+    box-shadow: var(--xai-glass-highlight), 0 0 0 3px var(--mg-focus-ring);
   }
 
   &:disabled {
@@ -103,11 +106,10 @@
 .dropdown {
   position: fixed;
   z-index: var(--mg-z-modal-popover);
-  background: var(--mg-surface);
-  border: 1px solid var(--mg-floating-border);
+  background: var(--xai-glass-surface-strong);
+  border: 1px solid var(--xai-glass-border);
   border-radius: var(--mg-radius-medium);
   padding: 6px;
-  box-shadow: var(--mg-shadow-float);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -115,6 +117,9 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  box-shadow: var(--xai-glass-shadow-float);
   animation: mg-popover-enter var(--motion-duration-fast, 140ms)
     var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
 }
@@ -160,10 +165,11 @@
 }
 
 .optionActive {
-  border-color: var(--mg-border);
+  border-color: var(--xai-glass-border);
   background: var(--mg-surface-selected);
   color: var(--mg-sage-strong);
   font-weight: 500;
+  box-shadow: var(--xai-glass-highlight);
 }
 
 .optionHighlighted {
@@ -184,5 +190,20 @@
   .dropdown {
     transition: none;
     animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .trigger,
+  .dropdown {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .trigger,
+  .dropdown {
+    background: var(--xai-white);
   }
 }

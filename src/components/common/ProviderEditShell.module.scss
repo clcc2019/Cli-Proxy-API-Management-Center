@@ -2,22 +2,27 @@
 @use '../../styles/mixins' as *;
 
 .modal {
-  border-color: var(--mg-border);
+  border-color: var(--xai-glass-border);
   border-radius: var(--mg-radius-card);
-  background: var(--mg-surface);
-  box-shadow: var(--mg-shadow-card);
+  background: var(--xai-glass-surface-strong);
+  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  box-shadow: var(--xai-shadow-dialog), var(--xai-glass-highlight);
 
   :global(.modal-header) {
     min-height: 56px;
     padding: var(--xai-space-3) var(--xai-space-12) var(--xai-space-3) var(--xai-space-4);
-    border-bottom-color: var(--mg-border);
-    background: var(--mg-surface);
+    border-bottom-color: var(--xai-glass-border);
+    background: var(--xai-glass-surface);
+    box-shadow: var(--xai-glass-highlight);
   }
 
   :global(.modal-body) {
     padding: var(--xai-space-5);
     max-height: min(74vh, calc(100vh - 164px));
-    background: var(--mg-surface-subtle);
+    background: var(--xai-glass-surface-soft);
+    -webkit-backdrop-filter: blur(12px) saturate(112%);
+    backdrop-filter: blur(12px) saturate(112%);
   }
 
   :global(.modal-footer) {
@@ -25,9 +30,9 @@
     bottom: 0;
     z-index: 2;
     padding: var(--xai-space-3) var(--xai-space-5);
-    border-top-color: var(--mg-border);
-    background: var(--mg-surface);
-    box-shadow: none;
+    border-top-color: var(--xai-glass-border);
+    background: var(--xai-glass-surface);
+    box-shadow: var(--xai-glass-highlight);
 
     :global(.btn.btn-sm) {
       min-height: var(--xai-space-9);
@@ -72,6 +77,24 @@
         min-height: var(--mg-hit-area, 44px);
       }
     }
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .modal,
+  .modal :global(.modal-body) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--xai-white);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .modal,
+  .modal :global(.modal-header),
+  .modal :global(.modal-body),
+  .modal :global(.modal-footer) {
+    background: var(--xai-white);
   }
 }
 

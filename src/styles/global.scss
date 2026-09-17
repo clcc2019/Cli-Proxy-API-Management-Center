@@ -15,7 +15,7 @@ body,
 }
 
 html {
-  background: var(--mg-canvas, #f7f7f7);
+  background: var(--mg-canvas, #ffffff);
   scroll-behavior: smooth;
 }
 
@@ -25,10 +25,9 @@ body {
   font-size: 13.5px;
   line-height: 1.5;
   letter-spacing: 0;
-  background:
-    radial-gradient(circle at 92% -8%, rgb(255 255 255 / 72%), transparent 34%),
-    radial-gradient(circle at -8% 20%, rgb(255 255 255 / 46%), transparent 38%),
-    var(--mg-canvas, #f7f7f7);
+  // The document canvas stays pure white. Ambient light is scoped to the app
+  // shell and glass surfaces so the page never reads as beige or dark.
+  background: var(--mg-canvas, #ffffff);
   color: var(--text-primary);
   transition:
     background-color var(--xai-duration-drawer),
@@ -110,6 +109,33 @@ html[data-input-modality='pointer'] :focus-visible {
   }
 }
 
+// The ambient layer is a single fixed compositor surface. It gives the glass
+// panels something to refract without repainting every scrolling page.
+@keyframes xai-ambient-drift {
+  0% {
+    transform: translate3d(-1.5%, -1%, 0) scale(1.04) rotate(-0.5deg);
+  }
+
+  50% {
+    transform: translate3d(1.5%, 1%, 0) scale(1.08) rotate(0.5deg);
+  }
+
+  100% {
+    transform: translate3d(-0.5%, 2%, 0) scale(1.06) rotate(-0.25deg);
+  }
+}
+
+@keyframes xai-glass-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -118,6 +144,46 @@ html[data-input-modality='pointer'] :focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --xai-glass-surface: var(--xai-white);
+    --xai-glass-surface-strong: var(--xai-white);
+    --xai-glass-surface-soft: var(--xai-surface-muted);
+    --xai-glass-control: var(--xai-white);
+    --xai-glass-border: var(--xai-border-hover);
+    --xai-glass-border-subtle: var(--xai-border);
+    --xai-glass-shadow: var(--xai-shadow-button);
+    --xai-glass-shadow-float: var(--xai-shadow-menu);
+    --xai-glass-blur: 0px;
+    --xai-glass-saturate: 100%;
+  }
+
+  .top-gradient-blur {
+    display: none !important;
+  }
+
+  .card,
+  .main-header .header-actions,
+  .modal,
+  .input,
+  textarea,
+  .btn.btn-secondary {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .card,
+  .main-header .header-actions,
+  .modal,
+  .input,
+  textarea,
+  .btn.btn-secondary {
+    background: var(--xai-white) !important;
   }
 }
 

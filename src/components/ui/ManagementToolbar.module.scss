@@ -1,13 +1,33 @@
 .toolbar {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(240px, 1fr) auto auto;
   align-items: center;
   gap: var(--mg-space-3);
   min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  padding: var(--xai-space-2) var(--xai-space-3);
+  border: 1px solid var(--xai-glass-border-subtle);
+  border-radius: var(--mg-radius-medium);
+  background: var(--xai-glass-surface-soft);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+  box-shadow: var(--xai-glass-highlight);
+
+  &::before {
+    position: absolute;
+    inset: 1px;
+    z-index: 0;
+    border-radius: calc(var(--mg-radius-medium) - 1px);
+    background: linear-gradient(135deg, rgb(255 255 255 / 34%), transparent 42%);
+    content: '';
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .primary,
@@ -64,5 +84,19 @@
   .toolbar button,
   .toolbar :global(.btn) {
     min-height: var(--mg-hit-area, 44px);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .toolbar {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--xai-white);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .toolbar {
+    background: var(--xai-white);
   }
 }

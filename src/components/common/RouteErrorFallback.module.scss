@@ -12,8 +12,12 @@
 .panel {
   width: min(100%, 540px);
   padding: var(--xai-space-7);
+  border: 1px solid var(--xai-glass-border);
   border-radius: var(--xai-radius-card);
-  background: var(--xai-warm);
+  background: var(--xai-glass-surface-strong);
+  -webkit-backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  backdrop-filter: blur(var(--xai-glass-blur)) saturate(var(--xai-glass-saturate));
+  box-shadow: var(--xai-glass-shadow);
 }
 
 .title {
@@ -77,5 +81,19 @@
 
   .action {
     min-height: var(--xai-space-12);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .panel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--xai-white);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .panel {
+    background: var(--xai-white);
   }
 }
