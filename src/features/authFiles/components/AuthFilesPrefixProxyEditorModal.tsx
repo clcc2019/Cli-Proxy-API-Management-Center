@@ -80,6 +80,11 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
     [t]
   );
   const editorControlsDisabled = Boolean(disableControls || editor?.saving || !editor?.json);
+  const codexTurnStateTicketDisabled = Boolean(
+    editorControlsDisabled ||
+    editor?.codexTurnStateTicketLoading ||
+    editor?.codexTurnStateTicketError
+  );
   const headersInvalid = Boolean(editor?.headersTouched && editor?.headersError);
   const saveDisabled =
     disableControls || editor?.saving === true || !dirty || !editor?.json || headersInvalid;
@@ -115,6 +120,10 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
   );
   const handleServiceTierPassthroughChange = useCallback(
     (value: boolean) => onChange('serviceTierPassthrough', value),
+    [onChange]
+  );
+  const handleCodexTurnStateTicketChange = useCallback(
+    (value: boolean) => onChange('codexTurnStateTicket', value),
     [onChange]
   );
   const handleExcludedModelsChange = useCallback(
@@ -308,6 +317,35 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                               disabled={editorControlsDisabled}
                               ariaLabel={t('auth_files.service_tier_passthrough_label')}
                               onChange={handleServiceTierPassthroughChange}
+                            />
+                          </div>
+                          <div
+                            className={styles.prefixProxySwitchField}
+                            title={t('auth_files.codex_turn_state_ticket_hint')}
+                          >
+                            <span className={styles.prefixProxySwitchFieldLabelGroup}>
+                              <span className={styles.prefixProxySwitchFieldLabel}>
+                                {t('auth_files.codex_turn_state_ticket_label')}
+                              </span>
+                              <span
+                                className={
+                                  editor.codexTurnStateTicketError
+                                    ? styles.prefixProxyFieldStatusError
+                                    : styles.prefixProxySwitchFieldHint
+                                }
+                              >
+                                {editor.codexTurnStateTicketError ??
+                                  (editor.codexTurnStateTicketLoading
+                                    ? t('auth_files.codex_turn_state_ticket_loading')
+                                    : t('auth_files.codex_turn_state_ticket_hint'))}
+                              </span>
+                            </span>
+                            <ToggleSwitch
+                              checked={Boolean(editor.codexTurnStateTicketEnabled)}
+                              disabled={codexTurnStateTicketDisabled}
+                              ariaBusy={editor.codexTurnStateTicketLoading}
+                              ariaLabel={t('auth_files.codex_turn_state_ticket_label')}
+                              onChange={handleCodexTurnStateTicketChange}
                             />
                           </div>
                           <div className={styles.prefixProxyFieldWide}>

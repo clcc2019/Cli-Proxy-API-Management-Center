@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { authFilesApi } from '@/services/api';
+import { authFilesApi, configFileApi } from '@/services/api';
 import { useNotificationStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import {
@@ -15,6 +15,13 @@ import {
   readCodexAuthFileWebsockets,
 } from '@/features/authFiles/constants';
 import { resolveAuthFileClientProfileMetadata } from '@/features/authFiles/clientProfileMetadata';
+import {
+  authFileMatchesCodexTurnStateTicketSelector,
+  isCodexAuthFile,
+  readCodexTurnStateTicketConfig,
+  selectCodexTurnStateTicketAuthFileSelector,
+  writeCodexTurnStateTicketConfig,
+} from '@/features/authFiles/codexTurnStateTicket';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =
@@ -67,6 +74,7 @@ export type PrefixProxyEditorField =
   | 'userAgent'
   | 'websockets'
   | 'serviceTierPassthrough'
+  | 'codexTurnStateTicket'
   | 'note'
   | 'headersText';
 
@@ -91,6 +99,10 @@ export type PrefixProxyEditorState = {
   userAgent: string;
   websockets: boolean;
   serviceTierPassthrough: boolean;
+  codexTurnStateTicketEnabled: boolean;
+  codexTurnStateTicketOriginalEnabled: boolean;
+  codexTurnStateTicketLoading: boolean;
+  codexTurnStateTicketError: string | null;
   note: string;
   noteTouched: boolean;
   headersText: string;
@@ -267,42 +279,43 @@ const applyBackendFieldFallbacks = (
   return next;
 };
 
-const normalizeAuthFileKind = (value: unknown) =>
-  String(value ?? '')
-    .trim()
-    .toLowerCase();
-
-const resolveIsCodexFile = (file: AuthFileItem): boolean => {
-  const normalizedType = normalizeAuthFileKind(file.type);
-  const normalizedProvider = normalizeAuthFileKind(file.provider);
-  return normalizedType === 'codex' || normalizedProvider === 'codex';
+type CodexTurnStateTicketLoadResult = {
+  enabled: boolean;
+  error: string | null;
 };
 
-const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => ({
-  file,
-  fileName: file.name,
-  isCodexFile: resolveIsCodexFile(file),
-  loading: true,
-  saving: false,
-  error: null,
-  originalText: '',
-  rawText: '',
-  json: null,
-  clientProfile: null,
-  prefix: '',
-  proxyUrl: '',
-  priority: '',
-  excludedModelsText: '',
-  disableCooling: '',
-  userAgent: '',
-  websockets: false,
-  serviceTierPassthrough: false,
-  note: '',
-  noteTouched: false,
-  headersText: '',
-  headersTouched: false,
-  headersError: null,
-});
+const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => {
+  const isCodexFile = isCodexAuthFile(file);
+  return {
+    file,
+    fileName: file.name,
+    isCodexFile,
+    loading: true,
+    saving: false,
+    error: null,
+    originalText: '',
+    rawText: '',
+    json: null,
+    clientProfile: null,
+    prefix: '',
+    proxyUrl: '',
+    priority: '',
+    excludedModelsText: '',
+    disableCooling: '',
+    userAgent: '',
+    websockets: false,
+    serviceTierPassthrough: false,
+    codexTurnStateTicketEnabled: false,
+    codexTurnStateTicketOriginalEnabled: false,
+    codexTurnStateTicketLoading: isCodexFile,
+    codexTurnStateTicketError: null,
+    note: '',
+    noteTouched: false,
+    headersText: '',
+    headersTouched: false,
+    headersError: null,
+  };
+};
 
 export const extractAuthFileAccessToken = (metadata: Record<string, unknown> | null): string => {
   if (!metadata) return '';
@@ -485,11 +498,16 @@ const buildLoadedPrefixProxyEditorState = (
   file: AuthFileItem,
   rawText: string,
   t: TFunction,
-  previous?: PrefixProxyEditorState | null
+  previous?: PrefixProxyEditorState | null,
+  ticket?: CodexTurnStateTicketLoadResult
 ): PrefixProxyEditorState => {
   const base = createEditorState(file);
   base.loading = false;
   base.saving = previous?.saving ?? false;
+  base.codexTurnStateTicketLoading = false;
+  base.codexTurnStateTicketEnabled = ticket?.enabled ?? false;
+  base.codexTurnStateTicketOriginalEnabled = base.codexTurnStateTicketEnabled;
+  base.codexTurnStateTicketError = ticket?.error ?? null;
 
   const trimmed = rawText.trim();
   let parsed: unknown;
@@ -553,9 +571,8 @@ const buildLoadedPrefixProxyEditorState = (
     headersTouched: false,
     headersError: derivedHeadersError,
   };
-  const originalText = buildPrefixProxyUpdatedText(
-    { ...base, json, ...derivedState },
-    (key) => t(key)
+  const originalText = buildPrefixProxyUpdatedText({ ...base, json, ...derivedState }, (key) =>
+    t(key)
   );
 
   if (!previous || previous.fileName !== file.name) {
@@ -583,6 +600,10 @@ const buildLoadedPrefixProxyEditorState = (
     userAgent: previous.userAgent,
     websockets: previous.websockets,
     serviceTierPassthrough: previous.serviceTierPassthrough,
+    codexTurnStateTicketEnabled: previous.codexTurnStateTicketEnabled,
+    codexTurnStateTicketOriginalEnabled: previous.codexTurnStateTicketOriginalEnabled,
+    codexTurnStateTicketLoading: previous.codexTurnStateTicketLoading,
+    codexTurnStateTicketError: previous.codexTurnStateTicketError,
     note: previous.note,
     noteTouched: previous.noteTouched,
     headersText: previous.headersText,
@@ -693,6 +714,91 @@ const buildPrefixProxyPatchPayload = (
   return payload;
 };
 
+const loadCodexTurnStateTicket = async (
+  file: AuthFileItem,
+  t: TFunction
+): Promise<CodexTurnStateTicketLoadResult> => {
+  if (!isCodexAuthFile(file)) {
+    return { enabled: false, error: null };
+  }
+
+  try {
+    const yamlContent = await configFileApi.fetchConfigYaml();
+    return {
+      enabled: readCodexTurnStateTicketConfig(yamlContent, file).enabledForFile,
+      error: null,
+    };
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? err.message : '';
+    return {
+      enabled: false,
+      error: `${t('auth_files.codex_turn_state_ticket_config_error')}${detail ? `: ${detail}` : ''}`,
+    };
+  }
+};
+
+const listCodexAuthFilesForTicket = async (): Promise<AuthFileItem[]> => {
+  const response = await authFilesApi.list({
+    codexSubscription: 'skip',
+    summary: true,
+    includeRecentRequests: false,
+    type: 'codex',
+  });
+  return response.files.filter(isCodexAuthFile);
+};
+
+const isSameAuthFile = (left: AuthFileItem, right: AuthFileItem): boolean => {
+  const leftId = String(left.id ?? '').trim();
+  const rightId = String(right.id ?? '').trim();
+  if (leftId && rightId) return leftId === rightId;
+  return left.name === right.name;
+};
+
+const saveCodexTurnStateTicket = async (
+  file: AuthFileItem,
+  enabledForFile: boolean
+): Promise<boolean> => {
+  const currentYaml = await configFileApi.fetchConfigYaml();
+  const currentConfig = readCodexTurnStateTicketConfig(currentYaml, file);
+  if (currentConfig.enabledForFile === enabledForFile) return false;
+
+  let nextEnabled = currentConfig.enabled;
+  let nextAuthFiles = [...currentConfig.authFiles];
+
+  if (enabledForFile) {
+    nextEnabled = true;
+    const selector = selectCodexTurnStateTicketAuthFileSelector(file);
+    if (!selector) {
+      throw new Error('The selected auth file has no usable identifier.');
+    }
+    if (
+      !nextAuthFiles.some((configured) =>
+        authFileMatchesCodexTurnStateTicketSelector(file, configured)
+      )
+    ) {
+      nextAuthFiles.push(selector);
+    }
+  } else if (currentConfig.enabled) {
+    if (nextAuthFiles.length === 0) {
+      const allCodexFiles = await listCodexAuthFilesForTicket();
+      nextAuthFiles = allCodexFiles
+        .filter((candidate) => !isSameAuthFile(candidate, file))
+        .map(selectCodexTurnStateTicketAuthFileSelector)
+        .filter(Boolean);
+    } else {
+      nextAuthFiles = nextAuthFiles.filter(
+        (configured) => !authFileMatchesCodexTurnStateTicketSelector(file, configured)
+      );
+    }
+    nextEnabled = nextAuthFiles.length > 0;
+  }
+
+  const nextYaml = writeCodexTurnStateTicketConfig(currentYaml, nextEnabled, nextAuthFiles);
+  if (nextYaml === currentYaml) return false;
+  await configFileApi.saveConfigYaml(nextYaml);
+  return true;
+};
+
 const buildLocalPatchedAuthFile = (
   editor: PrefixProxyEditorState,
   remoteFile?: AuthFileItem
@@ -731,12 +837,7 @@ const buildLocalPatchedAuthFile = (
 export function useAuthFilesPrefixProxyEditor(
   options: UseAuthFilesPrefixProxyEditorOptions
 ): UseAuthFilesPrefixProxyEditorResult {
-  const {
-    disableControls,
-    applyLocalFilePatch,
-    refreshAuthFilesFromServer,
-    onDismiss,
-  } = options;
+  const { disableControls, applyLocalFilePatch, refreshAuthFilesFromServer, onDismiss } = options;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
@@ -767,13 +868,21 @@ export function useAuthFilesPrefixProxyEditor(
         : '',
     [hasBlockingValidationError, prefixProxyEditor, t]
   );
-  const prefixProxyDirty = useMemo(
+  const prefixProxyAuthFileDirty = useMemo(
     () =>
       Boolean(prefixProxyEditor?.json) &&
       Boolean(prefixProxyEditor?.originalText) &&
       (prefixProxyUpdatedText === '' || prefixProxyUpdatedText !== prefixProxyEditor?.originalText),
     [prefixProxyEditor, prefixProxyUpdatedText]
   );
+  const prefixProxyTicketDirty = useMemo(
+    () =>
+      Boolean(prefixProxyEditor?.isCodexFile) &&
+      prefixProxyEditor?.codexTurnStateTicketEnabled !==
+        prefixProxyEditor?.codexTurnStateTicketOriginalEnabled,
+    [prefixProxyEditor]
+  );
+  const prefixProxyDirty = prefixProxyAuthFileDirty || prefixProxyTicketDirty;
 
   const openPrefixProxyEditor = useCallback(
     async (file: AuthFileItem) => {
@@ -791,11 +900,14 @@ export function useAuthFilesPrefixProxyEditor(
       setPrefixProxyEditor(createEditorState(file));
 
       try {
-        const rawText = await authFilesApi.previewText(name);
+        const [rawText, ticket] = await Promise.all([
+          authFilesApi.previewText(name),
+          loadCodexTurnStateTicket(file, t),
+        ]);
         if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
         setPrefixProxyEditor((prev) => {
           if (!prev || prev.fileName !== name) return prev;
-          return buildLoadedPrefixProxyEditorState(file, rawText, t);
+          return buildLoadedPrefixProxyEditorState(file, rawText, t, undefined, ticket);
         });
       } catch (err: unknown) {
         if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
@@ -866,6 +978,12 @@ export function useAuthFilesPrefixProxyEditor(
             ? prev
             : { ...prev, serviceTierPassthrough: nextValue };
         }
+        if (field === 'codexTurnStateTicket') {
+          const nextValue = Boolean(value);
+          return prev.codexTurnStateTicketEnabled === nextValue
+            ? prev
+            : { ...prev, codexTurnStateTicketEnabled: nextValue };
+        }
         if (field === 'note') {
           const nextValue = String(value);
           return prev.note === nextValue && prev.noteTouched
@@ -892,19 +1010,23 @@ export function useAuthFilesPrefixProxyEditor(
 
   const handlePrefixProxySave = useCallback(async () => {
     const current = prefixProxyEditorRef.current;
-    if (!current?.json || !prefixProxyDirty) return;
+    if (!current || (!prefixProxyAuthFileDirty && !prefixProxyTicketDirty)) return;
 
-    let payload: Parameters<typeof authFilesApi.patchFields>[0];
-    try {
-      payload = buildPrefixProxyPatchPayload(current, (key) => t(key));
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Invalid format';
-      setPrefixProxyEditor((prev) => (prev ? { ...prev, error: errorMessage } : prev));
-      showNotification(errorMessage, 'error');
-      return;
+    let payload: Parameters<typeof authFilesApi.patchFields>[0] = { name: current.fileName };
+    if (prefixProxyAuthFileDirty) {
+      if (!current.json) return;
+      try {
+        payload = buildPrefixProxyPatchPayload(current, (key) => t(key));
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Invalid format';
+        setPrefixProxyEditor((prev) => (prev ? { ...prev, error: errorMessage } : prev));
+        showNotification(errorMessage, 'error');
+        return;
+      }
     }
 
-    if (Object.keys(payload).length === 1) {
+    const shouldSaveAuthFile = Object.keys(payload).length > 1;
+    if (!shouldSaveAuthFile && !prefixProxyTicketDirty) {
       dismissPrefixProxyEditor();
       return;
     }
@@ -917,30 +1039,52 @@ export function useAuthFilesPrefixProxyEditor(
     });
 
     try {
-      const response = await authFilesApi.patchFields(payload);
+      let ticketSaved = false;
+      if (prefixProxyTicketDirty) {
+        ticketSaved = await saveCodexTurnStateTicket(
+          current.file,
+          current.codexTurnStateTicketEnabled
+        );
+      }
+
+      let response: Awaited<ReturnType<typeof authFilesApi.patchFields>> | null = null;
+      if (shouldSaveAuthFile) {
+        response = await authFilesApi.patchFields(payload);
+      }
       if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
-      applyLocalFilePatch(fileName, buildLocalPatchedAuthFile(current, response.file));
-      await refreshAuthFilesFromServer?.();
+      if (response) {
+        applyLocalFilePatch(fileName, buildLocalPatchedAuthFile(current, response.file));
+        await refreshAuthFilesFromServer?.();
+      }
       if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
       dismissPrefixProxyEditor();
-      showNotification(t('auth_files.prefix_proxy_saved_success', { name: fileName }), 'success');
+      if (shouldSaveAuthFile) {
+        showNotification(t('auth_files.prefix_proxy_saved_success', { name: fileName }), 'success');
+      }
+      if (ticketSaved || prefixProxyTicketDirty) {
+        showNotification(
+          t('auth_files.codex_turn_state_ticket_saved_success', { name: fileName }),
+          'success'
+        );
+      }
     } catch (err: unknown) {
       if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
       const errorMessage = err instanceof Error ? err.message : '';
-      showNotification(`${t('notification.upload_failed')}: ${errorMessage}`, 'error');
+      showNotification(`${t('notification.save_failed')}: ${errorMessage}`, 'error');
       setPrefixProxyEditor((prev) => {
         if (!prev || prev.fileName !== fileName) return prev;
         return {
           ...prev,
           saving: false,
-          error: `${t('notification.upload_failed')}: ${errorMessage}`,
+          error: `${t('notification.save_failed')}: ${errorMessage}`,
         };
       });
     }
   }, [
     applyLocalFilePatch,
     dismissPrefixProxyEditor,
-    prefixProxyDirty,
+    prefixProxyAuthFileDirty,
+    prefixProxyTicketDirty,
     refreshAuthFilesFromServer,
     showNotification,
     t,
