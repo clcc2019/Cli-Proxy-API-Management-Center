@@ -41,6 +41,8 @@
   align-items: start;
   gap: var(--xai-space-4) var(--xai-space-6);
   margin: 0 0 var(--xai-space-4);
+  padding: 2px 0 0;
+  border-bottom: 0;
 }
 
 .page .headerActions {
@@ -52,7 +54,7 @@
   padding: 4px;
   border: 1px solid var(--mg-border);
   border-radius: var(--xai-radius-pill);
-  background: var(--mg-surface);
+  background: color-mix(in srgb, var(--mg-surface-muted) 74%, var(--mg-surface));
   box-shadow: var(--mg-shadow-rest);
 }
 
@@ -966,6 +968,8 @@
   padding: 0;
   overflow: visible;
   contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 560px;
 }
 
 .page .cardGridQuotaManaged {
@@ -2107,21 +2111,21 @@
 }
 
 .page .quotaRowHigh .quotaPercent {
-  border-color: color-mix(in srgb, var(--mg-success-text) 24%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-success-text) 7%, var(--mg-surface));
-  color: var(--mg-success-text);
+  border-color: color-mix(in srgb, #287a5b 34%, var(--mg-border));
+  background: color-mix(in srgb, #287a5b 9%, var(--mg-surface));
+  color: #236b50;
 }
 
 .page .quotaRowMedium .quotaPercent {
-  border-color: color-mix(in srgb, var(--mg-orange) 26%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-orange) 7%, var(--mg-surface));
-  color: var(--mg-orange);
+  border-color: color-mix(in srgb, #b88735 38%, var(--mg-border));
+  background: color-mix(in srgb, #b88735 10%, var(--mg-surface));
+  color: #896525;
 }
 
 .page .quotaRowLow .quotaPercent {
-  border-color: color-mix(in srgb, var(--mg-danger) 24%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-danger) 7%, var(--mg-surface));
-  color: var(--mg-danger);
+  border-color: color-mix(in srgb, #bd5d55 34%, var(--mg-border));
+  background: color-mix(in srgb, #bd5d55 9%, var(--mg-surface));
+  color: #9f4e48;
 }
 
 .page .quotaRowUnknown .quotaPercent {
@@ -2145,7 +2149,8 @@
   height: 5px;
   overflow: hidden;
   border-radius: 3px;
-  background: color-mix(in srgb, var(--mg-text-muted) 18%, var(--mg-surface-subtle));
+  background: #e5e5e3;
+  box-shadow: inset 0 1px 1px rgb(32 33 35 / 7%);
 }
 
 .page .quotaBarFill {
@@ -2161,15 +2166,15 @@
 }
 
 .page .quotaBarFillHigh {
-  background: var(--mg-success-fill);
+  background: linear-gradient(90deg, #236b50 0%, #287a5b 52%, #3a8b6b 100%);
 }
 
 .page .quotaBarFillMedium {
-  background: var(--mg-orange);
+  background: linear-gradient(90deg, #896525 0%, #b88735 52%, #c89b4f 100%);
 }
 
 .page .quotaBarFillLow {
-  background: var(--mg-danger);
+  background: linear-gradient(90deg, #9f4e48 0%, #bd5d55 52%, #cc7168 100%);
 }
 
 .page .quotaBarFillUnknown {
@@ -5474,4 +5479,411 @@
   .page .credentialCard .cardRefresh {
     min-height: 44px;
   }
+}
+
+.page .ticketRefresh {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  z-index: 2;
+}
+
+.page .ticketRefreshButton {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 3px;
+}
+
+.page .ticketRefreshResult {
+  max-width: 140px;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+  &[data-state='success'] { color: var(--success-color, #16834a); }
+  &:empty { display: none; }
+}
+
+.page .ticketErrorTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 2px 4px;
+  background: var(--xai-danger-soft);
+  color: var(--mg-danger);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--mg-motion-standard), border-color var(--mg-motion-standard);
+
+  &[aria-expanded='true'] {
+    border-color: var(--xai-danger-border);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: color-mix(in srgb, var(--mg-danger) 15%, var(--mg-surface));
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mg-focus-outline);
+    outline-offset: 2px;
+  }
+}
+
+// The popover is portaled to document.body, outside .page.
+.ticketErrorPopover {
+  padding: 0;
+  border: 1px solid var(--xai-danger-border);
+  border-radius: var(--mg-radius-control);
+  background: var(--mg-surface);
+  box-shadow: var(--xai-shadow-menu);
+  color: var(--mg-danger);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.ticketErrorHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--xai-danger-soft);
+  border-bottom: 1px solid var(--xai-danger-border);
+
+  > svg { flex-shrink: 0; }
+  strong { flex: 1; font-weight: 600; }
+}
+
+.ticketErrorClose {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mg-text-secondary);
+  cursor: pointer;
+
+  &:hover { background: var(--mg-surface-hover); }
+  &:focus-visible { outline: 2px solid var(--mg-focus-outline); outline-offset: 2px; }
+}
+
+.ticketErrorDetail {
+  padding: 12px 14px 16px;
+  color: var(--mg-text);
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+@media (pointer: coarse) {
+  .page .ticketErrorTrigger,
+  .page .ticketRefreshButton,
+  .ticketErrorClose {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+// Mobile density pass: keep the auth-files workbench compact while retaining
+// enough space for reliable touch interaction.
+@media (max-width: 560px) {
+  .page {
+    gap: 12px;
+  }
+
+  .page .pageHeader {
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+
+  .page .headerActions {
+    gap: 4px;
+    padding: 3px;
+  }
+
+  .page .headerAction:global(.btn.btn-sm) {
+    min-height: 38px;
+    height: 38px;
+    padding-inline: 9px;
+    font-size: 12px;
+  }
+
+  .page .headerActionIcon {
+    width: 14px;
+    height: 14px;
+    flex-basis: 14px;
+  }
+
+  .page .filterToolbar {
+    gap: 8px;
+    padding: 0 10px 10px;
+  }
+
+  .page .searchInput {
+    height: 38px;
+    min-height: 38px;
+  }
+
+  .page .credentialCard {
+    min-height: 0;
+    padding: 12px 12px 10px;
+    border-radius: var(--mg-radius-panel);
+  }
+
+  .page .cardMain {
+    gap: 9px;
+  }
+
+  .page .cardHeader,
+  .page .cardTitleRow {
+    gap: 7px;
+  }
+
+  .page .providerBadge {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+    border-radius: 8px;
+  }
+
+  .page .credentialCard .cardStatusControl,
+  .page .credentialCard .cardStatusToggle,
+  .page .credentialCard .cardRefresh {
+    min-height: 28px;
+  }
+
+  .page .credentialCard .cardToggleSwitch {
+    --card-toggle-track-width: 48px;
+    --card-toggle-thumb-size: 18px;
+    --toggle-thumb-shift: calc(var(--card-toggle-track-width) - var(--card-toggle-thumb-size) - 5px);
+    min-height: 26px;
+  }
+
+  .page .credentialCard .cardToggleSwitch > span:first-of-type {
+    width: 48px;
+    min-width: 48px;
+    height: 24px;
+    min-height: 24px;
+    padding-right: 5px;
+    padding-left: 23px;
+  }
+
+  .page .credentialCard .cardToggleSwitch > input:checked + span:first-of-type {
+    padding-right: 23px;
+    padding-left: 5px;
+  }
+
+  .page .credentialCard .cardToggleSwitch > span:first-of-type > span:last-child {
+    top: 2px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .page .credentialCard .cardActions {
+    gap: 5px;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm),
+  .page .credentialCard .promotionPlanButton:global(.btn.btn-sm) {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    flex-basis: 36px;
+    border-radius: 9px;
+  }
+
+  .page .credentialCard .cardActionButton svg,
+  .page .credentialCard .cardActionButton :global(.loading-spinner) {
+    width: 15px !important;
+    height: 15px !important;
+    flex-basis: 15px;
+  }
+
+  .batchBar :global(.btn.btn-sm) {
+    min-height: 38px;
+    padding-inline: 10px;
+    border-radius: var(--xai-radius-control);
+  }
+
+  .batchSelection {
+    min-height: 38px;
+    padding-inline: 10px;
+    border-radius: var(--xai-radius-control);
+  }
+}
+
+@media (max-width: 768px) {
+  .page .cardGrid,
+  .page .cardGridQuotaManaged {
+    contain-intrinsic-size: auto 420px;
+  }
+}
+
+// Final color pass: keep state colors semantic and soften the metrics surface
+// so the middle of each credential card reads as a quiet data panel instead
+// of a large gray block.
+.page {
+  --auth-metrics-surface: color-mix(in srgb, var(--mg-surface) 88%, var(--mg-canvas));
+  --auth-metrics-border: color-mix(in srgb, var(--mg-border) 76%, var(--mg-surface));
+  --auth-status-success: #2f7a61;
+  --auth-status-success-soft: color-mix(in srgb, var(--auth-status-success) 10%, var(--mg-surface));
+  --auth-status-success-border: color-mix(in srgb, var(--auth-status-success) 28%, var(--mg-border));
+  --auth-status-warning: #a87432;
+  --auth-status-warning-soft: color-mix(in srgb, var(--auth-status-warning) 10%, var(--mg-surface));
+  --auth-status-warning-border: color-mix(in srgb, var(--auth-status-warning) 30%, var(--mg-border));
+  --auth-status-danger: #b65d57;
+  --auth-status-danger-soft: color-mix(in srgb, var(--auth-status-danger) 9%, var(--mg-surface));
+  --auth-status-danger-border: color-mix(in srgb, var(--auth-status-danger) 28%, var(--mg-border));
+}
+
+.page .metricsPanel {
+  border-color: var(--auth-metrics-border);
+  background: var(--auth-metrics-surface);
+}
+
+.page .statusBlocks {
+  background: color-mix(in srgb, var(--mg-surface) 74%, transparent);
+}
+
+.page .statusRateHigh,
+.page .quotaRowHigh .quotaPercent {
+  border-color: var(--auth-status-success-border);
+  background: var(--auth-status-success-soft);
+  color: var(--auth-status-success);
+}
+
+.page .statusRateMedium,
+.page .quotaRowMedium .quotaPercent {
+  border-color: var(--auth-status-warning-border);
+  background: var(--auth-status-warning-soft);
+  color: var(--auth-status-warning);
+}
+
+.page .statusRateLow,
+.page .quotaRowLow .quotaPercent {
+  border-color: var(--auth-status-danger-border);
+  background: var(--auth-status-danger-soft);
+  color: var(--auth-status-danger);
+}
+
+.page .quotaRowUnknown .quotaPercent {
+  border-color: var(--auth-metrics-border);
+  background: color-mix(in srgb, var(--mg-surface) 72%, transparent);
+  color: var(--mg-text-tertiary);
+}
+
+.page .quotaBar {
+  background: color-mix(in srgb, var(--mg-border) 54%, var(--mg-surface));
+}
+
+.page .quotaBarFillHigh {
+  background: linear-gradient(90deg, #2b715a 0%, #39866a 100%);
+}
+
+.page .quotaBarFillMedium {
+  background: linear-gradient(90deg, #9a6f2f 0%, #b98942 100%);
+}
+
+.page .quotaBarFillLow {
+  background: linear-gradient(90deg, #a95751 0%, #be6b64 100%);
+}
+
+.page .freePlanValue {
+  border-color: var(--auth-status-success-border);
+  background: var(--auth-status-success-soft);
+  color: var(--auth-status-success);
+}
+
+.page .premiumPlanValue {
+  border-color: var(--auth-status-warning-border);
+  background: var(--auth-status-warning-soft);
+  color: var(--auth-status-warning);
+}
+
+// Keep the page header open and let the actions read as individual floating
+// controls instead of a second container nested inside the header.
+.page .headerActions {
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page .headerAction:global(.btn.btn-sm) {
+  border-radius: var(--mg-radius-control);
+  box-shadow:
+    0 6px 14px -10px rgb(32 33 35 / 42%),
+    0 1px 2px rgb(32 33 35 / 8%);
+  transition:
+    border-color var(--mg-motion-fast) var(--mg-ease-standard),
+    background-color var(--mg-motion-fast) var(--mg-ease-standard),
+    box-shadow var(--mg-motion-fast) var(--mg-ease-standard),
+    color var(--mg-motion-fast) var(--mg-ease-standard),
+    transform var(--mg-motion-fast) var(--mg-ease-emphasis);
+}
+
+.page .headerActions .headerAction:global(.btn.btn-secondary) {
+  border-color: var(--mg-border);
+  background: var(--mg-surface);
+  color: var(--mg-text-secondary);
+}
+
+.page .headerActions .headerAction:global(.btn.btn-secondary):hover:not(:disabled),
+.page .headerActions .uploadAction:global(.btn.btn-sm):hover:not(:disabled),
+.page .headerActions .dangerAction:global(.btn.btn-danger):hover:not(:disabled) {
+  box-shadow:
+    0 10px 18px -11px rgb(32 33 35 / 46%),
+    0 2px 4px rgb(32 33 35 / 10%);
+  transform: translateY(-1px);
+}
+
+.page .headerActions .headerAction:global(.btn.btn-secondary):active:not(:disabled),
+.page .headerActions .uploadAction:global(.btn.btn-sm):active:not(:disabled),
+.page .headerActions .dangerAction:global(.btn.btn-danger):active:not(:disabled) {
+  box-shadow: 0 2px 5px -3px rgb(32 33 35 / 34%);
+  transform: translateY(1px) scale(0.985);
+}
+
+.page .headerActions .dangerAction:global(.btn.btn-danger) {
+  margin-left: 0;
+  border: 1px solid color-mix(in srgb, var(--mg-danger) 24%, var(--mg-border));
+  background: var(--mg-surface);
+  color: var(--mg-danger);
+}
+
+.page .metricsPanel {
+  background: color-mix(in srgb, var(--mg-surface) 96%, var(--mg-canvas));
+}
+
+// The shared ManagementPageHeader brings a generic divider/padding treatment.
+// Auth files uses an open header, so explicitly flatten that shared shell here.
+.page .pageHeader {
+  margin-bottom: var(--xai-space-5);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page .pageHeader::before,
+.page .pageHeader::after {
+  display: none;
 }

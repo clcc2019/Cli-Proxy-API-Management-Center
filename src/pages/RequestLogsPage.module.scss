@@ -16,9 +16,11 @@
   --request-sage: var(--mg-sage);
   --request-sage-strong: var(--mg-sage-strong);
   --request-sage-soft: var(--mg-sage-soft);
-  --request-latency: var(--mg-teal);
-  --request-success: var(--mg-success);
-  --request-warning: var(--mg-warning);
+  // Page-scoped semantic palette; the global console theme stays neutral.
+  --request-info: #365f86;
+  --request-latency: #266e69;
+  --request-success: #276a4c;
+  --request-warning: #855c20;
   --request-danger: var(--mg-danger);
   --request-focus: color-mix(in srgb, var(--request-sage-strong) 42%, transparent);
   --request-radius-panel: var(--xai-radius-panel);
@@ -29,9 +31,9 @@
   --request-col-endpoint: 160px;
   --request-col-client-ip: 124px;
   --request-col-api-key: 96px;
-  --request-col-model: 190px;
+  --request-col-model: 240px;
   --request-col-credential: 240px;
-  --request-col-status: 260px;
+  --request-col-status: 210px;
   --request-col-tokens: 88px;
   --request-col-cost: 80px;
   --request-row-gap: var(--xai-space-3);
@@ -69,7 +71,7 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: visible;
+  overflow: hidden;
   border: 1px solid var(--request-border);
   border-radius: var(--mg-radius-card);
   background: var(--request-surface);
@@ -86,6 +88,7 @@
   gap: var(--xai-space-1-5);
   padding: var(--xai-space-4);
   border-right: 1px solid var(--request-border);
+  background: var(--request-surface);
 
   &:last-child {
     border-right: 0;
@@ -143,7 +146,7 @@
   position: relative;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--request-border);
+  border: 1px solid color-mix(in srgb, var(--request-info) 13%, var(--request-border));
   border-radius: var(--mg-radius-card);
   background: var(--request-surface);
   box-shadow: var(--mg-shadow-rest);
@@ -156,7 +159,7 @@
   border: 0;
   border-bottom: 1px solid var(--request-border);
   border-radius: 0;
-  background: var(--request-surface);
+  background: color-mix(in srgb, var(--request-info) 3%, var(--request-surface));
   box-shadow: none;
 
   &::before {
@@ -238,9 +241,17 @@
 }
 
 .statusFilterButtonActive {
-  background: var(--request-surface);
-  color: var(--request-text);
+  background: color-mix(in srgb, var(--request-info) 9%, var(--request-surface));
+  color: var(--request-info);
   box-shadow: var(--xai-shadow-button);
+}
+
+.statusFilterSuccess:not(.statusFilterButtonActive) svg {
+  color: var(--request-success);
+}
+
+.statusFilterFailed:not(.statusFilterButtonActive) svg {
+  color: var(--request-danger);
 }
 
 .statusFilterCount {
@@ -289,7 +300,7 @@
   padding: 0 var(--xai-space-2) 0 var(--xai-space-2-5);
   border: 1px solid var(--request-border);
   border-radius: var(--xai-radius-control);
-  background: var(--request-surface-warm);
+  background: color-mix(in srgb, var(--request-info) 3%, var(--request-surface));
   color: var(--request-text-tertiary);
   transition:
     border-color var(--xai-duration-default),
@@ -301,9 +312,9 @@
   }
 
   &:focus-within {
-    border-color: var(--request-border);
+    border-color: color-mix(in srgb, var(--request-info) 45%, var(--request-border));
     background: var(--request-surface);
-    outline: 1px solid var(--request-focus);
+    outline: 1px solid color-mix(in srgb, var(--request-info) 35%, transparent);
     outline-offset: 2px;
     box-shadow: none;
   }
@@ -412,9 +423,9 @@
   }
 
   &:hover:not(:disabled) {
-    border-color: var(--request-text-muted);
-    background: var(--request-surface-subtle);
-    color: var(--request-text);
+    border-color: color-mix(in srgb, var(--request-info) 30%, var(--request-border));
+    background: color-mix(in srgb, var(--request-info) 7%, var(--request-surface));
+    color: var(--request-info);
   }
 }
 
@@ -453,7 +464,7 @@
   gap: var(--request-row-gap);
   padding: 9px var(--request-row-padding-x);
   border-bottom: 1px solid var(--request-border);
-  background: var(--request-surface-warm);
+  background: color-mix(in srgb, var(--request-info) 5%, var(--request-surface));
   color: var(--request-text-tertiary);
   font-size: 11px;
   font-weight: 500;
@@ -486,7 +497,7 @@
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--request-sage-soft) 28%, var(--request-surface));
+    background: color-mix(in srgb, var(--request-info) 5%, var(--request-surface));
   }
 
   &:focus-within {
@@ -571,7 +582,7 @@
 }
 
 .eventEndpointValue {
-  color: var(--request-text);
+  color: var(--request-info);
   font-weight: 500;
 }
 
@@ -593,6 +604,17 @@
 }
 
 .eventModel {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.eventModelPrimary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--xai-space-1) var(--xai-space-1-5);
   overflow: hidden;
 }
 
@@ -614,23 +636,47 @@
   white-space: nowrap;
 }
 
+.eventModelName {
+  font-family: var(--xai-font-mono);
+}
+
 .eventModelMeta {
   display: inline-flex;
   min-width: 0;
   max-width: 100%;
   min-height: 19px;
   flex: 0 0 auto;
+  width: fit-content;
   align-items: center;
   padding: 1px 5px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--request-text-tertiary) 22%, var(--request-border));
+  border: 1px solid color-mix(in srgb, var(--request-info) 22%, var(--request-border));
   border-radius: var(--xai-radius-micro);
-  background: var(--request-surface-subtle);
-  color: var(--request-text-secondary);
+  background: color-mix(in srgb, var(--request-info) 7%, var(--request-surface));
+  color: var(--request-info);
   font-size: 11px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  white-space: nowrap;
+}
+
+.eventModelDowngrade {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--xai-space-1);
+  overflow: hidden;
+  color: var(--request-warning);
+  font-family: var(--xai-font-mono);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.eventModelDowngradeTarget {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -760,9 +806,9 @@
 }
 
 .eventTtft {
-  border-color: color-mix(in srgb, var(--request-text-tertiary) 18%, var(--request-border));
-  background: var(--request-surface-warm);
-  color: var(--request-text-secondary);
+  border-color: color-mix(in srgb, var(--request-info) 20%, var(--request-border));
+  background: color-mix(in srgb, var(--request-info) 6%, var(--request-surface));
+  color: var(--request-info);
 }
 
 .eventLatencyDot {
@@ -1146,7 +1192,7 @@
 
   .eventListHeader > :first-child {
     z-index: 3;
-    background: var(--request-surface-warm);
+    background: color-mix(in srgb, var(--request-info) 5%, var(--request-surface));
   }
 
   .eventTime {
@@ -1159,7 +1205,7 @@
   }
 
   .eventRow:hover .eventTime {
-    background: color-mix(in srgb, var(--request-sage-soft) 28%, var(--request-surface));
+    background: color-mix(in srgb, var(--request-info) 5%, var(--request-surface));
   }
 
   .emptyState {

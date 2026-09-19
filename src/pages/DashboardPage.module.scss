@@ -645,6 +645,32 @@
   }
 }
 
+// On narrow phones two statistic columns make labels wrap into tall, uneven
+// cells. A single readable column keeps the dashboard scannable and leaves
+// enough room for the value and arrow affordance.
+@media (max-width: 420px) {
+  .bentoGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bentoCard,
+  .bentoCard:nth-child(2n),
+  .bentoCard:nth-child(2n + 1) {
+    min-height: 116px;
+    border-right: 0;
+    border-bottom: 1px solid var(--xai-border-subtle);
+  }
+
+  .bentoCard:last-child {
+    border-bottom: 0;
+  }
+
+  .heroStatus {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 @keyframes loading-pulse {
   0%,
   100% {

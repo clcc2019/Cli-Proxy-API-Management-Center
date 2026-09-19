@@ -258,6 +258,13 @@ textarea {
     min-height: var(--mg-hit-area);
   }
 
+  // Compact actions keep the larger hit area for primary controls while
+  // avoiding oversized toolbars on narrow screens.
+  .btn.btn-sm:not(.icon-button) {
+    min-height: 38px;
+    padding-block: 8px;
+  }
+
   .btn.icon-button,
   .btn.icon-button.btn-sm {
     width: var(--mg-hit-area);
@@ -356,21 +363,43 @@ textarea {
     box-shadow var(--motion-duration-base) var(--motion-ease-standard),
     transform var(--motion-duration-fast) var(--motion-ease-out);
 
+  // A quiet top highlight gives the surface a clear light direction without
+  // turning every card into a glossy panel.
+  &::before {
+    position: absolute;
+    top: 0;
+    right: var(--xai-space-5);
+    left: var(--xai-space-5);
+    height: 1px;
+    border-radius: var(--xai-radius-pill);
+    background: color-mix(in srgb, var(--xai-white) 76%, transparent);
+    content: '';
+    pointer-events: none;
+    opacity: 0.9;
+  }
+
   &.card-interactive {
     cursor: pointer;
   }
 
-  &.card-interactive:hover {
-    border-color: var(--surface-card-border-hover, var(--border-hover));
-    background: var(--xai-fill-soft);
-    box-shadow: var(--mg-shadow-card);
-    transform: translateY(-2px);
+  @media (hover: hover) and (pointer: fine) {
+    &.card-interactive:hover {
+      border-color: var(--surface-card-border-hover, var(--border-hover));
+      background: var(--xai-fill-soft);
+      box-shadow: var(--mg-shadow-card);
+      transform: translateY(-2px);
+    }
   }
 
   &.card-interactive:active {
     background: var(--xai-fill-hover);
     box-shadow: var(--xai-shadow-button);
     transform: translateY(1px);
+  }
+
+  &:has(:focus-visible) {
+    border-color: var(--mg-border-strong);
+    box-shadow: 0 0 0 3px var(--mg-focus-ring), var(--mg-shadow-rest);
   }
 }
 
@@ -391,6 +420,10 @@ textarea {
   border: none;
   box-shadow: none;
   padding: 0;
+
+  &::before {
+    content: none;
+  }
 
   &:hover {
     box-shadow: none;
@@ -1066,10 +1099,17 @@ textarea {
     box-shadow var(--motion-duration-base) var(--motion-ease-standard),
     transform var(--motion-duration-base) var(--motion-ease-standard);
 
-  &:hover {
-    border-color: var(--border-hover);
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-1px);
+  &:has(:focus-visible) {
+    border-color: var(--mg-border-strong);
+    box-shadow: 0 0 0 3px var(--mg-focus-ring), var(--mg-shadow-rest);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:has(:focus-visible)) {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-1px);
+    }
   }
 
   .item-meta {
@@ -1190,10 +1230,17 @@ textarea {
     box-shadow var(--motion-duration-base) var(--motion-ease-standard),
     transform var(--motion-duration-base) var(--motion-ease-standard);
 
-  &:hover {
-    border-color: var(--border-hover);
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-1px);
+  &:has(:focus-visible) {
+    border-color: var(--mg-border-strong);
+    box-shadow: 0 0 0 3px var(--mg-focus-ring), var(--mg-shadow-rest);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:has(:focus-visible)) {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-1px);
+    }
   }
 
   .stat-label {

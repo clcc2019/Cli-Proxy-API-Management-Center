@@ -231,6 +231,10 @@ export default defineConfig(({ command, mode }) => {
   const performanceBuild = mode === 'performance';
 
   return {
+    // Serve split assets from the site root so direct navigation to nested
+    // management routes cannot resolve them relative to the current pathname.
+    // The single-file release inlines all assets and is unaffected by this.
+    base: singleFileBuild ? './' : '/',
     plugins: [
       createDevManagementProxy(),
       react(),

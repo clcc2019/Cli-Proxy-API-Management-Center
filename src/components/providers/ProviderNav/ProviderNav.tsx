@@ -304,7 +304,13 @@ export function ProviderNav() {
               aria-label={provider.label}
               aria-pressed={isActive}
             >
-              <img src={provider.getIcon()} alt="" className={styles.icon} />
+              <img
+                src={provider.getIcon()}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className={styles.icon}
+              />
               <span className={styles.label}>{provider.label}</span>
             </button>
           );

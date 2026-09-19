@@ -440,6 +440,15 @@ export function MainLayout() {
 
   const navItems = useMemo(() => navGroups.flatMap((group) => group.items), [navGroups]);
 
+  const mobilePageTitle = useMemo(() => {
+    const pathname = location.pathname.replace(/\/$/, '') || '/';
+    const currentItem = navItems.find((item) => {
+      if (item.path === '/') return pathname === '/';
+      return pathname === item.path || pathname.startsWith(`${item.path}/`);
+    });
+    return currentItem?.label ?? t('title.main');
+  }, [location.pathname, navItems, t]);
+
   const navOrder = useMemo(() => navItems.map((item) => item.path), [navItems]);
 
   const getRouteOrder = useCallback(
@@ -651,6 +660,10 @@ export function MainLayout() {
             aria-expanded={sidebarOpen}
             aria-controls="main-sidebar"
           />
+        </div>
+
+        <div className="mobile-page-title" aria-live="polite">
+          {mobilePageTitle}
         </div>
 
         <div className="header-actions floating-actions">

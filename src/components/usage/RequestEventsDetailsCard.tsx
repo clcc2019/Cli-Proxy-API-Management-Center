@@ -193,13 +193,37 @@ export const RequestEventsDetailsCard = memo(function RequestEventsDetailsCard({
                         </div>
                       </td>
                       <td className={styles.modelCell}>
-                        <div className={styles.cellPrimary}>{row.model}</div>
-                        {hasReasoning && (
-                          <div className={styles.cellSecondary}>
-                            <span className={styles.reasoningTag}>
+                        <div
+                          className={styles.cellPrimary}
+                          title={row.modelMappingChain || undefined}
+                        >
+                          <span className={styles.modelName}>
+                            {row.requestedModel || row.upstreamModel || row.model}
+                          </span>
+                          {hasReasoning && (
+                            <span
+                              className={styles.reasoningTag}
+                              title={row.modelReasoningEffort}
+                            >
                               {t('usage_stats.request_events_reasoning_label')}
                               {' · '}
                               {row.modelReasoningEffort}
+                            </span>
+                          )}
+                        </div>
+                        {row.modelDowngraded && row.upstreamModel && row.responseModel && (
+                          <div className={styles.cellSecondary}>
+                            <span
+                              className={styles.modelDowngradeLine}
+                              title={t('usage_stats.request_events_model_downgraded', {
+                                upstream: row.upstreamModel,
+                                response: row.responseModel,
+                              })}
+                            >
+                              <span aria-hidden="true">↳</span>
+                              <span className={styles.modelDowngradeLineTarget}>
+                                {row.responseModel}
+                              </span>
                             </span>
                           </div>
                         )}

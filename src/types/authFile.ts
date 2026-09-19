@@ -157,6 +157,7 @@ export interface AuthFileItem {
   hasRefreshToken?: boolean;
   last_error?: unknown;
   lastError?: unknown;
+  turn_state_ticket?: { status?: string; status_code?: number };
   model_states?: unknown;
   modelStates?: unknown;
   quota?: unknown;

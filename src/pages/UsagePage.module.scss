@@ -457,6 +457,16 @@
     overflow-wrap: anywhere;
   }
 
+  .modelCell .cellSecondary {
+    max-width: 100%;
+  }
+
+  .modelCell .reasoningTag {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .requestEventsStatusCell .cellPrimary {
     flex-wrap: wrap;
   }
@@ -494,6 +504,17 @@
   min-width: calc(var(--xai-space-15) * 2);
 }
 
+.modelCell .cellPrimary {
+  font-family: var(--xai-font-mono);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.modelCell .cellPrimary .modelName {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .durationCell,
 .requestEventsTimestamp,
 .requestEventsTokenCell,
@@ -520,6 +541,7 @@
 .modelName {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .credentialKey,
@@ -550,6 +572,25 @@
 
 .reasoningTag {
   min-height: auto;
+}
+
+.modelDowngradeLine {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: var(--xai-space-1);
+  overflow: hidden;
+  color: var(--usage-warning);
+  font-family: var(--xai-font-mono);
+  font-size: 12.5px;
+  line-height: 18px;
+}
+
+.modelDowngradeLineTarget {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .requestEventsResultSuccess,

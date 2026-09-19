@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense, useCallback, useMemo, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventCallback } from '@/hooks';
+import { AuthFileTicketRefreshButton } from './AuthFileTicketRefreshButton';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
@@ -193,7 +194,9 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const serviceTierPassthroughBadgeLabel = serviceTierPassthroughEnabled
     ? t('auth_files.service_tier_passthrough_badge')
     : null;
-  const hasAuthFileBadges = hasRefreshToken || Boolean(serviceTierPassthroughBadgeLabel);
+  const showTicketRefresh = fileType === 'codex' && !isRuntimeOnly;
+  const ticketRefreshRequired = file.turn_state_ticket?.status_code === 312;
+  const hasAuthFileBadges = hasRefreshToken || Boolean(serviceTierPassthroughBadgeLabel) || showTicketRefresh;
   const quotaType = useMemo(() => {
     if (!quotaFilterType) return null;
     return resolveQuotaProviderType(file) === quotaFilterType ? quotaFilterType : null;
@@ -509,6 +512,16 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       >
                         R
                       </span>
+                    )}
+                    {ticketRefreshRequired && (
+                      <span className={refreshStyles.featureBadge} title={t('auth_files.codex_turn_state_ticket_312_badge')} role="status">312</span>
+                    )}
+                    {showTicketRefresh && (
+                      <AuthFileTicketRefreshButton
+                        key={String(file.id ?? file.name)}
+                        file={file}
+                        disabled={disableControls || deleting || Boolean(file.disabled)}
+                      />
                     )}
                     {serviceTierPassthroughBadgeLabel && (
                       <span

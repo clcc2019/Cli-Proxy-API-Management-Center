@@ -46,6 +46,12 @@ export interface ModelPrice {
 }
 
 export interface UsageDetail {
+  requested_model?: string;
+  upstream_model?: string;
+  response_model?: string;
+  model_downgraded?: boolean;
+  response_model_mismatch?: boolean | null;
+  response_model_conflict?: boolean;
   timestamp: string;
   api_key?: string;
   endpoint?: string;
@@ -53,6 +59,12 @@ export interface UsageDetail {
   source: string;
   auth_index: number;
   model_reasoning_effort?: string;
+  requested_reasoning_effort?: string;
+  upstream_reasoning_effort?: string;
+  requested_service_tier?: string;
+  upstream_service_tier?: string;
+  response_service_tier?: string;
+  model_mapping_chain?: string;
   error_message?: string;
   latency_ms?: number;
   ttft_ms?: number;
@@ -856,6 +868,12 @@ const normalizeUsageErrorMessage = (value: unknown): string | undefined => {
   return normalized || undefined;
 };
 
+const normalizeUsageModel = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim();
+  return normalized || undefined;
+};
+
 /**
  * 从使用数据中收集所有请求明细
  */
@@ -930,6 +948,39 @@ export function collectUsageDetails(usageData: unknown): UsageDetail[] {
             typeof detailRaw.model_reasoning_effort === 'string'
               ? detailRaw.model_reasoning_effort
               : undefined,
+          requested_reasoning_effort:
+            typeof detailRaw.requested_reasoning_effort === 'string'
+              ? detailRaw.requested_reasoning_effort
+              : undefined,
+          upstream_reasoning_effort:
+            typeof detailRaw.upstream_reasoning_effort === 'string'
+              ? detailRaw.upstream_reasoning_effort
+              : undefined,
+          requested_service_tier:
+            typeof detailRaw.requested_service_tier === 'string'
+              ? detailRaw.requested_service_tier
+              : undefined,
+          upstream_service_tier:
+            typeof detailRaw.upstream_service_tier === 'string'
+              ? detailRaw.upstream_service_tier
+              : undefined,
+          response_service_tier:
+            typeof detailRaw.response_service_tier === 'string'
+              ? detailRaw.response_service_tier
+              : undefined,
+          model_mapping_chain:
+            typeof detailRaw.model_mapping_chain === 'string'
+              ? detailRaw.model_mapping_chain
+              : undefined,
+          requested_model: normalizeUsageModel(detailRaw.requested_model),
+          upstream_model: normalizeUsageModel(detailRaw.upstream_model),
+          response_model: normalizeUsageModel(detailRaw.response_model),
+          model_downgraded: detailRaw.model_downgraded === true,
+          response_model_mismatch:
+            typeof detailRaw.response_model_mismatch === 'boolean'
+              ? detailRaw.response_model_mismatch
+              : null,
+          response_model_conflict: detailRaw.response_model_conflict === true,
           error_message: normalizeUsageErrorMessage(
             detailRaw.error_message ?? detailRaw.errorMessage ?? detailRaw.error
           ),
@@ -1028,6 +1079,39 @@ export function collectUsageDetailsWithEndpoint(usageData: unknown): UsageDetail
             typeof detailRaw.model_reasoning_effort === 'string'
               ? detailRaw.model_reasoning_effort
               : undefined,
+          requested_reasoning_effort:
+            typeof detailRaw.requested_reasoning_effort === 'string'
+              ? detailRaw.requested_reasoning_effort
+              : undefined,
+          upstream_reasoning_effort:
+            typeof detailRaw.upstream_reasoning_effort === 'string'
+              ? detailRaw.upstream_reasoning_effort
+              : undefined,
+          requested_service_tier:
+            typeof detailRaw.requested_service_tier === 'string'
+              ? detailRaw.requested_service_tier
+              : undefined,
+          upstream_service_tier:
+            typeof detailRaw.upstream_service_tier === 'string'
+              ? detailRaw.upstream_service_tier
+              : undefined,
+          response_service_tier:
+            typeof detailRaw.response_service_tier === 'string'
+              ? detailRaw.response_service_tier
+              : undefined,
+          model_mapping_chain:
+            typeof detailRaw.model_mapping_chain === 'string'
+              ? detailRaw.model_mapping_chain
+              : undefined,
+          requested_model: normalizeUsageModel(detailRaw.requested_model),
+          upstream_model: normalizeUsageModel(detailRaw.upstream_model),
+          response_model: normalizeUsageModel(detailRaw.response_model),
+          model_downgraded: detailRaw.model_downgraded === true,
+          response_model_mismatch:
+            typeof detailRaw.response_model_mismatch === 'boolean'
+              ? detailRaw.response_model_mismatch
+              : null,
+          response_model_conflict: detailRaw.response_model_conflict === true,
           error_message: normalizeUsageErrorMessage(
             detailRaw.error_message ?? detailRaw.errorMessage ?? detailRaw.error
           ),

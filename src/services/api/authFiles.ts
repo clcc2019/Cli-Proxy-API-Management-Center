@@ -878,6 +878,20 @@ export const authFilesApi = {
       : [];
   },
 
+  refreshCodexTurnStateTicket: async (name: string, authIndex?: string) => {
+    const params = new URLSearchParams({ name });
+    if (authIndex) params.set('auth_index', authIndex);
+    try {
+      return await apiClient.post<{ status: string; error?: string }>(
+        `/auth-files/codex-turn-state-ticket/refresh?${params.toString()}`,
+        undefined,
+        AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
+      );
+    } catch (err: unknown) {
+      throw createUsageRequestError(err);
+    }
+  },
+
   getCodexUsage: async (
     name: string,
     authIndex?: string,

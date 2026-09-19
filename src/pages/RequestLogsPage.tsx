@@ -282,6 +282,7 @@ type RequestEventLabels = {
     title: string;
     description: string;
   };
+  modelDowngraded: string;
   reasoning: string;
   refresh: string;
   success: string;
@@ -365,16 +366,32 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
       </div>
 
       <div className={styles.eventModel}>
-        <span className={styles.eventModelName} title={row.model}>
-          {row.model}
-        </span>
-        {hasReasoning && (
+        <div className={styles.eventModelPrimary}>
           <span
-            className={styles.eventModelMeta}
-            title={`${labels.reasoning}: ${row.modelReasoningEffort}`}
+            className={styles.eventModelName}
+            title={row.modelMappingChain || row.upstreamModel || row.model}
           >
-            {row.modelReasoningEffort}
+            {row.requestedModel || row.upstreamModel || row.model}
           </span>
+          {hasReasoning && (
+            <span
+              className={styles.eventModelMeta}
+              title={`${labels.reasoning}: ${row.modelReasoningEffort}`}
+            >
+              {row.modelReasoningEffort}
+            </span>
+          )}
+        </div>
+        {row.modelDowngraded && row.upstreamModel && row.responseModel && (
+          <div
+            className={styles.eventModelDowngrade}
+            title={labels.modelDowngraded
+              .replace('{{upstream}}', row.upstreamModel)
+              .replace('{{response}}', row.responseModel)}
+          >
+            <span aria-hidden="true">↳</span>
+            <span className={styles.eventModelDowngradeTarget}>{row.responseModel}</span>
+          </div>
         )}
       </div>
 
@@ -677,6 +694,7 @@ export function RequestLogsPage() {
         title: t('usage_stats.request_events_no_result_title'),
         description: t('usage_stats.request_events_no_result_desc'),
       },
+      modelDowngraded: t('usage_stats.request_events_model_downgraded'),
       reasoning: t('usage_stats.request_events_reasoning_label'),
       refresh: t('common.refresh'),
       success: t('stats.success'),

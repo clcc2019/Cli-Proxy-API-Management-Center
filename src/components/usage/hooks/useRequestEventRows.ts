@@ -43,7 +43,18 @@ export interface RequestEventRow {
   endpoint: string;
   clientIP: string;
   model: string;
+  requestedModel?: string;
+  upstreamModel?: string;
+  responseModel?: string;
+  modelDowngraded: boolean;
+  downgradedModel?: string;
   modelReasoningEffort: string;
+  requestedReasoningEffort: string;
+  upstreamReasoningEffort: string;
+  requestedServiceTier: string;
+  upstreamServiceTier: string;
+  responseServiceTier: string;
+  modelMappingChain?: string;
   sourceRaw: string;
   source: string;
   sourceType: string;
@@ -300,6 +311,18 @@ export function useRequestEventRows({
       const source = sourceInfo.displayName;
       const sourceType = sourceInfo.type;
       const model = String(detail.__modelName ?? '').trim() || '-';
+      const requestedModel = detail.requested_model?.trim() || undefined;
+      const upstreamModel = detail.upstream_model?.trim() || model;
+      const responseModel = detail.response_model?.trim() || undefined;
+      const modelDowngraded =
+        detail.response_model_mismatch === true ||
+        detail.model_downgraded === true ||
+        Boolean(
+          upstreamModel !== '-' &&
+            responseModel &&
+            upstreamModel.toLocaleLowerCase() !== responseModel.toLocaleLowerCase()
+        );
+      const downgradedModel = modelDowngraded ? responseModel : undefined;
       const endpoint =
         typeof detail.endpoint === 'string' && detail.endpoint.trim()
           ? detail.endpoint.trim()
@@ -308,10 +331,20 @@ export function useRequestEventRows({
         typeof detail.client_ip === 'string' && detail.client_ip.trim()
           ? detail.client_ip.trim()
           : '-';
+      const requestedReasoningEffort =
+        detail.requested_reasoning_effort?.trim() || detail.model_reasoning_effort?.trim() || '';
+      const upstreamReasoningEffort =
+        detail.upstream_reasoning_effort?.trim() || requestedReasoningEffort;
       const modelReasoningEffort =
-        typeof detail.model_reasoning_effort === 'string' && detail.model_reasoning_effort.trim()
-          ? detail.model_reasoning_effort.trim()
-          : '-';
+        requestedReasoningEffort &&
+        upstreamReasoningEffort &&
+        requestedReasoningEffort !== upstreamReasoningEffort
+          ? `${requestedReasoningEffort} → ${upstreamReasoningEffort}`
+          : requestedReasoningEffort || upstreamReasoningEffort || '-';
+      const requestedServiceTier = detail.requested_service_tier?.trim() || '-';
+      const upstreamServiceTier = detail.upstream_service_tier?.trim() || requestedServiceTier;
+      const responseServiceTier = detail.response_service_tier?.trim() || '-';
+      const modelMappingChain = detail.model_mapping_chain?.trim() || undefined;
       const inputTokens = Math.max(toNumber(detail.tokens?.input_tokens), 0);
       const outputTokens = Math.max(toNumber(detail.tokens?.output_tokens), 0);
       const reasoningTokens = Math.max(toNumber(detail.tokens?.reasoning_tokens), 0);
@@ -349,10 +382,20 @@ export function useRequestEventRows({
       const occurrence = idOccurrences.get(idBase) ?? 0;
       idOccurrences.set(idBase, occurrence + 1);
       const searchText = [
+        requestedModel,
+        upstreamModel,
+        responseModel,
+        downgradedModel,
         model,
         endpoint,
         clientIP,
         modelReasoningEffort,
+        requestedReasoningEffort,
+        upstreamReasoningEffort,
+        requestedServiceTier,
+        upstreamServiceTier,
+        responseServiceTier,
+        modelMappingChain,
         source,
         sourceType,
         authIndex,
@@ -369,9 +412,20 @@ export function useRequestEventRows({
         timestampLabel: date ? date.toLocaleString(i18n.language) : timestamp || '-',
         timeOfDay: formatTimeOfDay(date, i18n.language),
         model,
+        requestedModel,
+        upstreamModel,
+        responseModel,
+        modelDowngraded,
+        downgradedModel,
         endpoint,
         clientIP,
         modelReasoningEffort,
+        requestedReasoningEffort,
+        upstreamReasoningEffort,
+        requestedServiceTier,
+        upstreamServiceTier,
+        responseServiceTier,
+        modelMappingChain,
         sourceRaw: sourceRaw || '-',
         source,
         sourceType,

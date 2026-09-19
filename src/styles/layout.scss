@@ -25,7 +25,9 @@ $breakpoint-shell-compact: 1023px;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
-  background: var(--mg-canvas, #ffffff);
+  background:
+    radial-gradient(circle at 8% -10%, rgb(32 33 35 / 4%), transparent 30rem),
+    var(--mg-canvas, #ffffff);
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
   position: relative;
@@ -57,13 +59,16 @@ $breakpoint-shell-compact: 1023px;
   min-height: var(--header-height);
   padding: 0;
   border: 0;
-  border-bottom: 1px solid var(--xai-border-subtle);
-  background: var(--mg-canvas, #ffffff);
-  box-shadow: var(--header-shadow);
+  border-bottom: 0;
+  background: color-mix(in srgb, var(--mg-canvas, #ffffff) 92%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow: none;
   pointer-events: none;
 
   @media (max-width: $breakpoint-shell-compact) {
     height: var(--header-height);
+    backdrop-filter: none;
+    background: var(--mg-canvas, #ffffff);
   }
 
   .mobile-sidebar-actions,
@@ -462,7 +467,8 @@ $breakpoint-shell-compact: 1023px;
   position: relative;
   z-index: calc(var(--xai-z-sticky) + 1);
   width: var(--sidebar-width);
-  background: var(--sidebar-surface, var(--xai-white));
+  background:
+    linear-gradient(180deg, rgb(250 250 249 / 92%) 0%, var(--sidebar-surface, var(--xai-white)) 35%);
   border-right: 1px solid var(--sidebar-border);
   padding: var(--xai-space-6) var(--xai-space-4) var(--xai-space-4);
   display: flex;
@@ -474,7 +480,7 @@ $breakpoint-shell-compact: 1023px;
   flex-shrink: 0;
   height: 100%;
   isolation: isolate;
-  box-shadow: var(--sidebar-shadow);
+  box-shadow: 8px 0 28px -28px rgb(25 33 42 / 34%);
   color: var(--sidebar-text, var(--xai-ink-console));
   font-family: var(--xai-font-ui);
 
@@ -732,7 +738,7 @@ $breakpoint-shell-compact: 1023px;
 
     @media (hover: hover) and (pointer: fine) {
       &:hover {
-        background: var(--sidebar-surface-muted);
+        background: rgb(25 25 25 / 4%);
         color: var(--sidebar-text);
       }
     }
@@ -744,7 +750,7 @@ $breakpoint-shell-compact: 1023px;
     }
 
     &.active {
-      background: var(--sidebar-accent-surface);
+      background: rgb(25 25 25 / 7%);
       color: var(--sidebar-text);
       font-weight: var(--sidebar-label-active-weight);
       box-shadow: none;
@@ -865,7 +871,9 @@ $breakpoint-shell-compact: 1023px;
   scrollbar-gutter: stable;
   height: 100%;
   position: relative;
-  background: var(--mg-canvas, #ffffff);
+  background:
+    radial-gradient(circle at 92% 0%, rgb(25 25 25 / 3%), transparent 32rem),
+    var(--mg-canvas, #ffffff);
 
   > .page-transition {
     width: min(100%, 1440px);
@@ -903,9 +911,10 @@ $breakpoint-shell-compact: 1023px;
   gap: var(--page-content-gap);
   overflow-x: hidden;
   position: relative;
-  // Keep the page canvas stable and opaque so scrolling does not trigger a
-  // full-viewport compositing pass.
-  background: var(--mg-canvas, #ffffff);
+  // Let the content column inherit the ambient canvas treatment from its
+  // scroll container while keeping page sections free to define their own
+  // surfaces.
+  background: transparent;
 
   &.main-content-logs {
     flex: 1 1 auto;
@@ -1000,8 +1009,8 @@ $breakpoint-shell-compact: 1023px;
     --shell-gutter: var(--xai-space-3);
     --floating-control-size: 44px;
     --page-padding-inline: var(--xai-space-4);
-    --page-padding-block: var(--xai-space-5);
-    --page-content-gap: var(--xai-space-6);
+    --page-padding-block: var(--xai-space-4);
+    --page-content-gap: var(--xai-space-5);
   }
 
   .main-header {
@@ -1205,6 +1214,13 @@ $breakpoint-shell-compact: 1023px;
   .main-content {
     padding-top: calc(var(--header-height) + var(--xai-space-4));
   }
+
+  // Keep long management pages inside the viewport when a child component
+  // has its own horizontal scroller (tables, code editors, log panes).
+  .main-content > * {
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1223,12 +1239,23 @@ $breakpoint-shell-compact: 1023px;
       width: auto;
       min-width: 0;
     }
+
+    .header-actions {
+      gap: 0;
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+    }
   }
 
   .main-content {
     padding-right: max(var(--page-padding-inline), env(safe-area-inset-right));
     padding-bottom: calc(var(--page-padding-block) + env(safe-area-inset-bottom));
     padding-left: max(var(--page-padding-inline), env(safe-area-inset-left));
+  }
+
+  .main-content > .page-transition {
+    width: 100%;
   }
 
   .main-header .header-actions {
@@ -1255,6 +1282,10 @@ $breakpoint-shell-compact: 1023px;
           )
       );
     }
+  }
+
+  .main-content {
+    padding-top: calc(var(--header-height) + var(--xai-space-3));
   }
 
   .sidebar {
@@ -1445,4 +1476,64 @@ $breakpoint-shell-compact: 1023px;
 .main-header .header-actions .connection:has(.status-badge.success) {
   border-color: transparent;
   background: transparent;
+}
+
+// Mobile shell polish: the page context stays visible while the navigation
+// drawer and utility actions remain reachable with one hand.
+.mobile-page-title {
+  display: none;
+}
+
+@media (max-width: $breakpoint-shell-compact) {
+  .main-header {
+    border-bottom: 1px solid color-mix(in srgb, var(--xai-border) 72%, transparent);
+    background: color-mix(in srgb, var(--mg-canvas, #ffffff) 94%, transparent);
+    box-shadow: 0 6px 18px -18px rgb(32 33 35 / 34%);
+
+    .mobile-page-title {
+      position: absolute;
+      top: calc(var(--mobile-safe-top) + var(--shell-gutter));
+      left: calc(var(--floating-control-size) + var(--shell-gutter) + var(--xai-space-1));
+      right: calc(var(--floating-control-size) * 4 + var(--shell-gutter) * 2 + var(--xai-space-2));
+      display: flex;
+      height: var(--floating-control-size);
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: var(--xai-ink-console);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      line-height: 20px;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .header-actions {
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
+
+  .sidebar {
+    width: min(292px, calc(100vw - var(--xai-space-8)));
+    border-right: 0;
+    border-radius: 0 var(--xai-radius-card) var(--xai-radius-card) 0;
+    box-shadow: 18px 0 42px -28px rgb(32 33 35 / 42%);
+
+    &.collapsed {
+      width: min(292px, calc(100vw - var(--xai-space-8)));
+    }
+  }
+}
+
+@media (max-width: 380px) {
+  .main-header .mobile-page-title {
+    right: calc(var(--floating-control-size) * 4 + var(--shell-gutter) * 2 + var(--xai-space-2));
+    justify-content: flex-start;
+    font-size: 13px;
+  }
 }

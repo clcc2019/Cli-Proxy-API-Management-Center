@@ -17,6 +17,7 @@ interface ModalProps {
   open: boolean;
   title?: ReactNode;
   onClose: () => void;
+  onBeforeClose?: () => boolean;
   footer?: ReactNode;
   width?: number | string;
   className?: string;
@@ -124,6 +125,7 @@ export function Modal({
   open,
   title,
   onClose,
+  onBeforeClose,
   footer,
   width = 520,
   className,
@@ -215,8 +217,9 @@ export function Modal({
   }, [open, isVisible, startClose]);
 
   const handleClose = useCallback(() => {
+    if (onBeforeClose && !onBeforeClose()) return;
     startClose(true);
-  }, [startClose]);
+  }, [onBeforeClose, startClose]);
 
   const handleOverlayAnimationEnd = useCallback(
     (event: ReactAnimationEvent<HTMLDivElement>) => {

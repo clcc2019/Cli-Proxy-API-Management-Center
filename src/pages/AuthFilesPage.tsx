@@ -1602,7 +1602,6 @@ export function AuthFilesPage() {
         <ManagementPageHeader
           className={refreshStyles.pageHeader}
           title={t('auth_files.title_section')}
-          description={t('auth_files.description')}
           count={listTotal}
           countAriaLabel={`${t('auth_files.summary_visible')}: ${listTotal}`}
           actions={
