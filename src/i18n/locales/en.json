@@ -969,6 +969,8 @@
     "service_tier_passthrough_label": "Fast",
     "service_tier_passthrough_hint": "Pass the client's service_tier through for this Codex auth file. Off by default.",
     "service_tier_passthrough_badge": "Fast",
+    "base_url_label": "Upstream Base URL",
+    "base_url_placeholder": "e.g.: https://api.example.com/v1",
     "codex_turn_state_ticket_label": "Turn-state ticket",
     "codex_turn_state_ticket_hint": "Harvest and inject x-codex-turn-state for this Codex OAuth auth file. Stored in global config.yaml.",
     "codex_turn_state_ticket_loading": "Loading global ticket setting...",

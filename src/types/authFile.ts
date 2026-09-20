@@ -93,6 +93,9 @@ export interface AuthFileItem {
   prefix?: string;
   proxy_url?: string;
   proxyUrl?: string;
+  base_url?: string;
+  baseUrl?: string;
+  'base-url'?: string;
   priority?: number | string | null;
   note?: string;
   user_agent?: string;

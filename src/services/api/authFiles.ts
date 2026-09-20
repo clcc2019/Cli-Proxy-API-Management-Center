@@ -57,6 +57,7 @@ export type PatchAuthFileFieldsPayload = {
   name: string;
   prefix?: string;
   proxy_url?: string;
+  base_url?: string;
   headers?: Record<string, string>;
   priority?: string | number | null;
   note?: string;

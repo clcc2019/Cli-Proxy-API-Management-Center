@@ -30,6 +30,7 @@ type AuthFileHeadersErrorKey =
   | 'auth_files.headers_invalid_value';
 
 const PROXY_URL_KEYS = ['proxy_url', 'proxy-url', 'proxyUrl'] as const;
+const BASE_URL_KEYS = ['base_url', 'base-url', 'baseUrl'] as const;
 const EXCLUDED_MODELS_KEYS = ['excluded_models', 'excluded-models', 'excludedModels'] as const;
 const DISABLE_COOLING_KEYS = ['disable_cooling', 'disable-cooling', 'disableCooling'] as const;
 const USER_AGENT_KEYS = ['user_agent', 'user-agent', 'userAgent'] as const;
@@ -68,6 +69,7 @@ const RUNTIME_FIELD_KEYS = [
 export type PrefixProxyEditorField =
   | 'prefix'
   | 'proxyUrl'
+  | 'baseUrl'
   | 'priority'
   | 'excludedModelsText'
   | 'disableCooling'
@@ -93,6 +95,7 @@ export type PrefixProxyEditorState = {
   clientProfile: Record<string, unknown> | null;
   prefix: string;
   proxyUrl: string;
+  baseUrl: string;
   priority: string;
   excludedModelsText: string;
   disableCooling: string;
@@ -196,6 +199,9 @@ const readHeaderValue = (headersValue: unknown, headerName: string): string => {
 const readProxyUrlFromJson = (value: Record<string, unknown>): string =>
   readStringField(value, PROXY_URL_KEYS);
 
+const readBaseUrlFromJson = (value: Record<string, unknown>): string =>
+  readStringField(value, BASE_URL_KEYS, true);
+
 const readPrefixFromJson = (value: Record<string, unknown>): string =>
   readStringField(value, ['prefix'], true);
 
@@ -235,6 +241,11 @@ const applyBackendFieldFallbacks = (
   const proxyUrl = readProxyUrlFromJson(fileRecord);
   if (!hasAnyOwnField(next, PROXY_URL_KEYS) && proxyUrl) {
     next.proxy_url = proxyUrl;
+  }
+
+  const baseUrl = readBaseUrlFromJson(fileRecord);
+  if (!hasAnyOwnField(next, BASE_URL_KEYS) && baseUrl) {
+    next.base_url = baseUrl;
   }
 
   const priority = parsePriorityValue(fileRecord.priority);
@@ -299,6 +310,7 @@ const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => {
     clientProfile: null,
     prefix: '',
     proxyUrl: '',
+    baseUrl: '',
     priority: '',
     excludedModelsText: '',
     disableCooling: '',
@@ -419,6 +431,11 @@ const buildPrefixProxyUpdatedText = (
     if (proxyUrl) {
       next.proxy_url = proxyUrl;
     }
+  }
+  if (hasAnyOwnField(next, BASE_URL_KEYS) || editor.baseUrl.trim()) {
+    const baseUrl = editor.baseUrl.trim();
+    deleteFields(next, BASE_URL_KEYS);
+    if (baseUrl) next.base_url = baseUrl;
   }
 
   const parsedPriority = parsePriorityValue(editor.priority);
@@ -546,6 +563,7 @@ const buildLoadedPrefixProxyEditorState = (
 
   const derivedPriority = parsePriorityValue(json.priority ?? fileRecord.priority);
   const derivedProxyUrl = readProxyUrlFromJson(json) || readProxyUrlFromJson(fileRecord);
+  const derivedBaseUrl = readBaseUrlFromJson(json) || readBaseUrlFromJson(fileRecord);
   const derivedDisableCooling =
     readDisableCoolingFromJson(json) ?? readDisableCoolingFromJson(fileRecord);
   const derivedHeaders = json.headers !== undefined ? JSON.stringify(json.headers, null, 2) : '';
@@ -558,6 +576,7 @@ const buildLoadedPrefixProxyEditorState = (
   const derivedState = {
     prefix: readPrefixFromJson(json),
     proxyUrl: derivedProxyUrl,
+    baseUrl: derivedBaseUrl,
     priority: derivedPriority !== undefined ? String(derivedPriority) : '',
     excludedModelsText: readExcludedModelsFromJson(json).join('\n'),
     disableCooling:
@@ -594,6 +613,7 @@ const buildLoadedPrefixProxyEditorState = (
     clientProfile,
     prefix: previous.prefix,
     proxyUrl: previous.proxyUrl,
+    baseUrl: previous.baseUrl,
     priority: previous.priority,
     excludedModelsText: previous.excludedModelsText,
     disableCooling: previous.disableCooling,
@@ -623,6 +643,7 @@ const buildPrefixProxyPatchPayload = (
   const sourcePriority = parsePriorityValue(source.priority);
   const nextPriority = parsePriorityValue(editor.priority);
   const sourceProxyUrl = readProxyUrlFromJson(source);
+  const sourceBaseUrl = readBaseUrlFromJson(source);
 
   if (editor.prefix !== (typeof source.prefix === 'string' ? source.prefix : '')) {
     payload.prefix = editor.prefix;
@@ -632,6 +653,12 @@ const buildPrefixProxyPatchPayload = (
     hasNonCanonicalOwnField(source, PROXY_URL_KEYS, 'proxy_url')
   ) {
     payload.proxy_url = editor.proxyUrl;
+  }
+  if (
+    editor.baseUrl !== sourceBaseUrl ||
+    hasNonCanonicalOwnField(source, BASE_URL_KEYS, 'base_url')
+  ) {
+    payload.base_url = editor.baseUrl;
   }
   if (nextPriority !== sourcePriority) {
     payload.priority = nextPriority ?? null;
@@ -814,6 +841,7 @@ const buildLocalPatchedAuthFile = (
     ...remoteFile,
     prefix: editor.prefix,
     proxy_url: editor.proxyUrl,
+    base_url: editor.baseUrl,
     priority: parsePriorityValue(editor.priority),
     note: editor.note.trim(),
     user_agent: editor.userAgent.trim(),
@@ -953,6 +981,10 @@ export function useAuthFilesPrefixProxyEditor(
         if (field === 'proxyUrl') {
           const nextValue = String(value);
           return prev.proxyUrl === nextValue ? prev : { ...prev, proxyUrl: nextValue };
+        }
+        if (field === 'baseUrl') {
+          const nextValue = String(value);
+          return prev.baseUrl === nextValue ? prev : { ...prev, baseUrl: nextValue };
         }
         if (field === 'priority') {
           const nextValue = String(value);

@@ -102,6 +102,10 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
     (e: React.ChangeEvent<HTMLInputElement>) => onChange('proxyUrl', e.target.value),
     [onChange]
   );
+  const handleBaseUrlChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => onChange('baseUrl', e.target.value),
+    [onChange]
+  );
   const handleDisableCoolingChange = useCallback(
     (value: string) => onChange('disableCooling', value),
     [onChange]
@@ -243,6 +247,17 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                             title="proxy_url"
                             disabled={editorControlsDisabled}
                             onChange={handleProxyUrlChange}
+                          />
+                        </div>
+                        <div className={styles.prefixProxyFieldWide}>
+                          <Input
+                            density="sm"
+                            label={t('auth_files.base_url_label')}
+                            value={editor.baseUrl}
+                            placeholder={t('auth_files.base_url_placeholder')}
+                            title="base_url"
+                            disabled={editorControlsDisabled}
+                            onChange={handleBaseUrlChange}
                           />
                         </div>
                         <div className={styles.prefixProxyField}>
