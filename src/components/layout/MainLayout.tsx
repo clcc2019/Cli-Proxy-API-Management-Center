@@ -120,13 +120,49 @@ const shouldSkipIntentPreload = () => {
   const connection = (
     navigator as Navigator & {
       connection?: NetworkInformationLike;
+      deviceMemory?: number;
     }
   ).connection;
   return (
     connection?.saveData === true ||
     connection?.effectiveType === '2g' ||
-    connection?.effectiveType === 'slow-2g'
+    connection?.effectiveType === 'slow-2g' ||
+    connection?.effectiveType === '3g' ||
+    ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? Infinity) <= 2
   );
+};
+
+type IdlePrefetchWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+const scheduleNextRoutePrefetch = (callback: () => void): (() => void) => {
+  const idleWindow = window as IdlePrefetchWindow;
+  let cancelled = false;
+  let delayTimer: number | null = null;
+  let idleHandle: number | null = null;
+  let fallbackTimer: number | null = null;
+
+  const run = () => {
+    if (!cancelled) callback();
+  };
+
+  delayTimer = window.setTimeout(() => {
+    if (cancelled) return;
+    if (typeof idleWindow.requestIdleCallback === 'function') {
+      idleHandle = idleWindow.requestIdleCallback(run, { timeout: 3_000 });
+    } else {
+      fallbackTimer = window.setTimeout(run, 0);
+    }
+  }, NEXT_ROUTE_PREFETCH_DELAY_MS);
+
+  return () => {
+    cancelled = true;
+    if (delayTimer !== null) window.clearTimeout(delayTimer);
+    if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+    if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
+  };
 };
 
 const getHeaderMenuItems = (menu: HTMLDivElement | null) =>
@@ -163,7 +199,7 @@ export function MainLayout() {
   const sidebarRef = useRef<HTMLElement | null>(null);
   const navigationIntentRef = useRef(0);
   const navigationPreloadTimerRef = useRef<number | null>(null);
-  const nextRoutePrefetchTimerRef = useRef<number | null>(null);
+  const nextRoutePrefetchCleanupRef = useRef<(() => void) | null>(null);
 
   const isLogsPage = location.pathname.startsWith('/logs');
 
@@ -541,14 +577,13 @@ export function MainLayout() {
   }, []);
 
   const cancelNextRoutePrefetch = useCallback(() => {
-    if (nextRoutePrefetchTimerRef.current === null) return;
-    window.clearTimeout(nextRoutePrefetchTimerRef.current);
-    nextRoutePrefetchTimerRef.current = null;
+    nextRoutePrefetchCleanupRef.current?.();
+    nextRoutePrefetchCleanupRef.current = null;
   }, []);
 
   // 导航稳定后预取相邻路由的代码 chunk(不发起数据请求),下次点击时
-  // chunk 已在缓存中,避开首帧竞争。受 saveData/2g 保护,与 intent
-  // preload 相同的成本纪律。
+  // chunk 已在缓存中,避开首帧竞争。只在浏览器空闲且页面可见时执行；
+  // 受 saveData/低速网络/低内存设备保护，避免后台预取和首屏争抢带宽。
   const prefetchNextRoute = useCallback(
     (fromPathname: string, toPathname: string) => {
       cancelNextRoutePrefetch();
@@ -566,12 +601,16 @@ export function MainLayout() {
       const nextPath = navOrder[nextIndex];
       if (!nextPath) return;
 
-      nextRoutePrefetchTimerRef.current = window.setTimeout(() => {
-        nextRoutePrefetchTimerRef.current = null;
-        void preloadRoute(nextPath).catch(() => {
-          // 预取仅缓存代码,失败不影响路由,导航仍有 Suspense fallback。
-        });
-      }, NEXT_ROUTE_PREFETCH_DELAY_MS);
+      nextRoutePrefetchCleanupRef.current = scheduleNextRoutePrefetch(
+        () => {
+          nextRoutePrefetchCleanupRef.current = null;
+          if (document.visibilityState !== 'visible') return;
+
+          void preloadRoute(nextPath).catch(() => {
+            // 预取仅缓存代码,失败不影响路由,导航仍有 Suspense fallback。
+          });
+        }
+      );
     },
     [cancelNextRoutePrefetch, getRouteOrder, navOrder]
   );

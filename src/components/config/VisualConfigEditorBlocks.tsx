@@ -811,7 +811,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     if (!modalOpen) return undefined;
     let active = true;
     void authFilesApi
-      .list({ includeRecentRequests: false })
+      .listAll({ summary: true, includeRecentRequests: false })
       .then((response) => {
         if (!active) return;
         const names = (response.files ?? [])

@@ -37,6 +37,9 @@ export const ProviderCategoryList = memo(function ProviderCategoryList({
                 src={logo.src}
                 alt=""
                 aria-hidden="true"
+                width={27}
+                height={27}
+                decoding="async"
                 className={`${styles.logo} ${logo.transparent ? styles.logoTransparent : ''} ${logo.darkSrc ? styles.logoThemeLight : ''}`}
               />
               {logo.darkSrc ? (
@@ -44,6 +47,9 @@ export const ProviderCategoryList = memo(function ProviderCategoryList({
                   src={logo.darkSrc}
                   alt=""
                   aria-hidden="true"
+                  width={27}
+                  height={27}
+                  decoding="async"
                   className={`${styles.logo} ${styles.logoTransparent} ${styles.logoThemeDark}`}
                 />
               ) : null}

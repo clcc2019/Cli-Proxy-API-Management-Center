@@ -256,6 +256,9 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0 1px;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: 8px;
+  scroll-snap-type: inline proximity;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -281,6 +284,7 @@
   font-size: 12.5px;
   font-weight: 500;
   line-height: 1;
+  scroll-snap-align: start;
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--motion-duration-fast) var(--motion-ease-standard);

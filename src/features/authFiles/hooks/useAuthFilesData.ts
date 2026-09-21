@@ -177,6 +177,10 @@ const areAuthFilesListMetaEqual = (left: AuthFilesListMeta, right: AuthFilesList
 const DEFAULT_AUTH_FILES_LIST_OPTIONS: AuthFilesListOptions = {
   codexSubscription: 'cache',
   summary: true,
+  includeRecentRequests: false,
+  pageRecentRequests: true,
+  page: 1,
+  pageSize: 50,
 };
 
 type LoadFilesBehaviorOptions = {
@@ -242,6 +246,8 @@ export type UseAuthFilesDataOptions = {
   refreshKeyStats: () => Promise<void>;
   enabled?: boolean;
   listOptions?: AuthFilesListOptions;
+  /** Fetch all lightweight pages when local-only filters need the full index. */
+  loadAllPages?: boolean;
   onListMetaResolved?: (meta: AuthFilesListMeta) => void;
   restoreFocusAfterDelete?: () => void;
 };
@@ -251,6 +257,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     refreshKeyStats,
     enabled = true,
     listOptions = DEFAULT_AUTH_FILES_LIST_OPTIONS,
+    loadAllPages = false,
     onListMetaResolved,
     restoreFocusAfterDelete,
   } = options;
@@ -542,9 +549,10 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             setError('');
           }
           try {
-            const data = await authFilesApi.list(effectiveListOptions, {
-              signal: abortController.signal,
-            });
+            const data = await (loadAllPages ? authFilesApi.listAll : authFilesApi.list)(
+              effectiveListOptions,
+              { signal: abortController.signal }
+            );
             if (!mountedRef.current || loadFilesSeqRef.current !== requestSeq) return;
 
             const nextFiles = reuseAuthFileItemReferences(filesRef.current, data?.files || []);
@@ -633,7 +641,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         force ? 'refresh-after-current' : 'reuse'
       );
     },
-    [applyFilesState, listOptions, listOptionsKey, onListMetaResolved, t]
+    [applyFilesState, listOptions, listOptionsKey, loadAllPages, onListMetaResolved, t]
   );
 
   useEffect(() => {
@@ -648,9 +656,9 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
   }, []);
 
   const refreshFilesAfterLocalMutation = useCallback(() => {
-    if (!enabled || !listUsesServerPagination) return;
+    if (!enabled || (!listUsesServerPagination && !loadAllPages)) return;
     void loadFiles(undefined, { silent: true });
-  }, [enabled, listUsesServerPagination, loadFiles]);
+  }, [enabled, listUsesServerPagination, loadAllPages, loadFiles]);
 
   const refreshFilesFromServer = useCallback(
     (force = false) => loadFiles(undefined, { silent: true, force }),
@@ -824,7 +832,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             applyFilesState((prev) => prev.filter((file) => isRuntimeOnlyAuthFile(file)));
             deselectAll();
           } else {
-            const data = await authFilesApi.list({
+            const data = await authFilesApi.listAll({
               ...deleteListOptions,
               page: undefined,
               pageSize: undefined,
@@ -929,7 +937,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         const res = await authFilesApi.setStatus(name, nextDisabled);
         if (!mountedRef.current) return;
         patchLocalFileStatus(item, res.disabled);
-        if (listUsesServerPagination) {
+        if (listUsesServerPagination || loadAllPages) {
           await refreshFilesFromServer();
         }
         if (!mountedRef.current) return;
@@ -955,7 +963,14 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       }
     },
-    [listUsesServerPagination, patchLocalFileStatus, refreshFilesFromServer, showNotification, t]
+    [
+      listUsesServerPagination,
+      loadAllPages,
+      patchLocalFileStatus,
+      refreshFilesFromServer,
+      showNotification,
+      t,
+    ]
   );
 
   const batchSetStatus = useCallback(
@@ -1055,7 +1070,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
 
         setSelectedFiles(failCount > 0 ? failedNames : new Set());
-        if (listUsesServerPagination) {
+        if (listUsesServerPagination || loadAllPages) {
           await refreshFilesFromServer();
         }
       } finally {
@@ -1075,7 +1090,14 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         }
       }
     },
-    [applyFilesState, listUsesServerPagination, refreshFilesFromServer, showNotification, t]
+    [
+      applyFilesState,
+      listUsesServerPagination,
+      loadAllPages,
+      refreshFilesFromServer,
+      showNotification,
+      t,
+    ]
   );
 
   const batchDownload = useCallback(

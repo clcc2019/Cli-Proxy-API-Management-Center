@@ -317,7 +317,12 @@ export function AuthFilesPage() {
       // Keep premiumOnly out of this request. The backend only has the auth-file
       // snapshot, while the Plus/Pro badge also incorporates the latest quota
       // data stored on the client.
-      return { codexSubscription: 'cache', summary: true, includeRecentRequests: false };
+      return {
+        codexSubscription: 'cache',
+        summary: true,
+        includeRecentRequests: false,
+        pageRecentRequests: false,
+      };
     }
     return {
       codexSubscription: 'cache',
@@ -408,6 +413,7 @@ export function AuthFilesPage() {
     refreshKeyStats,
     enabled: isCurrentLayer,
     listOptions: authFilesListOptions,
+    loadAllPages: !serverPaginationEnabled,
     onListMetaResolved: handleListMetaResolved,
     restoreFocusAfterDelete: restoreDeleteFocus,
   });

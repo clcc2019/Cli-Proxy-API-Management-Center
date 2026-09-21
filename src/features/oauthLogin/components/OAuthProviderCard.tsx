@@ -67,6 +67,8 @@ export const OAuthProviderCard = memo(function OAuthProviderCard({
             <img
               src={resolveProviderIcon(provider.icon, theme)}
               alt=""
+              width={28}
+              height={28}
               loading="lazy"
               decoding="async"
               className={`${styles.cardTitleIcon} ${

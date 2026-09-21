@@ -106,7 +106,11 @@ const loadAuthFileMap = (scopeKey: string): Promise<Map<string, CredentialInfo>>
   if (inFlight) return inFlight;
 
   const request = authFilesApi
-    .list({ codexSubscription: 'skip', summary: true })
+    .listAll({
+      codexSubscription: 'skip',
+      summary: true,
+      includeRecentRequests: false,
+    })
     .then((res) => {
       const files = Array.isArray(res) ? res : (res as { files?: AuthFileItem[] })?.files;
       if (!Array.isArray(files)) {

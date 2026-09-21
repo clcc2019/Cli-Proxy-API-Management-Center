@@ -139,7 +139,13 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
         }),
         authFresh
           ? Promise.resolve(null)
-          : authFilesApi.list({ codexSubscription: 'skip', summary: true }).catch(() => null)
+          : authFilesApi
+              .listAll({
+                codexSubscription: 'skip',
+                summary: true,
+                includeRecentRequests: false,
+              })
+              .catch(() => null)
       ]);
 
       if (

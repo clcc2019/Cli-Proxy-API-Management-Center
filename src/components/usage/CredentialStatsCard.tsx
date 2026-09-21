@@ -60,7 +60,11 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
 
     let cancelled = false;
     authFilesApi
-      .list({ codexSubscription: 'skip', summary: true })
+      .listAll({
+        codexSubscription: 'skip',
+        summary: true,
+        includeRecentRequests: false,
+      })
       .then((res) => {
         if (cancelled) return;
         const files = Array.isArray(res) ? res : (res as { files?: AuthFileItem[] })?.files;

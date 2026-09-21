@@ -206,7 +206,7 @@ export function AiProvidersClaudeModelsPage() {
   return (
     <ProviderEditShell
       title={t('ai_providers.claude_models_fetch_title')}
-      leadingIcon={<img src={iconClaude} alt="" />}
+      leadingIcon={<img src={iconClaude} alt="" width={18} height={18} decoding="async" />}
       onBack={handleBack}
       floatingAction={
         <>

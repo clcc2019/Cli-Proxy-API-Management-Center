@@ -510,6 +510,8 @@ const dedupeAuthFilesResponse = (payload: AuthFilesResponse): AuthFilesResponse 
 };
 
 const inFlightAuthFilesListRequests = new Map<string, Promise<AuthFilesResponse>>();
+const AUTH_FILES_LIST_ALL_PAGE_SIZE = 200;
+const AUTH_FILES_LIST_ALL_MAX_PAGES = 1_000;
 
 const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
   const params: Record<string, string | number | boolean> = {
@@ -683,36 +685,101 @@ const serializeOauthModelAlias = (aliases: OAuthModelAliasEntry[]) =>
     ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
   }));
 
-export const authFilesApi = {
-  list: async (options: AuthFilesListOptions = {}, config?: ApiRequestConfig) => {
-    if (config) {
-      return dedupeAuthFilesResponse(
-        await apiClient.get<AuthFilesResponse>('/auth-files', {
-          ...config,
-          params: buildAuthFilesListParams(options),
-        })
-      );
-    }
-
-    const requestKey = getAuthFilesListOptionsKey(options);
-    const pending = inFlightAuthFilesListRequests.get(requestKey);
-    if (pending) return pending;
-
-    const request = apiClient
-      .get<AuthFilesResponse>('/auth-files', {
+const listAuthFiles = async (
+  options: AuthFilesListOptions = {},
+  config?: ApiRequestConfig
+): Promise<AuthFilesResponse> => {
+  if (config) {
+    return dedupeAuthFilesResponse(
+      await apiClient.get<AuthFilesResponse>('/auth-files', {
+        ...config,
         params: buildAuthFilesListParams(options),
       })
-      .then(dedupeAuthFilesResponse);
-    inFlightAuthFilesListRequests.set(requestKey, request);
+    );
+  }
 
-    try {
-      return await request;
-    } finally {
-      if (inFlightAuthFilesListRequests.get(requestKey) === request) {
-        inFlightAuthFilesListRequests.delete(requestKey);
-      }
+  const requestKey = getAuthFilesListOptionsKey(options);
+  const pending = inFlightAuthFilesListRequests.get(requestKey);
+  if (pending) return pending;
+
+  const request = apiClient
+    .get<AuthFilesResponse>('/auth-files', {
+      params: buildAuthFilesListParams(options),
+    })
+    .then(dedupeAuthFilesResponse);
+  inFlightAuthFilesListRequests.set(requestKey, request);
+
+  try {
+    return await request;
+  } finally {
+    if (inFlightAuthFilesListRequests.get(requestKey) === request) {
+      inFlightAuthFilesListRequests.delete(requestKey);
     }
-  },
+  }
+};
+
+const listAllAuthFiles = async (
+  options: AuthFilesListOptions = {},
+  config?: ApiRequestConfig
+): Promise<AuthFilesResponse> => {
+  const files: AuthFileEntry[] = [];
+  const seen = new Set<string>();
+  let firstResponse: AuthFilesResponse | null = null;
+  let lastResponse: AuthFilesResponse | null = null;
+  let page = 1;
+
+  for (let requestCount = 0; requestCount < AUTH_FILES_LIST_ALL_MAX_PAGES; requestCount += 1) {
+    const response = await listAuthFiles(
+      {
+        ...options,
+        // The compatibility endpoint now bounds bare requests. Fetch all
+        // lightweight pages explicitly for consumers that really need the
+        // complete index (usage/source resolution and local plan filters).
+        page,
+        pageSize: AUTH_FILES_LIST_ALL_PAGE_SIZE,
+        includeRecentRequests: options.includeRecentRequests ?? false,
+        pageRecentRequests: options.pageRecentRequests ?? false,
+      },
+      config
+    );
+    firstResponse ??= response;
+    lastResponse = response;
+
+    for (const file of response.files ?? []) {
+      const key = String(file.name ?? file.id ?? '').trim() || JSON.stringify(file);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      files.push(file);
+    }
+
+    if (response.has_more !== true || response.files.length === 0) break;
+    const responsePage =
+      typeof response.page === 'number' && Number.isFinite(response.page)
+        ? Math.max(1, Math.round(response.page))
+        : page;
+    const nextPage = responsePage + 1;
+    if (nextPage <= page) break;
+    page = nextPage;
+  }
+
+  const response = lastResponse ?? firstResponse;
+  if (!response) {
+    return { files: [], total: 0 };
+  }
+
+  return {
+    ...response,
+    files,
+    total: typeof response.total === 'number' ? response.total : files.length,
+    page: undefined,
+    page_size: undefined,
+    has_more: false,
+  };
+};
+
+export const authFilesApi = {
+  list: listAuthFiles,
+  listAll: listAllAuthFiles,
 
   setStatus: (name: string, disabled: boolean) =>
     apiClient.patch<AuthFileStatusResponse>('/auth-files/status', { name, disabled }),

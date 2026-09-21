@@ -556,7 +556,7 @@ export function AiProvidersCodexEditPage() {
   return (
     <ProviderEditShell
       title={title}
-      leadingIcon={<img src={iconCodex} alt="" />}
+      leadingIcon={<img src={iconCodex} alt="" width={18} height={18} decoding="async" />}
       onBack={handleBack}
       floatingAction={
         <>

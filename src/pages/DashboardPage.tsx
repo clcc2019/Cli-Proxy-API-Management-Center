@@ -78,7 +78,13 @@ const loadDashboardStats = (
   const configuredCodexCount = getConfiguredItemCount(config?.codexApiKeys);
   const configuredClaudeCount = getConfiguredItemCount(config?.claudeApiKeys);
   const request = Promise.allSettled([
-    authFilesApi.list({ codexSubscription: 'skip', summary: true, page: 1, pageSize: 1 }),
+    authFilesApi.list({
+      codexSubscription: 'skip',
+      summary: true,
+      includeRecentRequests: false,
+      page: 1,
+      pageSize: 1,
+    }),
     configuredApiKeyCount === null ? loadApiKeys() : Promise.resolve(null),
     configuredCodexCount === null ? providersApi.getCodexConfigs() : Promise.resolve(null),
     configuredClaudeCount === null ? providersApi.getClaudeConfigs() : Promise.resolve(null),
