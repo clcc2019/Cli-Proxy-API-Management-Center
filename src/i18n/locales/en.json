@@ -971,11 +971,6 @@
     "service_tier_passthrough_badge": "Fast",
     "base_url_label": "Upstream Base URL",
     "base_url_placeholder": "e.g.: https://api.example.com/v1",
-    "codex_turn_state_ticket_label": "Turn-state ticket",
-    "codex_turn_state_ticket_hint": "Harvest and inject x-codex-turn-state for this Codex OAuth auth file. Stored in global config.yaml.",
-    "codex_turn_state_ticket_loading": "Loading global ticket setting...",
-    "codex_turn_state_ticket_config_error": "Could not load the global ticket setting",
-    "codex_turn_state_ticket_saved_success": "Updated the turn-state ticket setting for \"{{name}}\"",
     "websocket_handshake_debug_label": "WS debug",
     "websocket_handshake_debug_hint": "When enabled, this auth file completes one upstream WebSocket handshake and disconnects immediately so the proxy can verify automatic auth switching.",
     "websocket_handshake_debug_badge": "WS debug",
@@ -1085,13 +1080,7 @@
     "reauth_timed_out": "The device code expired. Start authorization again.",
     "reauth_error": "Authorization failed. Please try again.",
     "reauth_error_summary": "Authorization failed",
-    "reauth_retry": "Retry",
-    "codex_turn_state_ticket_refresh_success": "Refreshed turn-state ticket for \"{{name}}\"",
-    "codex_turn_state_ticket_refresh_failed": "Could not refresh turn-state ticket",
-    "codex_turn_state_ticket_refresh_label": "Refresh turn-state ticket",
-    "codex_turn_state_ticket_refreshing": "Refreshing ticket…",
-    "codex_turn_state_ticket_refresh_success_short": "Refresh succeeded",
-    "codex_turn_state_ticket_312_badge": "Upstream returned 312; Ticket refresh required"
+    "reauth_retry": "Retry"
   },
   "antigravity_quota": {
     "title": "Antigravity Quota",

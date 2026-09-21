@@ -971,11 +971,6 @@
     "service_tier_passthrough_badge": "Fast",
     "base_url_label": "上游 Base URL",
     "base_url_placeholder": "例如：https://api.example.com/v1",
-    "codex_turn_state_ticket_label": "Turn-state Ticket",
-    "codex_turn_state_ticket_hint": "为这个 Codex OAuth 认证文件收集并注入 x-codex-turn-state；配置保存在全局 config.yaml。",
-    "codex_turn_state_ticket_loading": "正在读取全局 Ticket 设置...",
-    "codex_turn_state_ticket_config_error": "无法读取全局 Ticket 设置",
-    "codex_turn_state_ticket_saved_success": "已更新 \"{{name}}\" 的 Turn-state Ticket 设置",
     "websocket_handshake_debug_label": "调试",
     "websocket_handshake_debug_hint": "开启后该认证文件只完成一次上游 WebSocket 握手并立即断开，用于验证代理自动切换。",
     "websocket_handshake_debug_badge": "WS 调试",
@@ -1085,13 +1080,7 @@
     "reauth_timed_out": "设备码已过期，请重新发起授权。",
     "reauth_error": "授权失败，请重试。",
     "reauth_error_summary": "授权失败",
-    "reauth_retry": "重试",
-    "codex_turn_state_ticket_refresh_success": "已刷新“{{name}}”的 Turn-state Ticket",
-    "codex_turn_state_ticket_refresh_failed": "刷新 Turn-state Ticket 失败",
-    "codex_turn_state_ticket_refresh_label": "刷新票据",
-    "codex_turn_state_ticket_refreshing": "正在刷新 Ticket…",
-    "codex_turn_state_ticket_refresh_success_short": "刷新成功",
-    "codex_turn_state_ticket_312_badge": "上游返回 312，需要刷新 Ticket"
+    "reauth_retry": "重试"
   },
   "antigravity_quota": {
     "title": "Antigravity 额度",

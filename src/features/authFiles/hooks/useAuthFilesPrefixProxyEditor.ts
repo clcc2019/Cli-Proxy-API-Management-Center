@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { authFilesApi, configFileApi } from '@/services/api';
+import { authFilesApi } from '@/services/api';
 import { useNotificationStore } from '@/stores';
 import type { AuthFileItem } from '@/types';
 import {
@@ -15,13 +15,6 @@ import {
   readCodexAuthFileWebsockets,
 } from '@/features/authFiles/constants';
 import { resolveAuthFileClientProfileMetadata } from '@/features/authFiles/clientProfileMetadata';
-import {
-  authFileMatchesCodexTurnStateTicketSelector,
-  isCodexAuthFile,
-  readCodexTurnStateTicketConfig,
-  selectCodexTurnStateTicketAuthFileSelector,
-  writeCodexTurnStateTicketConfig,
-} from '@/features/authFiles/codexTurnStateTicket';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =
@@ -76,7 +69,6 @@ export type PrefixProxyEditorField =
   | 'userAgent'
   | 'websockets'
   | 'serviceTierPassthrough'
-  | 'codexTurnStateTicket'
   | 'note'
   | 'headersText';
 
@@ -102,10 +94,6 @@ export type PrefixProxyEditorState = {
   userAgent: string;
   websockets: boolean;
   serviceTierPassthrough: boolean;
-  codexTurnStateTicketEnabled: boolean;
-  codexTurnStateTicketOriginalEnabled: boolean;
-  codexTurnStateTicketLoading: boolean;
-  codexTurnStateTicketError: string | null;
   note: string;
   noteTouched: boolean;
   headersText: string;
@@ -147,6 +135,12 @@ const hasNonCanonicalOwnField = (
   keys: readonly string[],
   canonicalKey: string
 ): boolean => keys.some((key) => key !== canonicalKey && hasOwnField(value, key));
+
+const isCodexAuthFile = (file: AuthFileItem): boolean => {
+  const type = String(file.type ?? '').trim().toLowerCase();
+  const provider = String(file.provider ?? '').trim().toLowerCase();
+  return type === 'codex' || provider === 'codex';
+};
 
 const deleteFields = (value: Record<string, unknown>, keys: readonly string[]): void => {
   keys.forEach((key) => {
@@ -290,11 +284,6 @@ const applyBackendFieldFallbacks = (
   return next;
 };
 
-type CodexTurnStateTicketLoadResult = {
-  enabled: boolean;
-  error: string | null;
-};
-
 const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => {
   const isCodexFile = isCodexAuthFile(file);
   return {
@@ -317,10 +306,6 @@ const createEditorState = (file: AuthFileItem): PrefixProxyEditorState => {
     userAgent: '',
     websockets: false,
     serviceTierPassthrough: false,
-    codexTurnStateTicketEnabled: false,
-    codexTurnStateTicketOriginalEnabled: false,
-    codexTurnStateTicketLoading: isCodexFile,
-    codexTurnStateTicketError: null,
     note: '',
     noteTouched: false,
     headersText: '',
@@ -515,16 +500,11 @@ const buildLoadedPrefixProxyEditorState = (
   file: AuthFileItem,
   rawText: string,
   t: TFunction,
-  previous?: PrefixProxyEditorState | null,
-  ticket?: CodexTurnStateTicketLoadResult
+  previous?: PrefixProxyEditorState | null
 ): PrefixProxyEditorState => {
   const base = createEditorState(file);
   base.loading = false;
   base.saving = previous?.saving ?? false;
-  base.codexTurnStateTicketLoading = false;
-  base.codexTurnStateTicketEnabled = ticket?.enabled ?? false;
-  base.codexTurnStateTicketOriginalEnabled = base.codexTurnStateTicketEnabled;
-  base.codexTurnStateTicketError = ticket?.error ?? null;
 
   const trimmed = rawText.trim();
   let parsed: unknown;
@@ -620,10 +600,6 @@ const buildLoadedPrefixProxyEditorState = (
     userAgent: previous.userAgent,
     websockets: previous.websockets,
     serviceTierPassthrough: previous.serviceTierPassthrough,
-    codexTurnStateTicketEnabled: previous.codexTurnStateTicketEnabled,
-    codexTurnStateTicketOriginalEnabled: previous.codexTurnStateTicketOriginalEnabled,
-    codexTurnStateTicketLoading: previous.codexTurnStateTicketLoading,
-    codexTurnStateTicketError: previous.codexTurnStateTicketError,
     note: previous.note,
     noteTouched: previous.noteTouched,
     headersText: previous.headersText,
@@ -741,91 +717,6 @@ const buildPrefixProxyPatchPayload = (
   return payload;
 };
 
-const loadCodexTurnStateTicket = async (
-  file: AuthFileItem,
-  t: TFunction
-): Promise<CodexTurnStateTicketLoadResult> => {
-  if (!isCodexAuthFile(file)) {
-    return { enabled: false, error: null };
-  }
-
-  try {
-    const yamlContent = await configFileApi.fetchConfigYaml();
-    return {
-      enabled: readCodexTurnStateTicketConfig(yamlContent, file).enabledForFile,
-      error: null,
-    };
-  } catch (err: unknown) {
-    const detail = err instanceof Error ? err.message : '';
-    return {
-      enabled: false,
-      error: `${t('auth_files.codex_turn_state_ticket_config_error')}${detail ? `: ${detail}` : ''}`,
-    };
-  }
-};
-
-const listCodexAuthFilesForTicket = async (): Promise<AuthFileItem[]> => {
-  const response = await authFilesApi.list({
-    codexSubscription: 'skip',
-    summary: true,
-    includeRecentRequests: false,
-    type: 'codex',
-  });
-  return response.files.filter(isCodexAuthFile);
-};
-
-const isSameAuthFile = (left: AuthFileItem, right: AuthFileItem): boolean => {
-  const leftId = String(left.id ?? '').trim();
-  const rightId = String(right.id ?? '').trim();
-  if (leftId && rightId) return leftId === rightId;
-  return left.name === right.name;
-};
-
-const saveCodexTurnStateTicket = async (
-  file: AuthFileItem,
-  enabledForFile: boolean
-): Promise<boolean> => {
-  const currentYaml = await configFileApi.fetchConfigYaml();
-  const currentConfig = readCodexTurnStateTicketConfig(currentYaml, file);
-  if (currentConfig.enabledForFile === enabledForFile) return false;
-
-  let nextEnabled = currentConfig.enabled;
-  let nextAuthFiles = [...currentConfig.authFiles];
-
-  if (enabledForFile) {
-    nextEnabled = true;
-    const selector = selectCodexTurnStateTicketAuthFileSelector(file);
-    if (!selector) {
-      throw new Error('The selected auth file has no usable identifier.');
-    }
-    if (
-      !nextAuthFiles.some((configured) =>
-        authFileMatchesCodexTurnStateTicketSelector(file, configured)
-      )
-    ) {
-      nextAuthFiles.push(selector);
-    }
-  } else if (currentConfig.enabled) {
-    if (nextAuthFiles.length === 0) {
-      const allCodexFiles = await listCodexAuthFilesForTicket();
-      nextAuthFiles = allCodexFiles
-        .filter((candidate) => !isSameAuthFile(candidate, file))
-        .map(selectCodexTurnStateTicketAuthFileSelector)
-        .filter(Boolean);
-    } else {
-      nextAuthFiles = nextAuthFiles.filter(
-        (configured) => !authFileMatchesCodexTurnStateTicketSelector(file, configured)
-      );
-    }
-    nextEnabled = nextAuthFiles.length > 0;
-  }
-
-  const nextYaml = writeCodexTurnStateTicketConfig(currentYaml, nextEnabled, nextAuthFiles);
-  if (nextYaml === currentYaml) return false;
-  await configFileApi.saveConfigYaml(nextYaml);
-  return true;
-};
-
 const buildLocalPatchedAuthFile = (
   editor: PrefixProxyEditorState,
   remoteFile?: AuthFileItem
@@ -903,14 +794,7 @@ export function useAuthFilesPrefixProxyEditor(
       (prefixProxyUpdatedText === '' || prefixProxyUpdatedText !== prefixProxyEditor?.originalText),
     [prefixProxyEditor, prefixProxyUpdatedText]
   );
-  const prefixProxyTicketDirty = useMemo(
-    () =>
-      Boolean(prefixProxyEditor?.isCodexFile) &&
-      prefixProxyEditor?.codexTurnStateTicketEnabled !==
-        prefixProxyEditor?.codexTurnStateTicketOriginalEnabled,
-    [prefixProxyEditor]
-  );
-  const prefixProxyDirty = prefixProxyAuthFileDirty || prefixProxyTicketDirty;
+  const prefixProxyDirty = prefixProxyAuthFileDirty;
 
   const openPrefixProxyEditor = useCallback(
     async (file: AuthFileItem) => {
@@ -928,14 +812,11 @@ export function useAuthFilesPrefixProxyEditor(
       setPrefixProxyEditor(createEditorState(file));
 
       try {
-        const [rawText, ticket] = await Promise.all([
-          authFilesApi.previewText(name),
-          loadCodexTurnStateTicket(file, t),
-        ]);
+        const rawText = await authFilesApi.previewText(name);
         if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
         setPrefixProxyEditor((prev) => {
           if (!prev || prev.fileName !== name) return prev;
-          return buildLoadedPrefixProxyEditorState(file, rawText, t, undefined, ticket);
+          return buildLoadedPrefixProxyEditorState(file, rawText, t);
         });
       } catch (err: unknown) {
         if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
@@ -1010,12 +891,6 @@ export function useAuthFilesPrefixProxyEditor(
             ? prev
             : { ...prev, serviceTierPassthrough: nextValue };
         }
-        if (field === 'codexTurnStateTicket') {
-          const nextValue = Boolean(value);
-          return prev.codexTurnStateTicketEnabled === nextValue
-            ? prev
-            : { ...prev, codexTurnStateTicketEnabled: nextValue };
-        }
         if (field === 'note') {
           const nextValue = String(value);
           return prev.note === nextValue && prev.noteTouched
@@ -1042,7 +917,7 @@ export function useAuthFilesPrefixProxyEditor(
 
   const handlePrefixProxySave = useCallback(async () => {
     const current = prefixProxyEditorRef.current;
-    if (!current || (!prefixProxyAuthFileDirty && !prefixProxyTicketDirty)) return;
+    if (!current || !prefixProxyAuthFileDirty) return;
 
     let payload: Parameters<typeof authFilesApi.patchFields>[0] = { name: current.fileName };
     if (prefixProxyAuthFileDirty) {
@@ -1058,7 +933,7 @@ export function useAuthFilesPrefixProxyEditor(
     }
 
     const shouldSaveAuthFile = Object.keys(payload).length > 1;
-    if (!shouldSaveAuthFile && !prefixProxyTicketDirty) {
+    if (!shouldSaveAuthFile) {
       dismissPrefixProxyEditor();
       return;
     }
@@ -1071,14 +946,6 @@ export function useAuthFilesPrefixProxyEditor(
     });
 
     try {
-      let ticketSaved = false;
-      if (prefixProxyTicketDirty) {
-        ticketSaved = await saveCodexTurnStateTicket(
-          current.file,
-          current.codexTurnStateTicketEnabled
-        );
-      }
-
       let response: Awaited<ReturnType<typeof authFilesApi.patchFields>> | null = null;
       if (shouldSaveAuthFile) {
         response = await authFilesApi.patchFields(payload);
@@ -1092,12 +959,6 @@ export function useAuthFilesPrefixProxyEditor(
       dismissPrefixProxyEditor();
       if (shouldSaveAuthFile) {
         showNotification(t('auth_files.prefix_proxy_saved_success', { name: fileName }), 'success');
-      }
-      if (ticketSaved || prefixProxyTicketDirty) {
-        showNotification(
-          t('auth_files.codex_turn_state_ticket_saved_success', { name: fileName }),
-          'success'
-        );
       }
     } catch (err: unknown) {
       if (!mountedRef.current || editorRequestSeqRef.current !== requestSeq) return;
@@ -1116,7 +977,6 @@ export function useAuthFilesPrefixProxyEditor(
     applyLocalFilePatch,
     dismissPrefixProxyEditor,
     prefixProxyAuthFileDirty,
-    prefixProxyTicketDirty,
     refreshAuthFilesFromServer,
     showNotification,
     t,

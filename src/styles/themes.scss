@@ -3,36 +3,35 @@
 /**
  * Global color tokens
  *
- * The application has one fixed, neutral light appearance. Semantic success,
- * warning, and error colors remain available for state communication.
+ * Toka uses a white canvas and soft gray containers so the interface stays
+ * quiet while semantic colors remain available for operational state.
  */
 
 :root {
   color-scheme: light;
 
-  // xAI visual contract. Licensed xAI font files are not bundled with this
-  // project, so these stacks intentionally resolve through the documented
-  // metric-compatible system fallbacks.
+  // Neutral console contract. The Toka mark keeps its own authored colors;
+  // the application chrome stays close to black, white, and soft gray.
   --xai-ink-console: #202123;
   --xai-ink: #2d2d2f;
-  --xai-white: #fffefa;
-  --xai-canvas: #f6f6f4;
-  --xai-surface-muted: #ececea;
+  --xai-white: #ffffff;
+  --xai-canvas: #ffffff;
+  --xai-surface-muted: #f2f2f0;
   --xai-inverse: #fcfcfa;
-  --xai-warm: #fbfaf8;
+  --xai-warm: #f7f7f5;
   --xai-secondary: #6b6b6e;
-  --xai-muted: #858589;
-  --xai-subtle: #858589;
+  --xai-muted: #6f7072;
+  --xai-subtle: #6f7072;
   --xai-disabled: rgb(32 33 35 / 30%);
   --xai-fill-soft: rgb(32 33 35 / 4%);
   --xai-fill-hover: rgb(32 33 35 / 7%);
   --xai-fill-pressed: rgb(32 33 35 / 11%);
   --xai-border-cool: #d2d2d0;
   --xai-border-subtle: rgb(32 33 35 / 8%);
-  --xai-border: rgb(32 33 35 / 12%);
-  --xai-border-hover: rgb(32 33 35 / 22%);
-  --xai-orange: #a85a3a;
-  --xai-success: #202123;
+  --xai-border: #d9d9d6;
+  --xai-border-hover: #bdbdb9;
+  --xai-orange: #6f7072;
+  --xai-success: #2f6f4e;
   --xai-warning: #8b6a32;
   --xai-danger: #b14b4b;
   --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 10%, transparent);
@@ -118,9 +117,8 @@
   --mg-surface: var(--xai-white);
   --mg-surface-subtle: var(--xai-surface-muted);
   --mg-surface-warm: var(--xai-warm);
-  // DESIGN.md interaction palette: neutral hover/press surfaces and one
-  // black action anchor. These are deliberately separate from selection and
-  // status colors so focus/click feedback never reads as success or context.
+  // Interaction palette: black anchors actions and selection; status colors
+  // remain independent so feedback never reads as navigation.
   --mg-surface-hover: var(--xai-fill-soft);
   --mg-surface-pressed: var(--xai-fill-hover);
   --mg-action: #202123;
@@ -135,12 +133,12 @@
   --mg-ink-strong: var(--xai-ink-console);
   --mg-text-inverse: var(--xai-inverse);
   --mg-sage: #6f7072;
-  --mg-sage-strong: #202123;
+  --mg-sage-strong: var(--mg-action);
   --mg-sage-soft: #eeeeec;
   --mg-sage-wash: var(--xai-fill-hover);
   --mg-sage-wash-soft: var(--xai-fill-soft);
   --mg-khaki-soft: var(--xai-warm);
-  --mg-teal: #202123;
+  --mg-teal: #5f6a6b;
   --mg-orange: var(--xai-orange);
   --mg-success-fill: var(--xai-success);
   --mg-success-text: var(--xai-success);
@@ -225,8 +223,8 @@
   --primary-shadow: var(--xai-shadow-button);
   --primary-shadow-hover: var(--xai-shadow-button);
 
-  --accent-blue: var(--mg-teal);
-  --accent-violet: var(--mg-teal);
+  --accent-blue: #5f6368;
+  --accent-violet: #6b6b70;
   --accent-cyan: var(--mg-teal);
   --accent-amber: var(--xai-warning);
   --accent-orange: var(--mg-orange);
@@ -261,8 +259,7 @@
   --shadow-lg: var(--xai-shadow-dialog);
   --shadow-soft: var(--xai-shadow-menu);
   --header-shadow: 0 1px 0 rgb(25 33 42 / 1.5%);
-  // xAI Console rail aliases. Navigation remains monochrome and uses surface,
-  // weight, and ink changes instead of colored selection treatments.
+  // Navigation uses a quiet gray rail and a restrained black selection tint.
   --sidebar-surface: #f1f1ef;
   --sidebar-surface-muted: var(--xai-fill-soft);
   --sidebar-text: var(--xai-ink-console);

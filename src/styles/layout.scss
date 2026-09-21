@@ -26,7 +26,7 @@ $breakpoint-shell-compact: 1023px;
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 8% -10%, rgb(32 33 35 / 4%), transparent 30rem),
+    radial-gradient(circle at 8% -10%, rgb(32 33 35 / 3%), transparent 30rem),
     var(--mg-canvas, #ffffff);
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
@@ -480,7 +480,7 @@ $breakpoint-shell-compact: 1023px;
   flex-shrink: 0;
   height: 100%;
   isolation: isolate;
-  box-shadow: 8px 0 28px -28px rgb(25 33 42 / 34%);
+  box-shadow: 8px 0 28px -28px rgb(25 25 25 / 24%);
   color: var(--sidebar-text, var(--xai-ink-console));
   font-family: var(--xai-font-ui);
 
@@ -738,7 +738,7 @@ $breakpoint-shell-compact: 1023px;
 
     @media (hover: hover) and (pointer: fine) {
       &:hover {
-        background: rgb(25 25 25 / 4%);
+        background: var(--sidebar-surface-muted);
         color: var(--sidebar-text);
       }
     }
@@ -750,7 +750,7 @@ $breakpoint-shell-compact: 1023px;
     }
 
     &.active {
-      background: rgb(25 25 25 / 7%);
+      background: var(--sidebar-accent-surface);
       color: var(--sidebar-text);
       font-weight: var(--sidebar-label-active-weight);
       box-shadow: none;

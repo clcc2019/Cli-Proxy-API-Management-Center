@@ -5481,122 +5481,6 @@
   }
 }
 
-.page .ticketRefresh {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  z-index: 2;
-}
-
-.page .ticketRefreshButton {
-  width: 24px;
-  min-width: 24px;
-  height: 24px;
-  padding: 3px;
-}
-
-.page .ticketRefreshResult {
-  max-width: 140px;
-  font-size: 10px;
-  overflow-wrap: anywhere;
-  &[data-state='success'] { color: var(--success-color, #16834a); }
-  &:empty { display: none; }
-}
-
-.page .ticketErrorTrigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 26px;
-  white-space: nowrap;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 2px 4px;
-  background: var(--xai-danger-soft);
-  color: var(--mg-danger);
-  font: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color var(--mg-motion-standard), border-color var(--mg-motion-standard);
-
-  &[aria-expanded='true'] {
-    border-color: var(--xai-danger-border);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      background: color-mix(in srgb, var(--mg-danger) 15%, var(--mg-surface));
-    }
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--mg-focus-outline);
-    outline-offset: 2px;
-  }
-}
-
-// The popover is portaled to document.body, outside .page.
-.ticketErrorPopover {
-  padding: 0;
-  border: 1px solid var(--xai-danger-border);
-  border-radius: var(--mg-radius-control);
-  background: var(--mg-surface);
-  box-shadow: var(--xai-shadow-menu);
-  color: var(--mg-danger);
-  font-size: 12px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-
-.ticketErrorHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--xai-danger-soft);
-  border-bottom: 1px solid var(--xai-danger-border);
-
-  > svg { flex-shrink: 0; }
-  strong { flex: 1; font-weight: 600; }
-}
-
-.ticketErrorClose {
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--mg-text-secondary);
-  cursor: pointer;
-
-  &:hover { background: var(--mg-surface-hover); }
-  &:focus-visible { outline: 2px solid var(--mg-focus-outline); outline-offset: 2px; }
-}
-
-.ticketErrorDetail {
-  padding: 12px 14px 16px;
-  color: var(--mg-text);
-  white-space: pre-wrap;
-  user-select: text;
-}
-
-@media (pointer: coarse) {
-  .page .ticketErrorTrigger,
-  .page .ticketRefreshButton,
-  .ticketErrorClose {
-    min-width: 44px;
-    min-height: 44px;
-  }
-}
-
 // Mobile density pass: keep the auth-files workbench compact while retaining
 // enough space for reliable touch interaction.
 @media (max-width: 560px) {
@@ -5886,4 +5770,39 @@
 .page .pageHeader::before,
 .page .pageHeader::after {
   display: none;
+}
+
+// Keep the primary status control visually separate from the utility actions.
+// The buttons remain icon-only on wide cards, but their shared rail now reads
+// as one secondary action group instead of five unrelated controls.
+@container auth-files-page (min-width: 768px) {
+  .page .credentialCard .cardActions {
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--auth-metrics-border);
+    border-radius: var(--mg-radius-control);
+    background: var(--auth-metrics-surface);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm):hover:not(:disabled),
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm):focus-visible {
+    border-color: var(--mg-border);
+    background: var(--mg-surface);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm) {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm):hover:not(:disabled),
+  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm):focus-visible {
+    border-color: var(--auth-status-danger-border);
+    background: var(--auth-status-danger-soft);
+  }
 }

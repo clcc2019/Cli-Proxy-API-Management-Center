@@ -2,12 +2,17 @@ import { Suspense, lazy, useEffect } from 'react';
 import { Outlet, RouterProvider, createHashRouter } from 'react-router-dom';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { RouteErrorFallback } from '@/components/common/RouteErrorFallback';
-import { ProtectedRoute } from '@/router/ProtectedRoute';
 import { fullScreenRouteFallback, lazyNamed, renderLazyPage } from '@/router/lazyRoute';
 import { useLanguageStore } from '@/stores/useLanguageStore';
 
 const LazyLoginPage = lazyNamed(() => import('@/pages/LoginPage'), 'LoginPage');
 const LazyMainLayout = lazyNamed(() => import('@/components/layout/MainLayout'), 'MainLayout');
+// The auth guard is only needed for the protected management shell. Keeping it
+// behind the route boundary keeps the auth guard itself out of the entry graph;
+// the login route and the management shell load their auth code when needed.
+const LazyProtectedRoute = lazy(() =>
+  import('@/router/ProtectedRoute').then(({ ProtectedRoute }) => ({ default: ProtectedRoute }))
+);
 
 // 懒加载：确认弹窗只在真正弹出时才需要，静态引入会把 Modal + Button
 // 拉进入口 chunk（实测约 +21KB），首屏用不到。
@@ -44,7 +49,11 @@ const router = createHashRouter([
       {
         path: '/*',
         element: (
-          <ProtectedRoute>{renderLazyPage(LazyMainLayout, fullScreenRouteFallback)}</ProtectedRoute>
+          <Suspense fallback={fullScreenRouteFallback}>
+            <LazyProtectedRoute>
+              {renderLazyPage(LazyMainLayout, fullScreenRouteFallback)}
+            </LazyProtectedRoute>
+          </Suspense>
         ),
       },
     ],
