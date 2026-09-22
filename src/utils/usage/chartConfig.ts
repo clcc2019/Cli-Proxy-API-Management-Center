@@ -8,17 +8,20 @@ import type { ChartOptions, ScriptableContext } from 'chart.js';
 export type UsageChartMetric = 'requests' | 'tokens';
 
 export const USAGE_CHART_COLORS = {
-  requests: '#45909f',
-  tokens: '#7d7ab8',
-  rpm: '#4d9582',
-  tpm: '#c86a47',
-  cost: '#a97f45',
-  latency: '#9174b2',
-  success: '#489661',
-  failure: '#d06375',
-  neutral: '#8d8780',
-  cyan: '#45909f',
-  pink: '#c96d92',
+  // Keep chart categories distinct without pulling the rest of the console
+  // into a rainbow. Orange owns the primary signal; slate and muted semantic
+  // colors carry the remaining series.
+  requests: '#e35f16',
+  tokens: '#59636b',
+  rpm: '#3d795b',
+  tpm: '#9a6b26',
+  cost: '#876347',
+  latency: '#72627f',
+  success: '#2c6d4d',
+  failure: '#b04747',
+  neutral: '#77756f',
+  cyan: '#52737a',
+  pink: '#9a6573',
 } as const;
 
 const REQUEST_SERIES_COLORS = [
@@ -114,10 +117,10 @@ export function buildChartOptions({
   const maxTickLabelCount = isMobile ? (period === 'hour' ? 7 : 5) : period === 'hour' ? 10 : 8;
   const shouldDecimate = labels.length > (isMobile ? 80 : 120);
   const yGridColor = isDark ? 'rgba(255 255 255 / 8%)' : 'rgba(204 212 218 / 30%)';
-  const tickColor = isDark ? 'rgba(255 255 255 / 70%)' : '#626a73';
+  const tickColor = isDark ? 'rgba(255 255 255 / 70%)' : '#5f5f5c';
   const tooltipBg = isDark ? 'rgba(23 26 29 / 92%)' : 'rgba(255 255 255 / 98%)';
-  const tooltipTitle = isDark ? '#ffffff' : '#22272c';
-  const tooltipBody = isDark ? 'rgba(255 255 255 / 88%)' : '#626a73';
+  const tooltipTitle = isDark ? '#ffffff' : '#1f2022';
+  const tooltipBody = isDark ? 'rgba(255 255 255 / 88%)' : '#5f5f5c';
   const tooltipBorder = isDark ? 'rgba(255 255 255 / 10%)' : 'rgba(204 212 218 / 38%)';
 
   return {

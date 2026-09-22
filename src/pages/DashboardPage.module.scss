@@ -116,8 +116,16 @@
   min-width: 0;
 }
 
+.sectionHeading {
+  display: flex;
+  min-height: 27px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 13.5px;
+}
+
 .sectionTitle {
-  margin: 0 0 13.5px;
+  margin: 0;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
   font-size: 18px;
@@ -170,17 +178,21 @@
   }
 
   &:first-child {
-    background: color-mix(in srgb, var(--xai-warm) 72%, var(--xai-white));
-    color: var(--xai-ink-console);
+    background: var(--xai-ink-console);
+    color: var(--xai-inverse);
 
     .bentoMeta,
     .bentoArrow,
     .bentoLabel {
-      color: var(--xai-secondary);
+      color: color-mix(in srgb, var(--xai-inverse) 72%, transparent);
     }
 
     .bentoValue {
-      color: var(--xai-ink-console);
+      color: var(--xai-inverse);
+    }
+
+    .bentoArrow {
+      color: var(--xai-orange);
     }
   }
 
@@ -200,10 +212,10 @@
     }
 
     &:first-child:hover {
-      background: var(--mg-surface-subtle);
+      background: var(--mg-action-hover);
 
       .bentoArrow {
-        color: var(--xai-ink-console);
+        color: var(--xai-orange);
       }
     }
   }

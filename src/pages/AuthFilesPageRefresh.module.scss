@@ -234,12 +234,12 @@
 
 .page .providerRail::before {
   left: 0;
-  background: linear-gradient(90deg, var(--auth-workbench-surface) 18%, transparent);
+  background: linear-gradient(90deg, var(--mg-surface-subtle) 18%, transparent);
 }
 
 .page .providerRail::after {
   right: 0;
-  background: linear-gradient(270deg, var(--auth-workbench-surface) 18%, transparent);
+  background: linear-gradient(270deg, var(--mg-surface-subtle) 18%, transparent);
 }
 
 .page .providerRail[data-can-scroll-back='true']::before,
@@ -325,6 +325,19 @@
 .page .providerTab:focus-visible {
   outline: 1px solid var(--mg-focus-outline);
   outline-offset: -2px;
+}
+
+// Keep all provider filters visible at common desktop widths. The rail still
+// scrolls when translations or future provider types expand it.
+@container auth-files-page (min-width: 768px) {
+  .page .providerTab {
+    gap: 5px;
+    padding-inline: 8px;
+  }
+
+  .page .providerTabLabel {
+    gap: 5px;
+  }
 }
 
 .page .providerTabLabel {
@@ -4475,13 +4488,13 @@
   .page .refreshTokenBadge {
     border-color: var(--xai-orange-border);
     background: var(--xai-orange-soft);
-    color: var(--xai-orange);
+    color: var(--xai-orange-ink);
   }
 
   .page .featureBadgeFast {
     border-color: var(--xai-orange-border);
     background: var(--xai-orange-soft);
-    color: var(--xai-orange);
+    color: var(--xai-orange-ink);
   }
 
   .page .tokenMetric {
@@ -5621,13 +5634,13 @@
 .page {
   --auth-metrics-surface: color-mix(in srgb, var(--mg-surface) 88%, var(--mg-canvas));
   --auth-metrics-border: color-mix(in srgb, var(--mg-border) 76%, var(--mg-surface));
-  --auth-status-success: #2f7a61;
+  --auth-status-success: var(--xai-success);
   --auth-status-success-soft: color-mix(in srgb, var(--auth-status-success) 10%, var(--mg-surface));
   --auth-status-success-border: color-mix(in srgb, var(--auth-status-success) 28%, var(--mg-border));
-  --auth-status-warning: #a87432;
+  --auth-status-warning: var(--xai-warning);
   --auth-status-warning-soft: color-mix(in srgb, var(--auth-status-warning) 10%, var(--mg-surface));
   --auth-status-warning-border: color-mix(in srgb, var(--auth-status-warning) 30%, var(--mg-border));
-  --auth-status-danger: #b65d57;
+  --auth-status-danger: var(--xai-danger);
   --auth-status-danger-soft: color-mix(in srgb, var(--auth-status-danger) 9%, var(--mg-surface));
   --auth-status-danger-border: color-mix(in srgb, var(--auth-status-danger) 28%, var(--mg-border));
 }
@@ -5673,15 +5686,15 @@
 }
 
 .page .quotaBarFillHigh {
-  background: linear-gradient(90deg, #2b715a 0%, #39866a 100%);
+  background: var(--auth-status-success);
 }
 
 .page .quotaBarFillMedium {
-  background: linear-gradient(90deg, #9a6f2f 0%, #b98942 100%);
+  background: var(--auth-status-warning);
 }
 
 .page .quotaBarFillLow {
-  background: linear-gradient(90deg, #a95751 0%, #be6b64 100%);
+  background: var(--auth-status-danger);
 }
 
 .page .freePlanValue {

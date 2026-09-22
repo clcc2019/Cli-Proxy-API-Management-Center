@@ -526,11 +526,11 @@
 }
 
 .rowWarn {
-  background: var(--warning-bg);
+  background: var(--xai-warning-wash);
 }
 
 .rowError {
-  background: var(--failure-badge-bg);
+  background: var(--xai-danger-wash);
 }
 
 .timestamp {
@@ -619,13 +619,13 @@
 
 .statusSuccess {
   color: var(--success-badge-text);
-  background: var(--success-badge-bg);
+  background: var(--xai-success-wash);
   border-color: var(--success-badge-border);
 }
 
 .statusInfo {
   color: var(--info-color);
-  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  background: color-mix(in srgb, var(--xai-orange) 5%, transparent);
   border-color: color-mix(in srgb, var(--primary-color) 25%, transparent);
 }
 
@@ -637,13 +637,13 @@
 
 .statusError {
   color: var(--failure-badge-text);
-  background: var(--failure-badge-bg);
+  background: var(--xai-danger-wash);
   border-color: var(--failure-badge-border);
 }
 
 .levelInfo {
   color: var(--info-color);
-  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  background: color-mix(in srgb, var(--xai-orange) 5%, transparent);
   border-color: color-mix(in srgb, var(--primary-color) 25%, transparent);
 }
 
@@ -655,7 +655,7 @@
 
 .levelError {
   color: var(--error-color);
-  background: color-mix(in srgb, var(--error-color) 12%, transparent);
+  background: var(--xai-danger-wash);
   border-color: color-mix(in srgb, var(--error-color) 25%, transparent);
 }
 

@@ -12,37 +12,43 @@
 
   // Neutral console contract. The Toka mark keeps its own authored colors;
   // the application chrome stays close to black, white, and soft gray.
-  --xai-ink-console: #202123;
-  --xai-ink: #2d2d2f;
+  --xai-ink-console: #1f2022;
+  --xai-ink: #2c2c2f;
   --xai-white: #ffffff;
-  --xai-canvas: #f8f8f6;
-  --xai-surface-muted: #f2f1ee;
+  --xai-canvas: #f7f7f5;
+  --xai-surface-muted: #f0efec;
   --xai-inverse: #fcfcfa;
-  --xai-warm: #fbfaf7;
-  --xai-secondary: #62625f;
-  --xai-muted: #74736f;
-  --xai-subtle: #74736f;
-  --xai-disabled: rgb(32 33 35 / 30%);
-  --xai-fill-soft: rgb(32 33 35 / 4%);
-  --xai-fill-hover: rgb(32 33 35 / 7%);
-  --xai-fill-pressed: rgb(32 33 35 / 11%);
-  --xai-border-cool: #d2d2d0;
-  --xai-border-subtle: rgb(32 33 35 / 8%);
-  --xai-border: #d9d9d6;
-  --xai-border-hover: #bdbdb9;
-  --xai-orange: #ff6e06;
-  --xai-success: #2f6f4e;
-  --xai-warning: #8b6a32;
-  --xai-danger: #b14b4b;
-  --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 10%, transparent);
-  --xai-orange-border: color-mix(in srgb, var(--xai-orange) 28%, transparent);
+  --xai-warm: #fbfbfa;
+  --xai-secondary: #5f5f5c;
+  --xai-muted: #6a6965;
+  --xai-subtle: #6a6965;
+  --xai-disabled: rgb(31 32 34 / 30%);
+  --xai-fill-soft: rgb(31 32 34 / 4.5%);
+  --xai-fill-hover: rgb(31 32 34 / 7.5%);
+  --xai-fill-pressed: rgb(31 32 34 / 12%);
+  --xai-border-cool: #cececb;
+  --xai-border-subtle: rgb(31 32 34 / 9%);
+  --xai-border: #d5d5d2;
+  --xai-border-hover: #b7b7b3;
+  // xAI-style signal color: bright enough for dark surfaces, with a darker
+  // companion reserved for text and small indicators on light surfaces.
+  --xai-orange: #ff6a00;
+  --xai-orange-ink: #b84d00;
+  --xai-success: #2c6d4d;
+  --xai-warning: #855f24;
+  --xai-danger: #b04747;
+  --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 11%, transparent);
+  --xai-orange-border: color-mix(in srgb, var(--xai-orange) 30%, transparent);
   --xai-success-soft: color-mix(in srgb, var(--xai-success) 10%, transparent);
-  --xai-success-border: color-mix(in srgb, var(--xai-success) 28%, transparent);
+  --xai-success-border: color-mix(in srgb, var(--xai-success) 30%, transparent);
+  --xai-success-wash: color-mix(in srgb, var(--xai-success) 5%, transparent);
   --xai-warning-soft: color-mix(in srgb, var(--xai-warning) 10%, transparent);
-  --xai-warning-border: color-mix(in srgb, var(--xai-warning) 28%, transparent);
+  --xai-warning-border: color-mix(in srgb, var(--xai-warning) 30%, transparent);
+  --xai-warning-wash: color-mix(in srgb, var(--xai-warning) 5%, transparent);
   --xai-danger-soft: color-mix(in srgb, var(--xai-danger) 10%, transparent);
-  --xai-danger-border: color-mix(in srgb, var(--xai-danger) 28%, transparent);
-  --xai-code: #171719;
+  --xai-danger-border: color-mix(in srgb, var(--xai-danger) 30%, transparent);
+  --xai-danger-wash: color-mix(in srgb, var(--xai-danger) 5%, transparent);
+  --xai-code: #151516;
 
   --xai-space-1: 4.5px;
   --xai-space-1-5: 6.75px;
@@ -121,8 +127,8 @@
   // remain independent so feedback never reads as navigation.
   --mg-surface-hover: var(--xai-fill-soft);
   --mg-surface-pressed: var(--xai-fill-hover);
-  --mg-action: #202123;
-  --mg-action-hover: #3a3b3d;
+  --mg-action: var(--xai-ink-console);
+  --mg-action-hover: #38393b;
   --mg-text: var(--xai-ink);
   --mg-text-secondary: var(--xai-secondary);
   --mg-text-tertiary: var(--xai-muted);
@@ -132,9 +138,9 @@
   --mg-border-strong: var(--xai-border-cool);
   --mg-ink-strong: var(--xai-ink-console);
   --mg-text-inverse: var(--xai-inverse);
-  --mg-sage: #d97706;
+  --mg-sage: var(--xai-orange-ink);
   --mg-sage-strong: var(--mg-action);
-  --mg-sage-soft: #fff1e7;
+  --mg-sage-soft: var(--xai-orange-soft);
   --mg-sage-wash: var(--xai-fill-hover);
   --mg-sage-wash-soft: var(--xai-fill-soft);
   --mg-khaki-soft: var(--xai-warm);
@@ -151,7 +157,7 @@
   --mg-border-fade: var(--xai-border-hover);
   --mg-overlay: var(--xai-overlay);
   --mg-focus-outline: var(--xai-ink-console);
-  --mg-focus-ring: rgb(25 33 42 / 18%);
+  --mg-focus-ring: rgb(31 32 34 / 20%);
   --mg-focus-ring-danger: color-mix(in srgb, var(--xai-danger) 30%, transparent);
   --mg-radius-control: var(--xai-radius-control);
   --mg-radius-medium: var(--xai-radius-panel);
@@ -260,7 +266,7 @@
   --shadow-soft: var(--xai-shadow-menu);
   --header-shadow: 0 1px 0 rgb(25 33 42 / 1.5%);
   // Navigation uses a quiet gray rail and a restrained black selection tint.
-  --sidebar-surface: #f3f2ee;
+  --sidebar-surface: #f0efec;
   --sidebar-surface-muted: var(--xai-fill-soft);
   --sidebar-text: var(--xai-ink-console);
   --sidebar-text-secondary: var(--xai-secondary);

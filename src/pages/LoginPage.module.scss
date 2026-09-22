@@ -7,9 +7,9 @@
   --login-surface-muted: var(--xai-surface-muted);
   --login-surface-selected: var(--mg-surface-pressed);
   --login-header-border: var(--xai-border);
-  --login-dark-surface: #171716;
+  --login-dark-surface: var(--xai-code);
   --login-dark-border: rgb(255 255 255 / 12%);
-  --login-dark-text: #f7f5ef;
+  --login-dark-text: var(--xai-inverse);
   --login-text-strong: var(--xai-ink-console);
   --login-text: var(--xai-ink);
   --login-text-secondary: var(--xai-secondary);
@@ -232,7 +232,7 @@
     inset: 0;
     background:
       radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--xai-orange) 20%, transparent), transparent 34%),
-      radial-gradient(circle at 82% 82%, rgb(44 198 183 / 16%), transparent 38%),
+      radial-gradient(circle at 82% 82%, color-mix(in srgb, var(--xai-orange) 9%, transparent), transparent 38%),
       linear-gradient(145deg, rgb(255 255 255 / 6%), transparent 58%);
     opacity: 1;
     pointer-events: none;

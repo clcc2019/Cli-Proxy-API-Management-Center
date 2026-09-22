@@ -442,6 +442,9 @@ export function DashboardPage() {
         aria-label={t('dashboard.system_overview')}
         aria-busy={isStatsLoading}
       >
+        <div className={styles.sectionHeading}>
+          <h2 className={styles.sectionTitle}>{t('dashboard.system_overview')}</h2>
+        </div>
         <div className={styles.bentoGrid}>
           {quickStats.map((stat) => (
             <Link
