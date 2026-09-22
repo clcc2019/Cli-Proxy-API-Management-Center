@@ -363,19 +363,10 @@ textarea {
     box-shadow var(--motion-duration-base) var(--motion-ease-standard),
     transform var(--motion-duration-fast) var(--motion-ease-out);
 
-  // A quiet top highlight gives the surface a clear light direction without
-  // turning every card into a glossy panel.
+  // Keep cards matte and legible. The hierarchy comes from the border and
+  // surface contrast rather than a decorative sheen.
   &::before {
-    position: absolute;
-    top: 0;
-    right: var(--xai-space-5);
-    left: var(--xai-space-5);
-    height: 1px;
-    border-radius: var(--xai-radius-pill);
-    background: color-mix(in srgb, var(--xai-white) 76%, transparent);
-    content: '';
-    pointer-events: none;
-    opacity: 0.9;
+    content: none;
   }
 
   &.card-interactive {

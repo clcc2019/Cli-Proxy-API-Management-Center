@@ -12,31 +12,31 @@
 
   // Neutral console contract. The Toka mark keeps its own authored colors;
   // the application chrome stays close to black, white, and soft gray.
-  --xai-ink-console: #1f2022;
-  --xai-ink: #2c2c2f;
+  --xai-ink-console: #161616;
+  --xai-ink: #282826;
   --xai-white: #ffffff;
-  --xai-canvas: #f7f7f5;
-  --xai-surface-muted: #f0efec;
-  --xai-inverse: #fcfcfa;
-  --xai-warm: #fbfbfa;
-  --xai-secondary: #5f5f5c;
-  --xai-muted: #6a6965;
-  --xai-subtle: #6a6965;
-  --xai-disabled: rgb(31 32 34 / 30%);
-  --xai-fill-soft: rgb(31 32 34 / 4.5%);
-  --xai-fill-hover: rgb(31 32 34 / 7.5%);
-  --xai-fill-pressed: rgb(31 32 34 / 12%);
-  --xai-border-cool: #cececb;
-  --xai-border-subtle: rgb(31 32 34 / 9%);
-  --xai-border: #d5d5d2;
-  --xai-border-hover: #b7b7b3;
-  // xAI-style signal color: bright enough for dark surfaces, with a darker
-  // companion reserved for text and small indicators on light surfaces.
-  --xai-orange: #ff6a00;
-  --xai-orange-ink: #b84d00;
+  --xai-canvas: #f4f4f1;
+  --xai-surface-muted: #e9e9e5;
+  --xai-inverse: #f8f8f5;
+  --xai-warm: #fbfbf9;
+  --xai-secondary: #5a5a56;
+  --xai-muted: #70706b;
+  --xai-subtle: #85857f;
+  --xai-disabled: rgb(22 22 22 / 34%);
+  --xai-fill-soft: rgb(22 22 22 / 5%);
+  --xai-fill-hover: rgb(22 22 22 / 8%);
+  --xai-fill-pressed: rgb(22 22 22 / 13%);
+  --xai-border-cool: #c8c8c3;
+  --xai-border-subtle: rgb(22 22 22 / 10%);
+  --xai-border: #cdcdc8;
+  --xai-border-hover: #a9a9a3;
+  // xAI-style signal color: bright on dark surfaces, with a darker companion
+  // reserved for text, controls, and small indicators on light surfaces.
+  --xai-orange: #ff5a00;
+  --xai-orange-ink: #a94100;
   --xai-success: #2c6d4d;
   --xai-warning: #855f24;
-  --xai-danger: #b04747;
+  --xai-danger: #ae4d47;
   --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 11%, transparent);
   --xai-orange-border: color-mix(in srgb, var(--xai-orange) 30%, transparent);
   --xai-success-soft: color-mix(in srgb, var(--xai-success) 10%, transparent);
@@ -48,7 +48,7 @@
   --xai-danger-soft: color-mix(in srgb, var(--xai-danger) 10%, transparent);
   --xai-danger-border: color-mix(in srgb, var(--xai-danger) 30%, transparent);
   --xai-danger-wash: color-mix(in srgb, var(--xai-danger) 5%, transparent);
-  --xai-code: #151516;
+  --xai-code: #111111;
 
   --xai-space-1: 4.5px;
   --xai-space-1-5: 6.75px;
@@ -66,16 +66,16 @@
   --xai-space-15: 67.5px;
 
   --xai-radius-micro: 6.75px;
-  --xai-radius-small: 9px;
-  --xai-radius-control: 10px;
-  --xai-radius-panel: 13.5px;
-  --xai-radius-card: 18px;
+  --xai-radius-small: 8px;
+  --xai-radius-control: 9px;
+  --xai-radius-panel: 12px;
+  --xai-radius-card: 16px;
   --xai-radius-pill: 9999px;
 
   --xai-border-width: 1px;
-  --xai-shadow-button: 0 1px 2px rgb(32 33 35 / 5%);
-  --xai-shadow-menu: 0 18px 42px -18px rgb(32 33 35 / 18%), 0 4px 10px -6px rgb(32 33 35 / 8%);
-  --xai-shadow-dialog: 0 24px 72px -28px rgb(32 33 35 / 22%), 0 8px 24px -16px rgb(32 33 35 / 10%);
+  --xai-shadow-button: 0 1px 2px rgb(22 22 22 / 7%);
+  --xai-shadow-menu: 0 18px 42px -18px rgb(22 22 22 / 20%), 0 4px 10px -6px rgb(22 22 22 / 10%);
+  --xai-shadow-dialog: 0 24px 72px -28px rgb(22 22 22 / 24%), 0 8px 24px -16px rgb(22 22 22 / 12%);
 
   // Legacy surface aliases kept for components that still use the old token
   // names. These values deliberately contain no alpha, refraction, or sheen.
@@ -116,19 +116,19 @@
   --xai-z-overlay: 40;
   --xai-z-dialog: 50;
   --xai-z-toast: 60;
-  --xai-overlay: rgb(23 21 19 / 42%);
+  --xai-overlay: rgb(17 17 17 / 48%);
 
   // Merge Gateway-inspired semantic tokens used by the application shell.
   --mg-canvas: var(--xai-canvas);
   --mg-surface: var(--xai-white);
   --mg-surface-subtle: var(--xai-surface-muted);
   --mg-surface-warm: var(--xai-warm);
-  // Interaction palette: black anchors actions and selection; status colors
-  // remain independent so feedback never reads as navigation.
+  // Interaction palette: xAI orange carries action and selection; black stays
+  // available for high-contrast anchors and dark surfaces.
   --mg-surface-hover: var(--xai-fill-soft);
   --mg-surface-pressed: var(--xai-fill-hover);
-  --mg-action: var(--xai-ink-console);
-  --mg-action-hover: #38393b;
+  --mg-action: var(--xai-orange-ink);
+  --mg-action-hover: #873500;
   --mg-text: var(--xai-ink);
   --mg-text-secondary: var(--xai-secondary);
   --mg-text-tertiary: var(--xai-muted);
@@ -138,11 +138,11 @@
   --mg-border-strong: var(--xai-border-cool);
   --mg-ink-strong: var(--xai-ink-console);
   --mg-text-inverse: var(--xai-inverse);
-  --mg-sage: var(--xai-orange-ink);
-  --mg-sage-strong: var(--mg-action);
+  --mg-sage: var(--xai-orange);
+  --mg-sage-strong: var(--xai-orange-ink);
   --mg-sage-soft: var(--xai-orange-soft);
-  --mg-sage-wash: var(--xai-fill-hover);
-  --mg-sage-wash-soft: var(--xai-fill-soft);
+  --mg-sage-wash: var(--xai-orange-soft);
+  --mg-sage-wash-soft: var(--xai-orange-soft);
   --mg-khaki-soft: var(--xai-warm);
   --mg-teal: #5f6a6b;
   --mg-orange: var(--xai-orange);
@@ -157,15 +157,15 @@
   --mg-border-fade: var(--xai-border-hover);
   --mg-overlay: var(--xai-overlay);
   --mg-focus-outline: var(--xai-ink-console);
-  --mg-focus-ring: rgb(31 32 34 / 20%);
+  --mg-focus-ring: color-mix(in srgb, var(--xai-orange) 34%, transparent);
   --mg-focus-ring-danger: color-mix(in srgb, var(--xai-danger) 30%, transparent);
   --mg-radius-control: var(--xai-radius-control);
   --mg-radius-medium: var(--xai-radius-panel);
   --mg-radius-card: var(--xai-radius-card);
   --mg-radius-large: var(--xai-radius-card);
   --mg-radius-pill: var(--xai-radius-pill);
-  --mg-shadow-rest: 0 1px 2px rgb(32 33 35 / 5%);
-  --mg-shadow-card: 0 14px 30px -22px rgb(32 33 35 / 18%);
+  --mg-shadow-rest: 0 1px 2px rgb(22 22 22 / 7%);
+  --mg-shadow-card: 0 14px 30px -22px rgb(22 22 22 / 20%);
   --mg-shadow-float: var(--xai-shadow-menu);
   --mg-space-2: var(--xai-space-2);
   --mg-space-3: var(--xai-space-3);
@@ -224,14 +224,14 @@
   --primary-hover: var(--mg-action-hover);
   --primary-active: var(--mg-action);
   --primary-contrast: var(--mg-text-inverse);
-  --primary-soft: color-mix(in srgb, var(--mg-surface-selected) 82%, var(--mg-surface));
+  --primary-soft: var(--xai-orange-soft);
   --focus-ring: var(--mg-focus-ring);
   --primary-shadow: var(--xai-shadow-button);
   --primary-shadow-hover: var(--xai-shadow-button);
 
   --accent-blue: #5f6368;
-  --accent-violet: #6b6b70;
-  --accent-cyan: var(--mg-teal);
+  --accent-violet: #6e6870;
+  --accent-cyan: #5f6d6b;
   --accent-amber: var(--xai-warning);
   --accent-orange: var(--mg-orange);
   --accent-rose: var(--mg-danger);
@@ -265,19 +265,20 @@
   --shadow-lg: var(--xai-shadow-dialog);
   --shadow-soft: var(--xai-shadow-menu);
   --header-shadow: 0 1px 0 rgb(25 33 42 / 1.5%);
-  // Navigation uses a quiet gray rail and a restrained black selection tint.
-  --sidebar-surface: #f0efec;
-  --sidebar-surface-muted: var(--xai-fill-soft);
-  --sidebar-text: var(--xai-ink-console);
-  --sidebar-text-secondary: var(--xai-secondary);
-  --sidebar-text-tertiary: var(--xai-muted);
-  --sidebar-border: var(--xai-border-subtle);
-  --sidebar-border-strong: var(--xai-border-hover);
+  // The navigation rail is the one committed dark surface in the console;
+  // its orange signal stays reserved for the current route and status.
+  --sidebar-surface: #171717;
+  --sidebar-surface-muted: rgb(255 255 255 / 8%);
+  --sidebar-text: var(--xai-inverse);
+  --sidebar-text-secondary: #c3c3bd;
+  --sidebar-text-tertiary: #92928c;
+  --sidebar-border: rgb(255 255 255 / 12%);
+  --sidebar-border-strong: rgb(255 255 255 / 22%);
   --sidebar-accent: var(--xai-orange);
   --sidebar-accent-line: var(--sidebar-accent);
-  --sidebar-accent-surface: color-mix(in srgb, var(--sidebar-accent) 10%, transparent);
+  --sidebar-accent-surface: color-mix(in srgb, var(--sidebar-accent) 17%, transparent);
   --sidebar-accent-icon: var(--sidebar-accent);
-  --sidebar-shadow: inset -1px 0 0 rgb(25 33 42 / 2%);
+  --sidebar-shadow: inset -1px 0 0 rgb(255 255 255 / 5%);
   --shadow-card: var(--mg-shadow-rest);
   --shadow-card-hover: var(--mg-shadow-card);
   --control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.62), 0 1px 2px rgb(25 33 42 / 0.05);
