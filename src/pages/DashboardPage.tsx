@@ -8,6 +8,7 @@ import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer'
 import type { Config } from '@/types';
 import type { ModelInfo } from '@/utils/models';
 import styles from './DashboardPage.module.scss';
+import { IconExternalLink } from '@/components/ui/icons';
 
 interface QuickStat {
   label: string;
@@ -412,7 +413,6 @@ export function DashboardPage() {
     <div className={styles.dashboard} data-page="dashboard">
       <section className={styles.hero} aria-labelledby="dashboard-hero-title">
         <div className={styles.heroCopy}>
-          <span className={styles.heroEyebrow}>{t('dashboard.system_overview')}</span>
           <h1 id="dashboard-hero-title" className={styles.heroTitle}>
             {t('nav.dashboard')}
           </h1>
@@ -443,7 +443,7 @@ export function DashboardPage() {
         aria-busy={isStatsLoading}
       >
         <div className={styles.bentoGrid}>
-          {quickStats.map((stat, index) => (
+          {quickStats.map((stat) => (
             <Link
               key={stat.path}
               to={stat.path}
@@ -451,8 +451,9 @@ export function DashboardPage() {
               aria-label={`${stat.label}: ${stat.loading ? t('common.loading') : stat.value}`}
             >
               <span className={styles.bentoMeta} aria-hidden="true">
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <span className={styles.bentoArrow}>↗</span>
+                <span className={styles.bentoArrow}>
+                  <IconExternalLink size={15} />
+                </span>
               </span>
               <div className={styles.bentoContent}>
                 <span

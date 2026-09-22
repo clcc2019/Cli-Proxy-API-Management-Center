@@ -689,7 +689,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                     quotaType={quotaType}
                     disableControls={disableControls}
                     onAuthFileUpdated={onAuthFileUpdated}
-                    className={refreshStyles.cardActionButton}
+                    className={`${refreshStyles.cardActionButton} ${refreshStyles.cardRefreshButton}`}
                     iconClassName={refreshStyles.cardActionIcon}
                     iconSize={16}
                   />

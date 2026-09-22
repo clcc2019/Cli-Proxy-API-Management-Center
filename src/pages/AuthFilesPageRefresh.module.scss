@@ -675,8 +675,7 @@
     color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
-.page .controlButtonText,
-.page .quotaRefreshText {
+.page .controlButtonText {
   display: none;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -1263,7 +1262,7 @@
     background: var(--mg-surface);
     box-shadow: 0 8px 20px -10px rgb(24 31 39 / 26%);
     transform: translateY(-2px);
-
+    z-index: 1;
   }
 }
 
@@ -3314,8 +3313,7 @@
     gap: 8px;
   }
 
-  .page .controlButtonText,
-  .page .quotaRefreshText {
+  .page .controlButtonText {
     display: inline;
   }
 
@@ -4196,10 +4194,6 @@
     flex: 0 0 var(--xai-space-8);
     padding: 0;
     border-radius: var(--xai-radius-control);
-  }
-
-  .page .quotaRefreshText {
-    display: none;
   }
 
   .page .credentialCard {
@@ -5165,8 +5159,7 @@
     gap: 0;
   }
 
-  .page .controlButtonText,
-  .page .quotaRefreshText {
+  .page .controlButtonText {
     display: none;
   }
 }
@@ -5406,8 +5399,7 @@
     box-shadow: none;
   }
 
-  .page .controlButtonText,
-  .page .quotaRefreshText {
+  .page .controlButtonText {
     display: none;
   }
 
@@ -5777,36 +5769,228 @@
 }
 
 // Keep the primary status control visually separate from the utility actions.
-// The buttons remain icon-only on wide cards, but their shared rail now reads
-// as one secondary action group instead of five unrelated controls.
+// Each utility owns its own hit surface; the rail only handles spacing and
+// horizontal overflow on narrow cards.
 @container auth-files-page (min-width: 768px) {
   .page .credentialCard .cardActions {
-    gap: 2px;
-    padding: 2px;
-    border: 1px solid var(--auth-metrics-border);
-    border-radius: var(--mg-radius-control);
-    background: var(--auth-metrics-surface);
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
-    border-color: transparent;
+    border-color: var(--mg-border);
+    background: var(--mg-surface);
+    box-shadow: 0 1px 2px rgb(32 33 35 / 7%);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm):hover:not(:disabled) {
+    border-color: var(--mg-border-hover);
+    background: var(--mg-surface-subtle);
+    box-shadow: 0 4px 10px -8px rgb(32 33 35 / 34%);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm) {
+    border-color: color-mix(in srgb, var(--mg-danger) 32%, var(--mg-border));
+    background: var(--mg-surface);
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm):hover:not(:disabled) {
+    border-color: var(--auth-status-danger-border);
+    background: var(--auth-status-danger-soft);
+    box-shadow: 0 4px 10px -8px color-mix(in srgb, var(--mg-danger) 34%, transparent);
+  }
+}
+
+// Final refresh treatment: the quota action is a utility control, but it is
+// still the only action that can update the metric panel in place. Give it a
+// quiet accent and keep its icon centered when the shared Button wrapper has
+// no visible label.
+.page .quotaRefreshButton:global(.btn.btn-sm) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: color-mix(in srgb, var(--auth-accent) 24%, var(--mg-border));
+  background: color-mix(in srgb, var(--auth-accent) 5%, var(--mg-surface));
+  color: color-mix(in srgb, var(--auth-accent) 78%, var(--mg-text));
+  box-shadow: 0 1px 2px rgb(32 33 35 / 7%);
+  transition:
+    border-color var(--mg-motion-fast) var(--mg-ease-standard),
+    background-color var(--mg-motion-fast) var(--mg-ease-standard),
+    color var(--mg-motion-fast) var(--mg-ease-standard),
+    box-shadow var(--mg-motion-fast) var(--mg-ease-standard),
+    transform var(--mg-motion-fast) var(--mg-ease-emphasis);
+}
+
+.page .quotaRefreshButton:global(.btn.btn-sm) > span:not(:global(.loading-spinner)) {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  line-height: 0;
+}
+
+.page .quotaRefreshButton:global(.btn.btn-sm) svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.page .quotaRefreshButton:global(.btn.btn-sm):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--auth-accent) 42%, var(--mg-border));
+  background: color-mix(in srgb, var(--auth-accent) 10%, var(--mg-surface));
+  color: var(--auth-accent);
+  box-shadow: 0 5px 12px -8px color-mix(in srgb, var(--auth-accent) 38%, transparent);
+  transform: translateY(-1px);
+}
+
+.page .quotaRefreshButton:global(.btn.btn-sm):active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.page .quotaRefreshButton:global(.btn.btn-sm):focus-visible {
+  outline: 1px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+  border-color: var(--auth-accent);
+  box-shadow: 0 0 0 3px var(--mg-focus-ring);
+}
+
+.page .quotaRefreshButton:global(.btn.btn-sm):disabled {
+  border-color: var(--mg-border);
+  background: var(--mg-surface-subtle);
+  color: var(--mg-text-muted);
+  box-shadow: none;
+}
+
+.page .credentialCard .cardRefresh {
+  min-width: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.page .credentialCard .cardRefreshButton:global(.btn.btn-sm) {
+  border-color: color-mix(in srgb, var(--auth-accent) 26%, var(--mg-border));
+  background: color-mix(in srgb, var(--auth-accent) 6%, var(--mg-surface));
+  color: color-mix(in srgb, var(--auth-accent) 80%, var(--mg-text));
+}
+
+.page .credentialCard .cardRefreshButton:global(.btn.btn-sm):hover:not(:disabled),
+.page .credentialCard .cardRefreshButton:global(.btn.btn-sm):focus-visible {
+  border-color: color-mix(in srgb, var(--auth-accent) 48%, var(--mg-border));
+  background: color-mix(in srgb, var(--auth-accent) 12%, var(--mg-surface));
+  color: var(--auth-accent);
+}
+
+.page .credentialCard .cardRefreshButton:global(.btn.btn-sm)[aria-busy='true'] {
+  border-color: color-mix(in srgb, var(--auth-accent) 34%, var(--mg-border));
+  background: color-mix(in srgb, var(--auth-accent) 9%, var(--mg-surface));
+}
+
+// Give the action row a quiet footer surface so the card reads as identity →
+// metrics → actions, instead of a loose collection of controls at the bottom.
+.page .credentialCard {
+  box-shadow: 0 2px 8px -6px rgb(32 33 35 / 30%);
+}
+
+.page .credentialCard .cardFooter {
+  margin: 0;
+  padding: 12px 0 0;
+  background: transparent;
+}
+
+@container auth-files-page (max-width: 560px) {
+  .page .displayOptions {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .page .planFilterSelect {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .page .quotaRefreshButton:global(.btn.btn-sm) {
+    margin-left: auto;
+  }
+
+  .page .credentialCard .cardFooter {
+    margin: 0;
+    padding: 9px 0 0;
+  }
+}
+
+@container auth-files-page (min-width: 1080px) {
+  .page .credentialCard .cardFooter {
+    margin: 0;
+    padding: 10px 0 0;
+  }
+}
+
+@container auth-files-page (max-width: 767px) {
+  .page .credentialCard .cardActions {
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
     background: transparent;
+  }
+
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
+    border: 1px solid var(--mg-border);
+    background: var(--mg-surface);
+    box-shadow: 0 1px 2px rgb(32 33 35 / 7%);
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-sm):hover:not(:disabled),
   .page .credentialCard .cardActionButton:global(.btn.btn-sm):focus-visible {
-    border-color: var(--mg-border);
-    background: var(--mg-surface);
+    border-color: var(--mg-border-hover);
+    background: var(--mg-surface-subtle);
+    box-shadow: 0 4px 10px -8px rgb(32 33 35 / 34%);
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm) {
-    border-color: transparent;
-    background: transparent;
+    border-color: color-mix(in srgb, var(--mg-danger) 32%, var(--mg-border));
+    background: var(--mg-surface);
   }
 
   .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm):hover:not(:disabled),
   .page .credentialCard .cardActionButton:global(.btn.btn-danger.btn-sm):focus-visible {
     border-color: var(--auth-status-danger-border);
     background: var(--auth-status-danger-soft);
+    box-shadow: 0 4px 10px -8px color-mix(in srgb, var(--mg-danger) 34%, transparent);
   }
+
+  .page .credentialCard .cardRefresh {
+    min-width: 44px;
+    padding: 0;
+  }
+
+  .page .credentialCard .cardRefreshButton:global(.btn.btn-sm) {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page .quotaRefreshButton:global(.btn.btn-sm),
+  .page .credentialCard .cardRefreshButton:global(.btn.btn-sm) {
+    transition: none;
+  }
+}
+
+// The grid is content-visible/contained for list performance. Keep a small
+// paint buffer above the first row so its hover lift never gets clipped at the
+// grid's top edge. The negative margin preserves the existing page rhythm.
+.page .cardGrid {
+  margin-top: -4px;
+  padding-top: 4px;
 }

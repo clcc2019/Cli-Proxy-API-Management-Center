@@ -26,7 +26,7 @@ $breakpoint-shell-compact: 1023px;
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 8% -10%, rgb(32 33 35 / 3%), transparent 30rem),
+    radial-gradient(circle at 8% -10%, color-mix(in srgb, var(--xai-orange) 4%, transparent), transparent 30rem),
     var(--mg-canvas, #ffffff);
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
@@ -59,16 +59,15 @@ $breakpoint-shell-compact: 1023px;
   min-height: var(--header-height);
   padding: 0;
   border: 0;
-  border-bottom: 0;
-  background: color-mix(in srgb, var(--mg-canvas, #ffffff) 92%, transparent);
-  backdrop-filter: blur(16px);
-  box-shadow: none;
+  border-bottom: 1px solid var(--xai-border-subtle);
+  background: var(--xai-warm);
+  box-shadow: 0 1px 0 rgb(32 33 35 / 2%);
   pointer-events: none;
 
   @media (max-width: $breakpoint-shell-compact) {
     height: var(--header-height);
     backdrop-filter: none;
-    background: var(--mg-canvas, #ffffff);
+    background: var(--xai-warm);
   }
 
   .mobile-sidebar-actions,
@@ -468,7 +467,7 @@ $breakpoint-shell-compact: 1023px;
   z-index: calc(var(--xai-z-sticky) + 1);
   width: var(--sidebar-width);
   background:
-    linear-gradient(180deg, rgb(250 250 249 / 92%) 0%, var(--sidebar-surface, var(--xai-white)) 35%);
+    linear-gradient(180deg, var(--xai-warm) 0%, var(--sidebar-surface, var(--xai-white)) 35%);
   border-right: 1px solid var(--sidebar-border);
   padding: var(--xai-space-6) var(--xai-space-4) var(--xai-space-4);
   display: flex;
@@ -756,7 +755,15 @@ $breakpoint-shell-compact: 1023px;
       box-shadow: none;
 
       &::before {
-        content: none;
+        position: absolute;
+        top: 50%;
+        left: 8px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--sidebar-accent-line);
+        content: '';
+        transform: translateY(-50%);
       }
 
       .nav-icon {
@@ -872,7 +879,7 @@ $breakpoint-shell-compact: 1023px;
   height: 100%;
   position: relative;
   background:
-    radial-gradient(circle at 92% 0%, rgb(25 25 25 / 3%), transparent 32rem),
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--xai-orange) 3%, transparent), transparent 32rem),
     var(--mg-canvas, #ffffff);
 
   > .page-transition {
