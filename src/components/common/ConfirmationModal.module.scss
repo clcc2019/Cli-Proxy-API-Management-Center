@@ -1,3 +1,15 @@
+.confirmationModalNeutral {
+  --confirmation-action: #161616;
+  --confirmation-action-hover: #000000;
+  --confirmation-action-text: #ffffff;
+  --confirmation-focus-ring: rgb(22 22 22 / 23%);
+  --mg-action: var(--confirmation-action);
+  --mg-action-hover: var(--confirmation-action-hover);
+  --mg-focus-outline: var(--confirmation-action);
+  --mg-focus-ring: var(--confirmation-focus-ring);
+  --primary-contrast: var(--confirmation-action-text);
+}
+
 .message {
   margin: 0;
   color: var(--xai-ink);
@@ -5,6 +17,14 @@
   font-size: 13.5px;
   line-height: 18px;
   overflow-wrap: break-word;
+}
+
+:global([data-theme='dark']) .confirmationModalNeutral {
+  --confirmation-action: #0f100f;
+  --confirmation-action-hover: #000000;
+  --confirmation-action-text: #ffffff;
+  --confirmation-focus-ring: rgb(239 238 232 / 26%);
+  --mg-focus-outline: #efeee8;
 }
 
 .actions {

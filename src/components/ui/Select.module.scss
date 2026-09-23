@@ -31,7 +31,7 @@
   width: 100%;
   min-height: var(--mg-control-height);
   padding: 0 12px;
-  border: 1px solid var(--mg-border);
+  border: 1px solid var(--mg-control-border);
   border-radius: var(--mg-radius-control);
   background: var(--xai-glass-control);
   color: var(--mg-text);
@@ -49,20 +49,20 @@
 
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
-      border-color: var(--mg-border-hover);
+      border-color: var(--mg-control-border-hover);
       background: var(--mg-surface-hover);
     }
   }
 
   &:active:not(:disabled) {
-    border-color: var(--mg-border-strong);
+    border-color: var(--mg-control-border-hover);
     background: var(--mg-surface-pressed);
   }
 
   &:focus-visible {
     outline: 1px solid var(--mg-focus-outline);
     outline-offset: 3px;
-    border-color: var(--mg-border);
+    border-color: var(--mg-control-border);
     box-shadow: var(--xai-glass-highlight);
   }
 

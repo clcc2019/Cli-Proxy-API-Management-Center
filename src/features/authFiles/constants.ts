@@ -1,9 +1,12 @@
 import type { TFunction } from 'i18next';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconCodex from '@/assets/icons/codex.svg';
+import iconDeepseek from '@/assets/icons/deepseek.svg';
+import iconGemini from '@/assets/icons/gemini.svg';
 import iconGrok from '@/assets/icons/grok.svg';
 import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
+import iconMinimax from '@/assets/icons/minimax.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
 import type { AuthFileItem, ResolvedTheme, ThemeColors, TypeColorSet } from '@/types';
 import { hasAuthFileRequestStats, readAuthFileRequestStats } from '@/features/authFiles/stats';
@@ -71,10 +74,33 @@ const TYPE_COLORS: Record<string, TypeColorSet> = {
 const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
   claude: iconClaude,
   codex: iconCodex,
+  deepseek: iconDeepseek,
+  gemini: iconGemini,
   kimi: { light: iconKimiLight, dark: iconKimiDark },
+  minimax: iconMinimax,
   qwen: iconQwen,
   xai: iconGrok,
 };
+
+const AUTH_FILE_ICON_ALIASES: Record<string, string> = {
+  anthropic: 'claude',
+  'claude-code': 'claude',
+  'gemini-cli': 'gemini',
+  google: 'gemini',
+  minimaxai: 'minimax',
+};
+
+const AUTH_FILE_CREDENTIAL_KINDS = new Set([
+  'access-token',
+  'access_token',
+  'api-key',
+  'api_key',
+  'apikey',
+  'oauth',
+  'refresh-token',
+  'refresh_token',
+  'token',
+]);
 
 export const clampCardPageSize = (value: number) =>
   Math.min(MAX_CARD_PAGE_SIZE, Math.max(MIN_CARD_PAGE_SIZE, Math.round(value)));
@@ -90,6 +116,21 @@ export const resolveQuotaErrorMessage = (
 };
 
 export const normalizeProviderKey = (value: string) => value.trim().toLowerCase();
+
+/**
+ * The list API has shipped both provider-shaped `type` values (for example
+ * `codex`) and credential-kind values (for example `api-key`). Prefer the
+ * provider field when the type only describes how the credential is stored so
+ * cards and filters can still show a meaningful identity.
+ */
+export const resolveAuthFileProviderKey = (file: AuthFileItem): string => {
+  const typeKey = normalizeProviderKey(String(file.type ?? ''));
+  const providerKey = normalizeProviderKey(String(file.provider ?? ''));
+  if (providerKey && (!typeKey || AUTH_FILE_CREDENTIAL_KINDS.has(typeKey))) {
+    return providerKey;
+  }
+  return typeKey || providerKey || 'unknown';
+};
 
 const getAuthFileStatusMessage = (file: AuthFileItem): string => {
   const raw = file['status_message'] ?? file.statusMessage;
@@ -114,7 +155,9 @@ export const getTypeColor = (type: string, resolvedTheme: ResolvedTheme): ThemeC
 };
 
 export const getAuthFileIcon = (type: string, resolvedTheme: ResolvedTheme): string | null => {
-  const iconEntry = AUTH_FILE_ICONS[normalizeProviderKey(type)];
+  const normalizedType = normalizeProviderKey(type);
+  const iconEntry =
+    AUTH_FILE_ICONS[normalizedType] ?? AUTH_FILE_ICONS[AUTH_FILE_ICON_ALIASES[normalizedType]];
   if (!iconEntry) return null;
   return typeof iconEntry === 'string'
     ? iconEntry

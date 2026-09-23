@@ -18,6 +18,7 @@ interface ConfirmationOptions {
   confirmText?: string;
   cancelText?: string;
   variant?: 'danger' | 'primary' | 'secondary';
+  tone?: 'default' | 'neutral';
   onConfirm: () => void | Promise<void>;
   onCancel?: () => void;
   restoreFocus?: () => void;

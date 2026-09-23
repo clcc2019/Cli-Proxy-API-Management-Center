@@ -14,8 +14,8 @@
   --oauth-warning: var(--mg-warning, #a06b24);
   --oauth-danger: var(--mg-danger, #b64d45);
   --oauth-focus: rgb(54 92 64 / 18%);
-  --oauth-control-surface: #f1f3f0;
-  --oauth-control-disabled-surface: #e5e9e4;
+  --oauth-control-surface: hsl(60deg 12.5% 96.86%);
+  --oauth-control-disabled-surface: hsl(60deg 12.5% 96.86%);
 
   --bg-primary: var(--oauth-surface);
   --bg-secondary: var(--oauth-surface-muted);
@@ -899,17 +899,17 @@
   // This menu is portaled to body, so it cannot inherit the modal's scoped
   // OAuth tokens. Keep the variables concrete so the inline menu styles do
   // not resolve to transparent when the dropdown leaves the modal subtree.
-  --bg-secondary: #fffefa;
-  --bg-tertiary: #ececea;
+  --bg-secondary: hsl(60deg 12.5% 96.86%);
+  --bg-tertiary: hsl(60deg 12.5% 96.86%);
   --text-primary: #1c211e;
   --text-secondary: #59615c;
-  --border-color: #dfe4df;
-  --border-primary: #dfe4df;
-  --border-hover: #c9d0ca;
+  --border-color: transparent;
+  --border-primary: transparent;
+  --border-hover: transparent;
   --primary-color: #1d2720;
   --radius-md: 8px;
-  background: #fffefa !important;
-  background-color: #fffefa !important;
+  background: hsl(60deg 12.5% 96.86%) !important;
+  background-color: hsl(60deg 12.5% 96.86%) !important;
 }
 
 :global([data-theme='dark']) .modelDropdown {

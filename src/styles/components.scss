@@ -87,21 +87,21 @@
 
   &.btn-secondary {
     background: var(--xai-glass-control);
-    border-color: var(--xai-glass-border);
+    border-color: var(--mg-control-border);
     color: var(--mg-text);
     box-shadow: var(--xai-shadow-button);
 
     @media (hover: hover) and (pointer: fine) {
       &:hover:not(:disabled) {
         background: var(--mg-surface-hover);
-        border-color: var(--mg-border-hover);
+        border-color: var(--mg-control-border-hover);
         box-shadow: var(--xai-shadow-button);
       }
     }
 
     &:active:not(:disabled) {
       background: var(--mg-surface-pressed);
-      border-color: var(--mg-border-strong);
+      border-color: var(--mg-control-border-hover);
       box-shadow: var(--xai-shadow-button);
     }
   }
@@ -197,7 +197,7 @@
 .input,
 textarea {
   width: 100%;
-  border: 1px solid var(--mg-border);
+  border: 1px solid var(--mg-control-border);
   border-radius: var(--mg-radius-control);
   padding: var(--xai-space-2-5) var(--xai-space-3);
   min-height: var(--xai-space-9);
@@ -217,7 +217,7 @@ textarea {
 
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled):not(:focus) {
-      border-color: var(--mg-border-hover);
+      border-color: var(--mg-control-border-hover);
     }
   }
 
@@ -353,7 +353,7 @@ textarea {
   isolation: isolate;
   min-width: 0;
   background: var(--surface-card, var(--xai-glass-surface-strong));
-  border: 1px solid var(--surface-card-border, var(--xai-glass-border-subtle));
+  border: 0;
   border-radius: var(--mg-radius-card);
   box-shadow: var(--mg-shadow-rest);
   padding: var(--xai-space-5);
@@ -363,8 +363,8 @@ textarea {
     box-shadow var(--motion-duration-base) var(--motion-ease-standard),
     transform var(--motion-duration-fast) var(--motion-ease-out);
 
-  // Keep cards matte and legible. The hierarchy comes from the border and
-  // surface contrast rather than a decorative sheen.
+  // Cards use the shared warm-neutral surface. Separation comes from surface
+  // contrast and the existing soft shadow, with no visible outline.
   &::before {
     content: none;
   }
@@ -430,7 +430,7 @@ textarea {
   flex-wrap: wrap;
   margin-bottom: var(--xai-space-2);
   padding-bottom: var(--xai-space-2);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
+  border-bottom: 0;
 
   > * {
     min-width: 0;

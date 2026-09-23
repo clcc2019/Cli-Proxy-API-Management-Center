@@ -27,6 +27,7 @@ import {
   getTypeLabel,
   parsePriorityValue,
   readAuthFileServiceTierPassthrough,
+  resolveAuthFileProviderKey,
 } from '@/features/authFiles/constants';
 import type { AuthFileStatusBarData } from '@/features/authFiles/hooks/useAuthFilesStatusBarCache';
 import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
@@ -179,10 +180,11 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
   const showModelsButton = !isRuntimeOnly || isAistudio;
 
   const typeKey = file.type || 'unknown';
-  const providerLabel = useMemo(() => getTypeLabel(t, typeKey), [t, typeKey]);
+  const providerKey = useMemo(() => resolveAuthFileProviderKey(file), [file]);
+  const providerLabel = useMemo(() => getTypeLabel(t, providerKey), [providerKey, t]);
   const providerIconSrc = useMemo(
-    () => getAuthFileIcon(typeKey, resolvedTheme),
-    [resolvedTheme, typeKey]
+    () => getAuthFileIcon(providerKey, resolvedTheme) ?? getAuthFileIcon(typeKey, resolvedTheme),
+    [providerKey, resolvedTheme, typeKey]
   );
 
   const serviceTierPassthroughEnabled = useMemo(
@@ -532,7 +534,9 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                   <div
                     className={`${refreshStyles.statusBlocks} ${refreshStyles.statusBlocksLoading}`}
                   />
-                  <span className={`${refreshStyles.statusRate} ${refreshStyles.statusRateLoading}`}>
+                  <span
+                    className={`${refreshStyles.statusRate} ${refreshStyles.statusRateLoading}`}
+                  >
                     --
                   </span>
                 </div>

@@ -13,7 +13,7 @@
   scroll-margin-top: 108px;
 
   & + & {
-    border-top: 1px solid var(--mg-border);
+    border-top: 1px solid var(--xai-hairline);
   }
 
   @include mobile {

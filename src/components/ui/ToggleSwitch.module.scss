@@ -31,15 +31,15 @@
 // 暗色下选中态 track 反而是浅色，此时白色拨杆几乎不可见，必须换成 --primary-contrast。
 .root {
   --toggle-thumb-bg: #ffffff;
-  --toggle-thumb-border: var(--xai-border);
+  --toggle-thumb-border: var(--mg-control-border);
 }
 
 .track {
   box-sizing: border-box;
   width: 38px;
   height: 22px;
-  background: var(--xai-glass-control);
-  border: 1px solid var(--xai-glass-border);
+  background: var(--xai-surface-muted);
+  border: 1px solid var(--mg-control-border);
   border-radius: var(--xai-radius-pill);
   position: relative;
   box-shadow: var(--xai-glass-highlight);
@@ -81,13 +81,13 @@
 @media (hover: hover) and (pointer: fine) {
   .root:hover input:not(:checked):not(:disabled) + .track {
     background: var(--mg-surface-hover);
-    border-color: var(--mg-border-hover);
+    border-color: var(--mg-control-border-hover);
   }
 }
 
 .root:active input:not(:checked):not(:disabled) + .track {
   background: var(--mg-surface-pressed);
-  border-color: var(--mg-border-strong);
+  border-color: var(--mg-control-border-hover);
 }
 
 .root input:disabled + .track {

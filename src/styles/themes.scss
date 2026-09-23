@@ -14,11 +14,11 @@
   // the application chrome stays close to black, white, and soft gray.
   --xai-ink-console: #161616;
   --xai-ink: #282826;
-  --xai-white: #ffffff;
-  --xai-canvas: #f4f4f1;
-  --xai-surface-muted: #e9e9e5;
+  --xai-white: hsl(60deg 12.5% 96.86%);
+  --xai-canvas: hsl(0deg 0% 100%);
+  --xai-surface-muted: hsl(60deg 12.5% 96.86%);
   --xai-inverse: #f8f8f5;
-  --xai-warm: #fbfbf9;
+  --xai-warm: hsl(60deg 12.5% 96.86%);
   --xai-secondary: #5a5a56;
   --xai-muted: #70706b;
   --xai-subtle: #85857f;
@@ -28,8 +28,12 @@
   --xai-fill-pressed: rgb(22 22 22 / 13%);
   --xai-border-cool: #c8c8c3;
   --xai-border-subtle: rgb(22 22 22 / 10%);
-  --xai-border: #cdcdc8;
-  --xai-border-hover: #a9a9a3;
+  --xai-border: transparent;
+  --xai-border-hover: #aaa9a3;
+  // Controls and dense data need a visible edge even on the borderless canvas.
+  --xai-control-border: #d3d3ce;
+  --xai-control-border-hover: #aaa9a3;
+  --xai-hairline: rgb(22 22 22 / 10%);
   // xAI-style signal color: bright on dark surfaces, with a darker companion
   // reserved for text, controls, and small indicators on light surfaces.
   --xai-orange: #ff5a00;
@@ -72,7 +76,7 @@
   --xai-radius-card: 16px;
   --xai-radius-pill: 9999px;
 
-  --xai-border-width: 1px;
+  --xai-border-width: 0;
   --xai-shadow-button: 0 1px 2px rgb(22 22 22 / 7%);
   --xai-shadow-menu: 0 18px 42px -18px rgb(22 22 22 / 20%), 0 4px 10px -6px rgb(22 22 22 / 10%);
   --xai-shadow-dialog: 0 24px 72px -28px rgb(22 22 22 / 24%), 0 8px 24px -16px rgb(22 22 22 / 12%);
@@ -83,7 +87,7 @@
   --xai-glass-surface-strong: var(--xai-white);
   --xai-glass-surface-soft: var(--xai-surface-muted);
   --xai-glass-control: var(--xai-white);
-  --xai-glass-border: var(--xai-border);
+  --xai-glass-border: var(--xai-control-border);
   --xai-glass-border-subtle: var(--xai-border-subtle);
   --xai-glass-highlight: none;
   --xai-glass-shadow: var(--xai-shadow-button);
@@ -133,9 +137,11 @@
   --mg-text-secondary: var(--xai-secondary);
   --mg-text-tertiary: var(--xai-muted);
   --mg-text-muted: var(--xai-disabled);
-  --mg-border: var(--xai-border);
-  --mg-border-hover: var(--xai-border-hover);
-  --mg-border-strong: var(--xai-border-cool);
+  --mg-border: var(--xai-border-subtle);
+  --mg-border-hover: var(--xai-control-border-hover);
+  --mg-border-strong: var(--xai-control-border);
+  --mg-control-border: var(--xai-control-border);
+  --mg-control-border-hover: var(--xai-control-border-hover);
   --mg-ink-strong: var(--xai-ink-console);
   --mg-text-inverse: var(--xai-inverse);
   --mg-sage: var(--xai-orange);
@@ -265,20 +271,20 @@
   --shadow-lg: var(--xai-shadow-dialog);
   --shadow-soft: var(--xai-shadow-menu);
   --header-shadow: 0 1px 0 rgb(25 33 42 / 1.5%);
-  // The navigation rail is the one committed dark surface in the console;
-  // its orange signal stays reserved for the current route and status.
-  --sidebar-surface: #171717;
-  --sidebar-surface-muted: rgb(255 255 255 / 8%);
-  --sidebar-text: var(--xai-inverse);
-  --sidebar-text-secondary: #c3c3bd;
-  --sidebar-text-tertiary: #92928c;
-  --sidebar-border: rgb(255 255 255 / 12%);
-  --sidebar-border-strong: rgb(255 255 255 / 22%);
+  // The navigation rail shares the white canvas and gains separation from
+  // translucency, blur, and a restrained neutral border.
+  --sidebar-surface: hsl(0deg 0% 100% / 88%);
+  --sidebar-surface-muted: rgb(22 22 22 / 5%);
+  --sidebar-text: var(--xai-ink-console);
+  --sidebar-text-secondary: var(--xai-secondary);
+  --sidebar-text-tertiary: var(--xai-muted);
+  --sidebar-border: rgb(22 22 22 / 10%);
+  --sidebar-border-strong: rgb(22 22 22 / 18%);
   --sidebar-accent: var(--xai-orange);
   --sidebar-accent-line: var(--sidebar-accent);
   --sidebar-accent-surface: color-mix(in srgb, var(--sidebar-accent) 17%, transparent);
   --sidebar-accent-icon: var(--sidebar-accent);
-  --sidebar-shadow: inset -1px 0 0 rgb(255 255 255 / 5%);
+  --sidebar-shadow: none;
   --shadow-card: var(--mg-shadow-rest);
   --shadow-card-hover: var(--mg-shadow-card);
   --control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.62), 0 1px 2px rgb(25 33 42 / 0.05);
@@ -288,15 +294,15 @@
   --surface-raised: var(--xai-white);
   --surface-raised-strong: var(--xai-white);
   --surface-overlay: var(--xai-white);
-  --surface-hero: #fafaf9;
+  --surface-hero: hsl(60deg 12.5% 96.86%);
   --surface-card: var(--xai-glass-surface-strong);
   --surface-card-muted: var(--xai-glass-surface-soft);
-  --surface-card-border: var(--xai-border);
-  --surface-card-border-hover: var(--xai-border-hover);
+  --surface-card-border: transparent;
+  --surface-card-border-hover: transparent;
   --surface-inner-highlight: var(--xai-glass-highlight);
   --control-surface-gradient: var(--xai-glass-control);
   --floating-surface-material: var(--xai-glass-surface-strong);
-  --header-surface: var(--xai-glass-surface);
+  --header-surface: hsl(0deg 0% 100%);
   --panel-surface: var(--xai-glass-surface-strong);
   --panel-surface-muted: var(--xai-glass-surface-soft);
   --control-surface: var(--xai-glass-control);

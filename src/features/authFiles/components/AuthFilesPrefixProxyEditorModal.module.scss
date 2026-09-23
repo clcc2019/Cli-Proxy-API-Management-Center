@@ -12,16 +12,40 @@
   --prefix-proxy-text: var(--mg-text);
   --prefix-proxy-text-secondary: var(--mg-text-secondary);
   --prefix-proxy-text-muted: var(--mg-text-tertiary);
-  --prefix-proxy-border: var(--mg-border);
-  --prefix-proxy-border-strong: var(--mg-border-strong);
-  --prefix-proxy-sage: var(--mg-sage);
-  --prefix-proxy-sage-strong: var(--mg-sage-strong);
-  --prefix-proxy-sage-soft: var(--mg-sage-soft);
+  --prefix-proxy-border: rgb(22 22 22 / 13%);
+  --prefix-proxy-border-strong: rgb(22 22 22 / 25%);
   --prefix-proxy-ink: var(--mg-ink-strong);
+  --prefix-proxy-action: #161616;
+  --prefix-proxy-action-hover: #000000;
+  --prefix-proxy-action-text: #ffffff;
+  --prefix-proxy-action-soft: rgb(22 22 22 / 7%);
+  --prefix-proxy-focus-ring: rgb(22 22 22 / 23%);
+  --prefix-proxy-status: var(--prefix-proxy-action);
+  --prefix-proxy-sage: var(--prefix-proxy-text-secondary);
+  --prefix-proxy-sage-strong: var(--prefix-proxy-action);
+  --prefix-proxy-sage-soft: var(--prefix-proxy-action-soft);
   --prefix-proxy-danger: var(--mg-danger);
-  --prefix-proxy-warning: var(--mg-warning);
+  --prefix-proxy-warning: var(--prefix-proxy-text-secondary);
 
   // Shared primitives inside this portal need the same local palette.
+  --mg-action: var(--prefix-proxy-action);
+  --mg-action-hover: var(--prefix-proxy-action-hover);
+  --mg-border: var(--prefix-proxy-border);
+  --mg-border-hover: var(--prefix-proxy-border-strong);
+  --mg-border-strong: var(--prefix-proxy-border-strong);
+  --mg-sage: var(--prefix-proxy-sage);
+  --mg-sage-strong: var(--prefix-proxy-sage-strong);
+  --mg-sage-soft: var(--prefix-proxy-sage-soft);
+  --mg-surface-hover: var(--prefix-proxy-surface-muted);
+  --mg-surface-pressed: var(--prefix-proxy-action-soft);
+  --mg-surface-selected: var(--prefix-proxy-action-soft);
+  --mg-focus-outline: var(--prefix-proxy-action);
+  --mg-focus-ring: var(--prefix-proxy-focus-ring);
+  --mg-warning: var(--prefix-proxy-warning);
+  --xai-glass-border: var(--prefix-proxy-border);
+  --xai-glass-border-subtle: var(--prefix-proxy-border);
+  --xai-glass-control: var(--prefix-proxy-control);
+  --xai-glass-highlight: none;
   --bg-primary: var(--prefix-proxy-surface);
   --bg-secondary: var(--prefix-proxy-surface-muted);
   --bg-tertiary: var(--prefix-proxy-surface-warm);
@@ -32,12 +56,12 @@
   --border-color: var(--prefix-proxy-border);
   --border-primary: var(--prefix-proxy-border);
   --border-hover: var(--prefix-proxy-border-strong);
-  --primary-color: var(--prefix-proxy-sage-strong);
-  --primary-hover: var(--prefix-proxy-text-secondary);
-  --primary-active: var(--prefix-proxy-ink);
-  --primary-contrast: #ffffff;
+  --primary-color: var(--prefix-proxy-action);
+  --primary-hover: var(--prefix-proxy-action-hover);
+  --primary-active: var(--prefix-proxy-action-hover);
+  --primary-contrast: var(--prefix-proxy-action-text);
   --primary-soft: var(--prefix-proxy-sage-soft);
-  --focus-ring: var(--mg-focus-ring);
+  --focus-ring: var(--prefix-proxy-focus-ring);
   --brand-gradient: var(--prefix-proxy-ink);
   --brand-gradient-hover: var(--prefix-proxy-text-secondary);
   --control-surface: var(--prefix-proxy-control);
@@ -52,8 +76,8 @@
   --surface-raised-strong: var(--prefix-proxy-surface);
   --surface-card: var(--prefix-proxy-surface);
   --surface-card-muted: var(--prefix-proxy-surface-muted);
-  --neutral-accent: var(--prefix-proxy-sage);
-  --neutral-accent-strong: var(--prefix-proxy-sage-strong);
+  --neutral-accent: var(--prefix-proxy-action);
+  --neutral-accent-strong: var(--prefix-proxy-action);
   --success-color: var(--mg-success);
   --warning-color: var(--prefix-proxy-warning);
   --error-color: var(--prefix-proxy-danger);
@@ -136,7 +160,7 @@
 
     &:focus {
       border-color: var(--prefix-proxy-text-secondary);
-      box-shadow: none;
+      box-shadow: 0 0 0 3px var(--prefix-proxy-focus-ring);
     }
 
     &:hover:not(:disabled):not(:focus) {
@@ -145,13 +169,13 @@
   }
 
   :global(.btn.btn-primary) {
-    border-color: var(--prefix-proxy-ink);
-    background: var(--prefix-proxy-ink);
-    color: #ffffff;
+    border-color: var(--prefix-proxy-action);
+    background: var(--prefix-proxy-action);
+    color: var(--prefix-proxy-action-text);
 
     &:hover:not(:disabled) {
-      border-color: var(--prefix-proxy-text-secondary);
-      background: var(--prefix-proxy-text-secondary);
+      border-color: var(--prefix-proxy-action-hover);
+      background: var(--prefix-proxy-action-hover);
       box-shadow: none;
     }
   }
@@ -165,6 +189,14 @@
       border-color: var(--prefix-proxy-border-strong);
       background: var(--prefix-proxy-surface-muted);
       box-shadow: none;
+    }
+  }
+
+  :global(.btn.btn-primary),
+  :global(.btn.btn-secondary) {
+    &:focus-visible {
+      outline-color: var(--prefix-proxy-action);
+      box-shadow: 0 0 0 3px var(--prefix-proxy-focus-ring);
     }
   }
 
@@ -220,10 +252,10 @@
 .prefixProxyPreviewBadge {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgb(229 169 71 / 0.34);
+  border: 1px solid color-mix(in srgb, var(--prefix-proxy-status) 28%, transparent);
   border-radius: var(--xai-radius-pill);
-  background: rgb(229 169 71 / 0.1);
-  color: #87631f;
+  background: color-mix(in srgb, var(--prefix-proxy-status) 8%, transparent);
+  color: var(--prefix-proxy-status);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.3;
@@ -238,7 +270,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--prefix-proxy-warning);
+    background: var(--prefix-proxy-status);
     content: '';
   }
 }
@@ -280,7 +312,7 @@
   grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
   min-width: 0;
   align-items: start;
-  background: var(--prefix-proxy-surface-warm);
+  background: var(--prefix-proxy-surface-muted);
 }
 
 .prefixProxySettingsPanel,
@@ -288,8 +320,8 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 18px;
-  padding: 24px;
+  gap: 14px;
+  padding: 20px;
 }
 
 .prefixProxySettingsPanel {
@@ -301,7 +333,7 @@
   top: 0;
   min-height: 100%;
   border-left: 1px solid var(--prefix-proxy-border);
-  background: var(--prefix-proxy-surface-warm);
+  background: var(--prefix-proxy-surface-muted);
 }
 
 .prefixProxyPanelHeader {
@@ -310,7 +342,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 0 14px;
+  padding: 0 0 12px;
   border-bottom: 1px solid var(--prefix-proxy-border);
   background: transparent;
 }
@@ -342,15 +374,15 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .prefixProxySection {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
+  gap: 10px;
+  padding: 14px;
   border: 1px solid var(--prefix-proxy-border);
   border-radius: var(--xai-radius-panel);
   background: var(--prefix-proxy-surface);
@@ -359,11 +391,11 @@
 
 .prefixProxySectionHeader {
   display: flex;
-  min-height: 26px;
+  min-height: 24px;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 0 0 12px;
+  padding: 0 0 8px;
   border-bottom: 0;
   background: transparent;
 }
@@ -372,7 +404,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
 }
 
 .prefixProxySectionIndex {
@@ -404,7 +436,7 @@
 .prefixProxyFields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
   min-width: 0;
   padding: 0;
   border: 0;
@@ -419,7 +451,7 @@
   }
 
   :global(.form-group) {
-    gap: 6px;
+    gap: 5px;
   }
 
   :global(label),
@@ -470,16 +502,23 @@
     &:hover:not(:disabled) {
       border-color: var(--prefix-proxy-border-strong);
     }
+
+    &:focus-visible,
+    &[aria-expanded='true'] {
+      border-color: var(--prefix-proxy-action);
+      box-shadow: 0 0 0 3px var(--prefix-proxy-focus-ring);
+      outline: none;
+    }
   }
 }
 
 .prefixProxySwitchField {
   display: flex;
-  min-height: 48px;
+  min-height: 46px;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 9px 11px;
+  gap: 12px;
+  padding: 8px 10px;
   border: 1px solid var(--prefix-proxy-border);
   border-radius: var(--xai-radius-small);
   background: var(--prefix-proxy-surface-muted);
@@ -561,7 +600,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .prefixProxyJsonDetails {
@@ -574,12 +613,13 @@
 
   &[open] {
     border-color: var(--prefix-proxy-border-strong);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--prefix-proxy-action) 8%, transparent);
   }
 }
 
 .prefixProxyJsonSummary {
   display: flex;
-  min-height: 46px;
+  min-height: 44px;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -613,7 +653,7 @@
   }
 
   &:focus-visible {
-    outline: 1px solid var(--mg-focus-outline);
+    outline: 1px solid var(--prefix-proxy-action);
     outline-offset: -2px;
   }
 }
@@ -622,8 +662,8 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 9px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
   border-top: 1px solid var(--prefix-proxy-border);
   background: var(--prefix-proxy-surface-warm);
 }
@@ -671,12 +711,12 @@
 
   &:focus {
     outline: none;
-    border-color: var(--prefix-proxy-border);
-    box-shadow: none;
+    border-color: var(--prefix-proxy-action);
+    box-shadow: 0 0 0 3px var(--prefix-proxy-focus-ring);
   }
 
   &:focus-visible {
-    outline: 1px solid var(--mg-focus-outline);
+    outline: 1px solid var(--prefix-proxy-action);
     outline-offset: 2px;
   }
 }
@@ -697,6 +737,29 @@
 }
 
 .prefixProxyDropdown {
+  --prefix-proxy-surface: var(--mg-surface);
+  --prefix-proxy-surface-muted: var(--mg-surface-subtle);
+  --prefix-proxy-surface-warm: var(--mg-surface-warm);
+  --prefix-proxy-text: var(--mg-text);
+  --prefix-proxy-text-secondary: var(--mg-text-secondary);
+  --prefix-proxy-text-muted: var(--mg-text-tertiary);
+  --prefix-proxy-border: rgb(22 22 22 / 13%);
+  --prefix-proxy-border-strong: rgb(22 22 22 / 25%);
+  --prefix-proxy-action: #161616;
+  --prefix-proxy-action-soft: rgb(22 22 22 / 7%);
+  --prefix-proxy-focus-ring: rgb(22 22 22 / 23%);
+  --mg-border: var(--prefix-proxy-border);
+  --mg-border-hover: var(--prefix-proxy-border-strong);
+  --mg-border-strong: var(--prefix-proxy-border-strong);
+  --mg-surface-hover: var(--prefix-proxy-surface-muted);
+  --mg-surface-pressed: var(--prefix-proxy-action-soft);
+  --mg-surface-selected: var(--prefix-proxy-action-soft);
+  --mg-sage-strong: var(--prefix-proxy-action);
+  --mg-focus-outline: var(--prefix-proxy-action);
+  --mg-focus-ring: var(--prefix-proxy-focus-ring);
+  --xai-glass-surface-strong: var(--prefix-proxy-surface);
+  --xai-glass-border: var(--prefix-proxy-border);
+  --xai-glass-shadow-float: var(--mg-shadow-float);
   --bg-secondary: var(--prefix-proxy-surface-muted);
   --text-primary: var(--prefix-proxy-text);
   --text-secondary: var(--prefix-proxy-text-secondary);
@@ -704,9 +767,9 @@
   --border-color: var(--prefix-proxy-border);
   --border-primary: var(--prefix-proxy-border);
   --border-hover: var(--prefix-proxy-border-strong);
-  --primary-color: var(--prefix-proxy-sage-strong);
-  --primary-soft: var(--prefix-proxy-sage-soft);
-  --focus-ring: var(--mg-focus-ring);
+  --primary-color: var(--prefix-proxy-action);
+  --primary-soft: var(--prefix-proxy-action-soft);
+  --focus-ring: var(--prefix-proxy-focus-ring);
   --floating-surface: var(--prefix-proxy-surface);
   --floating-surface-material: var(--prefix-proxy-surface);
   --floating-border: var(--prefix-proxy-border);
@@ -760,7 +823,7 @@
 
   .prefixProxySettingsPanel,
   .prefixProxyInspectorPanel {
-    padding: 18px 16px 20px;
+    padding: 16px 16px 18px;
   }
 
   .prefixProxyError {
@@ -944,42 +1007,66 @@
   --prefix-proxy-text: #efeee8;
   --prefix-proxy-text-secondary: #c3c5bb;
   --prefix-proxy-text-muted: #94978d;
-  --prefix-proxy-border: #33352f;
-  --prefix-proxy-border-strong: #4a4d44;
-  --prefix-proxy-sage: #b3bea9;
-  --prefix-proxy-sage-strong: #b3bea9;
-  --prefix-proxy-sage-soft: #2c3429;
+  --prefix-proxy-border: rgb(239 238 232 / 16%);
+  --prefix-proxy-border-strong: rgb(239 238 232 / 29%);
+  --prefix-proxy-action: #0f100f;
+  --prefix-proxy-action-hover: #000000;
+  --prefix-proxy-action-text: #ffffff;
+  --prefix-proxy-action-soft: rgb(239 238 232 / 9%);
+  --prefix-proxy-focus-ring: rgb(239 238 232 / 26%);
+  --prefix-proxy-status: var(--prefix-proxy-text-secondary);
+  --prefix-proxy-sage: var(--prefix-proxy-text-secondary);
+  --prefix-proxy-sage-strong: var(--prefix-proxy-action);
+  --prefix-proxy-sage-soft: var(--prefix-proxy-action-soft);
   --prefix-proxy-ink: #efeee8;
   --prefix-proxy-danger: #e08b82;
-  --prefix-proxy-warning: #e1b766;
-  --primary-contrast: #1b1c19;
+  --prefix-proxy-warning: var(--prefix-proxy-text-secondary);
+  --primary-contrast: var(--prefix-proxy-action-text);
   --floating-shadow: 0 16px 34px -24px rgb(0 0 0 / 0.54);
 
   box-shadow: 0 20px 65px rgb(0 0 0 / 0.54);
 
-  :global(.btn.btn-primary) {
-    color: #1b1c19;
-  }
-
   .prefixProxyDirtyBadge,
   .prefixProxyPreviewBadge {
-    border-color: rgb(225 183 102 / 0.34);
-    background: rgb(225 183 102 / 0.12);
-    color: #e1b766;
+    border-color: color-mix(in srgb, var(--prefix-proxy-status) 28%, transparent);
+    background: color-mix(in srgb, var(--prefix-proxy-status) 9%, transparent);
+    color: var(--prefix-proxy-status);
   }
 }
 
 :global([data-theme='dark']) .prefixProxyDropdown {
+  --prefix-proxy-surface: #181916;
+  --prefix-proxy-surface-muted: #20211d;
+  --prefix-proxy-surface-warm: #1d1f1a;
+  --prefix-proxy-text: #efeee8;
+  --prefix-proxy-text-secondary: #c3c5bb;
+  --prefix-proxy-text-muted: #94978d;
+  --prefix-proxy-border: rgb(239 238 232 / 16%);
+  --prefix-proxy-border-strong: rgb(239 238 232 / 29%);
+  --prefix-proxy-action: #0f100f;
+  --prefix-proxy-action-soft: rgb(239 238 232 / 9%);
+  --prefix-proxy-focus-ring: rgb(239 238 232 / 26%);
+  --mg-border: var(--prefix-proxy-border);
+  --mg-border-hover: var(--prefix-proxy-border-strong);
+  --mg-border-strong: var(--prefix-proxy-border-strong);
+  --mg-surface-hover: var(--prefix-proxy-surface-muted);
+  --mg-surface-pressed: var(--prefix-proxy-action-soft);
+  --mg-surface-selected: var(--prefix-proxy-action-soft);
+  --mg-sage-strong: var(--prefix-proxy-text-secondary);
+  --mg-focus-outline: var(--prefix-proxy-text-secondary);
+  --mg-focus-ring: var(--prefix-proxy-focus-ring);
+  --xai-glass-surface-strong: var(--prefix-proxy-surface);
+  --xai-glass-border: var(--prefix-proxy-border);
   --bg-secondary: #20211d;
   --text-primary: #efeee8;
   --text-secondary: #c3c5bb;
   --text-tertiary: #94978d;
-  --border-color: #33352f;
-  --border-primary: #33352f;
-  --border-hover: #4a4d44;
-  --primary-color: #b3bea9;
-  --primary-soft: #2c3429;
-  --focus-ring: rgb(179 190 169 / 0.28);
+  --border-color: var(--prefix-proxy-border);
+  --border-primary: var(--prefix-proxy-border);
+  --border-hover: var(--prefix-proxy-border-strong);
+  --primary-color: var(--prefix-proxy-text-secondary);
+  --primary-soft: var(--prefix-proxy-action-soft);
+  --focus-ring: var(--prefix-proxy-focus-ring);
   --floating-surface: #181916;
   --floating-surface-material: #181916;
   --floating-border: #33352f;

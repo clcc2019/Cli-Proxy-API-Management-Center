@@ -32,7 +32,7 @@
   height: var(--xai-space-4);
   flex-shrink: 0;
   border-radius: var(--xai-radius-micro);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--mg-control-border);
   background: var(--control-surface);
   color: var(--primary-contrast, #fff);
   display: inline-flex;
@@ -46,14 +46,14 @@
 
 @media (hover: hover) and (pointer: fine) {
   .root:hover .input:not(:checked):not(:disabled) + .box {
-    border-color: var(--border-hover);
+    border-color: var(--mg-control-border-hover);
     background: var(--mg-surface-hover);
     box-shadow: none;
   }
 }
 
 .disabled:hover .box {
-  border-color: var(--border-color);
+  border-color: var(--mg-control-border);
   box-shadow: none;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .root:active .input:not(:checked):not(:disabled) + .box {
-  border-color: var(--mg-border-strong);
+  border-color: var(--mg-control-border-hover);
   background: var(--mg-surface-pressed);
 }
 

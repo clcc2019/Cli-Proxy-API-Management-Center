@@ -23,14 +23,14 @@
     min-height: var(--xai-space-9);
     border-radius: var(--xai-radius-control);
     background: var(--xai-glass-control);
-    border-color: var(--xai-glass-border);
+    border-color: var(--mg-control-border);
     box-shadow: var(--xai-glass-highlight);
     font-size: 15.75px;
   }
 
   :global(.input:focus) {
     background: var(--xai-glass-surface-strong);
-    border-color: var(--xai-glass-border);
+    border-color: var(--mg-action);
     box-shadow: var(--xai-glass-highlight);
   }
 

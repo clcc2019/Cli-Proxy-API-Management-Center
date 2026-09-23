@@ -245,6 +245,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   const { file, quotaType, promotionAction, onAuthFileUpdated } = props;
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
+  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const setCodexQuota = useQuotaStore((state) => state.setCodexQuota);
   const [resetCreditConsuming, setResetCreditConsuming] = useState(false);
   const [showAllQuotaWindows, setShowAllQuotaWindows] = useState(false);
@@ -412,8 +413,19 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
     t,
   ]);
   const handleConsumeResetCreditClick = useCallback(() => {
-    void handleConsumeResetCredit();
-  }, [handleConsumeResetCredit]);
+    if (!canConsumeResetCredit) return;
+    showConfirmation({
+      title: t('codex_quota.reset_credit_confirm_title'),
+      message: t('codex_quota.reset_credit_confirm_message', {
+        count: resetCreditCount,
+      }),
+      confirmText: t('codex_quota.reset_credit_confirm_button'),
+      cancelText: t('common.cancel'),
+      variant: 'primary',
+      tone: 'neutral',
+      onConfirm: handleConsumeResetCredit,
+    });
+  }, [canConsumeResetCredit, handleConsumeResetCredit, resetCreditCount, showConfirmation, t]);
   const handleRefreshClick = useCallback(() => {
     void refreshQuotaForFile();
   }, [refreshQuotaForFile]);
@@ -484,6 +496,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
               className={styles.codexResetCreditButton}
               title={t('codex_quota.reset_credit_consume_button')}
               aria-label={t('codex_quota.reset_credit_consume_button')}
+              aria-haspopup="dialog"
               aria-busy={resetCreditConsuming}
             >
               {resetCreditConsuming ? (

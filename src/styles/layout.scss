@@ -13,7 +13,7 @@ $breakpoint-shell-compact: 1023px;
 }
 
 .app-shell {
-  --sidebar-width: 220px;
+  --sidebar-width: 176px;
   --sidebar-collapsed-width: 72px;
   --sidebar-item-height: var(--xai-space-8);
   --sidebar-item-radius: var(--xai-radius-control);
@@ -58,14 +58,14 @@ $breakpoint-shell-compact: 1023px;
   padding: 0;
   border: 0;
   border-bottom: 1px solid var(--xai-border-subtle);
-  background: var(--xai-warm);
+  background: var(--header-surface);
   box-shadow: 0 1px 0 rgb(32 33 35 / 2%);
   pointer-events: none;
 
   @media (max-width: $breakpoint-shell-compact) {
     height: var(--header-height);
     backdrop-filter: none;
-    background: var(--xai-warm);
+    background: var(--header-surface);
   }
 
   .mobile-sidebar-actions,
@@ -476,7 +476,9 @@ $breakpoint-shell-compact: 1023px;
   flex-shrink: 0;
   height: 100%;
   isolation: isolate;
-  box-shadow: var(--sidebar-shadow);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  backdrop-filter: blur(18px) saturate(120%);
   color: var(--sidebar-text, var(--xai-ink-console));
   font-family: var(--xai-font-ui);
 
@@ -750,21 +752,9 @@ $breakpoint-shell-compact: 1023px;
 
     &.active {
       background: var(--sidebar-surface-muted);
-      color: var(--xai-inverse);
+      color: var(--sidebar-text);
       font-weight: var(--sidebar-label-active-weight);
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sidebar-accent) 28%, transparent);
-
-      &::before {
-        position: absolute;
-        top: 50%;
-        left: 8px;
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: var(--sidebar-accent-line);
-        content: '';
-        transform: translateY(-50%);
-      }
 
       .nav-icon {
         color: var(--sidebar-accent);
@@ -1129,7 +1119,7 @@ $breakpoint-shell-compact: 1023px;
     padding-right: max(var(--xai-space-4), env(safe-area-inset-right));
     padding-bottom: max(var(--xai-space-5), env(safe-area-inset-bottom));
     padding-left: max(var(--xai-space-4), env(safe-area-inset-left));
-    border-right: 1px solid var(--xai-border);
+    border-right: 1px solid var(--sidebar-border);
     border-radius: 0;
     box-shadow: none;
     overscroll-behavior: contain;
@@ -1492,7 +1482,7 @@ $breakpoint-shell-compact: 1023px;
 @media (max-width: $breakpoint-shell-compact) {
   .main-header {
     border-bottom: 1px solid color-mix(in srgb, var(--xai-border) 72%, transparent);
-    background: color-mix(in srgb, var(--mg-canvas, #ffffff) 94%, transparent);
+    background: var(--header-surface);
     box-shadow: 0 6px 18px -18px rgb(32 33 35 / 34%);
 
     .mobile-page-title {
@@ -1525,9 +1515,9 @@ $breakpoint-shell-compact: 1023px;
 
   .sidebar {
     width: min(292px, calc(100vw - var(--xai-space-8)));
-    border-right: 0;
+    border-right: 1px solid var(--sidebar-border);
     border-radius: 0 var(--xai-radius-card) var(--xai-radius-card) 0;
-    box-shadow: 18px 0 42px -28px rgb(32 33 35 / 42%);
+    box-shadow: none;
 
     &.collapsed {
       width: min(292px, calc(100vw - var(--xai-space-8)));

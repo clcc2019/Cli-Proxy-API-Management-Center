@@ -53,7 +53,7 @@
   flex: 0 0 var(--login-header-height);
   align-items: center;
   border-bottom: 1px solid var(--login-header-border);
-  background: var(--xai-warm);
+  background: var(--header-surface);
   box-shadow: 0 1px 0 rgb(32 33 35 / 4%);
 }
 
@@ -490,7 +490,7 @@
 .loginCard :global(.input) {
   min-height: 48px;
   padding: 12px 48px 12px 14px;
-  border-color: var(--login-border);
+  border-color: var(--mg-control-border);
   border-radius: var(--xai-radius-control);
   background: var(--login-surface);
   color: var(--login-text);
@@ -499,11 +499,11 @@
 }
 
 .loginCard :global(.input:hover:not(:disabled):not(:focus)) {
-  border-color: var(--login-border-strong);
+  border-color: var(--mg-control-border-hover);
 }
 
 .loginCard :global(.input:focus) {
-  border-color: var(--login-border);
+  border-color: var(--login-action);
   outline: none;
   box-shadow: none;
 }

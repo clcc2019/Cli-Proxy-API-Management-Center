@@ -27,6 +27,7 @@ export function ConfirmationModal() {
     confirmText,
     cancelText,
     variant = 'primary',
+    tone = 'default',
   } = options;
 
   const handleConfirm = async () => {
@@ -60,6 +61,7 @@ export function ConfirmationModal() {
       onClose={handleCancel}
       title={title}
       closeDisabled={isLoading}
+      className={tone === 'neutral' ? styles.confirmationModalNeutral : undefined}
       ariaDescribedBy={messageId}
     >
       {typeof message === 'string' ? (
