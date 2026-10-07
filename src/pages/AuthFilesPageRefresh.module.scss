@@ -1,4 +1,5 @@
 @use '../styles/variables' as *;
+@use '../styles/mixins' as *;
 
 // Shared visual layer for the auth-files list, cards, quota panels, and OAuth
 // rules card. Larger editors and dialogs keep their own CSS modules.
@@ -6323,11 +6324,7 @@
 }
 
 .page .filterToolbar {
-  border: 1px solid var(--auth-page-divider);
-  background: color-mix(in srgb, var(--mg-surface-subtle) 82%, var(--mg-canvas));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 72%),
-    0 1px 2px rgb(22 22 22 / 4%);
+  @include management-toolbar-surface;
 }
 
 .page .providerTabActive,
@@ -6537,10 +6534,24 @@
 }
 
 .page .rulesPanel :global(.card-header) {
-  background: color-mix(in srgb, var(--mg-text) 2.5%, var(--mg-surface));
+  min-height: 60px;
+  padding: 15px 18px;
+  background: color-mix(in srgb, var(--mg-text) 3%, var(--mg-surface));
+}
+
+.page .rulesPanel :global(.card-header) :global(.title) {
+  letter-spacing: -0.02em;
+}
+
+.page .rulesAddButton:global(.btn.btn-sm) {
+  min-height: 36px;
+  padding-inline: 13px;
+  border-radius: var(--xai-radius-pill);
 }
 
 .page .rulesRow {
+  min-height: 68px;
+  gap: 24px;
   transition: background-color var(--mg-motion-fast) var(--mg-ease-standard);
 }
 
@@ -6549,19 +6560,45 @@
 }
 
 .page .rulesProvider {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--mg-text);
   font-weight: 650;
+}
+
+.page .rulesProvider::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--mg-ink-strong);
+  content: '';
+}
+
+.page .rulesStats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .page .rulesStat {
   display: inline-flex;
   min-height: 26px;
+  width: max-content;
   align-items: center;
   padding: 4px 8px;
   border: 1px solid var(--auth-page-divider);
   border-radius: var(--mg-radius-control);
   background: color-mix(in srgb, var(--mg-text) 2.5%, var(--mg-surface));
   color: var(--mg-text-secondary);
+}
+
+.page .rulesManageButton:global(.btn.btn-sm) {
+  min-height: 36px;
+  border-radius: var(--xai-radius-pill);
 }
 
 @container auth-files-page (max-width: 560px) {
@@ -6756,5 +6793,70 @@
 
   .page .controlButton {
     min-width: max-content;
+  }
+}
+
+// OAuth rules summary: keep the provider identity and its compact metrics
+// readable as one operational row, including when the supporting panel wraps.
+@container auth-files-page (max-width: 560px) {
+  .page .rulesPanel :global(.card-header) {
+    min-height: 58px;
+    padding: 14px 14px;
+  }
+
+  .page .rulesList {
+    padding-inline: 14px;
+  }
+
+  .page .rulesRow {
+    min-height: 0;
+    align-items: flex-start;
+    gap: 10px 12px;
+    padding-block: 12px;
+  }
+
+  .page .rulesInfo {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 180px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .page .rulesStats {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .page .rulesStat {
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 11.5px;
+  }
+
+  .page .rulesManageButton:global(.btn.btn-sm) {
+    min-height: 40px;
+  }
+}
+
+// Re-apply the compact card action scale after the shared mobile hit-area
+// rules. Five optional actions then fit inside a narrow card without exposing
+// a clipped delete control or requiring horizontal scrolling for the common case.
+@container auth-files-page (max-width: 560px) {
+  .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
+  }
+
+  .page .credentialCard .cardRefresh .cardActionButton:global(.btn.btn-sm) {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
   }
 }

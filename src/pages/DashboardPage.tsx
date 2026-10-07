@@ -8,7 +8,7 @@ import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer'
 import type { Config } from '@/types';
 import type { ModelInfo } from '@/utils/models';
 import styles from './DashboardPage.module.scss';
-import { IconExternalLink } from '@/components/ui/icons';
+import { IconChevronRight } from '@/components/ui/icons';
 
 interface QuickStat {
   label: string;
@@ -455,7 +455,7 @@ export function DashboardPage() {
             >
               <span className={styles.bentoMeta} aria-hidden="true">
                 <span className={styles.bentoArrow}>
-                  <IconExternalLink size={15} />
+                  <IconChevronRight size={15} />
                 </span>
               </span>
               <div className={styles.bentoContent}>

@@ -208,6 +208,7 @@
   border-bottom: 1px solid var(--xai-glass-border-subtle);
   background: var(--xai-glass-surface-soft);
   box-shadow: var(--xai-glass-highlight);
+  @include management-toolbar-surface;
 
   @include mobile {
     grid-template-columns: minmax(0, 1fr);
@@ -581,10 +582,51 @@
 }
 
 @media (max-width: 768px) {
+  .floatingActionContainer {
+    right: calc(8px + env(safe-area-inset-right));
+    left: auto;
+    transform: none;
+  }
+
+  .floatingStatusCompact {
+    width: 14px;
+    min-width: 14px;
+    max-width: 14px;
+    flex: 0 0 14px;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
   .floatingActionButton,
   .floatingActionButton:global(.btn.btn-sm) {
     min-height: var(--mg-hit-area, 44px);
     height: var(--mg-hit-area, 44px);
+  }
+
+  .floatingActionList {
+    gap: 3px;
+    padding: 3px;
+  }
+
+  .floatingActionButton:first-of-type {
+    width: var(--mg-hit-area, 44px);
+    min-width: var(--mg-hit-area, 44px);
+    padding-inline: 0;
+  }
+
+  .floatingActionButton:first-of-type .floatingActionLabel {
+    display: none;
+  }
+
+  .floatingSaveButton:global(.btn-primary) {
+    min-width: 62px;
+    padding-inline: 6px;
+
+    &:global(.btn) > span:not(:global(.loading-spinner)) {
+      gap: 4px;
+    }
   }
 
   .searchButton {
@@ -598,6 +640,11 @@
 @media (max-width: 480px) {
   .container {
     gap: 14px;
+  }
+
+  .container :global(#auth-title),
+  .container :global(#auth-title + p) {
+    max-width: min(200px, calc(100vw - 190px));
   }
 
   .pageMeta {

@@ -6,7 +6,7 @@
   --oauth-surface-soft: var(--mg-surface-warm, #fafaf8);
   --oauth-text: var(--mg-text, #1c211e);
   --oauth-text-secondary: var(--mg-text-secondary, #59615c);
-  --oauth-text-muted: var(--mg-text-muted, #8b948d);
+  --oauth-text-muted: var(--xai-muted, #686a64);
   --oauth-border: var(--mg-border, #dfe4df);
   --oauth-border-strong: var(--mg-border-hover, #c9d0ca);
   --oauth-accent: var(--mg-ink-strong, #1d2720);
@@ -1168,4 +1168,1334 @@
   --oauth-control-surface: #2a302a;
   --oauth-control-disabled-surface: #343b34;
   box-shadow: 0 28px 90px rgb(0 0 0 / 54%);
+}
+
+// Final OAuth rules pass: keep the editor calm and legible while making the
+// provider context, rule route, and save state read as one coherent surface.
+.modal {
+  :global(.modal-header) {
+    min-height: 68px;
+    padding: 18px 26px;
+    background: var(--oauth-surface);
+  }
+
+  :global(.modal-title) {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+
+  :global(.modal-body) {
+    background: color-mix(in srgb, var(--oauth-surface-muted) 86%, var(--oauth-surface-soft));
+  }
+
+  :global(.modal-footer) {
+    min-height: 70px;
+    padding: 14px 26px;
+    background: var(--oauth-surface-soft);
+  }
+}
+
+.shell {
+  padding: 22px 26px 30px;
+}
+
+.providerBar {
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--oauth-surface-soft);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 72%),
+    0 10px 26px -28px rgb(29 54 38 / 52%);
+}
+
+.providerField {
+  gap: 7px;
+}
+
+.providerStats {
+  gap: 6px;
+  font-size: 11px;
+}
+
+.providerStats span {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid var(--oauth-border);
+  border-radius: 8px;
+  background: var(--oauth-surface);
+  color: var(--oauth-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.providerStats span + span::before {
+  content: none;
+}
+
+.addProviderButton {
+  min-height: 38px;
+  border-radius: var(--xai-radius-pill);
+}
+
+.sections {
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.section {
+  border-radius: 14px;
+  box-shadow: 0 10px 24px -28px rgb(29 54 38 / 58%);
+}
+
+.sectionHeader {
+  gap: 18px;
+  padding: 17px 20px 15px;
+  background: color-mix(in srgb, var(--oauth-surface-soft) 82%, var(--oauth-surface-muted));
+
+  h2 {
+    margin-top: 4px;
+    margin-bottom: 5px;
+    font-size: 15px;
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+}
+
+.sectionStatus {
+  max-width: 250px;
+  padding-top: 5px;
+  font-size: 11px;
+}
+
+.sectionBody {
+  padding: 19px 20px 21px;
+}
+
+.fieldHint,
+.emptyHint,
+.unavailableState,
+.reasoningEmpty {
+  font-size: 11.5px;
+}
+
+.selectedModel {
+  min-height: 30px;
+  padding: 6px 8px 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.ruleSummary {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 14px 18px;
+}
+
+.ruleSummaryTrigger {
+  grid-column: 1;
+  grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
+  gap: 18px;
+}
+
+.ruleSummaryMain {
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.ruleModel,
+.ruleTarget {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid var(--oauth-border);
+  border-radius: 8px;
+  background: var(--oauth-surface-soft);
+}
+
+.ruleTarget {
+  background: var(--oauth-surface-muted);
+  color: var(--oauth-text);
+}
+
+.ruleArrow {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--oauth-border);
+  border-radius: 50%;
+  background: var(--oauth-surface);
+}
+
+.ruleSummaryMeta {
+  gap: 6px 9px;
+  font-size: 11px;
+}
+
+.iconButton {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+}
+
+.ruleEditor {
+  padding: 18px;
+}
+
+.ruleEditorHeader {
+  margin-bottom: 15px;
+
+  strong {
+    font-size: 13px;
+  }
+}
+
+.editorGrid {
+  grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+}
+
+.editorArrow {
+  height: 42px;
+  font-size: 15px;
+}
+
+.reasoningPanel {
+  margin-top: 17px;
+  padding: 15px;
+  border-radius: 10px;
+  background: var(--oauth-surface-soft);
+}
+
+.reasoningHeader {
+  gap: 18px;
+  padding-bottom: 13px;
+
+  strong {
+    font-size: 12px;
+  }
+
+  p {
+    font-size: 11px;
+  }
+}
+
+.defaultReasoning {
+  min-width: 170px;
+  font-size: 11px;
+}
+
+.reasoningSelect {
+  :global(button[role='combobox']) {
+    min-height: 38px;
+    font-size: 12px;
+  }
+}
+
+.reasoningRow {
+  grid-template-columns: minmax(130px, 0.9fr) 24px minmax(130px, 0.9fr) 34px;
+  gap: 8px;
+}
+
+.addReasoningButton {
+  min-height: 32px;
+  font-size: 11px;
+}
+
+.ruleEditorFooter {
+  margin-top: 15px;
+  padding-top: 13px;
+
+  span {
+    font-size: 11px;
+  }
+}
+
+.footerStatus {
+  font-size: 12px;
+}
+
+.footerStatusDot {
+  width: 8px;
+  height: 8px;
+  flex-basis: 8px;
+}
+
+@media (max-width: 760px) {
+  .modal {
+    :global(.modal-header) {
+      min-height: 62px;
+      padding: 16px 16px 14px;
+    }
+
+    :global(.modal-footer) {
+      min-height: 0;
+      padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    }
+  }
+
+  .shell {
+    padding: 16px 14px 24px;
+  }
+
+  .providerBar {
+    align-items: stretch;
+    gap: 11px;
+    padding: 14px;
+    border-radius: 13px;
+  }
+
+  .providerField {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .providerSelect {
+    width: 100%;
+  }
+
+  .providerStats {
+    flex-wrap: wrap;
+  }
+
+  .sectionHeader {
+    gap: 12px;
+    padding: 15px 15px 13px;
+
+    h2 {
+      margin-top: 3px;
+      font-size: 14px;
+    }
+
+    p {
+      font-size: 11px;
+    }
+  }
+
+  .sectionBody {
+    padding: 15px;
+  }
+
+  .editorGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .editorArrow {
+    display: none;
+  }
+
+  .ruleSummary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 13px 14px;
+  }
+
+  .ruleSummaryTrigger {
+    grid-column: 1;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .ruleSummaryMain {
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .ruleModel,
+  .ruleTarget {
+    min-height: 30px;
+  }
+
+  .ruleEditor {
+    padding: 15px;
+  }
+
+  .reasoningPanel {
+    padding: 13px;
+  }
+
+  .reasoningRow {
+    grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 34px;
+  }
+}
+
+// Information architecture pass: keep the provider context visible while the
+// rule type navigation and the active editor stay in one predictable workspace.
+.workspace {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(172px, 0.28fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.sectionNav {
+  position: sticky;
+  top: 12px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--oauth-border);
+  border-radius: 14px;
+  background: var(--oauth-surface-soft);
+  box-shadow: 0 10px 24px -28px rgb(29 54 38 / 58%);
+}
+
+.sectionNavHeader {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px 13px 12px;
+  border-bottom: 1px solid var(--oauth-border);
+
+  strong {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--oauth-text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.sectionNavList {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+}
+
+.sectionNavItem {
+  display: flex;
+  min-width: 0;
+  min-height: 66px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 11px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--oauth-text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--oauth-border);
+    background: color-mix(in srgb, var(--oauth-surface) 68%, transparent);
+    color: var(--oauth-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mg-focus-outline);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+  }
+}
+
+.sectionNavItemActive {
+  border-color: var(--oauth-border-strong);
+  background: var(--oauth-surface);
+  color: var(--oauth-text);
+  box-shadow: 0 6px 16px -18px rgb(29 54 38 / 58%);
+}
+
+.sectionNavItemUnavailable {
+  background: color-mix(in srgb, var(--oauth-surface-muted) 70%, transparent);
+}
+
+.sectionNavItemTop,
+.sectionNavItemMeta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sectionNavItemTop {
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.sectionNavItemCount {
+  display: inline-flex;
+  min-width: 22px;
+  min-height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border: 1px solid var(--oauth-border);
+  border-radius: 7px;
+  background: var(--oauth-surface-soft);
+  color: var(--oauth-text-secondary);
+  font-family: $font-mono;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionNavItemMeta {
+  justify-content: flex-start;
+  color: var(--oauth-text-muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.sectionNavStatusDot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--oauth-border-strong);
+}
+
+.sectionNavStatusDotDirty {
+  background: var(--oauth-warning);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--oauth-warning) 12%, transparent);
+}
+
+.sectionStage {
+  min-width: 0;
+}
+
+.sectionStage > .section {
+  margin: 0;
+}
+
+// Keep the provider as context for the workspace rather than another card in
+// the hierarchy. The rule navigation and editor own the surface below it.
+.providerBar {
+  align-items: flex-end;
+  gap: 14px;
+  padding: 0 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--oauth-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.providerField {
+  flex: 1 1 360px;
+}
+
+.providerStats {
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  color: var(--oauth-text-muted);
+}
+
+.providerStats span {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 10px;
+}
+
+.providerStats span + span::before {
+  margin-right: 8px;
+  content: '·';
+  color: var(--oauth-border-strong);
+}
+
+.addProviderButton {
+  min-height: 38px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--oauth-text-secondary);
+
+  &:hover:not(:disabled) {
+    border-color: var(--oauth-border);
+    background: var(--oauth-surface-soft);
+  }
+}
+
+.workspace {
+  margin-top: 14px;
+}
+
+.ruleWorkspace {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(210px, 0.76fr) minmax(0, 1.24fr);
+  align-items: stretch;
+  border-top: 1px solid var(--oauth-border);
+}
+
+.ruleDirectory {
+  min-width: 0;
+  border-right: 1px solid var(--oauth-border);
+  background: var(--oauth-surface-soft);
+}
+
+.ruleDirectoryHeader {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 14px 11px;
+  border-bottom: 1px solid var(--oauth-border);
+
+  > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  strong {
+    color: var(--oauth-text);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  span {
+    color: var(--oauth-text-muted);
+    font-size: 10px;
+    line-height: 1.35;
+  }
+}
+
+.ruleDirectoryDirty {
+  flex: 0 0 auto;
+  color: var(--oauth-warning) !important;
+  font-weight: 700;
+}
+
+.ruleDirectory .rulesList {
+  max-height: min(52dvh, 460px);
+  overflow: auto;
+  scrollbar-color: var(--oauth-border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.ruleDirectory .ruleSummary {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 11px 12px;
+  background: transparent;
+}
+
+.ruleDirectory .ruleSummaryTrigger {
+  display: flex;
+  grid-column: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+}
+
+.ruleDirectory .ruleSummaryMain {
+  flex-wrap: wrap;
+  gap: 5px 7px;
+  font-size: 11px;
+}
+
+.ruleDirectory .ruleModel,
+.ruleDirectory .ruleTarget {
+  min-height: 26px;
+  padding: 4px 7px;
+  border-radius: 7px;
+}
+
+.ruleDirectory .ruleArrow {
+  width: 20px;
+  height: 20px;
+}
+
+.ruleDirectory .ruleSummaryMeta {
+  font-size: 10px;
+}
+
+.ruleSummaryActive {
+  background: var(--oauth-surface) !important;
+  border-color: var(--oauth-border-strong);
+}
+
+.ruleInspector {
+  min-width: 0;
+  background: var(--oauth-surface-muted);
+}
+
+.ruleInspector .ruleEditor {
+  min-height: 100%;
+  border-bottom: 0;
+}
+
+.ruleEditorPlaceholder {
+  display: flex;
+  min-height: 280px;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 24px;
+  flex-direction: column;
+  gap: 7px;
+  text-align: center;
+
+  strong {
+    color: var(--oauth-text);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  span {
+    max-width: 30ch;
+    color: var(--oauth-text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
+
+.emptyRulesCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+
+  strong {
+    color: var(--oauth-text);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  span {
+    color: var(--oauth-text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sectionNav {
+    position: static;
+    width: 100%;
+  }
+
+  .providerBar {
+    align-items: stretch;
+    gap: 10px;
+    padding-bottom: 13px;
+  }
+
+  .providerField {
+    flex-basis: auto;
+  }
+
+  .providerStats {
+    min-height: 0;
+  }
+
+  .addProviderButton {
+    width: 100%;
+    min-height: 38px;
+  }
+
+  .sectionNavHeader {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+  }
+
+  .sectionNavList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .sectionNavItem {
+    min-height: 58px;
+    padding: 9px 10px;
+  }
+
+  .ruleWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ruleDirectory {
+    border-right: 0;
+    border-bottom: 1px solid var(--oauth-border);
+  }
+
+  .ruleDirectory .rulesList {
+    max-height: none;
+  }
+
+  .ruleEditorPlaceholder {
+    min-height: 170px;
+  }
+
+  .emptyRules {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .emptyRules :global(.btn) {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sectionNavItem {
+    transition: none;
+  }
+}
+
+// Distilled rule editor: one primary choice, with reasoning overrides revealed
+// only when they are part of the current task.
+.ruleModeRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--oauth-border);
+  border-radius: 10px;
+  background: var(--oauth-surface-soft);
+}
+
+.ruleModeCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ruleModeDescription {
+  color: var(--oauth-text-muted);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.reasoningOnlySwitch {
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--oauth-text-secondary);
+  font-size: 11px;
+}
+
+.editorGridSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.forkSwitch {
+  margin-top: 11px;
+  padding: 0;
+  color: var(--oauth-text-secondary);
+  font-size: 11px;
+}
+
+.reasoningDisclosure {
+  margin-top: 8px;
+}
+
+.reasoningDisclosureButton {
+  min-height: 30px;
+  gap: 6px;
+  padding: 4px 7px;
+  color: var(--oauth-text-secondary);
+  font-size: 10.5px;
+}
+
+.reasoningDisclosureButton:hover:not(:disabled) {
+  color: var(--oauth-text);
+}
+
+.reasoningDisclosureButton svg {
+  transition: transform 160ms ease;
+}
+
+.reasoningDisclosureIconOpen {
+  transform: rotate(180deg);
+}
+
+.reasoningPanel {
+  margin-top: 11px;
+  padding: 13px;
+  border: 1px solid var(--oauth-border);
+  border-radius: 10px;
+  background: var(--oauth-surface-soft);
+}
+
+.reasoningHeader {
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+}
+
+.reasoningHeader p {
+  max-width: 42ch;
+  margin-top: 4px;
+}
+
+.defaultReasoning > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.reasoningCount {
+  color: var(--oauth-text-muted);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.reasoningRows {
+  margin-top: 9px;
+}
+
+.addReasoningButton {
+  margin-top: 8px;
+}
+
+.ruleEditorFooter {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .ruleModeRow {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 9px;
+    margin-bottom: 12px;
+  }
+
+  .reasoningOnlySwitch {
+    align-self: flex-start;
+  }
+
+  .reasoningHeader {
+    align-items: stretch;
+  }
+
+  .defaultReasoning {
+    min-width: 0;
+  }
+
+  .defaultReasoning > span {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reasoningDisclosureButton svg {
+    transition: none;
+  }
+}
+
+// Final distillation: keep the rule route flat, give the editor room, and use
+// borders only where they explain a real relationship between controls.
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-top: 13px;
+}
+
+.sectionNav {
+  position: static;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sectionNavHeader {
+  padding: 0 0 7px;
+  border-bottom: 0;
+}
+
+.sectionNavList {
+  display: flex;
+  gap: 5px;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sectionNavList::-webkit-scrollbar {
+  display: none;
+}
+
+.sectionNavItem {
+  display: inline-flex;
+  min-height: 39px;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 8px 11px;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+}
+
+.sectionNavItemTop,
+.sectionNavItemMeta {
+  justify-content: flex-start;
+}
+
+.sectionNavItemTop {
+  gap: 7px;
+  font-size: 11px;
+}
+
+.sectionNavItemMeta {
+  gap: 5px;
+  font-size: 10px;
+}
+
+.sectionNavItemCount {
+  min-width: 20px;
+  min-height: 20px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-size: 9px;
+}
+
+.sectionNavItemActive {
+  border-color: transparent;
+  border-bottom-color: var(--oauth-accent);
+  border-radius: 8px 8px 0 0;
+  background: var(--oauth-surface);
+  box-shadow: none;
+}
+
+.sectionStage {
+  width: 100%;
+}
+
+.sectionHeader {
+  padding: 17px 20px 14px;
+  background: transparent;
+}
+
+.ruleWorkspace {
+  grid-template-columns: minmax(198px, 0.56fr) minmax(0, 1.44fr);
+}
+
+.ruleDirectory {
+  background: var(--oauth-surface-soft);
+}
+
+.ruleDirectory .rulesList {
+  max-height: min(48dvh, 430px);
+}
+
+.ruleDirectory .ruleSummary {
+  padding: 11px 12px;
+  background: transparent;
+}
+
+.ruleSummary {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 11px 14px;
+  background: transparent;
+}
+
+.ruleSummaryTrigger,
+.ruleDirectory .ruleSummaryTrigger {
+  display: flex;
+  grid-column: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.ruleSummaryMain,
+.ruleDirectory .ruleSummaryMain {
+  flex-wrap: wrap;
+  gap: 5px 7px;
+  font-size: 11.5px;
+}
+
+.ruleModel,
+.ruleTarget,
+.ruleDirectory .ruleModel,
+.ruleDirectory .ruleTarget {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ruleArrow,
+.ruleDirectory .ruleArrow {
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ruleSummaryMeta,
+.ruleDirectory .ruleSummaryMeta {
+  gap: 4px 8px;
+  font-size: 10px;
+}
+
+.ruleSummaryActive {
+  border-color: var(--oauth-border-strong);
+  background: var(--oauth-surface) !important;
+}
+
+.ruleInspector {
+  background: var(--oauth-surface);
+}
+
+.ruleEditor {
+  min-height: 100%;
+  padding: 22px 24px 24px;
+  border-bottom: 0;
+  background: var(--oauth-surface);
+}
+
+.ruleEditorHeader {
+  margin-bottom: 17px;
+
+  strong {
+    font-size: 14px;
+    letter-spacing: -0.02em;
+  }
+}
+
+.ruleModeRow {
+  display: grid;
+  grid-template-columns: auto minmax(190px, 300px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 17px;
+  padding: 0 0 13px;
+  border: 0;
+  border-bottom: 1px solid var(--oauth-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.ruleModeLabel {
+  color: var(--oauth-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ruleModeSelect {
+  min-width: 0;
+
+  :global(button[role='combobox']) {
+    width: 100%;
+    min-height: 36px;
+    font-size: 11px;
+  }
+}
+
+.editorGrid {
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.editorGridSingle {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 520px;
+}
+
+.forkSwitch {
+  margin-top: 12px;
+  padding: 0;
+  color: var(--oauth-text-secondary);
+  font-size: 11px;
+}
+
+.reasoningDisclosure {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--oauth-border);
+}
+
+.reasoningDisclosureButton {
+  min-height: 27px;
+  gap: 6px;
+  padding: 0;
+  color: var(--oauth-text-secondary);
+  font-size: 10.5px;
+}
+
+.reasoningPanel {
+  margin-top: 12px;
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px solid var(--oauth-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.reasoningHeader {
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.reasoningHeader p {
+  max-width: 48ch;
+  margin-top: 3px;
+}
+
+.defaultReasoning {
+  min-width: 220px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.defaultReasoning > span {
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.reasoningRows {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--oauth-border);
+}
+
+.addReasoningButton {
+  margin-top: 9px;
+}
+
+.ruleEditorPlaceholder {
+  min-height: 300px;
+  background: var(--oauth-surface);
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    gap: 10px;
+  }
+
+  .sectionNavHeader {
+    padding-bottom: 6px;
+  }
+
+  .sectionNavList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    overflow: visible;
+  }
+
+  .sectionNavItem {
+    min-width: 0;
+    min-height: 45px;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border: 1px solid var(--oauth-border);
+    border-radius: 8px;
+  }
+
+  .sectionNavItemActive {
+    border-color: var(--oauth-border-strong);
+    background: var(--oauth-surface);
+  }
+
+  .sectionHeader {
+    padding: 15px 15px 13px;
+  }
+
+  .ruleWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ruleDirectory {
+    border-right: 0;
+    border-bottom: 1px solid var(--oauth-border);
+  }
+
+  .ruleDirectory .rulesList {
+    max-height: none;
+  }
+
+  .ruleEditor {
+    padding: 18px 15px 20px;
+  }
+
+  .ruleModeRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .ruleModeSelect {
+    width: 100%;
+  }
+
+  .editorGridSingle {
+    max-width: none;
+  }
+
+  .reasoningHeader {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .defaultReasoning {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .defaultReasoning > span {
+    white-space: normal;
+  }
+
+  .ruleEditorPlaceholder {
+    min-height: 180px;
+  }
 }

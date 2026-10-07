@@ -952,3 +952,32 @@
     transition: none;
   }
 }
+
+// Give the primary usage metric the same high-contrast anchor as the dashboard
+// while leaving the other metrics quiet and comparable.
+.statsGrid .statCard:first-child {
+  background: var(--xai-ink-console);
+  color: var(--xai-inverse);
+}
+
+.statsGrid .statCard:first-child .statLabel,
+.statsGrid .statCard:first-child .statMetaRow,
+.statsGrid .statCard:first-child .statMetaItem {
+  color: rgb(251 250 247 / 70%);
+}
+
+.statsGrid .statCard:first-child .statValue {
+  color: var(--xai-inverse);
+}
+
+.statsGrid .statCard:first-child .statMetaRow {
+  border-top-color: rgb(255 255 255 / 18%);
+}
+
+.statsGrid .statCard:first-child .statSuccess {
+  color: #9bd3aa;
+}
+
+.statsGrid .statCard:first-child .statFailure {
+  color: #f0a29d;
+}

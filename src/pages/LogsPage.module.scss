@@ -122,6 +122,8 @@
   align-items: center;
   gap: var(--xai-space-3-5);
   flex-wrap: wrap;
+  @include management-toolbar-surface;
+  padding: 9px 11px;
   margin-bottom: var(--xai-space-3-5);
 
   :global(.form-group) {
@@ -130,6 +132,7 @@
 
   @include mobile {
     gap: var(--xai-space-2);
+    padding: 8px;
     margin-bottom: var(--xai-space-2);
   }
 }
@@ -493,7 +496,7 @@
   // 单行隔离：某一行 hover/reflow 时不影响其它行的 layout
   contain: layout style;
   content-visibility: auto;
-  contain-intrinsic-size: 1px 44px;
+  contain-intrinsic-size: auto 44px;
   transition:
     background-color 0.15s ease,
     box-shadow 0.15s ease;

@@ -68,3 +68,16 @@
     min-height: var(--mg-hit-area, 44px);
   }
 }
+
+// Toolbars sit on the same quiet warm surface as the reference controls.
+.toolbar {
+  padding: 10px;
+  border-color: var(--xai-border);
+  border-radius: var(--xai-radius-card);
+  background: color-mix(in srgb, var(--xai-white) 90%, var(--xai-canvas));
+  box-shadow: 0 12px 28px -24px rgb(23 25 27 / 34%);
+}
+
+.toolbar :global(.btn:not(.icon-button)) {
+  border-radius: var(--xai-radius-pill);
+}

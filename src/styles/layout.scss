@@ -3,18 +3,18 @@
 $breakpoint-shell-compact: 1023px;
 
 :root {
-  --header-height: var(--xai-space-15);
+  --header-height: 72px;
   --shell-gutter: var(--xai-space-3);
   --floating-control-size: var(--xai-space-8);
-  --page-padding-inline: clamp(27px, 4vw, 54px);
-  --page-padding-block: clamp(27px, 3.5vw, 45px);
-  --page-content-gap: var(--xai-space-8);
-  --page-title-size: 27px;
+  --page-padding-inline: clamp(12px, 2vw, 32px);
+  --page-padding-block: clamp(24px, 3.5vw, 48px);
+  --page-content-gap: 32px;
+  --page-title-size: 29px;
 }
 
 .app-shell {
-  --sidebar-width: 176px;
-  --sidebar-collapsed-width: 72px;
+  --sidebar-width: 224px;
+  --sidebar-collapsed-width: 76px;
   --sidebar-item-height: var(--xai-space-8);
   --sidebar-item-radius: var(--xai-radius-control);
   --sidebar-label-size: 13px;
@@ -25,7 +25,7 @@ $breakpoint-shell-compact: 1023px;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
-  background: var(--mg-canvas, #ffffff);
+  background: var(--mg-canvas, #f3f2ee);
   color: var(--xai-ink-console);
   font-family: var(--xai-font-ui);
   position: relative;
@@ -59,7 +59,7 @@ $breakpoint-shell-compact: 1023px;
   border: 0;
   border-bottom: 1px solid var(--xai-border-subtle);
   background: var(--header-surface);
-  box-shadow: 0 1px 0 rgb(32 33 35 / 2%);
+  box-shadow: 0 4px 18px -18px rgb(23 25 27 / 36%);
   pointer-events: none;
 
   @media (max-width: $breakpoint-shell-compact) {
@@ -76,6 +76,10 @@ $breakpoint-shell-compact: 1023px;
     min-height: var(--floating-control-size);
     align-items: center;
     pointer-events: auto;
+  }
+
+  .mobile-page-title {
+    display: none;
   }
 
   .mobile-sidebar-actions {
@@ -124,7 +128,7 @@ $breakpoint-shell-compact: 1023px;
     max-width: min(560px, calc(100vw - var(--sidebar-width) - 44px));
     gap: 2px;
     padding: 3px;
-    border: 1px solid var(--xai-border);
+    border: 1px solid var(--xai-border-subtle);
     border-radius: var(--xai-radius-pill);
     background: var(--mg-surface);
     box-shadow: var(--xai-shadow-button);
@@ -476,9 +480,9 @@ $breakpoint-shell-compact: 1023px;
   flex-shrink: 0;
   height: 100%;
   isolation: isolate;
-  box-shadow: none;
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
-  backdrop-filter: blur(18px) saturate(120%);
+  box-shadow: var(--sidebar-shadow);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   color: var(--sidebar-text, var(--xai-ink-console));
   font-family: var(--xai-font-ui);
 
@@ -593,7 +597,8 @@ $breakpoint-shell-compact: 1023px;
     flex: 0 0 var(--xai-space-6);
     padding: 2px;
     border-radius: var(--xai-radius-control);
-    background: var(--xai-white);
+    background: #111315;
+    box-shadow: 0 0 0 1px rgb(255 253 250 / 12%), 0 4px 10px -6px rgb(0 0 0 / 65%);
     transition: opacity var(--xai-duration-default) var(--xai-ease-standard);
   }
 
@@ -666,7 +671,7 @@ $breakpoint-shell-compact: 1023px;
     font-weight: 600;
     letter-spacing: 0.035em;
     line-height: 18px;
-    text-transform: none;
+    text-transform: uppercase;
     white-space: nowrap;
     opacity: 1;
     transition:
@@ -751,10 +756,10 @@ $breakpoint-shell-compact: 1023px;
     }
 
     &.active {
-      background: var(--sidebar-surface-muted);
+      background: var(--sidebar-accent-surface);
       color: var(--sidebar-text);
       font-weight: var(--sidebar-label-active-weight);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sidebar-accent) 28%, transparent);
+      box-shadow: inset 0 0 0 1px var(--sidebar-border-strong);
 
       .nav-icon {
         color: var(--sidebar-accent);
@@ -868,7 +873,7 @@ $breakpoint-shell-compact: 1023px;
   scrollbar-gutter: stable;
   height: 100%;
   position: relative;
-  background: var(--mg-canvas, #ffffff);
+  background: var(--mg-canvas, #f3f2ee);
 
   > .page-transition {
     width: min(100%, 1440px);
@@ -1013,6 +1018,25 @@ $breakpoint-shell-compact: 1023px;
 
     .mobile-sidebar-actions {
       display: inline-flex;
+    }
+
+    .mobile-page-title {
+      position: absolute;
+      top: calc(var(--mobile-safe-top) + var(--shell-gutter));
+      left: calc(var(--floating-control-size) + var(--shell-gutter) + var(--xai-space-1));
+      right: calc(var(--floating-control-size) * 4 + var(--shell-gutter) * 2 + var(--xai-space-2));
+      display: block;
+      height: var(--floating-control-size);
+      line-height: var(--floating-control-size);
+      overflow: hidden;
+      color: var(--xai-ink-console);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      pointer-events: none;
     }
 
     .mobile-menu-btn {
@@ -1466,6 +1490,65 @@ $breakpoint-shell-compact: 1023px;
   }
 }
 
+// Reference-led shell polish: the management plane keeps a quiet warm canvas,
+// while its light navigation rail lets the dark work surfaces carry focus.
+.app-shell {
+  --sidebar-surface: #ffffff;
+  --sidebar-surface-muted: #f1f1ee;
+  --sidebar-text: #17191b;
+  --sidebar-text-secondary: #5b5d5a;
+  --sidebar-text-tertiary: #686a64;
+  --sidebar-border: #e7e7e3;
+  --sidebar-border-strong: #d5d4cf;
+  --sidebar-accent: var(--xai-orange);
+  --sidebar-accent-surface: #f1f1ee;
+  --sidebar-shadow: none;
+}
+
+.app-shell .sidebar {
+  background: var(--sidebar-surface);
+  border-right-color: var(--sidebar-border);
+}
+
+.app-shell .sidebar .sidebar-brand-mark {
+  box-shadow: 0 0 0 1px rgb(23 25 27 / 12%), 0 6px 14px -10px rgb(23 25 27 / 48%);
+}
+
+.app-shell .sidebar .nav-item {
+  border: 1px solid transparent;
+}
+
+.app-shell .sidebar .nav-item.active {
+  border-color: var(--sidebar-border-strong);
+  background: var(--sidebar-accent-surface);
+  box-shadow: inset 0 0 0 1px rgb(23 25 27 / 4%);
+}
+
+.app-shell .sidebar .nav-item.active .nav-icon {
+  color: var(--xai-orange);
+}
+
+.app-shell .sidebar .sidebar-collapse-button {
+  color: var(--sidebar-text-secondary);
+
+  &:hover {
+    background: var(--sidebar-surface-muted);
+    color: var(--sidebar-text);
+  }
+}
+
+.app-shell .content {
+  background:
+    radial-gradient(circle at 100% 0%, rgb(255 90 0 / 3%), transparent 32rem),
+    var(--mg-canvas, #f3f2ee);
+}
+
+@media (max-width: $breakpoint-shell-compact) {
+  .app-shell .sidebar {
+    background: var(--sidebar-surface);
+  }
+}
+
 // Keep the connection icon itself as the status cue; do not tint the whole
 // header control with a green success surface.
 .main-header .header-actions .connection:has(.status-badge.success) {
@@ -1473,38 +1556,35 @@ $breakpoint-shell-compact: 1023px;
   background: transparent;
 }
 
-// Mobile shell polish: the page context stays visible while the navigation
-// drawer and utility actions remain reachable with one hand.
-.mobile-page-title {
-  display: none;
+// Keep the management canvas visually direct on desktop: the utility rail
+// floats over the page while the content starts at the actual work surface.
+@media (min-width: 1024px) {
+  :root {
+    --header-height: 0px;
+  }
+
+  .main-header {
+    height: 0;
+    min-height: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .main-header .header-actions {
+    top: var(--shell-gutter);
+  }
+
+  .main-content {
+    padding-top: calc(var(--page-padding-block) + var(--floating-control-size) + var(--xai-space-2));
+  }
 }
 
 @media (max-width: $breakpoint-shell-compact) {
   .main-header {
-    border-bottom: 1px solid color-mix(in srgb, var(--xai-border) 72%, transparent);
+    border-bottom: 1px solid var(--xai-border-subtle);
     background: var(--header-surface);
     box-shadow: 0 6px 18px -18px rgb(32 33 35 / 34%);
-
-    .mobile-page-title {
-      position: absolute;
-      top: calc(var(--mobile-safe-top) + var(--shell-gutter));
-      left: calc(var(--floating-control-size) + var(--shell-gutter) + var(--xai-space-1));
-      right: calc(var(--floating-control-size) * 4 + var(--shell-gutter) * 2 + var(--xai-space-2));
-      display: flex;
-      height: var(--floating-control-size);
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      color: var(--xai-ink-console);
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      line-height: 20px;
-      text-align: center;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      pointer-events: none;
-    }
 
     .header-actions {
       border-color: transparent;
@@ -1527,8 +1607,7 @@ $breakpoint-shell-compact: 1023px;
 
 @media (max-width: 380px) {
   .main-header .mobile-page-title {
-    right: calc(var(--floating-control-size) * 4 + var(--shell-gutter) * 2 + var(--xai-space-2));
-    justify-content: flex-start;
-    font-size: 13px;
+    right: calc(var(--floating-control-size) * 4 + var(--shell-gutter) * 2 + var(--xai-space-1));
+    font-size: 10.5px;
   }
 }

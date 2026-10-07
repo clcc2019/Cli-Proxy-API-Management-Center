@@ -348,24 +348,28 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
       </div>
 
       <div className={styles.eventEndpoint}>
+        <span className={styles.eventMobileLabel}>{labels.columns.endpoint}</span>
         <span className={styles.eventEndpointValue} title={row.endpoint}>
           {row.endpoint}
         </span>
       </div>
 
       <div className={styles.eventClientIP}>
+        <span className={styles.eventMobileLabel}>{labels.columns.clientIP}</span>
         <span className={styles.eventClientIPValue} title={row.clientIP}>
           {row.clientIP}
         </span>
       </div>
 
       <div className={styles.eventApiKey}>
+        <span className={styles.eventMobileLabel}>{labels.columns.apiKey}</span>
         <span className={styles.eventApiKeyValue} title={row.apiKeyMasked}>
           {row.apiKeyMasked}
         </span>
       </div>
 
       <div className={styles.eventModel}>
+        <span className={styles.eventMobileLabel}>{labels.columns.model}</span>
         <div className={styles.eventModelPrimary}>
           <span
             className={styles.eventModelName}
@@ -447,6 +451,7 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
       </div>
 
       <div className={styles.eventTokens}>
+        <span className={styles.eventMobileLabel}>{labels.columns.tokens}</span>
         <span className={styles.eventTokensTotal}>{row.totalTokens.toLocaleString()}</span>
         {row.tokenParts.length > 0 && (
           <span className={styles.eventTokensBreakdown}>
@@ -465,10 +470,12 @@ const RequestEventRowItem = memo(function RequestEventRowItem({
           row.totalCost > 0 ? styles.eventCost : `${styles.eventCost} ${styles.eventCostMuted}`
         }
       >
+        <span className={styles.eventMobileLabel}>{labels.columns.cost}</span>
         {row.totalCost > 0 ? formatUsd(row.totalCost) : '--'}
       </div>
 
       <div className={styles.eventCredential}>
+        <span className={styles.eventMobileLabel}>{labels.columns.credential}</span>
         <div className={styles.eventCredentialMain}>
           <span className={styles.eventCredentialName} title={row.source}>
             {row.source}
