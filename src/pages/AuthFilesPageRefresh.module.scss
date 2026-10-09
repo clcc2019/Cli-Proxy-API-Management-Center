@@ -6758,3 +6758,41 @@
     min-width: max-content;
   }
 }
+
+// Compact card rhythm: reclaim passive whitespace while preserving the
+// interactive size of the status timeline and footer controls.
+.page .credentialCard {
+  padding: 12px 12px 10px;
+}
+
+.page .credentialCard .cardMain {
+  gap: 4px;
+}
+
+.page .credentialCard .cardIdentity {
+  gap: 4px;
+}
+
+.page .credentialCard .metricsPanel {
+  margin-top: 0;
+}
+
+.page .credentialCard .metricHeader {
+  margin-bottom: 4px;
+}
+
+.page .credentialCard .statusBlocks,
+.page
+  .credentialCard
+  .statusBlocks:has(.statusBlockIdle):not(:has(.statusBlock:not(.statusBlockIdle))) {
+  padding-block: 2px;
+}
+
+.page .credentialCard .quotaSection {
+  gap: 4px;
+  padding-block: 4px 5px;
+}
+
+.page .credentialCard .cardFooter {
+  padding-top: 6px;
+}
