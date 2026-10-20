@@ -6,6 +6,7 @@ export * from './apiKeys';
 export * from './providers';
 export * from './authFiles';
 export * from './oauth';
+export * from './vertex';
 export * from './usage';
 export * from './logs';
 export * from './version';

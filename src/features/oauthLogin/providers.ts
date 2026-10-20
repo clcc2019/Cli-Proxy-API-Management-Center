@@ -13,6 +13,8 @@ import type { OAuthProvider } from '@/services/api/oauth';
 import type { ResolvedTheme } from '@/types';
 import iconCodex from '@/assets/icons/codex.svg';
 import iconClaude from '@/assets/icons/claude.svg';
+import iconGemini from '@/assets/icons/gemini.svg';
+import iconAntigravity from '@/assets/icons/antigravity.svg';
 import iconGrok from '@/assets/icons/grok.svg';
 
 type ThemedIcon = { light: string; dark: string };
@@ -42,6 +44,20 @@ export const OAUTH_PROVIDERS: readonly OAuthProviderDescriptor[] = [
     titleKey: 'auth_login.anthropic_oauth_title',
     hintKey: 'auth_login.anthropic_oauth_hint',
     icon: iconClaude,
+    supportsCallback: true,
+  },
+  {
+    id: 'gemini-cli',
+    titleKey: 'auth_login.gemini_cli_oauth_title',
+    hintKey: 'auth_login.gemini_cli_oauth_hint',
+    icon: iconGemini,
+    supportsCallback: true,
+  },
+  {
+    id: 'antigravity',
+    titleKey: 'auth_login.antigravity_oauth_title',
+    hintKey: 'auth_login.antigravity_oauth_hint',
+    icon: iconAntigravity,
     supportsCallback: true,
   },
   {

@@ -1,8 +1,8 @@
 import type { TFunction } from 'i18next';
 import { create } from 'zustand';
-import { CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from '@/components/quota';
+import { ANTIGRAVITY_CONFIG, CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from '@/components/quota';
 import { useQuotaStore } from '@/stores';
-import type { AuthFileItem, CodexCreditsSnapshot } from '@/types';
+import type { AntigravityCreditsSnapshot, AuthFileItem, CodexCreditsSnapshot } from '@/types';
 import { getStatusFromError, isRuntimeOnlyAuthFile, type QuotaProviderType } from '@/utils/quota';
 import { REFRESH_FEEDBACK_MS } from '@/utils/refreshFeedback';
 
@@ -11,7 +11,7 @@ export type AuthFileQuotaState = {
   error?: string;
   errorStatus?: number;
   __hasCachedQuotaSnapshot?: boolean;
-  credits?: CodexCreditsSnapshot | null;
+  credits?: CodexCreditsSnapshot | AntigravityCreditsSnapshot | null;
 };
 
 type AuthFileQuotaConfig = {
@@ -117,7 +117,14 @@ export const useAuthFileQuotaRefreshing = (
 };
 
 export const getAuthFileQuotaConfig = (type: QuotaProviderType): AuthFileQuotaConfig => {
-  const config = type === 'claude' ? CLAUDE_CONFIG : type === 'codex' ? CODEX_CONFIG : KIMI_CONFIG;
+  const config =
+    type === 'claude'
+      ? CLAUDE_CONFIG
+      : type === 'codex'
+        ? CODEX_CONFIG
+        : type === 'kimi'
+          ? KIMI_CONFIG
+          : ANTIGRAVITY_CONFIG;
   return config as unknown as AuthFileQuotaConfig;
 };
 
@@ -129,7 +136,10 @@ const getQuotaStoreUpdater = (quotaType: QuotaProviderType): AuthFileQuotaUpdate
   if (quotaType === 'codex') {
     return state.setCodexQuota as unknown as AuthFileQuotaUpdater;
   }
-  return state.setKimiQuota as unknown as AuthFileQuotaUpdater;
+  if (quotaType === 'kimi') {
+    return state.setKimiQuota as unknown as AuthFileQuotaUpdater;
+  }
+  return state.setAntigravityQuota as unknown as AuthFileQuotaUpdater;
 };
 
 const setLoadingQuota = (

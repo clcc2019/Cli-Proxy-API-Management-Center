@@ -127,54 +127,46 @@ export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
         </button>
       </div>
 
-      <AnchoredPopover
-        open={visibleFilterOpen}
-        onOpenChange={(nextOpen) => {
-          if (isCurrentLayer) setFilterOpen(nextOpen);
-        }}
-        width={280}
-        maxHeight={340}
-        ariaLabel={filterLabel}
-        wrapperClassName={styles.filterGroup}
-        className={styles.filterPanel}
-        trigger={
-          <button
-            type="button"
-            className={`${styles.filterTrigger} ${
-              selectedModels.size > 0 ? styles.filterTriggerActive : ''
-            }`}
-            disabled={availableModels.length === 0}
-            aria-haspopup="dialog"
-            aria-expanded={visibleFilterOpen}
-            aria-label={filterLabel}
-          >
-            <IconSlidersHorizontal size={14} />
-            <span>{filterLabel}</span>
-            <IconChevronDown size={12} />
-          </button>
-        }
-      >
-        <div className={styles.filterToolbar}>
-          <button
-            type="button"
-            className={styles.filterToolbarBtn}
-            onClick={selectAll}
-            disabled={availableModels.length === 0}
-          >
-            {t('providersPage.toolbar.filter.selectAll')}
-          </button>
-          <button
-            type="button"
-            className={styles.filterToolbarBtn}
-            onClick={clearAll}
-            disabled={selectedModels.size === 0}
-          >
-            {t('providersPage.toolbar.filter.clear')}
-          </button>
-        </div>
-        {availableModels.length === 0 ? (
-          <div className={styles.filterEmpty}>{t('providersPage.toolbar.filter.empty')}</div>
-        ) : (
+      {availableModels.length > 0 || selectedModels.size > 0 ? (
+        <AnchoredPopover
+          open={visibleFilterOpen}
+          onOpenChange={(nextOpen) => {
+            if (isCurrentLayer) setFilterOpen(nextOpen);
+          }}
+          width={280}
+          maxHeight={340}
+          ariaLabel={filterLabel}
+          wrapperClassName={styles.filterGroup}
+          className={styles.filterPanel}
+          trigger={
+            <button
+              type="button"
+              className={`${styles.filterTrigger} ${
+                selectedModels.size > 0 ? styles.filterTriggerActive : ''
+              }`}
+              aria-haspopup="dialog"
+              aria-expanded={visibleFilterOpen}
+              aria-label={filterLabel}
+            >
+              <IconSlidersHorizontal size={14} />
+              <span>{filterLabel}</span>
+              <IconChevronDown size={12} />
+            </button>
+          }
+        >
+          <div className={styles.filterToolbar}>
+            <button type="button" className={styles.filterToolbarBtn} onClick={selectAll}>
+              {t('providersPage.toolbar.filter.selectAll')}
+            </button>
+            <button
+              type="button"
+              className={styles.filterToolbarBtn}
+              onClick={clearAll}
+              disabled={selectedModels.size === 0}
+            >
+              {t('providersPage.toolbar.filter.clear')}
+            </button>
+          </div>
           <ul className={styles.filterList}>
             {availableModels.map((name) => (
               <ProviderModelFilterItem
@@ -185,8 +177,8 @@ export const ProviderResourceToolbar = memo(function ProviderResourceToolbar({
               />
             ))}
           </ul>
-        )}
-      </AnchoredPopover>
+        </AnchoredPopover>
+      ) : null}
     </div>
   );
 });

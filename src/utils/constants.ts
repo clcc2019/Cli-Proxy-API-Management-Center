@@ -59,12 +59,14 @@ export const NOTIFICATION_DURATION_MS = 3000;
 export const OAUTH_CARD_IDS = [
   'codex-oauth-card',
   'anthropic-oauth-card',
+  'antigravity-oauth-card',
   'kimi-oauth-card',
   'xai-oauth-card',
 ];
 export const OAUTH_PROVIDERS = {
   CODEX: 'codex',
   ANTHROPIC: 'anthropic',
+  ANTIGRAVITY: 'antigravity',
   KIMI: 'kimi',
   XAI: 'xai',
 } as const;

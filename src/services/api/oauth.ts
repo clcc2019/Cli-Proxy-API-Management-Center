@@ -4,7 +4,13 @@
 
 import { apiClient } from './client';
 
-export type OAuthProvider = 'codex' | 'anthropic' | 'kimi' | 'xai';
+export type OAuthProvider =
+  | 'codex'
+  | 'anthropic'
+  | 'gemini-cli'
+  | 'antigravity'
+  | 'kimi'
+  | 'xai';
 
 export type CodexLoginMode = 'device' | 'browser';
 
@@ -25,7 +31,13 @@ export interface OAuthCallbackResponse {
   status: 'ok';
 }
 
-const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'xai'];
+const WEBUI_SUPPORTED: OAuthProvider[] = [
+  'codex',
+  'anthropic',
+  'gemini-cli',
+  'antigravity',
+  'xai',
+];
 
 export const oauthApi = {
   startAuth: (provider: OAuthProvider, mode?: CodexLoginMode) => {

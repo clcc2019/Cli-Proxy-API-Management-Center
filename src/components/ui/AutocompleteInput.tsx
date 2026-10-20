@@ -349,6 +349,7 @@ export function AutocompleteInput({
           aria-controls={dropdownId}
           aria-activedescendant={activeOptionId}
           aria-describedby={describedBy}
+          aria-invalid={Boolean(error)}
           aria-label={label ? undefined : toggleLabel}
           style={{ paddingRight: 32 }}
         />

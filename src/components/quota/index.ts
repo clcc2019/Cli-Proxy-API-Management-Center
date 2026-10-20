@@ -1,1 +1,1 @@
-export { CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from './quotaConfigs';
+export { ANTIGRAVITY_CONFIG, CLAUDE_CONFIG, CODEX_CONFIG, KIMI_CONFIG } from './quotaConfigs';

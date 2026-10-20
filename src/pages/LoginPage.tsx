@@ -283,7 +283,6 @@ export function LoginPage() {
                 )}
 
                 <Input
-                  autoFocus
                   label={t('login.management_key_label')}
                   placeholder={t('login.management_key_placeholder')}
                   type={showKey ? 'text' : 'password'}

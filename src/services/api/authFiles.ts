@@ -10,6 +10,7 @@ import type {
   CodexRateLimitResetConsumePayload,
   CodexRateLimitResetCreditsPayload,
   CodexUsagePayload,
+  AntigravityUsagePayload,
   OAuthModelAliasEntry,
 } from '@/types';
 
@@ -964,6 +965,30 @@ export const authFilesApi = {
     try {
       return await apiClient.get<CodexUsagePayload>(
         `/auth-files/codex-usage?${params.toString()}`,
+        AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
+      );
+    } catch (err: unknown) {
+      throw createUsageRequestError(err);
+    }
+  },
+
+  getAntigravityUsage: async (
+    name: string,
+    authIndex?: string,
+    mode: 'cache' | 'refresh' = 'cache'
+  ) => {
+    const params = new URLSearchParams();
+    params.set('name', name);
+    params.set('antigravity_usage', mode);
+    if (authIndex) {
+      params.set('auth_index', authIndex);
+    }
+    if (mode === 'refresh') {
+      params.set('_ts', Date.now().toString());
+    }
+    try {
+      return await apiClient.get<AntigravityUsagePayload>(
+        `/auth-files/antigravity-usage?${params.toString()}`,
         AUTH_FILE_CREDENTIAL_REQUEST_CONFIG
       );
     } catch (err: unknown) {

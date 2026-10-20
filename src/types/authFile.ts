@@ -3,7 +3,19 @@
  * 基于原项目 src/modules/auth-files.js
  */
 
-export type AuthFileType = 'qwen' | 'kimi' | 'claude' | 'codex' | 'xai' | 'empty' | 'unknown';
+export type AuthFileType =
+  | 'qwen'
+  | 'kimi'
+  | 'claude'
+  | 'codex'
+  | 'xai'
+  | 'gemini'
+  | 'gemini-cli'
+  | 'aistudio'
+  | 'antigravity'
+  | 'vertex'
+  | 'empty'
+  | 'unknown';
 
 export type CodexAuthMode = 'access_token' | 'agent_identity';
 
@@ -36,6 +48,21 @@ export interface CodexCreditsSnapshot {
   balance?: number | string | null;
   expiring_balance_details?: CodexExpiringBalanceDetail[] | null;
   expiringBalanceDetails?: CodexExpiringBalanceDetail[] | null;
+  updated_at?: string | number | null;
+  updatedAt?: string | number | null;
+}
+
+export interface AntigravityCreditsSnapshot {
+  known?: boolean;
+  available?: boolean;
+  credit_type?: string | null;
+  creditType?: string | null;
+  credit_amount?: number | string | null;
+  creditAmount?: number | string | null;
+  minimum_credit_amount_for_usage?: number | string | null;
+  minimumCreditAmountForUsage?: number | string | null;
+  paid_tier_id?: string | null;
+  paidTierId?: string | null;
   updated_at?: string | number | null;
   updatedAt?: string | number | null;
 }
@@ -156,6 +183,8 @@ export interface AuthFileItem {
   plan_snapshot?: AuthFilePlanSnapshot | null;
   planSnapshot?: AuthFilePlanSnapshot | null;
   credits?: CodexCreditsSnapshot | null;
+  antigravity_credits?: AntigravityCreditsSnapshot | null;
+  antigravityCredits?: AntigravityCreditsSnapshot | null;
   has_refresh_token?: boolean;
   hasRefreshToken?: boolean;
   last_error?: unknown;

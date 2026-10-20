@@ -72,6 +72,15 @@ export interface VisualApiKeyEntry {
   quota?: ClientApiKeyQuota;
 }
 
+export interface VisualModelAliasRule {
+  id: string;
+  name: string;
+  alias: string;
+  fork: boolean;
+}
+
+export type VisualModelAliasValidationErrorCode = 'required' | 'duplicate';
+
 export type VisualConfigValues = {
   host: string;
   port: string;
@@ -84,6 +93,7 @@ export type VisualConfigValues = {
   rmPanelRepo: string;
   authDir: string;
   apiKeys: VisualApiKeyEntry[];
+  modelAliases: VisualModelAliasRule[];
   debug: boolean;
   commercialMode: boolean;
   loggingToFile: boolean;
@@ -136,6 +146,7 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   rmPanelRepo: '',
   authDir: '',
   apiKeys: [],
+  modelAliases: [],
   debug: false,
   commercialMode: false,
   loggingToFile: false,

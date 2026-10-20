@@ -1,0 +1,209 @@
+@use '../../../styles/variables' as *;
+
+.modal:global(.modal) {
+  --vertex-surface: var(--mg-surface, #ffffff);
+  --vertex-subtle: var(--mg-surface-subtle, #f2f5f7);
+  --vertex-warm: var(--mg-surface-warm, #f8fafc);
+  --vertex-text: var(--mg-text, #1f2937);
+  --vertex-secondary: var(--mg-text-secondary, #475569);
+  --vertex-tertiary: var(--mg-text-tertiary, #64748b);
+  --vertex-border: var(--mg-border, #e2e8f0);
+  --vertex-success: var(--mg-success, #087a39);
+  --vertex-danger: var(--mg-danger, #cc332b);
+
+  border: 1px solid var(--vertex-border);
+  border-radius: var(--mg-radius-card, 15px);
+  background: var(--vertex-surface);
+  box-shadow: var(--mg-shadow-card, 0 20px 65px rgb(0 0 0 / 0.07));
+
+  :global(.modal-header) {
+    padding: 20px 60px 18px 24px;
+    border-bottom: 1px solid var(--vertex-border);
+  }
+
+  :global(.modal-body) {
+    padding: 24px;
+  }
+
+  :global(.modal-footer) {
+    padding: 13px 24px 15px;
+    border-top: 1px solid var(--vertex-border);
+    background: var(--vertex-warm);
+  }
+
+  :global(.modal-close-floating) {
+    border-color: var(--vertex-border);
+    background: var(--vertex-subtle);
+    color: var(--vertex-tertiary);
+  }
+}
+
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--mg-text, #1f2937);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hint {
+  margin: 0;
+  color: var(--mg-text-secondary, #475569);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  color: var(--mg-text, #1f2937);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.filePicker {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.fileName {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--mg-text-secondary, #475569);
+  font-family: $font-mono;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fieldHint {
+  color: var(--mg-text-tertiary, #64748b);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.error {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--vertex-danger) 24%, var(--vertex-border));
+  border-radius: var(--mg-radius-small, 8px);
+  background: color-mix(in srgb, var(--vertex-danger) 7%, var(--vertex-surface));
+  color: var(--vertex-danger);
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.footerPrimary {
+  margin-left: auto;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.resultIcon {
+  color: var(--vertex-success);
+}
+
+.result h3 {
+  margin: 0;
+  color: var(--vertex-text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.facts {
+  width: 100%;
+  margin: 4px 0 0;
+  overflow: hidden;
+  border: 1px solid var(--vertex-border);
+  border-radius: var(--mg-radius-medium, 12px);
+  background: var(--vertex-subtle);
+  text-align: left;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 13px;
+
+  & + & {
+    border-top: 1px solid var(--vertex-border);
+  }
+
+  dt {
+    color: var(--vertex-tertiary);
+    font-size: 12px;
+  }
+
+  dd {
+    min-width: 0;
+    margin: 0;
+    color: var(--vertex-text);
+    font-family: $font-mono;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .modal:global(.modal) {
+    :global(.modal-header) {
+      padding: 16px 52px 14px 16px;
+    }
+
+    :global(.modal-body) {
+      padding: 18px 16px;
+    }
+
+    :global(.modal-footer) {
+      padding: 14px 16px max(14px, env(safe-area-inset-bottom));
+    }
+  }
+
+  .filePicker {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .fileName {
+    max-width: 100%;
+  }
+
+  .footer {
+    justify-content: stretch;
+
+    :global(.btn) {
+      flex: 1 1 140px;
+    }
+  }
+
+  .footerPrimary {
+    margin-left: 0;
+  }
+}

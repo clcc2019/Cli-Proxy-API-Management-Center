@@ -41,6 +41,69 @@
   box-shadow: var(--mg-shadow-rest);
 }
 
+.vertexSection {
+  overflow: hidden;
+  border: 1px solid var(--mg-border);
+  border-radius: var(--mg-radius-card);
+  background: var(--mg-surface);
+  box-shadow: var(--mg-shadow-rest);
+}
+
+.vertexCard:global(.card) {
+  min-height: 168px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+
+  :global(.card-header) {
+    margin-bottom: 14px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  :global(.card-header .title) {
+    color: var(--oauth-text);
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.vertexTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vertexContent {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vertexHint {
+  max-width: 80ch;
+  margin: 0;
+  color: var(--oauth-text-secondary);
+  font-size: 13px;
+  line-height: 1.58;
+}
+
+.vertexFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 4px;
+
+  :global(.btn) {
+    min-height: 40px;
+    border-radius: var(--xai-radius-pill);
+    box-shadow: none;
+  }
+}
+
 .providerGrid {
   display: grid;
   min-width: 0;
@@ -273,6 +336,20 @@
   }
 
   .cardFooter {
+    justify-content: flex-start;
+
+    :global(.btn) {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .vertexCard:global(.card) {
+    min-height: 0;
+    padding: 18px 16px;
+  }
+
+  .vertexFooter {
     justify-content: flex-start;
 
     :global(.btn) {

@@ -6,6 +6,9 @@ import React from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { TFunction } from 'i18next';
 import type {
+  AntigravityCreditsSnapshot,
+  AntigravityQuotaState,
+  AntigravityUsagePayload,
   AuthFileItem,
   ClaudeExtraUsage,
   ClaudeProfileResponse,
@@ -108,10 +111,7 @@ const QUOTA_OPTIONAL_ENRICHMENT_CACHE_TTL_MS = 10 * 60_000;
 
 type CachedQuotaEnrichment<T> = { value: T; fetchedAt: number };
 const claudeProfileCache = new Map<string, CachedQuotaEnrichment<ClaudeProfileResponse>>();
-const codexResetCreditsCache = new Map<
-  string,
-  CachedQuotaEnrichment<CodexRateLimitResetCredits>
->();
+const codexResetCreditsCache = new Map<string, CachedQuotaEnrichment<CodexRateLimitResetCredits>>();
 
 const readQuotaEnrichmentCache = <T>(
   cache: Map<string, CachedQuotaEnrichment<T>>,
@@ -848,6 +848,107 @@ const renderCodexItems = (
   return h(Fragment, null, ...nodes);
 };
 
+const resolveAntigravityCreditsSnapshot = (
+  payload: AntigravityUsagePayload,
+  fallback?: AuthFileItem | null
+): AntigravityCreditsSnapshot | null => {
+  const authFile = payload.auth_file ?? payload.authFile;
+  const authFileCredits =
+    authFile && typeof authFile === 'object'
+      ? (authFile.antigravity_credits ?? authFile.antigravityCredits)
+      : null;
+  return (
+    payload.credits ??
+    payload.antigravity_credits ??
+    payload.antigravityCredits ??
+    authFileCredits ??
+    fallback?.antigravity_credits ??
+    fallback?.antigravityCredits ??
+    null
+  );
+};
+
+const formatAntigravityCreditAmount = (value: unknown): string | null => {
+  const numeric = normalizeNumberValue(value);
+  if (numeric !== null) {
+    return numeric.toLocaleString(undefined, { maximumFractionDigits: 4 });
+  }
+  return normalizeStringValue(value);
+};
+
+const renderAntigravityItems = (
+  quota: AntigravityQuotaState,
+  t: TFunction,
+  helpers: QuotaRenderHelpers
+): ReactNode => {
+  const { styles: styleMap } = helpers;
+  const { createElement: h, Fragment } = React;
+  const credits =
+    quota.credits ?? helpers.item?.antigravity_credits ?? helpers.item?.antigravityCredits;
+  if (!credits || credits.known === false) {
+    return h('div', { className: styleMap.quotaMessage }, t('antigravity_quota.empty_data'));
+  }
+
+  const creditType =
+    normalizeStringValue(credits.credit_type ?? credits.creditType) ?? 'GOOGLE_ONE_AI';
+  const amount = formatAntigravityCreditAmount(credits.credit_amount ?? credits.creditAmount);
+  const minimum = formatAntigravityCreditAmount(
+    credits.minimum_credit_amount_for_usage ?? credits.minimumCreditAmountForUsage
+  );
+  const paidTier = normalizeStringValue(credits.paid_tier_id ?? credits.paidTierId);
+  const available = credits.available === true;
+  const statusValue = available
+    ? t('antigravity_quota.available')
+    : t('antigravity_quota.exhausted');
+  const nodes: ReactNode[] = [
+    h(
+      'div',
+      { key: 'type', className: styleMap.codexPlan },
+      h('span', { className: styleMap.codexPlanLabel }, t('antigravity_quota.credit_type_label')),
+      h('span', { className: styleMap.codexPlanValue }, creditType)
+    ),
+    renderQuotaRow(helpers, {
+      key: 'status',
+      label: t('antigravity_quota.status_label'),
+      remaining: available ? 100 : 0,
+      metaItems: [h('span', { key: 'status', className: styleMap.quotaReset }, statusValue)],
+    }),
+  ];
+
+  if (amount !== null || minimum !== null) {
+    nodes.push(
+      h(
+        'div',
+        { key: 'amount', className: styleMap.codexPlan },
+        h(
+          'span',
+          { className: styleMap.codexPlanLabel },
+          t('antigravity_quota.credit_amount_label')
+        ),
+        h(
+          'span',
+          { className: styleMap.codexPlanValue },
+          amount ?? t('antigravity_quota.unknown_amount'),
+          minimum !== null
+            ? ` / ${t('antigravity_quota.minimum_credit_value', { value: minimum })}`
+            : ''
+        )
+      )
+    );
+  }
+  if (paidTier) {
+    nodes.push(
+      h(
+        'div',
+        { key: 'tier', className: styleMap.codexPlan },
+        h('span', { className: styleMap.codexPlanLabel }, t('antigravity_quota.tier_label')),
+        h('span', { className: styleMap.codexPlanValue }, paidTier)
+      )
+    );
+  }
+  return h(Fragment, null, ...nodes);
+};
+
 const buildClaudeQuotaWindows = (
   payload: ClaudeUsagePayload,
   t: TFunction
@@ -1113,6 +1214,50 @@ export const CODEX_CONFIG: QuotaConfig<
     errorStatus: status,
   }),
   renderQuotaItems: renderCodexItems,
+};
+
+const fetchAntigravityQuota = async (
+  file: AuthFileItem,
+  t: TFunction
+): Promise<{ authFile: AuthFileItem | null; credits: AntigravityCreditsSnapshot }> => {
+  const rawAuthIndex = file['auth_index'] ?? file.authIndex;
+  const authIndex = normalizeAuthIndex(rawAuthIndex);
+  const payload = await authFilesApi.getAntigravityUsage(
+    file.name,
+    authIndex ?? undefined,
+    'refresh'
+  );
+  const credits = resolveAntigravityCreditsSnapshot(payload, file);
+  if (!credits) {
+    throw new Error(t('antigravity_quota.empty_data'));
+  }
+  const authFileSnapshot = payload.auth_file ?? payload.authFile;
+  return {
+    authFile:
+      authFileSnapshot && typeof authFileSnapshot === 'object'
+        ? mergeAuthFileUpdatePreservingRequestStats(file, authFileSnapshot)
+        : null,
+    credits,
+  };
+};
+
+export const ANTIGRAVITY_CONFIG: QuotaConfig<
+  AntigravityQuotaState,
+  { authFile: AuthFileItem | null; credits: AntigravityCreditsSnapshot }
+> = {
+  type: 'antigravity',
+  i18nPrefix: 'antigravity_quota',
+  fetchQuota: fetchAntigravityQuota,
+  buildLoadingState: () => ({ status: 'loading', credits: null }),
+  buildSuccessState: (data) => ({ status: 'success', credits: data.credits }),
+  extractAuthFileUpdate: (data) => data.authFile,
+  buildErrorState: (message, status) => ({
+    status: 'error',
+    credits: null,
+    error: message,
+    errorStatus: status,
+  }),
+  renderQuotaItems: renderAntigravityItems,
 };
 
 const fetchKimiQuota = async (file: AuthFileItem, t: TFunction): Promise<KimiQuotaRow[]> => {

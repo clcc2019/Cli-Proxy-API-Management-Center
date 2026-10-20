@@ -2,6 +2,9 @@ import { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@/stores';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import iconVertex from '@/assets/icons/vertex.svg';
 import type { OAuthProvider } from '@/services/api/oauth';
 import type { ResolvedTheme } from '@/types';
 import { OAUTH_PROVIDERS, getOAuthProviderDescriptor } from '@/features/oauthLogin/providers';
@@ -12,6 +15,7 @@ import {
 } from '@/features/oauthLogin/useOAuthFlow';
 import { OAuthProviderCard } from '@/features/oauthLogin/components/OAuthProviderCard';
 import { OAuthLoginModal } from '@/features/oauthLogin/components/OAuthLoginModal';
+import { VertexImportModal } from '@/features/oauthLogin/components/VertexImportModal';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import styles from './OAuthPage.module.scss';
 
@@ -50,6 +54,7 @@ export function OAuthPage() {
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const { getState, start, submitCallback, cancel } = useOAuthFlow();
   const [activeProvider, setActiveProvider] = useState<OAuthProvider | null>(null);
+  const [vertexImportOpen, setVertexImportOpen] = useState(false);
 
   const activeDescriptor = activeProvider ? getOAuthProviderDescriptor(activeProvider) : undefined;
   const activeState = activeProvider ? getState(activeProvider) : { phase: 'idle' as const };
@@ -111,6 +116,27 @@ export function OAuthPage() {
         />
       </section>
 
+      <section className={styles.vertexSection} aria-label={t('vertex_import.title')}>
+        <Card
+          className={styles.vertexCard}
+          title={
+            <span className={styles.vertexTitle}>
+              <img src={iconVertex} alt="" width={28} height={28} />
+              {t('vertex_import.title')}
+            </span>
+          }
+        >
+          <div className={styles.vertexContent}>
+            <p className={styles.vertexHint}>{t('vertex_import.description')}</p>
+            <div className={styles.vertexFooter}>
+              <Button onClick={() => setVertexImportOpen(true)}>
+                {t('vertex_import.import_button')}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </section>
+
       {/* key 绑定 provider：切换 provider 时重新挂载，回调输入框的草稿自然清空 */}
       <OAuthLoginModal
         key={activeProvider ?? 'none'}
@@ -123,6 +149,15 @@ export function OAuthPage() {
         onUseBrowserFallback={handleBrowserFallback}
         onSubmitCallback={handleSubmitCallback}
         onGotoAuthFiles={handleGotoAuthFiles}
+      />
+
+      <VertexImportModal
+        open={vertexImportOpen}
+        onClose={() => setVertexImportOpen(false)}
+        onGotoAuthFiles={() => {
+          setVertexImportOpen(false);
+          navigate('/auth-files');
+        }}
       />
     </div>
   );

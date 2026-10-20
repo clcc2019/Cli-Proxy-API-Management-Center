@@ -186,7 +186,9 @@
 }
 
 @keyframes auth-modal-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -200,15 +202,16 @@
 }
 
 .page .filterToolbar {
+  --auth-rail-surface: color-mix(in srgb, var(--mg-surface-subtle) 68%, var(--mg-surface));
   position: relative;
   z-index: var(--mg-z-dropdown);
-  display: grid;
-  grid-template-columns: minmax(200px, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-  padding: var(--mg-space-2) var(--mg-space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
   border-radius: calc(var(--mg-radius-card) - 1px);
-  background: var(--mg-surface-subtle);
+  background: var(--mg-surface);
   contain: layout style;
   box-shadow: none;
 }
@@ -217,7 +220,9 @@
   position: relative;
   width: 100%;
   min-width: 0;
-  border-bottom: 0;
+  padding: 4px 14px 0;
+  border-bottom: 1px solid var(--auth-workbench-border);
+  background: var(--auth-rail-surface);
 }
 
 .page .providerRail::before,
@@ -235,12 +240,12 @@
 
 .page .providerRail::before {
   left: 0;
-  background: linear-gradient(90deg, var(--mg-surface-subtle) 18%, transparent);
+  background: linear-gradient(90deg, var(--auth-rail-surface) 18%, transparent);
 }
 
 .page .providerRail::after {
   right: 0;
-  background: linear-gradient(270deg, var(--mg-surface-subtle) 18%, transparent);
+  background: linear-gradient(270deg, var(--auth-rail-surface) 18%, transparent);
 }
 
 .page .providerRail[data-can-scroll-back='true']::before,
@@ -402,28 +407,26 @@
 }
 
 .page .controlRail {
-  display: grid;
-  grid-template-columns: minmax(300px, 340px) max-content 40px;
-  grid-template-areas: 'search chips refresh';
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: start;
-  gap: 8px 12px;
+  justify-content: flex-start;
+  gap: 8px 10px;
   width: auto;
-  padding: 0;
+  min-width: 0;
+  padding: 12px 14px;
   border: 0;
   border-radius: 0;
-  background: transparent;
+  background: var(--mg-surface);
   box-shadow: none;
 }
 
 .page .displayOptions {
   display: flex;
-  grid-area: chips;
   width: auto;
   min-height: 40px;
   min-width: 0;
   align-items: center;
-  justify-self: start;
   justify-content: flex-start;
   gap: 8px;
 }
@@ -518,11 +521,11 @@
 
 .page .quotaRefreshButton:global(.btn.btn-sm) {
   position: relative;
-  grid-area: refresh;
   width: 40px;
   min-width: 40px;
   height: 40px;
   min-height: 40px;
+  margin-left: auto;
   padding: 0;
   border-color: var(--auth-workbench-border-strong);
   border-radius: var(--mg-radius-control);
@@ -559,13 +562,13 @@
 
 .page .searchToolbar {
   display: grid;
-  grid-area: search;
   grid-template-columns: minmax(190px, 1fr) auto auto;
   min-width: 0;
   align-items: stretch;
   gap: 6px;
   width: 100%;
-  max-width: 340px;
+  max-width: 560px;
+  flex: 1 1 340px;
 }
 
 .page .searchField {
@@ -975,7 +978,7 @@
 }
 
 .page .cardGrid {
-  --auth-file-card-min-width: 268px;
+  --auth-file-card-min-width: 300px;
   display: grid;
   min-width: 0;
   max-width: 100%;
@@ -990,16 +993,16 @@
 }
 
 .page .cardGridQuotaManaged {
-  --auth-file-card-min-width: 288px;
+  --auth-file-card-min-width: 320px;
 }
 
-@container auth-files-page (min-width: 1080px) {
+@container auth-files-page (min-width: 1320px) {
   .page .cardGrid:not(.cardGridQuotaManaged) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
-@container auth-files-page (min-width: 1160px) {
+@container auth-files-page (min-width: 1400px) {
   .page .cardGridQuotaManaged {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -2024,7 +2027,9 @@
   font-size: 11px;
   line-height: 1.2;
   cursor: pointer;
-  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard), color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background: var(--mg-surface-subtle);
@@ -2749,13 +2754,13 @@
 
 .page .credentialCard .cardStatusToggle {
   display: inline-flex;
-  min-width: 56px;
+  min-width: 60px;
   min-height: 30px;
   align-items: center;
 }
 
 .page .credentialCard .cardToggleSwitch {
-  --card-toggle-track-width: 56px;
+  --card-toggle-track-width: 60px;
   --card-toggle-thumb-size: 22px;
   --toggle-thumb-shift: calc(var(--card-toggle-track-width) - var(--card-toggle-thumb-size) - 6px);
   min-height: 30px;
@@ -3118,9 +3123,9 @@
 // Four-column desktop density: preserve one-line identity, metrics and footer
 // controls by reclaiming small amounts of space from padding and control gaps.
 // This lives after the base card rules so the compact values win the cascade.
-@container auth-files-page (min-width: 1080px) {
+@container auth-files-page (min-width: 1320px) {
   .page .credentialCard {
-    padding: 12px 11px 10px;
+    padding: 14px 13px 12px;
   }
 
   .page .cardMain {
@@ -3157,11 +3162,11 @@
   }
 
   .page .credentialCard .cardStatusToggle {
-    min-width: 52px;
+    min-width: 56px;
   }
 
   .page .credentialCard .cardToggleSwitch {
-    --card-toggle-track-width: 52px;
+    --card-toggle-track-width: 56px;
     --card-toggle-thumb-size: 20px;
   }
 
@@ -3215,11 +3220,12 @@
   }
 
   .page .controlRail {
-    grid-template-columns: 300px max-content 40px;
+    gap: 8px;
   }
 
   .page .searchToolbar {
-    max-width: 300px;
+    max-width: none;
+    flex: 1 1 100%;
   }
 }
 
@@ -3260,12 +3266,11 @@
   }
 
   .page .filterToolbar {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
     gap: 0;
   }
 
   .page .providerRail {
+    padding: 2px 10px 0;
     border-bottom: 1px solid var(--auth-workbench-border);
   }
 
@@ -3294,7 +3299,7 @@
     width: 100%;
     min-width: 0;
     gap: 8px;
-    padding-top: 12px;
+    padding: 12px 12px 14px;
   }
 
   .page .searchToolbar {
@@ -3401,7 +3406,7 @@
   }
 
   .page .filterToolbar {
-    padding: 0 12px 10px;
+    padding: 0;
     border-radius: calc(var(--mg-radius-medium) - 1px);
   }
 
@@ -3418,7 +3423,7 @@
 
   .page .controlRail {
     gap: 8px;
-    padding: 10px 0 0;
+    padding: 10px 12px 12px;
   }
 }
 
@@ -3832,7 +3837,7 @@
     transition: none;
   }
 
-    .page .skeletonBlock,
+  .page .skeletonBlock,
   .page .loadingCard span,
   .page .statusBlocksLoading {
     animation: none;
@@ -5263,7 +5268,6 @@
   }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
   .page .credentialCard .metricsPanel {
     transition: none;
@@ -5565,7 +5569,9 @@
   .page .credentialCard .cardToggleSwitch {
     --card-toggle-track-width: 48px;
     --card-toggle-thumb-size: 18px;
-    --toggle-thumb-shift: calc(var(--card-toggle-track-width) - var(--card-toggle-thumb-size) - 5px);
+    --toggle-thumb-shift: calc(
+      var(--card-toggle-track-width) - var(--card-toggle-thumb-size) - 5px
+    );
     min-height: 26px;
   }
 
@@ -5639,10 +5645,18 @@
   --auth-metrics-border: color-mix(in srgb, var(--mg-border) 76%, var(--mg-surface));
   --auth-status-success: var(--xai-success);
   --auth-status-success-soft: color-mix(in srgb, var(--auth-status-success) 10%, var(--mg-surface));
-  --auth-status-success-border: color-mix(in srgb, var(--auth-status-success) 28%, var(--mg-border));
+  --auth-status-success-border: color-mix(
+    in srgb,
+    var(--auth-status-success) 28%,
+    var(--mg-border)
+  );
   --auth-status-warning: var(--xai-warning);
   --auth-status-warning-soft: color-mix(in srgb, var(--auth-status-warning) 10%, var(--mg-surface));
-  --auth-status-warning-border: color-mix(in srgb, var(--auth-status-warning) 30%, var(--mg-border));
+  --auth-status-warning-border: color-mix(
+    in srgb,
+    var(--auth-status-warning) 30%,
+    var(--mg-border)
+  );
   --auth-status-danger: var(--xai-danger);
   --auth-status-danger-soft: color-mix(in srgb, var(--auth-status-danger) 9%, var(--mg-surface));
   --auth-status-danger-border: color-mix(in srgb, var(--auth-status-danger) 28%, var(--mg-border));
@@ -6449,13 +6463,13 @@
   background: color-mix(in srgb, var(--mg-surface-subtle) 76%, var(--mg-canvas));
 }
 
-.page .credentialCard .statusBlocks:has(.statusBlockIdle):not(:has(.statusBlock:not(.statusBlockIdle))) {
+.page .credentialCard .statusBlocks.statusBlocksIdle {
   padding: 4px 6px;
   border: 1px dashed var(--auth-card-divider);
   background: color-mix(in srgb, var(--mg-text) 2%, transparent);
 }
 
-.page .credentialCard .statusBlocks:has(.statusBlockIdle):not(:has(.statusBlock:not(.statusBlockIdle))) .statusBlockIdle {
+.page .credentialCard .statusBlocks.statusBlocksIdle .statusBlockIdle {
   background: color-mix(in srgb, var(--mg-text-tertiary) 18%, var(--mg-surface));
   opacity: 0.72;
 }
@@ -6527,7 +6541,7 @@
 // Second polish pass: separate the primary status control from secondary
 // utilities, and make the rules summary read like operational data rather
 // than an unstructured text row.
-.page .credentialCard .cardFooterLeft:has(.cardStatusToggle) .cardStatusControl {
+.page .credentialCard .cardFooterLeftWithStatus .cardStatusControl {
   margin-inline-end: 4px;
   padding-inline-end: 8px;
   border-inline-end: 1px solid var(--auth-card-divider);
@@ -6602,7 +6616,7 @@
 }
 
 @container auth-files-page (max-width: 560px) {
-  .page .credentialCard .cardFooterLeft:has(.cardStatusToggle) .cardStatusControl {
+  .page .credentialCard .cardFooterLeftWithStatus .cardStatusControl {
     margin-inline-end: 2px;
     padding-inline-end: 6px;
   }
@@ -6776,7 +6790,8 @@
     box-shadow: none;
   }
 
-  .page .codexResetCreditButton:global(.btn.btn-sm):hover:not(:disabled)
+  .page
+    .codexResetCreditButton:global(.btn.btn-sm):hover:not(:disabled)
     > :global(span:not(.loading-spinner)) {
     border-color: var(--auth-page-border-hover);
     background: var(--mg-surface-subtle);
@@ -6819,9 +6834,7 @@
 }
 
 .page .credentialCard .statusBlocks,
-.page
-  .credentialCard
-  .statusBlocks:has(.statusBlockIdle):not(:has(.statusBlock:not(.statusBlockIdle))) {
+.page .credentialCard .statusBlocks.statusBlocksIdle {
   padding-block: 2px;
 }
 
@@ -6896,5 +6909,106 @@
     height: 34px;
     min-height: 34px;
     flex-basis: 34px;
+  }
+}
+
+// Keep the operations toolbar visually quiet beneath the page title. The
+// provider filters and controls share one white surface so the rail does not
+// leave an unrelated gray band below the category tabs.
+.page .filterToolbar {
+  --auth-rail-surface: var(--mg-surface);
+  padding: 0;
+  border: 1px solid var(--auth-workbench-border);
+  border-radius: var(--mg-radius-medium);
+  background: var(--mg-surface);
+  box-shadow: none;
+}
+
+.page .providerRail {
+  border-bottom: 1px solid var(--auth-workbench-border);
+  background: var(--mg-surface);
+}
+
+.page .providerTab {
+  border-radius: var(--mg-radius-pill);
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.page .providerTab:hover {
+  background: var(--mg-surface-subtle);
+}
+
+@container auth-files-page (min-width: 768px) {
+  .page .providerRail {
+    padding: 8px 12px 4px;
+  }
+
+  .page .providerTags {
+    gap: 4px;
+  }
+
+  .page .providerTab {
+    min-height: 34px;
+    padding-inline: 11px;
+  }
+}
+
+.page .providerTabActive,
+.page .providerTab[aria-pressed='true'] {
+  border-radius: var(--mg-radius-pill);
+  background: var(--auth-accent-soft);
+  color: var(--mg-text);
+}
+
+.page .providerTabActive:hover,
+.page .providerTab[aria-pressed='true']:hover {
+  background: var(--auth-accent-soft);
+  color: var(--mg-text);
+}
+
+.page .providerTabActive::after,
+.page .providerTab[aria-pressed='true']::after {
+  height: 0;
+  background: transparent;
+}
+
+.page .credentialCard,
+.page .credentialCardDisabled,
+.page .credentialCard.credentialCardSelected {
+  border: 1px solid var(--auth-card-border);
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page .credentialCard:not(.credentialCardDisabled):not(.credentialCardSelected):hover {
+    border-color: var(--auth-page-border-hover);
+    box-shadow: none;
+  }
+}
+
+.page .credentialCard:has(:focus-visible),
+.page .credentialCard.credentialCardSelected:has(:focus-visible) {
+  border: 1px solid var(--auth-card-border);
+  outline: 2px solid var(--mg-focus-outline);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+// Intermediate content columns can fit two readable cards without shrinking
+// the footer controls below their comfortable mobile hit area.
+@container auth-files-page (min-width: 720px) and (max-width: 767px) {
+  .page .cardGrid,
+  .page .cardGridQuotaManaged {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Give the search field enough room to expose its full helper text now that
+// the controls rail wraps independently from the provider filters.
+@container auth-files-page (min-width: 1240px) {
+  .page .searchToolbar {
+    max-width: 560px;
   }
 }

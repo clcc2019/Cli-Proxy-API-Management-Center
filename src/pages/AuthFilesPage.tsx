@@ -1607,22 +1607,13 @@ export function AuthFilesPage() {
       <section className={refreshStyles.authFilesSection}>
         <ManagementPageHeader
           className={refreshStyles.pageHeader}
+          context={t('auth_files.page_eyebrow')}
           title={t('auth_files.title_section')}
+          description={t('auth_files.page_description')}
+          count={showInitialLoading ? undefined : listTotal}
+          countAriaLabel={t('auth_files.files_total_aria', { count: listTotal })}
           actions={
             <div className={refreshStyles.headerActions}>
-              <RefreshButton
-                variant="secondary"
-                size="sm"
-                className={refreshStyles.headerAction}
-                onClick={handleHeaderRefresh}
-                disabled={loading || refreshing}
-                loading={manualRefreshPending}
-                label={t('common.refresh')}
-                iconSize={15}
-                iconClassName={refreshStyles.headerActionIcon}
-              >
-                <span className={refreshStyles.headerActionText}>{t('common.refresh')}</span>
-              </RefreshButton>
               <Button
                 size="sm"
                 className={`${refreshStyles.headerAction} ${refreshStyles.uploadAction}`}
@@ -1745,7 +1736,12 @@ export function AuthFilesPage() {
           tabIndex={-1}
         >
           {/* Existing cards remain visible while filters refresh; announce that transition to assistive technology. */}
-          <span className={refreshStyles.visuallyHidden} role="status" aria-live="polite" aria-atomic="true">
+          <span
+            className={refreshStyles.visuallyHidden}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {showListProgress ? t('auth_files.status_refreshing') : ''}
           </span>
           {showInitialLoading ? (
@@ -1905,7 +1901,12 @@ export function AuthFilesPage() {
                   >
                     {t('auth_files.batch_invert_page')}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAll} disabled={batchActionsBusy}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={deselectAll}
+                    disabled={batchActionsBusy}
+                  >
                     {t('auth_files.batch_deselect')}
                   </Button>
                 </div>

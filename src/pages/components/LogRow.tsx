@@ -84,6 +84,7 @@ export const LogRow = memo(function LogRow({
   return (
     <div
       className={rowClassNames.join(' ')}
+      role="group"
       tabIndex={0}
       aria-label={copyHint}
       onDoubleClick={() => onCopy(line.raw)}

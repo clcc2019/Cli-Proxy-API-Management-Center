@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import type { StatusBarData, StatusBlockDetail } from '@/utils/usage';
 
@@ -48,6 +49,19 @@ function formatSuccessRate(rate: number): string {
   const rounded = rate.toFixed(1);
   return `${rounded.endsWith('.0') ? rounded.slice(0, -2) : rounded}%`;
 }
+
+const formatStatusBlockLabel = (detail: StatusBlockDetail, t: TFunction): string => {
+  const timeRange = `${formatTime(detail.startTime)} – ${formatTime(detail.endTime)}`;
+  return detail.success + detail.failure === 0
+    ? `${timeRange}: ${t('status_bar.no_requests')}`
+    : // 不用 success_short / failure_short：它们是 ✓ / ✗ 符号，读屏无意义
+      t('status_bar.block_label', {
+        range: timeRange,
+        success: detail.success,
+        failure: detail.failure,
+        rate: (detail.rate * 100).toFixed(1),
+      });
+};
 
 type StylesModule = Record<string, string>;
 
@@ -188,6 +202,10 @@ function ProviderStatusBarImpl({
       : statusData.successRate >= 50
         ? s.statusRateMedium
         : s.statusRateLow;
+  const blocksClassName =
+    !hasData && s.statusBlocksIdle
+      ? `${s.statusBlocks} ${s.statusBlocksIdle}`
+      : s.statusBlocks;
 
   // 点击外部关闭 tooltip（移动端）
   useEffect(() => {
@@ -366,27 +384,19 @@ function ProviderStatusBarImpl({
       const isIdle = detail.rate === -1;
       const tooltipPositionClass =
         idx <= 2 ? s.statusTooltipLeft : idx >= total - 3 ? s.statusTooltipRight : '';
-      const timeRange = `${formatTime(detail.startTime)} – ${formatTime(detail.endTime)}`;
-      const label =
-        detail.success + detail.failure === 0
-          ? `${timeRange}: ${t('status_bar.no_requests')}`
-          : // 不用 success_short / failure_short：它们是 ✓ / ✗ 符号，读屏无意义
-            t('status_bar.block_label', {
-              range: timeRange,
-              success: detail.success,
-              failure: detail.failure,
-              rate: (detail.rate * 100).toFixed(1),
-            });
 
       return {
         detail,
         blockClassName: `${s.statusBlock} ${isIdle ? s.statusBlockIdle : ''}`,
         blockStyle: isIdle ? undefined : { backgroundColor: rateToColor(detail.rate) },
         tooltipPositionClass,
-        label,
+        // List cards use summary interaction. Their block labels are only
+        // needed for the active block, so avoid formatting all 20 upfront.
+        label: interactionMode === 'individual' ? formatStatusBlockLabel(detail, t) : '',
       };
     });
   }, [
+    interactionMode,
     s.statusBlock,
     s.statusBlockIdle,
     s.statusTooltipLeft,
@@ -437,14 +447,14 @@ function ProviderStatusBarImpl({
   const summaryActiveItem =
     activeTooltip === null ? null : blockItems[Math.min(activeTooltip, blockItems.length - 1)];
   const summaryLabel = summaryActiveItem
-    ? `${t('status_bar.label')}: ${summaryActiveItem.label}`
+    ? `${t('status_bar.label')}: ${formatStatusBlockLabel(summaryActiveItem.detail, t)}`
     : `${t('status_bar.label')}: ${rateText}`;
 
   return (
     <div className={s.statusBar}>
       {interactionMode === 'summary' ? (
         <div
-          className={s.statusBlocks}
+          className={blocksClassName}
           ref={blocksRef}
           role="button"
           tabIndex={0}
@@ -471,7 +481,7 @@ function ProviderStatusBarImpl({
         </div>
       ) : (
         <div
-          className={s.statusBlocks}
+          className={blocksClassName}
           ref={blocksRef}
           role="group"
           aria-label={t('status_bar.label')}

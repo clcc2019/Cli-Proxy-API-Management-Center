@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next';
+import iconAntigravity from '@/assets/icons/antigravity.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconCodex from '@/assets/icons/codex.svg';
 import iconDeepseek from '@/assets/icons/deepseek.svg';
@@ -8,6 +9,7 @@ import iconKimiDark from '@/assets/icons/kimi-dark.svg';
 import iconKimiLight from '@/assets/icons/kimi-light.svg';
 import iconMinimax from '@/assets/icons/minimax.svg';
 import iconQwen from '@/assets/icons/qwen.svg';
+import iconVertex from '@/assets/icons/vertex.svg';
 import type { AuthFileItem, ResolvedTheme, ThemeColors, TypeColorSet } from '@/types';
 import { hasAuthFileRequestStats, readAuthFileRequestStats } from '@/features/authFiles/stats';
 import {
@@ -72,6 +74,8 @@ const TYPE_COLORS: Record<string, TypeColorSet> = {
 };
 
 const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
+  antigravity: iconAntigravity,
+  aistudio: iconGemini,
   claude: iconClaude,
   codex: iconCodex,
   deepseek: iconDeepseek,
@@ -79,6 +83,7 @@ const AUTH_FILE_ICONS: Record<string, AuthFileIconAsset> = {
   kimi: { light: iconKimiLight, dark: iconKimiDark },
   minimax: iconMinimax,
   qwen: iconQwen,
+  vertex: iconVertex,
   xai: iconGrok,
 };
 
@@ -87,6 +92,8 @@ const AUTH_FILE_ICON_ALIASES: Record<string, string> = {
   'claude-code': 'claude',
   'gemini-cli': 'gemini',
   google: 'gemini',
+  'ai-studio': 'aistudio',
+  'anti-gravity': 'antigravity',
   minimaxai: 'minimax',
 };
 

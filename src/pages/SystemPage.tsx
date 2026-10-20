@@ -450,7 +450,9 @@ export function SystemPage() {
     <div className={styles.container}>
       <ManagementPageHeader
         className={styles.pageHeader}
+        context={t('system_info.about_title')}
         title={t('system_info.title')}
+        description={t('system_info.description')}
       />
       <div className={styles.content}>
         <section className={styles.systemOverview} aria-label={t('system_info.about_title')}>
@@ -530,7 +532,7 @@ export function SystemPage() {
             >
               <SystemModelGroupsSkeleton />
             </div>
-          ) : models.length === 0 && !modelsError ? (
+          ) : modelsError ? null : models.length === 0 ? (
             <div className="hint">{t('system_info.models_empty')}</div>
           ) : (
             <SystemModelGroups groups={groupedModels} resolvedTheme={resolvedTheme} />

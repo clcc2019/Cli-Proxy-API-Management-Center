@@ -126,8 +126,19 @@ export const filterSelectableAuthFiles = (files: AuthFileItem[]): AuthFileItem[]
   return selectable.length > 0 ? selectable : EMPTY_AUTH_FILE_ITEMS;
 };
 
+// A collator is significantly cheaper than calling localeCompare for every
+// comparison in the list sort. One instance keeps the default locale and
+// comparison semantics while avoiding repeated ICU setup.
+const AUTH_FILE_TEXT_COLLATOR = new Intl.Collator(undefined, {
+  usage: 'sort',
+  sensitivity: 'variant',
+});
+
+const compareAuthFileText = (left: string, right: string): number =>
+  AUTH_FILE_TEXT_COLLATOR.compare(left, right);
+
 const compareAuthFilesByName = (left: AuthFileItem, right: AuthFileItem): number =>
-  left.name.localeCompare(right.name);
+  compareAuthFileText(left.name, right.name);
 
 const hasRefreshToken = (file: AuthFileItem): boolean => {
   const flag: unknown = file.has_refresh_token ?? file.hasRefreshToken;
@@ -296,7 +307,10 @@ export const compareAuthFiles = (
   if (refreshTokenCompare !== 0) return refreshTokenCompare;
 
   if (sortMode === 'default') {
-    const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
+    const providerCompare = compareAuthFileText(
+      leftSnapshot.provider,
+      rightSnapshot.provider
+    );
     if (providerCompare !== 0) return providerCompare;
     return compareAuthFilesByName(left, right);
   }
@@ -316,7 +330,10 @@ export const compareAuthFiles = (
       if (expiryCompare !== 0) return expiryCompare;
     }
 
-    const providerCompare = leftSnapshot.provider.localeCompare(rightSnapshot.provider);
+    const providerCompare = compareAuthFileText(
+      leftSnapshot.provider,
+      rightSnapshot.provider
+    );
     if (providerCompare !== 0) return providerCompare;
     return compareAuthFilesByName(left, right);
   }

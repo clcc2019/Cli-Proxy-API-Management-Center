@@ -1,0 +1,136 @@
+@use '../../styles/mixins' as *;
+
+.editor {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ruleCount {
+  color: var(--mg-text-tertiary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyState {
+  padding: 18px 20px;
+  border: 1px dashed var(--xai-glass-border);
+  border-radius: var(--xai-radius-panel);
+  color: var(--mg-text-tertiary);
+  background: var(--xai-glass-surface-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ruleList {
+  display: grid;
+  gap: 12px;
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.5fr);
+  align-items: end;
+  gap: 18px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--xai-glass-border);
+  border-radius: var(--xai-radius-panel);
+  background: var(--xai-glass-surface);
+  box-shadow: var(--xai-glass-highlight);
+}
+
+.mapping {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+  min-width: 0;
+
+  :global(.form-group) {
+    min-width: 0;
+    margin-bottom: 0;
+  }
+}
+
+.arrow {
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  padding-bottom: 8px;
+  color: var(--mg-text-tertiary);
+  font-size: 19px;
+}
+
+.ruleOptions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.forkSetting {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+
+  > span {
+    padding-left: 2px;
+    color: var(--mg-text-tertiary);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+}
+
+.removeButton {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.validationMessage {
+  margin: 0;
+  color: var(--mg-danger, #c43232);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@include mobile {
+  .toolbar {
+    align-items: flex-start;
+  }
+
+  .rule {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .mapping {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .arrow {
+    display: none;
+  }
+
+  .ruleOptions {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .removeButton {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+}

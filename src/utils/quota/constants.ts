@@ -2,12 +2,13 @@
  * Quota provider, progress, and API constants.
  */
 
-export type QuotaProviderType = 'claude' | 'codex' | 'kimi';
+export type QuotaProviderType = 'claude' | 'codex' | 'kimi' | 'antigravity';
 
 export const QUOTA_PROVIDER_TYPES: ReadonlySet<QuotaProviderType> = new Set([
   'claude',
   'codex',
   'kimi',
+  'antigravity',
 ]);
 
 export const QUOTA_PROGRESS_HIGH_THRESHOLD = 50;

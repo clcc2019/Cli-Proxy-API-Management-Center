@@ -9,6 +9,7 @@ import { useNotificationStore, useQuotaStore } from '@/stores';
 import { authFilesApi } from '@/services/api';
 import type {
   AuthFileItem,
+  AntigravityQuotaState,
   CodexQuotaState,
   CodexRateLimitResetConsumePayload,
   CodexRateLimitResetCredit,
@@ -167,7 +168,10 @@ function useAuthFileQuotaRefresh(props: AuthFileQuotaSectionProps) {
     if (quotaType === 'codex') {
       return state.codexQuota[file.name] as AuthFileQuotaState | undefined;
     }
-    return state.kimiQuota[file.name] as AuthFileQuotaState | undefined;
+    if (quotaType === 'kimi') {
+      return state.kimiQuota[file.name] as AuthFileQuotaState | undefined;
+    }
+    return state.antigravityQuota[file.name] as AuthFileQuotaState | undefined;
   });
 
   const refreshQuotaForFile = useCallback(async () => {
@@ -274,26 +278,51 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
         : undefined,
     [creditsEnabled, file.credits]
   );
+  const fileAntigravityQuota = useMemo(
+    () =>
+      quotaType === 'antigravity' && (file.antigravity_credits ?? file.antigravityCredits)
+        ? ({
+            status: 'success',
+            credits: file.antigravity_credits ?? file.antigravityCredits,
+          } as AntigravityQuotaState)
+        : undefined,
+    [file.antigravityCredits, file.antigravity_credits, quotaType]
+  );
   const quotaForRender = useMemo(() => {
-    if (!quota) return fileCreditsQuota;
+    if (!quota) return fileCreditsQuota ?? fileAntigravityQuota;
+    if (quotaType === 'antigravity') {
+      const fileCredits = file.antigravity_credits ?? file.antigravityCredits;
+      return !quota.credits && fileCredits ? { ...quota, credits: fileCredits } : quota;
+    }
     if (!creditsEnabled || !file.credits) return quota;
     if (!quota.credits) return { ...quota, credits: file.credits } as CodexQuotaState;
+    const codexCredits = (quota as CodexQuotaState).credits;
+    if (!codexCredits) return quota;
     const quotaDetails =
-      quota.credits.expiring_balance_details ?? quota.credits.expiringBalanceDetails;
+      codexCredits.expiring_balance_details ?? codexCredits.expiringBalanceDetails;
     const fileDetails =
       file.credits.expiring_balance_details ?? file.credits.expiringBalanceDetails;
     return !quotaDetails && fileDetails
       ? {
           ...quota,
-          credits: { ...quota.credits, expiring_balance_details: fileDetails },
+          credits: { ...codexCredits, expiring_balance_details: fileDetails },
         }
       : quota;
-  }, [creditsEnabled, file.credits, fileCreditsQuota, quota]);
+  }, [
+    creditsEnabled,
+    file.antigravityCredits,
+    file.antigravity_credits,
+    file.credits,
+    fileAntigravityQuota,
+    fileCreditsQuota,
+    quota,
+    quotaType,
+  ]);
   const isRefreshingCachedQuota =
     quotaStatus === 'loading' && quota?.__hasCachedQuotaSnapshot === true;
   const hasDisplayableQuotaSnapshot = quotaStatus === 'success' || isRefreshingCachedQuota;
   const hasDisplayableQuotaSnapshotWithCredits =
-    hasDisplayableQuotaSnapshot || Boolean(fileCreditsQuota);
+    hasDisplayableQuotaSnapshot || Boolean(fileCreditsQuota || fileAntigravityQuota);
   const suppressQuotaBodyDuringEmptyRefresh =
     isQuotaRefreshing && !hasDisplayableQuotaSnapshotWithCredits;
   const codexQuota = quotaType === 'codex' ? (quota as CodexQuotaState | undefined) : undefined;
@@ -516,12 +545,15 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           aria-hidden={isQuotaRefreshing || undefined}
         >
           {!suppressQuotaBodyDuringEmptyRefresh &&
-            (quotaStatus === 'loading' && !isRefreshingCachedQuota && !fileCreditsQuota ? (
+            (quotaStatus === 'loading' &&
+            !isRefreshingCachedQuota &&
+            !fileCreditsQuota &&
+            !fileAntigravityQuota ? (
               <div className={styles.quotaLoadingState} role="status" aria-busy="true">
                 <LoadingSpinner size={16} />
                 <span>{t(`${config.i18nPrefix}.loading`)}</span>
               </div>
-            ) : quotaStatus === 'error' && !fileCreditsQuota ? (
+            ) : quotaStatus === 'error' && !fileCreditsQuota && !fileAntigravityQuota ? (
               <div className={styles.quotaError} role="alert">
                 <button
                   type="button"
@@ -538,7 +570,8 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
                   </span>
                 </button>
               </div>
-            ) : quotaForRender && (quotaStatus !== 'idle' || Boolean(fileCreditsQuota)) ? (
+            ) : quotaForRender &&
+              (quotaStatus !== 'idle' || Boolean(fileCreditsQuota || fileAntigravityQuota)) ? (
               renderedQuotaItems
             ) : (
               <button

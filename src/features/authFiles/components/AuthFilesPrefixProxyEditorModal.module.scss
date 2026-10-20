@@ -336,40 +336,6 @@
   background: var(--prefix-proxy-surface-muted);
 }
 
-.prefixProxyPanelHeader {
-  display: flex;
-  min-width: 0;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 0 12px;
-  border-bottom: 1px solid var(--prefix-proxy-border);
-  background: transparent;
-}
-
-.prefixProxyPanelTitleGroup {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.prefixProxyPanelTitle {
-  margin: 0;
-  color: var(--prefix-proxy-text);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
-}
-
-.prefixProxyPanelHint {
-  max-width: 48ch;
-  color: var(--prefix-proxy-text-muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 .prefixProxyForm {
   display: flex;
   min-width: 0;
@@ -398,30 +364,6 @@
   padding: 0 0 8px;
   border-bottom: 0;
   background: transparent;
-}
-
-.prefixProxySectionHeading {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 8px;
-}
-
-.prefixProxySectionIndex {
-  display: inline-flex;
-  flex: 0 0 auto;
-  width: 27px;
-  height: 23px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--prefix-proxy-sage-soft);
-  border-radius: var(--xai-radius-pill);
-  background: var(--prefix-proxy-surface-warm);
-  color: var(--prefix-proxy-sage-strong);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
 }
 
 .prefixProxySectionTitle {
@@ -668,12 +610,6 @@
   background: var(--prefix-proxy-surface-warm);
 }
 
-.prefixProxyJsonActions {
-  display: flex;
-  min-width: 0;
-  justify-content: flex-end;
-}
-
 .prefixProxyCopyButton {
   flex: 0 0 auto;
 }
@@ -693,11 +629,13 @@
   line-height: 1.35;
 }
 
-.prefixProxyTextarea,
 .prefixProxyInfoTextarea {
   width: 100%;
   min-width: 0;
+  min-height: 160px;
+  max-height: 340px;
   box-sizing: border-box;
+  padding: 10px 12px;
   border: 1px solid var(--prefix-proxy-border);
   border-radius: var(--xai-radius-small);
   background: var(--prefix-proxy-control);
@@ -706,8 +644,11 @@
   font-size: 12px;
   font-variant-ligatures: none;
   line-height: 1.55;
+  overflow: auto;
   resize: vertical;
   tab-size: 2;
+  white-space: pre-wrap;
+  word-break: break-word;
 
   &:focus {
     outline: none;
@@ -719,21 +660,6 @@
     outline: 1px solid var(--prefix-proxy-action);
     outline-offset: 2px;
   }
-}
-
-.prefixProxyTextarea {
-  min-height: 250px;
-  padding: 10px 12px;
-  white-space: pre;
-}
-
-.prefixProxyInfoTextarea {
-  min-height: 160px;
-  max-height: 340px;
-  padding: 10px 12px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 .prefixProxyDropdown {
@@ -782,18 +708,6 @@
   border-radius: var(--xai-radius-pill);
 }
 
-@media (max-width: 900px) {
-  .prefixProxyWorkspace {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .prefixProxyInspectorPanel {
-    position: static;
-    border-top: 1px solid var(--prefix-proxy-border);
-    border-left: 0;
-  }
-}
-
 @media (max-width: 767px) {
   .prefixProxyModal {
     max-height: none;
@@ -828,19 +742,6 @@
 
   .prefixProxyError {
     margin: 14px 16px 0;
-  }
-
-  .prefixProxyPanelHeader {
-    padding-bottom: 12px;
-  }
-
-  .prefixProxyPanelTitle {
-    font-size: 14px;
-  }
-
-  .prefixProxyPanelHint {
-    font-size: 12px;
-    overflow-wrap: anywhere;
   }
 
   .prefixProxyTitleGroup {
@@ -901,10 +802,6 @@
     max-width: min(100%, 230px);
   }
 
-  .prefixProxyTextarea {
-    min-height: 190px;
-  }
-
   .prefixProxySettingsPanel,
   .prefixProxyInspectorPanel {
     padding-inline: 12px;
@@ -914,20 +811,17 @@
     padding-inline: 12px;
   }
 
-  .prefixProxyPanelHeader,
   .prefixProxySectionHeader {
     align-items: flex-start;
   }
 
-  .prefixProxyPanelTitleGroup,
-  .prefixProxySectionHeading,
   .prefixProxyLabelGroup {
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
   }
 
-  .prefixProxyPanelHint,
+  .prefixProxyPreviewHint,
   .prefixProxySwitchFieldHint,
   .prefixProxyLabel {
     overflow-wrap: anywhere;
@@ -942,23 +836,15 @@
     padding: 10px;
   }
 
-  .prefixProxyJsonActions {
-    justify-content: stretch;
-  }
-
   .prefixProxyCopyButton {
     width: 100%;
     min-height: 44px;
   }
 
-  .prefixProxyTextarea,
   .prefixProxyInfoTextarea {
     max-width: 100%;
-    font-size: 11px;
-  }
-
-  .prefixProxyInfoTextarea {
     min-height: 132px;
+    font-size: 11px;
   }
 }
 
@@ -974,11 +860,6 @@
 
   .prefixProxyTitleMain {
     font-size: 17px;
-  }
-
-  .prefixProxySectionIndex {
-    width: 24px;
-    height: 22px;
   }
 
   .prefixProxySwitchField {
@@ -1071,4 +952,298 @@
   --floating-surface-material: #181916;
   --floating-border: #33352f;
   --floating-shadow: 0 16px 34px -24px rgb(0 0 0 / 0.54);
+}
+
+// Refactored settings workspace
+// -----------------------------------------------------------------------------
+// The editor now behaves like a compact settings page: grouped fields on the
+// left, a persistent live payload on the right, and no nested card chrome.
+.prefixProxyModal :global(.modal-body) {
+  max-height: min(78vh, 780px);
+}
+
+.prefixProxyWorkspace {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+  background: var(--prefix-proxy-surface);
+}
+
+.prefixProxySettingsPanel {
+  gap: 0;
+  padding: 24px;
+  background: var(--prefix-proxy-surface);
+}
+
+.prefixProxyInspectorPanel {
+  gap: 16px;
+  padding: 24px;
+  border-left-color: var(--prefix-proxy-border);
+  background: var(--prefix-proxy-surface-muted);
+}
+
+.prefixProxyIntro {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--prefix-proxy-border);
+}
+
+.prefixProxyIntroCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prefixProxyEyebrow {
+  color: var(--prefix-proxy-text-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.prefixProxyIntroTitle {
+  margin: 0;
+  color: var(--prefix-proxy-text);
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.prefixProxyIntroHint {
+  margin: 1px 0 0;
+  color: var(--prefix-proxy-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.prefixProxyMeta {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.prefixProxyMetaChip {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid var(--prefix-proxy-border);
+  border-radius: var(--xai-radius-pill);
+  background: var(--prefix-proxy-surface-muted);
+  color: var(--prefix-proxy-text-secondary);
+  font-family: $font-mono;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.prefixProxyForm {
+  gap: 0;
+}
+
+.prefixProxySection {
+  gap: 14px;
+  padding: 22px 0 0;
+  border: 0;
+  border-top: 1px solid var(--prefix-proxy-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.prefixProxySection:first-child {
+  padding-top: 20px;
+  border-top: 0;
+}
+
+.prefixProxySectionHeader {
+  display: grid;
+  min-height: 0;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+}
+
+.prefixProxySectionTitle {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.prefixProxySectionHint {
+  margin: 0;
+  color: var(--prefix-proxy-text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.prefixProxyFields {
+  gap: 12px 14px;
+}
+
+.prefixProxySwitchField {
+  grid-column: auto;
+  min-height: 54px;
+  padding: 9px 11px;
+  background: var(--prefix-proxy-surface-muted);
+}
+
+.prefixProxyInspectorHeader {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prefixProxyPreviewTitleRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.prefixProxyPreviewTitle {
+  margin: 0;
+  color: var(--prefix-proxy-text);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.prefixProxyPreviewHint {
+  margin: 2px 0 0;
+  color: var(--prefix-proxy-text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.prefixProxyPreviewTextarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 360px;
+  max-height: 54vh;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--prefix-proxy-border);
+  border-radius: var(--xai-radius-control);
+  background: var(--prefix-proxy-control);
+  color: var(--prefix-proxy-text);
+  font-family: $font-mono;
+  font-size: 11.5px;
+  font-variant-ligatures: none;
+  line-height: 1.55;
+  resize: vertical;
+  tab-size: 2;
+  white-space: pre;
+
+  &:focus {
+    outline: none;
+    border-color: var(--prefix-proxy-action);
+    box-shadow: 0 0 0 3px var(--prefix-proxy-focus-ring);
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--prefix-proxy-action);
+    outline-offset: 2px;
+  }
+}
+
+.prefixProxyCopyButton {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.prefixProxyInfoStack {
+  margin-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .prefixProxyWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prefixProxyInspectorPanel {
+    position: static;
+    border-top: 1px solid var(--prefix-proxy-border);
+    border-left: 0;
+  }
+
+  .prefixProxyPreviewTextarea {
+    min-height: 300px;
+    max-height: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .prefixProxyModal :global(.modal-body) {
+    max-height: none;
+  }
+
+  .prefixProxySettingsPanel,
+  .prefixProxyInspectorPanel {
+    padding: 18px 16px;
+  }
+
+  .prefixProxyIntro {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .prefixProxyMeta {
+    justify-content: flex-start;
+  }
+
+  .prefixProxyInspectorHeader {
+    flex-direction: column;
+  }
+
+  .prefixProxyCopyButton {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .prefixProxySwitchField {
+    grid-column: 1 / -1;
+  }
+
+  .prefixProxyPreviewTextarea {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 520px) {
+  .prefixProxyFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prefixProxyField,
+  .prefixProxyFieldWide,
+  .prefixProxyTextareaGroup,
+  .prefixProxySwitchField {
+    grid-column: 1 / -1;
+  }
+
+  .prefixProxySection {
+    padding-top: 18px;
+  }
+
+  .prefixProxyIntroTitle {
+    font-size: 17px;
+  }
+
+  .prefixProxyPreviewTextarea {
+    min-height: 230px;
+    font-size: 11px;
+  }
 }

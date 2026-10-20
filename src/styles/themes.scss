@@ -3,7 +3,7 @@
 /**
  * Global color tokens
  *
- * Toka uses a white work canvas and a quiet neutral navigation rail so the
+ * Toka uses a pure white work canvas and a gray-white navigation rail so the
  * interface stays close to the x.ai reference while semantic colors remain
  * available for state.
  */
@@ -16,7 +16,7 @@
   --xai-ink-console: #17191b;
   --xai-ink: #292b2c;
   --xai-white: #ffffff;
-  --xai-canvas: #f8f7f4;
+  --xai-canvas: #ffffff;
   --xai-surface-muted: #f1f0ed;
   --xai-inverse: #fbfaf7;
   --xai-warm: #f4f3ef;
@@ -272,10 +272,9 @@
   --shadow-lg: var(--xai-shadow-dialog);
   --shadow-soft: var(--xai-shadow-menu);
   --header-shadow: 0 1px 0 rgb(25 33 42 / 1.5%);
-  // The navigation rail stays light and quiet; the work canvas carries a
-  // slightly cooler neutral surface and restrained borders.
-  --sidebar-surface: #ffffff;
-  --sidebar-surface-muted: #f1f1ee;
+  // A gray-white rail separates navigation from the pure-white work canvas.
+  --sidebar-surface: #f7f7f8;
+  --sidebar-surface-muted: #efeff0;
   --sidebar-text: #17191b;
   --sidebar-text-secondary: #5b5d5a;
   --sidebar-text-tertiary: #686a64;
@@ -283,7 +282,7 @@
   --sidebar-border-strong: #d5d4cf;
   --sidebar-accent: var(--xai-orange);
   --sidebar-accent-line: var(--sidebar-accent);
-  --sidebar-accent-surface: #f1f1ee;
+  --sidebar-accent-surface: #eeeff1;
   --sidebar-accent-icon: var(--sidebar-accent);
   --sidebar-shadow: none;
   --shadow-card: var(--mg-shadow-rest);
@@ -303,7 +302,7 @@
   --surface-inner-highlight: var(--xai-glass-highlight);
   --control-surface-gradient: var(--xai-glass-control);
   --floating-surface-material: var(--xai-glass-surface-strong);
-  --header-surface: #fffdfa;
+  --header-surface: var(--xai-white);
   --panel-surface: var(--xai-glass-surface-strong);
   --panel-surface-muted: var(--xai-glass-surface-soft);
   --control-surface: var(--xai-glass-control);

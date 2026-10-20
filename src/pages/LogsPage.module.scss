@@ -537,7 +537,7 @@
 }
 
 .timestamp {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   white-space: nowrap;
   padding-top: 3px;
   font-size: 12px;
@@ -699,6 +699,15 @@
   @include mobile {
     flex-basis: 100%;
   }
+}
+
+// Alert rows use a tinted surface; keep the message itself at the strongest
+// text color so long error lines remain readable in dense log output.
+.rowWarn .message,
+.rowError .message,
+.rowWarn .timestamp,
+.rowError .timestamp {
+  color: var(--text-primary);
 }
 
 .traceButton {

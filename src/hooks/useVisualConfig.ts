@@ -9,6 +9,8 @@ import type {
   VisualConfigValues,
   VisualConfigValidationErrors,
   PayloadParamValidationErrorCode,
+  VisualModelAliasRule,
+  VisualModelAliasValidationErrorCode,
 } from '@/types/visualConfig';
 import { DEFAULT_VISUAL_VALUES, makeClientId } from '@/types/visualConfig';
 import { areStringArraysEqual } from '@/utils/compare';
@@ -136,6 +138,36 @@ function parseApiKeys(raw: unknown): VisualApiKeyEntry[] {
     if (key) keys.push(key);
   }
   return keys;
+}
+
+function parseModelAliases(raw: unknown): VisualModelAliasRule[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw.flatMap((item, index) => {
+    const record = asRecord(item);
+    if (!record) return [];
+    return [
+      {
+        id: `model-alias-${index}-${makeClientId()}`,
+        name: typeof record.name === 'string' ? record.name : '',
+        alias: typeof record.alias === 'string' ? record.alias : '',
+        fork: parseBooleanFlag(record.fork) === true,
+      },
+    ];
+  });
+}
+
+function serializeModelAliasesForYaml(
+  rules: VisualModelAliasRule[]
+): Array<Record<string, unknown>> {
+  return rules
+    .map((rule) => ({
+      name: rule.name.trim(),
+      alias: rule.alias.trim(),
+      fork: rule.fork,
+    }))
+    .filter((rule) => rule.name && rule.alias)
+    .map((rule) => (rule.fork ? rule : { name: rule.name, alias: rule.alias }));
 }
 
 function serializeApiKeysForYaml(entries: VisualApiKeyEntry[]): Array<string | Record<string, unknown>> {
@@ -701,6 +733,22 @@ function areApiKeyEntriesEqual(left: VisualApiKeyEntry[], right: VisualApiKeyEnt
   return true;
 }
 
+function areModelAliasesEqual(
+  left: VisualModelAliasRule[],
+  right: VisualModelAliasRule[]
+): boolean {
+  if (left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index += 1) {
+    const leftRule = left[index];
+    const rightRule = right[index];
+    if (!leftRule || !rightRule) return false;
+    if (leftRule.name !== rightRule.name) return false;
+    if (leftRule.alias !== rightRule.alias) return false;
+    if (Boolean(leftRule.fork) !== Boolean(rightRule.fork)) return false;
+  }
+  return true;
+}
+
 function getNextDirtyFields(
   currentDirtyFields: Set<string>,
   patch: Partial<VisualConfigValues>,
@@ -751,6 +799,12 @@ function getNextDirtyFields(
   }
   if (Object.prototype.hasOwnProperty.call(patch, 'apiKeys')) {
     updateDirty('apiKeys', areApiKeyEntriesEqual(nextValues.apiKeys, baselineValues.apiKeys));
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'modelAliases')) {
+    updateDirty(
+      'modelAliases',
+      areModelAliasesEqual(nextValues.modelAliases, baselineValues.modelAliases)
+    );
   }
   if (Object.prototype.hasOwnProperty.call(patch, 'debug')) {
     updateDirty('debug', nextValues.debug === baselineValues.debug);
@@ -993,6 +1047,22 @@ export function useVisualConfig() {
       visualValues.payloadOverrideRawRules,
     ]
   );
+  const visualModelAliasValidationError = useMemo<VisualModelAliasValidationErrorCode | null>(
+    () => {
+      const aliases = new Set<string>();
+      for (const rule of visualValues.modelAliases) {
+        const name = rule.name.trim();
+        const alias = rule.alias.trim();
+        if (!name || !alias) return 'required';
+        const key = alias.toLowerCase();
+        if (aliases.has(key)) return 'duplicate';
+        aliases.add(key);
+      }
+      return null;
+    },
+    [visualValues.modelAliases]
+  );
+  const visualHasModelAliasValidationErrors = visualModelAliasValidationError !== null;
 
   const loadVisualValuesFromYaml = useCallback((yamlContent: string) => {
     try {
@@ -1034,6 +1104,7 @@ export function useVisualConfig() {
 
         authDir: typeof parsed['auth-dir'] === 'string' ? parsed['auth-dir'] : '',
         apiKeys: resolveApiKeys(parsed),
+        modelAliases: parseModelAliases(parsed['model-aliases']),
 
         debug: Boolean(parsed.debug),
         commercialMode: Boolean(parsed['commercial-mode']),
@@ -1149,6 +1220,14 @@ export function useVisualConfig() {
         }
 
         setStringInDoc(doc, ['auth-dir'], values.authDir);
+
+        if (state.dirtyFields.has('modelAliases')) {
+          if (values.modelAliases.length > 0) {
+            doc.setIn(['model-aliases'], serializeModelAliasesForYaml(values.modelAliases));
+          } else if (docHas(doc, ['model-aliases'])) {
+            doc.deleteIn(['model-aliases']);
+          }
+        }
 
         if (
           values.apiKeys.length > 0 ||
@@ -1333,7 +1412,7 @@ export function useVisualConfig() {
         return currentYaml;
       }
     },
-    [visualValues]
+    [state.dirtyFields, visualValues]
   );
 
   const setVisualValues = useCallback((newValues: Partial<VisualConfigValues>) => {
@@ -1347,6 +1426,8 @@ export function useVisualConfig() {
     visualParseError,
     visualValidationErrors,
     visualHasPayloadValidationErrors,
+    visualModelAliasValidationError,
+    visualHasModelAliasValidationErrors,
     loadVisualValuesFromYaml,
     applyVisualChangesToYaml,
     setVisualValues,

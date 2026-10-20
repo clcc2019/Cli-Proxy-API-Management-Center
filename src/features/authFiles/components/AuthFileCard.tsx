@@ -54,6 +54,7 @@ const AuthFileQuotaRefreshButton = lazy(() =>
 );
 
 const AUTH_FILE_NAME_MASK = '*';
+const AUTH_FILE_TOKEN_COUNT_FORMATTER = new Intl.NumberFormat();
 
 export type AuthFilePromotionResult =
   | { status: 'eligible'; coupon: string }
@@ -311,10 +312,10 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
     () => formatMillionTokens(fileUsageStats.totalTokens),
     [fileUsageStats.totalTokens]
   );
-  // toLocaleString 走 ICU 数字格式化，是较慢的内建方法；它只用于 title，
-  // 没有理由每次渲染重算。
+  // Reuse one formatter instead of creating an ICU formatter through
+  // toLocaleString for every card title.
   const tokenExactLabel = useMemo(
-    () => fileUsageStats.totalTokens.toLocaleString(),
+    () => AUTH_FILE_TOKEN_COUNT_FORMATTER.format(fileUsageStats.totalTokens),
     [fileUsageStats.totalTokens]
   );
   const authFileDisplayName = useMemo(() => file.name.replace(/\.json$/i, ''), [file.name]);
@@ -583,7 +584,11 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
 
         <footer className={refreshStyles.cardFooter}>
           <div className={refreshStyles.cardFooterMain}>
-            <div className={refreshStyles.cardFooterLeft}>
+            <div
+              className={`${refreshStyles.cardFooterLeft} ${
+                !isRuntimeOnly ? refreshStyles.cardFooterLeftWithStatus : ''
+              }`}
+            >
               {!isRuntimeOnly && (
                 <div className={refreshStyles.cardStatusControl}>
                   <div className={refreshStyles.cardStatusToggle}>
@@ -593,7 +598,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                       className={refreshStyles.cardToggleSwitch}
                       disabled={disableControls || statusUpdating}
                       ariaBusy={statusUpdating}
-                      label={t('auth_files.status_toggle_label')}
+                      label={file.disabled ? t('auth_files.status_off') : t('auth_files.status_on')}
                       labelInside
                       onChange={handleToggleStatus}
                     />

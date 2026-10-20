@@ -48,31 +48,33 @@
   border: 1px solid var(--system-border);
   border-radius: var(--mg-radius-card);
   background: var(--system-surface);
-  box-shadow: var(--mg-shadow-rest);
+  box-shadow: none;
 }
 
 .versionGrid {
   display: grid;
   min-width: 0;
-  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .versionCard,
 .tapTile {
   display: flex;
   min-width: 0;
-  align-items: center;
+  min-height: 136px;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 24px;
+  padding: 22px 24px 24px;
   border: 0;
-  border-bottom: 1px solid var(--system-border);
+  border-right: 1px solid var(--system-border);
   background: transparent;
   color: inherit;
   text-align: left;
 
   &:last-child {
-    border-bottom: 0;
+    border-right: 0;
   }
 }
 
@@ -97,22 +99,23 @@
 .versionValue {
   overflow-wrap: anywhere;
   color: var(--system-text);
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.25;
   letter-spacing: -0.02em;
-  text-align: right;
+  text-align: left;
 }
 
 .tileAction:global(.btn) {
-  min-height: 28px;
+  min-height: 34px;
   flex: 0 0 auto;
-  padding: 4px 7px;
-  border-color: transparent;
+  padding: 6px 12px;
+  border-color: var(--system-border);
   background: transparent;
   box-shadow: none;
   color: var(--system-text-tertiary);
-  font-size: 11px;
+  font-size: 12px;
+  border-radius: var(--xai-radius-pill);
 
   &:hover:not(:disabled) {
     background: var(--system-surface-subtle);
@@ -126,7 +129,7 @@
   border-color: var(--system-border);
   border-radius: var(--mg-radius-card);
   background: var(--system-surface);
-  box-shadow: var(--mg-shadow-rest);
+  box-shadow: none;
 }
 
 .content > :global(.card) :global(.card-header) {
@@ -138,21 +141,22 @@
 
   :global(.title) {
     color: var(--system-text);
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     letter-spacing: -0.02em;
   }
 }
 
 .content :global(.btn) {
-  min-height: 34px;
+  min-height: 36px;
   border-color: var(--system-border);
-  border-radius: var(--xai-radius-small);
+  border-radius: var(--xai-radius-pill);
   background: var(--system-surface);
   box-shadow: none;
   color: var(--system-text-secondary);
   font-size: 12px;
   font-weight: 600;
+  padding-inline: 13px;
   transition:
     border-color 180ms ease,
     background-color 180ms ease,
@@ -170,8 +174,8 @@
   max-width: 76ch;
   margin: 0 0 14px;
   color: var(--system-text-secondary);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .modelsCard :global(.status-badge) {
@@ -298,6 +302,7 @@
   overflow: hidden;
   border: 1px solid var(--system-border);
   border-radius: var(--xai-radius-panel);
+  background: var(--system-surface-muted);
 }
 
 .modelsCard :global(.item-row) {
@@ -305,7 +310,7 @@
   grid-template-columns: minmax(160px, 0.28fr) minmax(0, 0.72fr);
   align-items: center;
   gap: 18px;
-  padding: 15px 16px;
+  padding: 17px 16px;
   border-bottom: 1px solid var(--system-border);
   transition: background-color 180ms ease;
 
@@ -327,7 +332,7 @@
 
 .modelsCard :global(.item-title) {
   color: var(--system-text);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -354,18 +359,21 @@
   min-width: 0;
   flex-wrap: wrap;
   gap: 5px;
+  padding-block: 2px 4px;
 }
 
 .modelTag {
   display: inline-flex;
   max-width: 100%;
+  min-height: 28px;
   align-items: center;
   gap: 5px;
-  padding: 4px 7px;
+  padding: 4px 7px 5px;
   border: 1px solid var(--system-border);
   border-radius: var(--xai-radius-micro);
   background: var(--system-surface-muted);
   font-family: $font-mono;
+  line-height: 16px;
   transition:
     border-color 180ms ease,
     background-color 180ms ease;
@@ -426,7 +434,7 @@
 .dangerCard :global(.btn.btn-danger) {
   min-height: 38px;
   border-color: var(--xai-danger-border);
-  border-radius: var(--xai-radius-control);
+  border-radius: var(--xai-radius-pill);
   background: var(--system-surface);
   color: var(--system-danger);
   box-shadow: none;
@@ -509,12 +517,12 @@
 
   .versionCard,
   .tapTile {
-    min-height: 94px;
+    min-height: 112px;
     align-items: flex-start;
     flex-direction: column;
     justify-content: space-between;
     gap: 8px;
-    padding: 16px;
+    padding: 18px 16px;
     border-right: 1px solid var(--system-border);
     border-bottom: 0;
 
@@ -529,6 +537,7 @@
 
   .versionValue {
     text-align: left;
+    font-size: 17px;
   }
 }
 
@@ -624,7 +633,7 @@
 }
 
 @media (max-width: 768px) {
-  .tileAction:global(.btn),
+  .content .tileAction:global(.btn.btn-sm),
   .content :global(.btn),
   .dangerCard :global(.btn.btn-danger) {
     min-height: var(--mg-hit-area, 44px);

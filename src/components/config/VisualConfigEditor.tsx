@@ -16,15 +16,19 @@ import type {
   VisualConfigValidationErrorCode,
   VisualConfigValidationErrors,
   VisualConfigValues,
+  VisualModelAliasValidationErrorCode,
 } from '@/types/visualConfig';
+import { ModelAliasesEditor } from './ModelAliasesEditor';
 import { PayloadFilterRulesEditor, PayloadRulesEditor } from './VisualConfigEditorBlocks';
 import styles from './VisualConfigEditor.module.scss';
 
 interface VisualConfigEditorProps {
   values: VisualConfigValues;
+  modelOptions?: string[];
   dirtyFields?: ReadonlySet<string>;
   validationErrors?: VisualConfigValidationErrors;
   hasPayloadValidationErrors?: boolean;
+  modelAliasValidationError?: VisualModelAliasValidationErrorCode | null;
   disabled?: boolean;
   onChange: (values: Partial<VisualConfigValues>) => void;
 }
@@ -130,9 +134,11 @@ function FieldShell({
 
 export function VisualConfigEditor({
   values,
+  modelOptions = [],
   dirtyFields = new Set(),
   validationErrors,
   hasPayloadValidationErrors = false,
+  modelAliasValidationError = null,
   disabled = false,
   onChange,
 }: VisualConfigEditorProps) {
@@ -210,6 +216,11 @@ export function VisualConfigEditor({
         id: 'auth',
         label: t('config_management.visual.sections.auth.title'),
         state: state(['authDir']),
+      },
+      {
+        id: 'model-aliases',
+        label: t('config_management.visual.sections.model_aliases.title'),
+        state: state(['modelAliases'], Boolean(modelAliasValidationError)),
       },
       {
         id: 'system',
@@ -307,7 +318,13 @@ export function VisualConfigEditor({
         ),
       },
     ];
-  }, [dirtyFields, hasPayloadValidationErrors, t, validationErrors]);
+  }, [
+    dirtyFields,
+    hasPayloadValidationErrors,
+    modelAliasValidationError,
+    t,
+    validationErrors,
+  ]);
 
   useEffect(() => {
     const required = sectionItems.filter((item) => item.state).map((item) => item.id);
@@ -501,6 +518,21 @@ export function VisualConfigEditor({
                 hint={t('config_management.visual.sections.auth.auth_dir_hint')}
               />
             </SectionStack>
+          </ConfigSection>
+
+          <ConfigSection
+            id="model-aliases"
+            {...sectionProps('model-aliases')}
+            title={t('config_management.visual.sections.model_aliases.title')}
+            description={t('config_management.visual.sections.model_aliases.description')}
+          >
+            <ModelAliasesEditor
+              value={values.modelAliases}
+              modelOptions={modelOptions}
+              disabled={disabled}
+              validationError={modelAliasValidationError}
+              onChange={(modelAliases) => onChange({ modelAliases })}
+            />
           </ConfigSection>
 
           <ConfigSection

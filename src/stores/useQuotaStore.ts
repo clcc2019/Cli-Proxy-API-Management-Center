@@ -4,13 +4,21 @@
 
 import { create } from 'zustand';
 import { persist, type PersistStorage, type StorageValue } from 'zustand/middleware';
-import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState } from '@/types';
+import type {
+  AntigravityQuotaState,
+  ClaudeQuotaState,
+  CodexQuotaState,
+  KimiQuotaState,
+} from '@/types';
 import { STORAGE_KEY_QUOTA_CACHE } from '@/utils/constants';
 import { scheduleIdleTask } from '@/utils/scheduleIdleTask';
 import { registerSessionCleanup } from './sessionCleanup';
 
 type QuotaUpdater<T> = T | ((prev: T) => T);
-type PersistableQuotaState = Pick<QuotaStoreState, 'claudeQuota' | 'codexQuota' | 'kimiQuota'>;
+type PersistableQuotaState = Pick<
+  QuotaStoreState,
+  'claudeQuota' | 'codexQuota' | 'kimiQuota' | 'antigravityQuota'
+>;
 type PersistedQuotaEnvelope = StorageValue<Partial<PersistableQuotaState>>;
 type QuotaSnapshot = { status?: string };
 
@@ -18,9 +26,11 @@ interface QuotaStoreState {
   claudeQuota: Record<string, ClaudeQuotaState>;
   codexQuota: Record<string, CodexQuotaState>;
   kimiQuota: Record<string, KimiQuotaState>;
+  antigravityQuota: Record<string, AntigravityQuotaState>;
   setClaudeQuota: (updater: QuotaUpdater<Record<string, ClaudeQuotaState>>) => void;
   setCodexQuota: (updater: QuotaUpdater<Record<string, CodexQuotaState>>) => void;
   setKimiQuota: (updater: QuotaUpdater<Record<string, KimiQuotaState>>) => void;
+  setAntigravityQuota: (updater: QuotaUpdater<Record<string, AntigravityQuotaState>>) => void;
   clearQuotaCache: () => void;
 }
 
@@ -28,6 +38,7 @@ const createEmptyQuotaCache = (): PersistableQuotaState => ({
   claudeQuota: {},
   codexQuota: {},
   kimiQuota: {},
+  antigravityQuota: {},
 });
 
 const resolveUpdater = <T>(updater: QuotaUpdater<T>, prev: T): T => {
@@ -69,6 +80,7 @@ const sanitizePersistedQuotaState = (
   claudeQuota: sanitizeQuotaRecord(state?.claudeQuota),
   codexQuota: sanitizeQuotaRecord(state?.codexQuota),
   kimiQuota: sanitizeQuotaRecord(state?.kimiQuota),
+  antigravityQuota: sanitizeQuotaRecord(state?.antigravityQuota),
 });
 
 const mergeQuotaRecord = <T extends QuotaSnapshot>(
@@ -102,6 +114,7 @@ const mergePersistedQuotaState = (
   claudeQuota: mergeQuotaRecord(previous?.claudeQuota, next?.claudeQuota),
   codexQuota: mergeQuotaRecord(previous?.codexQuota, next?.codexQuota),
   kimiQuota: mergeQuotaRecord(previous?.kimiQuota, next?.kimiQuota),
+  antigravityQuota: mergeQuotaRecord(previous?.antigravityQuota, next?.antigravityQuota),
 });
 
 type PendingQuotaCacheWrite = {
@@ -207,6 +220,11 @@ export const useQuotaStore = create<QuotaStoreState>()(
           const kimiQuota = resolveUpdater(updater, state.kimiQuota);
           return kimiQuota === state.kimiQuota ? state : { kimiQuota };
         }),
+      setAntigravityQuota: (updater) =>
+        set((state) => {
+          const antigravityQuota = resolveUpdater(updater, state.antigravityQuota);
+          return antigravityQuota === state.antigravityQuota ? state : { antigravityQuota };
+        }),
       clearQuotaCache: () => set(createEmptyQuotaCache()),
     }),
     {
@@ -216,6 +234,7 @@ export const useQuotaStore = create<QuotaStoreState>()(
         claudeQuota: state.claudeQuota,
         codexQuota: state.codexQuota,
         kimiQuota: state.kimiQuota,
+        antigravityQuota: state.antigravityQuota,
       }),
       merge: (persistedState, currentState) => ({
         ...currentState,

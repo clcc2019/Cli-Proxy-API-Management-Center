@@ -1,4 +1,12 @@
-import { useCallback, useDeferredValue, useMemo } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useId,
+  useMemo,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -33,6 +41,28 @@ const prettyJsonText = (text: string) => {
   }
 };
 
+type EditorSectionProps = {
+  title: string;
+  hint: string;
+  children: ReactNode;
+};
+
+function EditorSection({ title, hint, children }: EditorSectionProps) {
+  const headingId = useId();
+
+  return (
+    <section className={styles.prefixProxySection} aria-labelledby={headingId}>
+      <header className={styles.prefixProxySectionHeader}>
+        <h3 id={headingId} className={styles.prefixProxySectionTitle}>
+          {title}
+        </h3>
+        <p className={styles.prefixProxySectionHint}>{hint}</p>
+      </header>
+      {children}
+    </section>
+  );
+}
+
 export type AuthFilesPrefixProxyEditorModalProps = {
   disableControls: boolean;
   editor: PrefixProxyEditorState | null;
@@ -48,8 +78,15 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
   const { t } = useTranslation();
   const { disableControls, editor, updatedText, dirty, onClose, onCopyText, onSave, onChange } =
     props;
+  const formId = useId();
   const editorFileName = editor?.fileName ?? '';
   const editorFile = editor?.file ?? null;
+  const editorProviderLabel =
+    (typeof editorFile?.provider === 'string' && editorFile.provider.trim()) ||
+    (typeof editorFile?.type === 'string' && editorFile.type.trim()) ||
+    '';
+  const showCodexMetaChip =
+    Boolean(editor?.isCodexFile) && editorProviderLabel.toLowerCase() !== 'codex';
   const editorClientProfile = editor?.clientProfile ?? null;
   const previewPayload = useMemo(
     () => ({ fileName: editorFileName, text: updatedText }),
@@ -86,19 +123,19 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
 
   // 稳定化字段变更回调，避免每次按键都创建新闭包
   const handlePrefixChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => onChange('prefix', e.target.value),
+    (e: ChangeEvent<HTMLInputElement>) => onChange('prefix', e.target.value),
     [onChange]
   );
   const handlePriorityChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => onChange('priority', e.target.value),
+    (e: ChangeEvent<HTMLInputElement>) => onChange('priority', e.target.value),
     [onChange]
   );
   const handleProxyUrlChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => onChange('proxyUrl', e.target.value),
+    (e: ChangeEvent<HTMLInputElement>) => onChange('proxyUrl', e.target.value),
     [onChange]
   );
   const handleBaseUrlChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => onChange('baseUrl', e.target.value),
+    (e: ChangeEvent<HTMLInputElement>) => onChange('baseUrl', e.target.value),
     [onChange]
   );
   const handleDisableCoolingChange = useCallback(
@@ -106,11 +143,11 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
     [onChange]
   );
   const handleUserAgentChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => onChange('userAgent', e.target.value),
+    (e: ChangeEvent<HTMLInputElement>) => onChange('userAgent', e.target.value),
     [onChange]
   );
   const handleNoteChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => onChange('note', e.target.value),
+    (e: ChangeEvent<HTMLInputElement>) => onChange('note', e.target.value),
     [onChange]
   );
   const handleWebsocketsChange = useCallback(
@@ -122,11 +159,11 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
     [onChange]
   );
   const handleExcludedModelsChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange('excludedModelsText', e.target.value),
+    (e: ChangeEvent<HTMLTextAreaElement>) => onChange('excludedModelsText', e.target.value),
     [onChange]
   );
   const handleHeadersChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange('headersText', e.target.value),
+    (e: ChangeEvent<HTMLTextAreaElement>) => onChange('headersText', e.target.value),
     [onChange]
   );
 
@@ -135,6 +172,15 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
     // 复制按钮使用压缩 JSON，方便粘贴到终端/curl
     void onCopyText(compactJsonText(updatedText));
   }, [onCopyText, updatedText]);
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!saveDisabled) {
+        onSave();
+      }
+    },
+    [onSave, saveDisabled]
+  );
 
   return (
     <Modal
@@ -143,7 +189,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
       closeDisabled={editor?.saving === true}
       fullScreenOnMobile
       className={styles.prefixProxyModal}
-      width={960}
+      width={1040}
       title={
         <span className={styles.prefixProxyTitleGroup}>
           <span className={styles.prefixProxyTitleMain}>{t('auth_files.prefix_proxy_button')}</span>
@@ -162,7 +208,12 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
           <Button variant="secondary" onClick={onClose} disabled={editor?.saving === true}>
             {dirty ? t('common.cancel') : t('common.close')}
           </Button>
-          <Button onClick={onSave} loading={editor?.saving === true} disabled={saveDisabled}>
+          <Button
+            type="submit"
+            form={formId}
+            loading={editor?.saving === true}
+            disabled={saveDisabled}
+          >
             {t('common.save')}
           </Button>
         </>
@@ -182,31 +233,41 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   {editor.error}
                 </div>
               )}
-              <div className={styles.prefixProxyWorkspace}>
+              <form
+                id={formId}
+                className={styles.prefixProxyWorkspace}
+                aria-busy={editor.saving}
+                onSubmit={handleSubmit}
+              >
                 <section className={styles.prefixProxySettingsPanel}>
-                  <header className={styles.prefixProxyPanelHeader}>
-                    <div className={styles.prefixProxyPanelTitleGroup}>
-                      <h3 className={styles.prefixProxyPanelTitle}>
+                  <header className={styles.prefixProxyIntro}>
+                    <div className={styles.prefixProxyIntroCopy}>
+                      <h2 className={styles.prefixProxyIntroTitle}>
                         {t('auth_files.settings_edit_section')}
-                      </h3>
-                      <span className={styles.prefixProxyPanelHint}>
+                      </h2>
+                      <p className={styles.prefixProxyIntroHint}>
                         {t('auth_files.settings_edit_hint')}
-                      </span>
+                      </p>
                     </div>
+                    {(editorProviderLabel || showCodexMetaChip) && (
+                      <div className={styles.prefixProxyMeta}>
+                        {editorProviderLabel && (
+                          <span className={styles.prefixProxyMetaChip}>{editorProviderLabel}</span>
+                        )}
+                        {showCodexMetaChip && (
+                          <span className={styles.prefixProxyMetaChip}>
+                            {t('auth_files.section_codex')}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </header>
 
                   <div className={styles.prefixProxyForm}>
-                    <section className={styles.prefixProxySection}>
-                      <header className={styles.prefixProxySectionHeader}>
-                        <div className={styles.prefixProxySectionHeading}>
-                          <span className={styles.prefixProxySectionIndex} aria-hidden="true">
-                            01
-                          </span>
-                          <h3 className={styles.prefixProxySectionTitle}>
-                            {t('auth_files.section_basic')}
-                          </h3>
-                        </div>
-                      </header>
+                    <EditorSection
+                      title={t('auth_files.section_connection')}
+                      hint={t('auth_files.section_connection_hint')}
+                    >
                       <div className={styles.prefixProxyFields}>
                         <div className={styles.prefixProxyField}>
                           <Input
@@ -221,12 +282,12 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                         <div className={styles.prefixProxyField}>
                           <Input
                             density="sm"
-                            label={t('auth_files.priority_label')}
-                            value={editor.priority}
-                            placeholder={t('auth_files.priority_placeholder')}
-                            title={t('auth_files.priority_hint')}
+                            label={t('auth_files.base_url_label')}
+                            value={editor.baseUrl}
+                            placeholder={t('auth_files.base_url_placeholder')}
+                            title="base_url"
                             disabled={editorControlsDisabled}
-                            onChange={handlePriorityChange}
+                            onChange={handleBaseUrlChange}
                           />
                         </div>
                         <div className={styles.prefixProxyFieldWide}>
@@ -240,15 +301,23 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                             onChange={handleProxyUrlChange}
                           />
                         </div>
-                        <div className={styles.prefixProxyFieldWide}>
+                      </div>
+                    </EditorSection>
+
+                    <EditorSection
+                      title={t('auth_files.section_policy')}
+                      hint={t('auth_files.section_policy_hint')}
+                    >
+                      <div className={styles.prefixProxyFields}>
+                        <div className={styles.prefixProxyField}>
                           <Input
                             density="sm"
-                            label={t('auth_files.base_url_label')}
-                            value={editor.baseUrl}
-                            placeholder={t('auth_files.base_url_placeholder')}
-                            title="base_url"
+                            label={t('auth_files.priority_label')}
+                            value={editor.priority}
+                            placeholder={t('auth_files.priority_placeholder')}
+                            title={t('auth_files.priority_hint')}
                             disabled={editorControlsDisabled}
-                            onChange={handleBaseUrlChange}
+                            onChange={handlePriorityChange}
                           />
                         </div>
                         <div className={styles.prefixProxyField}>
@@ -277,27 +346,25 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                           />
                         </div>
                       </div>
-                    </section>
+                    </EditorSection>
 
                     {editor.isCodexFile && (
-                      <section className={styles.prefixProxySection}>
-                        <header className={styles.prefixProxySectionHeader}>
-                          <div className={styles.prefixProxySectionHeading}>
-                            <span className={styles.prefixProxySectionIndex} aria-hidden="true">
-                              02
-                            </span>
-                            <h3 className={styles.prefixProxySectionTitle}>
-                              {t('auth_files.section_codex')}
-                            </h3>
-                          </div>
-                        </header>
+                      <EditorSection
+                        title={t('auth_files.section_codex')}
+                        hint={t('auth_files.section_codex_hint')}
+                      >
                         <div className={styles.prefixProxyFields}>
                           <div
                             className={styles.prefixProxySwitchField}
                             title={t('ai_providers.codex_websockets_hint')}
                           >
-                            <span className={styles.prefixProxySwitchFieldLabel}>
-                              {t('ai_providers.codex_websockets_label')}
+                            <span className={styles.prefixProxySwitchFieldLabelGroup}>
+                              <span className={styles.prefixProxySwitchFieldLabel}>
+                                {t('ai_providers.codex_websockets_label')}
+                              </span>
+                              <span className={styles.prefixProxySwitchFieldHint}>
+                                {t('ai_providers.codex_websockets_hint')}
+                              </span>
                             </span>
                             <ToggleSwitch
                               checked={Boolean(editor.websockets)}
@@ -337,20 +404,13 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                             />
                           </div>
                         </div>
-                      </section>
+                      </EditorSection>
                     )}
 
-                    <section className={styles.prefixProxySection}>
-                      <header className={styles.prefixProxySectionHeader}>
-                        <div className={styles.prefixProxySectionHeading}>
-                          <span className={styles.prefixProxySectionIndex} aria-hidden="true">
-                            {editor.isCodexFile ? '03' : '02'}
-                          </span>
-                          <h3 className={styles.prefixProxySectionTitle}>
-                            {t('auth_files.section_advanced')}
-                          </h3>
-                        </div>
-                      </header>
+                    <EditorSection
+                      title={t('auth_files.section_advanced')}
+                      hint={t('auth_files.section_advanced_hint')}
+                    >
                       <div className={styles.prefixProxyFields}>
                         <div
                           className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
@@ -400,21 +460,56 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                           )}
                         </div>
                       </div>
-                    </section>
+                    </EditorSection>
                   </div>
                 </section>
 
-                <aside className={styles.prefixProxyInspectorPanel}>
-                  <header className={styles.prefixProxyPanelHeader}>
-                    <div className={styles.prefixProxyPanelTitleGroup}>
-                      <h3 className={styles.prefixProxyPanelTitle}>
+                <aside
+                  className={styles.prefixProxyInspectorPanel}
+                  aria-label={t('auth_files.settings_preview_section')}
+                >
+                  <header className={styles.prefixProxyInspectorHeader}>
+                    <div className={styles.prefixProxyIntroCopy}>
+                      <span className={styles.prefixProxyEyebrow}>
                         {t('auth_files.settings_info_section')}
-                      </h3>
-                      <span className={styles.prefixProxyPanelHint}>
-                        {t('auth_files.settings_info_hint')}
                       </span>
+                      <div className={styles.prefixProxyPreviewTitleRow}>
+                        <h2 className={styles.prefixProxyPreviewTitle}>
+                          {t('auth_files.settings_preview_section')}
+                        </h2>
+                        {dirty && (
+                          <span className={styles.prefixProxyPreviewBadge}>
+                            {t('common.modified')}
+                          </span>
+                        )}
+                      </div>
+                      <p className={styles.prefixProxyPreviewHint}>
+                        {t('auth_files.settings_preview_hint')}
+                      </p>
                     </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className={styles.prefixProxyCopyButton}
+                      onClick={handleCopyPreview}
+                      disabled={editor.saving || !updatedText}
+                      title={t('auth_files.prefix_proxy_copy_json')}
+                      aria-label={t('auth_files.prefix_proxy_copy_json')}
+                    >
+                      <IconCopy size={14} />
+                      {t('auth_files.prefix_proxy_copy_json')}
+                    </Button>
                   </header>
+
+                  <textarea
+                    className={styles.prefixProxyPreviewTextarea}
+                    aria-label={t('auth_files.settings_preview_section')}
+                    rows={18}
+                    readOnly
+                    value={previewText}
+                    spellCheck={false}
+                  />
 
                   <div className={styles.prefixProxyInfoStack}>
                     {fileInfoText && (
@@ -438,46 +533,6 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                         </div>
                       </details>
                     )}
-
-                    <details className={styles.prefixProxyJsonDetails}>
-                      <summary className={styles.prefixProxyJsonSummary}>
-                        <span className={styles.prefixProxyLabelGroup}>
-                          <span className={styles.prefixProxyLabel}>
-                            {t('auth_files.prefix_proxy_source_label')}
-                          </span>
-                          {dirty && (
-                            <span className={styles.prefixProxyPreviewBadge}>
-                              {t('common.modified')}
-                            </span>
-                          )}
-                        </span>
-                      </summary>
-                      <div className={styles.prefixProxyJsonWrapper}>
-                        <div className={styles.prefixProxyJsonActions}>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            className={styles.prefixProxyCopyButton}
-                            onClick={handleCopyPreview}
-                            disabled={editor.saving || !updatedText}
-                            title={t('auth_files.prefix_proxy_copy_json')}
-                            aria-label={t('auth_files.prefix_proxy_copy_json')}
-                          >
-                            <IconCopy size={14} />
-                            {t('auth_files.prefix_proxy_copy_json')}
-                          </Button>
-                        </div>
-                        <textarea
-                          className={styles.prefixProxyTextarea}
-                          aria-label={t('auth_files.prefix_proxy_source_label')}
-                          rows={10}
-                          readOnly
-                          value={previewText}
-                          spellCheck={false}
-                        />
-                      </div>
-                    </details>
 
                     {clientProfileText && (
                       <details className={styles.prefixProxyJsonDetails}>
@@ -507,7 +562,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     )}
                   </div>
                 </aside>
-              </div>
+              </form>
             </>
           )}
         </div>

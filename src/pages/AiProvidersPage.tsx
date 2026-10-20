@@ -167,7 +167,6 @@ export function AiProvidersPage() {
     () => Array.from(new Set(activeGroup.resources.flatMap((resource) => resource.models))).sort(),
     [activeGroup]
   );
-
   const visibleResources = useMemo(() => {
     const normalized = filter.trim().toLowerCase();
     const filtered = activeGroup.resources.filter(
@@ -273,9 +272,14 @@ export function AiProvidersPage() {
     return (
       <div className={styles.page}>
         <Skeleton height={64} />
-        <div className={styles.layout}>
-          <Skeleton height={72} />
-          <Skeleton height={420} />
+        <div className={styles.loadingLayout}>
+          <div className={styles.loadingCategoryRail}>
+            {groups.map((group) => (
+              <Skeleton key={group.id} height={36} />
+            ))}
+          </div>
+          <Skeleton height={48} />
+          <Skeleton height={320} />
         </div>
       </div>
     );
@@ -284,9 +288,7 @@ export function AiProvidersPage() {
   return (
     <div className={styles.page}>
       <ProviderHeaderCard
-        isFetching={loading}
         isNewDisabled={connectionStatus !== 'connected' || isSwitching}
-        onRefresh={handleRefresh}
         onNew={handleCreate}
       />
 

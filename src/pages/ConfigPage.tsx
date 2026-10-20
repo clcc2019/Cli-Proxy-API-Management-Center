@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
@@ -13,7 +13,10 @@ import { VisualConfigEditor } from '@/components/config/VisualConfigEditor';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useVisualConfig } from '@/hooks/useVisualConfig';
 import { useNotificationStore, useAuthStore, useThemeStore, useConfigStore } from '@/stores';
+import { useModelsStore } from '@/stores/useModelsStore';
+import { apiKeysApi } from '@/services/api/apiKeys';
 import { configFileApi } from '@/services/api/configFile';
+import type { ModelInfo } from '@/utils/models';
 import styles from './ConfigPage.module.scss';
 
 type ConfigEditorTab = 'visual' | 'source';
@@ -26,6 +29,8 @@ const LazyConfigSourceEditor = lazy(() => import('@/components/config/ConfigSour
 const LazyDiffModal = lazy(() =>
   import('@/components/config/DiffModal').then((m) => ({ default: m.DiffModal }))
 );
+
+const EMPTY_MODEL_LIST: ModelInfo[] = [];
 
 function readCommercialModeFromYaml(yamlContent: string): boolean {
   try {
@@ -46,8 +51,21 @@ export function ConfigPage() {
   const connectionStatus = useAuthStore((state) =>
     isCurrentLayer ? state.connectionStatus : 'disconnected'
   );
+  const apiBase = useAuthStore((state) => (isCurrentLayer ? state.apiBase : ''));
   const resolvedTheme = useThemeStore((state) => (isCurrentLayer ? state.resolvedTheme : 'light'));
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const configuredModelApiKey = useConfigStore((state) => {
+    const entry = state.config?.apiKeys?.find((item) => !item.disabled && item.apiKey.trim());
+    return entry?.apiKey.trim() ?? '';
+  });
+  const availableModels = useModelsStore((state) =>
+    isCurrentLayer ? state.models : EMPTY_MODEL_LIST
+  );
+  const fetchModelsFromStore = useModelsStore((state) => state.fetchModels);
+  const modelOptions = useMemo(
+    () => availableModels.map((model) => model.name),
+    [availableModels]
+  );
 
   const {
     visualValues,
@@ -56,6 +74,8 @@ export function ConfigPage() {
     visualParseError,
     visualValidationErrors,
     visualHasPayloadValidationErrors,
+    visualModelAliasValidationError,
+    visualHasModelAliasValidationErrors,
     loadVisualValuesFromYaml,
     applyVisualChangesToYaml,
     setVisualValues,
@@ -99,7 +119,54 @@ export function ConfigPage() {
   const hasVisualModeError = !!visualParseError;
   const hasVisualValidationErrors =
     activeTab === 'visual' &&
-    (Object.values(visualValidationErrors).some(Boolean) || visualHasPayloadValidationErrors);
+    (Object.values(visualValidationErrors).some(Boolean) ||
+      visualHasPayloadValidationErrors ||
+      visualHasModelAliasValidationErrors);
+
+  useEffect(() => {
+    if (
+      !isCurrentLayer ||
+      activeTab !== 'visual' ||
+      loading ||
+      connectionStatus !== 'connected' ||
+      !apiBase
+    ) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const loadAvailableModels = async () => {
+      let apiKey = configuredModelApiKey;
+      if (!apiKey) {
+        try {
+          const apiKeys = await apiKeysApi.list();
+          apiKey = apiKeys.find((entry) => !entry.disabled && entry.apiKey.trim())?.apiKey ?? '';
+        } catch {
+          // Model suggestions are optional; custom model names remain editable.
+        }
+      }
+
+      if (cancelled) return;
+      try {
+        await fetchModelsFromStore(apiBase, apiKey || undefined);
+      } catch {
+        // Model suggestions are optional; custom model names remain editable.
+      }
+    };
+
+    void loadAvailableModels();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeTab,
+    apiBase,
+    configuredModelApiKey,
+    connectionStatus,
+    fetchModelsFromStore,
+    isCurrentLayer,
+    loading,
+  ]);
 
   const loadConfig = useCallback(async () => {
     if (!isCurrentLayerRef.current) return;
@@ -205,6 +272,10 @@ export function ConfigPage() {
   const handleSave = async () => {
     if (activeTab === 'visual' && visualParseError) {
       showNotification(t('config_management.visual_mode_save_blocked'), 'error');
+      return;
+    }
+    if (activeTab === 'visual' && hasVisualValidationErrors) {
+      showNotification(t('config_management.visual.validation.validation_blocked'), 'error');
       return;
     }
 
@@ -614,6 +685,8 @@ export function ConfigPage() {
                 dirtyFields={visualDirtyFields}
                 validationErrors={visualValidationErrors}
                 hasPayloadValidationErrors={visualHasPayloadValidationErrors}
+                modelAliasValidationError={visualModelAliasValidationError}
+                modelOptions={modelOptions}
                 disabled={disableControls || loading}
                 onChange={setVisualValues}
               />

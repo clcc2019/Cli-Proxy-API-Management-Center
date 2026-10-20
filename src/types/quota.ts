@@ -2,7 +2,12 @@
  * Quota management types.
  */
 
-import type { AuthFileItem, CodexCreditsSnapshot, CodexExpiringBalanceDetail } from './authFile';
+import type {
+  AntigravityCreditsSnapshot,
+  AuthFileItem,
+  CodexCreditsSnapshot,
+  CodexExpiringBalanceDetail,
+} from './authFile';
 
 // Theme types
 export type ThemeColors = { bg: string; text: string; border?: string };
@@ -83,6 +88,14 @@ export interface CodexUsagePayload {
   additionalRateLimits?: CodexAdditionalRateLimit[] | null;
   rate_limit_reached_type?: string | { kind?: string | null } | null;
   rateLimitReachedType?: string | { kind?: string | null } | null;
+}
+
+export interface AntigravityUsagePayload {
+  auth_file?: AuthFileItem | null;
+  authFile?: AuthFileItem | null;
+  credits?: AntigravityCreditsSnapshot | null;
+  antigravity_credits?: AntigravityCreditsSnapshot | null;
+  antigravityCredits?: AntigravityCreditsSnapshot | null;
 }
 
 export interface CodexRateLimitResetCredits {
@@ -215,6 +228,13 @@ export interface CodexQuotaState {
   subscriptionActiveStart?: string | number | null;
   subscriptionActiveDays?: number | null;
   subscriptionUntil?: string | number | null;
+  error?: string;
+  errorStatus?: number;
+}
+
+export interface AntigravityQuotaState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  credits?: AntigravityCreditsSnapshot | null;
   error?: string;
   errorStatus?: number;
 }

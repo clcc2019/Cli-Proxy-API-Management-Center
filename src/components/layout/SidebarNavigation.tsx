@@ -87,13 +87,8 @@ export const SidebarNavigation = forwardRef<HTMLElement, SidebarNavigationProps>
 
         <nav className="nav-section" aria-label={navigationLabel}>
           {groups.map((group) => {
-            const labelId = `sidebar-group-${group.id}`;
-
             return (
-              <div className="nav-group" role="group" aria-labelledby={labelId} key={group.id}>
-                <span className="nav-group-label" id={labelId}>
-                  {group.label}
-                </span>
+              <div className="nav-group" role="group" aria-label={group.label} key={group.id}>
                 <div className="nav-group-items">
                   {group.items.map((item) => {
                     const isCurrent = isNavigationItemCurrent(currentPathname, item.path);

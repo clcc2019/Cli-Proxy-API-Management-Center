@@ -45,8 +45,7 @@ export const ProviderResourcePanel = memo(function ProviderResourcePanel({
 }: ProviderResourcePanelProps) {
   const { t } = useTranslation();
   const providerName = t(`providersPage.providerNames.${group.id}`);
-  const hasActiveFilters =
-    filter.trim().length > 0 || toolbarControls.selectedModels.size > 0;
+  const hasActiveFilters = filter.trim().length > 0 || toolbarControls.selectedModels.size > 0;
 
   const handleClearFilters = () => {
     onFilterChange('');
@@ -79,37 +78,49 @@ export const ProviderResourcePanel = memo(function ProviderResourcePanel({
             </button>
           ) : null}
         </div>
-        <div className={styles.headerTools}>
-          <span className={styles.resultCount} role="status" aria-live="polite" aria-atomic="true">
-            {t('providersPage.table.resultCount', {
-              visible: filteredResources.length,
-              total: group.resources.length,
-            })}
-          </span>
-          <ProviderResourceToolbar
-            key={group.id}
-            sortBy={toolbarControls.sortBy}
-            sortDir={toolbarControls.sortDir}
-            onSortBy={toolbarControls.onSortBy}
-            onSortDir={toolbarControls.onSortDir}
-            availableModels={toolbarControls.availableModels}
-            selectedModels={toolbarControls.selectedModels}
-            onSelectedModelsChange={toolbarControls.onSelectedModelsChange}
-          />
-        </div>
+        <ProviderResourceToolbar
+          key={group.id}
+          sortBy={toolbarControls.sortBy}
+          sortDir={toolbarControls.sortDir}
+          onSortBy={toolbarControls.onSortBy}
+          onSortDir={toolbarControls.onSortDir}
+          availableModels={toolbarControls.availableModels}
+          selectedModels={toolbarControls.selectedModels}
+          onSelectedModelsChange={toolbarControls.onSelectedModelsChange}
+        />
+        <span className={styles.visuallyHidden} role="status" aria-live="polite" aria-atomic="true">
+          {t('providersPage.table.resultCount', {
+            visible: filteredResources.length,
+            total: group.resources.length,
+          })}
+        </span>
       </div>
 
       {filteredResources.length === 0 ? (
         <div className={styles.empty}>
           <div className={styles.emptyCopy}>
             <strong>
-              {t(hasActiveFilters ? 'providersPage.table.filterEmptyTitle' : 'providersPage.table.emptyTitle')}
+              {t(
+                hasActiveFilters
+                  ? 'providersPage.table.filterEmptyTitle'
+                  : 'providersPage.table.emptyTitle'
+              )}
             </strong>
-            <p>{t(hasActiveFilters ? 'providersPage.table.filterEmpty' : 'providersPage.table.empty')}</p>
+            <p>
+              {t(
+                hasActiveFilters
+                  ? 'providersPage.table.filterEmpty'
+                  : 'providersPage.table.empty'
+              )}
+            </p>
           </div>
           <div className={styles.emptyAction}>
             {hasActiveFilters ? (
-              <button type="button" className={styles.emptyActionButton} onClick={handleClearFilters}>
+              <button
+                type="button"
+                className={styles.emptyActionButton}
+                onClick={handleClearFilters}
+              >
                 <span>{t('providersPage.table.clearFilters')}</span>
               </button>
             ) : (
