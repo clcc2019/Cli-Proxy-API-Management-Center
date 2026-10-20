@@ -17,6 +17,7 @@
   border-bottom: 1px solid var(--xai-glass-border);
   background: var(--xai-glass-surface-soft);
   box-shadow: var(--xai-glass-highlight);
+  @include management-toolbar-surface;
 }
 
 .searchWrap {

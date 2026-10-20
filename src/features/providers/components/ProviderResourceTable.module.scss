@@ -23,6 +23,7 @@
 }
 
 .primaryName {
+  display: block;
   overflow: hidden;
   max-width: 240px;
   color: var(--xai-ink-console);
@@ -35,6 +36,7 @@
 
 .primarySub,
 .baseUrl {
+  display: block;
   overflow: hidden;
   max-width: 240px;
   color: var(--xai-muted);

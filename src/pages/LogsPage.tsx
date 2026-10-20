@@ -71,6 +71,11 @@ const AUTO_REFRESH_INTERVAL_MS = 8_000;
 const LONG_PRESS_MS = 650;
 const LONG_PRESS_MOVE_THRESHOLD = 10;
 
+const getDefaultStructuredFiltersExpanded = (): boolean => {
+  if (typeof window === 'undefined') return true;
+  return !window.matchMedia('(max-width: 768px)').matches;
+};
+
 type TabType = 'logs' | 'errors';
 
 const LOGS_TAB_ID_PREFIX = 'logs';
@@ -110,7 +115,7 @@ export function LogsPage() {
   const [showRawLogs, setShowRawLogs] = useLocalStorage('logsPage.showRawLogs', false);
   const [structuredFiltersExpanded, setStructuredFiltersExpanded] = useLocalStorage(
     'logsPage.structuredFiltersExpanded',
-    true
+    getDefaultStructuredFiltersExpanded()
   );
   const [errorLogs, setErrorLogs] = useState<ErrorLogItem[]>([]);
   const [loadingErrors, setLoadingErrors] = useState(false);

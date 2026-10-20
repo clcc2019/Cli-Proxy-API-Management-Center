@@ -1608,8 +1608,6 @@ export function AuthFilesPage() {
         <ManagementPageHeader
           className={refreshStyles.pageHeader}
           title={t('auth_files.title_section')}
-          count={listTotal}
-          countAriaLabel={`${t('auth_files.summary_visible')}: ${listTotal}`}
           actions={
             <div className={refreshStyles.headerActions}>
               <RefreshButton
