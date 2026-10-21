@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
-import { authFilesApi } from '@/services/api/authFiles';
+import { loadAuthFileCredentialMap } from '@/features/authFiles/authFileCredentialMap';
 import { USAGE_STATS_STALE_TIME_MS, useUsageStatsStore } from '@/stores';
-import type { AuthFileItem, Config } from '@/types';
+import type { Config } from '@/types';
 import type { CredentialInfo, SourceInfo } from '@/types/sourceInfo';
 import { buildSourceInfoMap, resolveSourceDisplay } from '@/utils/sourceResolver';
 import {
   collectUsageDetailsWithEndpoint,
-  normalizeAuthIndex,
-  type UsageDetailWithEndpoint
+  type UsageDetailWithEndpoint,
 } from '@/utils/usage';
 import { getErrorMessage } from '@/utils/error';
 import type { ParsedLogLine } from './logTypes';
@@ -139,13 +138,7 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
         }),
         authFresh
           ? Promise.resolve(null)
-          : authFilesApi
-              .listAll({
-                codexSubscription: 'skip',
-                summary: true,
-                includeRecentRequests: false,
-              })
-              .catch(() => null)
+          : loadAuthFileCredentialMap(traceScopeKey).catch(() => null),
       ]);
 
       if (
@@ -156,22 +149,8 @@ export function useTraceResolver(options: UseTraceResolverOptions): UseTraceReso
       }
 
       if (authFilesResponse !== null) {
-        const files = Array.isArray(authFilesResponse)
-          ? authFilesResponse
-          : (authFilesResponse as { files?: AuthFileItem[] })?.files;
-        if (Array.isArray(files)) {
-          const map = new Map<string, CredentialInfo>();
-          files.forEach((file) => {
-            const key = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
-            if (!key) return;
-            map.set(key, {
-              name: file.name || key,
-              type: (file.type || file.provider || '').toString()
-            });
-          });
-          setTraceAuthFileMap(map);
-          traceAuthLoadedAtRef.current = Date.now();
-        }
+        setTraceAuthFileMap(authFilesResponse);
+        traceAuthLoadedAtRef.current = Date.now();
       }
     } catch (err: unknown) {
       if (

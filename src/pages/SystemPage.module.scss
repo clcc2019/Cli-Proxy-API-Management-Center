@@ -1,14 +1,11 @@
 @use '../styles/variables.scss' as *;
-@use '../styles/mixins' as *;
 
 // A deliberately sparse system workbench: service state comes first, version
 // metadata stays secondary, and the model inventory is the primary workspace.
 .container {
   --system-surface: var(--mg-surface);
-  --system-surface-subtle: var(--mg-surface-subtle);
-  --system-surface-muted: var(--mg-surface-warm);
-  --system-border: var(--mg-border);
-  --system-border-strong: var(--mg-border-hover);
+  --system-surface-subtle: #f3f4f6;
+  --system-surface-muted: #f3f4f6;
   --system-text: var(--mg-text);
   --system-text-secondary: var(--mg-text-secondary);
   --system-text-tertiary: var(--mg-text-tertiary);
@@ -19,71 +16,71 @@
   width: 100%;
   min-width: 0;
   max-width: none;
-  margin: 0;
+  margin-inline: 0;
   color: var(--system-text);
 }
 
-.pageHeader {
-  margin-bottom: var(--xai-space-6);
+.container > .pageHeader {
+  margin-bottom: var(--xai-space-5);
+  padding-bottom: 0;
 }
 
 .versionLabel {
-  color: var(--system-text-tertiary);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: 0.075em;
+  color: var(--system-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 
 .systemOverview {
   position: relative;
-  overflow: hidden;
-  border: 1px solid var(--system-border);
-  border-radius: var(--mg-radius-card);
-  background: var(--system-surface);
-  box-shadow: none;
+  border: 0;
+  background: transparent;
 }
 
 .versionGrid {
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: clamp(18px, 3vw, 40px);
 }
 
 .versionCard,
 .tapTile {
   display: flex;
   min-width: 0;
-  min-height: 136px;
+  min-height: 112px;
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 24px;
+  padding: 12px 0;
   border: 0;
-  border-right: 1px solid var(--system-border);
   background: transparent;
   color: inherit;
   text-align: left;
-
-  &:last-child {
-    border-right: 0;
-  }
 }
 
 .tapTile {
   cursor: pointer;
+  border-radius: var(--xai-radius-control);
   transition: background-color 180ms ease;
 
   &:hover {
     background: var(--system-surface-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mg-focus-outline);
+    outline-offset: 3px;
   }
 }
 
@@ -110,11 +107,11 @@
   min-height: 34px;
   flex: 0 0 auto;
   padding: 6px 12px;
-  border-color: var(--system-border);
-  background: transparent;
+  border-color: transparent;
+  background: var(--system-surface-subtle);
   box-shadow: none;
   color: var(--system-text-tertiary);
-  font-size: 12px;
+  font-size: 13px;
   border-radius: var(--xai-radius-pill);
 
   &:hover:not(:disabled) {
@@ -126,9 +123,9 @@
 .content > :global(.card) {
   position: relative;
   min-width: 0;
-  border-color: var(--system-border);
-  border-radius: var(--mg-radius-card);
-  background: var(--system-surface);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
@@ -136,8 +133,8 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
-  padding-bottom: 15px;
-  border-bottom-color: var(--system-border);
+  padding-bottom: 0;
+  border-bottom: 0;
 
   :global(.title) {
     color: var(--system-text);
@@ -149,22 +146,21 @@
 
 .content :global(.btn) {
   min-height: 36px;
-  border-color: var(--system-border);
+  border-color: transparent;
   border-radius: var(--xai-radius-pill);
-  background: var(--system-surface);
+  background: var(--system-surface-subtle);
   box-shadow: none;
   color: var(--system-text-secondary);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   padding-inline: 13px;
   transition:
-    border-color 180ms ease,
     background-color 180ms ease,
     color 180ms ease;
 
   &:hover:not(:disabled) {
-    border-color: var(--system-border-strong);
-    background: var(--system-surface-subtle);
+    border-color: transparent;
+    background: #e9eaed;
     color: var(--system-text);
     transform: none;
   }
@@ -184,7 +180,7 @@
   align-items: center;
   margin: 0 0 12px;
   padding: 4px 8px;
-  border: 1px solid var(--system-border);
+  border: 0;
   border-radius: var(--xai-radius-pill);
   background: var(--system-surface-subtle);
   color: var(--system-text-secondary);
@@ -194,34 +190,32 @@
 }
 
 .modelsCard :global(.status-badge.success) {
-  border-color: var(--xai-success-border);
   background: var(--xai-success-soft);
   color: var(--system-success);
 }
 
 .modelsCard :global(.status-badge.warning) {
-  border-color: var(--xai-warning-border);
   background: var(--xai-warning-soft);
   color: var(--system-warning);
 }
 
 .modelsCard :global(.status-badge.error),
 .modelsCard :global(.error-box) {
-  border-color: var(--xai-danger-border);
   background: var(--xai-danger-soft);
   color: var(--system-danger);
 }
 
 .modelsCard :global(.error-box) {
   margin-bottom: 12px;
+  border: 0;
   border-radius: var(--xai-radius-control);
 }
 
 .modelsCard :global(.hint) {
-  padding: 22px 14px;
-  border: 1px dashed var(--system-border);
-  border-radius: var(--xai-radius-control);
-  background: var(--system-surface-muted);
+  padding: 22px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--system-text-tertiary);
   font-size: 12px;
   text-align: center;
@@ -232,9 +226,8 @@
 }
 
 .modelsLoadingList {
-  overflow: hidden;
-  border: 1px solid var(--system-border);
-  border-radius: var(--xai-radius-panel);
+  display: grid;
+  gap: 8px;
 }
 
 .modelsLoadingRow {
@@ -243,12 +236,7 @@
   align-items: center;
   gap: 18px;
   min-height: 74px;
-  padding: 15px 16px;
-  border-bottom: 1px solid var(--system-border);
-
-  &:last-child {
-    border-bottom: 0;
-  }
+  padding: 16px 0;
 }
 
 .modelsLoadingMeta {
@@ -299,10 +287,8 @@
 }
 
 .modelsCard :global(.item-list) {
-  overflow: hidden;
-  border: 1px solid var(--system-border);
-  border-radius: var(--xai-radius-panel);
-  background: var(--system-surface-muted);
+  display: grid;
+  gap: 8px;
 }
 
 .modelsCard :global(.item-row) {
@@ -310,16 +296,12 @@
   grid-template-columns: minmax(160px, 0.28fr) minmax(0, 0.72fr);
   align-items: center;
   gap: 18px;
-  padding: 17px 16px;
-  border-bottom: 1px solid var(--system-border);
+  padding: 17px 0;
+  border: 0;
   transition: background-color 180ms ease;
 
-  &:last-child {
-    border-bottom: 0;
-  }
-
   &:hover {
-    background: var(--system-surface-muted);
+    background: #f7f7f8;
   }
 }
 
@@ -332,13 +314,13 @@
 
 .modelsCard :global(.item-title) {
   color: var(--system-text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .modelsCard :global(.item-subtitle) {
   color: var(--system-text-tertiary);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .groupTitle {
@@ -369,17 +351,14 @@
   align-items: center;
   gap: 5px;
   padding: 4px 7px 5px;
-  border: 1px solid var(--system-border);
+  border: 0;
   border-radius: var(--xai-radius-micro);
   background: var(--system-surface-muted);
   font-family: $font-mono;
   line-height: 16px;
-  transition:
-    border-color 180ms ease,
-    background-color 180ms ease;
+  transition: background-color 180ms ease;
 
   &:hover {
-    border-color: var(--system-border-strong);
     background: var(--system-surface-subtle);
   }
 }
@@ -411,13 +390,11 @@
   column-gap: 24px;
   row-gap: 0;
   align-items: center;
-  border-color: color-mix(in srgb, var(--system-danger) 24%, var(--system-border)) !important;
 }
 
 .dangerCard :global(.card-header) {
   grid-area: header;
   margin-bottom: 14px;
-  border-bottom-color: color-mix(in srgb, var(--system-danger) 16%, var(--system-border));
 }
 
 .dangerCard .sectionDescription {
@@ -433,27 +410,27 @@
 
 .dangerCard :global(.btn.btn-danger) {
   min-height: 38px;
-  border-color: var(--xai-danger-border);
+  border-color: transparent;
   border-radius: var(--xai-radius-pill);
-  background: var(--system-surface);
+  background: var(--xai-danger-soft);
   color: var(--system-danger);
   box-shadow: none;
 
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--mg-danger) 54%, transparent);
+    border-color: transparent;
     background: var(--xai-danger-soft);
     color: var(--system-danger);
   }
 }
 
 .requestLogModal {
-  border: 1px solid var(--system-border);
+  border: 0;
   border-radius: var(--mg-radius-card);
   background: var(--system-surface);
   box-shadow: var(--xai-shadow-dialog);
 
   :global(.modal-header) {
-    border-bottom: 1px solid var(--system-border);
+    border-bottom: 0;
   }
 
   :global(.modal-title) {
@@ -467,7 +444,7 @@
   }
 
   :global(.modal-footer) {
-    border-top: 1px solid var(--system-border);
+    border-top: 0;
     background: var(--system-surface-muted);
   }
 
@@ -480,7 +457,7 @@
   :global(.status-badge.warning) {
     display: block;
     padding: 9px 10px;
-    border: 1px solid var(--xai-warning-border);
+    border: 0;
     border-radius: var(--xai-radius-control);
     background: var(--xai-warning-soft);
     color: var(--system-warning);
@@ -489,20 +466,18 @@
   }
 
   :global(.btn.btn-primary) {
-    border-color: var(--mg-action);
+    border-color: transparent;
     background: var(--mg-action);
     color: var(--primary-contrast, #ffffff);
   }
 
   :global(.btn.btn-secondary) {
-    border-color: var(--system-border);
-    background: var(--system-surface);
+    border-color: transparent;
+    background: var(--system-surface-subtle);
     color: var(--system-text-secondary);
   }
 }
 
-.systemOverview:focus-within,
-.tapTile:focus-visible,
 .content :global(.btn):focus-visible,
 .requestLogModal :global(.btn):focus-visible {
   outline: 1px solid var(--mg-focus-outline);
@@ -522,13 +497,7 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 8px;
-    padding: 18px 16px;
-    border-right: 1px solid var(--system-border);
-    border-bottom: 0;
-
-    &:last-child {
-      border-right: 0;
-    }
+    padding: 12px 0;
   }
 
   .versionCardHeader {
@@ -542,13 +511,9 @@
 }
 
 @media (max-width: 640px) {
-  .container {
-    max-width: none;
-  }
-
-  .pageHeader {
+  .container > .pageHeader {
     margin-bottom: 18px;
-    padding-bottom: 14px;
+    padding-bottom: 0;
   }
 
   .content {
@@ -557,6 +522,7 @@
 
   .versionGrid {
     grid-template-columns: 1fr;
+    row-gap: 8px;
   }
 
   .versionCard,
@@ -565,13 +531,7 @@
     align-items: stretch;
     flex-direction: column;
     gap: 8px;
-    padding: 15px 20px;
-    border-right: 0;
-    border-bottom: 1px solid var(--system-border);
-
-    &:last-child {
-      border-bottom: 0;
-    }
+    padding: 12px 0;
   }
 
   .versionCardHeader {

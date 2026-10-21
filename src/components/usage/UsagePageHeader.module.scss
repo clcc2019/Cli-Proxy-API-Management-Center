@@ -8,10 +8,10 @@
 .header h1 {
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
-  font-size: var(--mg-title-size);
-  font-weight: var(--mg-title-weight);
-  line-height: var(--mg-title-leading);
-  letter-spacing: -0.675px;
+  font-size: clamp(24px, 2.2vw, 30px);
+  font-weight: 600;
+  line-height: 1.33;
+  letter-spacing: -0.02em;
 }
 
 .tools {
@@ -47,10 +47,10 @@
   width: 100%;
   min-height: var(--xai-space-8);
   padding: 0 var(--xai-space-3);
-  border: 1px solid var(--xai-glass-border);
-  border-radius: var(--xai-radius-control);
-  background: var(--xai-glass-control);
-  box-shadow: var(--xai-glass-highlight);
+  border: 0;
+  border-radius: 12px;
+  background: var(--usage-surface-warm, #f3f4f6);
+  box-shadow: none;
   color: var(--xai-ink-console);
   font: 400 13.5px/18px var(--xai-font-ui);
   transition:
@@ -61,10 +61,10 @@
 .rangeDropdown {
   z-index: var(--xai-z-dropdown) !important;
   padding: var(--xai-space-2) !important;
-  border: 1px solid var(--xai-glass-border) !important;
-  border-radius: var(--xai-radius-panel) !important;
-  background: var(--xai-glass-surface-strong) !important;
-  box-shadow: var(--xai-glass-shadow-float) !important;
+  border: 1px solid #e6e7e9 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgb(32 33 36 / 12%) !important;
 }
 
 .rangeDropdown :global(button[role='option']) {
@@ -87,10 +87,10 @@
   min-height: var(--xai-space-8);
   padding: 0 var(--xai-space-3);
   overflow: hidden;
-  border: 1px solid var(--xai-glass-border);
-  border-radius: var(--xai-radius-pill);
-  background: var(--xai-glass-control);
-  box-shadow: var(--xai-glass-highlight);
+  border: 0;
+  border-radius: 10px;
+  background: var(--usage-surface-warm, #f3f4f6);
+  box-shadow: none;
   color: var(--xai-ink-console);
   font: 500 13.5px/18px var(--xai-font-ui);
   text-overflow: ellipsis;
@@ -98,7 +98,6 @@
   transition:
     color var(--xai-duration-default) var(--xai-ease-standard),
     background-color var(--xai-duration-default) var(--xai-ease-standard),
-    border-color var(--xai-duration-default) var(--xai-ease-standard),
     transform var(--xai-duration-fast) var(--xai-ease-out);
 }
 
@@ -112,9 +111,9 @@
 }
 
 .primaryAction:global(.btn.btn-primary) {
-  border-color: var(--xai-ink-console);
-  background: var(--xai-ink-console);
-  box-shadow: var(--xai-shadow-button);
+  border: 0;
+  background: #202124;
+  box-shadow: none;
   color: var(--xai-inverse);
 }
 
@@ -134,18 +133,17 @@
 .rangeSelect :global(button):focus-visible,
 .actions :global(.btn):focus-visible,
 .rangeDropdown :global(button[role='option']):focus-visible {
-  outline: 1px solid var(--xai-ink-console);
+  outline: 2px solid color-mix(in srgb, #202124 22%, transparent);
   outline-offset: 3px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .rangeSelect :global(button):hover:not(:disabled) {
-    border-color: var(--xai-border-hover);
-    background: var(--xai-fill-soft);
+    background: var(--xai-fill-hover);
   }
 
   .actions :global(.btn):hover:not(:disabled) {
-    background: var(--xai-fill-soft);
+    background: var(--xai-fill-hover);
   }
 
   .primaryAction:global(.btn.btn-primary):hover:not(:disabled) {
@@ -176,6 +174,11 @@
   .header {
     gap: var(--xai-space-3);
     padding-bottom: var(--xai-space-5);
+  }
+
+  .header h1 {
+    font-size: 27px;
+    line-height: 36px;
   }
 
   .tools,

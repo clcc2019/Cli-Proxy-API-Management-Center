@@ -11,6 +11,7 @@ import {
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useEventCallback } from '@/hooks';
+import { loadAuthFileIndex } from '@/features/authFiles/authFileCredentialMap';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
@@ -57,7 +58,6 @@ import {
 import { maskApiKey } from '@/utils/format';
 import { isValidApiKeyCharset } from '@/utils/validation';
 import type { ClientApiKeyQuota } from '@/types/config';
-import { authFilesApi } from '@/services/api/authFiles';
 import {
   CLIENT_API_KEY_QUOTA_FIELDS,
   clientApiKeyQuotaLimitCount,
@@ -485,8 +485,9 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
       className={[apiKeyCardStyles.card, isDisabled ? apiKeyCardStyles.cardDisabled : '']
         .filter(Boolean)
         .join(' ')}
+      role="row"
     >
-      <div className={apiKeyCardStyles.identityCell}>
+      <div className={apiKeyCardStyles.identityCell} role="rowheader">
         <span className={apiKeyCardStyles.avatar} aria-hidden="true">
           <IconKey size={18} />
         </span>
@@ -507,7 +508,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
         </div>
       </div>
 
-      <div className={apiKeyCardStyles.scopeCell}>
+      <div className={apiKeyCardStyles.scopeCell} role="cell">
         <span className={apiKeyCardStyles.mobileCellLabel}>{t('api_keys.column_scope')}</span>
         <div className={apiKeyCardStyles.summaryRow}>
           {hasRules && (
@@ -547,7 +548,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
         </div>
       </div>
 
-      <div className={apiKeyCardStyles.statusCell}>
+      <div className={apiKeyCardStyles.statusCell} role="cell">
         <span className={apiKeyCardStyles.mobileCellLabel}>{t('api_keys.column_status')}</span>
         <span
           className={[
@@ -574,7 +575,7 @@ const ApiKeyCardRow = memo(function ApiKeyCardRow({
         />
       </div>
 
-      <div className={apiKeyCardStyles.actions}>
+      <div className={apiKeyCardStyles.actions} role="cell">
         <Button
           variant="secondary"
           size="sm"
@@ -646,12 +647,18 @@ const ApiKeyCardList = memo(function ApiKeyCardList({
   const { t } = useTranslation();
 
   return (
-    <div className={apiKeyCardStyles.listSurface}>
+    <div
+      className={apiKeyCardStyles.listSurface}
+      role="table"
+      aria-label={t('api_keys.section_title')}
+    >
       <div className={apiKeyCardStyles.listHeader} role="row">
-        <span>{t('api_keys.column_key')}</span>
-        <span>{t('api_keys.column_scope')}</span>
-        <span>{t('api_keys.column_status')}</span>
-        <span className={apiKeyCardStyles.actionsHeader}>{t('api_keys.column_actions')}</span>
+        <span role="columnheader">{t('api_keys.column_key')}</span>
+        <span role="columnheader">{t('api_keys.column_scope')}</span>
+        <span role="columnheader">{t('api_keys.column_status')}</span>
+        <span className={apiKeyCardStyles.actionsHeader} role="columnheader">
+          {t('api_keys.column_actions')}
+        </span>
       </div>
       <div className={apiKeyCardStyles.cardList} role="rowgroup">
         {entries.map(({ entry, index }) => (
@@ -685,6 +692,8 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   const showNotification = useNotificationStore((state) => state.showNotification);
   const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const apiBase = useAuthStore((state) => state.apiBase);
+  const managementKey = useAuthStore((state) => state.managementKey);
+  const authScopeKey = `${apiBase ?? ''}::${managementKey ?? ''}`;
   const apiKeys = useMemo(() => value ?? [], [value]);
   const apiUrl = useMemo(() => buildOpenAiBaseUrl(apiBase || ''), [apiBase]);
 
@@ -810,13 +819,10 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   useEffect(() => {
     if (!modalOpen) return undefined;
     let active = true;
-    void authFilesApi
-      .listAll({ summary: true, includeRecentRequests: false })
-      .then((response) => {
+    void loadAuthFileIndex(authScopeKey)
+      .then((files) => {
         if (!active) return;
-        const names = (response.files ?? [])
-          .map((file) => String(file.name ?? '').trim())
-          .filter(Boolean);
+        const names = files.map((file) => String(file.name ?? '').trim()).filter(Boolean);
         setAuthFileOptions(
           Array.from(new Set([...names, ...authFilesValueRef.current])).sort((left, right) =>
             left.localeCompare(right, undefined, { sensitivity: 'accent' })
@@ -832,7 +838,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
     return () => {
       active = false;
     };
-  }, [modalOpen]);
+  }, [authScopeKey, modalOpen]);
 
   const handleDelete = useCallback(
     (apiKeyId: string) => {

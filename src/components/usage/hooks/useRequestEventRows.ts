@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
-import { authFilesApi } from '@/services/api/authFiles';
+import { AUTH_FILES_REFRESH_EVENT } from '@/utils/constants';
+import {
+  getCachedAuthFileCredentialMap,
+  loadAuthFileCredentialMap,
+} from '@/features/authFiles/authFileCredentialMap';
 import type { ProviderKeyConfig } from '@/types';
-import type { AuthFileItem } from '@/types/authFile';
 import type { CredentialInfo } from '@/types/sourceInfo';
 import { maskApiKey } from '@/utils/format';
 import { parseTimestampMs } from '@/utils/timestamp';
@@ -17,15 +20,10 @@ import {
   extractTotalTokens,
   type ModelPrice,
   type UsageDetail,
-  normalizeAuthIndex,
 } from '@/utils/usage';
 
 /** Maximum number of recent request events to retain & render. */
 export const REQUEST_EVENT_ROWS_LIMIT = 20;
-const EMPTY_CREDENTIAL_INFO_MAP = new Map<string, CredentialInfo>();
-const AUTH_FILE_MAP_STALE_TIME_MS = 240_000;
-const authFileMapCache = new Map<string, { map: Map<string, CredentialInfo>; fetchedAt: number }>();
-const authFileMapRequests = new Map<string, Promise<Map<string, CredentialInfo>>>();
 
 export type RequestEventTokenKind = 'in' | 'out' | 'reasoning' | 'cached';
 
@@ -94,51 +92,6 @@ const toNumber = (value: unknown): number => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 0;
   return parsed;
-};
-
-const loadAuthFileMap = (scopeKey: string): Promise<Map<string, CredentialInfo>> => {
-  const cached = authFileMapCache.get(scopeKey);
-  if (cached && Date.now() - cached.fetchedAt < AUTH_FILE_MAP_STALE_TIME_MS) {
-    return Promise.resolve(cached.map);
-  }
-
-  const inFlight = authFileMapRequests.get(scopeKey);
-  if (inFlight) return inFlight;
-
-  const request = authFilesApi
-    .listAll({
-      codexSubscription: 'skip',
-      summary: true,
-      includeRecentRequests: false,
-    })
-    .then((res) => {
-      const files = Array.isArray(res) ? res : (res as { files?: AuthFileItem[] })?.files;
-      if (!Array.isArray(files)) {
-        authFileMapCache.set(scopeKey, {
-          map: EMPTY_CREDENTIAL_INFO_MAP,
-          fetchedAt: Date.now(),
-        });
-        return EMPTY_CREDENTIAL_INFO_MAP;
-      }
-
-      const map = new Map<string, CredentialInfo>();
-      files.forEach((file) => {
-        const key = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
-        if (!key) return;
-        map.set(key, {
-          name: file.name || key,
-          type: (file.type || file.provider || '').toString(),
-        });
-      });
-      authFileMapCache.set(scopeKey, { map, fetchedAt: Date.now() });
-      return map;
-    })
-    .finally(() => {
-      authFileMapRequests.delete(scopeKey);
-    });
-
-  authFileMapRequests.set(scopeKey, request);
-  return request;
 };
 
 const buildRequestEventTokenParts = ({
@@ -243,38 +196,32 @@ export function useRequestEventRows({
     map: Map<string, CredentialInfo>;
   }>(() => ({
     scopeKey: authScopeKey,
-    map: authFileMapCache.get(authScopeKey)?.map ?? EMPTY_CREDENTIAL_INFO_MAP,
+    map: getCachedAuthFileCredentialMap(authScopeKey),
   }));
   const authFileMap =
     authFileMapState.scopeKey === authScopeKey
       ? authFileMapState.map
-      : (authFileMapCache.get(authScopeKey)?.map ?? EMPTY_CREDENTIAL_INFO_MAP);
+      : getCachedAuthFileCredentialMap(authScopeKey);
+  const hasUsageData = usage !== null;
 
   useEffect(() => {
-    if (!isCurrentLayer || usage === null) return undefined;
+    if (!isCurrentLayer || !hasUsageData) return undefined;
 
     let cancelled = false;
-    const cached = authFileMapCache.get(authScopeKey);
-    if (cached && Date.now() - cached.fetchedAt < AUTH_FILE_MAP_STALE_TIME_MS) {
-      const timeoutId = window.setTimeout(() => {
-        setAuthFileMapState((previous) =>
-          previous.scopeKey === authScopeKey && previous.map === cached.map
-            ? previous
-            : { scopeKey: authScopeKey, map: cached.map }
-        );
-      }, 0);
-      return () => window.clearTimeout(timeoutId);
-    }
-
-    void loadAuthFileMap(authScopeKey)
-      .then((map) => {
-        if (!cancelled) setAuthFileMapState({ scopeKey: authScopeKey, map });
-      })
-      .catch(() => {});
+    const refreshAuthFileMap = () => {
+      void loadAuthFileCredentialMap(authScopeKey)
+        .then((map) => {
+          if (!cancelled) setAuthFileMapState({ scopeKey: authScopeKey, map });
+        })
+        .catch(() => {});
+    };
+    refreshAuthFileMap();
+    window.addEventListener(AUTH_FILES_REFRESH_EVENT, refreshAuthFileMap);
     return () => {
       cancelled = true;
+      window.removeEventListener(AUTH_FILES_REFRESH_EVENT, refreshAuthFileMap);
     };
-  }, [authScopeKey, isCurrentLayer, usage]);
+  }, [authScopeKey, hasUsageData, isCurrentLayer]);
 
   const sourceInfoMap = useMemo(
     () =>

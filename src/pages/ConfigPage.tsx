@@ -106,6 +106,7 @@ export function ConfigPage() {
   const [lastSearchedQuery, setLastSearchedQuery] = useState('');
   const editorRef = useRef<ReactCodeMirrorRef | null>(null);
   const floatingActionsRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const loadConfigVersionRef = useRef(0);
   const isCurrentLayerRef = useRef(isCurrentLayer);
 
@@ -489,21 +490,32 @@ export function ConfigPage() {
     if (typeof window === 'undefined' || !shouldRenderFloatingActions) return;
 
     const actionsEl = floatingActionsRef.current;
-    if (!actionsEl) return;
+    const pageEl = containerRef.current;
+    if (!actionsEl || !pageEl) return;
 
     let rafId: number | null = null;
+    const syncActionSpace = () => {
+      const actionRect = actionsEl.getBoundingClientRect();
+      const pageRect = pageEl.getBoundingClientRect();
+      const height = actionRect.height;
+      const pageTopInDocument = pageRect.top + window.scrollY;
+      const availableHeight = Math.max(0, actionRect.top - pageTopInDocument - 16);
+      document.documentElement.style.setProperty('--config-action-bar-height', `${height}px`);
+      document.documentElement.style.setProperty(
+        '--config-page-scroll-max-height',
+        `${availableHeight}px`
+      );
+    };
     const scheduleUpdate = () => {
       if (rafId !== null) return;
       rafId = window.requestAnimationFrame(() => {
         rafId = null;
-        const height = actionsEl.getBoundingClientRect().height;
-        document.documentElement.style.setProperty('--config-action-bar-height', `${height}px`);
+        syncActionSpace();
       });
     };
 
     // 初次同步一次，后续 resize / ResizeObserver 通过 rAF 聚合避免布局抖动
-    const height = actionsEl.getBoundingClientRect().height;
-    document.documentElement.style.setProperty('--config-action-bar-height', `${height}px`);
+    syncActionSpace();
     window.addEventListener('resize', scheduleUpdate);
 
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleUpdate);
@@ -514,6 +526,7 @@ export function ConfigPage() {
       ro?.disconnect();
       window.removeEventListener('resize', scheduleUpdate);
       document.documentElement.style.removeProperty('--config-action-bar-height');
+      document.documentElement.style.removeProperty('--config-page-scroll-max-height');
     };
   }, [shouldRenderFloatingActions]);
 
@@ -617,7 +630,7 @@ export function ConfigPage() {
   );
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       <ManagementPageHeader
         title={t('config_management.title')}
         description={t('config_management.description')}

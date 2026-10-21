@@ -37,12 +37,12 @@
   min-height: var(--xai-space-8);
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--xai-glass-border);
-  background: var(--xai-glass-control);
+  border: 0;
+  background: var(--provider-toolbar);
   color: var(--xai-secondary);
   font-family: var(--xai-font-ui);
   cursor: pointer;
-  box-shadow: var(--xai-glass-highlight);
+  box-shadow: none;
   transition:
     background-color var(--xai-duration-default) var(--xai-ease-standard),
     border-color var(--xai-duration-default) var(--xai-ease-standard),
@@ -50,8 +50,7 @@
     transform var(--xai-duration-fast) var(--xai-ease-out);
 
   &:hover:not(:disabled) {
-    border-color: var(--xai-border-hover);
-    background: var(--xai-fill-soft);
+    background: var(--provider-hover);
     color: var(--xai-ink);
   }
 
@@ -61,7 +60,7 @@
   }
 
   &:focus-visible {
-    outline: 1px solid var(--xai-ink-console);
+    outline: 2px solid var(--mg-focus-outline);
     outline-offset: 2px;
   }
 
@@ -96,14 +95,12 @@
   }
 
   &[aria-expanded='true'] {
-    border-color: var(--xai-border-hover);
     background: var(--xai-fill-pressed);
     color: var(--xai-ink-console);
   }
 }
 
 .filterTriggerActive {
-  border-color: var(--xai-border-hover);
   background: var(--xai-fill-soft);
   color: var(--xai-ink-console);
 }
@@ -124,8 +121,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--xai-space-1);
-  padding-bottom: var(--xai-space-2);
-  border-bottom: 1px solid var(--xai-border);
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .filterToolbarBtn {

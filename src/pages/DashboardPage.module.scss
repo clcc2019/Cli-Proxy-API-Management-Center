@@ -1,238 +1,216 @@
 .dashboard {
   display: flex;
   width: 100%;
-  max-width: 1240px;
+  max-width: none;
   min-width: 0;
   flex-direction: column;
-  gap: clamp(26px, 2.4vw, 36px);
-  margin-inline: auto;
-  color: var(--xai-ink-console);
+  gap: clamp(28px, 3vw, 40px);
+  margin-inline: 0;
+  color: var(--mg-text);
   font-family: var(--xai-font-ui);
-  animation: dashboard-enter 360ms var(--xai-ease-page) both;
+  animation: dashboard-enter 240ms var(--xai-ease-page) both;
 }
 
 @keyframes dashboard-enter {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-// A contained arrival surface gives the dashboard a clear starting point
-// without turning the management console into a marketing hero.
+// Flat borderless hero header over the quiet workspace canvas
 .hero {
   position: relative;
   display: flex;
   min-width: 0;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 27px;
-  padding: 25px 28px 27px;
-  border: 1px solid var(--xai-border-subtle);
-  border-radius: 20px;
-  background: var(--xai-white);
-  box-shadow: var(--mg-shadow-rest);
+  gap: 24px;
+  padding: 8px 0 0;
+  border: 0;
+  background: transparent;
 }
 
 .heroCopy {
+  position: relative;
+  z-index: 1;
   display: grid;
   min-width: 0;
-  gap: 4.5px;
+  max-width: 720px;
+  gap: 8px;
 }
 
 .heroTitle {
-  max-width: 24ch;
   margin: 0;
-  color: var(--xai-ink-console);
+  color: var(--mg-text);
   font-family: var(--xai-font-display);
-  font-size: clamp(34px, 3vw, 42px);
+  font-size: clamp(24px, 2vw, 30px);
   font-weight: 600;
-  line-height: 1.06;
-  letter-spacing: -0.035em;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 
 .heroDescription {
-  max-width: 62ch;
-  margin: 6.75px 0 0;
-  color: var(--xai-secondary);
-  font-size: 14px;
+  max-width: 58ch;
+  margin: 0;
+  color: var(--mg-text-secondary);
+  font-size: 14.5px;
   line-height: 23px;
   text-wrap: pretty;
 }
 
 .heroStatus {
-  display: flex;
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
   min-width: 0;
   flex: 0 0 auto;
   align-items: center;
-  gap: 9px;
-  padding: 5px 8px 5px 11px;
-  border: 1px solid var(--xai-border);
+  gap: 10px;
+  padding: 6px 14px;
+  border: 0;
   border-radius: var(--xai-radius-pill);
-  background: var(--xai-canvas);
-  box-shadow: var(--xai-shadow-button);
-  color: var(--xai-secondary);
-  font-size: 12px;
+  background: var(--mg-surface-subtle);
+  box-shadow: none;
+  color: var(--mg-text-secondary);
+  font-size: 12.5px;
   line-height: 18px;
+  transition:
+    background-color 150ms var(--xai-ease-standard),
+    color 150ms var(--xai-ease-standard);
 }
 
 .statusLine {
   display: inline-flex;
   align-items: center;
-  gap: 6.75px;
+  gap: 7px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .statusDot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--xai-disabled);
 }
 
-.heroStatus[data-status='connected'] .statusDot {
-  background: var(--xai-success);
-}
-
-.heroStatus[data-status='connecting'] .statusDot {
-  background: var(--xai-warning);
-  animation: status-pulse 1200ms var(--xai-ease-standard) infinite;
-}
-
-.heroStatus[data-status='error'] .statusDot {
-  background: var(--xai-danger);
-}
-
 .heroStatus[data-status='connected'] {
-  border-color: var(--xai-success-border);
   background: var(--xai-success-soft);
+  color: var(--mg-success-text);
+
+  .statusDot {
+    background: var(--xai-success);
+  }
+}
+
+.heroStatus[data-status='connecting'] {
+  background: var(--xai-warning-soft);
+  color: var(--mg-warning);
+
+  .statusDot {
+    background: var(--xai-warning);
+    animation: status-pulse 1200ms var(--xai-ease-standard) infinite;
+  }
+}
+
+.heroStatus[data-status='error'] {
+  background: var(--xai-danger-soft);
+  color: var(--mg-danger);
+
+  .statusDot {
+    background: var(--xai-danger);
+  }
 }
 
 .heroVersion {
-  padding-left: 9px;
-  border-left: 1px solid var(--xai-border-hover);
-  color: var(--xai-secondary);
+  padding-left: 8px;
+  color: var(--mg-text-secondary);
   font-family: var(--xai-font-mono);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 
+// Stats overview section
 .statsSection {
+  position: relative;
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .sectionHeading {
   display: flex;
-  min-height: 27px;
+  min-height: 24px;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 15px;
 }
 
 .sectionTitle {
   margin: 0;
-  color: var(--xai-ink-console);
+  color: var(--mg-text);
   font-family: var(--xai-font-display);
   font-size: 18px;
   font-weight: 500;
-  line-height: 27px;
-  letter-spacing: -0.45px;
-  text-wrap: balance;
+  line-height: 24px;
+  letter-spacing: -0.02em;
 }
 
-// One dominant data surface with joined cells and hairline separation.
+// x.ai Solutions style flat borderless cards
 .bentoGrid {
   position: relative;
   display: grid;
-  overflow: hidden;
-  border: 1px solid var(--xai-border-subtle);
-  border-radius: var(--xai-radius-card);
-  background: var(--mg-surface);
-  box-shadow: var(--mg-shadow-card);
-  grid-template-columns: 1.25fr repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .bentoCard {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 150px;
+  min-height: 148px;
   flex-direction: column;
   justify-content: space-between;
-  padding: 21px;
+  padding: clamp(22px, 2.2vw, 30px);
   border: 0;
-  border-right: 1px solid var(--xai-hairline);
-  border-radius: 0;
-  // Keep the surface explicit so contrast tooling and high-contrast modes can
-  // resolve the text/background pair without depending on the parent grid.
-  background: var(--xai-white);
+  border-radius: var(--xai-radius-card);
+  background: var(--mg-surface-subtle);
+  box-shadow: none;
   color: inherit;
   text-decoration: none;
   isolation: isolate;
   overflow: hidden;
-  box-shadow: inset 0 -1px 0 transparent;
   transition:
     background-color 150ms var(--xai-ease-standard),
-    color 150ms var(--xai-ease-standard),
-    box-shadow 150ms var(--xai-ease-standard),
     transform 120ms var(--xai-ease-out);
-
-  &:nth-child(1) .bentoValue,
-  &:nth-child(2) .bentoValue {
-    color: var(--xai-ink-console);
-  }
-
-  &:first-child {
-    background: var(--xai-ink-console);
-    color: var(--xai-inverse);
-
-    .bentoMeta,
-    .bentoArrow,
-    .bentoLabel {
-      color: color-mix(in srgb, var(--xai-inverse) 72%, transparent);
-    }
-
-    .bentoValue {
-      color: var(--xai-inverse);
-    }
-
-    .bentoArrow {
-      color: var(--xai-orange);
-    }
-  }
-
-  &:last-child {
-    border-right: 0;
-  }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: var(--xai-fill-soft);
-      box-shadow: inset 0 -1px 0 var(--xai-border-hover);
+      background: var(--mg-surface-hover);
 
       .bentoArrow {
-        color: var(--xai-ink-console);
-        transform: translateX(3px);
-      }
-    }
-
-    &:first-child:hover {
-      background: var(--mg-action-hover);
-
-      .bentoArrow {
-        color: var(--xai-orange);
+        color: var(--mg-text);
+        transform: translateX(4px);
       }
     }
   }
 
   &:active {
-    background: var(--xai-fill-hover);
     transform: translateY(1px);
+    background: var(--mg-surface-pressed);
   }
 
   &:focus-visible {
     z-index: 1;
-    outline: 1px solid var(--xai-ink-console);
-    outline-offset: -4.5px;
+    outline: 1px solid var(--mg-text);
+    outline-offset: 3px;
   }
 }
 
@@ -240,19 +218,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  color: var(--xai-secondary);
-  font-family: var(--xai-font-mono);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  line-height: 18px;
 }
 
 .bentoArrow {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--xai-secondary);
+  color: var(--mg-text-secondary);
   transition:
     color 150ms var(--xai-ease-standard),
     transform 150ms var(--xai-ease-out);
@@ -262,14 +234,14 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 4.5px;
+  gap: 8px;
 }
 
 .bentoValue {
-  color: var(--xai-ink-console);
+  color: var(--mg-text);
   font-family: var(--xai-font-display);
-  font-size: clamp(36px, 3.4vw, 49.5px);
-  font-weight: 600;
+  font-size: clamp(38px, 3.8vw, 52px);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -280,37 +252,41 @@
   width: min(4rem, 32vw);
   min-height: 1em;
   border-radius: var(--xai-radius-small);
-  background: var(--xai-fill-soft);
+  background: var(--xai-fill-hover);
   color: transparent;
   animation: loading-pulse 1200ms var(--xai-ease-standard) infinite;
 }
 
 .bentoLabel {
-  color: var(--xai-ink-console);
+  color: var(--mg-text-secondary);
   font-size: 13.5px;
   font-weight: 500;
   line-height: 18px;
   text-wrap: pretty;
 }
 
+// Flat borderless Gateway config panel
 .gatewaySection {
   position: relative;
-  overflow: hidden;
-  border: 1px solid var(--xai-border-subtle);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 20px;
+  padding: clamp(22px, 2.4vw, 32px);
+  border: 0;
   border-radius: var(--xai-radius-card);
-  background: var(--xai-white);
-  box-shadow: var(--mg-shadow-card);
+  background: var(--mg-surface-subtle);
+  box-shadow: none;
 }
 
 .gatewayHeader {
   display: flex;
-  min-height: 81px;
+  min-height: 0;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 22.5px;
-  border-bottom: 1px solid var(--xai-hairline);
-  background: var(--xai-white);
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .gatewayHeader .sectionTitle {
@@ -318,10 +294,10 @@
 }
 
 .gatewayMeta {
-  margin: 4.5px 0 0;
-  color: var(--xai-secondary);
+  margin: 4px 0 0;
+  color: var(--mg-text-secondary);
   font-family: var(--xai-font-mono);
-  font-size: 13px;
+  font-size: 12.5px;
   line-height: 18px;
 }
 
@@ -331,24 +307,22 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  padding: 6.75px 13.5px;
-  border: 1px solid var(--mg-action);
+  padding: 6px 18px;
+  border: 0;
   border-radius: var(--xai-radius-pill);
   background: var(--mg-action);
-  box-shadow: var(--xai-shadow-button);
-  color: var(--xai-inverse);
-  font-size: 13.5px;
+  box-shadow: none;
+  color: var(--mg-text-inverse);
+  font-size: 13px;
   font-weight: 500;
   line-height: 18px;
   text-decoration: none;
   transition:
     background-color 150ms var(--xai-ease-standard),
-    border-color 150ms var(--xai-ease-standard),
     transform 120ms var(--xai-ease-out);
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      border-color: var(--mg-action-hover);
       background: var(--mg-action-hover);
     }
   }
@@ -358,7 +332,7 @@
   }
 
   &:focus-visible {
-    outline: 1px solid var(--xai-ink-console);
+    outline: 1px solid var(--mg-text);
     outline-offset: 3px;
   }
 }
@@ -366,159 +340,74 @@
 .configList {
   display: grid;
   margin: 0;
+  padding: 0;
+  gap: 10px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .configRow {
   display: flex;
   min-width: 0;
-  min-height: 67.5px;
+  min-height: 56px;
   align-items: center;
   justify-content: space-between;
-  gap: 13.5px;
-  padding: 13.5px 18px;
-  border-right: 1px solid var(--xai-hairline);
-  border-bottom: 1px solid var(--xai-hairline);
-  transition: background-color 150ms var(--xai-ease-standard);
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      background: var(--xai-fill-soft);
-    }
-  }
-
-  &:nth-child(3n) {
-    border-right: 0;
-  }
-
-  &:nth-last-child(-n + 3) {
-    border-bottom: 0;
-  }
+  gap: 14px;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: var(--xai-radius-panel);
+  background: var(--mg-surface);
 
   dt,
   dd {
-    min-width: 0;
     margin: 0;
   }
 
   dt {
-    color: var(--xai-secondary);
-    font-size: 13.5px;
+    color: var(--mg-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
     line-height: 18px;
   }
 
   dd {
     display: inline-flex;
     align-items: center;
-    gap: 6.75px;
-    color: var(--xai-ink-console);
-    font-size: 13.5px;
-    font-weight: 500;
+    justify-content: flex-end;
+    font-size: 13px;
+    font-weight: 600;
     line-height: 18px;
     text-align: right;
   }
 }
 
-.configStatus {
-  width: 6.75px;
-  height: 6.75px;
-  flex: 0 0 auto;
-  border-radius: var(--xai-radius-pill);
-  background: var(--xai-disabled);
+.configRow[data-tone='success'] dd {
+  color: var(--mg-success-text);
+}
 
-  &.success {
-    background: var(--xai-success);
-  }
+.configRow[data-tone='attention'] dd {
+  color: var(--mg-warning);
+}
 
-  &.attention {
-    background: var(--xai-orange);
-  }
-
-  &.neutral {
-    background: var(--xai-disabled);
-  }
+.configRow[data-tone='neutral'] dd {
+  color: var(--mg-text);
 }
 
 .configRowWide {
   grid-column: 1 / -1;
-  border-right: 0;
-  border-bottom: 0;
-}
-
-.configList:has(.configRowWide) .configRow:nth-last-child(-n + 4):not(.configRowWide) {
-  border-bottom: 1px solid var(--xai-border-subtle);
 }
 
 .monoValue {
-  overflow: hidden;
-  color: var(--xai-secondary) !important;
   font-family: var(--xai-font-mono);
-  font-weight: 400 !important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 1024px) {
-  .dashboard {
-    gap: 24px;
-  }
-
   .bentoGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .bentoCard,
-  .bentoCard:first-child,
-  .bentoCard:nth-child(2),
-  .bentoCard:nth-child(3),
-  .bentoCard:nth-child(4) {
-    grid-column: span 1;
-  }
-
   .configList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .bentoCard {
-    border-bottom: 1px solid var(--xai-border-subtle);
-
-    &:nth-child(2n) {
-      border-right: 0;
-    }
-
-    &:nth-last-child(-n + 2) {
-      border-bottom: 0;
-    }
-  }
-
-  .configRow {
-    border-right: 1px solid var(--xai-border-subtle);
-    border-bottom: 1px solid var(--xai-border-subtle);
-
-    &:nth-child(3n) {
-      border-right: 1px solid var(--xai-border-subtle);
-    }
-
-    &:nth-child(2n) {
-      border-right: 0;
-    }
-
-    &:nth-last-child(-n + 3) {
-      border-bottom: 1px solid var(--xai-border-subtle);
-    }
-
-    &:nth-last-child(-n + 2) {
-      border-bottom: 0;
-    }
-  }
-
-  .configRowWide {
-    border-right: 0;
-    border-bottom: 0;
-  }
-
-  .configList:has(.configRowWide) .configRow:nth-last-child(-n + 3):not(.configRowWide) {
-    border-bottom: 1px solid var(--xai-border-subtle);
   }
 }
 
@@ -530,300 +419,63 @@
   .hero {
     align-items: flex-start;
     flex-direction: column;
-    gap: 18px;
-    padding-top: 13.5px;
+    gap: 14px;
   }
 
   .heroStatus {
-    max-width: 100%;
-    flex-wrap: wrap;
+    width: auto;
   }
 
   .bentoCard {
-    min-height: 117px;
-    padding: 18px;
-
+    min-height: 120px;
+    padding: 20px 22px;
   }
 
-  .gatewayHeader {
-    padding-inline: 18px;
-  }
-
-  .configLink {
-    min-height: 44px;
+  .gatewaySection {
+    padding: 20px;
   }
 }
 
-@media (max-width: 480px) {
-  .heroTitle {
-    font-size: 31.5px;
-    line-height: 36px;
-  }
-
-  .gatewayHeader {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .configLink {
-    width: 100%;
+@media (max-width: 540px) {
+  .bentoGrid {
+    grid-template-columns: 1fr;
   }
 
   .configList {
     grid-template-columns: 1fr;
   }
 
-  .bentoCard {
-    min-height: 132px;
-    padding: 15px;
-
+  .heroTitle {
+    font-size: clamp(24px, 6.5vw, 28px);
   }
 
-  .configRow {
-    border-right: 0;
-    border-bottom: 1px solid var(--xai-border-subtle);
-
-    &:nth-child(2n),
-    &:nth-child(3n),
-    &:nth-last-child(-n + 3),
-    &:nth-last-child(-n + 2) {
-      border-right: 0;
-      border-bottom: 1px solid var(--xai-border-subtle);
-    }
-
-    &:last-child {
-      border-bottom: 0;
-    }
-  }
-
-  .configRowWide {
-    align-items: flex-start;
+  .gatewayHeader {
     flex-direction: column;
-  }
-
-  .monoValue {
-    overflow: visible;
-    text-align: left !important;
-    text-overflow: clip;
-    white-space: normal;
-    word-break: break-all;
-  }
-}
-
-// Keep the four primary counts in view together on narrow phones. These values
-// and labels fit comfortably in two columns without crowding the tap targets.
-@media (max-width: 420px) {
-  .bentoGrid {
-    overflow: visible;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    gap: 8px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .bentoCard,
-  .bentoCard:nth-child(2n),
-  .bentoCard:nth-child(2n + 1) {
-    min-height: 126px;
-    border: 0;
-    border-radius: var(--xai-radius-card);
-  }
-
-  .heroStatus {
-    width: 100%;
-    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
   }
 }
 
 @keyframes loading-pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-
-  50% {
-    opacity: 0.8;
-  }
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 @keyframes status-pulse {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-
-  50% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dashboard {
-    animation: none;
-  }
-
+  .dashboard,
+  .heroStatus[data-status='connecting'] .statusDot,
   .bentoValueLoading {
-    animation: none;
-  }
-
-  .heroStatus[data-status='connecting'] .statusDot {
     animation: none;
   }
 
   .bentoCard,
   .bentoArrow,
-  .configLink,
-  .configRow,
-  .bentoCard::before {
+  .configLink {
     transition: none;
-  }
-}
-
-// The landing surface borrows the reference page's generous whitespace and
-// black focal panel while keeping the dashboard's operational hierarchy.
-.dashboard {
-  max-width: 1320px;
-  gap: clamp(24px, 2.4vw, 32px);
-}
-
-.hero {
-  min-height: clamp(172px, 15vw, 196px);
-  align-items: flex-end;
-  padding: clamp(24px, 2.6vw, 36px);
-  overflow: hidden;
-  border-color: transparent;
-  border-radius: var(--xai-radius-card);
-  background: var(--xai-ink-console);
-  box-shadow: 0 14px 34px -26px rgb(23 25 27 / 72%);
-  color: var(--xai-inverse);
-}
-
-.hero::before {
-  content: none;
-}
-
-.heroCopy {
-  position: relative;
-  z-index: 1;
-  gap: 10px;
-  max-width: 700px;
-}
-
-.heroTitle {
-  max-width: 12ch;
-  color: var(--xai-inverse);
-  font-size: clamp(40px, 4vw, 58px);
-  font-weight: 500;
-  letter-spacing: -0.035em;
-  line-height: 0.98;
-}
-
-.heroDescription {
-  max-width: 52ch;
-  margin-top: 8px;
-  color: rgb(251 250 247 / 72%);
-  font-size: 15px;
-  line-height: 24px;
-}
-
-.heroStatus {
-  position: relative;
-  z-index: 1;
-  border-color: rgb(255 255 255 / 22%);
-  background: color-mix(in srgb, var(--xai-inverse) 9%, var(--xai-ink-console));
-  box-shadow: none;
-  color: rgb(251 250 247 / 82%);
-}
-
-.heroStatus[data-status='connected'] {
-  border-color: rgb(255 255 255 / 22%);
-  background: color-mix(in srgb, var(--xai-inverse) 9%, var(--xai-ink-console));
-}
-
-.heroStatus .statusDot {
-  width: 7px;
-  height: 7px;
-  background: rgb(251 250 247 / 52%);
-}
-
-.heroStatus[data-status='connected'] .statusDot {
-  background: #77d69a;
-}
-
-.heroStatus[data-status='connecting'] .statusDot {
-  background: #ffb05e;
-}
-
-.heroStatus[data-status='error'] .statusDot {
-  background: #ff847b;
-}
-
-.heroVersion {
-  border-left-color: rgb(255 255 255 / 20%);
-  color: rgb(251 250 247 / 62%);
-}
-
-.statsSection,
-.gatewaySection {
-  position: relative;
-}
-
-.sectionHeading {
-  margin-bottom: 18px;
-}
-
-.sectionTitle {
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-.bentoGrid,
-.gatewaySection {
-  border-radius: var(--xai-radius-card);
-  box-shadow: none;
-}
-
-.bentoCard {
-  min-height: 156px;
-  padding: clamp(22px, 2.2vw, 32px);
-}
-
-.bentoValue {
-  font-size: clamp(42px, 4vw, 56px);
-  font-weight: 500;
-}
-
-.gatewayHeader {
-  min-height: 90px;
-  padding: 25px 28px;
-}
-
-@media (max-width: 768px) {
-  .hero {
-    min-height: 188px;
-    padding: 24px;
-  }
-
-  .heroTitle {
-    max-width: 10ch;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero {
-    min-height: 196px;
-    padding: 22px 20px;
-    border-radius: var(--xai-radius-card);
-  }
-
-  .heroTitle {
-    font-size: clamp(36px, 10vw, 44px);
-  }
-
-  .heroDescription {
-    font-size: 14px;
-    line-height: 22px;
   }
 }

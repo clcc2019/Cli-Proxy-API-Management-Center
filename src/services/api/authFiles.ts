@@ -513,6 +513,7 @@ const dedupeAuthFilesResponse = (payload: AuthFilesResponse): AuthFilesResponse 
 const inFlightAuthFilesListRequests = new Map<string, Promise<AuthFilesResponse>>();
 const AUTH_FILES_LIST_ALL_PAGE_SIZE = 200;
 const AUTH_FILES_LIST_ALL_MAX_PAGES = 1_000;
+const AUTH_FILES_LIST_ALL_CONCURRENCY = 4;
 
 const buildAuthFilesListParams = (options: AuthFilesListOptions) => {
   const params: Record<string, string | number | boolean> = {
@@ -728,39 +729,52 @@ const listAllAuthFiles = async (
   let firstResponse: AuthFilesResponse | null = null;
   let lastResponse: AuthFilesResponse | null = null;
   let page = 1;
+  let requestCount = 0;
 
-  for (let requestCount = 0; requestCount < AUTH_FILES_LIST_ALL_MAX_PAGES; requestCount += 1) {
-    const response = await listAuthFiles(
+  const fetchPage = (pageNumber: number) =>
+    listAuthFiles(
       {
         ...options,
         // The compatibility endpoint now bounds bare requests. Fetch all
         // lightweight pages explicitly for consumers that really need the
         // complete index (usage/source resolution and local plan filters).
-        page,
+        page: pageNumber,
         pageSize: AUTH_FILES_LIST_ALL_PAGE_SIZE,
         includeRecentRequests: options.includeRecentRequests ?? false,
         pageRecentRequests: options.pageRecentRequests ?? false,
       },
       config
     );
-    firstResponse ??= response;
-    lastResponse = response;
 
-    for (const file of response.files ?? []) {
-      const key = String(file.name ?? file.id ?? '').trim() || JSON.stringify(file);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      files.push(file);
+  while (requestCount < AUTH_FILES_LIST_ALL_MAX_PAGES) {
+    const batchSize =
+      requestCount === 0
+        ? 1
+        : Math.min(AUTH_FILES_LIST_ALL_CONCURRENCY, AUTH_FILES_LIST_ALL_MAX_PAGES - requestCount);
+    const pageNumbers = Array.from({ length: batchSize }, (_, index) => page + index);
+    const responses = await Promise.all(pageNumbers.map(fetchPage));
+    firstResponse ??= responses[0] ?? null;
+
+    let reachedEnd = false;
+    for (const response of responses) {
+      requestCount += 1;
+      lastResponse = response;
+
+      for (const file of response.files ?? []) {
+        const key = String(file.name ?? file.id ?? '').trim() || JSON.stringify(file);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        files.push(file);
+      }
+
+      if (response.has_more !== true || response.files.length === 0) {
+        reachedEnd = true;
+        break;
+      }
     }
 
-    if (response.has_more !== true || response.files.length === 0) break;
-    const responsePage =
-      typeof response.page === 'number' && Number.isFinite(response.page)
-        ? Math.max(1, Math.round(response.page))
-        : page;
-    const nextPage = responsePage + 1;
-    if (nextPage <= page) break;
-    page = nextPage;
+    if (reachedEnd) break;
+    page += pageNumbers.length;
   }
 
   const response = lastResponse ?? firstResponse;

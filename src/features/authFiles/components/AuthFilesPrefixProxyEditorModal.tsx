@@ -43,11 +43,10 @@ const prettyJsonText = (text: string) => {
 
 type EditorSectionProps = {
   title: string;
-  hint: string;
   children: ReactNode;
 };
 
-function EditorSection({ title, hint, children }: EditorSectionProps) {
+function EditorSection({ title, children }: EditorSectionProps) {
   const headingId = useId();
 
   return (
@@ -56,7 +55,6 @@ function EditorSection({ title, hint, children }: EditorSectionProps) {
         <h3 id={headingId} className={styles.prefixProxySectionTitle}>
           {title}
         </h3>
-        <p className={styles.prefixProxySectionHint}>{hint}</p>
       </header>
       {children}
     </section>
@@ -81,12 +79,6 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
   const formId = useId();
   const editorFileName = editor?.fileName ?? '';
   const editorFile = editor?.file ?? null;
-  const editorProviderLabel =
-    (typeof editorFile?.provider === 'string' && editorFile.provider.trim()) ||
-    (typeof editorFile?.type === 'string' && editorFile.type.trim()) ||
-    '';
-  const showCodexMetaChip =
-    Boolean(editor?.isCodexFile) && editorProviderLabel.toLowerCase() !== 'codex';
   const editorClientProfile = editor?.clientProfile ?? null;
   const previewPayload = useMemo(
     () => ({ fileName: editorFileName, text: updatedText }),
@@ -192,14 +184,20 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
       width={1040}
       title={
         <span className={styles.prefixProxyTitleGroup}>
-          <span className={styles.prefixProxyTitleMain}>{t('auth_files.prefix_proxy_button')}</span>
+          <span className={styles.prefixProxyTitleRow}>
+            <span className={styles.prefixProxyTitleMain}>
+              {t('auth_files.prefix_proxy_button')}
+            </span>
+            {dirty && !editor?.saving && (
+              <span className={styles.prefixProxyDirtyBadge} role="status">
+                {t('common.unsaved')}
+              </span>
+            )}
+          </span>
           {editor?.fileName && (
             <span className={styles.prefixProxyTitleName} title={editor.fileName}>
               {editor.fileName}
             </span>
-          )}
-          {dirty && !editor?.saving && (
-            <span className={styles.prefixProxyDirtyBadge}>{t('common.unsaved')}</span>
           )}
         </span>
       }
@@ -240,34 +238,8 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                 onSubmit={handleSubmit}
               >
                 <section className={styles.prefixProxySettingsPanel}>
-                  <header className={styles.prefixProxyIntro}>
-                    <div className={styles.prefixProxyIntroCopy}>
-                      <h2 className={styles.prefixProxyIntroTitle}>
-                        {t('auth_files.settings_edit_section')}
-                      </h2>
-                      <p className={styles.prefixProxyIntroHint}>
-                        {t('auth_files.settings_edit_hint')}
-                      </p>
-                    </div>
-                    {(editorProviderLabel || showCodexMetaChip) && (
-                      <div className={styles.prefixProxyMeta}>
-                        {editorProviderLabel && (
-                          <span className={styles.prefixProxyMetaChip}>{editorProviderLabel}</span>
-                        )}
-                        {showCodexMetaChip && (
-                          <span className={styles.prefixProxyMetaChip}>
-                            {t('auth_files.section_codex')}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </header>
-
                   <div className={styles.prefixProxyForm}>
-                    <EditorSection
-                      title={t('auth_files.section_connection')}
-                      hint={t('auth_files.section_connection_hint')}
-                    >
+                    <EditorSection title={t('auth_files.section_connection')}>
                       <div className={styles.prefixProxyFields}>
                         <div className={styles.prefixProxyField}>
                           <Input
@@ -304,10 +276,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                       </div>
                     </EditorSection>
 
-                    <EditorSection
-                      title={t('auth_files.section_policy')}
-                      hint={t('auth_files.section_policy_hint')}
-                    >
+                    <EditorSection title={t('auth_files.section_policy')}>
                       <div className={styles.prefixProxyFields}>
                         <div className={styles.prefixProxyField}>
                           <Input
@@ -349,15 +318,9 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     </EditorSection>
 
                     {editor.isCodexFile && (
-                      <EditorSection
-                        title={t('auth_files.section_codex')}
-                        hint={t('auth_files.section_codex_hint')}
-                      >
+                      <EditorSection title={t('auth_files.section_codex')}>
                         <div className={styles.prefixProxyFields}>
-                          <div
-                            className={styles.prefixProxySwitchField}
-                            title={t('ai_providers.codex_websockets_hint')}
-                          >
+                          <div className={styles.prefixProxySwitchField}>
                             <span className={styles.prefixProxySwitchFieldLabelGroup}>
                               <span className={styles.prefixProxySwitchFieldLabel}>
                                 {t('ai_providers.codex_websockets_label')}
@@ -373,10 +336,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                               onChange={handleWebsocketsChange}
                             />
                           </div>
-                          <div
-                            className={styles.prefixProxySwitchField}
-                            title={t('auth_files.service_tier_passthrough_hint')}
-                          >
+                          <div className={styles.prefixProxySwitchField}>
                             <span className={styles.prefixProxySwitchFieldLabelGroup}>
                               <span className={styles.prefixProxySwitchFieldLabel}>
                                 {t('auth_files.service_tier_passthrough_label')}
@@ -407,10 +367,7 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                       </EditorSection>
                     )}
 
-                    <EditorSection
-                      title={t('auth_files.section_advanced')}
-                      hint={t('auth_files.section_advanced_hint')}
-                    >
+                    <EditorSection title={t('auth_files.section_advanced')}>
                       <div className={styles.prefixProxyFields}>
                         <div
                           className={`${styles.prefixProxyTextareaGroup} ${styles.prefixProxyFieldWide}`}
@@ -469,24 +426,9 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   aria-label={t('auth_files.settings_preview_section')}
                 >
                   <header className={styles.prefixProxyInspectorHeader}>
-                    <div className={styles.prefixProxyIntroCopy}>
-                      <span className={styles.prefixProxyEyebrow}>
-                        {t('auth_files.settings_info_section')}
-                      </span>
-                      <div className={styles.prefixProxyPreviewTitleRow}>
-                        <h2 className={styles.prefixProxyPreviewTitle}>
-                          {t('auth_files.settings_preview_section')}
-                        </h2>
-                        {dirty && (
-                          <span className={styles.prefixProxyPreviewBadge}>
-                            {t('common.modified')}
-                          </span>
-                        )}
-                      </div>
-                      <p className={styles.prefixProxyPreviewHint}>
-                        {t('auth_files.settings_preview_hint')}
-                      </p>
-                    </div>
+                    <h2 className={styles.prefixProxyPreviewTitle}>
+                      {t('auth_files.settings_preview_section')}
+                    </h2>
                     <Button
                       type="button"
                       variant="secondary"

@@ -202,6 +202,18 @@ export function MainLayout() {
   const nextRoutePrefetchCleanupRef = useRef<(() => void) | null>(null);
 
   const isLogsPage = location.pathname.startsWith('/logs');
+  const isApiKeysPage = location.pathname === '/api-keys';
+  const isUsagePage = location.pathname === '/usage';
+  const isRequestLogsPage = location.pathname === '/request-logs';
+  const contentClassName = [
+    'content',
+    isLogsPage && 'content-logs',
+    isApiKeysPage && 'content-api-keys',
+    isUsagePage && 'content-usage',
+    isRequestLogsPage && 'content-request-logs',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Keep bottom overlays aligned with the content column. Header height is
   // intentionally CSS-owned so mobile safe areas can update without a JS
@@ -818,7 +830,7 @@ export function MainLayout() {
           onToggleCollapsed={() => setSidebarCollapsed((prev) => !prev)}
         />
 
-        <div className={`content${isLogsPage ? ' content-logs' : ''}`} ref={contentRef}>
+        <div className={contentClassName} ref={contentRef}>
           <main
             id="main-content"
             className={`main-content${isLogsPage ? ' main-content-logs' : ''}`}

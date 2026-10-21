@@ -225,6 +225,14 @@ export function AuthFilesPage() {
   const [premiumServerFilterSupported, setPremiumServerFilterSupported] = useState<boolean | null>(
     null
   );
+  const [serverPaginationCapability, setServerPaginationCapability] = useState<{
+    scopeKey: string;
+    supported: boolean;
+  } | null>(null);
+  const serverPaginationSupported =
+    !serverPaginationCapability ||
+    serverPaginationCapability.scopeKey !== authScopeKey ||
+    serverPaginationCapability.supported;
   const [search, setSearch] = useState(() =>
     typeof persistedUiState?.search === 'string' ? persistedUiState.search : ''
   );
@@ -282,13 +290,22 @@ export function AuthFilesPage() {
   const pageMountedRef = useRef(true);
   const normalizedSearch = search.trim();
   const debouncedSearch = useDebounce(normalizedSearch, 280);
+  const handleServerPaginationUnsupported = useCallback(() => {
+    setServerPaginationCapability((current) =>
+      current?.scopeKey === authScopeKey && !current.supported
+        ? current
+        : { scopeKey: authScopeKey, supported: false }
+    );
+  }, [authScopeKey]);
   // Newer servers classify subscriptions from their cache and acknowledge the
   // filter in the response. Until that capability is confirmed, request one
   // paginated probe; an older server then falls back to the established local
   // full-list path without ever filtering a partial server page client-side.
   const requestServerPremiumFilter = premiumOnly && premiumServerFilterSupported !== false;
   const serverPaginationEnabled =
-    !exactPlanFilterActive && (!premiumOnly || requestServerPremiumFilter);
+    serverPaginationSupported &&
+    !exactPlanFilterActive &&
+    (!premiumOnly || requestServerPremiumFilter);
   const serverSearchPending = serverPaginationEnabled && normalizedSearch !== debouncedSearch;
   const serverListPage = serverPaginationEnabled ? page : undefined;
   const serverListPageSize = serverPaginationEnabled ? pageSize : undefined;
@@ -415,6 +432,7 @@ export function AuthFilesPage() {
     listOptions: authFilesListOptions,
     loadAllPages: !serverPaginationEnabled,
     onListMetaResolved: handleListMetaResolved,
+    onServerPaginationUnsupported: handleServerPaginationUnsupported,
     restoreFocusAfterDelete: restoreDeleteFocus,
   });
 
@@ -483,7 +501,8 @@ export function AuthFilesPage() {
   const closePrefixProxyEditor = useCallback(() => {
     setPrefixProxyFile(null);
   }, []);
-  const premiumFilterServerSide = premiumOnly && premiumServerFilterSupported === true;
+  const premiumFilterServerSide =
+    premiumOnly && premiumServerFilterSupported === true && serverPaginationEnabled;
   const needsPlanSources =
     isCurrentLayer &&
     !premiumFilterServerSide &&
@@ -1607,9 +1626,7 @@ export function AuthFilesPage() {
       <section className={refreshStyles.authFilesSection}>
         <ManagementPageHeader
           className={refreshStyles.pageHeader}
-          context={t('auth_files.page_eyebrow')}
           title={t('auth_files.title_section')}
-          description={t('auth_files.page_description')}
           count={showInitialLoading ? undefined : listTotal}
           countAriaLabel={t('auth_files.files_total_aria', { count: listTotal })}
           actions={

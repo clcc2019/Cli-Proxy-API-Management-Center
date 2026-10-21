@@ -63,6 +63,7 @@ type SaveTask = {
 export type OAuthModelRulesEditorModalProps = {
   open: boolean;
   initialProvider?: string;
+  initialSection?: RuleSection;
   onClose: () => void;
   onSaved?: () => Promise<void> | void;
 };
@@ -573,6 +574,7 @@ function RuleEditor({
 export function OAuthModelRulesEditorModal({
   open,
   initialProvider = '',
+  initialSection,
   onClose,
   onSaved,
 }: OAuthModelRulesEditorModalProps) {
@@ -698,9 +700,10 @@ export function OAuthModelRulesEditorModal({
       setProviderDrafts(nextDrafts);
       setActiveProviderKey(initialKey || firstConfiguredKey || firstProviderKey);
       setActiveRuleSection(
-        excludedResult.status === 'fulfilled' || aliasResult.status !== 'fulfilled'
-          ? 'excluded'
-          : 'aliases'
+        initialSection ??
+          (excludedResult.status === 'fulfilled' || aliasResult.status !== 'fulfilled'
+            ? 'excluded'
+            : 'aliases')
       );
       setMappingErrors({});
       setEditingRuleId(null);
@@ -719,7 +722,7 @@ export function OAuthModelRulesEditorModal({
       cancelled = true;
       window.clearTimeout(taskId);
     };
-  }, [initialProvider, isCurrentLayer, showNotification, t]);
+  }, [initialProvider, initialSection, isCurrentLayer, showNotification, t]);
 
   useEffect(() => {
     const requestVersion = (modelsRequestVersionRef.current += 1);
@@ -1742,6 +1745,11 @@ export function AuthFilesOAuthModelRulesPage() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const initialProvider = searchParams.get('provider') ?? '';
+  const initialSection = location.pathname.endsWith('/oauth-model-alias')
+    ? 'aliases'
+    : location.pathname.endsWith('/oauth-excluded')
+      ? 'excluded'
+      : undefined;
 
   const handleClose = useCallback(() => {
     const state = location.state as LocationState;
@@ -1757,6 +1765,7 @@ export function AuthFilesOAuthModelRulesPage() {
       key={initialProvider || 'new-provider'}
       open
       initialProvider={initialProvider}
+      initialSection={initialSection}
       onClose={handleClose}
     />
   );

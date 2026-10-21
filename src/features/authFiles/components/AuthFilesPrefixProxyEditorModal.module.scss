@@ -86,7 +86,7 @@
 
   max-height: min(92vh, 900px);
   overflow: hidden;
-  border: 1px solid var(--prefix-proxy-border);
+  border: 0;
   border-radius: var(--xai-radius-card);
   background: var(--prefix-proxy-surface);
   color: var(--prefix-proxy-text);
@@ -95,7 +95,7 @@
   :global(.modal-header) {
     min-height: 72px;
     padding: 18px 64px 17px 24px;
-    border-bottom-color: var(--prefix-proxy-border);
+    border-bottom: 0;
     background: var(--prefix-proxy-surface);
   }
 
@@ -122,7 +122,7 @@
   :global(.modal-footer) {
     min-height: 68px;
     padding: 14px 24px;
-    border-top-color: var(--prefix-proxy-border);
+    border-top: 0;
     background: var(--prefix-proxy-surface);
   }
 
@@ -131,14 +131,13 @@
     right: 18px;
     width: 34px;
     height: 34px;
-    border-color: var(--prefix-proxy-border);
+    border: 0;
     border-radius: var(--xai-radius-small);
-    background: var(--prefix-proxy-surface);
+    background: transparent;
     color: var(--prefix-proxy-text-muted);
     box-shadow: none;
 
     &:hover:not(:disabled) {
-      border-color: var(--prefix-proxy-border-strong);
       background: var(--prefix-proxy-surface-muted);
       color: var(--prefix-proxy-text);
       transform: none;
@@ -217,33 +216,37 @@
   display: flex;
   min-width: 0;
   max-width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.prefixProxyTitleRow {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  overflow-wrap: anywhere;
+  gap: 9px;
 }
 
 .prefixProxyTitleMain {
-  flex: 0 0 auto;
+  min-width: 0;
   color: var(--prefix-proxy-text);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .prefixProxyTitleName {
-  display: inline-flex;
+  display: block;
   min-width: 0;
-  max-width: min(100%, 380px);
-  align-items: center;
-  padding: 4px 9px;
+  max-width: 100%;
   overflow: hidden;
-  border: 1px solid var(--prefix-proxy-border);
-  border-radius: 7px;
-  background: var(--prefix-proxy-surface-warm);
-  color: var(--prefix-proxy-text-secondary);
+  color: var(--prefix-proxy-text-muted);
   font-family: $font-mono;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -252,7 +255,7 @@
 .prefixProxyPreviewBadge {
   display: inline-flex;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--prefix-proxy-status) 28%, transparent);
+  border: 0;
   border-radius: var(--xai-radius-pill);
   background: color-mix(in srgb, var(--prefix-proxy-status) 8%, transparent);
   color: var(--prefix-proxy-status);
@@ -332,7 +335,7 @@
   position: sticky;
   top: 0;
   min-height: 100%;
-  border-left: 1px solid var(--prefix-proxy-border);
+  border-left: 0;
   background: var(--prefix-proxy-surface-muted);
 }
 
@@ -340,29 +343,25 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 10px;
+  gap: 24px;
 }
 
 .prefixProxySection {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--prefix-proxy-border);
-  border-radius: var(--xai-radius-panel);
-  background: var(--prefix-proxy-surface);
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
 .prefixProxySectionHeader {
-  display: flex;
-  min-height: 24px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 0 0 8px;
-  border-bottom: 0;
+  display: block;
+  min-height: 0;
+  padding: 0;
   background: transparent;
 }
 
@@ -461,12 +460,12 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 10px;
-  border: 1px solid var(--prefix-proxy-border);
+  border: 0;
   border-radius: var(--xai-radius-small);
   background: var(--prefix-proxy-surface-muted);
 
   &:hover {
-    border-color: var(--prefix-proxy-border-strong);
+    background: var(--prefix-proxy-surface-warm);
   }
 }
 
@@ -528,7 +527,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  border: 1px solid rgb(165 56 48 / 0.3);
+  border: 0;
   border-radius: var(--xai-radius-pill);
   background: rgb(165 56 48 / 0.07);
   color: var(--prefix-proxy-danger);
@@ -548,14 +547,13 @@
 .prefixProxyJsonDetails {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--prefix-proxy-border);
+  border: 0;
   border-radius: var(--xai-radius-control);
-  background: var(--prefix-proxy-surface);
+  background: var(--prefix-proxy-surface-warm);
   box-shadow: none;
 
   &[open] {
-    border-color: var(--prefix-proxy-border-strong);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--prefix-proxy-action) 8%, transparent);
+    background: var(--prefix-proxy-surface-warm);
   }
 }
 
@@ -606,8 +604,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border-top: 1px solid var(--prefix-proxy-border);
-  background: var(--prefix-proxy-surface-warm);
+  background: transparent;
 }
 
 .prefixProxyCopyButton {
@@ -744,21 +741,16 @@
     margin: 14px 16px 0;
   }
 
-  .prefixProxyTitleGroup {
+  .prefixProxyTitleRow {
     align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
   }
 
-  .prefixProxyTitleMain,
-  .prefixProxyTitleName {
+  .prefixProxyTitleMain {
     max-width: 100%;
   }
 
   .prefixProxyTitleName {
-    overflow-wrap: anywhere;
-    text-overflow: clip;
-    white-space: normal;
+    max-width: 100%;
   }
 
   .prefixProxyModal :global(.modal-footer) {
@@ -784,35 +776,14 @@
     grid-column: 1 / -1;
   }
 
-  .prefixProxySection {
-    padding: 14px;
-
-    &:first-child,
-    &:last-child {
-      padding-block: 14px;
-    }
-  }
-
   .prefixProxySectionTitle {
     font-size: 13px;
     overflow-wrap: anywhere;
   }
 
-  .prefixProxyTitleName {
-    max-width: min(100%, 230px);
-  }
-
   .prefixProxySettingsPanel,
   .prefixProxyInspectorPanel {
     padding-inline: 12px;
-  }
-
-  .prefixProxySection {
-    padding-inline: 12px;
-  }
-
-  .prefixProxySectionHeader {
-    align-items: flex-start;
   }
 
   .prefixProxyLabelGroup {
@@ -821,7 +792,6 @@
     overflow-wrap: anywhere;
   }
 
-  .prefixProxyPreviewHint,
   .prefixProxySwitchFieldHint,
   .prefixProxyLabel {
     overflow-wrap: anywhere;
@@ -851,10 +821,6 @@
 @media (max-width: 360px) {
   .prefixProxySettingsPanel,
   .prefixProxyInspectorPanel {
-    padding-inline: 10px;
-  }
-
-  .prefixProxySection {
     padding-inline: 10px;
   }
 
@@ -909,7 +875,6 @@
 
   .prefixProxyDirtyBadge,
   .prefixProxyPreviewBadge {
-    border-color: color-mix(in srgb, var(--prefix-proxy-status) 28%, transparent);
     background: color-mix(in srgb, var(--prefix-proxy-status) 9%, transparent);
     color: var(--prefix-proxy-status);
   }
@@ -976,113 +941,13 @@
 .prefixProxyInspectorPanel {
   gap: 16px;
   padding: 24px;
-  border-left-color: var(--prefix-proxy-border);
   background: var(--prefix-proxy-surface-muted);
-}
-
-.prefixProxyIntro {
-  display: flex;
-  min-width: 0;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--prefix-proxy-border);
-}
-
-.prefixProxyIntroCopy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.prefixProxyEyebrow {
-  color: var(--prefix-proxy-text-muted);
-  font-size: 10.5px;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.prefixProxyIntroTitle {
-  margin: 0;
-  color: var(--prefix-proxy-text);
-  font-size: 18px;
-  font-weight: 650;
-  line-height: 1.25;
-  letter-spacing: -0.025em;
-}
-
-.prefixProxyIntroHint {
-  margin: 1px 0 0;
-  color: var(--prefix-proxy-text-secondary);
-  font-size: 12.5px;
-  line-height: 1.55;
-}
-
-.prefixProxyMeta {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
-}
-
-.prefixProxyMetaChip {
-  display: inline-flex;
-  min-height: 24px;
-  align-items: center;
-  padding: 0 9px;
-  border: 1px solid var(--prefix-proxy-border);
-  border-radius: var(--xai-radius-pill);
-  background: var(--prefix-proxy-surface-muted);
-  color: var(--prefix-proxy-text-secondary);
-  font-family: $font-mono;
-  font-size: 10.5px;
-  font-weight: 600;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.prefixProxyForm {
-  gap: 0;
-}
-
-.prefixProxySection {
-  gap: 14px;
-  padding: 22px 0 0;
-  border: 0;
-  border-top: 1px solid var(--prefix-proxy-border);
-  border-radius: 0;
-  background: transparent;
-}
-
-.prefixProxySection:first-child {
-  padding-top: 20px;
-  border-top: 0;
-}
-
-.prefixProxySectionHeader {
-  display: grid;
-  min-height: 0;
-  gap: 3px;
-  padding: 0;
-  border: 0;
 }
 
 .prefixProxySectionTitle {
   font-size: 14px;
   font-weight: 650;
   letter-spacing: -0.015em;
-}
-
-.prefixProxySectionHint {
-  margin: 0;
-  color: var(--prefix-proxy-text-muted);
-  font-size: 11.5px;
-  line-height: 1.5;
 }
 
 .prefixProxyFields {
@@ -1104,14 +969,6 @@
   gap: 12px;
 }
 
-.prefixProxyPreviewTitleRow {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .prefixProxyPreviewTitle {
   margin: 0;
   color: var(--prefix-proxy-text);
@@ -1119,13 +976,6 @@
   font-weight: 650;
   line-height: 1.3;
   letter-spacing: -0.02em;
-}
-
-.prefixProxyPreviewHint {
-  margin: 2px 0 0;
-  color: var(--prefix-proxy-text-muted);
-  font-size: 11.5px;
-  line-height: 1.5;
 }
 
 .prefixProxyPreviewTextarea {
@@ -1175,7 +1025,7 @@
 
   .prefixProxyInspectorPanel {
     position: static;
-    border-top: 1px solid var(--prefix-proxy-border);
+    border-top: 0;
     border-left: 0;
   }
 
@@ -1193,15 +1043,6 @@
   .prefixProxySettingsPanel,
   .prefixProxyInspectorPanel {
     padding: 18px 16px;
-  }
-
-  .prefixProxyIntro {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .prefixProxyMeta {
-    justify-content: flex-start;
   }
 
   .prefixProxyInspectorHeader {
@@ -1232,14 +1073,6 @@
   .prefixProxyTextareaGroup,
   .prefixProxySwitchField {
     grid-column: 1 / -1;
-  }
-
-  .prefixProxySection {
-    padding-top: 18px;
-  }
-
-  .prefixProxyIntroTitle {
-    font-size: 17px;
   }
 
   .prefixProxyPreviewTextarea {

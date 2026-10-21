@@ -450,12 +450,10 @@ export function SystemPage() {
     <div className={styles.container}>
       <ManagementPageHeader
         className={styles.pageHeader}
-        context={t('system_info.about_title')}
         title={t('system_info.title')}
-        description={t('system_info.description')}
       />
       <div className={styles.content}>
-        <section className={styles.systemOverview} aria-label={t('system_info.about_title')}>
+        <section className={styles.systemOverview} aria-label={t('system_info.title')}>
           <div className={styles.versionGrid}>
             <button
               type="button"
@@ -494,6 +492,8 @@ export function SystemPage() {
 
         <Card
           className={styles.modelsCard}
+          flush
+          headerFlush
           title={t('system_info.models_title')}
           extra={
             <RefreshButton
@@ -539,7 +539,12 @@ export function SystemPage() {
           )}
         </Card>
 
-        <Card className={styles.dangerCard} title={t('system_info.clear_login_title')}>
+        <Card
+          className={styles.dangerCard}
+          flush
+          headerFlush
+          title={t('system_info.clear_login_title')}
+        >
           <p className={styles.sectionDescription}>{t('system_info.clear_login_desc')}</p>
           <div className={styles.clearLoginActions}>
             <Button variant="danger" onClick={handleClearLoginStorage}>

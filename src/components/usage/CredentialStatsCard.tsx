@@ -8,9 +8,13 @@ import {
   normalizeAuthIndex,
 } from '@/utils/usage';
 import { normalizeAggregateCredentialKey } from '@/utils/usageAggregate';
-import { authFilesApi } from '@/services/api/authFiles';
+import {
+  getCachedAuthFileCredentialMap,
+  loadAuthFileCredentialMap,
+} from '@/features/authFiles/authFileCredentialMap';
+import { useAuthStore } from '@/stores';
+import { AUTH_FILES_REFRESH_EVENT } from '@/utils/constants';
 import type { ProviderKeyConfig } from '@/types';
-import type { AuthFileItem } from '@/types/authFile';
 import type { CredentialInfo } from '@/types/sourceInfo';
 import type { UsageAggregateCredentialStat } from '@/types/usageAggregate';
 import styles from '@/pages/UsagePage.module.scss';
@@ -50,7 +54,20 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
   const { t } = useTranslation();
   const pageTransitionLayer = usePageTransitionLayer();
   const isCurrentLayer = pageTransitionLayer?.isCurrentLayer ?? true;
-  const [authFileMap, setAuthFileMap] = useState<Map<string, CredentialInfo>>(new Map());
+  const apiBase = useAuthStore((state) => (isCurrentLayer ? state.apiBase : ''));
+  const managementKey = useAuthStore((state) => (isCurrentLayer ? state.managementKey : ''));
+  const authScopeKey = `${apiBase ?? ''}::${managementKey ?? ''}`;
+  const [authFileMapState, setAuthFileMapState] = useState<{
+    scopeKey: string;
+    map: Map<string, CredentialInfo>;
+  }>(() => ({
+    scopeKey: authScopeKey,
+    map: getCachedAuthFileCredentialMap(authScopeKey),
+  }));
+  const authFileMap =
+    authFileMapState.scopeKey === authScopeKey
+      ? authFileMapState.map
+      : getCachedAuthFileCredentialMap(authScopeKey);
 
   // Fetch auth files for auth_index-based matching
   useEffect(() => {
@@ -59,34 +76,20 @@ export const CredentialStatsCard = memo(function CredentialStatsCard({
     }
 
     let cancelled = false;
-    authFilesApi
-      .listAll({
-        codexSubscription: 'skip',
-        summary: true,
-        includeRecentRequests: false,
-      })
-      .then((res) => {
-        if (cancelled) return;
-        const files = Array.isArray(res) ? res : (res as { files?: AuthFileItem[] })?.files;
-        if (!Array.isArray(files)) return;
-        const map = new Map<string, CredentialInfo>();
-        files.forEach((file) => {
-          const rawAuthIndex = file['auth_index'] ?? file.authIndex;
-          const key = normalizeAuthIndex(rawAuthIndex);
-          if (key) {
-            map.set(key, {
-              name: file.name || key,
-              type: (file.type || file.provider || '').toString(),
-            });
-          }
-        });
-        setAuthFileMap(map);
-      })
-      .catch(() => {});
+    const refreshAuthFileMap = () => {
+      void loadAuthFileCredentialMap(authScopeKey)
+        .then((map) => {
+          if (!cancelled) setAuthFileMapState({ scopeKey: authScopeKey, map });
+        })
+        .catch(() => {});
+    };
+    refreshAuthFileMap();
+    window.addEventListener(AUTH_FILES_REFRESH_EVENT, refreshAuthFileMap);
     return () => {
       cancelled = true;
+      window.removeEventListener(AUTH_FILES_REFRESH_EVENT, refreshAuthFileMap);
     };
-  }, [credentials.length, isCurrentLayer, loading]);
+  }, [authScopeKey, credentials.length, isCurrentLayer, loading]);
 
   // Aggregate rows: all from bySource only (no separate byAuthIndex rows to avoid duplicates).
   // Auth files are used purely for name resolution of unmatched source IDs.

@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { ApiKeysCardEditor } from '@/components/config/VisualConfigEditorBlocks';
 import { Button } from '@/components/ui/Button';
 import { ManagementPageHeader } from '@/components/ui/ManagementPageHeader';
 import { RefreshButton } from '@/components/ui/RefreshButton';
-import { IconCheckCircle2, IconShield } from '@/components/ui/icons';
+import { IconCheckCircle2 } from '@/components/ui/icons';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { usePageTransitionLayer } from '@/components/common/PageTransitionLayer';
 import { apiKeysApi } from '@/services/api/apiKeys';
@@ -13,6 +21,12 @@ import type { ClientApiKeyConfig } from '@/types/config';
 import { makeClientId, type VisualApiKeyEntry } from '@/types/visualConfig';
 import { hasClientApiKeyQuota, serializeClientApiKeyQuota } from '@/utils/clientApiKeyQuota';
 import styles from './ApiKeysPage.module.scss';
+
+const ApiKeysCardEditor = lazy(() =>
+  import('@/components/config/VisualConfigEditorBlocks').then((module) => ({
+    default: module.ApiKeysCardEditor,
+  }))
+);
 
 const normalizeModelPatterns = (patterns: string[] | undefined): string[] =>
   Array.from(new Set((patterns ?? []).map((item) => String(item ?? '').trim()).filter(Boolean)));
@@ -91,26 +105,6 @@ export function ApiKeysPage() {
   );
   const isDirty = apiKeysFingerprint !== baselineApiKeysFingerprint;
   const disableControls = connectionStatus !== 'connected';
-  const { activeCount, restrictedCount, quotaCount } = useMemo(
-    () =>
-      apiKeys.reduce(
-        (counts, entry) => {
-          if (!entry.disabled) counts.activeCount += 1;
-          if (
-            entry.allowedModels.length > 0 ||
-            entry.excludedModels.length > 0 ||
-            entry.authFiles.length > 0
-          ) {
-            counts.restrictedCount += 1;
-          }
-          if (hasClientApiKeyQuota(entry.quota)) counts.quotaCount += 1;
-          return counts;
-        },
-        { activeCount: 0, restrictedCount: 0, quotaCount: 0 }
-      ),
-    [apiKeys]
-  );
-
   useUnsavedChangesGuard({
     enabled: isCurrentLayer,
     shouldBlock: isDirty && !saving,
@@ -268,37 +262,13 @@ export function ApiKeysPage() {
             </div>
           )}
           <div id="api-keys" className={styles.pageContent}>
-            <section className={styles.overview} aria-label={t('api_keys.metrics_label')}>
-              <div className={styles.overviewLead}>
-                <span className={styles.overviewIcon} aria-hidden="true">
-                  <IconShield size={20} />
-                </span>
-                <div>
-                  <span className={styles.overviewEyebrow}>{t('api_keys.page_eyebrow')}</span>
-                  <strong>{t('api_keys.overview_title')}</strong>
-                </div>
-              </div>
-              <div className={styles.metricRail}>
-                <div className={styles.metricItem}>
-                  <strong>{activeCount}</strong>
-                  <span>{t('api_keys.metric_active')}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <strong>{restrictedCount}</strong>
-                  <span>{t('api_keys.metric_restricted')}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <strong>{quotaCount}</strong>
-                  <span>{t('api_keys.metric_quota')}</span>
-                </div>
-              </div>
-            </section>
-
-            <ApiKeysCardEditor
-              value={apiKeys}
-              disabled={disableControls || loading || saving}
-              onChange={setApiKeys}
-            />
+            <Suspense fallback={<div className={styles.editorFallback} aria-hidden="true" />}>
+              <ApiKeysCardEditor
+                value={apiKeys}
+                disabled={disableControls || loading || saving}
+                onChange={setApiKeys}
+              />
+            </Suspense>
           </div>
         </div>
       </div>

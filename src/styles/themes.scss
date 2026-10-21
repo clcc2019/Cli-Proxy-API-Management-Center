@@ -1,5 +1,3 @@
-@use './variables.scss' as *;
-
 /**
  * Global color tokens
  *
@@ -11,95 +9,94 @@
 :root {
   color-scheme: light;
 
-  // Neutral console contract. The Toka mark keeps its own authored colors;
-  // the application chrome stays close to black, white, and soft gray.
-  --xai-ink-console: #17191b;
-  --xai-ink: #292b2c;
+  // Semantic visual tokens aligned with x.ai flat borderless standard:
+  // pure #FFFFFF canvas, #F4F4F6 soft surface blocks, and minimal hairline accents.
+  --xai-ink-console: #202124;
+  --xai-ink: #202124;
   --xai-white: #ffffff;
   --xai-canvas: #ffffff;
-  --xai-surface-muted: #f1f0ed;
-  --xai-inverse: #fbfaf7;
-  --xai-warm: #f4f3ef;
-  --xai-secondary: #5b5d5a;
-  --xai-muted: #686a64;
-  --xai-subtle: #8a8b84;
-  --xai-disabled: rgb(23 25 27 / 38%);
-  --xai-fill-soft: rgb(23 25 27 / 5%);
-  --xai-fill-hover: rgb(23 25 27 / 8%);
-  --xai-fill-pressed: rgb(23 25 27 / 13%);
-  --xai-border-cool: #c4c2bb;
-  --xai-border-subtle: #e0ded8;
-  --xai-border: #d9d6cf;
-  --xai-border-hover: #aaa9a2;
-  // Controls and dense data need a visible edge even on the borderless canvas.
-  --xai-control-border: #cbc9c2;
-  --xai-control-border-hover: #979790;
-  --xai-hairline: #e3e1db;
-  // xAI-style signal color: bright on dark surfaces, with a darker companion
-  // reserved for text, controls, and small indicators on light surfaces.
+  --xai-surface-muted: #f4f4f6;
+  --xai-inverse: #ffffff;
+  --xai-warm: #f4f4f6;
+  --xai-secondary: #60646c;
+  --xai-muted: #7d8187;
+  --xai-subtle: #9ba0a6;
+  --xai-disabled: rgb(32 33 36 / 38%);
+  --xai-fill-soft: rgb(32 33 36 / 4%);
+  --xai-fill-hover: rgb(32 33 36 / 7%);
+  --xai-fill-pressed: rgb(32 33 36 / 11%);
+  --xai-border-cool: rgb(0 0 0 / 8%);
+  --xai-border-subtle: rgb(0 0 0 / 6%);
+  --xai-border: rgb(0 0 0 / 6%);
+  --xai-border-hover: rgb(0 0 0 / 12%);
+  // Minimal borderless controls with subtle hairline boundaries
+  --xai-control-border: rgb(0 0 0 / 8%);
+  --xai-control-border-hover: rgb(0 0 0 / 16%);
+  --xai-hairline: rgb(0 0 0 / 5%);
+  // Semantic status colors with high-readability text companions
   --xai-orange: #ff5a00;
   --xai-orange-ink: #a94100;
-  --xai-success: #2d6b4c;
-  --xai-warning: #855f24;
-  --xai-danger: #a94540;
-  --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 11%, transparent);
-  --xai-orange-border: color-mix(in srgb, var(--xai-orange) 30%, transparent);
-  --xai-success-soft: color-mix(in srgb, var(--xai-success) 10%, transparent);
-  --xai-success-border: color-mix(in srgb, var(--xai-success) 30%, transparent);
-  --xai-success-wash: color-mix(in srgb, var(--xai-success) 5%, transparent);
-  --xai-warning-soft: color-mix(in srgb, var(--xai-warning) 10%, transparent);
-  --xai-warning-border: color-mix(in srgb, var(--xai-warning) 30%, transparent);
-  --xai-warning-wash: color-mix(in srgb, var(--xai-warning) 5%, transparent);
-  --xai-danger-soft: color-mix(in srgb, var(--xai-danger) 10%, transparent);
-  --xai-danger-border: color-mix(in srgb, var(--xai-danger) 30%, transparent);
-  --xai-danger-wash: color-mix(in srgb, var(--xai-danger) 5%, transparent);
+  --xai-success: #17c964;
+  --xai-warning: #f5a524;
+  --xai-danger: #d92d20;
+  --xai-orange-soft: color-mix(in srgb, var(--xai-orange) 10%, transparent);
+  --xai-orange-border: color-mix(in srgb, var(--xai-orange) 28%, transparent);
+  --xai-success-soft: rgba(23, 201, 100, 0.08);
+  --xai-success-border: rgba(23, 201, 100, 0.28);
+  --xai-success-wash: rgba(23, 201, 100, 0.04);
+  --xai-warning-soft: rgba(245, 165, 36, 0.1);
+  --xai-warning-border: rgba(245, 165, 36, 0.3);
+  --xai-warning-wash: rgba(245, 165, 36, 0.05);
+  --xai-danger-soft: rgba(217, 45, 32, 0.08);
+  --xai-danger-border: rgba(217, 45, 32, 0.28);
+  --xai-danger-wash: rgba(217, 45, 32, 0.04);
   --xai-code: #111111;
 
-  --xai-space-1: 4.5px;
-  --xai-space-1-5: 6.75px;
-  --xai-space-2: 9px;
-  --xai-space-2-5: 11.25px;
-  --xai-space-3: 13.5px;
-  --xai-space-3-5: 15.75px;
-  --xai-space-4: 18px;
-  --xai-space-5: 22.5px;
-  --xai-space-6: 27px;
-  --xai-space-7: 31.5px;
-  --xai-space-8: 36px;
-  --xai-space-9: 40.5px;
-  --xai-space-12: 54px;
-  --xai-space-15: 67.5px;
+  --xai-space-1: 4px;
+  --xai-space-1-5: 6px;
+  --xai-space-2: 8px;
+  --xai-space-2-5: 10px;
+  --xai-space-3: 12px;
+  --xai-space-3-5: 14px;
+  --xai-space-4: 16px;
+  --xai-space-5: 20px;
+  --xai-space-6: 24px;
+  --xai-space-7: 28px;
+  --xai-space-8: 32px;
+  --xai-space-9: 36px;
+  --xai-space-12: 48px;
+  --xai-space-15: 60px;
 
-  --xai-radius-micro: 6.75px;
+  --xai-radius-micro: 6px;
   --xai-radius-small: 8px;
-  --xai-radius-control: 9px;
+  --xai-radius-control: 8px;
   --xai-radius-panel: 12px;
   --xai-radius-card: 16px;
   --xai-radius-pill: 9999px;
 
   --xai-border-width: 0;
-  --xai-shadow-button: 0 1px 2px rgb(23 25 27 / 8%), 0 2px 5px -4px rgb(23 25 27 / 18%);
-  --xai-shadow-menu: 0 20px 48px -20px rgb(23 25 27 / 25%), 0 6px 14px -8px rgb(23 25 27 / 14%);
-  --xai-shadow-dialog: 0 26px 76px -30px rgb(23 25 27 / 30%), 0 10px 26px -16px rgb(23 25 27 / 16%);
+  --xai-shadow-button: none;
+  --xai-shadow-menu: 0 16px 36px -16px rgb(32 33 36 / 15%), 0 4px 12px -6px rgb(32 33 36 / 8%);
+  --xai-shadow-dialog: 0 24px 64px -24px rgb(32 33 36 / 20%), 0 8px 24px -12px rgb(32 33 36 / 10%);
 
   // Legacy surface aliases kept for components that still use the old token
   // names. These values deliberately contain no alpha, refraction, or sheen.
   --xai-glass-surface: var(--xai-white);
   --xai-glass-surface-strong: var(--xai-white);
   --xai-glass-surface-soft: var(--xai-surface-muted);
-  --xai-glass-control: var(--xai-white);
+  --xai-glass-control: var(--xai-surface-muted);
   --xai-glass-border: var(--xai-control-border);
   --xai-glass-border-subtle: var(--xai-border-subtle);
   --xai-glass-highlight: none;
-  --xai-glass-shadow: var(--xai-shadow-button);
+  --xai-glass-shadow: none;
   --xai-glass-shadow-float: var(--xai-shadow-menu);
 
   --xai-font-ui:
-    'Avenir Next', 'SF Pro Text', universalSans, 'Helvetica Neue', Helvetica, Arial, system-ui,
-    sans-serif;
-  --xai-font-display:
-    'Avenir Next', 'SF Pro Display', universalSansDisplay, universalSans, 'Helvetica Neue',
+    'Avenir Next', 'SF Pro Text', universalSans, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue',
     Helvetica, Arial, system-ui, sans-serif;
+  --xai-font-display:
+    'Avenir Next', 'SF Pro Display', universalSansDisplay, universalSans, 'PingFang SC',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
   --xai-font-zh-hans:
     'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --xai-font-mono: GeistMono, 'SFMono-Regular', 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
@@ -123,15 +120,14 @@
   --xai-z-toast: 60;
   --xai-overlay: rgb(17 17 17 / 48%);
 
-  // Merge Gateway-inspired semantic tokens used by the application shell.
+  // Primary semantic design tokens
   --mg-canvas: var(--xai-canvas);
   --mg-surface: var(--xai-white);
   --mg-surface-subtle: var(--xai-surface-muted);
-  --mg-surface-warm: var(--xai-warm);
-  // Interaction palette: xAI orange carries action and selection; black stays
-  // available for high-contrast anchors and dark surfaces.
-  --mg-surface-hover: var(--xai-fill-soft);
-  --mg-surface-pressed: var(--xai-fill-hover);
+  --mg-surface-cool: var(--xai-surface-muted);
+  --mg-surface-warm: var(--xai-surface-muted);
+  --mg-surface-hover: #eeeff1;
+  --mg-surface-pressed: #e6e6e9;
   --mg-action: var(--xai-ink-console);
   --mg-action-hover: #2d2f31;
   --mg-text: var(--xai-ink);
@@ -139,12 +135,12 @@
   --mg-text-tertiary: var(--xai-muted);
   --mg-text-muted: var(--xai-disabled);
   --mg-border: var(--xai-border-subtle);
-  --mg-border-hover: var(--xai-control-border-hover);
-  --mg-border-strong: var(--xai-control-border);
+  --mg-border-hover: var(--xai-border-hover);
+  --mg-border-strong: var(--xai-border-hover);
   --mg-control-border: var(--xai-control-border);
   --mg-control-border-hover: var(--xai-control-border-hover);
   --mg-ink-strong: var(--xai-ink-console);
-  --mg-text-inverse: var(--xai-inverse);
+  --mg-text-inverse: #ffffff;
   --mg-sage: var(--xai-orange);
   --mg-sage-strong: var(--xai-orange-ink);
   --mg-sage-soft: var(--xai-orange-soft);
@@ -154,12 +150,12 @@
   --mg-teal: #5f6a6b;
   --mg-orange: var(--xai-orange);
   --mg-success-fill: var(--xai-success);
-  --mg-success-text: var(--xai-success);
+  --mg-success-text: #128e46;
   --mg-success: var(--mg-success-text);
-  --mg-warning: var(--xai-warning);
-  --mg-danger: var(--xai-danger);
-  --mg-surface-selected: var(--xai-fill-hover);
-  --mg-surface-disabled: var(--xai-fill-soft);
+  --mg-warning: #b26a00;
+  --mg-danger: #b42318;
+  --mg-surface-selected: #eeeff1;
+  --mg-surface-disabled: #f4f4f6;
   --mg-floating-border: var(--xai-border);
   --mg-border-fade: var(--xai-border-hover);
   --mg-overlay: var(--xai-overlay);
@@ -171,8 +167,8 @@
   --mg-radius-card: var(--xai-radius-card);
   --mg-radius-large: var(--xai-radius-card);
   --mg-radius-pill: var(--xai-radius-pill);
-  --mg-shadow-rest: 0 1px 2px rgb(23 25 27 / 7%), 0 8px 20px -18px rgb(23 25 27 / 18%);
-  --mg-shadow-card: 0 16px 32px -22px rgb(23 25 27 / 28%), 0 4px 10px -8px rgb(23 25 27 / 12%);
+  --mg-shadow-rest: none;
+  --mg-shadow-card: none;
   --mg-shadow-float: var(--xai-shadow-menu);
   --mg-space-2: var(--xai-space-2);
   --mg-space-3: var(--xai-space-3);
@@ -272,9 +268,9 @@
   --shadow-lg: var(--xai-shadow-dialog);
   --shadow-soft: var(--xai-shadow-menu);
   --header-shadow: 0 1px 0 rgb(25 33 42 / 1.5%);
-  // A gray-white rail separates navigation from the pure-white work canvas.
-  --sidebar-surface: #f7f7f8;
-  --sidebar-surface-muted: #efeff0;
+  // Cool-gray navigation rail beside the pure-white work canvas.
+  --sidebar-surface: #f3f4f6;
+  --sidebar-surface-muted: #e8eaed;
   --sidebar-text: #17191b;
   --sidebar-text-secondary: #5b5d5a;
   --sidebar-text-tertiary: #686a64;
@@ -282,7 +278,7 @@
   --sidebar-border-strong: #d5d4cf;
   --sidebar-accent: var(--xai-orange);
   --sidebar-accent-line: var(--sidebar-accent);
-  --sidebar-accent-surface: #eeeff1;
+  --sidebar-accent-surface: #ffffff;
   --sidebar-accent-icon: var(--sidebar-accent);
   --sidebar-shadow: none;
   --shadow-card: var(--mg-shadow-rest);

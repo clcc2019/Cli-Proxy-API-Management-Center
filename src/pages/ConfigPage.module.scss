@@ -582,6 +582,12 @@
 }
 
 @media (max-width: 768px) {
+  .container {
+    min-height: 0;
+    max-height: var(--config-page-scroll-max-height, none);
+    padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--xai-space-3-5));
+  }
+
   .floatingActionContainer {
     right: calc(8px + env(safe-area-inset-right));
     left: auto;

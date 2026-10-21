@@ -1,21 +1,21 @@
 .page {
   --provider-canvas: #ffffff;
   --provider-surface: #ffffff;
-  --provider-rail: #ffffff;
-  --provider-toolbar: #ffffff;
-  --provider-resource-surface: #f3f4f6;
+  --provider-rail: #f3f4f6;
+  --provider-toolbar: #f3f4f6;
+  --provider-resource-surface: #ffffff;
   --provider-control: #ffffff;
-  --provider-hover: #eceef1;
-  --provider-border: #e3e5e8;
-  --provider-border-strong: #c9cdd3;
+  --provider-hover: #eeeff1;
+  --provider-border: #e6e7e9;
+  --provider-border-strong: #d7d9dd;
   --provider-ink: #202124;
-  --provider-secondary: #575d66;
+  --provider-secondary: #60646c;
   --provider-muted: #60646c;
-  --provider-accent: #5b70dc;
-  --provider-accent-strong: #465bbf;
-  --provider-accent-soft: #eef0ff;
-  --provider-accent-pressed: #e2e6ff;
-  --provider-accent-border: #cdd4fa;
+  --provider-accent: #202124;
+  --provider-accent-strong: #383a3d;
+  --provider-accent-soft: #f3f4f6;
+  --provider-accent-pressed: #eeeff1;
+  --provider-accent-border: #e6e7e9;
   --provider-focus-soft: color-mix(in srgb, var(--provider-accent) 16%, transparent);
   --provider-fill-soft: color-mix(in srgb, var(--provider-accent) 7%, transparent);
   --provider-fill-hover: color-mix(in srgb, var(--provider-accent) 11%, transparent);
@@ -76,9 +76,11 @@
 
   display: flex;
   width: 100%;
+  max-width: none;
   min-width: 0;
   flex-direction: column;
-  gap: var(--xai-space-3);
+  gap: var(--xai-space-6);
+  margin-inline: 0;
   background: var(--provider-canvas);
   box-sizing: border-box;
   color: var(--provider-ink);
@@ -125,7 +127,7 @@
 
 .errorBanner {
   padding: var(--xai-space-3);
-  border: 1px solid var(--xai-danger-border);
+  border: 0;
   border-radius: var(--xai-radius-control);
   background: var(--xai-danger-soft);
   color: var(--xai-danger);
@@ -137,6 +139,11 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
+  gap: var(--xai-space-3);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .loadingLayout {
@@ -159,7 +166,7 @@
 
 @media (max-width: 768px) {
   .page {
-    gap: var(--xai-space-2);
+    gap: var(--xai-space-4);
   }
 
   .loadingCategoryRail {

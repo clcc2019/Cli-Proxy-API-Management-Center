@@ -26,6 +26,7 @@ import { downloadBlob } from '@/utils/download';
 import { isRuntimeOnlyAuthFile } from '@/utils/quota';
 import { createTrailingSingleFlight } from '@/utils/trailingSingleFlight';
 import { readAuthFileNumericCount } from '@/features/authFiles/stats';
+import { invalidateAuthFileCredentialMapCache } from '@/features/authFiles/authFileCredentialMap';
 
 const normalizeDeleteAuthIndex = (value: unknown): string | number | null => {
   if (typeof value === 'string') return value.trim() || null;
@@ -249,6 +250,7 @@ export type UseAuthFilesDataOptions = {
   /** Fetch all lightweight pages when local-only filters need the full index. */
   loadAllPages?: boolean;
   onListMetaResolved?: (meta: AuthFilesListMeta) => void;
+  onServerPaginationUnsupported?: () => void;
   restoreFocusAfterDelete?: () => void;
 };
 
@@ -259,6 +261,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
     listOptions = DEFAULT_AUTH_FILES_LIST_OPTIONS,
     loadAllPages = false,
     onListMetaResolved,
+    onServerPaginationUnsupported,
     restoreFocusAfterDelete,
   } = options;
   const { t } = useTranslation();
@@ -564,6 +567,28 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
               typeof data?.page_size === 'number' && Number.isFinite(data.page_size)
                 ? data.page_size
                 : (effectiveListOptions.pageSize ?? nextFiles.length);
+            const requestedPageSize = effectiveListOptions.pageSize ?? 0;
+            const nextTotal = typeof data?.total === 'number' ? data.total : nextFiles.length;
+            const paginationUnsupported =
+              requestedPageSize > 0 && nextFiles.length > requestedPageSize;
+            const responseContainsFullIndex = paginationUnsupported && nextFiles.length >= nextTotal;
+            const responseCanReplaceFallbackRequest =
+              responseContainsFullIndex &&
+              !effectiveListOptions.search?.trim() &&
+              !effectiveListOptions.type?.trim() &&
+              !effectiveListOptions.problemOnly &&
+              !effectiveListOptions.disabledOnly &&
+              !effectiveListOptions.premiumOnly;
+            if (paginationUnsupported) {
+              onServerPaginationUnsupported?.();
+            }
+            // A page size in the request does not prove that the server applied
+            // it. Older servers may ignore these query parameters and return the
+            // complete list, which must stay on the client-pagination path.
+            const responseIsPartialPage =
+              requestedPageSize > 0 &&
+              nextFiles.length <= requestedPageSize &&
+              (data?.has_more === true || nextTotal > nextFiles.length);
             const resolvedDataKey = effectiveListOptions.pageSize
               ? getAuthFilesListOptionsKey({
                   ...effectiveListOptions,
@@ -571,14 +596,23 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
                   pageSize: nextPageSize,
                 })
               : effectiveListOptionsKey;
+            const fallbackDataKey = getAuthFilesListOptionsKey({
+              codexSubscription: effectiveListOptions.codexSubscription,
+              summary: effectiveListOptions.summary,
+              includeRecentRequests: false,
+              pageRecentRequests: false,
+            });
+            const metaDataKey = responseCanReplaceFallbackRequest
+              ? fallbackDataKey
+              : effectiveListOptionsKey;
 
             applyFilesState(nextFiles);
             setError('');
             const nextListMeta: AuthFilesListMeta = {
-              total: typeof data?.total === 'number' ? data.total : nextFiles.length,
+              total: nextTotal,
               page: Math.max(1, Math.round(nextPage)),
               pageSize: Math.max(0, Math.round(nextPageSize)),
-              paginated: Boolean(effectiveListOptions.pageSize),
+              paginated: responseIsPartialPage,
               hasMore: data?.has_more === true,
               typeCounts: data?.type_counts,
               premiumOnlyApplied:
@@ -589,8 +623,8 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
                 effectiveListOptions.pageRecentRequests === true
                   ? data?.page_recent_requests_applied === true
                   : undefined,
-              dataKey: effectiveListOptionsKey,
-              resolvedDataKey,
+              dataKey: metaDataKey,
+              resolvedDataKey: responseCanReplaceFallbackRequest ? metaDataKey : resolvedDataKey,
               typeCountsKey: getAuthFilesTypeCountsKey(effectiveListOptions),
             };
             onListMetaResolved?.(nextListMeta);
@@ -641,7 +675,15 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         force ? 'refresh-after-current' : 'reuse'
       );
     },
-    [applyFilesState, listOptions, listOptionsKey, loadAllPages, onListMetaResolved, t]
+    [
+      applyFilesState,
+      listOptions,
+      listOptionsKey,
+      loadAllPages,
+      onListMetaResolved,
+      onServerPaginationUnsupported,
+      t,
+    ]
   );
 
   useEffect(() => {
@@ -733,6 +775,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         const successCount = result.uploaded;
 
         if (successCount > 0) {
+          invalidateAuthFileCredentialMapCache();
           const suffix = validFiles.length > 1 ? ` (${successCount}/${validFiles.length})` : '';
           showNotification(
             `${t('auth_files.upload_success')}${suffix}`,
@@ -783,6 +826,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             return;
           }
           showNotification(t('auth_files.delete_success'), 'success');
+          invalidateAuthFileCredentialMapCache();
           applyDeletedFiles(result.files.length > 0 ? result.files : [name]);
           refreshFilesAfterLocalMutation();
         } catch (err: unknown) {
@@ -828,6 +872,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
         try {
           if (!filtered) {
             await authFilesApi.deleteAll();
+            invalidateAuthFileCredentialMapCache();
             showNotification(t('auth_files.delete_all_success'), 'success');
             applyFilesState((prev) => prev.filter((file) => isRuntimeOnlyAuthFile(file)));
             deselectAll();
@@ -856,6 +901,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             const success = result.deleted;
             const failed = result.failed.length;
 
+            if (success > 0) invalidateAuthFileCredentialMapCache();
             applyDeletedFiles(result.files);
 
             if (failed === 0) {
@@ -1157,6 +1203,7 @@ export function useAuthFilesData(options: UseAuthFilesDataOptions): UseAuthFiles
             })
           );
           if (!mountedRef.current) return;
+          if (result.deleted > 0) invalidateAuthFileCredentialMapCache();
           applyDeletedFiles(result.files);
 
           if (result.failed.length === 0) {

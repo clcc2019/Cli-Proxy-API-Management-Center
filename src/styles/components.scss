@@ -60,26 +60,26 @@
   &.btn-primary {
     background: var(--mg-action);
     color: var(--primary-contrast, #fff);
-    border-color: var(--mg-action);
+    border-color: transparent;
     border-radius: var(--xai-radius-pill);
-    box-shadow: 0 2px 4px -2px rgb(23 25 27 / 38%), var(--xai-shadow-button);
+    box-shadow: none;
 
     @media (hover: hover) and (pointer: fine) {
       &:hover:not(:disabled) {
         background: var(--mg-action-hover);
-        border-color: var(--mg-action-hover);
-        box-shadow: 0 4px 10px -5px rgb(23 25 27 / 55%), var(--xai-shadow-button);
+        border-color: transparent;
+        box-shadow: none;
       }
     }
 
     &:active:not(:disabled) {
       background: var(--mg-action);
-      border-color: var(--mg-action);
-      box-shadow: var(--xai-shadow-button);
+      border-color: transparent;
+      box-shadow: none;
     }
 
     &:disabled {
-      border-color: var(--xai-disabled);
+      border-color: transparent;
       background: var(--xai-disabled);
       color: var(--xai-inverse);
       opacity: 1;
@@ -87,23 +87,24 @@
   }
 
   &.btn-secondary {
-    background: var(--xai-glass-control);
-    border-color: var(--mg-control-border);
+    background: var(--mg-surface-subtle);
+    border-color: transparent;
     color: var(--mg-text);
-    box-shadow: var(--xai-shadow-button);
+    border-radius: var(--xai-radius-pill);
+    box-shadow: none;
 
     @media (hover: hover) and (pointer: fine) {
       &:hover:not(:disabled) {
         background: var(--mg-surface-hover);
-        border-color: var(--mg-control-border-hover);
-        box-shadow: var(--xai-shadow-button);
+        border-color: transparent;
+        box-shadow: none;
       }
     }
 
     &:active:not(:disabled) {
       background: var(--mg-surface-pressed);
-      border-color: var(--mg-control-border-hover);
-      box-shadow: var(--xai-shadow-button);
+      border-color: transparent;
+      box-shadow: none;
     }
   }
 
@@ -352,19 +353,13 @@ textarea {
   position: relative;
   isolation: isolate;
   min-width: 0;
-  background: var(--surface-card, var(--xai-glass-surface-strong));
-  border: 1px solid var(--surface-card-border, var(--xai-border-subtle));
+  background: var(--mg-surface-subtle);
+  border: 0;
   border-radius: var(--mg-radius-card);
-  box-shadow: var(--mg-shadow-rest);
+  box-shadow: none;
   padding: var(--xai-space-5);
-  transition:
-    border-color var(--motion-duration-base) var(--motion-ease-standard),
-    background-color var(--xai-duration-default) var(--xai-ease-standard),
-    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
-    transform var(--motion-duration-fast) var(--motion-ease-out);
+  transition: background-color var(--xai-duration-default) var(--xai-ease-standard);
 
-  // Cards use the shared warm-neutral surface. The hairline is intentionally
-  // quiet so dense admin surfaces remain legible without looking boxed in.
   &::before {
     content: none;
   }
@@ -375,22 +370,22 @@ textarea {
 
   @media (hover: hover) and (pointer: fine) {
     &.card-interactive:hover {
-      border-color: var(--surface-card-border-hover, var(--border-hover));
-      background: var(--xai-white);
-      box-shadow: var(--mg-shadow-card);
-      transform: translateY(-2px);
+      border-color: transparent;
+      background: var(--mg-surface-hover);
+      box-shadow: none;
+      transform: none;
     }
   }
 
   &.card-interactive:active {
-    background: var(--xai-fill-hover);
-    box-shadow: var(--xai-shadow-button);
-    transform: translateY(1px);
+    background: var(--mg-surface-pressed);
+    box-shadow: none;
+    transform: none;
   }
 
   &:has(:focus-visible) {
-    border-color: var(--mg-border-strong);
-    box-shadow: 0 0 0 3px var(--mg-focus-ring), var(--mg-shadow-rest);
+    border-color: transparent;
+    box-shadow: none;
   }
 }
 

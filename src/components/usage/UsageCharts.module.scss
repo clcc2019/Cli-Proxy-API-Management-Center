@@ -4,9 +4,9 @@
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
-  border-color: var(--xai-border);
+  border: 0;
   border-radius: var(--xai-radius-card);
-  background: var(--xai-white);
+  background: var(--usage-surface-warm, var(--xai-warm));
   box-shadow: none;
 }
 
@@ -16,8 +16,8 @@
   align-items: center;
   gap: var(--xai-space-2);
   margin-bottom: var(--xai-space-3);
-  padding-bottom: var(--xai-space-3);
-  border-bottom: 1px solid var(--xai-border);
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .panelCard :global(.title),
@@ -36,10 +36,10 @@
   min-width: 0;
   color: var(--xai-ink-console);
   font-family: var(--xai-font-display);
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 27px;
-  letter-spacing: -0.45px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.16px;
   overflow-wrap: anywhere;
 }
 
@@ -47,8 +47,8 @@
 .chartLineHint,
 .deferredCaption {
   color: var(--xai-secondary);
-  font-size: 13.5px;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 22.4px;
 }
 
 .panelShell,
@@ -75,11 +75,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(calc(var(--xai-space-15) * 2), 1fr));
   min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--xai-border);
-  border-radius: var(--xai-radius-panel);
-  background: var(--xai-border);
-  gap: 1px;
+  gap: var(--xai-space-2);
 }
 
 .summaryPill {
@@ -90,7 +86,8 @@
   justify-content: space-between;
   gap: var(--xai-space-2);
   padding: var(--xai-space-2) var(--xai-space-3);
-  background: var(--xai-warm);
+  border-radius: var(--xai-radius-panel);
+  background: var(--usage-surface-subtle, var(--xai-warm));
 }
 
 .summaryLabel {
@@ -152,7 +149,7 @@
   height: 270px;
   padding: var(--xai-space-3) var(--xai-space-2) var(--xai-space-1);
   border-radius: var(--xai-radius-panel);
-  background: var(--xai-warm);
+  background: color-mix(in srgb, var(--usage-surface-subtle, var(--xai-warm)) 72%, #ffffff);
 }
 
 .chartScroller {
@@ -238,9 +235,9 @@
 .chartLineRemoveButton:global(.btn) {
   min-height: var(--xai-space-8);
   padding: 0 var(--xai-space-3);
-  border: 1px solid var(--xai-border-hover);
+  border: 0;
   border-radius: var(--xai-radius-pill);
-  background: transparent;
+  background: var(--usage-surface-subtle, var(--xai-fill-soft));
   box-shadow: none;
   color: var(--xai-ink-console);
   font: 500 13.5px/18px var(--xai-font-ui);
@@ -254,6 +251,7 @@
 
 .chartLineList {
   display: grid;
+  gap: var(--xai-space-2);
 }
 
 .chartLineItem {
@@ -262,12 +260,9 @@
   min-width: 0;
   align-items: center;
   gap: var(--xai-space-2);
-  padding: var(--xai-space-3) 0;
-  border-top: 1px solid var(--xai-border);
-}
-
-.chartLineItem:first-child {
-  border-top: 0;
+  padding: var(--xai-space-3);
+  border-radius: var(--xai-radius-panel);
+  background: var(--usage-surface-subtle, var(--xai-warm));
 }
 
 .chartLineLabel {
@@ -344,7 +339,7 @@
 .chartLineHeader :global(.btn):focus-visible,
 .chartLineRemoveButton:global(.btn):focus-visible,
 .chartLineItem :global(button[role='combobox']):focus-visible {
-  outline: 1px solid var(--xai-ink-console);
+  outline: 2px solid color-mix(in srgb, var(--xai-ink-console) 22%, transparent);
   outline-offset: 3px;
 }
 

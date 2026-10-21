@@ -5660,6 +5660,11 @@
   --auth-status-danger: var(--xai-danger);
   --auth-status-danger-soft: color-mix(in srgb, var(--auth-status-danger) 9%, var(--mg-surface));
   --auth-status-danger-border: color-mix(in srgb, var(--auth-status-danger) 28%, var(--mg-border));
+  --auth-quota-track-top: color-mix(in srgb, var(--mg-text) 9%, var(--mg-surface));
+  --auth-quota-track-bottom: color-mix(in srgb, var(--mg-text) 4%, var(--mg-surface));
+  --auth-quota-fill-deep: color-mix(in srgb, var(--auth-status-success) 26%, #415b49);
+  --auth-quota-fill-mid: color-mix(in srgb, var(--auth-status-success) 24%, #536e5c);
+  --auth-quota-fill-light: color-mix(in srgb, var(--auth-status-success) 20%, #69806f);
 }
 
 .page .metricsPanel {
@@ -5699,19 +5704,34 @@
 }
 
 .page .quotaBar {
-  background: color-mix(in srgb, var(--mg-border) 54%, var(--mg-surface));
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--auth-quota-track-top), var(--auth-quota-track-bottom));
+  box-shadow:
+    inset 0 1px 2px rgb(32 33 36 / 9%),
+    inset 0 -1px 0 rgb(32 33 36 / 3%);
 }
 
-.page .quotaBarFillHigh {
-  background: var(--auth-status-success);
-}
-
-.page .quotaBarFillMedium {
-  background: var(--auth-status-warning);
-}
-
-.page .quotaBarFillLow {
-  background: var(--auth-status-danger);
+.page .quotaBarFillHigh,
+.page .quotaBarFillMedium,
+.page .quotaBarFillLow,
+.page .quotaBarFillUnknown {
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 22%) 0%,
+      rgb(255 255 255 / 7%) 46%,
+      rgb(18 39 25 / 12%) 100%
+    ),
+    linear-gradient(
+      90deg,
+      var(--auth-quota-fill-deep) 0%,
+      var(--auth-quota-fill-mid) 56%,
+      var(--auth-quota-fill-light) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 26%),
+    inset 0 -1px 0 rgb(18 39 25 / 18%);
 }
 
 .page .freePlanValue {
@@ -5723,7 +5743,7 @@
 .page .premiumPlanValue {
   border-color: var(--auth-status-warning-border);
   background: var(--auth-status-warning-soft);
-  color: var(--auth-status-warning);
+  color: color-mix(in srgb, var(--auth-status-warning) 54%, var(--mg-text));
 }
 
 // Keep the page header open and let the actions read as individual floating
@@ -6018,11 +6038,11 @@
 }
 
 // The grid is content-visible/contained for list performance. Keep a small
-// paint buffer above the first row so its hover lift never gets clipped at the
-// grid's top edge. The negative margin preserves the existing page rhythm.
+// paint buffer around its edges so card borders and focus rings remain inside
+// the page's horizontally clipped content area.
 .page .cardGrid {
   margin-top: -4px;
-  padding-top: 4px;
+  padding: 4px 4px 0;
 }
 
 // Final card polish: keep the credential surface quiet, make the data region
@@ -6114,7 +6134,10 @@
 }
 
 .page .credentialCard .quotaBar {
-  background: color-mix(in srgb, var(--mg-text-tertiary) 18%, var(--mg-surface));
+  background: linear-gradient(180deg, var(--auth-quota-track-top), var(--auth-quota-track-bottom));
+  box-shadow:
+    inset 0 1px 2px rgb(32 33 36 / 9%),
+    inset 0 -1px 0 rgb(32 33 36 / 3%);
 }
 
 .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
@@ -6425,8 +6448,8 @@
 }
 
 .page .credentialCard .cardToggleSwitch > input:checked + span:first-of-type {
-  border-color: var(--auth-status-success);
-  background: var(--auth-status-success);
+  border-color: var(--auth-accent);
+  background: var(--auth-accent);
 }
 
 .page .credentialCard .cardFooter {
@@ -6912,21 +6935,19 @@
   }
 }
 
-// Keep the operations toolbar visually quiet beneath the page title. The
-// provider filters and controls share one white surface so the rail does not
-// leave an unrelated gray band below the category tabs.
+// Let the operations toolbar sit directly on the page surface without a frame.
 .page .filterToolbar {
   --auth-rail-surface: var(--mg-surface);
   padding: 0;
-  border: 1px solid var(--auth-workbench-border);
-  border-radius: var(--mg-radius-medium);
-  background: var(--mg-surface);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
 .page .providerRail {
-  border-bottom: 1px solid var(--auth-workbench-border);
-  background: var(--mg-surface);
+  border-bottom: 0;
+  background: transparent;
 }
 
 .page .providerTab {
@@ -6996,6 +7017,11 @@
   box-shadow: none;
 }
 
+.page .credentialCard:has(.priorityInput:focus-visible),
+.page .credentialCard.credentialCardSelected:has(.priorityInput:focus-visible) {
+  outline: none;
+}
+
 // Intermediate content columns can fit two readable cards without shrinking
 // the footer controls below their comfortable mobile hit area.
 @container auth-files-page (min-width: 720px) and (max-width: 767px) {
@@ -7011,4 +7037,60 @@
   .page .searchToolbar {
     max-width: 560px;
   }
+}
+
+@container auth-files-page (max-width: 767px) {
+  .page .providerRail::before,
+  .page .providerRail::after {
+    display: none;
+  }
+
+  .page .providerTags {
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    overflow: visible;
+    padding-block: 2px 8px;
+  }
+}
+
+// Align the first provider filter with the card surfaces' 4px paint buffer,
+// and keep separators out of the cards' action row and list footer.
+.page .providerRail {
+  padding-inline: 3px;
+}
+
+.page .credentialCard .cardFooter {
+  border-top: 0;
+}
+
+.page .pagination {
+  border-top: 0;
+}
+
+.page .credentialCard {
+  --auth-request-success-ink: color-mix(
+    in srgb,
+    var(--auth-status-success) 72%,
+    var(--mg-text)
+  );
+  --auth-request-warning-ink: color-mix(
+    in srgb,
+    var(--auth-status-warning) 68%,
+    var(--mg-text)
+  );
+  --auth-request-danger-ink: color-mix(in srgb, var(--auth-status-danger) 70%, var(--mg-text));
+}
+
+.page .credentialCard .statusRateHigh,
+.page .credentialCard .tooltipSuccess {
+  color: var(--auth-request-success-ink);
+}
+
+.page .credentialCard .statusRateMedium {
+  color: var(--auth-request-warning-ink);
+}
+
+.page .credentialCard .statusRateLow,
+.page .credentialCard .tooltipFailure {
+  color: var(--auth-request-danger-ink);
 }

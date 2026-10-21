@@ -596,25 +596,6 @@ export function RequestLogsPage() {
     };
   }, [rows]);
 
-  const requestSummary = useMemo(() => {
-    let latencyTotal = 0;
-    let latencySamples = 0;
-    let totalCost = 0;
-
-    rows.forEach((row) => {
-      totalCost += row.totalCost;
-      if (row.latencyMs !== null) {
-        latencyTotal += row.latencyMs;
-        latencySamples += 1;
-      }
-    });
-
-    return {
-      averageLatencyMs: latencySamples > 0 ? latencyTotal / latencySamples : null,
-      totalCost,
-    };
-  }, [rows]);
-
   const filteredRows = useMemo(() => {
     const baseRows =
       statusFilter === 'all'
@@ -749,53 +730,6 @@ export function RequestLogsPage() {
           limit: REQUEST_EVENT_ROWS_LIMIT,
         })}
       />
-
-      <section className={styles.summaryGrid} aria-label={t('usage_stats.request_events_title')}>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('usage_stats.request_events_kpi_total')}</span>
-          <div className={styles.summaryValueRow}>
-            <strong className={styles.summaryValue}>{counts.total}</strong>
-            <span className={styles.summaryUnit}>
-              {t('usage_stats.request_events_kpi_total_unit')}
-            </span>
-          </div>
-          <span className={styles.summaryHint}>
-            {t('usage_stats.request_events_kpi_total_hint', {
-              limit: REQUEST_EVENT_ROWS_LIMIT,
-            })}
-          </span>
-        </div>
-
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>
-            {t('usage_stats.request_events_kpi_avg_latency')}
-          </span>
-          <div className={styles.summaryValueRow}>
-            <strong className={styles.summaryValue}>
-              {requestSummary.averageLatencyMs === null
-                ? '--'
-                : formatDurationMs(requestSummary.averageLatencyMs)}
-            </strong>
-          </div>
-          <span className={styles.summaryHint}>
-            {requestSummary.averageLatencyMs === null
-              ? t('usage_stats.request_events_kpi_avg_latency_empty')
-              : latencyHint}
-          </span>
-        </div>
-
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>
-            {t('usage_stats.request_events_kpi_total_cost')}
-          </span>
-          <div className={styles.summaryValueRow}>
-            <strong className={styles.summaryValue}>{formatUsd(requestSummary.totalCost)}</strong>
-          </div>
-          <span className={styles.summaryHint} aria-hidden="true">
-            &nbsp;
-          </span>
-        </div>
-      </section>
 
       {error && (
         <div className={styles.errorBanner} role="alert">

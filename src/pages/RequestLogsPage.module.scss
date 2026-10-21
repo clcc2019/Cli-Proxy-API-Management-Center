@@ -1,29 +1,26 @@
-@use '../styles/mixins' as *;
 @use '../styles/variables' as *;
 
-// Merge Gateway-inspired request log: editorial hierarchy on top,
-// a quiet operational summary, and one high-fidelity product surface.
+// Merge Gateway-inspired request log with one high-fidelity product surface.
 
 .page {
-  --request-surface: var(--mg-surface);
-  --request-surface-subtle: var(--mg-surface-subtle);
-  --request-surface-warm: var(--mg-surface-warm);
-  --request-text: var(--mg-text);
-  --request-text-secondary: var(--mg-text-secondary);
-  --request-text-tertiary: var(--mg-text-tertiary);
-  --request-text-muted: var(--mg-text-muted);
-  --request-border: var(--mg-border);
-  --request-sage: var(--mg-sage);
-  --request-sage-strong: var(--mg-sage-strong);
-  --request-sage-soft: var(--mg-sage-soft);
-  // Page-scoped semantic palette; the global console theme stays neutral.
-  --request-info: #365f86;
+  --request-surface: #ffffff;
+  --request-surface-subtle: #f3f4f6;
+  --request-surface-warm: #f3f4f6;
+  --request-text: #202124;
+  --request-text-secondary: #60646c;
+  --request-text-tertiary: #7d8187;
+  --request-text-muted: rgb(96 100 108 / 62%);
+  --request-border: #e6e7e9;
+  --request-sage: #60646c;
+  --request-sage-strong: #202124;
+  --request-sage-soft: #f3f4f6;
+  --request-info: #60646c;
   --request-latency: #266e69;
-  --request-success: #276a4c;
-  --request-warning: #855c20;
-  --request-danger: var(--mg-danger);
+  --request-success: #146c36;
+  --request-warning: #815300;
+  --request-danger: #a9231a;
   --request-focus: color-mix(in srgb, var(--request-sage-strong) 42%, transparent);
-  --request-radius-panel: var(--xai-radius-panel);
+  --request-radius-panel: 12px;
 
   // Shared tracks keep the header, data rows, and loading rows aligned.
   // Dense views scroll horizontally instead of reducing identifiers to noise.
@@ -63,90 +60,13 @@
   container-type: inline-size;
 }
 
-// ─── Compact management-page introduction ───────────────
-
-// ─── Continuous KPI panel ───────────────────────────────
-
-.summaryGrid {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid var(--request-border);
-  border-radius: var(--mg-radius-card);
-  background: var(--request-surface);
-  box-shadow: var(--mg-shadow-rest);
-}
-
-.summaryItem {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  min-height: 92px;
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--xai-space-1-5);
-  padding: var(--xai-space-3-5);
-  border-right: 1px solid var(--request-border);
-  background: var(--request-surface);
-
-  &:last-child {
-    border-right: 0;
-  }
-}
-
-.summaryLabel {
-  color: var(--request-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: 0.02em;
-}
-
-.summaryValueRow {
-  display: flex;
-  min-width: 0;
-  align-items: baseline;
-  gap: var(--xai-space-1-5);
-}
-
-.summaryValue {
-  overflow: hidden;
-  color: var(--request-text);
-  font-size: 28px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-  letter-spacing: 0;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.summaryUnit,
-.summaryHint {
-  color: var(--request-text-tertiary);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.summaryUnit {
-  font-weight: 500;
-}
-
-.summaryHint {
-  min-height: 17px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 // ─── Product log panel and controls ─────────────────────
 
 .eventsPanel {
   position: relative;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--request-info) 13%, var(--request-border));
+  border: 1px solid var(--request-border);
   border-radius: var(--mg-radius-card);
   background: var(--request-surface);
   box-shadow: var(--mg-shadow-rest);
@@ -159,7 +79,7 @@
   border: 0;
   border-bottom: 1px solid var(--request-border);
   border-radius: 0;
-  background: color-mix(in srgb, var(--request-info) 3%, var(--request-surface));
+  background: var(--request-surface-subtle);
   box-shadow: none;
 
   &::before {
@@ -300,7 +220,7 @@
   padding: 0 var(--xai-space-2) 0 var(--xai-space-2-5);
   border: 1px solid var(--request-border);
   border-radius: var(--xai-radius-control);
-  background: color-mix(in srgb, var(--request-info) 3%, var(--request-surface));
+  background: var(--request-surface);
   color: var(--request-text-tertiary);
   transition:
     border-color var(--xai-duration-default),
@@ -312,9 +232,9 @@
   }
 
   &:focus-within {
-    border-color: color-mix(in srgb, var(--request-info) 45%, var(--request-border));
+    border-color: var(--request-border-strong, #d7d9dd);
     background: var(--request-surface);
-    outline: 1px solid color-mix(in srgb, var(--request-info) 35%, transparent);
+    outline: 2px solid color-mix(in srgb, #202124 22%, transparent);
     outline-offset: 2px;
     box-shadow: none;
   }
@@ -1301,19 +1221,6 @@
     gap: var(--xai-space-4);
   }
 
-  .summaryItem {
-    min-height: 88px;
-    padding: var(--xai-space-3);
-  }
-
-  .summaryHint {
-    display: none;
-  }
-
-  .summaryValue {
-    font-size: 20px;
-  }
-
   .toolbar {
     gap: var(--xai-space-2);
     padding: var(--xai-space-3-5);
@@ -1326,17 +1233,6 @@
   .emptyState {
     min-height: 240px;
     padding: 38px 18px;
-  }
-}
-
-@container request-page (max-width: 480px) {
-  .summaryGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .summaryItem {
-    min-height: 78px;
-    padding: var(--xai-space-2-5);
   }
 }
 

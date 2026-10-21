@@ -547,6 +547,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
                 statusData={statusData}
                 styles={refreshStyles}
                 interactionMode="summary"
+                colorTone="muted"
               />
             </Suspense>
           </div>

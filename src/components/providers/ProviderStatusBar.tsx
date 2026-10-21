@@ -26,12 +26,21 @@ const COLOR_STOPS = [
   { r: 50, g: 115, b: 67 }, // #327343
 ] as const;
 
-function rateToColor(rate: number): string {
+const MUTED_COLOR_STOPS = [
+  { r: 164, g: 88, b: 91 }, // muted rose
+  { r: 147, g: 119, b: 72 }, // soft ochre
+  { r: 78, g: 119, b: 96 }, // sage
+] as const;
+
+type StatusColorTone = 'default' | 'muted';
+
+function rateToColor(rate: number, tone: StatusColorTone): string {
   const t = Math.max(0, Math.min(1, rate));
   const segment = t < 0.5 ? 0 : 1;
   const localT = segment === 0 ? t * 2 : (t - 0.5) * 2;
-  const from = COLOR_STOPS[segment];
-  const to = COLOR_STOPS[segment + 1];
+  const colorStops = tone === 'muted' ? MUTED_COLOR_STOPS : COLOR_STOPS;
+  const from = colorStops[segment];
+  const to = colorStops[segment + 1];
   const r = Math.round(from.r + (to.r - from.r) * localT);
   const g = Math.round(from.g + (to.g - from.g) * localT);
   const b = Math.round(from.b + (to.b - from.b) * localT);
@@ -69,6 +78,7 @@ interface ProviderStatusBarProps {
   statusData: StatusBarData;
   styles: StylesModule;
   showRateLabel?: boolean;
+  colorTone?: StatusColorTone;
   /**
    * 列表卡片有大量同构的状态条时，将 20 个可聚焦 block 合并为一个时间线控件。
    * 视觉、鼠标提示和方向键浏览保持不变；供应商详情页仍使用逐块交互。
@@ -180,6 +190,7 @@ function ProviderStatusBarImpl({
   statusData,
   styles: stylesProp,
   showRateLabel = false,
+  colorTone = 'default',
   interactionMode = 'individual',
 }: ProviderStatusBarProps) {
   const { t } = useTranslation();
@@ -388,7 +399,7 @@ function ProviderStatusBarImpl({
       return {
         detail,
         blockClassName: `${s.statusBlock} ${isIdle ? s.statusBlockIdle : ''}`,
-        blockStyle: isIdle ? undefined : { backgroundColor: rateToColor(detail.rate) },
+        blockStyle: isIdle ? undefined : { backgroundColor: rateToColor(detail.rate, colorTone) },
         tooltipPositionClass,
         // List cards use summary interaction. Their block labels are only
         // needed for the active block, so avoid formatting all 20 upfront.
@@ -397,6 +408,7 @@ function ProviderStatusBarImpl({
     });
   }, [
     interactionMode,
+    colorTone,
     s.statusBlock,
     s.statusBlockIdle,
     s.statusTooltipLeft,
