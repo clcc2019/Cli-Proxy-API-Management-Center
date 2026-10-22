@@ -1989,423 +1989,8 @@
   border-top: 1px solid var(--mg-border);
 }
 
-.page .quotaSection {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 6px;
-  padding-block: 7px 8px;
-}
-
-.page .quotaSectionHeader {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: max-content minmax(0, 1fr) max-content;
-  align-items: center;
-  gap: 6px;
-}
-
-.page .quotaSectionTitle {
-  min-width: 0;
-  color: var(--mg-text-tertiary);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.3;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.page .quotaExpandButton {
-  justify-self: end;
-  min-height: 24px;
-  padding: 2px 7px;
-  border: 1px solid var(--mg-border);
-  border-radius: var(--xai-radius-pill);
-  background: var(--mg-surface);
-  color: var(--mg-text-secondary);
-  font-size: 11px;
-  line-height: 1.2;
-  cursor: pointer;
-  transition:
-    background-color var(--motion-duration-fast) var(--motion-ease-standard),
-    color var(--motion-duration-fast) var(--motion-ease-standard);
-
-  &:hover {
-    background: var(--mg-surface-subtle);
-    color: var(--mg-text);
-  }
-
-  &:focus-visible {
-    outline: 1px solid var(--mg-focus-outline);
-    outline-offset: 2px;
-  }
-}
-
-.page .quotaContent {
-  display: grid;
-  min-width: 0;
-}
-
-.page .quotaContentBody,
-.page .quotaRefreshingState {
-  grid-area: 1 / 1;
-}
-
-.page .quotaContentBody {
-  display: flex;
-  min-width: 0;
-  min-height: 32px;
-  flex-direction: column;
-  gap: 6px;
-  transition:
-    opacity var(--motion-duration-base) var(--motion-ease-standard),
-    filter var(--motion-duration-base) var(--motion-ease-standard);
-}
-
-.page .quotaContentBodyHidden {
-  opacity: 0.24;
-  filter: saturate(0.35);
-  pointer-events: none;
-}
-
-.page .quotaRefreshingState {
-  display: grid;
-  place-items: center;
-  color: var(--mg-text-secondary);
-}
-
-.page .quotaRow {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page .quotaRowHeader {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.page .quotaModel {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--mg-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.page .quotaMeta {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  color: var(--mg-text-tertiary);
-  font-family: $font-mono;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.page .quotaPercent {
-  display: inline-flex;
-  min-width: 38px;
-  height: 20px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  padding-inline: 5px;
-  border: 1px solid var(--mg-border);
-  border-radius: var(--xai-radius-micro);
-  background: var(--mg-surface);
-  color: var(--mg-text-tertiary);
-  font-family: $font-mono;
-  font-size: 11px;
-  font-weight: 760;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.page .quotaRowHigh .quotaPercent {
-  border-color: color-mix(in srgb, #287a5b 34%, var(--mg-border));
-  background: color-mix(in srgb, #287a5b 9%, var(--mg-surface));
-  color: #236b50;
-}
-
-.page .quotaRowMedium .quotaPercent {
-  border-color: color-mix(in srgb, #b88735 38%, var(--mg-border));
-  background: color-mix(in srgb, #b88735 10%, var(--mg-surface));
-  color: #896525;
-}
-
-.page .quotaRowLow .quotaPercent {
-  border-color: color-mix(in srgb, #bd5d55 34%, var(--mg-border));
-  background: color-mix(in srgb, #bd5d55 9%, var(--mg-surface));
-  color: #9f4e48;
-}
-
-.page .quotaRowUnknown .quotaPercent {
-  background: var(--mg-surface-subtle);
-  color: var(--mg-text-tertiary);
-}
-
-.page .quotaAmount {
-  color: var(--mg-text-secondary);
-}
-
-.page .quotaReset {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--mg-text-tertiary);
-  text-overflow: ellipsis;
-}
-
-.page .quotaBar {
-  position: relative;
-  height: 5px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--mg-text-tertiary) 14%, var(--mg-surface));
-  box-shadow: inset 0 1px 1px rgb(32 33 35 / 7%);
-}
-
-.page .quotaBarFill {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--mg-success-fill);
-  transform-origin: left center;
-  transition:
-    transform var(--motion-duration-slow) var(--motion-ease-emphasized),
-    background-color var(--motion-duration-base) var(--motion-ease-standard);
-  will-change: transform;
-}
-
-.page .quotaBarFillHigh {
-  background: linear-gradient(90deg, #236b50 0%, #287a5b 52%, #3a8b6b 100%);
-}
-
-.page .quotaBarFillMedium {
-  background: linear-gradient(90deg, #896525 0%, #b88735 52%, #c89b4f 100%);
-}
-
-.page .quotaBarFillLow {
-  background: linear-gradient(90deg, #9f4e48 0%, #bd5d55 52%, #cc7168 100%);
-}
-
-.page .quotaBarFillUnknown {
-  background: var(--mg-text-muted);
-}
-
-.page .codexPlan {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  color: var(--mg-text-tertiary);
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-.page .codexPlanLabel {
-  color: var(--mg-text-tertiary);
-}
-
-.page .codexPlanValue,
-.page .freePlanValue,
-.page .premiumPlanValue {
-  display: inline-flex;
-  min-height: 20px;
-  align-items: center;
-  padding-inline: 6px;
-  border: 1px solid var(--mg-border);
-  border-radius: var(--xai-radius-micro);
-  background: var(--mg-surface);
-  color: var(--mg-text-secondary);
-  font-family: $font-mono;
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  text-transform: capitalize;
-}
-
-.page .freePlanValue {
-  border-color: var(--xai-success-border);
-  background: var(--xai-success-soft);
-  color: var(--xai-success);
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
-.page .premiumPlanValue {
-  border-color: var(--xai-warning-border);
-  background: var(--xai-warning-soft);
-  box-shadow: none;
-  color: var(--xai-warning);
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
-.page .codexPlanValue:focus-visible {
-  outline: 1px solid var(--mg-focus-outline);
-  outline-offset: 2px;
-}
-
-.page .codexPlanExpiry {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--mg-text-tertiary);
-  font-family: $font-mono;
-  font-size: 11px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.page .codexResetCredits {
-  display: grid;
-  width: auto;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 5px;
-}
-
-.page .codexResetCreditsText {
-  display: flex;
-  min-width: 0;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  overflow: hidden;
-  color: var(--mg-text-tertiary);
-  font-size: 11px;
-  line-height: 1;
-}
-
-.page .codexResetCreditsText .codexPlanValue {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-
-.page .codexResetCreditsText .codexPlanValue {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.page .codexResetCreditButton:global(.btn.btn-sm) {
-  min-width: 44px;
-  min-height: 32px;
-  height: 32px;
-  flex: 0 0 auto;
-  padding-inline: 8px;
-  border-color: var(--mg-border);
-  border-radius: var(--mg-radius-control);
-  background: var(--mg-surface);
-  color: var(--mg-text-secondary);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  box-shadow: none;
-}
-
-.page .codexResetCreditButton:global(.btn.btn-sm):hover:not(:disabled) {
-  border-color: var(--mg-border-hover);
-  background: var(--mg-surface-subtle);
-  color: var(--mg-text);
-}
-
-.page .codexResetCreditButton:global(.btn.btn-sm):focus-visible {
-  outline: 1px solid var(--mg-focus-outline);
-  outline-offset: 2px;
-  border-color: var(--mg-border);
-  box-shadow: none;
-}
-
-.page .quotaLoadingState,
-.page .quotaMessage,
-.page .quotaError {
-  display: flex;
+.page .quotaSectionFallback {
   min-height: 40px;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 10px;
-  border-radius: var(--mg-radius-control);
-  font-size: 12px;
-  line-height: 1.4;
-  text-align: center;
-}
-
-.page .quotaLoadingState {
-  gap: 7px;
-  color: var(--mg-text-secondary);
-}
-
-.page .quotaLoadingState :global(.loading-spinner) {
-  color: var(--mg-warning);
-}
-
-.page .quotaMessage {
-  color: var(--mg-text-tertiary);
-}
-
-.page .quotaMessageAction {
-  width: 100%;
-  border: 1px solid var(--mg-border);
-  background: var(--mg-surface);
-  color: var(--mg-text-secondary);
-  cursor: pointer;
-  font-family: inherit;
-  transition:
-    border-color var(--mg-motion-fast) var(--mg-ease-standard),
-    background-color var(--mg-motion-fast) var(--mg-ease-standard),
-    color var(--mg-motion-fast) var(--mg-ease-standard),
-    transform var(--mg-motion-fast) var(--mg-ease-standard);
-}
-
-.page .quotaMessageAction:hover:not(:disabled) {
-  border-color: var(--mg-border-hover);
-  background: var(--mg-surface-subtle);
-  color: var(--mg-text);
-}
-
-.page .quotaMessageAction:focus-visible {
-  outline: 1px solid var(--mg-focus-outline);
-  outline-offset: 2px;
-  border-color: var(--mg-border);
-  box-shadow: none;
-}
-
-.page .quotaMessageAction:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.page .quotaMessageAction:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.page .quotaError {
-  min-height: 32px;
-  justify-content: center;
-  padding: 3px 6px;
-  border: 1px solid color-mix(in srgb, var(--mg-danger) 28%, var(--mg-border));
-  background: color-mix(in srgb, var(--mg-danger) 6%, var(--mg-surface));
-  color: var(--mg-danger);
-  text-align: center;
 }
 
 .page .cardErrorTrigger {
@@ -3012,114 +2597,6 @@
   contain-intrinsic-size: 1px 240px;
 }
 
-.page .rulesPanel {
-  overflow: hidden;
-}
-
-.page .rulesPanel :global(.card-header) {
-  min-height: 56px;
-  gap: 14px;
-  margin: 0;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--auth-workbench-border);
-}
-
-.page .rulesPanel :global(.card-header) :global(.title) {
-  color: var(--mg-text);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.page .rulesAddButton,
-.page .rulesManageButton {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-
-.page .rulesNotice {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 16px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--auth-workbench-border);
-  color: var(--mg-text-secondary);
-}
-
-.page .rulesNotice > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.page .rulesList {
-  display: grid;
-  padding-inline: 16px;
-}
-
-.page .rulesRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px;
-  min-height: 62px;
-}
-
-.page .rulesRow + .rulesRow {
-  border-top: 1px solid var(--auth-workbench-border);
-}
-
-.page .rulesInfo {
-  display: grid;
-  grid-template-columns: minmax(120px, 0.65fr) minmax(0, 1.35fr);
-  align-items: center;
-  gap: 16px;
-}
-
-.page .rulesProvider {
-  min-width: 0;
-  overflow: hidden;
-  font-family: $font-mono;
-  font-size: 12.5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.page .rulesStats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 16px;
-  margin-top: 0;
-}
-
-.page .rulesStat {
-  min-width: 0;
-  font-family: $font-mono;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.page .rulesStat + .rulesStat::before {
-  content: none;
-}
-
-.page .rulesManageButton:global(.btn.btn-sm) {
-  min-width: 92px;
-  justify-content: center;
-}
-
-.page .rulesPanel :global(.empty-state) {
-  margin: 0;
-  padding: 24px 16px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.page .rulesPanel :global(.empty-content) {
-  min-width: 0;
-}
-
 // Four-column desktop density: preserve one-line identity, metrics and footer
 // controls by reclaiming small amounts of space from padding and control gaps.
 // This lives after the base card rules so the compact values win the cascade.
@@ -3380,19 +2857,6 @@
   .page .pagination {
     margin-top: 0;
   }
-
-  .page .rulesRow {
-    gap: 14px;
-  }
-
-  .page .rulesInfo {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 5px;
-  }
-
-  .page .rulesStats {
-    grid-template-columns: repeat(2, minmax(0, max-content));
-  }
 }
 
 @container auth-files-page (max-width: 680px) {
@@ -3452,21 +2916,6 @@
   .page .credentialCard {
     min-height: 0;
     padding: 15px 14px 13px;
-  }
-
-  .page .quotaSectionHeader {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-
-  .page .codexResetCredits {
-    width: 100%;
-  }
-
-  .page .codexResetCreditsText {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    overflow: visible;
   }
 
   .page .cardSelection {
@@ -3648,41 +3097,6 @@
     min-height: var(--mg-hit-area);
   }
 
-  .page .rulesRow {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 12px;
-  }
-
-  .page .rulesInfo {
-    min-width: min(100%, 180px);
-    flex: 1 1 180px;
-  }
-
-  .page .rulesManageButton:global(.btn.btn-sm) {
-    width: auto;
-    flex: 0 0 auto;
-  }
-
-  .page .rulesPanel :global(.empty-action),
-  .page .rulesPanel :global(.empty-action) :global(.btn) {
-    width: auto;
-  }
-
-  .page .rulesManageButton:global(.btn.btn-sm),
-  .page .rulesPanel :global(.empty-action) :global(.btn) {
-    min-height: var(--mg-hit-area);
-  }
-
-  .page .rulesPanel :global(.empty-state) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    gap: 14px;
-    padding: 20px 14px;
-  }
-
   .page .pagination {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   }
@@ -3724,23 +3138,6 @@
   .page .headerAction:global(.btn.btn-sm) {
     min-width: 0;
     font-size: 12px;
-  }
-
-  .page .rulesPanel :global(.card-header) {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .page .rulesAddButton:global(.btn.btn-sm) {
-    width: auto;
-    flex: 0 0 auto;
-    min-height: 42px;
-  }
-
-  .page .rulesStats {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
   }
 }
 
@@ -3793,22 +3190,6 @@
   .page .quotaSlot {
     margin-inline: -10px;
     padding-inline: 10px;
-  }
-
-  .page .quotaRowHeader {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-  }
-
-  .page .quotaModel {
-    overflow: visible;
-    overflow-wrap: anywhere;
-    text-overflow: clip;
-    white-space: normal;
-  }
-
-  .page .quotaMeta {
-    justify-content: flex-start;
   }
 
   .page .credentialCard .cardFooter {
@@ -4380,63 +3761,6 @@
     white-space: normal;
   }
 
-  .page .quotaSectionHeader {
-    grid-template-columns: max-content minmax(0, 1fr);
-    align-items: center;
-    gap: var(--xai-space-1);
-  }
-
-  .page .codexResetCredits {
-    width: 100%;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--xai-space-1);
-  }
-
-  .page .codexResetCreditsText {
-    flex-wrap: nowrap;
-    justify-content: flex-end;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-
-  .page .codexPlan {
-    flex-wrap: nowrap;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-
-  .page .codexPlanLabel,
-  .page .codexPlanValue,
-  .page .freePlanValue,
-  .page .premiumPlanValue {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-
-  .page .codexPlanExpiry {
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .page .quotaRowHeader {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .page .quotaModel,
-  .page .quotaMeta,
-  .page .quotaAmount,
-  .page .quotaReset {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .page .metricsPanel {
     padding-inline: var(--xai-space-3);
     border-radius: var(--xai-radius-panel);
@@ -4658,11 +3982,6 @@
     min-height: var(--mg-hit-area, 44px);
     flex-basis: var(--mg-hit-area, 44px);
     border-radius: var(--xai-radius-control);
-  }
-
-  .page .codexResetCreditButton:global(.btn.btn-sm) {
-    min-height: var(--mg-hit-area, 44px);
-    height: var(--mg-hit-area, 44px);
   }
 
   .page .pagination {
@@ -5300,17 +4619,6 @@
     height: 15px;
     flex-basis: 15px;
   }
-
-  // Keep the quota reset action visually proportional to the compact card
-  // controls instead of expanding it to the full mobile hit area.
-  .page .codexResetCreditButton:global(.btn.btn-sm) {
-    min-width: 34px;
-    width: auto;
-    height: 28px;
-    min-height: 28px;
-    padding-inline: 7px;
-    font-size: 10px;
-  }
 }
 
 @container auth-files-page (max-width: 767px) {
@@ -5695,55 +5003,6 @@
   border-color: var(--auth-status-danger-border);
   background: var(--auth-status-danger-soft);
   color: var(--auth-status-danger);
-}
-
-.page .quotaRowUnknown .quotaPercent {
-  border-color: var(--auth-metrics-border);
-  background: color-mix(in srgb, var(--mg-surface) 72%, transparent);
-  color: var(--mg-text-tertiary);
-}
-
-.page .quotaBar {
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--auth-quota-track-top), var(--auth-quota-track-bottom));
-  box-shadow:
-    inset 0 1px 2px rgb(32 33 36 / 9%),
-    inset 0 -1px 0 rgb(32 33 36 / 3%);
-}
-
-.page .quotaBarFillHigh,
-.page .quotaBarFillMedium,
-.page .quotaBarFillLow,
-.page .quotaBarFillUnknown {
-  background-image:
-    linear-gradient(
-      180deg,
-      rgb(255 255 255 / 22%) 0%,
-      rgb(255 255 255 / 7%) 46%,
-      rgb(18 39 25 / 12%) 100%
-    ),
-    linear-gradient(
-      90deg,
-      var(--auth-quota-fill-deep) 0%,
-      var(--auth-quota-fill-mid) 56%,
-      var(--auth-quota-fill-light) 100%
-    );
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 26%),
-    inset 0 -1px 0 rgb(18 39 25 / 18%);
-}
-
-.page .freePlanValue {
-  border-color: var(--auth-status-success-border);
-  background: var(--auth-status-success-soft);
-  color: var(--auth-status-success);
-}
-
-.page .premiumPlanValue {
-  border-color: var(--auth-status-warning-border);
-  background: var(--auth-status-warning-soft);
-  color: color-mix(in srgb, var(--auth-status-warning) 54%, var(--mg-text));
 }
 
 // Keep the page header open and let the actions read as individual floating
@@ -6133,13 +5392,6 @@
   background: color-mix(in srgb, var(--mg-text-tertiary) 18%, var(--mg-surface));
 }
 
-.page .credentialCard .quotaBar {
-  background: linear-gradient(180deg, var(--auth-quota-track-top), var(--auth-quota-track-bottom));
-  box-shadow:
-    inset 0 1px 2px rgb(32 33 36 / 9%),
-    inset 0 -1px 0 rgb(32 33 36 / 3%);
-}
-
 .page .credentialCard .cardActionButton:global(.btn.btn-sm) {
   border-color: var(--auth-card-divider);
   background: var(--auth-card-control-surface);
@@ -6290,12 +5542,6 @@
   border: 0;
   background: var(--mg-surface-subtle);
   box-shadow: none;
-}
-
-.page .rulesPanel :global(.card-header),
-.page .rulesNotice,
-.page .rulesRow + .rulesRow {
-  border-color: var(--auth-page-divider);
 }
 
 @container auth-files-page (max-width: 767px) {
@@ -6570,82 +5816,10 @@
   border-inline-end: 1px solid var(--auth-card-divider);
 }
 
-.page .rulesPanel :global(.card-header) {
-  min-height: 60px;
-  padding: 15px 18px;
-  background: color-mix(in srgb, var(--mg-text) 3%, var(--mg-surface));
-}
-
-.page .rulesPanel :global(.card-header) :global(.title) {
-  letter-spacing: -0.02em;
-}
-
-.page .rulesAddButton:global(.btn.btn-sm) {
-  min-height: 36px;
-  padding-inline: 13px;
-  border-radius: var(--xai-radius-pill);
-}
-
-.page .rulesRow {
-  min-height: 68px;
-  gap: 24px;
-  transition: background-color var(--mg-motion-fast) var(--mg-ease-standard);
-}
-
-.page .rulesRow:hover {
-  background: color-mix(in srgb, var(--auth-accent) 3%, var(--mg-surface));
-}
-
-.page .rulesProvider {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--mg-text);
-  font-weight: 650;
-}
-
-.page .rulesProvider::before {
-  width: 6px;
-  height: 6px;
-  flex: 0 0 6px;
-  border-radius: 50%;
-  background: var(--mg-ink-strong);
-  content: '';
-}
-
-.page .rulesStats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.page .rulesStat {
-  display: inline-flex;
-  min-height: 26px;
-  width: max-content;
-  align-items: center;
-  padding: 4px 8px;
-  border: 1px solid var(--auth-page-divider);
-  border-radius: var(--mg-radius-control);
-  background: color-mix(in srgb, var(--mg-text) 2.5%, var(--mg-surface));
-  color: var(--mg-text-secondary);
-}
-
-.page .rulesManageButton:global(.btn.btn-sm) {
-  min-height: 36px;
-  border-radius: var(--xai-radius-pill);
-}
-
 @container auth-files-page (max-width: 560px) {
   .page .credentialCard .cardFooterLeftWithStatus .cardStatusControl {
     margin-inline-end: 2px;
     padding-inline-end: 6px;
-  }
-
-  .page .rulesStat {
-    min-height: 28px;
   }
 }
 
@@ -6721,10 +5895,6 @@
   padding-block: 4px;
 }
 
-.page .credentialCard .quotaSection {
-  padding-block: 5px 6px;
-}
-
 .page .credentialCard .cardFooter {
   padding-top: 8px;
 }
@@ -6775,52 +5945,6 @@
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--mg-ink-strong) 16%, transparent);
 }
 
-// The reset control is secondary to the quota data. Keep it visually compact,
-// while retaining a comfortable mobile hit area around its smaller label.
-.page .codexResetCreditButton:global(.btn.btn-sm) {
-  width: auto;
-  min-width: 36px;
-  height: 30px;
-  min-height: 30px;
-  flex-basis: auto;
-  padding-inline: 8px;
-  font-size: 10.5px;
-}
-
-@container auth-files-page (max-width: 767px) {
-  .page .codexResetCreditButton:global(.btn.btn-sm) {
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
-    padding: 0 5px;
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .page .codexResetCreditButton:global(.btn.btn-sm) > :global(span:not(.loading-spinner)) {
-    min-height: 30px;
-    padding-inline: 7px;
-    border: 1px solid var(--auth-page-divider);
-    border-radius: var(--mg-radius-control);
-    background: var(--mg-surface);
-  }
-
-  .page .codexResetCreditButton:global(.btn.btn-sm):hover:not(:disabled),
-  .page .codexResetCreditButton:global(.btn.btn-sm):focus-visible {
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .page
-    .codexResetCreditButton:global(.btn.btn-sm):hover:not(:disabled)
-    > :global(span:not(.loading-spinner)) {
-    border-color: var(--auth-page-border-hover);
-    background: var(--mg-surface-subtle);
-  }
-}
-
 // On a wide workbench the toolbar has room to name its two secondary
 // controls. Keeping the labels visible removes the icon-recognition tax for
 // first-time users while the mobile layout stays compact and touch friendly.
@@ -6861,57 +5985,8 @@
   padding-block: 2px;
 }
 
-.page .credentialCard .quotaSection {
-  gap: 4px;
-  padding-block: 4px 5px;
-}
-
 .page .credentialCard .cardFooter {
   padding-top: 6px;
-}
-
-// OAuth rules summary: keep the provider identity and its compact metrics
-// readable as one operational row, including when the supporting panel wraps.
-@container auth-files-page (max-width: 560px) {
-  .page .rulesPanel :global(.card-header) {
-    min-height: 58px;
-    padding: 14px 14px;
-  }
-
-  .page .rulesList {
-    padding-inline: 14px;
-  }
-
-  .page .rulesRow {
-    min-height: 0;
-    align-items: flex-start;
-    gap: 10px 12px;
-    padding-block: 12px;
-  }
-
-  .page .rulesInfo {
-    display: flex;
-    min-width: 0;
-    flex: 1 1 180px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .page .rulesStats {
-    width: 100%;
-    gap: 6px;
-  }
-
-  .page .rulesStat {
-    min-height: 30px;
-    padding: 5px 8px;
-    font-size: 11.5px;
-  }
-
-  .page .rulesManageButton:global(.btn.btn-sm) {
-    min-height: 40px;
-  }
 }
 
 // Re-apply the compact card action scale after the shared mobile hit-area

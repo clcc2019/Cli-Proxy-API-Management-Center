@@ -32,7 +32,8 @@ import {
   useAuthFileQuotaRefreshing,
   type AuthFileQuotaState,
 } from '@/features/authFiles/quotaRefresh';
-import styles from '@/pages/AuthFilesPageRefresh.module.scss';
+import sharedStyles from '@/pages/AuthFilesPageRefresh.module.scss';
+import quotaStyles from '@/features/authFiles/components/AuthFileQuotaSection.module.scss';
 
 export type AuthFileQuotaSectionProps = {
   file: AuthFileItem;
@@ -67,12 +68,12 @@ const QuotaProgressBar = memo(function QuotaProgressBar({
   const progressLevel = getQuotaProgressLevel(percent, highThreshold, mediumThreshold);
   const fillClass =
     progressLevel === 'high'
-      ? styles.quotaBarFillHigh
+      ? quotaStyles.quotaBarFillHigh
       : progressLevel === 'medium'
-        ? styles.quotaBarFillMedium
+        ? quotaStyles.quotaBarFillMedium
         : progressLevel === 'low'
-          ? styles.quotaBarFillLow
-          : styles.quotaBarFillUnknown;
+          ? quotaStyles.quotaBarFillLow
+          : quotaStyles.quotaBarFillUnknown;
   const widthPercent = Math.round(normalized ?? 0);
   const ariaValue = normalized === null ? undefined : Math.round(normalized);
   const visualPercent = widthPercent > 0 ? Math.max(widthPercent, 2) : 0;
@@ -83,7 +84,7 @@ const QuotaProgressBar = memo(function QuotaProgressBar({
 
   return (
     <div
-      className={styles.quotaBar}
+      className={quotaStyles.quotaBar}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -91,7 +92,7 @@ const QuotaProgressBar = memo(function QuotaProgressBar({
       aria-label={ariaLabel}
       aria-valuetext={ariaValueText}
     >
-      <div className={`${styles.quotaBarFill} ${fillClass}`} style={fillStyle} />
+      <div className={`${quotaStyles.quotaBarFill} ${fillClass}`} style={fillStyle} />
     </div>
   );
 });
@@ -460,7 +461,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   }, [refreshQuotaForFile]);
   const quotaRenderHelpers = useMemo(
     () => ({
-      styles,
+      styles: quotaStyles,
       QuotaProgressBar,
       item: file,
       promotionAction,
@@ -486,13 +487,13 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
   );
 
   return (
-    <div className={styles.quotaSection}>
-      <div className={styles.quotaSectionHeader}>
-        <span className={styles.quotaSectionTitle}>{t(`${config.i18nPrefix}.title`)}</span>
+    <div className={quotaStyles.quotaSection}>
+      <div className={quotaStyles.quotaSectionHeader}>
+        <span className={quotaStyles.quotaSectionTitle}>{t(`${config.i18nPrefix}.title`)}</span>
         {additionalQuotaCount > 0 && (
           <button
             type="button"
-            className={styles.quotaExpandButton}
+            className={quotaStyles.quotaExpandButton}
             onClick={() => setShowAllQuotaWindows((expanded) => !expanded)}
             aria-expanded={showAllQuotaWindows}
           >
@@ -502,10 +503,10 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           </button>
         )}
         {showResetCredits && (
-          <div className={styles.codexResetCredits}>
-            <div className={styles.codexResetCreditsText}>
+          <div className={quotaStyles.codexResetCredits}>
+            <div className={quotaStyles.codexResetCreditsText}>
               <span
-                className={styles.codexPlanValue}
+                className={quotaStyles.codexPlanValue}
                 title={resetCreditExpiration.tooltip || undefined}
                 aria-label={
                   resetCreditExpiration.tooltip
@@ -522,7 +523,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
               size="sm"
               onClick={handleConsumeResetCreditClick}
               disabled={!canConsumeResetCredit}
-              className={styles.codexResetCreditButton}
+              className={quotaStyles.codexResetCreditButton}
               title={t('codex_quota.reset_credit_consume_button')}
               aria-label={t('codex_quota.reset_credit_consume_button')}
               aria-haspopup="dialog"
@@ -537,10 +538,10 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
           </div>
         )}
       </div>
-      <div className={styles.quotaContent} aria-busy={isQuotaRefreshing || undefined}>
+      <div className={quotaStyles.quotaContent} aria-busy={isQuotaRefreshing || undefined}>
         <div
-          className={`${styles.quotaContentBody} ${
-            isQuotaRefreshing ? styles.quotaContentBodyHidden : ''
+          className={`${quotaStyles.quotaContentBody} ${
+            isQuotaRefreshing ? quotaStyles.quotaContentBodyHidden : ''
           }`}
           aria-hidden={isQuotaRefreshing || undefined}
         >
@@ -549,23 +550,23 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
             !isRefreshingCachedQuota &&
             !fileCreditsQuota &&
             !fileAntigravityQuota ? (
-              <div className={styles.quotaLoadingState} role="status" aria-busy="true">
+              <div className={quotaStyles.quotaLoadingState} role="status" aria-busy="true">
                 <LoadingSpinner size={16} />
                 <span>{t(`${config.i18nPrefix}.loading`)}</span>
               </div>
             ) : quotaStatus === 'error' && !fileCreditsQuota && !fileAntigravityQuota ? (
-              <div className={styles.quotaError} role="alert">
+              <div className={quotaStyles.quotaError} role="alert">
                 <button
                   type="button"
-                  className={styles.cardErrorTrigger}
+                  className={sharedStyles.cardErrorTrigger}
                   title={quotaErrorDetails}
                   aria-label={`${t('auth_files.quota_error_summary')}: ${quotaErrorDetails}`}
                 >
                   <IconAlertTriangle size={13} aria-hidden="true" />
-                  <span className={styles.cardErrorSummary}>
+                  <span className={sharedStyles.cardErrorSummary}>
                     {t('auth_files.quota_error_summary')}
                   </span>
-                  <span className={styles.cardErrorTooltip} role="tooltip">
+                  <span className={sharedStyles.cardErrorTooltip} role="tooltip">
                     {quotaErrorDetails}
                   </span>
                 </button>
@@ -576,7 +577,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
             ) : (
               <button
                 type="button"
-                className={`${styles.quotaMessage} ${styles.quotaMessageAction}`}
+                className={`${quotaStyles.quotaMessage} ${quotaStyles.quotaMessageAction}`}
                 onClick={handleRefreshClick}
                 disabled={!canRefreshQuota}
                 title={refreshLabel}
@@ -587,7 +588,7 @@ export const AuthFileQuotaSection = memo(function AuthFileQuotaSection(
         </div>
         {isQuotaRefreshing && (
           <div
-            className={styles.quotaRefreshingState}
+            className={quotaStyles.quotaRefreshingState}
             role="status"
             aria-label={t(`${config.i18nPrefix}.loading`)}
           >

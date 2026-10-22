@@ -10,14 +10,8 @@ export type SidebarNavigationItem = {
   icon: ReactNode;
 };
 
-export type SidebarNavigationGroup = {
-  id: string;
-  label: string;
-  items: SidebarNavigationItem[];
-};
-
 type SidebarNavigationProps = {
-  groups: SidebarNavigationGroup[];
+  items: SidebarNavigationItem[];
   currentPathname: string;
   open: boolean;
   collapsed: boolean;
@@ -45,7 +39,7 @@ const isNavigationItemCurrent = (currentPathname: string, itemPath: string) => {
 export const SidebarNavigation = forwardRef<HTMLElement, SidebarNavigationProps>(
   function SidebarNavigation(
     {
-      groups,
+      items,
       currentPathname,
       open,
       collapsed,
@@ -86,35 +80,27 @@ export const SidebarNavigation = forwardRef<HTMLElement, SidebarNavigationProps>
         </div>
 
         <nav className="nav-section" aria-label={navigationLabel}>
-          {groups.map((group) => {
-            return (
-              <div className="nav-group" role="group" aria-label={group.label} key={group.id}>
-                <div className="nav-group-items">
-                  {group.items.map((item) => {
-                    const isCurrent = isNavigationItemCurrent(currentPathname, item.path);
+          {items.map((item) => {
+            const isCurrent = isNavigationItemCurrent(currentPathname, item.path);
 
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`nav-item ${isCurrent ? 'active' : ''}`}
-                        aria-current={isCurrent ? 'page' : undefined}
-                        onClick={(event) => onNavigate(event, item.path)}
-                        onPointerEnter={() => onNavigationIntent(item.path)}
-                        onPointerLeave={onCancelNavigationIntent}
-                        onFocus={() => onNavigationIntent(item.path)}
-                        onBlur={onCancelNavigationIntent}
-                        title={item.label}
-                      >
-                        <span className="nav-icon" aria-hidden="true">
-                          {item.icon}
-                        </span>
-                        <span className="nav-label">{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-item ${isCurrent ? 'active' : ''}`}
+                aria-current={isCurrent ? 'page' : undefined}
+                onClick={(event) => onNavigate(event, item.path)}
+                onPointerEnter={() => onNavigationIntent(item.path)}
+                onPointerLeave={onCancelNavigationIntent}
+                onFocus={() => onNavigationIntent(item.path)}
+                onBlur={onCancelNavigationIntent}
+                title={item.label}
+              >
+                <span className="nav-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className="nav-label">{item.label}</span>
+              </Link>
             );
           })}
         </nav>

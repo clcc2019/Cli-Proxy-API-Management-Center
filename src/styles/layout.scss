@@ -491,13 +491,6 @@ $breakpoint-shell-compact: 1023px;
     width: var(--sidebar-collapsed-width);
     padding: var(--xai-space-6) var(--xai-space-3);
 
-    .nav-group {
-      + .nav-group {
-        padding-top: var(--xai-space-3);
-        border-top: 0;
-      }
-    }
-
     .nav-item {
       justify-content: center;
       padding-inline: 0;
@@ -616,7 +609,7 @@ $breakpoint-shell-compact: 1023px;
     display: flex;
     min-height: 0;
     flex-direction: column;
-    gap: var(--xai-space-3);
+    gap: var(--xai-space-1);
     padding: 0 var(--xai-space-1) 0 0;
     flex: 1;
     overflow-y: auto;
@@ -636,24 +629,6 @@ $breakpoint-shell-compact: 1023px;
       border-radius: var(--xai-radius-pill);
       background: var(--xai-border-hover);
     }
-  }
-
-  .nav-group {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-
-    + .nav-group {
-      padding-top: var(--xai-space-4);
-      border-top: 0;
-    }
-  }
-
-  .nav-group-items {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: var(--xai-space-1);
   }
 
   .nav-item {
@@ -827,8 +802,7 @@ $breakpoint-shell-compact: 1023px;
   .sidebar .nav-label,
   .sidebar .sidebar-collapse-button,
   .sidebar .sidebar-collapse-button svg,
-  .sidebar .nav-section,
-  .sidebar .nav-group {
+  .sidebar .nav-section {
     transition: none;
   }
 }
@@ -1156,13 +1130,7 @@ $breakpoint-shell-compact: 1023px;
       padding-left: max(var(--xai-space-4), env(safe-area-inset-left));
 
       .nav-section {
-        gap: var(--xai-space-6);
-      }
-
-      .nav-group {
-        + .nav-group {
-          padding-top: 0;
-        }
+        gap: var(--xai-space-1);
       }
 
       .nav-item {
@@ -1312,11 +1280,7 @@ $breakpoint-shell-compact: 1023px;
   }
 
   .sidebar .nav-section {
-    gap: var(--xai-space-3);
-  }
-
-  .sidebar .nav-group + .nav-group {
-    padding-top: 0;
+    gap: var(--xai-space-1);
   }
 
   .sidebar .nav-item {

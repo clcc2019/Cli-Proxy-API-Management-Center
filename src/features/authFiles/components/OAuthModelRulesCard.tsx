@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconSettings } from '@/components/ui/icons';
 import type { OAuthModelAliasEntry } from '@/types';
-import refreshStyles from '@/pages/AuthFilesPageRefresh.module.scss';
+import refreshStyles from '@/features/authFiles/components/OAuthModelRulesCard.module.scss';
 
 type UnsupportedError = 'unsupported' | null;
 

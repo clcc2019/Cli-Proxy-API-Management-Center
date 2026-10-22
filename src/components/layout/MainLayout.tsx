@@ -19,7 +19,7 @@ import { RefreshButton } from '@/components/ui/RefreshButton';
 import { PageTransition } from '@/components/common/PageTransition';
 import {
   SidebarNavigation,
-  type SidebarNavigationGroup,
+  type SidebarNavigationItem,
 } from '@/components/layout/SidebarNavigation';
 import { MainRoutes } from '@/router/MainRoutes';
 import { preloadRoute } from '@/router/routeLoaders';
@@ -450,43 +450,23 @@ export function MainLayout() {
         : 'common.disconnected_status'
   );
 
-  const navGroups = useMemo<SidebarNavigationGroup[]>(
+  const navItems = useMemo<SidebarNavigationItem[]>(
     () => [
-      {
-        id: 'workspace',
-        label: t('sidebar.groups.workspace'),
-        items: [
-          { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
-          { path: '/config', label: t('nav.config_management'), icon: sidebarIcons.config },
-        ],
-      },
-      {
-        id: 'gateway',
-        label: t('sidebar.groups.gateway'),
-        items: [
-          { path: '/api-keys', label: t('nav.api_keys'), icon: sidebarIcons.apiKeys },
-          { path: '/ai-providers', label: t('nav.ai_providers'), icon: sidebarIcons.aiProviders },
-          { path: '/auth-files', label: t('nav.auth_files'), icon: sidebarIcons.authFiles },
-          { path: '/oauth', label: t('nav.oauth'), icon: sidebarIcons.oauth },
-        ],
-      },
-      {
-        id: 'operations',
-        label: t('sidebar.groups.operations'),
-        items: [
-          { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
-          { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
-          ...(config?.loggingToFile
-            ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
-            : []),
-          { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
-        ],
-      },
+      { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
+      { path: '/config', label: t('nav.config_management'), icon: sidebarIcons.config },
+      { path: '/api-keys', label: t('nav.api_keys'), icon: sidebarIcons.apiKeys },
+      { path: '/ai-providers', label: t('nav.ai_providers'), icon: sidebarIcons.aiProviders },
+      { path: '/auth-files', label: t('nav.auth_files'), icon: sidebarIcons.authFiles },
+      { path: '/oauth', label: t('nav.oauth'), icon: sidebarIcons.oauth },
+      { path: '/usage', label: t('nav.usage_stats'), icon: sidebarIcons.usage },
+      { path: '/request-logs', label: t('nav.request_logs'), icon: sidebarIcons.requestLogs },
+      ...(config?.loggingToFile
+        ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
+        : []),
+      { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
     ],
     [t, config?.loggingToFile]
   );
-
-  const navItems = useMemo(() => navGroups.flatMap((group) => group.items), [navGroups]);
 
   const mobilePageTitle = useMemo(() => {
     const pathname = location.pathname.replace(/\/$/, '') || '/';
@@ -816,7 +796,7 @@ export function MainLayout() {
 
         <SidebarNavigation
           ref={sidebarRef}
-          groups={navGroups}
+          items={navItems}
           currentPathname={location.pathname}
           open={sidebarOpen}
           collapsed={sidebarCollapsed}

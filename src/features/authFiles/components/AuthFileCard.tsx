@@ -555,11 +555,7 @@ export const AuthFileCard = memo(function AuthFileCard(props: AuthFileCardProps)
           {showQuotaLayout && quotaType && (
             <div className={refreshStyles.quotaSlot}>
               <Suspense
-                fallback={
-                  <div className={refreshStyles.quotaSection} aria-hidden="true">
-                    <div className={refreshStyles.quotaContent} />
-                  </div>
-                }
+                fallback={<div className={refreshStyles.quotaSectionFallback} aria-hidden="true" />}
               >
                 <AuthFileQuotaSection
                   file={file}
